@@ -5,10 +5,10 @@
 #include "vtkCPInputDataDescription.h"
 #include "vtkCPProcessor.h"
 #include "vtkCPPythonScriptPipeline.h"
-#include "vtkSmartPointer.h"
 #include "vtkDoubleArray.h"
-#include "vtkPointData.h"
 #include "vtkImageData.h"
+#include "vtkPointData.h"
+#include "vtkSmartPointer.h"
 
 // Fortran specific headers.
 #include "vtkCPPythonAdaptorAPI.h"	// vtkCPPythonAdaptorAPI.h replaces FortranAdaptorAPI.h.
