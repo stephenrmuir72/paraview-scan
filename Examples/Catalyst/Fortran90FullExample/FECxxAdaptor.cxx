@@ -38,7 +38,7 @@ extern "C" void createcpimagedata(int* nxstart, int* nxend, int* nx,
 
   // Name should be consistent between here, Fortran and Python client script.
   vtkCPPythonAdaptorAPI::GetCoProcessorData()->GetInputDescriptionByName("input")->SetGrid(grid);
-  vtkCPPythonAdaptorAPI::GetCoProcessorData()->GetInputDescriptionByName("input")->SetWholeExtent(0, *nx-1, 0, *ny-1, 0, *nz-1);
+  vtkCPPythonAdaptorAPI::GetCoProcessorData()->GetInputDescriptionByName("input")->SetWholeExtent(0, *nx - 1, 0, *ny - 1, 0, *nz - 1);
 }
 
 // Add field(s) to the data container.
