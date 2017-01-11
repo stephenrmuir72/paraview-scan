@@ -1,7 +1,4 @@
-# Sets miminum required version of cmake for this project.
 cmake_minimum_required (VERSION 3.3)
-
-# Specifys workspace name.
 project (CatalystFortran03FullExample Fortran CXX)
 
 find_package (ParaView 4.1 REQUIRED COMPONENTS vtkPVPythonCatalyst)
