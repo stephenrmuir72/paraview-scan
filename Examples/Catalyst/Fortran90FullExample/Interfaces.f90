@@ -16,8 +16,8 @@ module interfaces
   ! Intrinsic module includes named constants, derived types
   ! and module procedures to support interoperability.
   USE iso_c_binding, ONLY: c_int, c_double, c_char, c_null_char, c_loc, c_ptr
-  
-  
+
+
   implicit none
 
 
@@ -29,7 +29,7 @@ module interfaces
         character(kind=c_char) :: pythonFileName
         integer(kind=c_int) :: pythonFileNameLength
     end subroutine
-    
+
     ! Declared in vtkCPAdaptorAPI.h which in turn is
     ! included in vtkCPPythonAdaptorAPI.h.
     subroutine coprocessorfinalize() bind(c)
@@ -43,19 +43,19 @@ module interfaces
         import :: c_int
         integer(kind=c_int) :: nxstart, nxend, nx, ny, nz
     end subroutine
-    
+
     ! Defined in file FECxxAdaptor.cxx.
     subroutine addfield(scalars, name) bind(c)
         import :: c_ptr, c_char
         type(c_ptr), value :: scalars
         character(kind=c_char) :: name
     end subroutine
-    
+
     ! Declared in vtkCPAdaptorAPI.h which in turn is
     ! included in vtkCPPythonAdaptorAPI.h.
     subroutine coprocess() bind(c)
     end subroutine
-    
+
     ! Declared in vtkCPAdaptorAPI.h which in turn is
     ! included in vtkCPPythonAdaptorAPI.h.
     subroutine requestdatadescription(timeStep, time, coprocessThisTimeStep) bind(c)
@@ -63,7 +63,7 @@ module interfaces
         integer(kind=c_int) :: timeStep, coprocessThisTimeStep
         real(kind=c_double) :: time
     end subroutine
-    
+
     ! Declared in vtkCPAdaptorAPI.h which in turn is
     ! included in vtkCPPythonAdaptorAPI.h.
     subroutine needtocreategrid(needGrid) bind(c)
@@ -71,5 +71,5 @@ module interfaces
         integer(kind=c_int) :: needGrid
     end subroutine
   end interface
-    
+
 end module interfaces
