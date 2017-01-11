@@ -6,12 +6,12 @@
 PROGRAM main
   USE tcp, ONLY: testcoprocessor
   USE interfaces	! Procedure interfaces for interoperability.
-  
-  
+
+
   implicit none
   include 'mpif.h'
-  
-  
+
+
   integer, parameter :: nx=100, ny=100, nz=100, ntime=10    ! Maximal node numbers and time steps.
   integer :: i, j, k, &                                     ! Loop variables in x, y and z direction, respectively.
              time, nxstart, nxend, numtasks, rank, ierr, &
@@ -28,13 +28,13 @@ PROGRAM main
   ! Partition in the x-direction only.
   nxstart = rank*nx/numtasks+1
   nxend = (rank+1)*nx/numtasks
-  
+
   if(numtasks /= rank+1) then
      nxend=nxend+1
   endif
 
   allocate(psi01(nxend-nxstart+1,ny,nz), STAT=status)
-  
+
   ! Set initial values.
   max=sqrt(real(nx)**2+real(ny)**2+real(nz)**2)
   do k=1,nz
@@ -53,10 +53,10 @@ PROGRAM main
            end do
         end do
      end do
-     
+
      call testcoprocessor(nxstart,nxend,nx,ny,nz,time,dble(time),psi01)
   enddo
-  
+
   deallocate(psi01, STAT=status)
 
   call coprocessorfinalize()
