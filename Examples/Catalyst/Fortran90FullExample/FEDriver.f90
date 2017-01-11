@@ -17,13 +17,13 @@ PROGRAM main
              time, nxstart, nxend, numtasks, rank, ierr, &
              status                                         ! Flag for array allocation.
   real :: max
-  complex(kind=8), allocatable :: psi01(:,:,:)              ! Deferred-shape array of rank 3.
+  complex(kind=8), allocatable :: psi01(:,:,:)
 
   call mpi_init(ierr)
   call mpi_comm_size(MPI_COMM_WORLD, numtasks, ierr)
   call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
 
-  call coprocessorinitializewithpython("coproc.py"//c_null_char,9)      ! Originally ("coproc.py",9).
+  call coprocessorinitializewithpython("coproc.py"//c_null_char,9)
 
   ! Partition in the x-direction only.
   nxstart = rank*nx/numtasks+1
@@ -40,7 +40,7 @@ PROGRAM main
   do k=1,nz
      do j=1,ny
         do i=1,nxend-nxstart+1
-           psi01(i,j,k)=CMPLX(max-sqrt(real(i-50)**2+real(j-50)**2+real(k-50)**2), real(1+j+k),8)/max*100.0     ! Kind parameter 8 inserted subsequently.
+           psi01(i,j,k)=CMPLX(max-sqrt(real(i-50)**2+real(j-50)**2+real(k-50)**2), real(1+j+k),8)/max*100.0
         enddo
      enddo
   enddo
