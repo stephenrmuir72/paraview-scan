@@ -8,7 +8,7 @@ if (NOT PARAVIEW_USE_MPI)
   message (SEND_ERROR "ParaView must be built with MPI enabled")
 endif ()
 if (NOT MPI_Fortran_LIBRARIES)
-  find_package (MPI)
+	find_package (MPI)
 endif ()
 
 include_directories (${MPI_Fortran_INCLUDE_PATH})
