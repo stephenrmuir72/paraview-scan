@@ -51,6 +51,7 @@ class vtkLightKit;
 class vtkMatrix4x4;
 class vtkPartitionOrderingInterface;
 class vtkProp;
+class vtkProp3D;
 class vtkPVAxesWidget;
 class vtkPVCameraCollection;
 class vtkPVCenterAxesActor;
@@ -598,6 +599,10 @@ public:
    * Set the vtkPVGridAxes3DActor to use for the view.
    */
   virtual void SetGridAxes3DActor(vtkPVGridAxes3DActor*);
+  /**
+   * Set the Scale and Position of the vtkPVGridAxes3DActor.
+   */
+  static void ConfigureGridAxes3DActor(vtkInformation* info, vtkProp3D* Actor);
 
   //*****************************************************************
   // Forwarded to orientation axes widget.

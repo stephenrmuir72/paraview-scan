@@ -66,6 +66,12 @@ public:
   vtkSetVector3Macro(DataPosition, double);
   vtkGetVector3Macro(DataPosition, double);
 
+  vtkSetVector3Macro(DataOrigin, double);
+  vtkGetVector3Macro(DataOrigin, double);
+
+  vtkSetVector3Macro(DataOrientation, double);
+  vtkGetVector3Macro(DataOrientation, double);
+
   //@{
   /**
    * Specify the inflate factor used to proportionally
@@ -93,6 +99,7 @@ public:
    * superclass.
    */
   virtual double* GetBounds() VTK_OVERRIDE;
+  void ComputeMatrix() VTK_OVERRIDE;
 
 protected:
   vtkPVGridAxes3DActor();
@@ -105,6 +112,8 @@ protected:
 
   double DataScale[3];
   double DataPosition[3];
+  double DataOrigin[3];
+  double DataOrientation[3];
   double DataBoundsInflateFactor;
   double TransformedBounds[6];
 

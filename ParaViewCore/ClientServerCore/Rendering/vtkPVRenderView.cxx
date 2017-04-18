@@ -1812,6 +1812,25 @@ void vtkPVRenderView::SetGeometryBounds(
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::ConfigureGridAxes3DActor(vtkInformation* info, vtkProp3D* Actor)
+{
+  vtkPVRenderView* self = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
+  if (!self)
+  {
+    vtkGenericWarningMacro("Missing VIEW().");
+    return;
+  }
+
+  if (self->GridAxes3DActor)
+  {
+    self->GridAxes3DActor->SetDataScale(Actor->GetScale());
+    self->GridAxes3DActor->SetDataPosition(Actor->GetPosition());
+    self->GridAxes3DActor->SetDataOrigin(Actor->GetOrigin());
+    self->GridAxes3DActor->SetDataOrientation(Actor->GetOrientation());
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetNextStreamedPiece(
   vtkInformation* info, vtkPVDataRepresentation* repr, vtkDataObject* piece)
 {

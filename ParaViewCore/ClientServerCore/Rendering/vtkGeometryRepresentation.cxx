@@ -344,6 +344,7 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     vtkNew<vtkMatrix4x4> matrix;
     this->Actor->GetMatrix(matrix.GetPointer());
     vtkPVRenderView::SetGeometryBounds(inInfo, this->DataBounds, matrix.GetPointer());
+    vtkPVRenderView::ConfigureGridAxes3DActor(inInfo, this->Actor);
   }
   else if (request_type == vtkPVView::REQUEST_UPDATE_LOD())
   {
