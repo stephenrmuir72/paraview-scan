@@ -176,7 +176,7 @@ public:
 
 protected:
   vtkSMReaderFactory();
-  ~vtkSMReaderFactory();
+  ~vtkSMReaderFactory() override;
 
   // To support legacy configuration files.
   void RegisterPrototype(
@@ -190,8 +190,8 @@ protected:
   vtkStringList* Readers;
 
 private:
-  vtkSMReaderFactory(const vtkSMReaderFactory&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMReaderFactory&) VTK_DELETE_FUNCTION;
+  vtkSMReaderFactory(const vtkSMReaderFactory&) = delete;
+  void operator=(const vtkSMReaderFactory&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

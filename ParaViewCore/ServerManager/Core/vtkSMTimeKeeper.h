@@ -93,7 +93,7 @@ public:
 
 protected:
   vtkSMTimeKeeper();
-  ~vtkSMTimeKeeper();
+  ~vtkSMTimeKeeper() override;
 
   friend class vtkSMTimeKeeperProxy;
   void SetTimestepValuesProperty(vtkSMProperty*);
@@ -108,8 +108,8 @@ protected:
   double Time;
 
 private:
-  vtkSMTimeKeeper(const vtkSMTimeKeeper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMTimeKeeper&) VTK_DELETE_FUNCTION;
+  vtkSMTimeKeeper(const vtkSMTimeKeeper&) = delete;
+  void operator=(const vtkSMTimeKeeper&) = delete;
 
   class vtkInternal;
   vtkInternal* Internal;

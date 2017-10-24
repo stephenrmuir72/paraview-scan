@@ -70,7 +70,7 @@ public:
 
 protected:
   vtkSMSaveAnimationProxy();
-  ~vtkSMSaveAnimationProxy();
+  ~vtkSMSaveAnimationProxy() override;
 
   /**
    * Write animation on local process.
@@ -92,14 +92,20 @@ protected:
    */
   bool Cleanup() VTK_OVERRIDE;
 
+  /**
+   * Change "ImageResolution" property as needed for the file format requested.
+   * @returns true if changed, false otherwise.
+   */
+  virtual bool EnforceSizeRestrictions(const char* filename);
+
   vtkSMViewLayoutProxy* GetLayout();
   vtkSMViewProxy* GetView();
   vtkSMSaveScreenshotProxy* GetScreenshotHelper();
   vtkSMProxy* GetAnimationScene();
 
 private:
-  vtkSMSaveAnimationProxy(const vtkSMSaveAnimationProxy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMSaveAnimationProxy&) VTK_DELETE_FUNCTION;
+  vtkSMSaveAnimationProxy(const vtkSMSaveAnimationProxy&) = delete;
+  void operator=(const vtkSMSaveAnimationProxy&) = delete;
 
   friend class vtkSMSaveAnimationProxyNS::SceneImageWriter;
 

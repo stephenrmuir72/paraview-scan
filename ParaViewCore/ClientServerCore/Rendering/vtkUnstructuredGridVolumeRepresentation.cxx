@@ -155,6 +155,16 @@ void vtkUnstructuredGridVolumeRepresentation::MarkModified()
 }
 
 //----------------------------------------------------------------------------
+void vtkUnstructuredGridVolumeRepresentation::SetUseDataPartitions(bool val)
+{
+  if (this->UseDataPartitions != val)
+  {
+    this->UseDataPartitions = val;
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
 int vtkUnstructuredGridVolumeRepresentation::FillInputPortInformation(int, vtkInformation* info)
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkUnstructuredGridBase");
@@ -320,7 +330,15 @@ void vtkUnstructuredGridVolumeRepresentation::UpdateMapperParameters()
     info->Has(vtkDataObject::FIELD_NAME()))
   {
     colorArrayName = info->Get(vtkDataObject::FIELD_NAME());
-    fieldAssociation = info->Get(vtkDataObject::FIELD_ASSOCIATION());
+    // The Resample To Image filter transforms cell data to point data.
+    if (this->Internals->ActiveVolumeMapper == "Resample To Image")
+    {
+      fieldAssociation = vtkDataObject::FIELD_ASSOCIATION_POINTS;
+    }
+    else
+    {
+      fieldAssociation = info->Get(vtkDataObject::FIELD_ASSOCIATION());
+    }
   }
 
   activeMapper->SelectScalarArray(colorArrayName);

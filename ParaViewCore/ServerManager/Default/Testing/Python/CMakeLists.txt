@@ -32,6 +32,7 @@ set(PY_TESTS
   GhostCellsInMergeBlocks.py
   IntegrateAttributes.py,NO_VALID
   MultiServer.py,NO_VALID
+  PointGaussianProperties.py
   ProgrammableFilterProperties.py,NO_VALID
   ProgrammableFilter.py,NO_VALID
   ProxyBackwardsCompatibilityTest.py,NO_VALID
@@ -49,6 +50,7 @@ set(PY_TESTS
   RepresentationTypeHint.py,NO_VALID
   SaveAnimation.py
   SaveScreenshot.py,NO_VALID
+  ScalarBarActorBackwardsCompatibility.py,NO_VALID
   ValidateSources.py,NO_VALID
   VRMLSource.py,NO_VALID
   )
@@ -65,11 +67,6 @@ if (BUILD_SHARED_LIBS
   list(APPEND PY_TESTS
     Plugins.py,NO_VALID)
 endif ()
-
-# This test makes use of "Point Gaussian" representation, only available with OpenGL2
-if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-    list(APPEND PY_TESTS PointGaussianProperties.py)
-endif()
 
 set(SMSTATE_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(${vtk-module}_ARGS

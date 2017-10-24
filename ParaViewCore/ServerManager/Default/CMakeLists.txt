@@ -32,6 +32,7 @@ set (Module_SRCS
   vtkLoadStateOptions.cxx
   vtkPVGeneralSettings.cxx
   vtkPVMultiServerDataSource.cxx
+  vtkPVX3DExporter.cxx
   vtkSMCameraConfigurationReader.cxx
   vtkSMCameraConfigurationWriter.cxx
   vtkSMCSVExporterProxy.cxx
@@ -52,14 +53,12 @@ set (Module_SRCS
   vtkSMPSWriterProxy.cxx
   vtkSMReaderReloadHelper.cxx
   vtkSMRenderViewExporterProxy.cxx
+  vtkSMSpreadSheetRepresentationInitializationHelper.cxx
   vtkSMTesting.cxx
   vtkSMTooltipSelectionPipeline.cxx
   vtkSMViewExportHelper.cxx
+  vtkSMXYChartRepresentationInitializationHelper.cxx
 )
-
-if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-  add_definitions(-DVTKGL2)
-endif()
 
 SET_SOURCE_FILES_PROPERTIES(
   vtkSMExporterProxy.cxx

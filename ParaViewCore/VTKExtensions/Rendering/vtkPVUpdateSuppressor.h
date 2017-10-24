@@ -64,7 +64,7 @@ public:
 
 protected:
   vtkPVUpdateSuppressor();
-  ~vtkPVUpdateSuppressor();
+  ~vtkPVUpdateSuppressor() override;
 
   int RequestDataObject(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) VTK_OVERRIDE;
@@ -76,11 +76,11 @@ protected:
   bool Enabled;
 
   // Create a default executive.
-  virtual vtkExecutive* CreateDefaultExecutive() VTK_OVERRIDE;
+  vtkExecutive* CreateDefaultExecutive() VTK_OVERRIDE;
 
 private:
-  vtkPVUpdateSuppressor(const vtkPVUpdateSuppressor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVUpdateSuppressor&) VTK_DELETE_FUNCTION;
+  vtkPVUpdateSuppressor(const vtkPVUpdateSuppressor&) = delete;
+  void operator=(const vtkPVUpdateSuppressor&) = delete;
 };
 
 #endif

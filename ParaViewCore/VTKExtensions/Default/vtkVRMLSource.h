@@ -67,7 +67,7 @@ public:
 
 protected:
   vtkVRMLSource();
-  ~vtkVRMLSource();
+  ~vtkVRMLSource() override;
 
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
@@ -80,8 +80,8 @@ protected:
   int Append;
 
 private:
-  vtkVRMLSource(const vtkVRMLSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVRMLSource&) VTK_DELETE_FUNCTION;
+  vtkVRMLSource(const vtkVRMLSource&) = delete;
+  void operator=(const vtkVRMLSource&) = delete;
 };
 
 #endif

@@ -100,11 +100,11 @@ public:
 
 protected:
   vtkSMUtilities() {}
-  ~vtkSMUtilities() {}
+  ~vtkSMUtilities() override {}
 
 private:
-  vtkSMUtilities(const vtkSMUtilities&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMUtilities&) VTK_DELETE_FUNCTION;
+  vtkSMUtilities(const vtkSMUtilities&) = delete;
+  void operator=(const vtkSMUtilities&) = delete;
 };
 
 #endif

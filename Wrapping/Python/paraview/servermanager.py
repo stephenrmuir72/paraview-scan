@@ -84,12 +84,15 @@ def _wrap_property(proxy, smproperty):
     if paraview.compatibility.GetVersion() >= 3.5 and \
       smproperty.IsA("vtkSMStringVectorProperty"):
         al = smproperty.GetDomain("array_list")
-        if  al and al.IsA("vtkSMArraySelectionDomain") and \
+        if al and al.IsA("vtkSMArraySelectionDomain") and \
             smproperty.GetRepeatable():
             property = ArrayListProperty(proxy, smproperty)
-        elif  al and al.IsA("vtkSMChartSeriesSelectionDomain") and \
+        elif al and al.IsA("vtkSMChartSeriesSelectionDomain") and \
             smproperty.GetRepeatable() and al.GetDefaultMode() == 1:
             property = ArrayListProperty(proxy, smproperty)
+        elif al and al.IsA("vtkSMSubsetInclusionLatticeDomain") and \
+            smproperty.GetRepeatable():
+            property = SubsetInclusionLatticeProperty(proxy, smproperty)
         elif al and al.IsA("vtkSMArrayListDomain") and \
             smproperty.GetRepeatable():
             # if it is repeatable, then it is not a single array selection... and if it happens
@@ -178,21 +181,21 @@ class Proxy(object):
 
        proxy.Foo = (1,2)
 
-    or
+    or::
 
        proxy.Foo.SetData((1,2))
 
-    or
+    or::
 
        proxy.Foo[0:2] = (1,2)
 
     For more information, see the documentation of the property which
-    you can obtain with
-    help(proxy.Foo).
+    you can obtain with::
+
+      help(proxy.Foo).
 
     This class also provides an iterator which can be used to iterate
-    over all properties.
-    eg::
+    over all properties, e.g.::
 
         proxy = Proxy(proxy=smproxy)
         for property in proxy:
@@ -200,7 +203,7 @@ class Proxy(object):
 
 
     For advanced users:
-    This is a python class that wraps a vtkSMProxy.. Makes it easier to
+    This is a python class that wraps a vtkSMProxy. Makes it easier to
     set/get properties.
     Instead of::
 
@@ -211,11 +214,11 @@ class Proxy(object):
 
         proxy.Foo = (1,2)
 
-    or
+    or::
 
         proxy.Foo.SetData((1,2))
 
-    or
+    or::
 
         proxy.Foo[0:2] = (1,2)
 
@@ -227,22 +230,26 @@ class Proxy(object):
 
         proxy.Foo.GetData()[0]
 
-    or
+    or::
 
         proxy.Foo[0]
 
-    For proxy properties, you can use append:
-     proxy.GetProperty("Bar").AddProxy(foo)
-    you can do:
-     proxy.Bar.append(foo)
-    Properties support most of the list API. See VectorProperty and
-    ProxyProperty documentation for details.
+    For proxy properties, you can use append::
+
+        proxy.GetProperty("Bar").AddProxy(foo)
+
+    you can do::
+
+        proxy.Bar.append(foo)
+
+    Properties support most of the list API. See ``VectorProperty`` and
+    ``ProxyProperty`` documentation for details.
 
     Please note that some of the methods accessible through the Proxy
-    class are not listed by help() because the Proxy objects forward
+    class are not listed by ``help()`` because the ``Proxy`` objects forward
     unresolved attributes to the underlying object. To get the full list,
-    see also dir(proxy.SMProxy). See also the doxygen based documentation
-    of the vtkSMProxy C++ class.
+    see also ``dir(proxy.SMProxy)``. See also the doxygen based documentation
+    of the ``vtkSMProxy`` C++ class.
     """
 
     def __init__(self, **args):
@@ -289,32 +296,6 @@ class Proxy(object):
         # Visit all properties so that they are created
         for prop in self:
             pass
-
-    def __setattr__(self, name, value):
-        try:
-            setter = getattr(self.__class__, name)
-            setter = setter.__set__
-        except AttributeError:
-            if name == "ColorAttributeType" and self.SMProxy.GetProperty("ColorArrayName"):
-                if paraview.compatibility.GetVersion() <= 4.1:
-                    # set ColorAttributeType on ColorArrayName property instead.
-                    caProp = self.GetProperty("ColorArrayName")
-
-                    self.GetProperty("ColorArrayName").SetData((value, caProp[1]))
-                    return
-                else:
-                    # if ColorAttributeType is being used, print debug information.
-                    paraview.print_debug_info(\
-                        "'ColorAttributeType' is obsolete. Simply use 'ColorArrayName' instead.  Refer to ParaView Python API changes documentation online.")
-                    # we let the exception be raised as well, hence don't return here.
-            if not hasattr(self, name):
-                raise AttributeError("Attribute %s does not exist. " % name +
-                  " This class does not allow addition of new attributes to avoid " +
-                  "mistakes due to typos. Use add_attribute() if you really want " +
-                  "to add this attribute.")
-            self.__dict__[name] = value
-        else:
-            setter(self, value)
 
     def add_attribute(self, name, value):
         self.__dict__[name] = value
@@ -461,6 +442,26 @@ class Proxy(object):
             self.Observed = c
         return c
 
+    def __setattr__(self, name, value):
+        try:
+            setter = getattr(self.__class__, name)
+            paraview.print_debug_info("No attribute %s" % name)
+            setter = setter.__set__
+        except AttributeError:
+            # Let the backwards compatibility helper try to handle this
+            try:
+                _bc.setattr(self, name, value)
+            except _bc.Continue:
+                pass
+            except AttributeError:
+                raise AttributeError("Attribute %s does not exist. " % name +
+                    " This class does not allow addition of new attributes to avoid " +
+                    "mistakes due to typos. Use add_attribute() if you really want " +
+                    "to add this attribute.")
+        else:
+            paraview.print_debug_info(name)
+            setter(self, value)
+
     def __getattr__(self, name):
         """With the exception of a few overloaded methods,
         returns the SMProxy method"""
@@ -476,9 +477,6 @@ class Proxy(object):
 
         try:
             return _bc.getattr(self, name)
-        except _bc.NotSupportedException:
-            # we fall through and let getattr() raise the appropriate exception.
-            pass
         except _bc.Continue:
             pass
         # If not a property, see if SMProxy has the method
@@ -1134,6 +1132,15 @@ class ArrayListProperty(VectorProperty):
                 self.__arrays.append(self.GetElement(i))
         return list(self.__arrays)
 
+
+class SubsetInclusionLatticeProperty(ArrayListProperty):
+    """This property provides a simpler interface for selecting blocks on a
+    property with a `vtkSMSubsetInclusionLatticeDomain`."""
+    # currently, there's nothing more here. eventually, we'll add support to
+    # forward select/deselect requests to a vtkSubsetInclusionLattice instance.
+    pass
+
+
 class ProxyProperty(Property):
     """A ProxyProperty provides access to one or more proxies. You can use
     a slice to get one or more property values:
@@ -1162,7 +1169,7 @@ class ProxyProperty(Property):
         # initialize ourself. (Should this go in ProxyProperty?)
         listdomain = self.GetDomain('proxy_list')
         if listdomain:
-            if listdomain.GetClassName() != 'vtkSMProxyListDomain':
+            if not listdomain.IsA('vtkSMProxyListDomain'):
                 raise ValueError ("Found a 'proxy_list' domain on an InputProperty that is not a ProxyListDomain.")
             pm = ProxyManager()
             group = "pq_helper_proxies." + proxy.GetGlobalIDAsString()
@@ -2052,12 +2059,16 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=22221):
     Use this function call to create a new session. On success,
     it returns a vtkSMSession object that abstracts the connection.
     Otherwise, it returns None.
+
     There are several ways in which this function can be called:
+
     * When called with no arguments, it creates a new session
       to the built-in server on the client itself.
+
     * When called with ds_host and ds_port arguments, it
       attempts to connect to a server(data and render server on the same server)
       on the indicated host:port.
+
     * When called with ds_host, ds_port, rs_host, rs_port, it
       creates a new connection to the data server on ds_host:ds_port and to the
       render server on rs_host: rs_port.
@@ -3142,6 +3153,17 @@ if not vtkProcessModule.GetProcessModule():
         pvoptions.SetSymmetricMPIMode(True)
       vtkInitializationHelper.Initialize(sys.executable,
           vtkProcessModule.PROCESS_BATCH, pvoptions)
+
+      # In case of Non-Symetric mode and we are a satelite
+      # We should lock right away and wait for the requests
+      # from master
+      pm = vtkProcessModule.GetProcessModule()
+      if not paraview.options.symmetric and pm.GetPartitionId() != 0:
+        paraview.options.satelite = True
+        sid = vtkSMSession.ConnectToSelf()
+        pm.GetGlobalController().ProcessRMIs()
+        pm.UnRegisterSession(sid)
+
     else:
       vtkInitializationHelper.Initialize(sys.executable,
           vtkProcessModule.PROCESS_CLIENT, pvoptions)

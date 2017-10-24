@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkPVConfig.h"
 
+#include "pqAnimationShortcutDecorator.h"
 #include "pqArrayStatusPropertyWidget.h"
 #include "pqBackgroundEditorWidget.h"
 #include "pqBoxPropertyWidget.h"
@@ -60,7 +61,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqInputDataTypeDecorator.h"
 #include "pqInputSelectorWidget.h"
 #include "pqIntMaskPropertyWidget.h"
-#include "pqLightsEditor.h"
 #include "pqLinePropertyWidget.h"
 #include "pqListPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
@@ -192,6 +192,7 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   {
     return new pqViewResolutionPropertyWidget(smProxy, smProperty);
   }
+
   // *** NOTE: When adding new types, please update the header documentation ***
   return NULL;
 }
@@ -214,12 +215,6 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "BackgroundEditor")
   {
     return new pqBackgroundEditorWidget(proxy, group);
-  }
-  else if (panelWidget == "LightsEditor")
-  {
-    pqPropertyGroupButton* pgb = new pqPropertyGroupButton(proxy, group);
-    pgb->SetEditor(new pqLightsEditor(pgb));
-    return pgb;
   }
   else if (panelWidget == "ArrayStatus")
   {
@@ -326,4 +321,15 @@ pqPropertyWidgetDecorator* pqStandardPropertyWidgetInterface::createWidgetDecora
 
   // *** NOTE: When adding new types, please update the header documentation ***
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+void pqStandardPropertyWidgetInterface::createDefaultWidgetDecorators(pqPropertyWidget* widget)
+{
+  // *** NOTE: When adding new default decorators, please update the header documentation ***
+  if (pqAnimationShortcutDecorator::accept(widget))
+  {
+    new pqAnimationShortcutDecorator(widget);
+  }
+  // *** NOTE: When adding new default decorators, please update the header documentation ***
 }

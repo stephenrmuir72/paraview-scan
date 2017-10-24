@@ -56,13 +56,13 @@ public:
    */
   void SetValue(double value);
 
-  virtual void SetInputArrayToProcess(
+  void SetInputArrayToProcess(
     int idx, int port, int connection, int fieldAssociation, const char* name) VTK_OVERRIDE;
-  virtual void SetInputArrayToProcess(
+  void SetInputArrayToProcess(
     int idx, int port, int connection, int fieldAssociation, int fieldAttributeType) VTK_OVERRIDE;
-  virtual void SetInputArrayToProcess(int idx, vtkInformation* info) VTK_OVERRIDE;
+  void SetInputArrayToProcess(int idx, vtkInformation* info) VTK_OVERRIDE;
 
-  virtual void SetInputArrayToProcess(
+  void SetInputArrayToProcess(
     int idx, int port, int connection, const char* fieldName, const char* fieldType) VTK_OVERRIDE;
 
   /**
@@ -74,25 +74,25 @@ public:
    * Add validation for active filter so that the vtkExtractGeometry
    * won't be used without ImplicifFuntion being set.
    */
-  virtual int ProcessRequest(vtkInformation* request, vtkInformationVector** inInfo,
+  int ProcessRequest(vtkInformation* request, vtkInformationVector** inInfo,
     vtkInformationVector* outInfo) VTK_OVERRIDE;
 
   // Add validation for active filter so that the vtkExtractGeometry
   // won't be used without ImplicifFuntion being set.
-  virtual int ProcessRequest(
+  int ProcessRequest(
     vtkInformation* request, vtkCollection* inInfo, vtkInformationVector* outInfo) VTK_OVERRIDE;
 
 protected:
   vtkPVMetaClipDataSet();
-  ~vtkPVMetaClipDataSet();
+  ~vtkPVMetaClipDataSet() override;
 
   // Check to see if this filter can do crinkle, return true if
   // we need to switch active filter, so that we can switch back after.
   bool SwitchFilterForCrinkle();
 
 private:
-  vtkPVMetaClipDataSet(const vtkPVMetaClipDataSet&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVMetaClipDataSet&) VTK_DELETE_FUNCTION;
+  vtkPVMetaClipDataSet(const vtkPVMetaClipDataSet&) = delete;
+  void operator=(const vtkPVMetaClipDataSet&) = delete;
 
   class vtkInternals;
   vtkInternals* Internal;

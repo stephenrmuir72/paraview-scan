@@ -54,11 +54,11 @@ public:
 
 protected:
   vtkDistributedTrivialProducer();
-  ~vtkDistributedTrivialProducer();
+  ~vtkDistributedTrivialProducer() override;
 
 private:
-  vtkDistributedTrivialProducer(const vtkDistributedTrivialProducer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDistributedTrivialProducer&) VTK_DELETE_FUNCTION;
+  vtkDistributedTrivialProducer(const vtkDistributedTrivialProducer&) = delete;
+  void operator=(const vtkDistributedTrivialProducer&) = delete;
 
   static vtkPVTrivialProducerStaticInternal* InternalStatic;
 };

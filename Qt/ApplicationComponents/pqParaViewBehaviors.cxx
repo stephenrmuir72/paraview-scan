@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqParaViewBehaviors.h"
 
+#include "vtkPVConfig.h" // for PARAVIEW_ENABLE_PYTHON
+
 #include "pqAlwaysConnectedBehavior.h"
 #include "pqApplicationCore.h"
 #include "pqApplyBehavior.h"
@@ -50,7 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPluginDockWidgetsBehavior.h"
 #include "pqPluginSettingsBehavior.h"
 #include "pqPropertiesPanel.h"
-#include "pqQtMessageHandlerBehavior.h"
+#include "pqServerManagerModel.h"
 #include "pqSpreadSheetVisibilityBehavior.h"
 #include "pqStandardPropertyWidgetInterface.h"
 #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
@@ -61,6 +63,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqVerifyRequiredPluginBehavior.h"
 #include "pqViewStreamingBehavior.h"
 
+#if defined(PARAVIEW_ENABLE_PYTHON)
+#include "pqPythonShell.h"
+#endif
+
 #include <QMainWindow>
 #include <QShortcut>
 
@@ -68,7 +74,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 PQ_BEHAVIOR_DEFINE_FLAG(StandardPropertyWidgets, true);
 PQ_BEHAVIOR_DEFINE_FLAG(StandardViewFrameActions, true);
 PQ_BEHAVIOR_DEFINE_FLAG(StandardRecentlyUsedResourceLoader, true);
-PQ_BEHAVIOR_DEFINE_FLAG(QtMessageHandlerBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(DataTimeStepBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(SpreadSheetVisibilityBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PipelineContextMenuBehavior, true);
@@ -89,6 +94,8 @@ PQ_BEHAVIOR_DEFINE_FLAG(PluginSettingsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ApplyBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(QuickLaunchShortcuts, true);
 PQ_BEHAVIOR_DEFINE_FLAG(LockPanelsBehavior, true);
+PQ_BEHAVIOR_DEFINE_FLAG(PythonShellResetBehavior, true);
+
 #undef PQ_BEHAVIOR_DEFINE_FLAG
 
 #define PQ_IS_BEHAVIOR_ENABLED(_name) enable##_name()
@@ -122,10 +129,6 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   pqApplicationCore::instance()->loadDistributedPlugins();
 
   // Define application behaviors.
-  if (PQ_IS_BEHAVIOR_ENABLED(QtMessageHandlerBehavior))
-  {
-    new pqQtMessageHandlerBehavior(this);
-  }
   if (PQ_IS_BEHAVIOR_ENABLED(DataTimeStepBehavior))
   {
     new pqDataTimeStepBehavior(this);
@@ -243,6 +246,17 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   {
     new pqLockPanelsBehavior(mainWindow);
   }
+
+#if defined(PARAVIEW_ENABLE_PYTHON)
+  if (PQ_IS_BEHAVIOR_ENABLED(PythonShellResetBehavior))
+  {
+    pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+    for (pqPythonShell* ashell : mainWindow->findChildren<pqPythonShell*>())
+    {
+      ashell->connect(smmodel, SIGNAL(aboutToRemoveServer(pqServer*)), SLOT(reset()));
+    }
+  }
+#endif
 
   CLEAR_UNDO_STACK();
 }

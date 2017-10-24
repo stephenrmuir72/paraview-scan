@@ -101,15 +101,15 @@ public:
 
 protected:
   vtkSMStateLocator();
-  ~vtkSMStateLocator();
+  ~vtkSMStateLocator() override;
 
   vtkSMStateLocator* ParentLocator;
   vtkWeakPointer<vtkSMSession> Session;
   vtkWeakPointer<vtkUndoStack> UndoStack;
 
 private:
-  vtkSMStateLocator(const vtkSMStateLocator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMStateLocator&) VTK_DELETE_FUNCTION;
+  vtkSMStateLocator(const vtkSMStateLocator&) = delete;
+  void operator=(const vtkSMStateLocator&) = delete;
 
   class vtkInternal;
   vtkInternal* Internals;

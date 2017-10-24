@@ -18,7 +18,6 @@ Typical usage is as follows::
     # stop trace. The generated trace is returned.
     txt = smtracer.stop_trace()
 
-
 =========================
 Developer Documentation
 =========================
@@ -63,13 +62,13 @@ This is required. If we don't, then the Python object for vtkSMProxy also gets
 garbage collected since there's no reference to it.
 
 """
+from __future__ import absolute_import, division, print_function
 
 import weakref
 import paraview.servermanager as sm
 import paraview.simple as simple
 import sys
 from paraview.vtk import vtkTimeStamp
-
 
 if sys.version_info >= (3,):
     xrange = range
@@ -107,7 +106,6 @@ class TraceOutput:
   def raw_data(self): return self.__data
 
   def reset(self): self.__data = []
-
 
 class Trace(object):
     __REGISTERED_ACCESSORS = {}
@@ -283,7 +281,39 @@ class Trace(object):
                     "# get the time-keeper",
                     "%s = GetTimeKeeper()" % tkAccessor])
             return True
+        if obj.GetVTKClassName() == "vtkPVLight":
+            view = simple.GetViewForLight(obj)
+            if view:
+                index = view.AdditionalLights.index(obj)
+                viewAccessor = cls.get_accessor(view)
+                accessor = ProxyAccessor(cls.get_varname(cls.get_registered_name(obj, "additional_lights")), obj)
+                cls.Output.append_separated([\
+                   "# get light",
+                   "%s = GetLight(%s, %s)" % (accessor, index, viewAccessor)])
+            else:
+                # create a new light, should be handled by RegisterLightProxy
+                accessor = ProxyAccessor(cls.get_varname(cls.get_registered_name(obj, "additional_lights")), obj)
+                cls.Output.append_separated([\
+                    "# create a new light",
+                    "%s = CreateLight()" % (accessor)])
+            return True
+
         return False
+
+    @classmethod
+    def rename_separate_tf_and_get_representation(cls, arrayName):
+      import re
+      representation = None
+      varname = arrayName
+      regex = re.compile(r"(^Separate_)([0-9]*)_(.*$)")
+      if re.match(regex, arrayName):
+        gid = re.sub(regex, "\g<2>", arrayName)
+        representation = next((value for key, value in simple.GetRepresentations().items() if key[1] == gid), None)
+        if representation:
+          repAccessor = Trace.get_accessor(representation)
+          arrayName = re.sub(regex, "\g<3>", arrayName)
+          varname = ("Separate_%s_%s" % (repAccessor, arrayName))
+      return arrayName, varname, representation
 
     @classmethod
     def _create_accessor_for_tf(cls, proxy, regname):
@@ -292,14 +322,28 @@ class Trace(object):
         if m:
             arrayName = m.group(1)
             if proxy.GetXMLGroup() == "lookup_tables":
-                varsuffix = "LUT"
+              arrayName, varname, rep = cls.rename_separate_tf_and_get_representation(arrayName)
+              if rep:
+                repAccessor = Trace.get_accessor(rep)
+                args = ("'%s', %s, separate=True" % (arrayName, repAccessor))
+                comment = "separate color transfer function/color map"
+              else :
+                args = ("'%s'" % arrayName)
                 comment = "color transfer function/color map"
-                method = "GetColorTransferFunction"
+              method = "GetColorTransferFunction"
+              varsuffix = "LUT"
             else:
-                varsuffix = "PWF"
+              arrayName, varname, rep = cls.rename_separate_tf_and_get_representation(arrayName)
+              if rep:
+                repAccessor = Trace.get_accessor(rep)
+                args = ("'%s', %s, separate=True" % (arrayName, repAccessor))
+                comment = "separate opacity transfer function/opacity map"
+              else :
+                args = ("'%s'" % arrayName)
                 comment = "opacity transfer function/opacity map"
-                method = "GetOpacityTransferFunction"
-            varname = cls.get_varname("%s%s" % (arrayName, varsuffix))
+              method = "GetOpacityTransferFunction"
+              varsuffix = "PWF"
+            varname = cls.get_varname("%s%s" % (varname, varsuffix))
             accessor = ProxyAccessor(varname, proxy)
             #cls.Output.append_separated([\
             #    "# get %s for '%s'" % (comment, arrayName),
@@ -307,7 +351,7 @@ class Trace(object):
             trace = TraceOutput()
             trace.append("# get %s for '%s'" % (comment, arrayName))
             trace.append(accessor.trace_ctor(\
-                method, SupplementalProxy(TransferFunctionProxyFilter()), ctor_args="'%s'" % arrayName))
+              method, SupplementalProxy(TransferFunctionProxyFilter()), ctor_args = args))
             cls.Output.append_separated(trace.raw_data())
             return True
         return False
@@ -442,7 +486,7 @@ class RealProxyAccessor(Accessor):
         joiner = ",\n    " if in_ctor else "\n"
         return joiner.join([x.get_property_trace(in_ctor) for x in props])
 
-    def trace_ctor(self, ctor, filter, ctor_args=None, skip_assignment=False):
+    def trace_ctor(self, ctor, filter, ctor_args=None, skip_assignment=False, ctor_var=None):
         args_in_ctor = str(ctor_args) if not ctor_args is None else ""
         # trace any properties that the 'filter' tells us should be traced
         # in ctor.
@@ -547,9 +591,11 @@ class PropertyTraceHelper(object):
     def get_property_trace(self, in_ctor):
         """return trace-text for the property.
 
-        :param in_ctor: if False, the trace is generated trace will use
-        fully-scoped name when referring to the property e.g. sphere0.Radius=2,
-        else it will use just the property name e.g. Radius=2."""
+        :param in_ctor: If False, the trace is generated trace will use
+            fully-scoped name when referring to the property e.g.
+            sphere0.Radius=2, else it will use just the property name, *e.g.*,
+            Radius=2.
+        """
         varname = self.get_varname(in_ctor)
         if in_ctor: return "%s=%s" % (varname, self.get_value())
         else: return "%s = %s" % (varname, self.get_value())
@@ -557,9 +603,10 @@ class PropertyTraceHelper(object):
     def get_varname(self, not_fully_scoped=False):
         """Returns the variable name to use when referring to this property.
 
-        :param not_fully_scoped: if False, this will return
-        fully-scoped name when referring to the property e.g. sphere0.Radius,
-        else it will use just the property name e.g. Radius"""
+        :param not_fully_scoped: If False, this will return
+            fully-scoped name when referring to the property e.g. sphere0.Radius,
+            else it will use just the property name, *e.g.*, Radius.
+        """
         return self.PropertyName if not_fully_scoped else self.FullScopedName
 
     def get_value(self):
@@ -886,7 +933,6 @@ class ScalarBarInteraction(NestableTraceItem):
                 self.Comment,
                 self.ProxyAccessor.trace_properties(props_to_trace, in_ctor=False)])
 
-
 class Show(TraceItem):
     """Traces Show"""
     def __init__(self, producer, port, view, display, comment=None):
@@ -904,6 +950,7 @@ class Show(TraceItem):
 
     def finalize(self):
         display = self.Display
+        output = TraceOutput()
         if not Trace.has_accessor(display):
             pname = "%sDisplay" % self.ProducerAccessor
             accessor = ProxyAccessor(Trace.get_varname(pname), display)
@@ -913,7 +960,6 @@ class Show(TraceItem):
             trace_ctor = False
         port = self.OutputPort
 
-        output = TraceOutput()
         if not self.Comment is None:
             output.append("# %s" % self.Comment)
         else:
@@ -924,7 +970,9 @@ class Show(TraceItem):
         else:
             output.append("%s = Show(%s, %s)" % \
                 (str(accessor), str(self.ProducerAccessor), str(self.ViewAccessor)))
+        Trace.Output.append_separated(output.raw_data())
 
+        output = TraceOutput()
         if trace_ctor:
             # Now trace default values.
             ctor_trace = accessor.trace_ctor(None, RepresentationProxyFilter())
@@ -951,7 +999,7 @@ class Hide(TraceItem):
 
 class SetScalarColoring(TraceItem):
     """Trace vtkSMPVRepresentationProxy.SetScalarColoring"""
-    def __init__(self, display, arrayname, attribute_type, component=None, lut=None):
+    def __init__(self, display, arrayname, attribute_type, component=None, separate=False, lut=None):
         TraceItem.__init__(self)
 
         self.Display = sm._getPyProxy(display)
@@ -959,25 +1007,42 @@ class SetScalarColoring(TraceItem):
         self.AttributeType = attribute_type
         self.Component = component
         self.Lut = sm._getPyProxy(lut)
+        self.Separate = separate
 
     def finalize(self):
         TraceItem.finalize(self)
 
         if self.ArrayName:
             if self.Component is None:
-              Trace.Output.append_separated([\
-                  "# set scalar coloring",
-                  "ColorBy(%s, ('%s', '%s'))" % (\
-                      str(Trace.get_accessor(self.Display)),
-                      sm.GetAssociationAsString(self.AttributeType),
-                      self.ArrayName)])
+              if self.Separate:
+                Trace.Output.append_separated([\
+                    "# set scalar coloring using an separate color/opacity maps",
+                    "ColorBy(%s, ('%s', '%s'), %s)" % (\
+                        str(Trace.get_accessor(self.Display)),
+                        sm.GetAssociationAsString(self.AttributeType),
+                        self.ArrayName, self.Separate)])
+              else:
+                Trace.Output.append_separated([\
+                    "# set scalar coloring",
+                    "ColorBy(%s, ('%s', '%s'))" % (\
+                        str(Trace.get_accessor(self.Display)),
+                        sm.GetAssociationAsString(self.AttributeType),
+                        self.ArrayName)])
             else:
-              Trace.Output.append_separated([\
-                  "# set scalar coloring",
-                  "ColorBy(%s, ('%s', '%s', '%s'))" % (\
-                      str(Trace.get_accessor(self.Display)),
-                      sm.GetAssociationAsString(self.AttributeType),
-                      self.ArrayName, self.Component)])
+              if self.Separate:
+                Trace.Output.append_separated([\
+                    "# set scalar coloring using an separate color/opacity maps",
+                    "ColorBy(%s, ('%s', '%s', '%s'), %s)" % (\
+                        str(Trace.get_accessor(self.Display)),
+                        sm.GetAssociationAsString(self.AttributeType),
+                        self.ArrayName, self.Component, self.Separate)])
+              else:
+                Trace.Output.append_separated([\
+                    "# set scalar coloring",
+                    "ColorBy(%s, ('%s', '%s', '%s'))" % (\
+                        str(Trace.get_accessor(self.Display)),
+                        sm.GetAssociationAsString(self.AttributeType),
+                        self.ArrayName, self.Component)])
         else:
             Trace.Output.append_separated([\
                 "# turn off scalar coloring",
@@ -999,13 +1064,29 @@ class RegisterViewProxy(TraceItem):
         varname = Trace.get_varname(pname)
         accessor = ProxyAccessor(varname, self.Proxy)
 
+        trace = TraceOutput()
+        # create dynamic lights as needed.
+        if hasattr(self.Proxy, "AdditionalLights"):
+            for light in self.Proxy.AdditionalLights:
+                trace.append('# create light')
+                lightTrace = RegisterLightProxy(light)
+                lightTrace.finalize()
+
         # unlike for filters/sources, for views the CreateView function still takes the
         # xml name for the view, not its label.
         ctor_args = "'%s'" % self.Proxy.GetXMLName()
-        trace = TraceOutput()
         trace.append("# Create a new '%s'" % self.Proxy.GetXMLLabel())
         filter = ViewProxyFilter()
         trace.append(accessor.trace_ctor("CreateView", filter, ctor_args))
+
+        # append dynamic lights as needed.
+        # if hasattr(self.Proxy, "AdditionalLights"):
+        #     lightsList = []
+        #     for light in self.Proxy.AdditionalLights:
+        #         lightAccessor = Trace.get_accessor(light)
+        #         lightsList.append(lightAccessor)
+        #     trace.append("%s.AdditionalLights = [%s]" % (Trace.get_accessor(self.Proxy), ", ".join(lightsList)))
+
         Trace.Output.append_separated(trace.raw_data())
 
         viewSizeAccessor = accessor.get_property("ViewSize")
@@ -1016,6 +1097,30 @@ class RegisterViewProxy(TraceItem):
                 "# uncomment following to set a specific view size",
                 "# %s" % viewSizeAccessor.get_property_trace(in_ctor=False)])
         # we assume views don't have proxy list domains for now, and ignore tracing them.
+        TraceItem.finalize(self)
+
+class RegisterLightProxy(TraceItem):
+    """Traces creation of a new light (vtkSMParaViewPipelineController::RegisterLightProxy)."""
+    def __init__(self, proxy, view=None):
+        TraceItem.__init__(self)
+        self.Proxy = sm._getPyProxy(proxy)
+        self.View = sm._getPyProxy(view)
+        assert not self.Proxy is None
+
+    def finalize(self):
+        pname = Trace.get_registered_name(self.Proxy, "additional_lights")
+        varname = Trace.get_varname(pname)
+        accessor = ProxyAccessor(varname, self.Proxy)
+
+        trace = TraceOutput()
+        trace.append("# Create a new '%s'" % self.Proxy.GetXMLLabel())
+        filter = ProxyFilter()
+        if self.View:
+            viewAccessor = Trace.get_accessor(self.View)
+            trace.append(accessor.trace_ctor("AddLight", filter, ctor_args="view=%s" % viewAccessor))
+        else:
+            trace.append(accessor.trace_ctor("CreateLight", filter))
+        Trace.Output.append_separated(trace.raw_data())
         TraceItem.finalize(self)
 
 class ExportView(TraceItem):
@@ -1230,7 +1335,6 @@ class CallMethod(TraceItem):
         except AttributeError:
             return "'%s'" % x if type(x) == str else x
 
-
 def _bind_on_event(ref):
     def _callback(obj, string):
         ref().on_event(obj, string)
@@ -1259,7 +1363,6 @@ class CallMethodIfPropertiesModified(CallMethod):
     def __del__(self):
         if self.proxy and self.tag:
             self.proxy.RemoveObserver(self.tag)
-
 
 class CallFunction(TraceItem):
     def __init__(self, functionname, *args, **kwargs):
@@ -1316,7 +1419,6 @@ class SaveCameras(BookkeepingItem):
         else:
             raise Untraceable("Invalid argument type %r"% proxy)
         return trace.raw_data()
-
 
 # __ActiveTraceItems is simply used to keep track of items that are currently
 # active to avoid non-nestable trace items from being created when previous
@@ -1390,14 +1492,13 @@ def get_current_trace_output(raw=False):
 def get_current_trace_output_and_reset(raw=False):
     """Equivalent to calling::
 
-            get_current_trace_output(raw)
-            reset_trace_output()
+        get_current_trace_output(raw)
+        reset_trace_output()
     """
 
     output = get_current_trace_output(raw)
     reset_trace_output()
     return output
-
 
 def reset_trace_output():
     """Resets the trace output without resetting the tracing datastructures

@@ -7,7 +7,9 @@ from paraview.web.camera import *
 from vtk.web import iteritems, buffer
 from paraview import simple
 from paraview import servermanager
-from vtk import *
+
+from paraview.vtk.vtkCommonCore import vtkFloatArray, vtkIdList, vtkUnsignedCharArray, vtkTypeUInt32Array
+from paraview.vtk.vtkCommonDataModel import vtkDataSetAttributes
 
 import json, os, math, gzip, shutil, hashlib
 
@@ -66,6 +68,10 @@ class DataSetBuilder(object):
                     self.camera = camera.SphericalCamera(self.dataHandler, view.CenterOfRotation, view.CameraPosition, view.CameraViewUp, self.cameraDescription['phi'], self.cameraDescription['theta'])
                 elif self.cameraDescription['type'] == 'cylindrical':
                     self.camera = camera.CylindricalCamera(self.dataHandler, view.CenterOfRotation, view.CameraPosition, view.CameraViewUp, self.cameraDescription['phi'], self.cameraDescription['translation'])
+                elif self.cameraDescription['type'] == 'cube':
+                    self.camera = camera.CubeCamera(self.dataHandler, self.cameraDescription['viewForward'], self.cameraDescription['viewUp'], self.cameraDescription['positions'])
+                elif self.cameraDescription['type'] == 'cube-stereo':
+                    self.camera = camera.StereoCubeCamera(self.dataHandler, self.cameraDescription['viewForward'], self.cameraDescription['viewUp'], self.cameraDescription['positions'], self.cameraDescription['eyeSeparation'])
 
             # Update background color
             bgColor = view.Background

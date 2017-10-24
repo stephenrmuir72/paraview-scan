@@ -39,7 +39,7 @@ public:
 
 protected:
   vtkSession();
-  ~vtkSession();
+  ~vtkSession() override;
 
   // Needed when TileDisplay are retreived
   friend class vtkSMRenderViewProxy;
@@ -61,8 +61,8 @@ protected:
   virtual void DeActivate();
 
 private:
-  vtkSession(const vtkSession&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSession&) VTK_DELETE_FUNCTION;
+  vtkSession(const vtkSession&) = delete;
+  void operator=(const vtkSession&) = delete;
 };
 
 #endif

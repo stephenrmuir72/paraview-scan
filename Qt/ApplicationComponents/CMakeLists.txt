@@ -33,6 +33,10 @@ set (Module_SRCS
   pqAboutDialogReaction.h
   pqAlwaysConnectedBehavior.cxx
   pqAlwaysConnectedBehavior.h
+  pqAnimationShortcutWidget.cxx
+  pqAnimationShortcutWidget.h
+  pqAnimationShortcutDecorator.cxx
+  pqAnimationShortcutDecorator.h
   pqAnimationTimeToolbar.cxx
   pqAnimationTimeToolbar.h
   pqAnimationTimeWidget.cxx
@@ -168,8 +172,6 @@ set (Module_SRCS
   pqInputDataTypeDecorator.h
   pqInteractivePropertyWidget.cxx
   pqInteractivePropertyWidget.h
-  pqLightsEditor.cxx
-  pqLightsEditor.h
   pqLinePropertyWidget.cxx
   pqLinePropertyWidget.h
   pqLinkSelectionReaction.cxx
@@ -178,6 +180,8 @@ set (Module_SRCS
   pqListPropertyWidget.h
   pqLoadDataReaction.cxx
   pqLoadDataReaction.h
+  pqLoadMaterialsReaction.cxx
+  pqLoadMaterialsReaction.h
   pqLoadPaletteReaction.cxx
   pqLoadPaletteReaction.h
   pqLoadRestoreWindowLayoutReaction.cxx
@@ -226,14 +230,12 @@ set (Module_SRCS
   pqPluginSettingsBehavior.h
   pqPointPickingHelper.cxx
   pqPointPickingHelper.h
+  pqPreviewMenuManager.cxx
+  pqPreviewMenuManager.h
   pqPropertyGroupButton.cxx
   pqPropertyGroupButton.h
   pqProxyGroupMenuManager.cxx
   pqProxyGroupMenuManager.h
-  pqPythonShellReaction.cxx
-  pqPythonShellReaction.h
-  pqQtMessageHandlerBehavior.cxx
-  pqQtMessageHandlerBehavior.h
   pqReaction.cxx
   pqReaction.h
   pqReloadFilesReaction.cxx
@@ -298,12 +300,16 @@ set (Module_SRCS
   pqTimerLogReaction.h
   pqToggleInteractionViewMode.cxx
   pqToggleInteractionViewMode.h
+  pqTransferFunctionWidgetPropertyDialog.cxx
+  pqTransferFunctionWidgetPropertyDialog.h
   pqTransferFunctionWidgetPropertyWidget.cxx
   pqTransferFunctionWidgetPropertyWidget.h
   pqUndoRedoBehavior.cxx
   pqUndoRedoBehavior.h
   pqUndoRedoReaction.cxx
   pqUndoRedoReaction.h
+  pqUseSeparateColorMapReaction.cxx
+  pqUseSeparateColorMapReaction.h
   pqVCRToolbar.cxx
   pqVCRToolbar.h
   pqVerifyRequiredPluginBehavior.cxx
@@ -325,6 +331,8 @@ set (Module_SRCS
 set (Module_MOC_HDRS
   pqAboutDialogReaction.h
   pqAlwaysConnectedBehavior.h
+  pqAnimationShortcutDecorator.h
+  pqAnimationShortcutWidget.h
   pqAnimationTimeToolbar.h
   pqAnimationTimeWidget.h
   pqApplicationSettingsReaction.h
@@ -392,11 +400,11 @@ set (Module_MOC_HDRS
   pqImportCinemaReaction.h
   pqInputDataTypeDecorator.h
   pqInteractivePropertyWidget.h
-  pqLightsEditor.h
   pqLinePropertyWidget.h
   pqLinkSelectionReaction.h
   pqListPropertyWidget.h
   pqLoadDataReaction.h
+  pqLoadMaterialsReaction.h
   pqLoadPaletteReaction.h
   pqLoadRestoreWindowLayoutReaction.h
   pqLoadStateReaction.h
@@ -420,10 +428,9 @@ set (Module_MOC_HDRS
   pqPluginDockWidgetsBehavior.h
   pqPluginSettingsBehavior.h
   pqPointPickingHelper.h
+  pqPreviewMenuManager.h
   pqPropertyGroupButton.h
   pqProxyGroupMenuManager.h
-  pqPythonShellReaction.h
-  pqQtMessageHandlerBehavior.h
   pqReaction.h
   pqReloadFilesReaction.h
   pqRenameProxyReaction.h
@@ -456,9 +463,11 @@ set (Module_MOC_HDRS
   pqTimeInspectorWidget.h
   pqTimerLogReaction.h
   pqToggleInteractionViewMode.h
+  pqTransferFunctionWidgetPropertyDialog.h
   pqTransferFunctionWidgetPropertyWidget.h
   pqUndoRedoBehavior.h
   pqUndoRedoReaction.h
+  pqUseSeparateColorMapReaction.h
   pqVCRToolbar.h
   pqVerifyRequiredPluginBehavior.h
   pqViewMenuManager.h
@@ -483,6 +492,14 @@ if (PARAVIEW_ENABLE_PYTHON)
   )
 endif()
 
+if(NOT VTK_LEGACY_REMOVE)
+  list(APPEND Module_SRCS
+    pqPythonShellReaction.cxx
+    pqPythonShellReaction.h)
+  list(APPEND Module_MOC_HDRS
+    pqPythonShellReaction.h)
+endif()
+
 set (Module_UI_FILES
   Resources/UI/pqAnimationTimeWidget.ui
   Resources/UI/pqAxesToolbar.ui
@@ -495,6 +512,7 @@ set (Module_UI_FILES
   Resources/UI/pqColorMapEditor.ui
   Resources/UI/pqColorOpacityEditorWidget.ui
   Resources/UI/pqColorToolbar.ui
+  Resources/UI/pqCustomResolutionDialog.ui
   Resources/UI/pqCylinderPropertyWidget.ui
   Resources/UI/pqDefaultMainWindow.ui
   Resources/UI/pqDoubleRangeSliderPropertyWidget.ui
@@ -505,7 +523,6 @@ set (Module_UI_FILES
   Resources/UI/pqHandlePropertyWidget.ui
   Resources/UI/pqImageCompressorWidget.ui
   Resources/UI/pqImplicitPlanePropertyWidget.ui
-  Resources/UI/pqLightsEditor.ui
   Resources/UI/pqLinePropertyWidget.ui
   Resources/UI/pqMainControlsToolbar.ui
   Resources/UI/pqPipelineBrowserContextMenu.ui
@@ -517,7 +534,7 @@ set (Module_UI_FILES
   Resources/UI/pqSpreadSheetViewDecorator.ui
   Resources/UI/pqTextLocationWidget.ui
   Resources/UI/pqTimeInspectorWidget.ui
-  Resources/UI/pqTransferFunctionWidgetPropertyWidgetDialog.ui
+  Resources/UI/pqTransferFunctionWidgetPropertyDialog.ui
   Resources/UI/pqViewResolutionPropertyWidget.ui
   Resources/UI/pqVCRToolbar.ui
   Resources/UI/pqWelcomeDialog.ui
@@ -531,7 +548,6 @@ set (Module_RESOURCE_FILES
 include(ParaViewQt)
 if (PARAVIEW_USE_QTHELP)
   pv_find_package_qt(qt_private_targets REQUIRED QUIET
-    QT4_COMPONENTS QtHelp
     QT5_COMPONENTS Widgets Help)
   list(APPEND Module_SRCS
     pqHelpReaction.cxx
@@ -544,7 +560,6 @@ if (PARAVIEW_USE_QTHELP)
   set(${vtk-module}_EXPORT_CODE_INSTALL
     "include(\${ParaView_CMAKE_DIR}/ParaViewQt.cmake)
     pv_find_package_qt(__${vtk-module}_qt_targets REQUIRED QUIET
-      QT4_COMPONENTS QtHelp
       QT5_COMPONENTS Widgets Help)")
 else()
   pv_find_package_qt(qt_private_targets REQUIRED QUIET
@@ -576,9 +591,6 @@ SOURCE_GROUP("Generated" FILES
 )
 
 set(${vtk-module}_NO_HeaderTest 1)
-if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-  add_definitions(-DVTKGL2)
-endif()
 vtk_module_library(pqApplicationComponents
   ${Module_SRCS}
   ${__Module_RESOURCE_SRCS}

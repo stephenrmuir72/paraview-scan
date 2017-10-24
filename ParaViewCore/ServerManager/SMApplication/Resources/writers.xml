@@ -11,13 +11,10 @@
       processes.</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkDataSet" />
+          <DataType value="vtkTable" />
         </DataTypeDomain>
         <Documentation>The input filter/source whose output dataset is to
         written to the files.</Documentation>
@@ -67,6 +64,8 @@
                  value="0" />
           <Entry text="ZLib"
                  value="1" />
+          <Entry text="LZ4"
+                 value="2" />
         </EnumerationDomain>
         <Documentation>The compression algorithm used to compress binary data
         (appended mode only).</Documentation>
@@ -78,6 +77,8 @@
                   show="0" />
         <Property name="HeaderType"
                   show="0" />
+        <Property name="UseSubdirectory"
+                  show="1" />
         <WriterFactory extensions="pvd"
                        file_description="ParaView Data Files" />
       </Hints>
@@ -86,13 +87,13 @@
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="internal_writers"
                  base_proxyname="FileSeriesWriter"
-                 name="XMLDataSetWriterBase">
+                 name="XMLDataObjectWriterBase">
       <Documentation>Base for all XML-based file-series
       writers.</Documentation>
       <SubProxy>
         <Proxy name="Writer"
                proxygroup="internal_writers"
-               proxyname="XMLDataSetWriterCore"></Proxy>
+               proxyname="XMLDataObjectWriterCore"></Proxy>
         <ExposedProperties>
           <PropertyGroup label="XML Writer Parameters">
             <Property name="DataMode" />
@@ -101,11 +102,11 @@
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
-      <!-- End of XMLDataSetWriterBase -->
+      <!-- End of XMLDataObjectWriterBase -->
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLPolyDataWriter">
@@ -135,7 +136,7 @@
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLHyperOctreeWriter">
@@ -165,7 +166,7 @@
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLUnstructuredGridWriter">
@@ -195,7 +196,7 @@
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLStructuredGridWriter">
@@ -225,7 +226,7 @@
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLRectilinearGridWriter">
@@ -255,7 +256,7 @@
     </WriterProxy>
     <!-- ================================================================= -->
     <WriterProxy base_proxygroup="writers"
-                 base_proxyname="XMLDataSetWriterBase"
+                 base_proxyname="XMLDataObjectWriterBase"
                  class="vtkFileSeriesWriter"
                  file_name_method="SetFileName"
                  name="XMLImageDataWriter">
@@ -280,6 +281,36 @@
                   show="0" />
         <WriterFactory extensions="vti"
                        file_description="VTK ImageData Files" />
+      </Hints>
+      <!-- End of XMLImageDataWriter -->
+    </WriterProxy>
+    <!-- ================================================================= -->
+    <WriterProxy base_proxygroup="writers"
+                 base_proxyname="XMLDataObjectWriterBase"
+                 class="vtkFileSeriesWriter"
+                 file_name_method="SetFileName"
+                 name="XMLTableWriter">
+      <Documentation short_help="Write a table in a xml-based vtk data file.">
+      Writer to write a table in a xml-based vtk data file. Cannot be used
+      for parallel writing.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <DataTypeDomain composite_data_supported="0"
+                        name="input_type">
+          <DataType value="vtkTable" />
+        </DataTypeDomain>
+        <Documentation>The input filter/source whose output dataset is to
+        written to the file.</Documentation>
+      </InputProperty>
+      <Hints>
+        <Property name="Input"
+                  show="0" />
+        <Property name="FileName"
+                  show="0" />
+        <Property name="HeaderType"
+                  show="0" />
+        <WriterFactory extensions="vtt"
+                       file_description="VTK Table Files" />
       </Hints>
       <!-- End of XMLImageDataWriter -->
     </WriterProxy>
@@ -313,6 +344,7 @@
             <Property name="HeaderType" />
             <Property name="EncodeAppendedData" />
             <Property name="CompressorType" />
+            <Property name="UseSubdirectory" />
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
@@ -358,6 +390,7 @@
             <Property name="HeaderType" />
             <Property name="EncodeAppendedData" />
             <Property name="CompressorType" />
+            <Property name="UseSubdirectory" />
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
@@ -370,6 +403,52 @@
                   show="0" />
         <WriterFactory extensions="pvtu"
                        file_description="PVTK UnstructuredGrid Files" />
+      </Hints>
+      <!-- End of XMLPUnstructuredGridWriter -->
+    </WriterProxy>
+ <!-- ================================================================= -->
+    <WriterProxy base_proxygroup="internal_writers"
+                 base_proxyname="ParallelFileSeriesWriter"
+                 class="vtkFileSeriesWriter"
+                 file_name_method="SetFileName"
+                 name="XMLPTableWriter"
+                 parallel_only="1">
+      <Documentation short_help="Write table in a xml-based vtk data file.">
+      Writer to write table in a xml-based vtk data file. Can be
+      used for parallel writing.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <DataTypeDomain composite_data_supported="0"
+                        name="input_type">
+          <DataType value="vtkTable" />
+        </DataTypeDomain>
+        <Documentation>The input filter/source whose output dataset is to
+        written to the file.</Documentation>
+      </InputProperty>
+      <SubProxy>
+        <Proxy name="Writer"
+               proxygroup="internal_writers"
+               proxyname="XMLPTableCore"></Proxy>
+        <ExposedProperties>
+          <PropertyGroup label="XML Writer Parameters">
+            <!-- <Property name="GhostLevel" /> -->
+            <Property name="DataMode" />
+            <Property name="HeaderType" />
+            <Property name="EncodeAppendedData" />
+            <Property name="CompressorType" />
+            <Property name="UseSubdirectory" />
+          </PropertyGroup>
+        </ExposedProperties>
+      </SubProxy>
+      <Hints>
+        <Property name="Input"
+                  show="0" />
+        <Property name="FileName"
+                  show="0" />
+        <Property name="HeaderType"
+                  show="0" />
+        <WriterFactory extensions="pvtt"
+                       file_description="PVTK Table Files" />
       </Hints>
       <!-- End of XMLPUnstructuredGridWriter -->
     </WriterProxy>
@@ -626,10 +705,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkDataObject" />
@@ -666,10 +741,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkPolyData" />
@@ -684,12 +755,11 @@
       </StringVectorProperty>
       <IntVectorProperty command="SetWriteAllTimeSteps"
                          default_values="0"
-                         name="WriteAllTimeSteps"
+                         name="WriteTimeSteps"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the
-        reader.</Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each timestep available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy name="PostGatherHelper"
@@ -726,10 +796,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkUnstructuredGrid" />
@@ -744,12 +810,11 @@
       </StringVectorProperty>
       <IntVectorProperty command="SetWriteAllTimeSteps"
                          default_values="0"
-                         name="WriteAllTimeSteps"
+                         name="WriteTimeSteps"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the
-        reader.</Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each timestep available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy name="PostGatherHelper"
@@ -799,10 +864,6 @@
       </PropertyGroup>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkPolyData" />
         </DataTypeDomain>
@@ -816,12 +877,11 @@
       </StringVectorProperty>
       <IntVectorProperty command="SetWriteAllTimeSteps"
                          default_values="0"
-                         name="WriteAllTimeSteps"
+                         name="WriteTimeSteps"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each time step available from the
-        reader.</Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each time step available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy name="PostGatherHelper"
@@ -860,10 +920,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkPolyData" />
         </DataTypeDomain>
@@ -875,14 +931,13 @@
                             number_of_elements="1">
         <Documentation>The name of the file to be written.</Documentation>
       </StringVectorProperty>
-      <IntVectorProperty name="WriteAllTimeSteps"
+      <IntVectorProperty name="WriteTimeSteps"
                          command="SetWriteAllTimeSteps"
                          number_of_elements="1"
                          default_values="0">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the reader.
-        </Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each timestep available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy name="PostGatherHelper"
@@ -908,10 +963,6 @@
       format. </Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkPolyData" />
         </DataTypeDomain>
@@ -923,13 +974,13 @@
                             number_of_elements="1">
         <Documentation>The name of the file to be written.</Documentation>
       </StringVectorProperty>
-      <IntVectorProperty name="WriteAllTimeSteps"
+      <IntVectorProperty name="WriteTimeSteps"
                          command="SetWriteAllTimeSteps"
                          number_of_elements="1"
                          default_values="0">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the reader.
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each timestep available from its input.
         </Documentation>
       </IntVectorProperty>
       <SubProxy>
@@ -959,10 +1010,6 @@
       headers are expected to have extension: ".mha" or ".mhd"</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkImageData" />
@@ -997,10 +1044,6 @@
       </Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkImageData" />
@@ -1031,10 +1074,6 @@
       </Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkImageData" />
@@ -1069,10 +1108,6 @@
       </Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkImageData" />
@@ -1101,10 +1136,6 @@
       <Documentation short_help="Write image data as a JSON file."/>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkImageData" />
@@ -1140,58 +1171,6 @@
       </Hints>
       <!-- End of vtkJSONImageWriter -->
     </WriterProxy>
-    <!-- ================================================================= -->
-    <WriterProxy class="vtkXdmfWriter"
-                 name="XdmfWriter">
-      <Documentation short_help="Write data in Xdmf files.">Writer to write
-      data in eXtensible Data Model and Format *(XDMF) files.</Documentation>
-      <InputProperty command="SetInputConnection"
-                     name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
-        <DataTypeDomain composite_data_supported="1"
-                        name="input_type">
-          <DataType value="vtkDataSet" />
-        </DataTypeDomain>
-        <Documentation>The input filter/source whose output dataset is to
-        written to the file.</Documentation>
-      </InputProperty>
-      <StringVectorProperty command="SetFileName"
-                            name="FileName"
-                            number_of_elements="1">
-        <Documentation>The name of the file to be written.</Documentation>
-      </StringVectorProperty>
-      <IntVectorProperty name="WriteAllTimeSteps"
-                         command="SetWriteAllTimeSteps"
-                         number_of_elements="1"
-                         default_values="0">
-        <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the reader.
-        </Documentation>
-      </IntVectorProperty>
-      <IntVectorProperty name="MeshStaticOverTime"
-                         command="SetMeshStaticOverTime"
-                         number_of_elements="1"
-                         default_values="0">
-        <BooleanDomain name="bool" />
-        <Documentation>When MeshStaticOverTime is turned ON, only the mesh
-          topology and geometry at the first time step will be written in the
-          heavy data file. All time steps will reference them in the Xdmf file.
-        </Documentation>
-      </IntVectorProperty>
-      <Hints>
-        <Property name="Input"
-                  show="0" />
-        <Property name="FileName"
-                  show="0" />
-        <WriterFactory extensions="xmf"
-                       file_description="Xdmf Data File" />
-      </Hints>
-      <!-- End of XdmfWriter -->
-    </WriterProxy>
 
     <!-- ================================================================= -->
     <PWriterProxy base_proxygroup="internal_writers"
@@ -1203,10 +1182,6 @@
       about the Exodus II format.</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="1"
                         name="input_type">
           <DataType value="vtkCompositeDataSet" />
@@ -1221,8 +1196,7 @@
                          number_of_elements="1">
         <BooleanDomain name="bool" />
         <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each time step available from the
-        reader.</Documentation>
+        executed once for each time step available from its input.</Documentation>
       </IntVectorProperty>
       <IntVectorProperty command="SetIgnoreMetaDataWarning"
                          default_values="0"
@@ -1258,10 +1232,6 @@
       EnSight.</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain composite_data_supported="0"
                         name="input_type">
           <DataType value="vtkUnstructuredGrid" />
@@ -1358,10 +1328,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
         </DataTypeDomain>
@@ -1375,12 +1341,11 @@
       </StringVectorProperty>
       <IntVectorProperty command="SetWriteAllTimeSteps"
                          default_values="0"
-                         name="WriteAllTimeSteps"
+                         name="WriteTimeSteps"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each time step available from the
-        reader.</Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each time step available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy class="vtkPVMergeTables"
@@ -1429,10 +1394,6 @@
       </SubProxy>
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources" />
-          <Group name="filters" />
-        </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkDataSet" />
         </DataTypeDomain>
@@ -1446,12 +1407,11 @@
       </StringVectorProperty>
       <IntVectorProperty command="SetWriteAllTimeSteps"
                          default_values="0"
-                         name="WriteAllTimeSteps"
+                         name="WriteTimeSteps"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>When WriteAllTimeSteps is turned ON, the writer is
-        executed once for each timestep available from the
-        reader.</Documentation>
+        <Documentation>When WriteTimeSteps is turned ON, the writer is
+        executed once for each timestep available from its input.</Documentation>
       </IntVectorProperty>
       <SubProxy>
         <Proxy class="vtkAttributeDataToTableFilter"

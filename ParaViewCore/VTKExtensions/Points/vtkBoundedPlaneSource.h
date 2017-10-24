@@ -68,10 +68,9 @@ public:
 
 protected:
   vtkBoundedPlaneSource();
-  ~vtkBoundedPlaneSource();
+  ~vtkBoundedPlaneSource() override;
 
-  virtual int RequestData(
-    vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
+  int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
   double Center[3];
   double Normal[3];
@@ -79,8 +78,8 @@ protected:
   int Resolution;
 
 private:
-  vtkBoundedPlaneSource(const vtkBoundedPlaneSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBoundedPlaneSource&) VTK_DELETE_FUNCTION;
+  vtkBoundedPlaneSource(const vtkBoundedPlaneSource&) = delete;
+  void operator=(const vtkBoundedPlaneSource&) = delete;
 };
 
 #endif

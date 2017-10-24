@@ -212,25 +212,30 @@ public:
    */
   void ShowViewsOnTileDisplay();
 
+  //@{
   /**
    * Captures an image from the layout (including all the views in the layout.
    */
-  vtkImageData* CaptureWindow(int magnification);
+  vtkImageData* CaptureWindow(int magnification)
+  {
+    return this->CaptureWindow(magnification, magnification);
+  }
+  vtkImageData* CaptureWindow(int magnificationX, int magnificationY);
+  //@}
 
   /**
    * Overridden to save custom XML state.
    */
-  virtual vtkPVXMLElement* SaveXMLState(vtkPVXMLElement* root) VTK_OVERRIDE
+  vtkPVXMLElement* SaveXMLState(vtkPVXMLElement* root) VTK_OVERRIDE
   {
     return this->Superclass::SaveXMLState(root);
   }
-  virtual vtkPVXMLElement* SaveXMLState(
-    vtkPVXMLElement* root, vtkSMPropertyIterator* iter) VTK_OVERRIDE;
+  vtkPVXMLElement* SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIterator* iter) VTK_OVERRIDE;
 
   /**
    * Overridden to load custom XML state.
    */
-  virtual int LoadXMLState(vtkPVXMLElement* element, vtkSMProxyLocator* locator) VTK_OVERRIDE;
+  int LoadXMLState(vtkPVXMLElement* element, vtkSMProxyLocator* locator) VTK_OVERRIDE;
 
   /**
    * Resets the layout.
@@ -272,9 +277,8 @@ public:
   /**
    * Set the color to use for separator between views in multi-view
    * configurations when saving images.
-   * @param[in] r Red component value in range (0, 1.0);
-   * @param[in] g Green component value in range (0, 1.0);
-   * @param[in] b Blue component value in range (0, 1.0);
+   *
+   * The arguments are the components of the red, green, and blue channels from 0.0 to 1.0.
    */
   vtkSetVector3Macro(SeparatorColor, double);
   vtkGetVector3Macro(SeparatorColor, double);
@@ -291,12 +295,12 @@ public:
 
 protected:
   vtkSMViewLayoutProxy();
-  ~vtkSMViewLayoutProxy();
+  ~vtkSMViewLayoutProxy() override;
 
   /**
    * Called to load state from protobuf message.
    */
-  virtual void LoadState(const vtkSMMessage* message, vtkSMProxyLocator* locator) VTK_OVERRIDE;
+  void LoadState(const vtkSMMessage* message, vtkSMProxyLocator* locator) VTK_OVERRIDE;
 
   /**
    * Although this class is a proxy, it's not really a proxy in the traditional
@@ -323,8 +327,8 @@ protected:
   int SeparatorWidth;
 
 private:
-  vtkSMViewLayoutProxy(const vtkSMViewLayoutProxy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMViewLayoutProxy&) VTK_DELETE_FUNCTION;
+  vtkSMViewLayoutProxy(const vtkSMViewLayoutProxy&) = delete;
+  void operator=(const vtkSMViewLayoutProxy&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

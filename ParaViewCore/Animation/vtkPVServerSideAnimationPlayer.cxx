@@ -39,7 +39,7 @@ public:
   {
     return new vtkPVServerSideAnimationPlayerObserver;
   }
-  vtkBaseTypeMacro(vtkPVServerSideAnimationPlayerObserver, vtkCommand);
+  vtkTypeMacro(vtkPVServerSideAnimationPlayerObserver, vtkCommand);
 
   void SetStateXML(vtkPVXMLElement* xml) { this->StateXML = xml; }
   void SetFileName(const std::string& str) { this->FileName = str; }
@@ -74,7 +74,7 @@ protected:
     : TargetSessionID(-1)
   {
   }
-  ~vtkPVServerSideAnimationPlayerObserver() {}
+  ~vtkPVServerSideAnimationPlayerObserver() override {}
 
   void SaveAnimation()
   {

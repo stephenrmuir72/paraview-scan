@@ -53,11 +53,7 @@ class vtkTextureObject;
 class vtkOpenGLRenderWindow;
 class vtkUnsignedCharArray;
 class vtkFloatArray;
-#ifdef VTKGL2
 class vtkOpenGLHelper;
-#else
-class vtkShaderProgram2;
-#endif
 
 class VTKPVVTKEXTENSIONSRENDERING_EXPORT vtkIceTCompositePass : public vtkRenderPass
 {
@@ -305,11 +301,7 @@ protected:
 
   vtkPixelBufferObject* PBO;
   vtkTextureObject* ZTexture;
-#ifdef VTKGL2
   vtkOpenGLHelper* Program;
-#else
-  vtkShaderProgram2* Program;
-#endif
 
   bool FixBackground;
   vtkTextureObject* BackgroundTexture;
@@ -326,8 +318,8 @@ protected:
   vtkSynchronizedRenderers::vtkRawImage* LastRenderedEyes[2];
 
 private:
-  vtkIceTCompositePass(const vtkIceTCompositePass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkIceTCompositePass&) VTK_DELETE_FUNCTION;
+  vtkIceTCompositePass(const vtkIceTCompositePass&) = delete;
+  void operator=(const vtkIceTCompositePass&) = delete;
 };
 
 #endif

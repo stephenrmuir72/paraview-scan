@@ -63,8 +63,16 @@ if (NOT BUILD_SHARED_LIBS)
 endif ()
 
 #-------------------------------------------------------------------------------
+set (ParaView_CMAKE_BINARY_DIR "${ParaView_BINARY_DIR}/CMake")
 set (ParaView_CMAKE_DIR "${ParaView_SOURCE_DIR}/CMake")
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ParaView_CMAKE_DIR})
+
+#-------------------------------------------------------------------------------
+# Set up CMAKE_MODULE_PATH
+set (CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH}
+  ${ParaView_CMAKE_BINARY_DIR}
+  ${ParaView_CMAKE_DIR}
+)
 
 # Use the new version of the variable names for output of build process.
 # Make sure these are consistent with what VTK sets.
@@ -145,13 +153,6 @@ if (NOT DEFINED VTK_CUSTOM_LIBRARY_SUFFIX)
   set (VTK_CUSTOM_LIBRARY_SUFFIX "-pv${PARAVIEW_VERSION}")
 endif()
 
-# Handle the target export file, this is used if building against a build tree.
-if(NOT VTK_EXPORTS_FILE)
-  set(VTK_EXPORTS_FILE "${ParaView_BINARY_DIR}/VTK/${VTK_INSTALL_EXPORT_NAME}.cmake")
-endif()
-file(REMOVE "${VTK_EXPORTS_FILE}")
-
-
 if(NOT PV_INSTALL_PLUGIN_DIR)
   if (WIN32)
     set (PV_INSTALL_PLUGIN_DIR ${VTK_INSTALL_RUNTIME_DIR})
@@ -190,13 +191,24 @@ option(BUILD_TESTING "Build ParaView Testing" OFF)
 option(BUILD_EXAMPLES "Build ParaView examples" OFF)
 option(BUILD_SHARED_LIBS "Build ParaView using shared libraries" ON)
 option(PARAVIEW_BUILD_QT_GUI "Enable ParaView Qt-based client" ON)
-option(PARAVIEW_USE_VTKM "Build ParaView with VTKm many-core filters" OFF)
+cmake_dependent_option(PARAVIEW_USE_VTKM "Build ParaView with VTKm many-core filters" OFF "NOT APPLE" OFF)
 option(PARAVIEW_USE_MPI "Enable MPI support for parallel computing" OFF)
 option(PARAVIEW_USE_OSPRAY "Build ParaView with OSPRay Ray Traced rendering" OFF)
+set(VTK_OPENVR_OBJECT_FACTORY OFF
+    CACHE INTERNAL "ParaView requires the OpenVR factory be disabled" FORCE)
 option(PARAVIEW_USE_VISITBRIDGE "Build ParaView with VisIt readers." OFF)
+option(PARAVIEW_USE_OPENTURNS "Build ParaView with OpenTURNS filters and density maps" OFF)
 
-# Xdmf3 is not ON by default since it depends on Boost.
-option(PARAVIEW_ENABLE_XDMF3 "Enable Xdmf3 support (requires Boost)." OFF)
+# NvPipe requires an NVIDIA GPU.
+option(PARAVIEW_ENABLE_NVPIPE
+       "Build ParaView with NvPipe remoting. Requires CUDA and an NVIDIA GPU" OFF)
+
+option(PARAVIEW_ENABLE_XDMF2 "Enable Xdmf2 support." ON)
+mark_as_advanced(PARAVIEW_ENABLE_XDMF2)
+option(PARAVIEW_ENABLE_XDMF3 "Enable Xdmf3 support." OFF)
+option(PARAVIEW_ENABLE_LAS "Enable LAS support." OFF)
+mark_as_advanced(PARAVIEW_ENABLE_LAS)
+
 
 if (UNIX)
   option(PARAVIEW_ENABLE_FFMPEG "Enable FFMPEG Support." OFF)
@@ -448,8 +460,7 @@ endif()
 # Setup Qt state. We just do a quick top level check for Qt's exisiting here.
 # We let individual modules find_package(Qt..) as needed.
 if(PARAVIEW_ENABLE_QT_SUPPORT)
-  set(PARAVIEW_QT_VERSION "5" CACHE STRING  "Select Qt version to use 4 or 5")
-  set_property(CACHE PARAVIEW_QT_VERSION PROPERTY STRINGS 4 5)
+  set(PARAVIEW_QT_VERSION "5" CACHE INTERNAL "Select Qt version to 5")
   # Force VTK to use the same Qt version as ParaView.
   set(VTK_QT_VERSION "${PARAVIEW_QT_VERSION}" CACHE INTERNAL "")
   set(VTK_BUILD_QT_DESIGNER_PLUGIN OFF CACHE INTERNAL "")
@@ -476,6 +487,20 @@ endif()
 if (PARAVIEW_BUILD_QT_GUI)
   # Request the pqApplicationComponents module.
   list (APPEND pqApplicationComponents_REQUEST_BY "Option PARAVIEW_BUILD_QT_GUI")
+
+  if (APPLE)
+    # Enable high resolution when using Qt5
+    # This configuring of MacOSXBundleInfo may no longer be needed, but I am
+    # leaving it in since in future we could build the supported extensions list
+    # more exhaustively here.
+    set(MAC_HIGH_RESOLUTION_CAPABLE "true")
+    file(MAKE_DIRECTORY ${ParaView_CMAKE_BINARY_DIR})
+    configure_file(
+      "${ParaView_CMAKE_DIR}/MacOSXBundleInfo.plist.in.in"
+      "${ParaView_CMAKE_BINARY_DIR}/MacOSXBundleInfo.plist.in"
+      @ONLY
+    )
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -598,13 +623,10 @@ mark_as_advanced(PARAVIEW_EXTERNAL_MODULE_ROOTS)
 include(ParaViewModuleTop)
 
 #----------------------------------------------------------------------------------
-# Sanity check: OpenGL2 backend is required for Qt 5.
-if(PARAVIEW_BUILD_QT_GUI
-    AND PARAVIEW_QT_VERSION VERSION_GREATER "4"
-    AND VTK_RENDERING_BACKEND STREQUAL "OpenGL")
+# Sanity check: OpenGL backend is no longer supported
+if (VTK_RENDERING_BACKEND STREQUAL "OpenGL")
   message(SEND_ERROR
-    "ParaView requires 'OpenGL2' rendering backend when building with Qt 5. "
-    "Please set VTK_RENDERING_BACKEND to 'OpenGL2' (recommended) or build with Qt 4.")
+    "ParaView no longer supports the 'OpenGL' rendering backend.")
 endif()
 
 #----------------------------------------------------------------------------------

@@ -14,17 +14,13 @@
 =========================================================================*/
 #include "vtkGeometryRepresentation.h"
 
-#include "vtkCompositePolyDataMapper2.h"
-#ifndef VTKGL2
-#include "vtkHardwareSelectionPolyDataPainter.h"
-#include "vtkShadowMapBakerPass.h"
-#endif
 #include "vtkAlgorithmOutput.h"
 #include "vtkBoundingBox.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositePolyDataMapper2.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMath.h"
@@ -70,7 +66,7 @@ public:
   vtkTypeMacro(vtkGeometryRepresentationMultiBlockMaker, vtkMultiBlockDataSetAlgorithm);
 
 protected:
-  virtual int RequestData(vtkInformation*, vtkInformationVector** inputVector,
+  int RequestData(vtkInformation*, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) VTK_OVERRIDE
   {
     vtkMultiBlockDataSet* inputMB = vtkMultiBlockDataSet::GetData(inputVector[0], 0);
@@ -89,7 +85,7 @@ protected:
     return 1;
   }
 
-  virtual int FillInputPortInformation(int, vtkInformation* info) VTK_OVERRIDE
+  int FillInputPortInformation(int, vtkInformation* info) VTK_OVERRIDE
   {
     info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
     info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
@@ -163,20 +159,10 @@ vtkGeometryRepresentation::vtkGeometryRepresentation()
   // setup the selection mapper so that we don't need to make any selection
   // conversions after rendering.
   vtkCompositePolyDataMapper2* mapper = vtkCompositePolyDataMapper2::New();
-#ifdef VTKGL2
   mapper->SetPointIdArrayName("vtkOriginalPointIds");
   mapper->SetCellIdArrayName("vtkOriginalCellIds");
   mapper->SetProcessIdArrayName("vtkProcessId");
   mapper->SetCompositeIdArrayName("vtkCompositeIndex");
-#else
-  vtkHardwareSelectionPolyDataPainter* selPainter =
-    vtkHardwareSelectionPolyDataPainter::SafeDownCast(
-      mapper->GetSelectionPainter()->GetDelegatePainter());
-  selPainter->SetPointIdArrayName("vtkOriginalPointIds");
-  selPainter->SetCellIdArrayName("vtkOriginalCellIds");
-  selPainter->SetProcessIdArrayName("vtkProcessId");
-  selPainter->SetCompositeIdArrayName("vtkCompositeIndex");
-#endif
 
   this->Mapper = mapper;
   this->LODMapper = vtkCompositePolyDataMapper2::New();
@@ -397,6 +383,25 @@ int vtkGeometryRepresentation::ProcessViewRequest(
     bool lod = this->SuppressLOD ? false : (inInfo->Has(vtkPVRenderView::USE_LOD()) == 1);
     this->Actor->SetEnableLOD(lod ? 1 : 0);
     this->UpdateColoringParameters();
+
+    auto data = producerPort->GetProducer()->GetOutputDataObject(0);
+    if (this->BlockAttributeTime < data->GetMTime() || this->BlockAttrChanged)
+    {
+      this->UpdateBlockAttributes(this->Mapper);
+      this->BlockAttributeTime.Modified();
+      this->BlockAttrChanged = false;
+
+      // This flag makes the following LOD render requests to also update the block
+      // attribute state, if there were any changes.
+      this->UpdateBlockAttrLOD = true;
+    }
+
+    // Make following (LOD) render request to update.
+    if (lod && this->UpdateBlockAttrLOD)
+    {
+      this->UpdateBlockAttributes(this->LODMapper);
+      this->UpdateBlockAttrLOD = false;
+    }
   }
 
   return 1;
@@ -458,8 +463,6 @@ int vtkGeometryRepresentation::RequestUpdateExtent(
 int vtkGeometryRepresentation::RequestData(
   vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  // cout << this << ":" << this->DebugString << ":RequestData" << endl;
-
   vtkMath::UninitializeBounds(this->DataBounds);
 
   // Pass caching information to the cache keeper.
@@ -698,21 +701,6 @@ void vtkGeometryRepresentation::UpdateColoringParameters()
       this->Property->SetEdgeVisibility(0);
       this->Property->SetRepresentation(this->Representation);
   }
-
-// Update shadow map properties, in case we are using shadow maps.
-#ifndef VTKGL2
-  if (this->Representation == SURFACE || this->Representation == SURFACE_WITH_EDGES)
-  {
-    // just add these keys, their values don't matter.
-    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::OCCLUDER(), 0);
-    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::RECEIVER(), 0);
-  }
-  else
-  {
-    this->Actor->GetPropertyKeys()->Set(vtkShadowMapBakerPass::OCCLUDER(), 0);
-    this->Actor->GetPropertyKeys()->Remove(vtkShadowMapBakerPass::RECEIVER());
-  }
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -782,6 +770,16 @@ void vtkGeometryRepresentation::SetLineWidth(double val)
 void vtkGeometryRepresentation::SetOpacity(double val)
 {
   this->Property->SetOpacity(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetLuminosity(double val)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkOSPRayActorNode::SetLuminosity(val, this->Property);
+#else
+  (void)val;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -910,111 +908,94 @@ void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int val)
 }
 
 //----------------------------------------------------------------------------
-#if !defined(VTK_LEGACY_REMOVE)
-bool vtkGeometryRepresentation::GenerateMetaData(vtkInformation*, vtkInformation*)
-{
-  vtkWarningMacro("REQUEST_INFORMATION pass has been deprecated and no longer used");
-  return false;
-}
-#endif
-
-//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetBlockVisibility(unsigned int index, bool visible)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
-  {
-    cpm->SetBlockVisibility(index, visible);
-  }
+  this->BlockVisibilities[index] = visible;
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 bool vtkGeometryRepresentation::GetBlockVisibility(unsigned int index) const
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockVisibilities.find(index);
+  if (it == this->BlockVisibilities.cend())
   {
-    return cpm->GetBlockVisibility(index);
+    return true;
   }
-  return true;
+  return it->second;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockVisibility(unsigned int index, bool)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockVisibilities.find(index);
+  if (it == this->BlockVisibilities.cend())
   {
-    cpm->RemoveBlockVisibility(index);
+    return;
   }
+  this->BlockVisibilities.erase(it);
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockVisibilities()
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
-  {
-    cpm->RemoveBlockVisibilites();
-  }
+  this->BlockVisibilities.clear();
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetBlockColor(unsigned int index, double r, double g, double b)
 {
-  double color[3] = { r, g, b };
-  this->SetBlockColor(index, color);
+  std::array<double, 3> color = { { r, g, b } };
+  this->BlockColors[index] = color;
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetBlockColor(unsigned int index, double* color)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  if (color)
   {
-    cpm->SetBlockColor(index, color);
+    this->SetBlockColor(index, color[0], color[1], color[2]);
   }
 }
 
 //----------------------------------------------------------------------------
 double* vtkGeometryRepresentation::GetBlockColor(unsigned int index)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockColors.find(index);
+  if (it == this->BlockColors.cend())
   {
-    cpm->GetBlockColor(index);
+    return nullptr;
   }
-  return NULL;
+  return it->second.data();
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockColor(unsigned int index)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockColors.find(index);
+  if (it == this->BlockColors.cend())
   {
-    cpm->RemoveBlockColor(index);
+    return;
   }
+  this->BlockColors.erase(it);
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockColors()
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
-  {
-    cpm->RemoveBlockColors();
-  }
+  this->BlockColors.clear();
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetBlockOpacity(unsigned int index, double opacity)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
-  {
-    cpm->SetBlockOpacity(index, opacity);
-  }
+  this->BlockOpacities[index] = opacity;
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
@@ -1029,31 +1010,61 @@ void vtkGeometryRepresentation::SetBlockOpacity(unsigned int index, double* opac
 //----------------------------------------------------------------------------
 double vtkGeometryRepresentation::GetBlockOpacity(unsigned int index)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockOpacities.find(index);
+  if (it == this->BlockOpacities.cend())
   {
-    return cpm->GetBlockOpacity(index);
+    return 0.0;
   }
-  return 0.0;
+  return it->second;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockOpacity(unsigned int index)
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  auto it = this->BlockOpacities.find(index);
+  if (it == this->BlockOpacities.cend())
   {
-    cpm->RemoveBlockOpacity(index);
+    return;
   }
+  this->BlockOpacities.erase(it);
+  this->BlockAttrChanged = true;
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::RemoveBlockOpacities()
 {
-  vtkCompositePolyDataMapper2* cpm = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper);
-  if (cpm)
+  this->BlockOpacities.clear();
+  this->BlockAttrChanged = true;
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::UpdateBlockAttributes(vtkMapper* mapper)
+{
+  auto cpm = vtkCompositePolyDataMapper2::SafeDownCast(mapper);
+  if (!cpm)
   {
-    cpm->RemoveBlockOpacities();
+    vtkErrorMacro(<< "Invalid mapper!");
+    return;
+  }
+
+  cpm->RemoveBlockVisibilities();
+  for (auto const& item : this->BlockVisibilities)
+  {
+    cpm->SetBlockVisibility(item.first, item.second);
+  }
+
+  cpm->RemoveBlockColors();
+  for (auto const& item : this->BlockColors)
+  {
+    auto& arr = item.second;
+    double color[3] = { arr[0], arr[1], arr[2] };
+    cpm->SetBlockColor(item.first, color);
+  }
+
+  cpm->RemoveBlockOpacities();
+  for (auto const& item : this->BlockOpacities)
+  {
+    cpm->SetBlockOpacity(item.first, item.second);
   }
 }
 
@@ -1084,5 +1095,22 @@ void vtkGeometryRepresentation::SetScalingFunction(vtkPiecewiseFunction* pwf)
   this->Actor->SetScalingFunction(pwf);
 #else
   (void)pwf;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetMaterial(const char* val)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  if (!strcmp(val, "None"))
+  {
+    this->Property->SetMaterialName(nullptr);
+  }
+  else
+  {
+    this->Property->SetMaterialName(val);
+  }
+#else
+  (void)val;
 #endif
 }

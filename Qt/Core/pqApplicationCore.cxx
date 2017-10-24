@@ -52,14 +52,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreInit.h"
 #include "pqCoreTestUtility.h"
 #include "pqCoreUtilities.h"
-#include "pqDisplayPolicy.h"
 #include "pqEventDispatcher.h"
 #include "pqInterfaceTracker.h"
 #include "pqLinksModel.h"
 #include "pqObjectBuilder.h"
 #include "pqOptions.h"
-#include "pqOutputWindow.h"
-#include "pqOutputWindowAdapter.h"
 #include "pqPipelineFilter.h"
 #include "pqPluginManager.h"
 #include "pqProgressManager.h"
@@ -92,13 +89,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMWriterFactory.h"
 #include "vtkSmartPointer.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
+#include "pqDisplayPolicy.h"
+#endif
+
 // Do this after all above includes. On a VS2015 with Qt 5,
-// these includes cause build errors with pqOutputWindow, pqRenderView etc.
+// these includes cause build errors with pqRenderView etc.
 // due to some leaked through #define's (is my guess).
-#if QT_VERSION >= 0x050000
 #include "QVTKOpenGLWidget.h"
 #include <QSurfaceFormat>
-#endif
 
 //-----------------------------------------------------------------------------
 class pqApplicationCore::pqInternals
@@ -121,7 +120,6 @@ pqApplicationCore::pqApplicationCore(
   int& argc, char** argv, pqOptions* options, QObject* parentObject)
   : QObject(parentObject)
 {
-#if QT_VERSION >= 0x050000
   vtkPVSynchronizedRenderWindows::SetUseGenericOpenGLRenderWindow(true);
 
   // Setup the default format.
@@ -130,7 +128,6 @@ pqApplicationCore::pqApplicationCore(
   // ParaView does not support multisamples.
   fmt.setSamples(0);
   QSurfaceFormat::setDefaultFormat(fmt);
-#endif
 
   vtkSmartPointer<pqOptions> defaultOptions;
   if (!options)
@@ -140,14 +137,10 @@ pqApplicationCore::pqApplicationCore(
   }
   this->Options = options;
 
-  // Create output window before initializing server manager.
-  this->createOutputWindow();
   vtkInitializationHelper::SetOrganizationName(QApplication::organizationName().toStdString());
   vtkInitializationHelper::SetApplicationName(QApplication::applicationName().toStdString());
   vtkInitializationHelper::Initialize(argc, argv, vtkProcessModule::PROCESS_CLIENT, options);
   this->constructor();
-  QObject::connect(this->ProgressManager, SIGNAL(progressStartEvent()), this->OutputWindow,
-    SLOT(onProgressStartEvent()));
 }
 
 //-----------------------------------------------------------------------------
@@ -183,8 +176,10 @@ void pqApplicationCore::constructor()
 
   this->PluginManager = new pqPluginManager(this);
 
-  // * Create various factories.
+// * Create various factories.
+#if !defined(VTK_LEGACY_REMOVE)
   this->DisplayPolicy = new pqDisplayPolicy(this);
+#endif
 
   this->ProgressManager = new pqProgressManager(this);
 
@@ -257,10 +252,12 @@ pqApplicationCore::~pqApplicationCore()
   this->HelpEngine = NULL;
 #endif
 
-  // We don't call delete on these since we have already setup parent on these
-  // correctly so they will be deleted. It's possible that the user calls delete
-  // on these explicitly in which case we end up with segfaults.
+// We don't call delete on these since we have already setup parent on these
+// correctly so they will be deleted. It's possible that the user calls delete
+// on these explicitly in which case we end up with segfaults.
+#if !defined(VTK_LEGACY_REMOVE)
   this->DisplayPolicy = 0;
+#endif
   this->UndoStack = 0;
 
   // Delete all children, which clears up all managers etc. before the server
@@ -275,34 +272,6 @@ pqApplicationCore::~pqApplicationCore()
   }
 
   vtkInitializationHelper::Finalize();
-  vtkOutputWindow::SetInstance(NULL);
-  delete this->OutputWindow;
-  this->OutputWindow = NULL;
-  this->OutputWindowAdapter->Delete();
-  this->OutputWindowAdapter = 0;
-}
-
-//-----------------------------------------------------------------------------
-void pqApplicationCore::createOutputWindow()
-{
-  // Set up error window.
-  pqOutputWindowAdapter* owAdapter = pqOutputWindowAdapter::New();
-  this->OutputWindow = new pqOutputWindow(0);
-  this->OutputWindow->setAttribute(Qt::WA_QuitOnClose, false);
-  this->OutputWindow->connect(
-    owAdapter, SIGNAL(displayText(const QString&)), SLOT(onDisplayText(const QString&)));
-  this->OutputWindow->connect(
-    owAdapter, SIGNAL(displayErrorText(const QString&)), SLOT(onDisplayErrorText(const QString&)));
-  this->OutputWindow->connect(owAdapter, SIGNAL(displayWarningText(const QString&)),
-    SLOT(onDisplayWarningText(const QString&)));
-  this->OutputWindow->connect(owAdapter, SIGNAL(displayGenericWarningText(const QString&)),
-    SLOT(onDisplayGenericWarningText(const QString&)));
-  this->OutputWindow->connect(owAdapter, SIGNAL(displayTextInWindow(const QString&)),
-    SLOT(onDisplayTextInWindow(const QString&)));
-  this->OutputWindow->connect(owAdapter, SIGNAL(displayErrorTextInWindow(const QString&)),
-    SLOT(onDisplayErrorTextInWindow(const QString&)));
-  vtkOutputWindow::SetInstance(owAdapter);
-  this->OutputWindowAdapter = owAdapter;
 }
 
 //-----------------------------------------------------------------------------
@@ -319,9 +288,11 @@ void pqApplicationCore::setUndoStack(pqUndoStack* stack)
   }
 }
 
+#if !defined(VTK_LEGACY_REMOVE)
 //-----------------------------------------------------------------------------
 void pqApplicationCore::setDisplayPolicy(pqDisplayPolicy* policy)
 {
+  VTK_LEGACY_BODY(pqApplicationCore::setDisplayPolicy, "ParaView 5.5");
   delete this->DisplayPolicy;
   this->DisplayPolicy = policy;
   if (policy)
@@ -329,6 +300,14 @@ void pqApplicationCore::setDisplayPolicy(pqDisplayPolicy* policy)
     policy->setParent(this);
   }
 }
+
+//-----------------------------------------------------------------------------
+pqDisplayPolicy* pqApplicationCore::getDisplayPolicy() const
+{
+  VTK_LEGACY_BODY(pqApplicationCore::getDisplayPolicy, "ParaView 5.5");
+  return this->DisplayPolicy;
+}
+#endif // VTK_LEGACY_REMOVE
 
 //-----------------------------------------------------------------------------
 void pqApplicationCore::registerManager(const QString& function, QObject* _manager)
@@ -610,14 +589,6 @@ void pqApplicationCore::quit()
 }
 
 //-----------------------------------------------------------------------------
-void pqApplicationCore::showOutputWindow()
-{
-  this->OutputWindow->show();
-  this->OutputWindow->raise();
-  this->OutputWindow->activateWindow();
-}
-
-//-----------------------------------------------------------------------------
 void pqApplicationCore::loadConfiguration(const QString& filename)
 {
   QFile xml(filename);
@@ -678,6 +649,12 @@ pqTestUtility* pqApplicationCore::testUtility()
   return this->TestUtility;
 }
 
+//-----------------------------------------------------------------------------
+void pqApplicationCore::onHelpEngineWarning(const QString& msg)
+{
+  qWarning() << msg;
+}
+
 #ifdef PARAVIEW_USE_QTHELP
 //-----------------------------------------------------------------------------
 QHelpEngine* pqApplicationCore::helpEngine()
@@ -687,8 +664,8 @@ QHelpEngine* pqApplicationCore::helpEngine()
     QTemporaryFile tFile;
     tFile.open();
     this->HelpEngine = new QHelpEngine(tFile.fileName() + ".qhc", this);
-    QObject::connect(this->HelpEngine, SIGNAL(warning(const QString&)), this->OutputWindow,
-      SLOT(onDisplayGenericWarningText(const QString&)));
+    this->connect(
+      this->HelpEngine, SIGNAL(warning(const QString&)), SLOT(onHelpEngineWarning(const QString&)));
     this->HelpEngine->setupData();
     // register the application's qch file. An application specific qch file can
     // be compiled into the executable in the build_paraview_client() cmake

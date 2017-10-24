@@ -86,7 +86,7 @@ public:
 
 protected:
   vtkUndoElement();
-  ~vtkUndoElement();
+  ~vtkUndoElement() override;
 
   //@{
   /**
@@ -99,8 +99,8 @@ protected:
   //@}
 
 private:
-  vtkUndoElement(const vtkUndoElement&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUndoElement&) VTK_DELETE_FUNCTION;
+  vtkUndoElement(const vtkUndoElement&) = delete;
+  void operator=(const vtkUndoElement&) = delete;
 };
 
 #endif

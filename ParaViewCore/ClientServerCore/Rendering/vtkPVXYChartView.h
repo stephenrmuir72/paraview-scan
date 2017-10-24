@@ -74,6 +74,7 @@ public:
    */
   void SetChartType(const char* type);
   void SetChartTypeToLine() { this->SetChartType("Line"); }
+  void SetChartTypeToPoint() { this->SetChartType("Point"); }
   void SetChartTypeToBar() { this->SetChartType("Bar"); }
   void SetChartTypeToBag() { this->SetChartType("Bag"); }
   void SetChartTypeToBox() { this->SetChartType("Box"); }
@@ -440,7 +441,7 @@ public:
   /**
    * Get the context item.
    */
-  virtual vtkAbstractContextItem* GetContextItem() VTK_OVERRIDE;
+  vtkAbstractContextItem* GetContextItem() VTK_OVERRIDE;
 
   /**
    * Representations can use this method to set the selection for a particular
@@ -449,16 +450,16 @@ public:
    * the local process alone. The view does not manage data movement for the
    * selection.
    */
-  virtual void SetSelection(vtkChartRepresentation* repr, vtkSelection* selection) VTK_OVERRIDE;
+  void SetSelection(vtkChartRepresentation* repr, vtkSelection* selection) VTK_OVERRIDE;
 
   /**
    * Overridden to rescale axes range on every update.
    */
-  virtual void Update() VTK_OVERRIDE;
+  void Update() VTK_OVERRIDE;
 
 protected:
   vtkPVXYChartView();
-  ~vtkPVXYChartView();
+  ~vtkPVXYChartView() override;
 
   void SetAxisRangeMinimum(int index, double min);
   void SetAxisRangeMaximum(int index, double max);
@@ -466,7 +467,7 @@ protected:
   /**
    * Actual rendering implementation.
    */
-  virtual void Render(bool interactive) VTK_OVERRIDE;
+  void Render(bool interactive) VTK_OVERRIDE;
 
   //@{
   /**
@@ -495,8 +496,8 @@ protected:
   bool SortByXAxis;
 
 private:
-  vtkPVXYChartView(const vtkPVXYChartView&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVXYChartView&) VTK_DELETE_FUNCTION;
+  vtkPVXYChartView(const vtkPVXYChartView&) = delete;
+  void operator=(const vtkPVXYChartView&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

@@ -123,10 +123,9 @@ public:
 
 protected:
   vtkFastMarchingGeodesicPath();
-  ~vtkFastMarchingGeodesicPath();
+  ~vtkFastMarchingGeodesicPath() override;
 
-  virtual int RequestData(
-    vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
+  int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
   // Do the fast marching and gradient backtracking
   virtual void ComputePath(vtkPolyData*);
@@ -140,8 +139,8 @@ protected:
   vtkFastMarchingGeodesicDistance* Geodesic;
 
 private:
-  vtkFastMarchingGeodesicPath(const vtkFastMarchingGeodesicPath&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFastMarchingGeodesicPath&) VTK_DELETE_FUNCTION;
+  vtkFastMarchingGeodesicPath(const vtkFastMarchingGeodesicPath&) = delete;
+  void operator=(const vtkFastMarchingGeodesicPath&) = delete;
 };
 
 #endif

@@ -47,14 +47,14 @@ public:
 
 protected:
   vtkPVCenterAxesActor();
-  ~vtkPVCenterAxesActor();
+  ~vtkPVCenterAxesActor() override;
 
   vtkAxes* Axes;
   vtkPolyDataMapper* Mapper;
 
 private:
-  vtkPVCenterAxesActor(const vtkPVCenterAxesActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVCenterAxesActor&) VTK_DELETE_FUNCTION;
+  vtkPVCenterAxesActor(const vtkPVCenterAxesActor&) = delete;
+  void operator=(const vtkPVCenterAxesActor&) = delete;
 };
 
 #endif

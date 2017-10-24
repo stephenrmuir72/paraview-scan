@@ -129,9 +129,19 @@ public:
    */
   static std::string Utf8ToLocalWin32(const std::string& path);
 
+  //@{
+  /**
+   * When off, while listing a directory we skip the expensive fstat call on every file
+   * and instead return only their names and basic information about them. Defaults to off.
+   * To enable the detailed information like file size and modified time turn this on.
+   */
+  vtkGetMacro(ReadDetailedFileInformation, bool);
+  vtkSetMacro(ReadDetailedFileInformation, bool);
+  //@}
+
 protected:
   vtkPVFileInformationHelper();
-  ~vtkPVFileInformationHelper();
+  ~vtkPVFileInformationHelper() override;
 
   char* Path;
   char* WorkingDirectory;
@@ -139,12 +149,13 @@ protected:
   int SpecialDirectories;
   int FastFileTypeDetection;
 
+  bool ReadDetailedFileInformation;
   char* PathSeparator;
   vtkSetStringMacro(PathSeparator);
 
 private:
-  vtkPVFileInformationHelper(const vtkPVFileInformationHelper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVFileInformationHelper&) VTK_DELETE_FUNCTION;
+  vtkPVFileInformationHelper(const vtkPVFileInformationHelper&) = delete;
+  void operator=(const vtkPVFileInformationHelper&) = delete;
 };
 
 #endif

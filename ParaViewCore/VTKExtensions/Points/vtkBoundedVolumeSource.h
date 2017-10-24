@@ -60,20 +60,19 @@ public:
 
 protected:
   vtkBoundedVolumeSource();
-  ~vtkBoundedVolumeSource();
+  ~vtkBoundedVolumeSource() override;
 
-  virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector,
+  int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) VTK_OVERRIDE;
-  virtual void ExecuteDataWithInformation(
-    vtkDataObject* data, vtkInformation* outInfo) VTK_OVERRIDE;
+  void ExecuteDataWithInformation(vtkDataObject* data, vtkInformation* outInfo) VTK_OVERRIDE;
 
   double Origin[3];
   double Scale[3];
   int Resolution[3];
 
 private:
-  vtkBoundedVolumeSource(const vtkBoundedVolumeSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBoundedVolumeSource&) VTK_DELETE_FUNCTION;
+  vtkBoundedVolumeSource(const vtkBoundedVolumeSource&) = delete;
+  void operator=(const vtkBoundedVolumeSource&) = delete;
 };
 
 #endif

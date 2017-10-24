@@ -36,8 +36,10 @@ set(Module_SRCS
   vtkCameraManipulatorGUIHelper.cxx
   vtkCleanArrays.cxx
   vtkCompositeDataToUnstructuredGridFilter.cxx
+  vtkContext2DScalarBarActor.cxx
   vtkCSVExporter.cxx
   vtkImageCompressor.cxx
+  vtkImageTransparencyFilter.cxx
   vtkKdTreeGenerator.cxx
   vtkKdTreeManager.cxx
   vtkLZ4Compressor.cxx
@@ -50,6 +52,7 @@ set(Module_SRCS
   vtkPVAxesWidget.cxx
   vtkPVCameraCollection.cxx
   vtkPVCenterAxesActor.cxx
+  vtkBoundingRectContextDevice2D.cxx
   vtkPVDefaultPass.cxx
   vtkPVDiscretizableColorTransferFunction.cxx
   vtkPVGeometryFilter.cxx
@@ -66,6 +69,7 @@ set(Module_SRCS
   vtkPVPlotTime.cxx
   vtkPVRecoverGeometryWireframe.cxx
   vtkPVScalarBarActor.cxx
+  vtkPVScalarBarRepresentation.cxx
   vtkPVTrackballMoveActor.cxx
   vtkPVTrackballMultiRotate.cxx
   vtkPVTrackballPan.cxx
@@ -88,20 +92,6 @@ set(Module_SRCS
   vtkCinemaExporter.cxx
 )
 
-# Disabled unless using the OpenGL backend.
-if ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
-  list(APPEND Module_SRCS
-    vtkTexturePainter.cxx
-    )
-endif()
-
-if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-  set_source_files_properties(
-    vtkPVDefaultPass.cxx
-    vtkPVGeometryFilter.cxx
-    PROPERTIES COMPILE_FLAGS -DVTKGL2)
-endif()
-
 if (PARAVIEW_USE_MPI)
   list(APPEND Module_SRCS
     vtkAllToNRedistributeCompositePolyData.cxx
@@ -116,22 +106,20 @@ if (PARAVIEW_USE_MPI)
     list(APPEND Module_SRCS
       vtkIceTCompositePass.cxx
       vtkIceTContext.cxx)
-    if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-      set_source_files_properties(vtkIceTCompositePass.cxx
-        PROPERTIES COMPILE_FLAGS -DVTKGL2)
-    endif()
   endif()
+endif()
+
+if (PARAVIEW_ENABLE_NVPIPE)
+  find_package(nvpipe REQUIRED)
+  list(APPEND Module_SRCS
+    vtkNvPipeCompressor.cxx
+    )
+  include_directories(${NVPIPE_INCLUDE_DIRS})
 endif()
 
 #set_source_files_properties(
 #  WRAP_EXCLUDE
 #  )
-if (PARAVIEW_QT_VERSION VERSION_GREATER "4")
-  include_directories(${Qt5Core_INCLUDE_DIRS})
-else ()
-  include_directories(${QT_INCLUDE_DIR})
-endif ()
-
 set_source_files_properties(
   vtkCameraManipulatorGUIHelper
   vtkImageCompressor
@@ -167,3 +155,8 @@ if(PARAVIEW_USE_MPI)
 endif()
 include(vtkOpenGL)
 vtk_opengl_link(vtkPVVTKExtensionsRendering)
+
+if(PARAVIEW_ENABLE_NVPIPE)
+  target_link_libraries(vtkPVVTKExtensionsRendering LINK_PRIVATE
+    ${NVPIPE_LIBRARIES})
+endif()

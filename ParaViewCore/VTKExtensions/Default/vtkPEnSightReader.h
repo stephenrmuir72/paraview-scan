@@ -16,10 +16,8 @@
  * @class   vtkPEnSightReader
  *
  * Superclass for EnSight file parallel readers
- * @par Thanks:
- * <verbatim>
  *
- * @par Thanks:
+ * \verbatim
  * This file has been developed as part of the CARRIOCAS (Distributed
  * computation over ultra high optical internet network ) project (
  * http://www.carriocas.org/index.php?lng=ang ) of the SYSTEM@TIC French ICT
@@ -27,11 +25,8 @@
  * supervision of CEA (http://www.cea.fr) and EDF (http://www.edf.fr) by
  * Oxalya (http://www.oxalya.com)
  *
- * @par Thanks:
  *  Copyright (c) CEA
- *
- * @par Thanks:
- * </verbatim>
+ * \endverbatim
 */
 
 #ifndef vtkPEnSightReader_h
@@ -592,12 +587,11 @@ public:
 
 protected:
   vtkPEnSightReader();
-  ~vtkPEnSightReader();
+  ~vtkPEnSightReader() override;
 
-  virtual int RequestInformation(
+  int RequestInformation(
     vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
-  virtual int RequestData(
-    vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
+  int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
   /*int RequestUpdateExtent(
     vtkInformation *vtkNotUsed(request),
@@ -886,8 +880,8 @@ protected:
   std::map<std::string, std::map<int, long> > FileOffsets;
 
 private:
-  vtkPEnSightReader(const vtkPEnSightReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPEnSightReader&) VTK_DELETE_FUNCTION;
+  vtkPEnSightReader(const vtkPEnSightReader&) = delete;
+  void operator=(const vtkPEnSightReader&) = delete;
 };
 
 #endif

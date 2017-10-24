@@ -171,7 +171,7 @@ public:
    * server-sides using Deliver().
    */
   bool NeedsDelivery(
-    unsigned long timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low_res);
+    vtkMTimeType timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low_res);
 
   /**
    * Triggers delivery for the geometries of indicated representations.
@@ -216,7 +216,7 @@ public:
 
 protected:
   vtkPVDataDeliveryManager();
-  ~vtkPVDataDeliveryManager();
+  ~vtkPVDataDeliveryManager() override;
 
   vtkWeakPointer<vtkPVRenderView> RenderView;
   vtkSmartPointer<vtkPKdTree> KdTree;
@@ -224,8 +224,8 @@ protected:
   vtkTimeStamp RedistributionTimeStamp;
 
 private:
-  vtkPVDataDeliveryManager(const vtkPVDataDeliveryManager&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVDataDeliveryManager&) VTK_DELETE_FUNCTION;
+  vtkPVDataDeliveryManager(const vtkPVDataDeliveryManager&) = delete;
+  void operator=(const vtkPVDataDeliveryManager&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

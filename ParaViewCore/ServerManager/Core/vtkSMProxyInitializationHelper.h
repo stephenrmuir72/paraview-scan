@@ -61,15 +61,15 @@ public:
    * initialization.
    */
   virtual void PostInitializeProxy(
-    vtkSMProxy* proxy, vtkPVXMLElement* xml, unsigned long initializationTimeStamp) = 0;
+    vtkSMProxy* proxy, vtkPVXMLElement* xml, vtkMTimeType initializationTimeStamp) = 0;
 
 protected:
   vtkSMProxyInitializationHelper();
-  ~vtkSMProxyInitializationHelper();
+  ~vtkSMProxyInitializationHelper() override;
 
 private:
-  vtkSMProxyInitializationHelper(const vtkSMProxyInitializationHelper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMProxyInitializationHelper&) VTK_DELETE_FUNCTION;
+  vtkSMProxyInitializationHelper(const vtkSMProxyInitializationHelper&) = delete;
+  void operator=(const vtkSMProxyInitializationHelper&) = delete;
 };
 
 #endif

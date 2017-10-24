@@ -86,12 +86,12 @@ protected:
   virtual void UpdateValue(double currenttime, vtkPVAnimationCue* cueproxy) = 0;
 
   vtkPVCueManipulator();
-  ~vtkPVCueManipulator();
+  ~vtkPVCueManipulator() override;
   friend class vtkPVAnimationCue;
 
 private:
-  vtkPVCueManipulator(const vtkPVCueManipulator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVCueManipulator&) VTK_DELETE_FUNCTION;
+  vtkPVCueManipulator(const vtkPVCueManipulator&) = delete;
+  void operator=(const vtkPVCueManipulator&) = delete;
 };
 
 #endif

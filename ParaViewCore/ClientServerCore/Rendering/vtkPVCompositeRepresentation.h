@@ -34,6 +34,7 @@
 
 class vtkPolarAxesRepresentation;
 class vtkSelectionRepresentation;
+class vtkPVGridAxes3DRepresentation;
 
 class VTKPVCLIENTSERVERCORERENDERING_EXPORT vtkPVCompositeRepresentation
   : public vtkCompositeRepresentation
@@ -48,6 +49,7 @@ public:
    * representation to any views or calling Update().
    */
   void SetSelectionRepresentation(vtkSelectionRepresentation*);
+  void SetGridAxesRepresentation(vtkPVGridAxes3DRepresentation*);
 
   /**
    * This must only be set during initialization before adding the
@@ -58,13 +60,13 @@ public:
   /**
    * Propagate the modification to all internal representations.
    */
-  virtual void MarkModified() VTK_OVERRIDE;
+  void MarkModified() VTK_OVERRIDE;
 
   /**
    * Set visibility of the representation.
    * Overridden to update the cube-axes and selection visibilities.
    */
-  virtual void SetVisibility(bool visible) VTK_OVERRIDE;
+  void SetVisibility(bool visible) VTK_OVERRIDE;
 
   /**
    * Set the selection visibility.
@@ -80,9 +82,15 @@ public:
   /**
    * Passed on to internal representations as well.
    */
-  virtual void SetUpdateTime(double time) VTK_OVERRIDE;
-  virtual void SetForceUseCache(bool val) VTK_OVERRIDE;
-  virtual void SetForcedCacheKey(double val) VTK_OVERRIDE;
+  void SetUpdateTime(double time) VTK_OVERRIDE;
+  void SetForceUseCache(bool val) VTK_OVERRIDE;
+  void SetForcedCacheKey(double val) VTK_OVERRIDE;
+  void SetInputConnection(int port, vtkAlgorithmOutput* input) VTK_OVERRIDE;
+  void SetInputConnection(vtkAlgorithmOutput* input) VTK_OVERRIDE;
+  void AddInputConnection(int port, vtkAlgorithmOutput* input) VTK_OVERRIDE;
+  void AddInputConnection(vtkAlgorithmOutput* input) VTK_OVERRIDE;
+  void RemoveInputConnection(int port, vtkAlgorithmOutput* input) VTK_OVERRIDE;
+  void RemoveInputConnection(int port, int idx) VTK_OVERRIDE;
   //@}
 
   //@{
@@ -97,34 +105,35 @@ public:
    * Override because of internal composite representations that need to be
    * initilized as well.
    */
-  virtual unsigned int Initialize(
-    unsigned int minIdAvailable, unsigned int maxIdAvailable) VTK_OVERRIDE;
+  unsigned int Initialize(unsigned int minIdAvailable, unsigned int maxIdAvailable) VTK_OVERRIDE;
 
 protected:
   vtkPVCompositeRepresentation();
-  ~vtkPVCompositeRepresentation();
+  ~vtkPVCompositeRepresentation() override;
 
   /**
    * Adds the representation to the view.  This is called from
    * vtkView::AddRepresentation().  Subclasses should override this method.
    * Returns true if the addition succeeds.
    */
-  virtual bool AddToView(vtkView* view) VTK_OVERRIDE;
+  bool AddToView(vtkView* view) VTK_OVERRIDE;
 
   /**
    * Removes the representation to the view.  This is called from
    * vtkView::RemoveRepresentation().  Subclasses should override this method.
    * Returns true if the removal succeeds.
    */
-  virtual bool RemoveFromView(vtkView* view) VTK_OVERRIDE;
+  bool RemoveFromView(vtkView* view) VTK_OVERRIDE;
 
   vtkSelectionRepresentation* SelectionRepresentation;
-  bool SelectionVisibility;
+  vtkPVGridAxes3DRepresentation* GridAxesRepresentation;
   vtkPolarAxesRepresentation* PolarAxesRepresentation;
 
+  bool SelectionVisibility;
+
 private:
-  vtkPVCompositeRepresentation(const vtkPVCompositeRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVCompositeRepresentation&) VTK_DELETE_FUNCTION;
+  vtkPVCompositeRepresentation(const vtkPVCompositeRepresentation&) = delete;
+  void operator=(const vtkPVCompositeRepresentation&) = delete;
 };
 
 #endif

@@ -102,7 +102,7 @@
  * stored under tag ybar at index 4 in phasta files
  * If any Field element is specified then default attribute values are :
  * (phasta_field_tag is mandatory)
- * paraview_field_tag = Field <number>
+ * paraview_field_tag = Field \<number\>
  * start_index_in_phasta_array = 0
  * number_of_components = 1
  * data_dependency = 0
@@ -161,11 +161,11 @@ public:
 
 protected:
   vtkPPhastaReader();
-  ~vtkPPhastaReader();
+  ~vtkPPhastaReader() override;
 
-  virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector,
+  int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) VTK_OVERRIDE;
-  virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector,
+  int RequestData(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) VTK_OVERRIDE;
 
   char* FileName;
@@ -185,8 +185,8 @@ protected:
 private:
   vtkPPhastaReaderInternal* Internal;
 
-  vtkPPhastaReader(const vtkPPhastaReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPPhastaReader&) VTK_DELETE_FUNCTION;
+  vtkPPhastaReader(const vtkPPhastaReader&) = delete;
+  void operator=(const vtkPPhastaReader&) = delete;
 };
 
 #endif

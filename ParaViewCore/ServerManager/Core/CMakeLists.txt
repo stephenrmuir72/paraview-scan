@@ -48,6 +48,7 @@ set (Module_SRCS
   vtkSMDeserializerXMLCache.cxx
   vtkSMDeserializerXML.cxx
   vtkSMDimensionsDomain.cxx
+  vtkSMDiscreteDoubleDomain.cxx
   vtkSMDocumentation.cxx
   vtkSMDomain.cxx
   vtkSMDomainIterator.cxx
@@ -101,6 +102,7 @@ set (Module_SRCS
   vtkSMProxyProperty.cxx
   vtkSMProxySelectionModel.cxx
   vtkSMRangeDomainTemplate.txx
+  vtkSMRangedTransferFunctionDomain.cxx
   vtkSMReaderFactory.cxx
   vtkSMRemoteObject.cxx
   vtkSMRemoteObjectUpdateUndoElement.cxx
@@ -120,6 +122,7 @@ set (Module_SRCS
   vtkSMStateVersionController.cxx
   vtkSMStringListDomain.cxx
   vtkSMStringVectorProperty.cxx
+  vtkSMSubsetInclusionLatticeDomain.cxx
   vtkSMTimeKeeper.cxx
   vtkSMTimeKeeperProxy.cxx
   vtkSMTimeStepIndexDomain.cxx
@@ -156,8 +159,4 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkSMUncheckedPropertyHelper
   WRAP_EXCLUDE)
 
-# OpenGL2 specific definitions
-if("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-  add_definitions(-DVTKGL2)
-endif()
 vtk_module_library(vtkPVServerManagerCore ${Module_SRCS})

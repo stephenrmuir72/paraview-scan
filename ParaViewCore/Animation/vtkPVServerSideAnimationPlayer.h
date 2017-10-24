@@ -42,14 +42,14 @@ public:
 
 protected:
   vtkPVServerSideAnimationPlayer();
-  virtual ~vtkPVServerSideAnimationPlayer();
+  ~vtkPVServerSideAnimationPlayer() override;
 
   char* SessionProxyManagerState;
   char* FileName;
 
 private:
-  vtkPVServerSideAnimationPlayer(const vtkPVServerSideAnimationPlayer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVServerSideAnimationPlayer&) VTK_DELETE_FUNCTION;
+  vtkPVServerSideAnimationPlayer(const vtkPVServerSideAnimationPlayer&) = delete;
+  void operator=(const vtkPVServerSideAnimationPlayer&) = delete;
 };
 
 #endif

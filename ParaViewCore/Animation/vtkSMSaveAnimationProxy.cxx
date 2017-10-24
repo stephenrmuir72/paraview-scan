@@ -18,8 +18,8 @@
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVDisplayInformation.h"
 #include "vtkPVProgressHandler.h"
+#include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVServerInformation.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLElement.h"
@@ -34,6 +34,7 @@
 #include "vtkSMViewProxy.h"
 
 #include <sstream>
+#include <vtksys/SystemTools.hxx>
 
 namespace vtkSMSaveAnimationProxyNS
 {
@@ -49,7 +50,7 @@ public:
 
 protected:
   SceneImageWriter() {}
-  ~SceneImageWriter() {}
+  ~SceneImageWriter() override {}
 
   vtkSmartPointer<vtkImageData> CaptureFrame() VTK_OVERRIDE
   {
@@ -71,8 +72,8 @@ protected:
   }
 
 private:
-  SceneImageWriter(const SceneImageWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const SceneImageWriter&) VTK_DELETE_FUNCTION;
+  SceneImageWriter(const SceneImageWriter&) = delete;
+  void operator=(const SceneImageWriter&) = delete;
 };
 
 vtkStandardNewMacro(SceneImageWriter);
@@ -96,9 +97,10 @@ bool vtkSMSaveAnimationProxy::SupportsDisconnectAndSave(vtkSMSession* session)
   if ((vtkSMSessionClient::SafeDownCast(session) != NULL) && (!session->IsMultiClients()))
   {
     // let's also confirm that the server supports rendering.
-    vtkNew<vtkPVDisplayInformation> dinfo;
+    vtkNew<vtkPVRenderingCapabilitiesInformation> dinfo;
     session->GatherInformation(vtkPVSession::RENDER_SERVER, dinfo.Get(), 0);
-    return (dinfo->GetCanOpenDisplay() && dinfo->GetSupportsOpenGL());
+    return (dinfo->Supports(vtkPVRenderingCapabilitiesInformation::RENDERING) &&
+      dinfo->Supports(vtkPVRenderingCapabilitiesInformation::OPENGL));
   }
   return false;
 }
@@ -140,6 +142,38 @@ bool vtkSMSaveAnimationProxy::SupportsOGV(vtkSMSession* session, bool remote)
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMSaveAnimationProxy::EnforceSizeRestrictions(const char* filename)
+{
+  std::string ext = vtksys::SystemTools::GetFilenameLastExtension(filename ? filename : "");
+  if (vtksys::SystemTools::LowerCase(ext) == ".avi")
+  {
+    vtkVector2i newsize;
+    vtkSMPropertyHelper(this, "ImageResolution").Get(newsize.GetData(), 2);
+
+    const vtkVector2i size(newsize);
+    if (newsize[0] % 4 != 0)
+    {
+      newsize[0] -= (newsize[0] % 4);
+    }
+    if (newsize[1] % 4 != 0)
+    {
+      newsize[1] -= (newsize[1] % 4);
+    }
+
+    if (newsize != size)
+    {
+      vtkWarningMacro("The requested resolution '("
+        << size[0] << ", " << size[1] << ")' has been changed to '(" << newsize[0] << ", "
+        << newsize[1] << ")' to match format specification.");
+      vtkSMPropertyHelper(this, "ImageResolution").Set(newsize.GetData(), 2);
+      return true; // size changed.
+    }
+  }
+  // nothing  changed.
+  return false;
+}
+
+//----------------------------------------------------------------------------
 bool vtkSMSaveAnimationProxy::WriteAnimation(const char* filename)
 {
   vtkSMViewLayoutProxy* layout = this->GetLayout();
@@ -152,6 +186,9 @@ bool vtkSMSaveAnimationProxy::WriteAnimation(const char* filename)
     vtkErrorMacro("Cannot WriteImage without a view or layout.");
     return false;
   }
+
+  // Enforce any restrictions on the image size based on the file format
+  this->EnforceSizeRestrictions(filename);
 
   SM_SCOPED_TRACE(SaveCameras)
     .arg("proxy", view != NULL ? static_cast<vtkSMProxy*>(view) : static_cast<vtkSMProxy*>(layout));

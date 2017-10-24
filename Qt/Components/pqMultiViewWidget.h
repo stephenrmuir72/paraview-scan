@@ -59,7 +59,7 @@ class PQCOMPONENTS_EXPORT pqMultiViewWidget : public QWidget
       decorationsVisibilityChanged)
 public:
   pqMultiViewWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~pqMultiViewWidget();
+  ~pqMultiViewWidget() override;
 
   /**
   * Get/Set the vtkSMViewLayoutProxy instance this widget is using as the layout
@@ -90,18 +90,6 @@ public:
   * the view is popped out at the end of this call, false otherwise.
   */
   bool togglePopout();
-
-  //@{
-  /**
-   * @deprecated in ParaView 5.4. `vtkSMSaveScreenshotProxy` now encapsulates
-   * all logic to capture images. See `pqSaveScreenshotReaction` for details on
-   * using it.
-   */
-  VTK_LEGACY(vtkImageData* captureImage(int width, int height));
-  VTK_LEGACY(int prepareForCapture(int width, int height));
-  VTK_LEGACY(void cleanupAfterCapture());
-  VTK_LEGACY(bool writeImage(const QString& filename, int width, int height, int quality = -1));
-  //@}
 
 signals:
   /**
@@ -144,6 +132,22 @@ public slots:
   void setDecorationsVisible(bool);
   void showDecorations() { this->setDecorationsVisible(true); }
   void hideDecorations() { this->setDecorationsVisible(false); }
+
+  /**
+   * This API is added temporarily and will be removed in the future.
+   * This is added to make the pqMultiViewWidget use QSplitter even when
+   * `DecorationsVisible` is set to false. Thus allowing views to be resized
+   * even when decorations are hidden. In reality, we should be able to simply
+   * use QSplitter with 0 handle width when decorations are hidden always.
+   * However, when an empty frame is present, the QSplitter sizing doesn't work
+   * as expected when saving screenshots of specific sizes. We need to
+   * investigate entering preview mode automatically when saving screenshots
+   * (#17552). When that's fixed, this can be removed.
+   *
+   * This method should be called before calling `setDecorationsVisible(false)`.
+   * Default value is false.
+   */
+  void setForceSplitter(bool val) { this->ForceSplitter = val; }
 
   /**
   * Locks the maximum size for each view-frame to the given size.
@@ -202,6 +206,12 @@ protected slots:
   */
   void viewAdded(pqView*);
 
+  /**
+  * called when the vtkSMViewLayoutProxy is changed in order to synchronize
+  * the separator width and color with the user inputs.
+  */
+  void updateSplitter();
+
 protected:
   /**
   * Called whenever a new frame needs to be created for a view. Note that view
@@ -215,7 +225,7 @@ protected:
   * Event filter callback to detect when a sub-frame becomes active, so that
   * we can mark it as such.
   */
-  virtual bool eventFilter(QObject* caller, QEvent* evt);
+  bool eventFilter(QObject* caller, QEvent* evt) override;
 
 private:
   QWidget* createWidget(int, vtkSMViewLayoutProxy* layout, QWidget* parentWdg, int& maxIndex);
@@ -227,6 +237,7 @@ private:
   pqInternals* Internals;
 
   bool DecorationsVisible;
+  bool ForceSplitter;
 
   QSize LockViewSize;
 };

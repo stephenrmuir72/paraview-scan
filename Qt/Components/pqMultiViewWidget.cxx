@@ -48,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProperty.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMSaveScreenshotProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMUtilities.h"
@@ -55,12 +56,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMViewProxy.h"
 #include "vtkWeakPointer.h"
 
+#include "pqSplitter.h"
 #include <QApplication>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QMap>
-#include <QPointer>
-#include <QSplitter>
 #include <QVBoxLayout>
 #include <QVariant>
 #include <QVector>
@@ -74,7 +74,7 @@ public:
   // frame, we preserve that frame as long as possible.
   QMap<vtkSMViewProxy*, QPointer<pqViewFrame> > ViewFrames;
 
-  unsigned long ObserverId;
+  std::vector<unsigned long> ObserverIds;
   vtkWeakPointer<vtkSMViewLayoutProxy> LayoutManager;
   QPointer<pqViewFrame> ActiveFrame;
 
@@ -85,8 +85,7 @@ public:
   pqPropertyLinks Links;
 
   pqInternals(QWidget* self)
-    : ObserverId(0)
-    , Popout(false)
+    : Popout(false)
     , PopoutFrame(self)
     , SavedButtons(pqViewFrame::NoButton)
   {
@@ -96,9 +95,12 @@ public:
 
   ~pqInternals()
   {
-    if (this->LayoutManager && this->ObserverId)
+    if (this->LayoutManager)
     {
-      this->LayoutManager->RemoveObserver(this->ObserverId);
+      for (auto id : this->ObserverIds)
+      {
+        this->LayoutManager->RemoveObserver(id);
+      }
     }
   }
 
@@ -166,11 +168,11 @@ public:
     this->setSpacing(0);
   };
 
-  virtual ~pqSplitterLayout() {}
+  ~pqSplitterLayout() override {}
 
   void setSplitFraction(double val) { this->SplitFraction = val; }
 
-  virtual void setGeometry(const QRect& rect)
+  void setGeometry(const QRect& rect) override
   {
     this->QLayout::setGeometry(rect);
 
@@ -203,6 +205,7 @@ pqMultiViewWidget::pqMultiViewWidget(QWidget* parentObject, Qt::WindowFlags f)
   : Superclass(parentObject, f)
   , Internals(new pqInternals(this))
   , DecorationsVisible(true)
+  , ForceSplitter(false)
 {
   qApp->installEventFilter(this);
 
@@ -257,24 +260,33 @@ void pqMultiViewWidget::setLayoutManager(vtkSMViewLayoutProxy* vlayout)
   {
     if (internals.LayoutManager)
     {
-      internals.LayoutManager->RemoveObserver(this->Internals->ObserverId);
+      for (auto id : this->Internals->ObserverIds)
+      {
+        internals.LayoutManager->RemoveObserver(id);
+      }
     }
     internals.Links.clear();
-    internals.ObserverId = 0;
+    internals.ObserverIds.clear();
     if (vlayout)
     {
-      internals.ObserverId =
-        vlayout->AddObserver(vtkCommand::ConfigureEvent, this, &pqMultiViewWidget::reload);
+      internals.ObserverIds.push_back(
+        vlayout->AddObserver(vtkCommand::ConfigureEvent, this, &pqMultiViewWidget::reload));
+      internals.ObserverIds.push_back(
+        vlayout->GetProperty("SeparatorWidth")
+          ->AddObserver(vtkCommand::ModifiedEvent, this, &pqMultiViewWidget::updateSplitter));
+      internals.ObserverIds.push_back(
+        vlayout->GetProperty("SeparatorColor")
+          ->AddObserver(vtkCommand::ModifiedEvent, this, &pqMultiViewWidget::updateSplitter));
       internals.Links.addPropertyLink(this, "decorationsVisibility",
         SIGNAL(decorationsVisibilityChanged(bool)), vlayout,
         vlayout->GetProperty("ShowWindowDecorations"));
     }
-    // we delay the setting of the LayoutManager to avoid the duplicate `reload`
-    // call when `addPropertyLink` is called if the window decorations
-    // visibility changed.
-    internals.LayoutManager = vlayout;
-    this->reload();
   }
+  // we delay the setting of the LayoutManager to avoid the duplicate `reload`
+  // call when `addPropertyLink` is called if the window decorations
+  // visibility changed.
+  internals.LayoutManager = vlayout;
+  this->reload();
 }
 
 //-----------------------------------------------------------------------------
@@ -501,18 +513,27 @@ QWidget* pqMultiViewWidget::createWidget(
 
     case vtkSMViewLayoutProxy::VERTICAL:
     case vtkSMViewLayoutProxy::HORIZONTAL:
-      if (this->DecorationsVisible)
+      if (this->DecorationsVisible || this->ForceSplitter)
       {
-        QSplitter* splitter = qobject_cast<QSplitter*>(this->Internals->Widgets[index]);
+        pqSplitter* splitter = qobject_cast<pqSplitter*>(this->Internals->Widgets[index]);
         if (!splitter)
         {
-          splitter = new QSplitter(parentWdg);
+          splitter = new pqSplitter(parentWdg);
         }
         Q_ASSERT(splitter);
 
         this->Internals->Widgets[index] = splitter;
         splitter->setParent(parentWdg);
-        splitter->setHandleWidth(this->DecorationsVisible ? 3 : 1);
+        if (this->DecorationsVisible)
+        {
+          splitter->setHandleWidth(3);
+          splitter->setSplitterHandlePaint(false);
+        }
+        else
+        {
+          splitter->setHandleWidth(0);
+          splitter->setSplitterHandlePaint(true);
+        }
         splitter->setObjectName(QString("Splitter.%1").arg(index));
         splitter->setProperty("FRAME_INDEX", QVariant(index));
         splitter->setOpaqueResize(false);
@@ -577,6 +598,27 @@ QWidget* pqMultiViewWidget::createWidget(
       break;
   }
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+void pqMultiViewWidget::updateSplitter()
+{
+  vtkSMViewLayoutProxy* vlayout = this->layoutManager();
+  if (vlayout)
+  {
+    int width = vtkSMPropertyHelper(vlayout, "SeparatorWidth").GetAsInt();
+    double color[3];
+    vtkSMPropertyHelper(vlayout, "SeparatorColor").Get(color, 3);
+    foreach (QWidget* widget, this->Internals->Widgets)
+    {
+      pqSplitter* splitter = qobject_cast<pqSplitter*>(widget);
+      if (splitter)
+      {
+        splitter->setSplitterHandleWidth(width);
+        splitter->setSplitterHandleColor(color);
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -765,7 +807,7 @@ void pqMultiViewWidget::standardButtonPressed(int button)
         pqViewFrame* frameToActivate = qobject_cast<pqViewFrame*>(widgetToActivate);
         if (!frameToActivate)
         {
-          QSplitter* splitter = qobject_cast<QSplitter*>(widgetToActivate);
+          pqSplitter* splitter = qobject_cast<pqSplitter*>(widgetToActivate);
           frameToActivate = splitter && splitter->count() > 0
             ? qobject_cast<pqViewFrame*>(splitter->widget(0))
             : NULL;
@@ -797,7 +839,7 @@ void pqMultiViewWidget::destroyAllViews()
 //-----------------------------------------------------------------------------
 void pqMultiViewWidget::splitterMoved()
 {
-  QSplitter* splitter = qobject_cast<QSplitter*>(this->sender());
+  pqSplitter* splitter = qobject_cast<pqSplitter*>(this->sender());
   QVariant index = splitter ? splitter->property("FRAME_INDEX") : QVariant();
   if (index.isValid() && this->layoutManager())
   {
@@ -888,48 +930,3 @@ bool pqMultiViewWidget::togglePopout()
   this->reload();
   return this->Internals->Popout;
 }
-
-//=================================================================================
-// LEGACY METHODS
-//=================================================================================
-#if !defined(VTK_LEGACY_REMOVE)
-vtkImageData* pqMultiViewWidget::captureImage(int width, int height)
-{
-  VTK_LEGACY_BODY(pqMultiViewWidget::captureImage, "ParaView 5.4");
-  vtkSmartPointer<vtkImageData> img =
-    vtkSMSaveScreenshotProxy::CaptureImage(this->layoutManager(), vtkVector2i(width, height));
-  if (img)
-  {
-    img->Register(nullptr);
-    return img.GetPointer();
-  }
-  return nullptr;
-}
-
-int pqMultiViewWidget::prepareForCapture(int, int)
-{
-  VTK_LEGACY_BODY(pqMultiViewWidget::prepareForCapture, "ParaView 5.4");
-  return 0;
-}
-
-void pqMultiViewWidget::cleanupAfterCapture()
-{
-  VTK_LEGACY_BODY(pqMultiViewWidget::cleanupAfterCapture, "ParaView 5.4");
-}
-
-bool pqMultiViewWidget::writeImage(
-  const QString& filename, int width, int height, int quality /*=-1*/)
-{
-  VTK_LEGACY_BODY(pqMultiViewWidget::writeImage, "ParaView 5.4");
-  vtkSmartPointer<vtkImageData> img =
-    vtkSMSaveScreenshotProxy::CaptureImage(this->layoutManager(), vtkVector2i(width, height));
-  if (img)
-  {
-    return vtkSMUtilities::SaveImage(img.GetPointer(), filename.toLocal8Bit().data(), quality) ==
-      vtkErrorCode::NoError;
-  }
-  return false;
-}
-
-#endif // !defined(VTK_LEGACY_REMOVE)
-//=================================================================================

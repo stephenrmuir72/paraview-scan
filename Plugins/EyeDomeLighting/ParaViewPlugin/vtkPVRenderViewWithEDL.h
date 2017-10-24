@@ -56,7 +56,7 @@ public:
   // Description:
   // Initialize the view with an identifier. Unless noted otherwise, this method
   // must be called before calling any other methods on this class.
-  // @CallOnAllProcessess
+  // \note CallOnAllProcesses
   virtual void Initialize(unsigned int id) VTK_OVERRIDE;
 
 protected:
@@ -64,8 +64,8 @@ protected:
   ~vtkPVRenderViewWithEDL();
 
 private:
-  vtkPVRenderViewWithEDL(const vtkPVRenderViewWithEDL&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVRenderViewWithEDL&) VTK_DELETE_FUNCTION;
+  vtkPVRenderViewWithEDL(const vtkPVRenderViewWithEDL&) = delete;
+  void operator=(const vtkPVRenderViewWithEDL&) = delete;
 };
 
 #endif

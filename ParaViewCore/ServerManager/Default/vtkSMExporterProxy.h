@@ -62,20 +62,19 @@ public:
 
 protected:
   vtkSMExporterProxy();
-  ~vtkSMExporterProxy();
+  ~vtkSMExporterProxy() override;
   /**
    * Read attributes from an XML element.
    */
-  virtual int ReadXMLAttributes(
-    vtkSMSessionProxyManager* pm, vtkPVXMLElement* element) VTK_OVERRIDE;
+  int ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element) VTK_OVERRIDE;
 
   vtkSetStringMacro(FileExtension);
   vtkSMViewProxy* View;
   char* FileExtension;
 
 private:
-  vtkSMExporterProxy(const vtkSMExporterProxy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMExporterProxy&) VTK_DELETE_FUNCTION;
+  vtkSMExporterProxy(const vtkSMExporterProxy&) = delete;
+  void operator=(const vtkSMExporterProxy&) = delete;
 };
 
 #endif
