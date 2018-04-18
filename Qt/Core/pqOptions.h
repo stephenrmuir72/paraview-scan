@@ -54,6 +54,14 @@ public:
   vtkGetStringMacro(TestDirectory);
   vtkGetStringMacro(DataDirectory);
 
+  //@{
+  /**
+   * State file to load on startup.
+   */
+  // See Bug #5711
+  vtkGetStringMacro(StateFileName);
+  //@}
+
   vtkGetMacro(ExitAppWhenTestsDone, int);
 
   // Returns the test scripts as a list.
@@ -101,15 +109,16 @@ public:
 
 protected:
   pqOptions();
-  virtual ~pqOptions();
+  ~pqOptions() override;
 
-  virtual void Initialize() VTK_OVERRIDE;
-  virtual int PostProcess(int argc, const char* const* argv) VTK_OVERRIDE;
+  void Initialize() VTK_OVERRIDE;
+  int PostProcess(int argc, const char* const* argv) VTK_OVERRIDE;
 
   char* BaselineDirectory;
   char* TestDirectory;
   char* DataDirectory;
   char* ServerResourceName;
+  char* StateFileName; // loading state file(Bug #5711)
   char* TileImagePath;
 
   int ExitAppWhenTestsDone;
@@ -121,6 +130,7 @@ protected:
 
   vtkSetStringMacro(PythonScript);
   vtkSetStringMacro(ServerResourceName);
+  vtkSetStringMacro(StateFileName);
 
   struct TestInfo
   {
@@ -138,7 +148,7 @@ protected:
   // Description:
   // This method is called when wrong argument is found. If it returns 0, then
   // the parsing will fail.
-  virtual int WrongArgument(const char* argument) VTK_OVERRIDE;
+  int WrongArgument(const char* argument) VTK_OVERRIDE;
 
 private:
   pqOptions(const pqOptions&);

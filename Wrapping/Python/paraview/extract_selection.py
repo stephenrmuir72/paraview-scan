@@ -12,9 +12,10 @@ except ImportError:
     "this functionality to work. Please install numpy and try again.")
 
 import re
-import vtk
-import vtk.numpy_interface.dataset_adapter as dsa
-import vtk.numpy_interface.algorithms as algos
+import vtkmodules.numpy_interface.dataset_adapter as dsa
+import vtkmodules.numpy_interface.algorithms as algos
+from vtkmodules.vtkCommonDataModel import vtkDataObject
+from vtkmodules.util import vtkConstants
 from paraview import calculator
 
 def _create_id_array(dataobject, attributeType):
@@ -47,11 +48,11 @@ def execute(self):
     selectionNode = inputSEL.GetNode(0)
     field_type = selectionNode.GetFieldType()
     if field_type == selectionNode.CELL:
-        attributeType = vtk.vtkDataObject.CELL
+        attributeType = vtkDataObject.CELL
     elif field_type == selectionNode.POINT:
-        attributeType = vtk.vtkDataObject.POINT
+        attributeType = vtkDataObject.POINT
     elif field_type == selectionNode.ROW:
-        attributeType = vtk.vtkDataObject.ROW
+        attributeType = vtkDataObject.ROW
     else:
         raise RuntimeError ("Unsupported field attributeType %r" % field_type)
 
@@ -100,9 +101,13 @@ def execute(self):
         # have already ensured that the input is shallow copied over properly
         # before this method gets called.
 
-        # note: since mask array is a bool-array, we multiply it by int8(1) to
-        # make it a type of array that can be represented as vtkSignedCharArray.
-        output.GetAttributes(attributeType).append(maskArray * np.int8(1), "vtkInsidedness")
+        # Note: we must force the data type to VTK_SIGNED_CHAR or the array will
+        # be ignored by the freeze selection operation
+        from vtkmodules.util.numpy_support import numpy_to_vtk
+        if type(maskArray) is not dsa.VTKNoneArray:
+            insidedness = numpy_to_vtk(maskArray, deep=1, array_type=vtkConstants.VTK_SIGNED_CHAR)
+            insidedness.SetName("vtkInsidedness")
+            output.GetAttributes(attributeType).VTKObject.AddArray(insidedness)
     else:
         # handle extraction.
         # flatnonzero() will give is array of indices where the arrays is

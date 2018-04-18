@@ -57,7 +57,7 @@ class VTKPVVTKEXTENSIONSRENDERING_EXPORT vtkOrderedCompositeDistributor
 public:
   vtkTypeMacro(vtkOrderedCompositeDistributor, vtkPointSetAlgorithm);
   static vtkOrderedCompositeDistributor* New();
-  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   //@{
   /**
@@ -92,10 +92,32 @@ public:
   vtkGetStringMacro(OutputType);
   //@}
 
+  /**
+   * Boundary mode values. Note, the deliberately match
+   * vtkDistributedDataFilter. However we can't include vtkDistributedDataFilter
+   * here here it's not available in non-MPI builds.
+   */
+  enum BoundaryModes
+  {
+    ASSIGN_TO_ONE_REGION = 0,
+    ASSIGN_TO_ALL_INTERSECTING_REGIONS = 1,
+    SPLIT_BOUNDARY_CELLS = 2
+  };
+
+  //@{
+  /**
+   * Get/Set the mode to use to handle cells on the boundary of the KdTree.
+   * Default is SPLIT_BOUNDARY_CELLS.
+   */
+  vtkSetClampMacro(BoundaryMode, int, ASSIGN_TO_ONE_REGION, SPLIT_BOUNDARY_CELLS);
+  vtkGetMacro(BoundaryMode, int);
+  //@}
+
 protected:
   vtkOrderedCompositeDistributor();
-  ~vtkOrderedCompositeDistributor();
+  ~vtkOrderedCompositeDistributor() override;
 
+  int BoundaryMode;
   char* OutputType;
   bool PassThrough;
   vtkPKdTree* PKdTree;
@@ -107,8 +129,8 @@ protected:
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
 private:
-  vtkOrderedCompositeDistributor(const vtkOrderedCompositeDistributor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOrderedCompositeDistributor&) VTK_DELETE_FUNCTION;
+  vtkOrderedCompositeDistributor(const vtkOrderedCompositeDistributor&) = delete;
+  void operator=(const vtkOrderedCompositeDistributor&) = delete;
 };
 
 #endif // vtkOrderedCompositeDistributor_h

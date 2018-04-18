@@ -121,6 +121,20 @@ public:
    */
   void MarkAsRedistributable(vtkPVDataRepresentation*, bool value = true, int port = 0);
 
+  //@{
+  /**
+   * For representations that have indicated that the data is redistributable
+   * (using MarkAsRedistributable), this control the mode for redistribution.
+   * Specifically, it indicates how to handle cells that are on the boundary of
+   * the redistribution KdTree. Default is to split the cells, one can change it
+   * to duplicate cells instead by using mode as
+   * `vtkDistributedDataFilter::ASSIGN_TO_ALL_INTERSECTING_REGIONS`.
+   */
+  void SetRedistributionMode(vtkPVDataRepresentation*, int mode, int port = 0);
+  void SetRedistributionModeToSplitBoundaryCells(vtkPVDataRepresentation* repr, int port = 0);
+  void SetRedistributionModeToDuplicateBoundaryCells(vtkPVDataRepresentation* repr, int port = 0);
+  //@}
+
   /**
    * Returns the size for all visible geometry. If low_res is true, and low-res
    * data is not available for a particular representation, then it's high-res
@@ -171,7 +185,7 @@ public:
    * server-sides using Deliver().
    */
   bool NeedsDelivery(
-    unsigned long timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low_res);
+    vtkMTimeType timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low_res);
 
   /**
    * Triggers delivery for the geometries of indicated representations.
@@ -216,7 +230,7 @@ public:
 
 protected:
   vtkPVDataDeliveryManager();
-  ~vtkPVDataDeliveryManager();
+  ~vtkPVDataDeliveryManager() override;
 
   vtkWeakPointer<vtkPVRenderView> RenderView;
   vtkSmartPointer<vtkPKdTree> KdTree;
@@ -224,8 +238,8 @@ protected:
   vtkTimeStamp RedistributionTimeStamp;
 
 private:
-  vtkPVDataDeliveryManager(const vtkPVDataDeliveryManager&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVDataDeliveryManager&) VTK_DELETE_FUNCTION;
+  vtkPVDataDeliveryManager(const vtkPVDataDeliveryManager&) = delete;
+  void operator=(const vtkPVDataDeliveryManager&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

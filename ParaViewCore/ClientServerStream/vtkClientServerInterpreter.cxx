@@ -64,8 +64,8 @@ public:
     ContextInformation* Context;
 
   private:
-    FunctionWithContext(const FunctionWithContext&) VTK_DELETE_FUNCTION;
-    FunctionWithContext& operator=(const FunctionWithContext&) VTK_DELETE_FUNCTION;
+    FunctionWithContext(const FunctionWithContext&) = delete;
+    FunctionWithContext& operator=(const FunctionWithContext&) = delete;
   };
   typedef FunctionWithContext<vtkClientServerNewInstanceFunction> NewInstanceFunction;
   typedef FunctionWithContext<vtkClientServerCommandFunction> CommandFunction;
@@ -716,14 +716,17 @@ class vtkClientServerInterpreterCommand : public vtkCommand
 {
 public:
   static vtkClientServerInterpreterCommand* New() { return new vtkClientServerInterpreterCommand; }
-  void Execute(vtkObject*, unsigned long, void*) { this->Interpreter->ProcessStream(this->Stream); }
+  void Execute(vtkObject*, unsigned long, void*) override
+  {
+    this->Interpreter->ProcessStream(this->Stream);
+  }
 
   vtkClientServerStream Stream;
   vtkClientServerInterpreter* Interpreter;
 
 protected:
   vtkClientServerInterpreterCommand() {}
-  ~vtkClientServerInterpreterCommand() {}
+  ~vtkClientServerInterpreterCommand() override {}
 private:
   vtkClientServerInterpreterCommand(const vtkClientServerInterpreterCommand&);
   void operator=(const vtkClientServerInterpreterCommand&);
@@ -972,8 +975,8 @@ int vtkClientServerInterpreter::LoadInternal(const char* moduleName, const char*
   // Get the init function.
   std::string initFuncName = moduleName;
   initFuncName += "_Initialize";
-  void* pfunc = vtkDynamicLoader::GetSymbolAddress(lib, initFuncName.c_str());
-  InitFunction func = *reinterpret_cast<InitFunction*>(&pfunc);
+  auto func =
+    reinterpret_cast<InitFunction>(vtkDynamicLoader::GetSymbolAddress(lib, initFuncName.c_str()));
   if (!func)
   {
     vtkErrorMacro(

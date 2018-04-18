@@ -41,6 +41,31 @@
 //*****************************************************************************
 class vtkPVDataDeliveryManager::vtkInternals
 {
+  friend class vtkItem;
+  std::map<int, vtkSmartPointer<vtkDataObject> > EmptyDataObjectTypes;
+
+  // This helps us avoid creating new instances of various data object types to use as
+  // empty datasets. Instead, we build a map and keep reusing objects.
+  vtkDataObject* GetEmptyDataObject(vtkDataObject* ref)
+  {
+    if (ref)
+    {
+      auto iter = this->EmptyDataObjectTypes.find(ref->GetDataObjectType());
+      if (iter != this->EmptyDataObjectTypes.end())
+      {
+        return iter->second;
+      }
+      else
+      {
+        vtkSmartPointer<vtkDataObject> clone;
+        clone.TakeReference(ref->NewInstance());
+        this->EmptyDataObjectTypes[ref->GetDataObjectType()] = clone;
+        return clone;
+      }
+    }
+    return nullptr;
+  }
+
 public:
   class vtkPriorityQueueItem
   {
@@ -95,8 +120,8 @@ public:
     // Data object for a streamed piece.
     vtkSmartPointer<vtkDataObject> StreamedPiece;
 
-    unsigned long TimeStamp;
-    unsigned long ActualMemorySize;
+    vtkMTimeType TimeStamp;
+    vtkMTimeType ActualMemorySize;
 
   public:
     vtkOrderedCompositingInfo OrderedCompositingInfo;
@@ -106,6 +131,7 @@ public:
     bool GatherBeforeDeliveringToClient;
     bool Redistributable;
     bool Streamable;
+    int RedistributionMode;
 
     vtkItem()
       : Producer(vtkSmartPointer<vtkPVTrivialProducer>::New())
@@ -116,13 +142,27 @@ public:
       , GatherBeforeDeliveringToClient(false)
       , Redistributable(false)
       , Streamable(false)
+      , RedistributionMode(vtkOrderedCompositeDistributor::SPLIT_BOUNDARY_CELLS)
     {
     }
 
-    void SetDataObject(vtkDataObject* data)
+    void SetDataObject(vtkDataObject* data, vtkInternals* helper)
     {
       this->DataObject = data;
+      this->DeliveredDataObject = nullptr;
+      this->RedistributedDataObject = nullptr;
       this->ActualMemorySize = data ? data->GetActualMemorySize() : 0;
+      // This method gets called when data is entirely changed. That means that any
+      // data we may have delivered or redistributed would also be obsolete.
+      // Hence we reset the `Producer` as well. This avoids #2160.
+
+      // explanation for using a clone: typically, the Producer is connected by the
+      // representation to a rendering pipeline e.g. the mapper. As that could be the
+      // case, we need to ensure the producer's input is cleaned too. Setting simply nullptr
+      // could confuse the mapper and hence we setup a data object of the same type as the data.
+      // we could simply set the data too, but that can lead to other confusion as the mapper should
+      // never directly see the representation's data.
+      this->Producer->SetOutput(helper->GetEmptyDataObject(data));
 
       vtkTimeStamp ts;
       ts.Modified();
@@ -157,7 +197,7 @@ public:
     }
 
     vtkDataObject* GetDataObject() const { return this->DataObject.GetPointer(); }
-    unsigned long GetTimeStamp() const { return this->TimeStamp; }
+    vtkMTimeType GetTimeStamp() const { return this->TimeStamp; }
     void SetNextStreamedPiece(vtkDataObject* data) { this->StreamedPiece = data; }
     vtkDataObject* GetStreamedPiece() { return this->StreamedPiece; }
   };
@@ -351,6 +391,38 @@ void vtkPVDataDeliveryManager::MarkAsRedistributable(
 }
 
 //----------------------------------------------------------------------------
+void vtkPVDataDeliveryManager::SetRedistributionMode(
+  vtkPVDataRepresentation* repr, int mode, int port)
+{
+  vtkInternals::vtkItem* item = this->Internals->GetItem(repr, false, port, true);
+  vtkInternals::vtkItem* low_item = this->Internals->GetItem(repr, true, port, true);
+  if (item)
+  {
+    item->RedistributionMode = mode;
+    low_item->RedistributionMode = mode;
+  }
+  else
+  {
+    vtkErrorMacro("Invalid argument.");
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataDeliveryManager::SetRedistributionModeToSplitBoundaryCells(
+  vtkPVDataRepresentation* repr, int port)
+{
+  this->SetRedistributionMode(repr, vtkOrderedCompositeDistributor::SPLIT_BOUNDARY_CELLS, port);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataDeliveryManager::SetRedistributionModeToDuplicateBoundaryCells(
+  vtkPVDataRepresentation* repr, int port)
+{
+  this->SetRedistributionMode(
+    repr, vtkOrderedCompositeDistributor::ASSIGN_TO_ALL_INTERSECTING_REGIONS, port);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVDataDeliveryManager::SetStreamable(vtkPVDataRepresentation* repr, bool val, int port)
 {
   vtkInternals::vtkItem* item = this->Internals->GetItem(repr, false, port, true);
@@ -374,14 +446,18 @@ void vtkPVDataDeliveryManager::SetPiece(vtkPVDataRepresentation* repr, vtkDataOb
     this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/true);
   if (item)
   {
-    unsigned long data_time = 0;
+    vtkMTimeType data_time = 0;
     if (data && (data->GetMTime() > data_time))
     {
       data_time = data->GetMTime();
     }
+    if (repr && repr->GetPipelineDataTime() > data_time)
+    {
+      data_time = repr->GetPipelineDataTime();
+    }
     if (data_time > item->GetTimeStamp() || item->GetDataObject() != data)
     {
-      item->SetDataObject(data);
+      item->SetDataObject(data, this->Internals);
     }
     if (trueSize > 0)
     {
@@ -415,7 +491,7 @@ void vtkPVDataDeliveryManager::SetPiece(
   vtkInternals::vtkItem* item = this->Internals->GetItem(id, low_res, port, true);
   if (item)
   {
-    item->SetDataObject(data);
+    item->SetDataObject(data, this->Internals);
   }
   else
   {
@@ -460,7 +536,7 @@ vtkAlgorithmOutput* vtkPVDataDeliveryManager::GetProducer(unsigned int id, bool 
 
 //----------------------------------------------------------------------------
 bool vtkPVDataDeliveryManager::NeedsDelivery(
-  unsigned long timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low)
+  vtkMTimeType timestamp, std::vector<unsigned int>& keys_to_deliver, bool use_low)
 {
   vtkInternals::ItemsMapType::iterator iter;
   for (iter = this->Internals->ItemsMap.begin(); iter != this->Internals->ItemsMap.end(); ++iter)
@@ -549,14 +625,8 @@ void vtkPVDataDeliveryManager::Deliver(int use_lod, unsigned int size, unsigned 
       dataMover->SetSkipDataServerGatherToZero(item->GatherBeforeDeliveringToClient == false);
     }
     dataMover->SetInputData(data);
-
-    if (dataMover->GetOutputGeneratedOnProcess())
-    {
-      // release old memory (not necessarily, but try).
-      item->SetDeliveredDataObject(NULL);
-    }
     dataMover->Update();
-    if (item->GetDeliveredDataObject() == NULL)
+    if (dataMover->GetOutputGeneratedOnProcess())
     {
       item->SetDeliveredDataObject(dataMover->GetOutputDataObject(0));
     }
@@ -597,7 +667,6 @@ void vtkPVDataDeliveryManager::RedistributeDataForOrderedCompositing(bool use_lo
     }
     cutsGenerator->GenerateKdTree();
     this->KdTree = cutsGenerator->GetKdTree();
-
     vtkTimerLog::MarkEndEvent("Regenerate Kd-Tree");
   }
 
@@ -645,6 +714,7 @@ void vtkPVDataDeliveryManager::RedistributeDataForOrderedCompositing(bool use_lo
     redistributor->SetInputData(item.GetDeliveredDataObject());
     redistributor->SetPKdTree(this->KdTree);
     redistributor->SetPassThrough(0);
+    redistributor->SetBoundaryMode(item.RedistributionMode);
     redistributor->Update();
     item.SetRedistributedDataObject(redistributor->GetOutputDataObject(0));
   }

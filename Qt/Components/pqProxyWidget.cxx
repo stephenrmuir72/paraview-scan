@@ -70,6 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMTrace.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringList.h"
+#include "vtkWeakPointer.h"
 
 #include <QHideEvent>
 #include <QLabel>
@@ -78,6 +79,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include <cmath>
+#include <utility>
 #include <vector>
 
 //-----------------------------------------------------------------------------------
@@ -103,9 +105,9 @@ QWidget* newGroupSeparator(QWidget* parent)
   return widget;
 }
 
-QMap<QString, vtkPVXMLElement*> getDecorators(vtkPVXMLElement* hints)
+std::vector<vtkWeakPointer<vtkPVXMLElement> > getDecorators(vtkPVXMLElement* hints)
 {
-  QMap<QString, vtkPVXMLElement*> decoratorTypes;
+  std::vector<vtkWeakPointer<vtkPVXMLElement> > decoratorTypes;
   vtkNew<vtkCollection> collection;
   if (hints)
   {
@@ -116,10 +118,9 @@ QMap<QString, vtkPVXMLElement*> getDecorators(vtkPVXMLElement* hints)
     vtkPVXMLElement* elem = vtkPVXMLElement::SafeDownCast(collection->GetItemAsObject(cc));
     if (elem && elem->GetAttribute("type"))
     {
-      decoratorTypes[elem->GetAttribute("type")] = elem;
+      decoratorTypes.push_back(elem);
     }
   }
-
   return decoratorTypes;
 }
 
@@ -167,7 +168,7 @@ public:
   QStringList SearchTags;
   bool Advanced;
 
-  ~pqProxyWidgetItem()
+  ~pqProxyWidgetItem() override
   {
     delete this->GroupHeader;
     delete this->GroupFooter;
@@ -624,8 +625,7 @@ pqProxyWidget::DocumentationType pqProxyWidget::showProxyDocumentationInPanel(vt
     : NULL;
   if (xml)
   {
-    QString type = xml->GetAttributeOrDefault("type", "description");
-    type = type.toLower();
+    const QString type = QString(xml->GetAttributeOrDefault("type", "description")).toLower();
     if (type == "long_help")
     {
       return USE_LONG_HELP;
@@ -810,23 +810,23 @@ void pqProxyWidget::createPropertyWidgets(const QStringList& properties)
     }
 
     pqInterfaceTracker* interfaceTracker = pqApplicationCore::instance()->interfaceTracker();
-    foreach (pqPropertyWidgetInterface* interface,
-      interfaceTracker->interfaces<pqPropertyWidgetInterface*>())
+    QList<pqPropertyWidgetInterface*> interfaces =
+      interfaceTracker->interfaces<pqPropertyWidgetInterface*>();
+    for (pqPropertyWidgetInterface* groupWidgetInterface : interfaces)
     {
-      pqPropertyWidget* propertyWidget = interface->createWidgetForPropertyGroup(smproxy, group);
+      pqPropertyWidget* propertyWidget =
+        groupWidgetInterface->createWidgetForPropertyGroup(smproxy, group);
       if (propertyWidget)
       {
         PV_DEBUG_PANELS() << "Group " << group->GetXMLLabel() << " is controlled by widget "
                           << propertyWidget->metaObject()->className();
 
         // Create decorators, if any.
-        QMap<QString, vtkPVXMLElement*> decoratorTypes = getDecorators(group->GetHints());
-        foreach (const QString& type, decoratorTypes.keys())
+        const auto decoratorXMLs = getDecorators(group->GetHints());
+        for (vtkPVXMLElement* decoratorXML : decoratorXMLs)
         {
-          if (interface->createWidgetDecorator(type, decoratorTypes[type], propertyWidget))
-          {
-            break;
-          }
+          Q_ASSERT(decoratorXML && decoratorXML->GetAttribute("type"));
+          pqPropertyWidgetDecorator::create(decoratorXML, propertyWidget);
         }
 
         propertyWidget->setParent(this);
@@ -986,19 +986,11 @@ void pqProxyWidget::createPropertyWidgets(const QStringList& properties)
     if (property_group_tag != -1)
     {
       // Create decorators, if any.
-      pqInterfaceTracker* interfaceTracker = pqApplicationCore::instance()->interfaceTracker();
-      foreach (pqPropertyWidgetInterface* interface,
-        interfaceTracker->interfaces<pqPropertyWidgetInterface*>())
+      const auto decoratorXMLs = getDecorators(groupHints[property_group_tag]);
+      for (vtkPVXMLElement* decoratorXML : decoratorXMLs)
       {
-        QMap<QString, vtkPVXMLElement*> decoratorTypes =
-          getDecorators(groupHints[property_group_tag]);
-        foreach (const QString& type, decoratorTypes.keys())
-        {
-          if (interface->createWidgetDecorator(type, decoratorTypes[type], propertyWidget))
-          {
-            break;
-          }
-        }
+        Q_ASSERT(decoratorXML && decoratorXML->GetAttribute("type"));
+        pqPropertyWidgetDecorator::create(decoratorXML, propertyWidget);
       }
     }
 
@@ -1047,7 +1039,7 @@ pqPropertyWidget* pqProxyWidget::createWidgetForProperty(
   }
   else if (vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(smproperty))
   {
-    widget = new pqIntVectorPropertyWidget(ivp, smproxy, parentObj);
+    widget = pqIntVectorPropertyWidget::createWidget(ivp, smproxy, parentObj);
   }
   else if (vtkSMStringVectorProperty* svp = vtkSMStringVectorProperty::SafeDownCast(smproperty))
   {
@@ -1083,17 +1075,18 @@ pqPropertyWidget* pqProxyWidget::createWidgetForProperty(
   }
 
   // Create decorators, if any.
-  QMap<QString, vtkPVXMLElement*> decoratorTypes = getDecorators(smproperty->GetHints());
-  foreach (const QString& type, decoratorTypes.keys())
+  const auto decoratorXMLs = getDecorators(smproperty->GetHints());
+  for (vtkPVXMLElement* decoratorXML : decoratorXMLs)
   {
-    for (int cc = 0; cc < interfaces.size(); cc++)
-    {
-      pqPropertyWidgetInterface* interface = interfaces[cc];
-      if (interface->createWidgetDecorator(type, decoratorTypes[type], widget))
-      {
-        break;
-      }
-    }
+    Q_ASSERT(decoratorXML && decoratorXML->GetAttribute("type"));
+    pqPropertyWidgetDecorator::create(decoratorXML, widget);
+  }
+
+  // Create all default decorators
+  for (int cc = 0; cc < interfaces.size(); cc++)
+  {
+    pqPropertyWidgetInterface* interface = interfaces[cc];
+    interface->createDefaultWidgetDecorators(widget);
   }
 
   return widget;

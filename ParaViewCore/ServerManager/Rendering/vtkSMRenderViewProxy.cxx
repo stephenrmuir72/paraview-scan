@@ -4,6 +4,7 @@
   Module:    $RCSfile$
 
   Copyright (c) Kitware, Inc.
+  Copyright (c) 2017, NVIDIA CORPORATION.
   All rights reserved.
   See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
 
@@ -29,12 +30,13 @@
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVArrayInformation.h"
 #include "vtkPVCompositeDataInformation.h"
 #include "vtkPVDataInformation.h"
-#include "vtkPVDisplayInformation.h"
 #include "vtkPVLastSelectionInformation.h"
 #include "vtkPVOptions.h"
 #include "vtkPVRenderView.h"
+#include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVServerInformation.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPointData.h"
@@ -46,6 +48,8 @@
 #include "vtkSMDataDeliveryManager.h"
 #include "vtkSMEnumerationDomain.h"
 #include "vtkSMInputProperty.h"
+#include "vtkSMMaterialLibraryProxy.h"
+#include "vtkSMOutputPort.h"
 #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
@@ -192,7 +196,7 @@ void vtkSMRenderViewProxy::UpdateLOD()
 bool vtkSMRenderViewProxy::GetNeedsUpdate()
 {
   vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(this->GetClientSideObject());
-  if (view->GetUseInteractiveRenderingForScreenshots())
+  if (view->GetUseInteractiveRenderingForScreenshots() && view->GetUseLODForInteractiveRender())
   {
     return this->NeedsUpdateLOD;
   }
@@ -398,13 +402,12 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
   {
     // Update whether render servers can open display i.e. remote rendering is
     // possible on all processes.
-    vtkPVDisplayInformation* info = vtkPVDisplayInformation::New();
-    this->GetSession()->GatherInformation(vtkPVSession::RENDER_SERVER, info, 0);
-    if (info->GetCanOpenDisplay() == 0 || info->GetSupportsOpenGL() == 0)
+    vtkNew<vtkPVRenderingCapabilitiesInformation> info;
+    this->GetSession()->GatherInformation(vtkPVSession::RENDER_SERVER, info.Get(), 0);
+    if (!info->Supports(vtkPVRenderingCapabilitiesInformation::OPENGL))
     {
       remote_rendering_available = false;
     }
-    info->Delete();
   }
 
   // Disable remote rendering on all processes, if not available.
@@ -414,6 +417,22 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
     stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "RemoteRenderingAvailableOff"
            << vtkClientServerStream::End;
     this->ExecuteStream(stream);
+  }
+
+  const bool enable_nvpipe = this->GetSession()->GetServerInformation()->GetNVPipeSupport();
+  {
+    vtkClientServerStream strm;
+    strm << vtkClientServerStream::Invoke << VTKOBJECT(this);
+    if (enable_nvpipe)
+    {
+      strm << "NVPipeAvailableOn";
+    }
+    else
+    {
+      strm << "NVPipeAvailableOff";
+    }
+    strm << vtkClientServerStream::End;
+    this->ExecuteStream(strm);
   }
 
   // Attach to the collaborative session a callback to clear the selection cache
@@ -441,9 +460,8 @@ const char* vtkSMRenderViewProxy::GetRepresentationType(vtkSMSourceProxy* produc
 
   vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
   const char* representationsToTry[] = { "UnstructuredGridRepresentation",
-    "UnstructuredGridBaseRepresentation", "StructuredGridRepresentation",
-    "UniformGridRepresentation", "AMRRepresentation", "PVMoleculeRepresentation",
-    "GeometryRepresentation", NULL };
+    "StructuredGridRepresentation", "UniformGridRepresentation", "AMRRepresentation",
+    "PVMoleculeRepresentation", "GeometryRepresentation", NULL };
   for (int cc = 0; representationsToTry[cc] != NULL; ++cc)
   {
     vtkSMProxy* prototype = pxm->GetPrototypeProxy("representations", representationsToTry[cc]);
@@ -457,6 +475,27 @@ const char* vtkSMRenderViewProxy::GetRepresentationType(vtkSMSourceProxy* produc
       if (acceptable)
       {
         return representationsToTry[cc];
+      }
+    }
+  }
+
+  // check if the data type is a vtkTable with a single row and column with
+  // a vtkStringArray named "Text". If it is, we render this in a render view
+  // with the value shown in the view.
+  if (vtkSMOutputPort* port = producer->GetOutputPort(outputPort))
+  {
+    if (vtkPVDataInformation* dataInformation = port->GetDataInformation())
+    {
+      if (dataInformation->GetDataSetType() == VTK_TABLE)
+      {
+        if (vtkPVArrayInformation* ai =
+              dataInformation->GetArrayInformation("Text", vtkDataObject::ROW))
+        {
+          if (ai->GetNumberOfComponents() == 1 && ai->GetNumberOfTuples() == 1)
+          {
+            return "TextSourceRepresentation";
+          }
+        }
       }
     }
   }
@@ -786,7 +825,7 @@ bool vtkSMRenderViewProxy::ConvertDisplayToPointOnSurface(
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMRenderViewProxy::SelectSurfaceCells(const int region[4],
+bool vtkSMRenderViewProxy::SelectInternal(const vtkClientServerStream& csstream,
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
 {
   if (!this->IsSelectionAvailable())
@@ -794,33 +833,40 @@ bool vtkSMRenderViewProxy::SelectSurfaceCells(const int region[4],
     return false;
   }
 
+  vtkScopedMonitorProgress monitorProgress(this);
+
   this->IsSelectionCached = true;
 
+  // Call PreRender since Select making will cause multiple renders on the
+  // render window. Calling PreRender ensures that the view is ready to render.
+  vtkTypeUInt32 render_location = this->PreRender(/*interactive=*/false);
+  this->ExecuteStream(csstream, false, render_location);
+  bool retVal =
+    this->FetchLastSelection(multiple_selections, selectedRepresentations, selectionSources);
+  this->PostRender(false);
+  return retVal;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMRenderViewProxy::SelectSurfaceCells(const int region[4],
+  vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
+{
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "SelectCells" << region[0]
          << region[1] << region[2] << region[3] << vtkClientServerStream::End;
-  this->ExecuteStream(stream);
-
-  return this->FetchLastSelection(multiple_selections, selectedRepresentations, selectionSources);
+  return this->SelectInternal(
+    stream, selectedRepresentations, selectionSources, multiple_selections);
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectSurfacePoints(const int region[4],
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
 {
-  if (!this->IsSelectionAvailable())
-  {
-    return false;
-  }
-
-  this->IsSelectionCached = true;
-
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "SelectPoints" << region[0]
          << region[1] << region[2] << region[3] << vtkClientServerStream::End;
-  this->ExecuteStream(stream);
-
-  return this->FetchLastSelection(multiple_selections, selectedRepresentations, selectionSources);
+  return this->SelectInternal(
+    stream, selectedRepresentations, selectionSources, multiple_selections);
 }
 
 namespace
@@ -911,6 +957,9 @@ bool vtkSMRenderViewProxy::ComputeVisibleScalarRange(
                   "unsupported.");
     return false;
   }
+
+  vtkScopedMonitorProgress monitorProgress(this);
+
   bool multiple_selections = true;
 
   range[0] = VTK_DOUBLE_MAX;
@@ -1000,6 +1049,8 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(const int region[4],
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections,
   int fieldAssociation)
 {
+  vtkScopedMonitorProgress monitorProgress(this);
+
   // Simply stealing old code for now. This code have many coding style
   // violations and seems too long for what it does. At some point we'll check
   // it out.
@@ -1107,10 +1158,6 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(const int region[4],
 bool vtkSMRenderViewProxy::SelectPolygonPoints(vtkIntArray* polygonPts,
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
 {
-  if (!this->IsSelectionAvailable())
-  {
-    return false;
-  }
   return this->SelectPolygonInternal(polygonPts, selectedRepresentations, selectionSources,
     multiple_selections, "SelectPolygonPoints");
 }
@@ -1119,10 +1166,6 @@ bool vtkSMRenderViewProxy::SelectPolygonPoints(vtkIntArray* polygonPts,
 bool vtkSMRenderViewProxy::SelectPolygonCells(vtkIntArray* polygonPts,
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
 {
-  if (!this->IsSelectionAvailable())
-  {
-    return false;
-  }
   return this->SelectPolygonInternal(polygonPts, selectedRepresentations, selectionSources,
     multiple_selections, "SelectPolygonCells");
 }
@@ -1132,17 +1175,14 @@ bool vtkSMRenderViewProxy::SelectPolygonInternal(vtkIntArray* polygonPts,
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections,
   const char* method)
 {
-  this->IsSelectionCached = true;
-
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << method
          << vtkClientServerStream::InsertArray(polygonPts->GetPointer(0),
               polygonPts->GetNumberOfTuples() * polygonPts->GetNumberOfComponents())
          << polygonPts->GetNumberOfTuples() * polygonPts->GetNumberOfComponents()
          << vtkClientServerStream::End;
-  this->ExecuteStream(stream);
-
-  return this->FetchLastSelection(multiple_selections, selectedRepresentations, selectionSources);
+  return this->SelectInternal(
+    stream, selectedRepresentations, selectionSources, multiple_selections);
 }
 
 //----------------------------------------------------------------------------

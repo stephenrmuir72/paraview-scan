@@ -20,6 +20,26 @@ representation from the UI.
       </Hints>
     </RepresentationProxy>
 
+
+WarnOnCreate
+------------
+Warn the user when creating the filter or source in the UI.
+
+The motivation behind this hint is to warn the user when executing filters
+like **Temporal Statistics** filter since they can potentially take a long time
+for large file series.
+
+
+    <SourceProxy ...>
+      ...
+      <Hints>
+        <WarnOnCreate title="Potentially slow operations">
+          **Temporal Statistics** filter needs to process all timesteps
+          available in your dataset and can potentially take a long time to complete.
+          Do you want to continue?
+        </WarnOnCreate>
+    </SourceProxy>
+
 ReaderFactory
 -------------
 Mark a proxy as reader proxy so that it's used to open files from the **File |
@@ -80,6 +100,17 @@ hint corresponds to by using the optional `port` attribute.
       ...
       <Hints>
         <View type="XYChartView" port="1" />
+      </Hints>
+    </SourceProxy>
+
+The `<View/>` hint can also be used to prevent automatic display of an output in
+any view. To do that, use the **None** type. Such source can then still be
+displayed manually by toggling the visibility when an appropriate View is active.
+
+    <SourceProxy ...>
+      ...
+      <Hints>
+        <View type="None" />
       </Hints>
     </SourceProxy>
 

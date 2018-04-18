@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxyGroupMenuManager.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "pqSourcesMenuReaction.h"
 #include "pqUndoStack.h"
 #include "vtkSMCollaborationManager.h"
 #include "vtkSMDataTypeDomain.h"
@@ -121,8 +122,10 @@ QString getDomainDisplayText(vtkSMDomain* domain, vtkSMInputProperty*)
 }
 
 //-----------------------------------------------------------------------------
-pqFiltersMenuReaction::pqFiltersMenuReaction(pqProxyGroupMenuManager* menuManager)
+pqFiltersMenuReaction::pqFiltersMenuReaction(
+  pqProxyGroupMenuManager* menuManager, bool hideDisabledActions)
   : Superclass(menuManager)
+  , HideDisabledActions(hideDisabledActions)
 {
   QObject::connect(&this->Timer, SIGNAL(timeout()), this, SLOT(setEnableStateDirty()));
   this->Timer.setInterval(10);
@@ -224,6 +227,7 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
 
   pqProxyGroupMenuManager* mgr = static_cast<pqProxyGroupMenuManager*>(this->parent());
   mgr->setEnabled(enabled);
+
   bool some_enabled = false;
   const QList<QAction*>& actionsList =
     updateOnlyToolbars ? mgr->actionsInToolbars() : mgr->actions();
@@ -233,6 +237,10 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
     if (!prototype || !enabled)
     {
       action->setEnabled(false);
+      if (this->HideDisabledActions)
+      {
+        action->setVisible(false);
+      }
       action->setStatusTip("Requires an input");
       continue;
     }
@@ -245,6 +253,10 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
       // Skip single process filters when running in multiprocesses and vice
       // versa.
       action->setEnabled(false);
+      if (this->HideDisabledActions)
+      {
+        action->setVisible(false);
+      }
       if (numProcs > 1)
       {
         action->setStatusTip("Not supported in parallel");
@@ -263,6 +275,10 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
       if (!input->GetMultipleInput() && outputPorts.size() > 1)
       {
         action->setEnabled(false);
+        if (this->HideDisabledActions)
+        {
+          action->setVisible(false);
+        }
         action->setStatusTip("Multiple inputs not support");
         continue;
       }
@@ -278,6 +294,7 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
       if (input->IsInDomains(&domain))
       {
         action->setEnabled(true);
+        action->setVisible(true);
         some_enabled = true;
         const char* help = prototype->GetDocumentation()->GetShortHelp();
         action->setStatusTip(help ? help : "");
@@ -285,6 +302,10 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
       else
       {
         action->setEnabled(false);
+        if (this->HideDisabledActions)
+        {
+          action->setVisible(false);
+        }
         // Here we need to go to the domain that returned false and find out why
         // it said the domain criteria wasn't met.
         action->setStatusTip(::getDomainDisplayText(domain, input));
@@ -297,6 +318,37 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
   {
     mgr->setEnabled(false);
   }
+
+  // Hide unused submenus
+  if (this->HideDisabledActions)
+  {
+    QMenu* menu = mgr->menu();
+    bool anyMenuShown = false;
+    QList<QAction*> menuActions = menu->actions();
+    foreach (QAction* menuAction, menuActions)
+    {
+      if (menuAction->isSeparator() || !menuAction->menu())
+      {
+        continue;
+      }
+      bool anySubMenuShown = false;
+      QList<QAction*> subMenuActions = menuAction->menu()->actions();
+
+      foreach (QAction* subMenuAction, subMenuActions)
+      {
+        if (subMenuAction->isVisible())
+        {
+          anySubMenuShown = true;
+          anyMenuShown = true;
+          break;
+        }
+      }
+
+      menuAction->setVisible(anySubMenuShown);
+    }
+    menu->setEnabled(anyMenuShown);
+  }
+
   // If we updated only the toolbars, then the state of other actions may still
   // be dirty
   this->IsDirty = updateOnlyToolbars;
@@ -311,13 +363,18 @@ pqPipelineSource* pqFiltersMenuReaction::createFilter(
   pqObjectBuilder* builder = core->getObjectBuilder();
   pqServerManagerModel* smmodel = core->getServerManagerModel();
 
+  if (!pqSourcesMenuReaction::warnOnCreate(xmlgroup, xmlname))
+  {
+    return nullptr;
+  }
+
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSMProxy* prototype =
     pxm->GetPrototypeProxy(xmlgroup.toLocal8Bit().data(), xmlname.toLocal8Bit().data());
   if (!prototype)
   {
     qCritical() << "Unknown proxy type: " << xmlname;
-    return 0;
+    return nullptr;
   }
 
   // Get the list of selected sources.
@@ -366,7 +423,7 @@ pqPipelineSource* pqFiltersMenuReaction::createFilter(
     {
       helper.RemoveAllValues();
       // User aborted creation.
-      return 0;
+      return nullptr;
     }
     helper.RemoveAllValues();
     namedInputs = dialog.selectedInputs();

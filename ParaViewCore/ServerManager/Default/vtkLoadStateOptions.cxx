@@ -18,6 +18,8 @@
 #include <vtksys/SystemTools.hxx>
 using namespace vtksys;
 
+#include <sstream>
+
 vtkStandardNewMacro(vtkLoadStateOptions);
 //----------------------------------------------------------------------------
 vtkLoadStateOptions::vtkLoadStateOptions()
@@ -72,7 +74,7 @@ std::string vtkLoadStateOptions::LocateFileInDirectory(const std::string& filepa
   SystemTools::SplitPath(SystemTools::GetParentDirectory(filepath), pathComponents);
   size_t insertIndex = directoryPathComponents.size();
 
-  while (pathComponents.size() > 1)
+  while (pathComponents.size() >= 1)
   {
     std::string searchPath = SystemTools::JoinPath(directoryPathComponents);
     if (SystemTools::LocateFileInDir(filepath.c_str(), searchPath.c_str(), result))
@@ -83,7 +85,10 @@ std::string vtkLoadStateOptions::LocateFileInDirectory(const std::string& filepa
       directoryPathComponents.begin() + insertIndex, pathComponents.back());
     pathComponents.pop_back();
   }
-  vtkErrorMacro("Cannot find '" << SystemTools::GetFilenameName(filepath) << " in '"
-                                << this->DataDirectory.c_str() << "'. Using '" << filepath << "'.");
+
+  std::stringstream str;
+  str << "Cannot find '" << SystemTools::GetFilenameName(filepath) << "' in '"
+      << this->DataDirectory.c_str() << "'. Using '" << filepath << "'.\n\n";
+  vtkOutputWindowDisplayDebugText(str.str().c_str());
   return result;
 }

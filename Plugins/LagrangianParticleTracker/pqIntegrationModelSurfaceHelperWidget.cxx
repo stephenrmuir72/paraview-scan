@@ -76,7 +76,7 @@ void pqIntegrationModelSurfaceHelperWidget::resetWidget()
 //-----------------------------------------------------------------------------
 void pqIntegrationModelSurfaceHelperWidget::resetSurfaceWidget(bool force)
 {
-  // Avoid reseting when it is not necessary
+  // Avoid resetting when it is not necessary
   if (force || this->ModelProperty->GetUncheckedProxy(0) != this->ModelPropertyValue)
   {
     // Recover the current unchecked value, ie the value selected by the user but not yet applied
@@ -158,7 +158,7 @@ void pqIntegrationModelSurfaceHelperWidget::resetSurfaceWidget(bool force)
         gb->setProperty("name", arrayName);
         gb->setProperty("type", type);
         QObject::connect(gb, SIGNAL(toggled(bool)), this, SIGNAL(arrayToGenerateChanged()));
-        delete labelName;
+        delete[] labelName;
 
         // And associated layout
         QGridLayout* gbLayout = new QGridLayout(gb);

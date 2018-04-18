@@ -45,14 +45,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSmartPointer.h"
 
 #include "pqComboBoxDomain.h"
+#include "pqCompositeTreePropertyWidget.h"
 #include "pqIntRangeWidget.h"
 #include "pqLabel.h"
 #include "pqLineEdit.h"
 #include "pqProxyWidget.h"
 #include "pqScalarValueListPropertyWidget.h"
-#include "pqSignalAdaptorCompositeTreeWidget.h"
 #include "pqSignalAdaptorSelectionTreeWidget.h"
 #include "pqSignalAdaptors.h"
+#include "pqTreeView.h"
 #include "pqTreeWidget.h"
 #include "pqTreeWidgetSelectionHelper.h"
 
@@ -61,6 +62,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QHBoxLayout>
 #include <QIntValidator>
 
+//-----------------------------------------------------------------------------
 pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
   vtkSMProperty* smproperty, vtkSMProxy* smProxy, QWidget* parentObject)
   : pqPropertyWidget(smProxy, parentObject)
@@ -157,7 +159,15 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
       comboBox->setObjectName("ComboBox");
       for (unsigned int i = 0; i < ed->GetNumberOfEntries(); i++)
       {
-        comboBox->addItem(ed->GetEntryText(i));
+        const char* entryText = ed->GetEntryText(i);
+        if (const char* info = ed->GetInfoText(i))
+        {
+          comboBox->addItem(QString("%1 (%2)").arg(entryText).arg(info), entryText);
+        }
+        else
+        {
+          comboBox->addItem(entryText, entryText);
+        }
       }
       // vtkSMNumberOfComponentsDomain is a dynamic domain
       // hence we need to connect it to a pqComboBoxDomain
@@ -169,7 +179,7 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
 
       pqSignalAdaptorComboBox* adaptor = new pqSignalAdaptorComboBox(comboBox);
       this->addPropertyLink(
-        adaptor, "currentText", SIGNAL(currentTextChanged(QString)), smproperty);
+        adaptor, "currentData", SIGNAL(currentTextChanged(QString)), smproperty);
       this->setChangeAvailableAsChangeFinished(true);
       layoutLocal->addWidget(comboBox);
 
@@ -180,27 +190,8 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
   }
   else if (vtkSMCompositeTreeDomain::SafeDownCast(domain))
   {
-    pqTreeWidget* treeWidget = new pqTreeWidget(this);
-    treeWidget->setObjectName("TreeWidget");
-    treeWidget->setHeaderLabel(smproperty->GetXMLLabel());
-    treeWidget->setMaximumRowCountBeforeScrolling(smproperty);
-
-    pqSignalAdaptorCompositeTreeWidget* adaptor =
-      new pqSignalAdaptorCompositeTreeWidget(treeWidget, ivp,
-        /*autoUpdateVisibility=*/true);
-    adaptor->setObjectName("CompositeTreeAdaptor");
-
-    pqTreeWidgetSelectionHelper* helper = new pqTreeWidgetSelectionHelper(treeWidget);
-    helper->setObjectName("CompositeTreeSelectionHelper");
-
-    this->addPropertyLink(adaptor, "values", SIGNAL(valuesChanged()), ivp);
-    this->setChangeAvailableAsChangeFinished(true);
-
-    layoutLocal->addWidget(treeWidget);
-    this->setShowLabel(false);
-
-    PV_DEBUG_PANELS() << "pqTreeWidget for an IntVectorPropertyWidget with a "
-                      << "CompositeTreeDomain";
+    // Should have been handled by pqCompositeTreePropertyWidget.
+    abort();
   }
   else if (vtkSMIntRangeDomain* range = vtkSMIntRangeDomain::SafeDownCast(domain))
   {
@@ -300,4 +291,21 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
   }
 
   this->setLayout(layoutLocal);
+}
+
+//-----------------------------------------------------------------------------
+pqIntVectorPropertyWidget::~pqIntVectorPropertyWidget()
+{
+}
+
+//-----------------------------------------------------------------------------
+pqPropertyWidget* pqIntVectorPropertyWidget::createWidget(
+  vtkSMIntVectorProperty* smproperty, vtkSMProxy* smproxy, QWidget* parent)
+{
+  if (smproperty != nullptr && smproperty->FindDomain("vtkSMCompositeTreeDomain") != nullptr)
+  {
+    return new pqCompositeTreePropertyWidget(smproperty, smproxy, parent);
+  }
+
+  return new pqIntVectorPropertyWidget(smproperty, smproxy, parent);
 }

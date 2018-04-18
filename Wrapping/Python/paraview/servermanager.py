@@ -53,27 +53,27 @@ import paraview, re, os, os.path, types, sys, atexit
 from paraview import vtk
 from paraview import _backwardscompatibilityhelper as _bc
 
-from vtk.vtkPVServerImplementationCore import *
-from vtk.vtkPVClientServerCoreCore import *
-from vtk.vtkPVServerManagerCore import *
+from vtkmodules.vtkPVServerImplementationCore import *
+from vtkmodules.vtkPVClientServerCoreCore import *
+from vtkmodules.vtkPVServerManagerCore import *
 
 try:
-  from vtk.vtkPVServerManagerDefault import *
+  from vtkmodules.vtkPVServerManagerDefault import *
 except:
   paraview.print_error("Error: Cannot import vtkPVServerManagerDefault")
 try:
-  from vtk.vtkPVServerManagerRendering import *
+  from vtkmodules.vtkPVServerManagerRendering import *
 except:
   paraview.print_error("Error: Cannot import vtkPVServerManagerRendering")
 try:
-  from vtk.vtkPVServerManagerApplication import *
+  from vtkmodules.vtkPVServerManagerApplication import *
 except:
   paraview.print_error("Error: Cannot import vtkPVServerManagerApplication")
 try:
-  from vtk.vtkPVAnimation import *
+  from vtkmodules.vtkPVAnimation import *
 except:
   paraview.print_error("Error: Cannot import vtkPVAnimation")
-from vtk.vtkPVCommon import *
+from vtkmodules.vtkPVCommon import *
 
 def _wrap_property(proxy, smproperty):
     """ Internal function.
@@ -84,12 +84,15 @@ def _wrap_property(proxy, smproperty):
     if paraview.compatibility.GetVersion() >= 3.5 and \
       smproperty.IsA("vtkSMStringVectorProperty"):
         al = smproperty.GetDomain("array_list")
-        if  al and al.IsA("vtkSMArraySelectionDomain") and \
+        if al and al.IsA("vtkSMArraySelectionDomain") and \
             smproperty.GetRepeatable():
             property = ArrayListProperty(proxy, smproperty)
-        elif  al and al.IsA("vtkSMChartSeriesSelectionDomain") and \
+        elif al and al.IsA("vtkSMChartSeriesSelectionDomain") and \
             smproperty.GetRepeatable() and al.GetDefaultMode() == 1:
             property = ArrayListProperty(proxy, smproperty)
+        elif al and al.IsA("vtkSMSubsetInclusionLatticeDomain") and \
+            smproperty.GetRepeatable():
+            property = SubsetInclusionLatticeProperty(proxy, smproperty)
         elif al and al.IsA("vtkSMArrayListDomain") and \
             smproperty.GetRepeatable():
             # if it is repeatable, then it is not a single array selection... and if it happens
@@ -178,21 +181,21 @@ class Proxy(object):
 
        proxy.Foo = (1,2)
 
-    or
+    or::
 
        proxy.Foo.SetData((1,2))
 
-    or
+    or::
 
        proxy.Foo[0:2] = (1,2)
 
     For more information, see the documentation of the property which
-    you can obtain with
-    help(proxy.Foo).
+    you can obtain with::
+
+      help(proxy.Foo).
 
     This class also provides an iterator which can be used to iterate
-    over all properties.
-    eg::
+    over all properties, e.g.::
 
         proxy = Proxy(proxy=smproxy)
         for property in proxy:
@@ -200,7 +203,7 @@ class Proxy(object):
 
 
     For advanced users:
-    This is a python class that wraps a vtkSMProxy.. Makes it easier to
+    This is a python class that wraps a vtkSMProxy. Makes it easier to
     set/get properties.
     Instead of::
 
@@ -211,11 +214,11 @@ class Proxy(object):
 
         proxy.Foo = (1,2)
 
-    or
+    or::
 
         proxy.Foo.SetData((1,2))
 
-    or
+    or::
 
         proxy.Foo[0:2] = (1,2)
 
@@ -227,22 +230,26 @@ class Proxy(object):
 
         proxy.Foo.GetData()[0]
 
-    or
+    or::
 
         proxy.Foo[0]
 
-    For proxy properties, you can use append:
-     proxy.GetProperty("Bar").AddProxy(foo)
-    you can do:
-     proxy.Bar.append(foo)
-    Properties support most of the list API. See VectorProperty and
-    ProxyProperty documentation for details.
+    For proxy properties, you can use append::
+
+        proxy.GetProperty("Bar").AddProxy(foo)
+
+    you can do::
+
+        proxy.Bar.append(foo)
+
+    Properties support most of the list API. See ``VectorProperty`` and
+    ``ProxyProperty`` documentation for details.
 
     Please note that some of the methods accessible through the Proxy
-    class are not listed by help() because the Proxy objects forward
+    class are not listed by ``help()`` because the ``Proxy`` objects forward
     unresolved attributes to the underlying object. To get the full list,
-    see also dir(proxy.SMProxy). See also the doxygen based documentation
-    of the vtkSMProxy C++ class.
+    see also ``dir(proxy.SMProxy)``. See also the doxygen based documentation
+    of the ``vtkSMProxy`` C++ class.
     """
 
     def __init__(self, **args):
@@ -256,11 +263,11 @@ class Proxy(object):
         self.add_attribute('_Proxy__Properties', {})
         self.add_attribute('_Proxy__LastAttrName', None)
         self.add_attribute('SMProxy', None)
-        self.add_attribute('Port', 0)
-
         if 'port' in args:
-            self.Port = args['port']
+            self.add_attribute('Port', args['port'])
             del args['port']
+        else:
+            self.add_attribute('Port', 0)
 
         update = True
         if 'no_update' in args:
@@ -289,32 +296,6 @@ class Proxy(object):
         # Visit all properties so that they are created
         for prop in self:
             pass
-
-    def __setattr__(self, name, value):
-        try:
-            setter = getattr(self.__class__, name)
-            setter = setter.__set__
-        except AttributeError:
-            if name == "ColorAttributeType" and self.SMProxy.GetProperty("ColorArrayName"):
-                if paraview.compatibility.GetVersion() <= 4.1:
-                    # set ColorAttributeType on ColorArrayName property instead.
-                    caProp = self.GetProperty("ColorArrayName")
-
-                    self.GetProperty("ColorArrayName").SetData((value, caProp[1]))
-                    return
-                else:
-                    # if ColorAttributeType is being used, print debug information.
-                    paraview.print_debug_info(\
-                        "'ColorAttributeType' is obsolete. Simply use 'ColorArrayName' instead.  Refer to ParaView Python API changes documentation online.")
-                    # we let the exception be raised as well, hence don't return here.
-            if not hasattr(self, name):
-                raise AttributeError("Attribute %s does not exist. " % name +
-                  " This class does not allow addition of new attributes to avoid " +
-                  "mistakes due to typos. Use add_attribute() if you really want " +
-                  "to add this attribute.")
-            self.__dict__[name] = value
-        else:
-            setter(self, value)
 
     def add_attribute(self, name, value):
         self.__dict__[name] = value
@@ -461,6 +442,35 @@ class Proxy(object):
             self.Observed = c
         return c
 
+    def __setattr__(self, name, value):
+        try:
+            setter = getattr(self.__class__, name)
+            paraview.print_debug_info("No attribute %s" % name)
+            setter = setter.__set__
+        except AttributeError:
+            # Let the backwards compatibility helper try to handle this
+            try:
+                _bc.setattr(self, name, value)
+            except _bc.Continue:
+                pass
+            except AttributeError:
+                raise AttributeError("Attribute %s does not exist. " % name +
+                    " This class does not allow addition of new attributes to avoid " +
+                    "mistakes due to typos. Use add_attribute() if you really want " +
+                    "to add this attribute.")
+        else:
+            paraview.print_debug_info(name)
+            try:
+                setter(self, value)
+            except ValueError:
+                # Let the backwards compatibility helper try to handle this
+                try:
+                    _bc.setattr_fix_value(self, name, value, setter)
+                except _bc.Continue:
+                    pass
+                except ValueError:
+                    raise ValueError("%s is not a valid value for attribute %s." % (value, name))
+
     def __getattr__(self, name):
         """With the exception of a few overloaded methods,
         returns the SMProxy method"""
@@ -476,9 +486,6 @@ class Proxy(object):
 
         try:
             return _bc.getattr(self, name)
-        except _bc.NotSupportedException:
-            # we fall through and let getattr() raise the appropriate exception.
-            pass
         except _bc.Continue:
             pass
         # If not a property, see if SMProxy has the method
@@ -596,7 +603,7 @@ class ViewLayoutProxy(Proxy):
     def SplitViewHorizontal(self, view, fraction=0.5):
         """Split the cell containing the specified view horizontally.
         If no fraction is specified, the frame is split into equal parts.
-        On success returns a positve number that identifying the new cell
+        On success returns a positive number that identifying the new cell
         location that can be used to assign view to, or split further.
         Return -1 on failure."""
         location = self.GetViewLocation(view)
@@ -610,7 +617,7 @@ class ViewLayoutProxy(Proxy):
         """Split the cell containing the specified view horizontally.
         If no view is specified, active view is used.
         If no fraction is specified, the frame is split into equal parts.
-        On success returns a positve number that identifying the new cell
+        On success returns a positive number that identifying the new cell
         location that can be used to assign view to, or split further.
         Return -1 on failure."""
         location = self.GetViewLocation(view)
@@ -1101,7 +1108,7 @@ class ArrayListProperty(VectorProperty):
         # so that values passed in will take precedence.
         # This is needed for backward compatibility of the
         # property ElementBlocks for vtkExodusIIReader.
-        # If you attemp to change this, please verify that
+        # If you attempt to change this, please verify that
         # python state files for opening old .ex2 file (<=3.14) still works.
         for array in self.Available:
             if not values.__contains__(array):
@@ -1134,6 +1141,15 @@ class ArrayListProperty(VectorProperty):
                 self.__arrays.append(self.GetElement(i))
         return list(self.__arrays)
 
+
+class SubsetInclusionLatticeProperty(ArrayListProperty):
+    """This property provides a simpler interface for selecting blocks on a
+    property with a `vtkSMSubsetInclusionLatticeDomain`."""
+    # currently, there's nothing more here. eventually, we'll add support to
+    # forward select/deselect requests to a vtkSubsetInclusionLattice instance.
+    pass
+
+
 class ProxyProperty(Property):
     """A ProxyProperty provides access to one or more proxies. You can use
     a slice to get one or more property values:
@@ -1162,7 +1178,7 @@ class ProxyProperty(Property):
         # initialize ourself. (Should this go in ProxyProperty?)
         listdomain = self.GetDomain('proxy_list')
         if listdomain:
-            if listdomain.GetClassName() != 'vtkSMProxyListDomain':
+            if not listdomain.IsA('vtkSMProxyListDomain'):
                 raise ValueError ("Found a 'proxy_list' domain on an InputProperty that is not a ProxyListDomain.")
             pm = ProxyManager()
             group = "pq_helper_proxies." + proxy.GetGlobalIDAsString()
@@ -1201,7 +1217,7 @@ class ProxyProperty(Property):
         return self.SMProperty.GetNumberOfProxies()
 
     def remove(self, proxy):
-        """Removes the first occurence of the proxy from the property."""
+        """Removes the first occurrence of the proxy from the property."""
         self.SMProperty.RemoveProxy(proxy.SMProxy)
         self._UpdateProperty()
 
@@ -2052,12 +2068,16 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=22221):
     Use this function call to create a new session. On success,
     it returns a vtkSMSession object that abstracts the connection.
     Otherwise, it returns None.
+
     There are several ways in which this function can be called:
+
     * When called with no arguments, it creates a new session
       to the built-in server on the client itself.
+
     * When called with ds_host and ds_port arguments, it
       attempts to connect to a server(data and render server on the same server)
       on the indicated host:port.
+
     * When called with ds_host, ds_port, rs_host, rs_port, it
       creates a new connection to the data server on ds_host:ds_port and to the
       render server on rs_host: rs_port.
@@ -2259,7 +2279,7 @@ def LoadPlugin(filename,  remote=True, connection=None):
     else:
         status = plm.LoadLocalPlugin(filename)
 
-    # shouldn't the extension check happend before attempting to load the plugin?
+    # shouldn't the extension check happen before attempting to load the plugin?
     if not status:
         raise RuntimeError ("Problem loading plugin %s" % (filename))
     else:
@@ -2352,11 +2372,9 @@ def Fetch(input, arg1=None, arg2=None, idx=0):
     opc.UnRegister(None)
     return opc
 
-def AnimateReader(reader, view, filename=None):
+def AnimateReader(reader, view):
     """This is a utility function that, given a reader and a view
-    animates over all time steps of the reader. If the optional
-    filename is provided, a movie is created (type depends on the
-    extension of the filename."""
+    animates over all time steps of the reader."""
     if not reader:
         raise RuntimeError ("No reader was specified, cannot animate.")
     if not view:
@@ -2395,18 +2413,7 @@ def AnimateReader(reader, view, filename=None):
     cue.AnimatedProxy = view
     cue.AnimatedPropertyName = "ViewTime"
     scene.Cues = [cue]
-
-    if filename:
-        writer = vtkSMAnimationSceneImageWriter()
-        writer.SetFileName(filename)
-        writer.SetFrameRate(1)
-        writer.SetAnimationScene(scene.SMProxy)
-
-        # Now save the animation.
-        if not writer.Save():
-            raise RuntimeError ("Saving of animation failed!")
-    else:
-        scene.Play()
+    scene.Play()
     return scene
 
 def GetProgressPrintingIsEnabled():
@@ -2423,13 +2430,15 @@ def SetProgressPrintingEnabled(value):
     if value and not GetProgressPrintingIsEnabled():
         if paraview.fromGUI:
             raise RuntimeError("Printing progress in the GUI is not supported.")
-        progressObserverTag = vtkProcessModule.GetProcessModule().AddObserver(\
-            "ProgressEvent", _printProgress)
+        if ActiveConnection and ActiveConnection.Session:
+            progressObserverTag = ActiveConnection.Session.GetProgressHandler().AddObserver(
+                "ProgressEvent", _printProgress)
 
     # If value is false and progress printing is currently on...
     elif GetProgressPrintingIsEnabled():
-        vtkProcessModule.GetProcessModule().RemoveObserver(progressObserverTag)
-        progressObserverTag = None
+        if ActiveConnection and ActiveConnection.Session:
+            ActiveConnection.Session.GetProgressHandler().RemoveObserver(progressObserverTag)
+            progressObserverTag = None
 
 def ToggleProgressPrinting():
     """Turn on/off printing of progress.  See SetProgressPrintingEnabled."""
@@ -2565,14 +2574,8 @@ def _printProgress(caller, event):
     global currentAlgorithm, currentProgress
 
     pm = vtkProcessModule.GetProcessModule()
-    progress = pm.GetLastProgress() / 10
-    # If we got a 100% as the first thing, ignore
-    # This is to get around the fact that some vtk
-    # algorithms report 100% more than once (which is
-    # a bug)
-    if not currentAlgorithm and progress == 10:
-        return
-    alg = pm.GetLastProgressName()
+    progress = caller.GetLastProgress()
+    alg = caller.GetLastProgressText()
     if alg != currentAlgorithm and alg:
         if currentAlgorithm:
             while currentProgress <= 10:
@@ -2932,7 +2935,7 @@ def demo3():
     probes it with a line, delivers the result to the client using Fetch
     and plots it using pylab. This demo requires numpy and pylab installed.
     It returns a tuple of (data, render view)."""
-    import paraview.numpy_support
+    from vtkmodules.util import numpy_support
     import pylab
 
     if not ActiveConnection:
@@ -2995,7 +2998,7 @@ def demo3():
     # Now deliver it to the client. Remember, this is for small data.
     data = Fetch(probe)
     # Convert it to a numpy array
-    data = paraview.numpy_support.vtk_to_numpy(
+    data = numpy_support.vtk_to_numpy(
       data.GetPointData().GetArray("RTData"))
     # Plot it using matplotlib
     pylab.plot(data)
@@ -3078,7 +3081,7 @@ def GetAssociationAsString(val):
     raise RuntimeError ("invalid association type '%d'" % val)
 
 def GetAssociationFromString(val):
-    """Returns array association interger value from its string representation"""
+    """Returns array association integer value from its string representation"""
     global ASSOCIATIONS, _LEGACY_ASSOCIATIONS
     val = str(val).upper()
     try:
@@ -3134,15 +3137,27 @@ def SetActiveConnection(connection=None):
 # servermanager.Finalize() may also be needed to exit properly without
 # VTK_DEBUG_LEAKS reporting memory leaks.
 if not vtkProcessModule.GetProcessModule():
-    pvoptions = None
+    pvoptions = vtkPVOptions();
     if paraview.options.batch:
-      pvoptions = vtkPVOptions();
       pvoptions.SetProcessType(vtkPVOptions.PVBATCH)
       if paraview.options.symmetric:
         pvoptions.SetSymmetricMPIMode(True)
       vtkInitializationHelper.Initialize(sys.executable,
           vtkProcessModule.PROCESS_BATCH, pvoptions)
+
+      # In case of Non-Symetric mode and we are a satelite
+      # We should lock right away and wait for the requests
+      # from master
+      pm = vtkProcessModule.GetProcessModule()
+      if not paraview.options.symmetric and pm.GetPartitionId() != 0:
+        paraview.options.satelite = True
+        sid = vtkSMSession.ConnectToSelf()
+        pm.GetGlobalController().ProcessRMIs()
+        pm.UnRegisterSession(sid)
+
     else:
+      pvoptions.SetProcessType(vtkPVOptions.PVCLIENT)
+      pvoptions.SetForceNoMPIInitOnClient(1)
       vtkInitializationHelper.Initialize(sys.executable,
           vtkProcessModule.PROCESS_CLIENT, pvoptions)
 
@@ -3185,7 +3200,7 @@ def GetConnectionFromId(id):
     return None
 
 def GetConnectionFromSession(session):
-    """Retuns the Connection object corresponding to a vtkSMSession instance."""
+    """Returns the Connection object corresponding to a vtkSMSession instance."""
     global Connections
     for connection in Connections:
         if connection.Session == session:

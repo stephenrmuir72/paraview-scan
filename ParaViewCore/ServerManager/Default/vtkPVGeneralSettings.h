@@ -114,17 +114,6 @@ public:
     DEFAULT_TIME_STEP_LAST
   };
 
-  /**
-   * Enum for TransferFunctionResetMode
-   */
-  enum
-  {
-    GROW_ON_APPLY = 0,
-    GROW_ON_APPLY_AND_TIMESTEP = 1,
-    RESET_ON_APPLY = 2,
-    RESET_ON_APPLY_AND_TIMESTEP = 3
-  };
-
   //@{
   /**
    * Get/Set the transfer function reset mode.
@@ -171,6 +160,15 @@ public:
   vtkGetMacro(AnimationTimePrecision, int);
   //@}
 
+  //@{
+  /**
+   * Set when animation shortcuts are shown.
+   */
+  vtkSetMacro(ShowAnimationShortcuts, bool);
+  vtkGetMacro(ShowAnimationShortcuts, bool);
+  vtkBooleanMacro(ShowAnimationShortcuts, bool);
+  //@}
+
   /**
    * Forwarded for vtkSMParaViewPipelineControllerWithRendering.
    */
@@ -215,9 +213,33 @@ public:
   bool GetLoadNoChartVariables();
   //@}
 
+  //@{
+  /**
+   * Get/Set the GUI font size. This is used only if GUIOverrideFont is true.
+   */
+  vtkSetClampMacro(GUIFontSize, int, 8, VTK_INT_MAX);
+  vtkGetMacro(GUIFontSize, int);
+  //@}
+
+  //@{
+  /**
+   * Get/Set whether the GUIFontSize should be used.
+   */
+  vtkSetMacro(GUIOverrideFont, bool);
+  vtkGetMacro(GUIOverrideFont, bool);
+  //@}
+
+  //@{
+  /**
+   *  Automatically color by **vtkBlockColors** if array is present on `Apply`.
+   */
+  vtkSetMacro(ColorByBlockColorsOnApply, bool);
+  vtkGetMacro(ColorByBlockColorsOnApply, bool);
+  //@}
+
 protected:
   vtkPVGeneralSettings();
-  ~vtkPVGeneralSettings();
+  ~vtkPVGeneralSettings() override;
 
   int BlockColorsDistinctValues;
   bool AutoApply;
@@ -228,12 +250,16 @@ protected:
   bool CacheGeometryForAnimation;
   unsigned long AnimationGeometryCacheLimit;
   int AnimationTimePrecision;
+  bool ShowAnimationShortcuts;
   int PropertiesPanelMode;
   bool LockPanels;
+  int GUIFontSize;
+  bool GUIOverrideFont;
+  bool ColorByBlockColorsOnApply;
 
 private:
-  vtkPVGeneralSettings(const vtkPVGeneralSettings&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVGeneralSettings&) VTK_DELETE_FUNCTION;
+  vtkPVGeneralSettings(const vtkPVGeneralSettings&) = delete;
+  void operator=(const vtkPVGeneralSettings&) = delete;
 
   static vtkSmartPointer<vtkPVGeneralSettings> Instance;
 };

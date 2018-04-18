@@ -1,6 +1,13 @@
 set (__dependencies)
+set (__private_dependencies)
 if (PARAVIEW_USE_PISTON)
   list (APPEND __dependencies vtkAcceleratorsPiston)
+endif()
+if(PARAVIEW_USE_VTKM)
+  list(APPEND __private_dependencies
+    vtkAcceleratorsVTKm
+    vtkm
+  )
 endif()
 
 vtk_module(vtkPVClientServerCoreRendering
@@ -22,6 +29,7 @@ vtk_module(vtkPVClientServerCoreRendering
   PRIVATE_DEPENDS
     vtksys
     vtkzlib
+    ${__private_dependencies}
   TEST_LABELS
     PARAVIEW
   KIT

@@ -33,6 +33,7 @@
 
 using namespace vtksys;
 
+#include <algorithm>
 #include <set>
 #include <sstream>
 
@@ -210,7 +211,9 @@ bool vtkSMLoadStateOptionsProxy::PrepareToLoad(const char* statefilename)
   vtkSMSessionProxyManager* pxm =
     vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
 
-  // Setup proxies for for explict file change dialog
+  std::map<std::string, int> namesUsed;
+
+  // Setup proxies for for explicit file change dialog
   for (auto idIter = this->Internals->PropertiesMap.begin();
        idIter != this->Internals->PropertiesMap.end(); idIter++)
   {
@@ -231,6 +234,26 @@ bool vtkSMLoadStateOptionsProxy::PrepareToLoad(const char* statefilename)
     std::string newProxyName = std::to_string(idIter->first);
     this->AddSubProxy(newProxyName.c_str(), newReaderProxy.GetPointer());
 
+    std::string baseName =
+      this->Internals->CollectionsMap[idIter->first].attribute("name").as_string();
+
+    // Remove all '.'s in the name to avoid possible name collisions with the appended index
+    // If baseName is not unique for each proxy then the proxies are linked and their properties
+    // cannot
+    // be set separately if the property names are the same.
+    baseName.erase(std::remove(baseName.begin(), baseName.end(), '.'), baseName.end());
+
+    auto nameUseCount = namesUsed.find(baseName);
+    if (nameUseCount != namesUsed.end())
+    {
+      baseName.append(".").append(std::to_string(nameUseCount->second));
+      ++nameUseCount->second;
+    }
+    else
+    {
+      namesUsed[baseName] = 1;
+    }
+
     for (auto pIter = idIter->second.begin(); pIter != idIter->second.end(); pIter++)
     {
       vtkSmartPointer<vtkSMProperty> property = newReaderProxy->GetProperty(pIter->first.c_str());
@@ -248,18 +271,11 @@ bool vtkSMLoadStateOptionsProxy::PrepareToLoad(const char* statefilename)
       property->SetHints(ConvertXML(XMLParser.Get(), hints));
 
       pugi::xml_node propertyXML = pIter->second.XMLElement;
-      std::string exposedName =
-        SystemTools::GetFilenameName(propertyXML.child("Element").attribute("value").value());
-
-      vtkNew<vtkFileSequenceParser> sequenceParser;
-      if (sequenceParser->ParseFileSequence(exposedName.c_str()))
-      {
-        exposedName = sequenceParser->GetSequenceName();
-      }
+      std::string exposedName = baseName;
 
       exposedName.append(".").append(propertyXML.attribute("name").value());
-      this->ExposeSubProxyProperty(
-        newProxyName.c_str(), propertyXML.attribute("name").value(), exposedName.c_str());
+      this->ExposeSubProxyProperty(newProxyName.c_str(), propertyXML.attribute("name").value(),
+        exposedName.c_str(), 1 /*override*/);
       propertyGroupElement.append_child("Property")
         .append_attribute("name")
         .set_value(exposedName.c_str());
@@ -279,7 +295,8 @@ bool vtkSMLoadStateOptionsProxy::HasDataFiles()
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMLoadStateOptionsProxy::LocateFilesInDirectory(std::vector<std::string>& filepaths)
+bool vtkSMLoadStateOptionsProxy::LocateFilesInDirectory(
+  std::vector<std::string>& filepaths, bool clearFilenameIfNotFound)
 {
   std::string lastLocatedPath = "";
   int numOfPathMatches = 0;
@@ -314,6 +331,11 @@ bool vtkSMLoadStateOptionsProxy::LocateFilesInDirectory(std::vector<std::string>
         }
         lastLocatedPath = locatedPath;
       }
+      else if (clearFilenameIfNotFound)
+      {
+        vtkErrorMacro(<< "Could not find file " << *fIter << " in data directory.");
+        *fIter = "";
+      }
       else
       {
         return false;
@@ -337,6 +359,8 @@ bool vtkSMLoadStateOptionsProxy::Load()
   SM_SCOPED_TRACE(LoadState).arg("filename", this->StateFileName).arg("options", this);
 
   this->SetDataFileOptions(vtkSMPropertyHelper(this, "LoadStateDataFileOptions").GetAsInt());
+  this->SetOnlyUseFilesInDataDirectory(
+    vtkSMPropertyHelper(this, "OnlyUseFilesInDataDirectory").GetAsInt() == 1);
   switch (this->DataFileOptions)
   {
     case USE_FILES_FROM_STATE:
@@ -355,11 +379,58 @@ bool vtkSMLoadStateOptionsProxy::Load()
 
           if (pIter->first.find("FilePattern") == std::string::npos)
           {
-            if (this->LocateFilesInDirectory(info.FilePaths))
+            if (this->LocateFilesInDirectory(info.FilePaths, this->OnlyUseFilesInDataDirectory))
             {
               info.Modified = true;
             }
           }
+        }
+      }
+
+      for (auto idIter = this->Internals->PropertiesMap.begin();
+           idIter != this->Internals->PropertiesMap.end(); idIter++)
+      {
+        std::string primaryFilename = "";
+        bool propertiesModified = false;
+        for (auto pIter = idIter->second.begin(); pIter != idIter->second.end(); pIter++)
+        {
+          vtkInternals::PropertyInfo& info = pIter->second;
+          if (!info.Modified)
+          {
+            continue;
+          }
+          else
+          {
+            propertiesModified = true;
+          }
+
+          for (auto fIter = info.FilePaths.begin(); fIter != info.FilePaths.end(); ++fIter)
+          {
+            std::string idx = std::to_string(std::distance(info.FilePaths.begin(), fIter));
+            info.XMLElement.find_child_by_attribute("Element", "index", idx.c_str())
+              .attribute("value")
+              .set_value(fIter->c_str());
+
+            if (primaryFilename.empty() && fIter->compare(0, 3, "XML") != 0)
+            {
+              primaryFilename = fIter->c_str();
+            }
+          }
+        }
+
+        // Also fix up sources proxy collection
+        // Get sequence basename if needed
+        if (propertiesModified)
+        {
+          std::string filename = SystemTools::GetFilenameName(primaryFilename);
+          vtkNew<vtkFileSequenceParser> sequenceParser;
+          if (sequenceParser->ParseFileSequence(filename.c_str()))
+          {
+            filename = sequenceParser->GetSequenceName();
+          }
+
+          this->Internals->CollectionsMap[idIter->first].attribute("name").set_value(
+            filename.c_str());
         }
       }
 
@@ -370,6 +441,7 @@ bool vtkSMLoadStateOptionsProxy::Load()
       for (auto idIter = this->Internals->PropertiesMap.begin();
            idIter != this->Internals->PropertiesMap.end(); idIter++)
       {
+        std::string primaryFilename = "";
         vtkSMProxy* subProxy = this->GetSubProxy(std::to_string(idIter->first).c_str());
         for (auto pIter = idIter->second.begin(); pIter != idIter->second.end(); pIter++)
         {
@@ -399,73 +471,39 @@ bool vtkSMLoadStateOptionsProxy::Load()
             }
           }
 
-          if (info.FilePaths.size() == 1)
+          // Clear out existing file names
+          while (info.XMLElement.remove_child("Element"))
           {
-            info.FilePaths[0] = propertyValue;
-            info.Modified = true;
           }
-          else if (info.FilePaths.size() > 1)
+
+          // Add the new file names
+          vtkSMPropertyHelper filenamePropHelper(subProxy, pIter->first.c_str());
+          for (unsigned int i = 0; i < filenamePropHelper.GetNumberOfElements(); ++i)
           {
-            // Assume the filename will be unchanged so just add the new path the file
-            std::vector<std::string> newPathCompenents;
-            SystemTools::SplitPath(SystemTools::GetFilenamePath(propertyValue), newPathCompenents);
-            for (auto fIter = info.FilePaths.begin(); fIter != info.FilePaths.end(); fIter++)
+            // Build up file name list from the current property value
+            pugi::xml_node newNode = info.XMLElement.append_child("Element");
+            newNode.append_attribute("index").set_value(std::to_string(i).c_str());
+            std::string filename = filenamePropHelper.GetAsString(i);
+            newNode.append_attribute("value").set_value(filename.c_str());
+            if (primaryFilename.empty())
             {
-              newPathCompenents.push_back(SystemTools::GetFilenameName(*fIter));
-              *fIter = SystemTools::JoinPath(newPathCompenents);
-              newPathCompenents.pop_back();
+              primaryFilename = filename;
             }
-            info.Modified = true;
           }
         }
+
+        // Also fix up sources proxy collection
+        std::string filename = SystemTools::GetFilenameName(primaryFilename);
+        vtkNew<vtkFileSequenceParser> sequenceParser;
+        if (sequenceParser->ParseFileSequence(filename.c_str()))
+        {
+          filename = sequenceParser->GetSequenceName();
+        }
+
+        this->Internals->CollectionsMap[idIter->first].attribute("name").set_value(
+          filename.c_str());
       }
       break;
-    }
-  }
-
-  for (auto idIter = this->Internals->PropertiesMap.begin();
-       idIter != this->Internals->PropertiesMap.end(); idIter++)
-  {
-    std::string primaryFilename = "";
-    bool propertiesModified = false;
-    for (auto pIter = idIter->second.begin(); pIter != idIter->second.end(); pIter++)
-    {
-      vtkInternals::PropertyInfo& info = pIter->second;
-      if (!info.Modified)
-      {
-        continue;
-      }
-      else
-      {
-        propertiesModified = true;
-      }
-
-      for (auto fIter = info.FilePaths.begin(); fIter != info.FilePaths.end(); ++fIter)
-      {
-        std::string idx = std::to_string(std::distance(info.FilePaths.begin(), fIter));
-        info.XMLElement.find_child_by_attribute("Element", "index", idx.c_str())
-          .attribute("value")
-          .set_value(fIter->c_str());
-
-        if (primaryFilename.empty() && fIter->compare(0, 3, "XML") != 0)
-        {
-          primaryFilename = fIter->c_str();
-        }
-      }
-    }
-
-    // Also fix up sources proxy collection
-    // Get sequence basename if needed
-    if (propertiesModified)
-    {
-      std::string filename = SystemTools::GetFilenameName(primaryFilename);
-      vtkNew<vtkFileSequenceParser> sequenceParser;
-      if (sequenceParser->ParseFileSequence(filename.c_str()))
-      {
-        filename = sequenceParser->GetSequenceName();
-      }
-
-      this->Internals->CollectionsMap[idIter->first].attribute("name").set_value(filename.c_str());
     }
   }
 

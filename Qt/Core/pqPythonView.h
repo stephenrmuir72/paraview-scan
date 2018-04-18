@@ -39,7 +39,7 @@ public:
     vtkSMViewProxy* renModule, pqServer* server, QObject* parent = NULL);
 
   // Destructor.
-  virtual ~pqPythonView();
+  ~pqPythonView() override;
 
   /**
   * Set/get the Python script
@@ -57,19 +57,13 @@ protected:
   * Overridden to popup the context menu, if some actions have been added
   * using addMenuAction.
   */
-  virtual bool eventFilter(QObject* caller, QEvent* e);
+  bool eventFilter(QObject* caller, QEvent* e) override;
 
   /**
   * Creates a new instance of the QWidget subclass to be used to show this
   * view.
   */
-  virtual QWidget* createWidget();
-
-  /**
-  * On Mac, we usually try to cache the front buffer to avoid unecessary
-  */
-  //  updates.
-  bool AllowCaching;
+  QWidget* createWidget() override;
 
 private:
   Q_DISABLE_COPY(pqPythonView)

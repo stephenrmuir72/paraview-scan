@@ -62,7 +62,7 @@ public:
   * will be created.
   */
   pqUndoStack(vtkSMUndoStackBuilder* builder = 0, QObject* parent = NULL);
-  virtual ~pqUndoStack();
+  ~pqUndoStack() override;
 
   /**
   * returns if it's possible to undo.
@@ -234,4 +234,29 @@ inline void END_UNDO_EXCLUDE()
     usStack->endNonUndoableChanges();
   }
 }
+
+class PQCORE_EXPORT pqScopedUndoExclude
+{
+public:
+  pqScopedUndoExclude() { BEGIN_UNDO_EXCLUDE(); }
+  ~pqScopedUndoExclude() { END_UNDO_EXCLUDE(); }
+private:
+  Q_DISABLE_COPY(pqScopedUndoExclude);
+};
+
+class PQCORE_EXPORT pqScopedUndoSet
+{
+public:
+  pqScopedUndoSet(const QString& label) { BEGIN_UNDO_SET(label); }
+  ~pqScopedUndoSet() { END_UNDO_SET(); }
+private:
+  Q_DISABLE_COPY(pqScopedUndoSet);
+};
+
+#define SCOPED_UNDO_EXCLUDE() SCOPED_UNDO_EXCLUDE__0(__LINE__)
+#define SCOPED_UNDO_EXCLUDE__0(line) pqScopedUndoExclude val##line
+
+#define SCOPED_UNDO_SET(txt) SCOPED_UNDO_SET__0(__LINE__, txt)
+#define SCOPED_UNDO_SET__0(line, txt) pqScopedUndoSet val##line(txt)
+
 #endif

@@ -33,9 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqDoubleRangeDialog.h"
 #include "pqEditColorMapReaction.h"
-#include "pqMultiBlockInspectorPanel.h"
 #include "pqPVApplicationCore.h"
 #include "pqPipelineRepresentation.h"
 #include "pqRenderView.h"
@@ -95,22 +95,6 @@ QPair<int, QString> convert(const QVariant& val)
     result.second = list[1];
   }
   return result;
-}
-
-pqMultiBlockInspectorPanel* getMultiBlockInspectorPanel()
-{
-  // get multi-block inspector panel
-  pqMultiBlockInspectorPanel* panel = 0;
-  foreach (QWidget* widget, qApp->topLevelWidgets())
-  {
-    panel = widget->findChild<pqMultiBlockInspectorPanel*>();
-
-    if (panel)
-    {
-      break;
-    }
-  }
-  return panel;
 }
 }
 
@@ -319,6 +303,20 @@ void pqPipelineContextMenuBehavior::buildMenu(pqDataRepresentation* repr, unsign
 
     this->Menu->addSeparator();
   }
+  else
+  {
+    repr = pqActiveObjects::instance().activeRepresentation();
+    if (repr)
+    {
+      vtkPVDataInformation* info = repr->getInputDataInformation();
+      vtkPVCompositeDataInformation* compositeInfo = info->GetCompositeDataInformation();
+      if (compositeInfo && compositeInfo->GetDataIsComposite())
+      {
+        QAction* showAllBlocksAction = this->Menu->addAction("Show All Blocks");
+        this->connect(showAllBlocksAction, SIGNAL(triggered()), this, SLOT(showAllBlocks()));
+      }
+    }
+  }
 
   // when nothing was picked we show the "link camera" menu.
   this->Menu->addAction("Link Camera...", view, SLOT(linkToOtherView()));
@@ -524,7 +522,20 @@ void pqPipelineContextMenuBehavior::showOnlyBlock()
 //-----------------------------------------------------------------------------
 void pqPipelineContextMenuBehavior::showAllBlocks()
 {
-  vtkSMProxy* proxy = this->PickedRepresentation->getProxy();
+  pqRepresentation* repr = this->PickedRepresentation;
+  if (!repr)
+  {
+    repr = pqActiveObjects::instance().activeRepresentation();
+    if (!repr)
+    {
+      return;
+    }
+  }
+  vtkSMProxy* proxy = repr->getProxy();
+  if (!proxy)
+  {
+    return;
+  }
   vtkSMProperty* property = proxy->GetProperty("BlockVisibility");
   if (property)
   {
@@ -533,7 +544,7 @@ void pqPipelineContextMenuBehavior::showAllBlocks()
     visibilities[0] = 1;
     setVisibilitiesFromMap(ivp, visibilities, proxy);
   }
-  this->PickedRepresentation->renderViewEventually();
+  repr->renderViewEventually();
 }
 
 //-----------------------------------------------------------------------------
@@ -570,9 +581,8 @@ void pqPipelineContextMenuBehavior::setBlockColor()
     return;
   }
 
-  pqMultiBlockInspectorPanel* panel = getMultiBlockInspectorPanel();
-  QColor qcolor = QColorDialog::getColor(
-    QColor(), panel, "Choose Block Color", QColorDialog::DontUseNativeDialog);
+  QColor qcolor = QColorDialog::getColor(QColor(), pqCoreUtilities::mainWidget(),
+    "Choose Block Color", QColorDialog::DontUseNativeDialog);
 
   vtkSMProxy* proxy = this->PickedRepresentation->getProxy();
   vtkSMProperty* property = proxy->GetProperty("BlockColor");
@@ -655,8 +665,7 @@ void pqPipelineContextMenuBehavior::setBlockOpacity()
       current_opacity = dmp->GetElement(this->PickedBlocks[0]);
     }
 
-    pqMultiBlockInspectorPanel* panel = getMultiBlockInspectorPanel();
-    pqDoubleRangeDialog dialog("Opacity:", 0.0, 1.0, panel);
+    pqDoubleRangeDialog dialog("Opacity:", 0.0, 1.0, pqCoreUtilities::mainWidget());
     dialog.setValue(current_opacity);
     bool ok = dialog.exec();
     if (!ok)

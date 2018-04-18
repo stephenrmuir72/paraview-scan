@@ -1,34 +1,34 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    pqSGExportStateWizard.cxx
+  Program: ParaView
+  Module:    pqSGExportStateWizard.cxx
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+  Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+  All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
+  ParaView is a free software; you can redistribute it and/or modify it
+  under the terms of the ParaView license version 1.2.
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+  See License_v1.2.txt for the full ParaView license.
+  A copy of this license can be obtained by contacting
+  Kitware Inc.
+  28 Corporate Drive
+  Clifton Park, NY 12065
+  USA
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-========================================================================*/
+  ========================================================================*/
 #include "pqSGExportStateWizard.h"
 
 #include "pqApplicationCore.h"
@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "vtkPythonInterpreter.h"
 #include "vtkSMCoreUtilities.h"
+#include "vtkSMSourceProxy.h"
 #include "vtkSmartPointer.h"
 
 #include "pqCinemaTrack.h"
@@ -62,7 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace
 {
 static QPointer<pqSGExportStateWizard> ActiveWizard;
-}
+} // end anonymous namespace
 
 pqSGExportStateWizardPage2::pqSGExportStateWizardPage2(QWidget* _parent)
   : QWizardPage(_parent)
@@ -81,6 +82,7 @@ void pqSGExportStateWizardPage2::initializePage()
 {
   this->Internals->simulationInputs->clear();
   this->Internals->allInputs->clear();
+  this->Internals->usedSources.clear();
   QList<pqPipelineSource*> sources =
     pqApplicationCore::instance()->getServerManagerModel()->findItems<pqPipelineSource*>();
   foreach (pqPipelineSource* source, sources)
@@ -92,12 +94,14 @@ void pqSGExportStateWizardPage2::initializePage()
     if (this->Internals->showAllSources->isChecked())
     {
       this->Internals->allInputs->addItem(source->getSMName());
+      this->Internals->usedSources[source->getSMName()] = source;
     }
     else
     { // determine if the source is a reader or not, only include readers
       if (vtkSMCoreUtilities::GetFileNameProperty(source->getProxy()))
       {
         this->Internals->allInputs->addItem(source->getSMName());
+        this->Internals->usedSources[source->getSMName()] = source;
       }
     }
   }
@@ -119,16 +123,7 @@ void pqSGExportStateWizardPage3::initializePage()
     QListWidgetItem* item = this->Internals->simulationInputs->item(cc);
     QString text = item->text();
     this->Internals->nameWidget->setItem(cc, 0, new QTableWidgetItem(text));
-    // if there is only 1 input then call it input, otherwise
-    // use the same name as the filter
-    if (this->Internals->simulationInputs->count() == 1)
-    {
-      this->Internals->nameWidget->setItem(cc, 1, new QTableWidgetItem("input"));
-    }
-    else
-    {
-      this->Internals->nameWidget->setItem(cc, 1, new QTableWidgetItem(text));
-    }
+    this->Internals->nameWidget->setItem(cc, 1, new QTableWidgetItem(text));
     QTableWidgetItem* tableItem = this->Internals->nameWidget->item(cc, 1);
     tableItem->setFlags(tableItem->flags() | Qt::ItemIsEditable);
 
@@ -148,6 +143,8 @@ pqSGExportStateWizard::pqSGExportStateWizard(QWidget* parentObject, Qt::WindowFl
   // this->setWizardStyle(ModernStyle);
   this->setOption(QWizard::NoCancelButton, false);
   this->Internals->wViewSelection->hide();
+  this->Internals->fileNamePaddingAmountLabel->hide();
+  this->Internals->fileNamePaddingAmountSpinBox->hide();
   this->Internals->rescaleDataRange->hide();
   this->Internals->laRescaleDataRange->hide();
 
@@ -167,6 +164,11 @@ pqSGExportStateWizard::pqSGExportStateWizard(QWidget* parentObject, Qt::WindowFl
 
   QObject::connect(this->Internals->outputRendering, SIGNAL(toggled(bool)),
     this->Internals->wViewSelection, SLOT(setVisible(bool)));
+
+  QObject::connect(this->Internals->outputRendering, SIGNAL(toggled(bool)),
+    this->Internals->fileNamePaddingAmountSpinBox, SLOT(setVisible(bool)));
+  QObject::connect(this->Internals->outputRendering, SIGNAL(toggled(bool)),
+    this->Internals->fileNamePaddingAmountLabel, SLOT(setVisible(bool)));
 
   QObject::connect(this->Internals->outputRendering, SIGNAL(toggled(bool)),
     this->Internals->rescaleDataRange, SLOT(setVisible(bool)));

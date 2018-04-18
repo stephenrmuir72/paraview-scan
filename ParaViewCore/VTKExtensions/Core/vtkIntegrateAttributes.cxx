@@ -81,6 +81,8 @@ vtkIntegrateAttributes::vtkIntegrateAttributes()
   this->CellFieldList = 0;
   this->FieldListIndex = 0;
 
+  this->DivideAllCellDataByVolume = false;
+
   SetController(vtkMultiProcessController::GetGlobalController());
 }
 
@@ -510,6 +512,10 @@ int vtkIntegrateAttributes::RequestData(
   if (globalMin == numProcs)
   {
     // there is no data in any of the processors
+    if (this->Sum != 0.0 && this->DivideAllCellDataByVolume)
+    {
+      DivideDataArraysByConstant(output->GetCellData(), true, this->Sum);
+    }
     return 1;
   }
   if (processId > 0)
@@ -536,6 +542,10 @@ int vtkIntegrateAttributes::RequestData(
       pt[0] = this->SumCenter[0] / this->Sum;
       pt[1] = this->SumCenter[1] / this->Sum;
       pt[2] = this->SumCenter[2] / this->Sum;
+      if (this->DivideAllCellDataByVolume)
+      {
+        DivideDataArraysByConstant(output->GetCellData(), true, this->Sum);
+      }
     }
     else
     {
@@ -949,7 +959,7 @@ void vtkIntegrateAttributes::IntegratePolygon(
 }
 
 //-----------------------------------------------------------------------------
-// For axis alligned rectangular cells
+// For axis aligned rectangular cells
 void vtkIntegrateAttributes::IntegratePixel(
   vtkDataSet* input, vtkUnstructuredGrid* output, vtkIdType cellId, vtkIdList* cellPtIds)
 {
@@ -1086,7 +1096,7 @@ void vtkIntegrateAttributes::IntegrateTetrahedron(vtkDataSet* input, vtkUnstruct
     mid[i] = (pts[0][i] + pts[1][i] + pts[2][i] + pts[3][i]) * 0.25;
   }
 
-  // Calulate the volume of the tet which is 1/6 * the box product
+  // Calculate the volume of the tet which is 1/6 * the box product
   vtkMath::Cross(a, b, n);
   v = vtkMath::Dot(c, n) / 6.0;
   this->Sum += v;
@@ -1106,7 +1116,7 @@ void vtkIntegrateAttributes::IntegrateTetrahedron(vtkDataSet* input, vtkUnstruct
 }
 
 //-----------------------------------------------------------------------------
-// For axis alligned hexahedral cells
+// For axis aligned hexahedral cells
 void vtkIntegrateAttributes::IntegrateVoxel(
   vtkDataSet* input, vtkUnstructuredGrid* output, vtkIdType cellId, vtkIdList* cellPtIds)
 {
@@ -1125,7 +1135,7 @@ void vtkIntegrateAttributes::IntegrateVoxel(
 
   double l, w, h, v, mid[3];
 
-  // Calulate the volume of the voxel
+  // Calculate the volume of the voxel
   l = pts[1][0] - pts[0][0];
   w = pts[2][1] - pts[0][1];
   h = pts[4][2] - pts[0][2];
@@ -1197,6 +1207,24 @@ void vtkIntegrateAttributes::IntegrateGeneral3DCell(
     pt3Id = ptIds->GetId(tetIdx++);
     pt4Id = ptIds->GetId(tetIdx++);
     this->IntegrateTetrahedron(input, output, cellId, pt1Id, pt2Id, pt3Id, pt4Id);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkIntegrateAttributes::DivideDataArraysByConstant(
+  vtkDataSetAttributes* data, bool skipLastArray, double sum)
+{
+  const int offset = skipLastArray ? -1 : 0;
+  for (int i = 0; i < data->GetNumberOfArrays() + offset; ++i)
+  {
+    vtkDataArray* arr = data->GetArray(i);
+    if (arr)
+    {
+      for (int j = 0; j < arr->GetNumberOfComponents(); ++j)
+      {
+        arr->SetComponent(0, j, arr->GetComponent(0, j) / sum);
+      }
+    }
   }
 }
 

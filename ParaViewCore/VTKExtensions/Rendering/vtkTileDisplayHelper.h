@@ -95,14 +95,26 @@ public:
 
 protected:
   vtkTileDisplayHelper();
-  ~vtkTileDisplayHelper();
+  ~vtkTileDisplayHelper() override;
 
 private:
-  vtkTileDisplayHelper(const vtkTileDisplayHelper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTileDisplayHelper&) VTK_DELETE_FUNCTION;
+  vtkTileDisplayHelper(const vtkTileDisplayHelper&) = delete;
+  void operator=(const vtkTileDisplayHelper&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;
 };
 
+//  Implementation of Schwartz counter idiom to ensure that the
+//  vtkTileDisplayHelper singleton is cleaned up correctly during finalization.
+static class VTKPVVTKEXTENSIONSRENDERING_EXPORT vtkTileDisplayHelperSingletonCleaner
+{
+public:
+  vtkTileDisplayHelperSingletonCleaner();
+  ~vtkTileDisplayHelperSingletonCleaner();
+
+private:
+  vtkTileDisplayHelperSingletonCleaner(const vtkTileDisplayHelperSingletonCleaner&) = delete;
+  void operator=(const vtkTileDisplayHelperSingletonCleaner&) = delete;
+} TileDisplayHelperSingletonCleanerInstance;
 #endif

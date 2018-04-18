@@ -58,7 +58,7 @@ class PQCOMPONENTS_EXPORT pqPropertyWidget : public QWidget
 
 public:
   pqPropertyWidget(vtkSMProxy* proxy, QWidget* parent = 0);
-  virtual ~pqPropertyWidget();
+  ~pqPropertyWidget() override;
 
   virtual void apply();
   virtual void reset();
@@ -195,6 +195,11 @@ protected:
   void addDecorator(pqPropertyWidgetDecorator*);
 
   /**
+   * Unregisters a decorator.
+   */
+  void removeDecorator(pqPropertyWidgetDecorator*);
+
+  /**
   * Provides access to the pqPropertyLinks instance.
   */
   pqPropertyLinks& links() { return this->Links; }
@@ -203,6 +208,7 @@ public:
   void setProperty(vtkSMProperty* property);
 
 private:
+  friend class pqCompositePropertyWidgetDecorator;
   friend class pqPropertyWidgetDecorator;
   friend class pqProxyWidget;
 

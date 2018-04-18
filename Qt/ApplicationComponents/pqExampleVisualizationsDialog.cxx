@@ -3,11 +3,12 @@
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqEventDispatcher.h"
 #include "vtkPVConfig.h"
+#include "vtkPVFileInformation.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QMessageBox>
 
 //-----------------------------------------------------------------------------
@@ -23,6 +24,8 @@ pqExampleVisualizationsDialog::pqExampleVisualizationsDialog(QWidget* parentObje
     this->ui->DiskOutRefExampleButton, SIGNAL(clicked(bool)), this, SLOT(onButtonPressed()));
   QObject::connect(
     this->ui->WaveletExampleButton, SIGNAL(clicked(bool)), this, SLOT(onButtonPressed()));
+  QObject::connect(
+    this->ui->HotGasAnalysisExampleButton, SIGNAL(clicked(bool)), this, SLOT(onButtonPressed()));
 }
 
 //-----------------------------------------------------------------------------
@@ -34,16 +37,7 @@ pqExampleVisualizationsDialog::~pqExampleVisualizationsDialog()
 //-----------------------------------------------------------------------------
 void pqExampleVisualizationsDialog::onButtonPressed()
 {
-#if defined(_WIN32) || defined(__APPLE__)
-  QString dataPath = QCoreApplication::applicationDirPath() + "/../data";
-#else
-  QString appdir = QCoreApplication::applicationDirPath();
-  QString dataPath = QFileInfo(appdir).fileName() == "bin"
-    ?
-    /* w/o shared forwarding */ appdir + "/../share/paraview-" PARAVIEW_VERSION "/data"
-    :
-    /* w/ shared forwarding  */ appdir + "/../../share/paraview-" PARAVIEW_VERSION "/data";
-#endif
+  QString dataPath(vtkPVFileInformation::GetParaViewExampleFilesDirectory().c_str());
   QPushButton* button = qobject_cast<QPushButton*>(sender());
   if (button)
   {
@@ -64,6 +58,11 @@ void pqExampleVisualizationsDialog::onButtonPressed()
       stateFile = ":/pqApplicationComponents/ExampleVisualizations/WaveletExample.pvsm";
       needsData = false;
     }
+    else if (button == this->ui->HotGasAnalysisExampleButton)
+    {
+      stateFile = ":/pqApplicationComponents/ExampleVisualizations/HotGasAnalysisExample.pvsm";
+      needsData = true;
+    }
     else
     {
       qCritical("No example file for button");
@@ -75,9 +74,9 @@ void pqExampleVisualizationsDialog::onButtonPressed()
       if (!fdataPath.isDir())
       {
         QString msg =
-          QString("Your installation doesn't have datasets to load the example visualizations."
+          QString("Your installation doesn't have datasets to load the example visualizations. "
                   "You can manually download the datasets from paraview.org and then "
-                  "place them under the following path to examples to work.\n\n'%1'")
+                  "place them under the following path for examples to work:\n\n'%1'")
             .arg(fdataPath.absoluteFilePath());
         // dump to cout for easy copy/paste.
         cout << msg.toUtf8().data() << endl;

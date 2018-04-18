@@ -73,15 +73,22 @@ QList<pqPipelineSource*> pqLoadDataReaction::loadData()
   pqServer* server = pqActiveObjects::instance().activeServer();
   vtkSMReaderFactory* readerFactory = vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
   QString filters = readerFactory->GetSupportedFileTypes(server->session());
-  if (!filters.isEmpty())
+  // insert "All Files(*)" as the second item after supported files.
+  int insertIndex = filters.indexOf(";;");
+  if (insertIndex >= 0)
   {
-    filters += ";;";
+    filters.insert(insertIndex, ";;All Files (*)");
   }
-  filters += "All files (*)";
+  else
+  {
+    Q_ASSERT(filters.isEmpty());
+    filters = "All Files (*)";
+  }
+
   pqFileDialog fileDialog(
     server, pqCoreUtilities::mainWidget(), tr("Open File:"), QString(), filters);
   fileDialog.setObjectName("FileOpenDialog");
-  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+  fileDialog.setFileMode(pqFileDialog::ExistingFilesAndDirectories);
   QList<pqPipelineSource*> sources;
   if (fileDialog.exec() == QDialog::Accepted)
   {
@@ -202,11 +209,11 @@ bool pqLoadDataReaction::DetermineFileReader(const QString& filename, pqServer* 
       return false;
     }
   }
-  else if (factory->CanReadFile(filename.toUtf8().data(), server->session()))
+  else if (list->GetLength() == 3)
   {
     // reader knows the type
-    readerType = factory->GetReaderName();
-    readerGroup = factory->GetReaderGroup();
+    readerGroup = list->GetString(0);
+    readerType = list->GetString(1);
   }
   else
   {

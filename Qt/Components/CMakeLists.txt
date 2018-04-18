@@ -29,7 +29,6 @@
 #
 #==========================================================================
 set (Module_SRCS
-
   pqAboutDialog.cxx
   pqAboutDialog.h
   pqActionGroupInterface.cxx
@@ -62,8 +61,8 @@ set (Module_SRCS
   pqColorChooserButtonWithPalettes.h
   pqComboBoxDomain.cxx
   pqComboBoxDomain.h
-  pqCommandPropertyWidget.h
   pqCommandPropertyWidget.cxx
+  pqCommandPropertyWidget.h
   pqComparativeCueWidget.cxx
   pqComparativeCueWidget.h
   pqComparativeVisPanel.cxx
@@ -72,6 +71,12 @@ set (Module_SRCS
   pqComponentsInit.h
   pqComponentsTestUtility.cxx
   pqComponentsTestUtility.h
+  pqCompositeDataInformationTreeModel.cxx
+  pqCompositeDataInformationTreeModel.h
+  pqCompositePropertyWidgetDecorator.cxx
+  pqCompositePropertyWidgetDecorator.h
+  pqCompositeTreePropertyWidget.cxx
+  pqCompositeTreePropertyWidget.h
   pqCustomFilterDefinitionModel.cxx
   pqCustomFilterDefinitionModel.h
   pqCustomFilterDefinitionWizard.cxx
@@ -142,6 +147,10 @@ set (Module_SRCS
   pqKeyFrameTypeWidget.h
   pqLabel.cxx
   pqLabel.h
+  pqLightsEditor.cxx
+  pqLightsEditor.h
+  pqLightsInspector.cxx
+  pqLightsInspector.h
   pqLinksEditor.cxx
   pqLinksEditor.h
   pqLinksManager.cxx
@@ -154,10 +163,12 @@ set (Module_SRCS
   pqLockViewSizeCustomDialog.h
   pqMemoryInspectorPanel.cxx
   pqMemoryInspectorPanel.h
-  pqMultiBlockInspectorPanel.cxx
-  pqMultiBlockInspectorPanel.h
+  pqMultiBlockInspectorWidget.cxx
+  pqMultiBlockInspectorWidget.h
   pqMultiViewWidget.cxx
   pqMultiViewWidget.h
+  pqSplitter.cxx
+  pqSplitter.h
   pqOrbitCreatorDialog.cxx
   pqOrbitCreatorDialog.h
   pqOutputPortComboBox.cxx
@@ -253,8 +264,6 @@ set (Module_SRCS
   pqSetBreakpointDialog.h
   pqSettingsDialog.cxx
   pqSettingsDialog.h
-  pqSignalAdaptorCompositeTreeWidget.cxx
-  pqSignalAdaptorCompositeTreeWidget.h
   pqSignalAdaptorKeyFrameType.cxx
   pqSignalAdaptorKeyFrameType.h
   pqSignalAdaptorSelectionTreeWidget.cxx
@@ -269,6 +278,10 @@ set (Module_SRCS
   pqSMSignalAdaptors.h
   pqStringVectorPropertyWidget.cxx
   pqStringVectorPropertyWidget.h
+  pqSubsetInclusionLatticeTreeModel.cxx
+  pqSubsetInclusionLatticeTreeModel.h
+  pqSubsetInclusionLatticeWidget.cxx
+  pqSubsetInclusionLatticeWidget.h
   pqTabbedMultiViewWidget.cxx
   pqTabbedMultiViewWidget.h
   pqTextureComboBox.cxx
@@ -277,6 +290,8 @@ set (Module_SRCS
   pqTextureSelectorPropertyWidget.h
   pqTimerLogDisplay.cxx
   pqTimerLogDisplay.h
+  pqToolBarInterface.cxx
+  pqToolBarInterface.h
   pqToolTipTrapper.cxx
   pqToolTipTrapper.h
   pqTransferFunctionWidget.cxx
@@ -323,6 +338,9 @@ set (Module_MOC_HDRS
   pqComparativeCueWidget.h
   pqComparativeVisPanel.h
   pqComponentsTestUtility.h
+  pqCompositeDataInformationTreeModel.h
+  pqCompositePropertyWidgetDecorator.h
+  pqCompositeTreePropertyWidget.h
   pqCustomFilterDefinitionWizard.h
   pqCustomFilterManager.h
   pqCustomFilterManagerModel.h
@@ -355,14 +373,17 @@ set (Module_MOC_HDRS
   pqKeyFrameTimeValidator.h
   pqKeyFrameTypeWidget.h
   pqLabel.h
+  pqLightsEditor.h
+  pqLightsInspector.h
   pqLinksEditor.h
   pqLinksManager.h
   pqLiveInsituManager.h
   pqLiveInsituVisualizationManager.h
   pqLockViewSizeCustomDialog.h
   pqMemoryInspectorPanel.h
-  pqMultiBlockInspectorPanel.h
+  pqMultiBlockInspectorWidget.h
   pqMultiViewWidget.h
+  pqSplitter.h
   pqOrbitCreatorDialog.h
   pqOutputPortComboBox.h
   pqPipelineAnnotationFilterModel.h
@@ -410,7 +431,6 @@ set (Module_MOC_HDRS
   pqServerLauncher.h
   pqSetBreakpointDialog.h
   pqSettingsDialog.h
-  pqSignalAdaptorCompositeTreeWidget.h
   pqSignalAdaptorKeyFrameType.h
   pqSignalAdaptorSelectionTreeWidget.h
   pqSignalAdaptorTreeWidget.h
@@ -418,10 +438,13 @@ set (Module_MOC_HDRS
   pqSILWidget.h
   pqSMSignalAdaptors.h
   pqStringVectorPropertyWidget.h
+  pqSubsetInclusionLatticeTreeModel.h
+  pqSubsetInclusionLatticeWidget.h
   pqTabbedMultiViewWidget.h
   pqTextureComboBox.h
   pqTextureSelectorPropertyWidget.h
   pqTimerLogDisplay.h
+  pqToolBarInterface.h
   pqToolTipTrapper.h
   pqTransferFunctionWidget.h
   pqTriggerOnIdleHelper.h
@@ -444,6 +467,7 @@ set (Module_UI_FILES
   Resources/UI/pqCollaborationPanel.ui
   Resources/UI/pqComparativeParameterRangeDialog.ui
   Resources/UI/pqComparativeVisPanel.ui
+  Resources/UI/pqConnectIdDialog.ui
   Resources/UI/pqContourControls.ui
   Resources/UI/pqCustomFilterDefinitionWizard.ui
   Resources/UI/pqCustomFilterManager.ui
@@ -457,10 +481,13 @@ set (Module_UI_FILES
   Resources/UI/pqItemViewSearchWidget.ui
   Resources/UI/pqKeyFrameEditor.ui
   Resources/UI/pqKeyFrameTypeWidget.ui
+  Resources/UI/pqLightsEditor.ui
+  Resources/UI/pqLightsInspector.ui
   Resources/UI/pqLinksEditor.ui
   Resources/UI/pqLinksManager.ui
   Resources/UI/pqLockViewSizeCustomDialog.ui
   Resources/UI/pqMemoryInspectorPanelForm.ui
+  Resources/UI/pqMultiBlockInspectorWidget.ui
   Resources/UI/pqOrbitCreatorDialog.ui
   Resources/UI/pqPipelineTimeKeyFrameEditor.ui
   Resources/UI/pqPluginDialog.ui
@@ -496,6 +523,8 @@ if(PARAVIEW_ENABLE_PYTHON)
   LIST(APPEND Module_SRCS
     pqImageOutputInfo.cxx
     pqImageOutputInfo.h
+    pqCatalystExportStateWizard.cxx
+    pqCatalystExportStateWizard.h
     pqCinemaTrack.cxx
     pqCinemaTrack.h
     pqCinemaConfiguration.cxx
@@ -510,6 +539,7 @@ if(PARAVIEW_ENABLE_PYTHON)
     )
   LIST(APPEND Module_MOC_HDRS
     pqImageOutputInfo.h
+    pqCatalystExportStateWizard.h
     pqCinemaTrack.h
     pqCinemaConfiguration.h
     pqExportViewSelection.h
@@ -534,7 +564,6 @@ set (Module_RESOURCE_FILES
 
 include(ParaViewQt)
 pv_find_package_qt(qt_private_targets REQUIRED QUIET
-  QT4_COMPONENTS QtNetwork
   QT5_COMPONENTS Widgets Network)
 pv_qt_wrap_cpp(__Module_MOC_SRCS ${Module_MOC_HDRS})
 pv_qt_wrap_ui(__Module_UI_SRCS ${Module_UI_FILES})
@@ -543,7 +572,6 @@ pv_qt_add_resources(__Module_RESOURCE_SRCS ${Module_RESOURCE_FILES})
 set(${vtk-module}_EXPORT_CODE_INSTALL
   "include(\${ParaView_CMAKE_DIR}/ParaViewQt.cmake)
   pv_find_package_qt(__${vtk-module}_qt_targets REQUIRED QUIET
-    QT4_COMPONENTS QtNetwork
     QT5_COMPONENTS Widgets Network)")
 set(${vtk-module}_EXPORT_CODE_BUILD "${${vtk-module}_EXPORT_CODE_INSTALL}")
 

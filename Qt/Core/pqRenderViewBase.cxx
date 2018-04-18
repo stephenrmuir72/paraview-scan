@@ -132,7 +132,6 @@ pqRenderViewBase::pqRenderViewBase(const QString& type, const QString& group, co
 {
   this->Internal = new pqRenderViewBase::pqInternal();
   this->InteractiveDelayUpdateTimer = new pqTimer(this);
-  this->AllowCaching = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -146,26 +145,6 @@ QWidget* pqRenderViewBase::createWidget()
 {
   pqQVTKWidget* vtkwidget = new pqQVTKWidget();
   vtkwidget->setViewProxy(this->getProxy());
-
-// do image caching for performance
-// For now, we are doing this only on Apple because it can render
-// and capture a frame buffer even when it is obstructred by a
-// window. This does not work as well on other platforms.
-
-#if defined(__APPLE__)
-  if (this->AllowCaching)
-  {
-    // Don't override the caching flag here. It is set correctly by
-    // pqQVTKWidget.  I don't know why this explicit marking cached dirty was
-    // done. But in case it's needed for streaming view, I am letting it be.
-    // vtkwidget->setAutomaticImageCacheEnabled(true);
-
-    // help the pqQVTKWidgetBase know when to clear the cache
-    this->getConnector()->Connect(
-      this->getProxy(), vtkCommand::ModifiedEvent, vtkwidget, SLOT(markCachedImageAsDirty()));
-  }
-#endif
-
   vtkwidget->setContextMenuPolicy(Qt::NoContextMenu);
   vtkwidget->installEventFilter(this);
   return vtkwidget;
@@ -216,15 +195,6 @@ void pqRenderViewBase::initializeAfterObjectsCreated()
     QObject::connect(
       this->InteractiveDelayUpdateTimer, SIGNAL(timeout()), this, SLOT(updateStatusMessage()));
   }
-
-  // when PV_NO_OFFSCREEN_SCREENSHOTS is set, by default, we disable offscreen
-  // screenshots.
-  vtkSMProxy* proxy = this->getProxy();
-  if (getenv("PV_NO_OFFSCREEN_SCREENSHOTS"))
-  {
-    vtkSMPropertyHelper(proxy, "UseOffscreenRenderingForScreenshots", /*quiet*/ true).Set(0);
-  }
-  proxy->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------

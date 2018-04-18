@@ -4,6 +4,7 @@
   Module:    vtkPVRenderView.cxx
 
   Copyright (c) Kitware, Inc.
+  Copyright (c) 2017, NVIDIA CORPORATION.
   All rights reserved.
   See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
 
@@ -33,6 +34,7 @@
 #include "vtkInformationIntegerKey.h"
 #include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationRequestKey.h"
+#include "vtkInformationStringKey.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
 #include "vtkInteractorStyleDrawPolygon.h"
@@ -52,13 +54,15 @@
 #include "vtkPVAxesWidget.h"
 #include "vtkPVCameraCollection.h"
 #include "vtkPVCenterAxesActor.h"
+#include "vtkPVClientServerSynchronizedRenderers.h"
 #include "vtkPVDataDeliveryManager.h"
 #include "vtkPVDataRepresentation.h"
-#include "vtkPVDisplayInformation.h"
 #include "vtkPVGridAxes3DActor.h"
 #include "vtkPVHardwareSelector.h"
 #include "vtkPVInteractorStyle.h"
+#include "vtkPVMaterialLibrary.h"
 #include "vtkPVOptions.h"
+#include "vtkPVServerInformation.h"
 #include "vtkPVSession.h"
 #include "vtkPVStreamingMacros.h"
 #include "vtkPVSynchronizedRenderWindows.h"
@@ -90,12 +94,8 @@
 #include "vtkWeakPointer.h"
 #include "vtkWindowToImageFilter.h"
 
-#ifdef VTKGL2
 #include "vtkLightingMapPass.h"
 #include "vtkValuePass.h"
-#else
-#include "vtkValuePasses.h"
-#endif
 
 #ifdef PARAVIEW_USE_ICE_T
 #include "vtkIceTSynchronizedRenderers.h"
@@ -103,6 +103,7 @@
 
 #ifdef PARAVIEW_USE_OSPRAY
 #include "vtkOSPRayLightNode.h"
+#include "vtkOSPRayMaterialLibrary.h"
 #include "vtkOSPRayPass.h"
 #include "vtkOSPRayRendererNode.h"
 #endif
@@ -118,12 +119,8 @@ class vtkPVRenderView::vtkInternals
   std::map<int, vtkWeakPointer<vtkPVDataRepresentation> > PropMap;
 
 public:
-#ifdef VTKGL2
   vtkNew<vtkValuePass> ValuePasses;
   vtkNew<vtkLightingMapPass> LightingMapPass;
-#else
-  vtkNew<vtkValuePasses> ValuePasses;
-#endif
 #ifdef PARAVIEW_USE_OSPRAY
   vtkNew<vtkOSPRayPass> OSPRayPass;
 #endif
@@ -185,7 +182,7 @@ public:
   static vtkPVRendererCuller* New();
   vtkTypeMacro(vtkPVRendererCuller, vtkCuller);
 
-  virtual double Cull(vtkRenderer* vtkNotUsed(ren), vtkProp** propList, int& listLength,
+  double Cull(vtkRenderer* vtkNotUsed(ren), vtkProp** propList, int& listLength,
     int& initialized) VTK_OVERRIDE
   {
     double total_time = 0;
@@ -259,12 +256,12 @@ private:
     : RenderOnLocalProcess(false)
   {
   }
-  ~vtkPVRendererCuller() {}
+  ~vtkPVRendererCuller() override {}
   bool RenderOnLocalProcess;
 };
 vtkStandardNewMacro(vtkPVRendererCuller);
 
-#if defined(VTKGL2) && defined(PARAVIEW_USE_ICE_T)
+#if defined(PARAVIEW_USE_ICE_T)
 //------------------------------------------------------------------------------
 // vtkIceTCompositePass needs to know the set RenderPass will read from its
 // internal float FBO in order to setup an adequate context.
@@ -345,8 +342,6 @@ vtkPVRenderView::vtkPVRenderView()
   // non-reference counted, so no worries about reference loops.
   this->Internals->DeliveryManager->SetRenderView(this);
 
-  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
-
   this->RemoteRenderingAvailable = true;
 
   this->LockBounds = false;
@@ -381,10 +376,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->OrientationWidget = vtkPVAxesWidget::New();
   this->InteractionMode = INTERACTION_MODE_UNINTIALIZED;
   this->LastSelection = NULL;
-  this->UseOffscreenRenderingForScreenshots = false;
   this->UseInteractiveRenderingForScreenshots = false;
-  this->UseOffscreenRendering = (options->GetUseOffscreenRendering() != 0);
-  this->EGLDeviceIndex = options->GetEGLDeviceIndex();
   this->Selector = vtkPVHardwareSelector::New();
   this->NeedsOrderedCompositing = false;
   this->RenderEmptyImages = false;
@@ -402,8 +394,6 @@ vtkPVRenderView::vtkPVRenderView()
 
   vtkRenderWindow* window = this->SynchronizedWindows->NewRenderWindow();
   window->SetMultiSamples(0);
-  window->SetOffScreenRendering(this->UseOffscreenRendering ? 1 : 0);
-  window->SetDeviceIndex(this->EGLDeviceIndex);
 
   this->RenderView = vtkRenderViewBase::New();
   this->RenderView->SetRenderWindow(window);
@@ -426,16 +416,10 @@ vtkPVRenderView::vtkPVRenderView()
 
   this->UseHiddenLineRemoval = false;
   this->GetRenderer()->SetUseDepthPeeling(1);
+  this->GetRenderer()->SetUseDepthPeelingForVolumes(1);
   this->GetRenderer()->AddCuller(this->Culler);
 
-  this->Light = vtkLight::New();
-  this->Light->SetAmbientColor(1, 1, 1);
-  this->Light->SetSpecularColor(1, 1, 1);
-  this->Light->SetDiffuseColor(1, 1, 1);
-  this->Light->SetIntensity(1.0);
-  this->Light->SetLightType(2); // CameraLight
   this->LightKit = vtkLightKit::New();
-  this->GetRenderer()->AddLight(this->Light);
   this->GetRenderer()->SetAutomaticLightCreation(0);
 
   // Setup interactor styles. Since these are only needed on the process that
@@ -481,6 +465,9 @@ vtkPVRenderView::vtkPVRenderView()
     observer2->Delete();
 
     this->RubberBandZoom = vtkInteractorStyleRubberBandZoom::New();
+    this->RubberBandZoom->SetLockAspectToViewport(true);
+    this->RubberBandZoom->SetCenterAtStartPosition(true);
+    this->RubberBandZoom->SetUseDollyForPerspectiveProjection(false);
     this->PolygonStyle = vtkInteractorStyleDrawPolygon::New();
     vtkCommand* observer3 =
       vtkMakeMemberFunctionCommand(*this, &vtkPVRenderView::OnPolygonSelectionEvent);
@@ -514,13 +501,11 @@ vtkPVRenderView::vtkPVRenderView()
 //----------------------------------------------------------------------------
 vtkPVRenderView::~vtkPVRenderView()
 {
-#if defined(VTKGL2)
   vtkRenderWindow* win = this->RenderView->GetRenderWindow();
   if (win)
   {
     this->Internals->ValuePasses->ReleaseGraphicsResources(win);
   }
-#endif
 
   // this ensure that the renderer releases graphics resources before the window
   // is destroyed.
@@ -535,7 +520,6 @@ vtkPVRenderView::~vtkPVRenderView()
   this->NonCompositedRenderer->Delete();
   this->RenderView->Delete();
   this->LightKit->Delete();
-  this->Light->Delete();
   this->CenterAxes->Delete();
   this->OrientationWidget->Delete();
   this->Interactor = 0;
@@ -585,25 +569,15 @@ vtkPVDataDeliveryManager* vtkPVRenderView::GetDeliveryManager()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::SetUseOffscreenRendering(bool use_offscreen)
+void vtkPVRenderView::NVPipeAvailableOn()
 {
-  if (this->UseOffscreenRendering == use_offscreen)
-  {
-    return;
-  }
-
-  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
-  bool process_use_offscreen = options->GetUseOffscreenRendering() != 0;
-
-  this->UseOffscreenRendering = use_offscreen || process_use_offscreen;
-  this->GetRenderWindow()->SetOffScreenRendering(this->UseOffscreenRendering);
+  this->SynchronizedRenderers->SetNVPipeSupport(true);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::SetEGLDeviceIndex(int deviceIndex)
+void vtkPVRenderView::NVPipeAvailableOff()
 {
-  this->EGLDeviceIndex = deviceIndex;
-  this->GetRenderWindow()->SetDeviceIndex(deviceIndex);
+  this->SynchronizedRenderers->SetNVPipeSupport(false);
 }
 
 //----------------------------------------------------------------------------
@@ -753,33 +727,45 @@ void vtkPVRenderView::SetInteractionMode(int mode)
     this->InteractionMode = mode;
     this->Modified();
 
-    if (this->Interactor == NULL)
-    {
-      return;
-    }
-
+    // If we're in a situation where we don't have an interactor (e.g. pvbatch or Catalyst)
+    // we still want to set the other properties on the camera.
     switch (this->InteractionMode)
     {
       case INTERACTION_MODE_3D:
-        this->Interactor->SetInteractorStyle(this->InteractorStyle = this->ThreeDInteractorStyle);
+        if (this->Interactor)
+        {
+          this->Interactor->SetInteractorStyle(this->InteractorStyle = this->ThreeDInteractorStyle);
+        }
         // Get back to the previous state
         this->GetActiveCamera()->SetParallelProjection(this->ParallelProjection);
         break;
       case INTERACTION_MODE_2D:
-        this->Interactor->SetInteractorStyle(this->InteractorStyle = this->TwoDInteractorStyle);
+        if (this->Interactor)
+        {
+          this->Interactor->SetInteractorStyle(this->InteractorStyle = this->TwoDInteractorStyle);
+        }
         this->GetActiveCamera()->SetParallelProjection(1);
         break;
 
       case INTERACTION_MODE_SELECTION:
-        this->Interactor->SetInteractorStyle(this->RubberBandStyle);
+        if (this->Interactor)
+        {
+          this->Interactor->SetInteractorStyle(this->RubberBandStyle);
+        }
         break;
 
       case INTERACTION_MODE_POLYGON:
-        this->Interactor->SetInteractorStyle(this->PolygonStyle);
+        if (this->Interactor)
+        {
+          this->Interactor->SetInteractorStyle(this->PolygonStyle);
+        }
         break;
 
       case INTERACTION_MODE_ZOOM:
-        this->Interactor->SetInteractorStyle(this->RubberBandZoom);
+        if (this->Interactor)
+        {
+          this->Interactor->SetInteractorStyle(this->RubberBandZoom);
+        }
         break;
     }
   }
@@ -795,20 +781,13 @@ void vtkPVRenderView::SetGridAxes3DActor(vtkPVGridAxes3DActor* gridActor)
     const bool in_tile_display_mode = this->InTileDisplayMode();
     if (this->GridAxes3DActor)
     {
-      this->GetNonCompositedRenderer()->RemoveViewProp(this->GridAxes3DActor);
       this->GetRenderer()->RemoveViewProp(this->GridAxes3DActor);
       culler->DoNotCullList.erase(this->GridAxes3DActor);
     }
     this->GridAxes3DActor = gridActor;
     if (this->GridAxes3DActor && !in_tile_display_mode)
     {
-      this->GetNonCompositedRenderer()->AddViewProp(this->GridAxes3DActor);
       this->GetRenderer()->AddViewProp(this->GridAxes3DActor);
-
-      this->GridAxes3DActor->SetEnableLayerSupport(true);
-      this->GridAxes3DActor->SetBackgroundLayer(this->GetRenderer()->GetLayer());
-      this->GridAxes3DActor->SetGeometryLayer(this->GetRenderer()->GetLayer());
-      this->GridAxes3DActor->SetForegroundLayer(this->GetNonCompositedRenderer()->GetLayer());
       culler->DoNotCullList.insert(this->GridAxes3DActor);
     }
   }
@@ -1517,18 +1496,16 @@ void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
 
   // Configure FXAA. Disable for picking, as it mucks up the selection buffers.
   bool use_fxaa = this->UseFXAA && !this->MakingSelection;
+  this->RenderView->GetRenderer()->SetUseFXAA(use_fxaa);
+  this->RenderView->GetRenderer()->SetFXAAOptions(this->FXAAOptions);
   if (this->SynchronizedRenderers->GetEnabled())
   {
-    this->SynchronizedRenderers->SetUseFXAA(use_fxaa);
-    this->SynchronizedRenderers->SetFXAAOptions(this->FXAAOptions.Get());
-    // Disable the renderer's FXAA implementation when rendering remotely. We
-    // need to run it on the composed image to avoid seam artifacts.
-    this->RenderView->GetRenderer()->SetUseFXAA(false);
-  }
-  else
-  {
-    this->RenderView->GetRenderer()->SetUseFXAA(use_fxaa);
-    this->RenderView->GetRenderer()->SetFXAAOptions(this->FXAAOptions.Get());
+    // Force opaque rendering for the GridAxes. Needed so that the grid axes
+    // labels are visible when not using ordered compositing (see bug #17472)
+    if (this->GridAxes3DActor)
+    {
+      this->GridAxes3DActor->SetForceOpaque(true);
+    }
   }
   this->OrientationWidget->GetRenderer()->SetUseFXAA(use_fxaa);
   this->OrientationWidget->GetRenderer()->SetFXAAOptions(this->FXAAOptions.Get());
@@ -1697,6 +1674,48 @@ void vtkPVRenderView::MarkAsRedistributable(
   }
 
   view->GetDeliveryManager()->MarkAsRedistributable(repr, value, port);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetRedistributionMode(
+  vtkInformation* info, vtkPVDataRepresentation* repr, int mode, int port)
+{
+  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
+  if (!view)
+  {
+    vtkGenericWarningMacro("Missing VIEW().");
+    return;
+  }
+
+  view->GetDeliveryManager()->SetRedistributionMode(repr, mode, port);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetRedistributionModeToSplitBoundaryCells(
+  vtkInformation* info, vtkPVDataRepresentation* repr, int port)
+{
+  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
+  if (!view)
+  {
+    vtkGenericWarningMacro("Missing VIEW().");
+    return;
+  }
+
+  view->GetDeliveryManager()->SetRedistributionModeToSplitBoundaryCells(repr, port);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetRedistributionModeToDuplicateBoundaryCells(
+  vtkInformation* info, vtkPVDataRepresentation* repr, int port)
+{
+  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
+  if (!view)
+  {
+    vtkGenericWarningMacro("Missing VIEW().");
+    return;
+  }
+
+  view->GetDeliveryManager()->SetRedistributionModeToDuplicateBoundaryCells(repr, port);
 }
 
 //----------------------------------------------------------------------------
@@ -2042,6 +2061,7 @@ bool vtkPVRenderView::GetUseOrderedCompositing()
       {
         return true;
       }
+      VTK_FALLTHROUGH;
     default:
       return false;
   }
@@ -2113,18 +2133,6 @@ void vtkPVRenderView::SetUseLightKit(bool use)
     this->UseLightKit = use;
     this->Modified();
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetLightSwitch(bool enable)
-{
-  this->Light->SetSwitch(enable ? 1 : 0);
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVRenderView::GetLightSwitch()
-{
-  return this->Light->GetSwitch() != 0;
 }
 
 //----------------------------------------------------------------------------
@@ -2398,6 +2406,11 @@ void vtkPVRenderView::SetUseDepthPeeling(int val)
   this->GetRenderer()->SetUseDepthPeeling(val);
 }
 
+void vtkPVRenderView::SetUseDepthPeelingForVolumes(bool val)
+{
+  this->GetRenderer()->SetUseDepthPeelingForVolumes(val);
+}
+
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetMaximumNumberOfPeels(int val)
 {
@@ -2434,35 +2447,16 @@ void vtkPVRenderView::SetTexturedBackground(int val)
 }
 
 //*****************************************************************
-// Forward to vtkLight.
+// Entry point for dynamic lights
 //----------------------------------------------------------------------------
-void vtkPVRenderView::SetAmbientColor(double r, double g, double b)
+//----------------------------------------------------------------------------
+void vtkPVRenderView::AddLight(vtkLight* newLight)
 {
-  this->Light->SetAmbientColor(r, g, b);
+  this->GetRenderer()->AddLight(newLight);
 }
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetSpecularColor(double r, double g, double b)
+void vtkPVRenderView::RemoveLight(vtkLight* oldLight)
 {
-  this->Light->SetSpecularColor(r, g, b);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetDiffuseColor(double r, double g, double b)
-{
-  this->Light->SetDiffuseColor(r, g, b);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetIntensity(double val)
-{
-  this->Light->SetIntensity(val);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetLightType(int val)
-{
-  this->Light->SetLightType(val);
+  this->GetRenderer()->RemoveLight(oldLight);
 }
 
 //*****************************************************************
@@ -2785,8 +2779,7 @@ void vtkPVRenderView::SetArrayNumberToDraw(int fieldAttributeType)
 // ----------------------------------------------------------------------------
 void vtkPVRenderView::SetValueRenderingModeCommand(int mode)
 {
-#ifdef VTKGL2
-  // Fixes issue with the background (black) when comming back from FLOATING_POINT
+  // Fixes issue with the background (black) when coming back from FLOATING_POINT
   // mode. FLOATING_POINT mode is only supported in BATCH mode and single process
   // CLIENT.
   if (this->GetUseDistributedRenderingForStillRender() &&
@@ -2826,19 +2819,12 @@ void vtkPVRenderView::SetValueRenderingModeCommand(int mode)
   }
 
   this->Modified();
-#else
-  (void)mode;
-#endif
 }
 
 //-----------------------------------------------------------------------------
 int vtkPVRenderView::GetValueRenderingModeCommand()
 {
-#ifdef VTKGL2
   return this->Internals->ValuePasses->GetRenderingMode();
-#else
-  return 1; // vtkValuePass::INVERTIBLE_LUT
-#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -2869,7 +2855,7 @@ void vtkPVRenderView::BeginValueCapture()
 {
   if (!this->Internals->IsInCapture)
   {
-#if defined(VTKGL2) && defined(PARAVIEW_USE_ICE_T)
+#if defined(PARAVIEW_USE_ICE_T)
     if (vtkValuePass::FLOATING_POINT == this->Internals->ValuePasses->GetRenderingMode())
     {
       // Let the IceTPass know FLOATING_POINT is already enabled.
@@ -2902,7 +2888,7 @@ void vtkPVRenderView::BeginValueCapture()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::EndValueCapture()
 {
-#if defined(VTKGL2) && defined(PARAVIEW_USE_ICE_T)
+#if defined(PARAVIEW_USE_ICE_T)
   if (vtkValuePass::FLOATING_POINT == this->Internals->ValuePasses->GetRenderingMode())
   {
     // Let the IceTPass know vtkValuePass will be removed.
@@ -2929,9 +2915,7 @@ void vtkPVRenderView::StartCaptureLuminance()
     this->SetShowAnnotation(false);
     this->Internals->IsInCapture = true;
   }
-#ifdef VTKGL2
   this->SynchronizedRenderers->SetRenderPass(this->Internals->LightingMapPass.GetPointer());
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -2966,7 +2950,7 @@ void vtkPVRenderView::CaptureZBuffer()
     this->Internals->ZGrabber->ReadFrontBufferOff();
     this->Internals->ZGrabber->FixBoundaryOff();
     this->Internals->ZGrabber->ShouldRerenderOn();
-    this->Internals->ZGrabber->SetMagnification(1);
+    this->Internals->ZGrabber->SetScale(1, 1);
     this->Internals->ZGrabber->SetInputBufferTypeToZBuffer();
     this->Internals->ZGrabber->Modified();
     this->Internals->ZGrabber->Update();
@@ -2984,7 +2968,6 @@ vtkFloatArray* vtkPVRenderView::GetCapturedZBuffer()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::CaptureValuesFloat()
 {
-#ifdef VTKGL2
   vtkFloatArray* values = NULL;
 #ifdef PARAVIEW_USE_ICE_T
   vtkIceTSynchronizedRenderers* IceTSynchronizedRenderers =
@@ -3023,17 +3006,22 @@ void vtkPVRenderView::CaptureValuesFloat()
     this->Internals->ArrayHolder->SetNumberOfTuples(values->GetNumberOfTuples());
     this->Internals->ArrayHolder->CopyComponent(0, values, 0);
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
 vtkFloatArray* vtkPVRenderView::GetCapturedValuesFloat()
 {
-#ifdef VTKGL2
   return this->Internals->ArrayHolder.GetPointer();
-#else
-  return NULL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetViewTime(double value)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  vtkOSPRayRendererNode::SetViewTime(value, ren);
 #endif
+  this->Superclass::SetViewTime(value);
 }
 
 //----------------------------------------------------------------------------
@@ -3062,7 +3050,7 @@ void vtkPVRenderView::SetEnableOSPRay(bool v)
   if (v)
   {
     vtkWarningMacro(
-      "Refusing to switch to OSPRay since it is not built into this copy of ParaView");
+      "Refusing to enable OSPRay since either the client or server does not have it.");
   }
 #endif
 }
@@ -3074,12 +3062,38 @@ bool vtkPVRenderView::GetEnableOSPRay()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::SetMaterialLibrary(vtkPVMaterialLibrary* ml)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  vtkOSPRayRendererNode::SetMaterialLibrary(
+    vtkOSPRayMaterialLibrary::SafeDownCast(ml->GetMaterialLibrary()), ren);
+#else
+  (void)ml;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetOSPRayRendererType(std::string name)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  vtkOSPRayRendererNode::SetRendererType(name, ren);
+#else
+  (void)name;
+#endif
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetShadows(bool v)
 {
 #ifdef PARAVIEW_USE_OSPRAY
   this->Internals->OSPRayShadows = v;
   vtkRenderer* ren = this->GetRenderer();
-  ren->SetUseShadows(v);
+  if (this->Internals->IsInOSPRay)
+  {
+    ren->SetUseShadows(v);
+  }
 #else
   (void)v;
 #endif
@@ -3206,6 +3220,56 @@ bool vtkPVRenderView::GetOSPRayContinueStreaming()
   return keep_going;
 #else
   return false;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundNorth(double x, double y, double z)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  double dir[3] = { x, y, z };
+  vtkOSPRayRendererNode::SetNorthPole(dir, ren);
+#else
+  (void)x;
+  (void)y;
+  (void)z;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundEast(double x, double y, double z)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  double dir[3] = { x, y, z };
+  vtkOSPRayRendererNode::SetEastPole(dir, ren);
+#else
+  (void)x;
+  (void)y;
+  (void)z;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetTimeCacheSize(int v)
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  vtkOSPRayRendererNode::SetTimeCacheSize(v, ren);
+#else
+  (void)v;
+#endif
+}
+
+//----------------------------------------------------------------------------
+int vtkPVRenderView::GetTimeCacheSize()
+{
+#ifdef PARAVIEW_USE_OSPRAY
+  vtkRenderer* ren = this->GetRenderer();
+  return vtkOSPRayRendererNode::GetTimeCacheSize(ren);
+#else
+  return 0;
 #endif
 }
 

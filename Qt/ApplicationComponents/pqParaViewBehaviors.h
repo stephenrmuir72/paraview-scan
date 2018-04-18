@@ -33,6 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqParaViewBehaviors_h
 
 #include "pqApplicationComponentsModule.h"
+
+#include "vtkSetGet.h" // for VTK_LEGACY.
+
 #include <QFlags>
 #include <QObject>
 
@@ -59,11 +62,16 @@ class QMainWindow;
 *
 * Since ParaView 5.1, ObjectPickingBehavior is disabled by default in
 * ParaView.
+*
 */
 
 #define PQ_BEHAVIOR_DEFINE_METHODS(_name)                                                          \
   static void setEnable##_name(bool val) { pqParaViewBehaviors::_name = val; }                     \
   static bool enable##_name() { return pqParaViewBehaviors::_name; }
+
+#define PQ_BEHAVIOR_DEFINE_METHODS_LEGACY(_name)                                                   \
+  VTK_LEGACY(static void setEnable##_name(bool val) { pqParaViewBehaviors::_name = val; });        \
+  VTK_LEGACY(static bool enable##_name() { return pqParaViewBehaviors::_name; });
 
 #define PQ_BEHAVIOR_DECLARE_FLAG(_name) static bool _name;
 
@@ -76,7 +84,6 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(StandardPropertyWidgets);
   PQ_BEHAVIOR_DEFINE_METHODS(StandardViewFrameActions);
   PQ_BEHAVIOR_DEFINE_METHODS(StandardRecentlyUsedResourceLoader);
-  PQ_BEHAVIOR_DEFINE_METHODS(QtMessageHandlerBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(DataTimeStepBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(SpreadSheetVisibilityBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PipelineContextMenuBehavior);
@@ -89,6 +96,7 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(PluginDockWidgetsBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(VerifyRequiredPluginBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginActionGroupBehavior);
+  PQ_BEHAVIOR_DEFINE_METHODS(PluginToolBarBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CommandLineOptionsBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PersistentMainWindowStateBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CollaborationBehavior);
@@ -97,9 +105,22 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(ApplyBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DEFINE_METHODS(LockPanelsBehavior);
+  PQ_BEHAVIOR_DEFINE_METHODS(PythonShellResetBehavior);
+
+  //@{
+  /**
+   * By default, widgets like QComboBox, QSlider handle wheel event even when
+   * the widget doesn't have the focus. While that's handy, in many use-cases,
+   * in several where these are embedded in scrollable panels, they can
+   * interrupt the scrolling of the panel. Hence, this behavior has been added
+   * since ParaView 5.5 default. When enabled, this is enabled for QComboBox,
+   * QSlider, QAbstractSpinBox and subclasses.
+   */
+  PQ_BEHAVIOR_DEFINE_METHODS(WheelNeedsFocusBehavior);
+  //@}
 
   pqParaViewBehaviors(QMainWindow* window, QObject* parent = NULL);
-  virtual ~pqParaViewBehaviors();
+  ~pqParaViewBehaviors() override;
 
 private:
   Q_DISABLE_COPY(pqParaViewBehaviors)
@@ -107,7 +128,6 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(StandardPropertyWidgets);
   PQ_BEHAVIOR_DECLARE_FLAG(StandardViewFrameActions);
   PQ_BEHAVIOR_DECLARE_FLAG(StandardRecentlyUsedResourceLoader);
-  PQ_BEHAVIOR_DECLARE_FLAG(QtMessageHandlerBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(DataTimeStepBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(SpreadSheetVisibilityBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PipelineContextMenuBehavior);
@@ -120,6 +140,7 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(PluginDockWidgetsBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(VerifyRequiredPluginBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PluginActionGroupBehavior);
+  PQ_BEHAVIOR_DECLARE_FLAG(PluginToolBarBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(CommandLineOptionsBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PersistentMainWindowStateBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(CollaborationBehavior);
@@ -128,6 +149,8 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(ApplyBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DECLARE_FLAG(LockPanelsBehavior);
+  PQ_BEHAVIOR_DECLARE_FLAG(PythonShellResetBehavior);
+  PQ_BEHAVIOR_DECLARE_FLAG(WheelNeedsFocusBehavior);
 };
 
 #undef PQ_BEHAVIOR_DECLARE_FLAG

@@ -40,10 +40,11 @@ def locate_simulation_inputs(proxy):
 
     simulation_inputs = []
     for input in input_proxies:
-        cur_si = locate_simulation_inputs(input.SMProxy)
-        for cur in cur_si:
-            if not cur in simulation_inputs:
-                simulation_inputs.append(cur)
+        if input:
+            cur_si = locate_simulation_inputs(input.SMProxy)
+            for cur in cur_si:
+                if not cur in simulation_inputs:
+                    simulation_inputs.append(cur)
     return simulation_inputs
 
 # -----------------------------------------------------------------------------
@@ -215,9 +216,10 @@ class ViewAccessor(smtrace.RealProxyAccessor):
 # -----------------------------------------------------------------------------
 class WriterFilter(smtrace.PipelineProxyFilter):
     def should_never_trace(self, prop):
-        """overridden to never trace 'WriteFrequency' and 'FileName' properties
-           on writers."""
-        if prop.get_property_name() in ["WriteFrequency", "FileName"]: return True
+        """overridden to never trace 'WriteFrequency', 'FileName' and
+           'PaddingAmount' properties on writers."""
+        if prop.get_property_name() in ["WriteFrequency", "FileName", "PaddingAmount"]:
+            return True
         return super(WriterFilter, self).should_never_trace(prop)
 
 # -----------------------------------------------------------------------------
@@ -264,6 +266,7 @@ class WriterAccessor(smtrace.RealProxyAccessor):
         xmlname = xmlElement.GetAttribute("name")
         write_frequency = self.get_object().GetProperty("WriteFrequency").GetElement(0)
         filename = self.get_object().GetProperty("FileName").GetElement(0)
+        padding_amount = self.get_object().GetProperty("PaddingAmount").GetElement(0)
         ctor = self.get_proxy_label(xmlgroup, xmlname)
         original_trace = smtrace.RealProxyAccessor.trace_ctor(\
             self, ctor, WriterFilter(), ctor_args, skip_assignment)
@@ -272,8 +275,9 @@ class WriterAccessor(smtrace.RealProxyAccessor):
         trace.append_separated(["# register the writer with coprocessor",
           "# and provide it with information such as the filename to use,",
           "# how frequently to write the data, etc."])
-        trace.append("coprocessor.RegisterWriter(%s, filename='%s', freq=%s)" % \
-            (self, filename, write_frequency))
+        trace.append("coprocessor.RegisterWriter(%s, filename='%s', freq=%s, paddingamount=%s)" % \
+                     (self, filename, write_frequency, padding_amount))
+
         trace.append_separator()
         return trace.raw_data()
 
@@ -314,22 +318,36 @@ class cpstate_filter_proxies_to_serialize(object):
 # -----------------------------------------------------------------------------
 def DumpPipeline(export_rendering, simulation_input_map, screenshot_info,
     cinema_tracks, cinema_arrays):
-    """
-        Method that will dump the current pipeline and return it as a string trace
-        - export_rendering    : boolean telling if we want to export rendering
-        - simulation_input_map: string->string map with key being the proxyname
-                                while value being the simulation input name.
-        - screenshot_info     : map with information about screenshots
-                                key -> view proxy name
-                                value -> [filename, writefreq, fitToScreen,
-                                          magnification, width, height,
-                                          cinemacamera options]
-        - cinema_tracks       : map with information about cinema tracks to record
-                                key -> proxy name
-                                value -> argument ranges
-        - cinema_arrays       : map with information about value arrays to be exported
-                                key -> proxy name
-                                value -> list of array names
+    """Method that will dump the current pipeline and return it as a string trace.
+
+    export_rendering
+      boolean telling if we want to export rendering
+
+    simulation_input_map
+      string->string map with key being the proxyname while value being the
+      simulation input name.
+
+    screenshot_info
+      map with information about screenshots
+
+      * key -> view proxy name
+
+      * value -> [filename, writefreq, fitToScreen, magnification, width, height,
+        cinemacamera options]
+
+    cinema_tracks
+      map with information about cinema tracks to record
+
+      * key -> proxy name
+
+      * value -> argument ranges
+
+    cinema_arrays
+      map with information about value arrays to be exported
+
+      * key -> proxy name
+
+      * value -> list of array names
     """
 
     # reset the global variables.
@@ -404,7 +422,6 @@ def run(filename=None):
         specified, if any, else dumps it out on stdout."""
 
     from paraview import simple, servermanager
-    simple.LoadDistributedPlugin("CatalystScriptGeneratorPlugin")
     wavelet = simple.Wavelet(registrationName="Wavelet1")
     contour = simple.Contour()
     display = simple.Show()

@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    pqTreeView.cxx
+   Module:  pqTreeView.cxx
 
    Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -29,19 +29,38 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
-/// \file pqTreeView.cxx
-/// \date 8/20/2007
-
 #include "pqTreeView.h"
 
 #include "pqCheckableHeaderView.h"
+
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QEvent>
 #include <QLayout>
 #include <QMimeData>
 #include <QScrollBar>
+
+namespace
+{
+int pqCountItems(QAbstractItemModel* model, const QModelIndex& idx, int max)
+{
+  if (!model)
+  {
+    return 0;
+  }
+  int numItems = model->rowCount(idx);
+  int count = numItems;
+  for (int cc = 0; cc < numItems; ++cc)
+  {
+    if (count >= max)
+    {
+      return count;
+    }
+    count += pqCountItems(model, model->index(cc, 0, idx), max - numItems);
+  }
+  return count;
+}
+}
 
 pqTreeView::pqTreeView(QWidget* widgetParent)
   : QTreeView(widgetParent)
@@ -52,6 +71,7 @@ pqTreeView::pqTreeView(QWidget* widgetParent)
 
   // Change the default header view to a checkable one.
   pqCheckableHeaderView* checkable = new pqCheckableHeaderView(Qt::Horizontal, this);
+  checkable->setStretchLastSection(this->header()->stretchLastSection());
   this->setHeader(checkable);
   this->installEventFilter(checkable);
 #if QT_VERSION >= 0x050000
@@ -62,6 +82,9 @@ pqTreeView::pqTreeView(QWidget* widgetParent)
 
   // Listen for the show/hide events of the horizontal scroll bar.
   this->horizontalScrollBar()->installEventFilter(this);
+
+  // better handle scrolling in panels with nested scrollbars.
+  this->setFocusPolicy(Qt::StrongFocus);
 }
 
 bool pqTreeView::eventFilter(QObject* object, QEvent* e)
@@ -81,6 +104,17 @@ bool pqTreeView::eventFilter(QObject* object, QEvent* e)
   }
 
   return QTreeView::eventFilter(object, e);
+}
+
+void pqTreeView::wheelEvent(QWheelEvent* evt)
+{
+  // don't handle wheel events unless widget had focus.
+  // this improves scrolling when scrollable widgets are nested
+  // together with setFocusPolicy(Qt::StrongFocus).
+  if (this->hasFocus())
+  {
+    this->Superclass::wheelEvent(evt);
+  }
 }
 
 void pqTreeView::setModel(QAbstractItemModel* newModel)
@@ -120,14 +154,7 @@ QSize pqTreeView::sizeHint() const
   int minItemHeight = 20;
   // add padding for the scrollbar
   int extra = this->ScrollPadding;
-
-  int num = 0;
-  QAbstractItemModel* current = this->model();
-  if (current)
-  {
-    num = current->rowCount(this->rootIndex());
-  }
-
+  int num = pqCountItems(this->model(), this->rootIndex(), maxItemHint);
   if (num >= maxItemHint)
   {
     extra = 0;

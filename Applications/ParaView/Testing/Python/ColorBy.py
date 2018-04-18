@@ -72,8 +72,8 @@ ColorBy(calculator1Display, ('POINTS', 'Result'))
 # rescale color and/or opacity maps used to include current data range
 calculator1Display.RescaleTransferFunctionToDataRange(True)
 
-# show color bar/color legend
-calculator1Display.SetScalarBarVisibility(renderView1, True)
+# hide color bar/color legend
+calculator1Display.SetScalarBarVisibility(renderView1, False)
 
 # get color transfer function/color map for 'Result'
 ResultLUT = GetColorTransferFunction('Result')
@@ -93,8 +93,8 @@ ColorBy(calculator1Display, ('POINTS', 'Result', 'X'))
 # rescale color and/or opacity maps used to include current data range
 calculator1Display.RescaleTransferFunctionToDataRange(True)
 
-# show color bar/color legend
-calculator1Display.SetScalarBarVisibility(renderView1, True)
+# hide color bar/color legend
+calculator1Display.SetScalarBarVisibility(renderView1, False)
 
 # Update a scalar bar component title.
 UpdateScalarBarsComponentTitle(ResultLUT, calculator1Display)
@@ -115,7 +115,8 @@ try:
 except:
   print("Could not get baseline directory. Test failed.")
 baseline_file = os.path.join(baselinePath, "ColorBy.png")
-import vtk.test.Testing
-vtk.test.Testing.VTK_TEMP_DIR = vtk.util.misc.vtkGetTempDir()
-vtk.test.Testing.compareImage(renderView1.GetRenderWindow(), baseline_file, threshold=40)
-vtk.test.Testing.interact()
+from paraview.vtk.test import Testing
+from paraview.vtk.util.misc import vtkGetTempDir
+Testing.VTK_TEMP_DIR = vtkGetTempDir()
+Testing.compareImage(renderView1.GetRenderWindow(), baseline_file, threshold=40)
+Testing.interact()

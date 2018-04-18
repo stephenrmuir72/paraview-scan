@@ -51,6 +51,8 @@ pqIntRangeWidget::pqIntRangeWidget(QWidget* p)
   this->StrictRange = false;
   this->Domain = 0;
   this->DomainConnection = 0;
+  this->InteractingWithSlider = false;
+  this->DeferredValueEdited = false;
 
   QHBoxLayout* l = new QHBoxLayout(this);
   l->setMargin(0);
@@ -58,6 +60,7 @@ pqIntRangeWidget::pqIntRangeWidget(QWidget* p)
   this->Slider->setRange(0, 1);
   l->addWidget(this->Slider);
   this->Slider->setObjectName("Slider");
+  this->Slider->setFocusPolicy(Qt::StrongFocus); // change from the default Qt::WheelFocus
   this->LineEdit = new pqLineEdit(this);
   l->addWidget(this->LineEdit);
   this->LineEdit->setObjectName("LineEdit");
@@ -69,6 +72,11 @@ pqIntRangeWidget::pqIntRangeWidget(QWidget* p)
     this->LineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(textChanged(const QString&)));
   QObject::connect(
     this->LineEdit, SIGNAL(textChangedAndEditingFinished()), this, SLOT(editingFinished()));
+
+  // let's avoid firing `valueChanged` events until the user has released the
+  // slider.
+  this->connect(this->Slider, SIGNAL(sliderPressed()), SLOT(sliderPressed()));
+  this->connect(this->Slider, SIGNAL(sliderReleased()), SLOT(sliderReleased()));
 }
 
 //-----------------------------------------------------------------------------
@@ -200,7 +208,7 @@ void pqIntRangeWidget::sliderChanged(int val)
     this->BlockUpdate = true;
     this->LineEdit->setTextAndResetCursor(QString().setNum(val));
     this->setValue(val);
-    emit this->valueEdited(val);
+    this->emitValueEdited();
     this->BlockUpdate = false;
   }
 }
@@ -220,7 +228,30 @@ void pqIntRangeWidget::textChanged(const QString& text)
 //-----------------------------------------------------------------------------
 void pqIntRangeWidget::editingFinished()
 {
-  emit this->valueEdited(this->Value);
+  this->emitValueEdited();
+}
+
+//-----------------------------------------------------------------------------
+void pqIntRangeWidget::emitValueEdited()
+{
+  if (this->InteractingWithSlider == false)
+  {
+    emit this->valueEdited(this->Value);
+  }
+  else
+  {
+    this->DeferredValueEdited = true;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqIntRangeWidget::emitIfDeferredValueEdited()
+{
+  if (this->DeferredValueEdited)
+  {
+    this->DeferredValueEdited = false;
+    this->emitValueEdited();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -231,4 +262,17 @@ void pqIntRangeWidget::domainChanged()
     this->setMinimum(this->Domain->GetMinimum(0));
     this->setMaximum(this->Domain->GetMaximum(0));
   }
+}
+
+//-----------------------------------------------------------------------------
+void pqIntRangeWidget::sliderPressed()
+{
+  this->InteractingWithSlider = true;
+}
+
+//-----------------------------------------------------------------------------
+void pqIntRangeWidget::sliderReleased()
+{
+  this->InteractingWithSlider = false;
+  this->emitIfDeferredValueEdited();
 }

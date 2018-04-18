@@ -36,11 +36,13 @@
 #define vtkCGNSReader_h
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
+#include "vtkNew.h"                             // for vtkNew.
 #include "vtkPVVTKExtensionsCGNSReaderModule.h" // for export macro
 
 class vtkDataSet;
 class vtkDataArraySelection;
 class vtkCallbackCommand;
+class vtkCGNSSubsetInclusionLattice;
 
 namespace CGNSRead
 {
@@ -68,39 +70,107 @@ public:
    */
   int CanReadFile(const char* filename);
 
-  // The following methods allow selective reading of solutions fields.
+  //@{
+  /**
+   * Convenience API to query information about bases and enable/disable loading
+   * of bases. One can also get the sil (`vtkCGNSReader::GetSIL()`) and then use
+   * API on vtkCGNSSubsetInclusionLattice to enable/disable blocks with
+   * additional flexibility.
+   */
   int GetBaseArrayStatus(const char* name);
   void SetBaseArrayStatus(const char* name, int status);
   void DisableAllBases();
   void EnableAllBases();
-
   int GetNumberOfBaseArrays();
-  int GetNumberOfPointArrays();
-  int GetNumberOfCellArrays();
-
   const char* GetBaseArrayName(int index);
+  //@}
+
+  //@{
+  /**
+   * Convenience API to query information about families and enable/disable loading
+   * of families. One can also get the sil (`vtkCGNSReader::GetSIL()`) and then use
+   * API on vtkCGNSSubsetInclusionLattice to enable/disable blocks with
+   * additional flexibility.
+   */
+  int GetNumberOfFamilyArrays();
+  const char* GetFamilyArrayName(int index);
+  void SetFamilyArrayStatus(const char* name, int status);
+  int GetFamilyArrayStatus(const char* name);
+  void EnableAllFamilies();
+  void DisableAllFamilies();
+  //@}
+
+  /**
+   * Provides access to the SIL. The SIL is populated in `RequestInformation`.
+   * Once populated, one can use API on vtkCGNSSubsetInclusionLattice to query
+   * information about bases/zones/families etc. and enable/disable loading of
+   * those.
+   */
+  vtkCGNSSubsetInclusionLattice* GetSIL() const;
+
+  //@{
+  /**
+   * API to select blocks to read. A more expressive API is provided by
+   * vtkCGNSSubsetInclusionLattice which can be access using `GetSIL` method.
+   * These methods provide some rudimentary API on the reader itself.
+   */
+  void SetBlockStatus(const char* nodepath, bool enable);
+  void ClearBlockStatus();
+  //@}
+
+  //@{
+  /**
+   * API to get information of point arrays and enable/disable loading of
+   * a particular arrays.
+   */
+  int GetNumberOfPointArrays();
   const char* GetPointArrayName(int index);
-  const char* GetCellArrayName(int index);
-
   int GetPointArrayStatus(const char* name);
-  int GetCellArrayStatus(const char* name);
-
   void SetPointArrayStatus(const char* name, int status);
-  void SetCellArrayStatus(const char* name, int status);
-
   void DisableAllPointArrays();
   void EnableAllPointArrays();
+  //@}
 
+  //@{
+  /**
+   * API to get information of cell arrays and enable/disable loading of
+   * a particular arrays.
+   */
+  int GetNumberOfCellArrays();
+  const char* GetCellArrayName(int index);
+  int GetCellArrayStatus(const char* name);
+  void SetCellArrayStatus(const char* name, int status);
   void DisableAllCellArrays();
   void EnableAllCellArrays();
+  //@}
 
   vtkSetMacro(DoublePrecisionMesh, int);
   vtkGetMacro(DoublePrecisionMesh, int);
   vtkBooleanMacro(DoublePrecisionMesh, int);
 
-  vtkSetMacro(LoadBndPatch, int);
-  vtkGetMacro(LoadBndPatch, int);
-  vtkBooleanMacro(LoadBndPatch, int);
+  //@{
+  /**
+   * Enable/disable loading of boundary condition patches.
+   * Defaults to off.
+   * @deprecated Use SIL instead.
+   */
+  VTK_LEGACY(void SetLoadBndPatch(int));
+  VTK_LEGACY(vtkGetMacro(LoadBndPatch, int));
+  VTK_LEGACY(void LoadBndPatchOn());
+  VTK_LEGACY(void LoadBndPatchOff());
+  //@}
+
+  //@{
+  /**
+   * Enable/disable loading of zone mesh. Defaults to on. It may be turned off
+   * to load only boundary patches (when LoadBndPatch if ON), for example.
+   * @deprecated Use SIL instead.
+   */
+  VTK_LEGACY(void SetLoadMesh(bool));
+  VTK_LEGACY(vtkGetMacro(LoadMesh, bool));
+  VTK_LEGACY(void LoadMeshOn());
+  VTK_LEGACY(void LoadMeshOff());
+  //@}
 
   /**
    * This option is provided for debugging and should not be used for production
@@ -155,18 +225,22 @@ public:
    */
   void Broadcast(vtkMultiProcessController* ctrl);
 
+  /**
+   * Return the timestamp for the rebuilding of the SIL.
+   */
+  vtkIdType GetSILUpdateStamp() const;
+
 protected:
   vtkCGNSReader();
-  ~vtkCGNSReader();
+  ~vtkCGNSReader() override;
 
   int FillOutputPortInformation(int port, vtkInformation* info) VTK_OVERRIDE;
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
   int RequestInformation(
     vtkInformation*, vtkInformationVector**, vtkInformationVector*) VTK_OVERRIDE;
 
-  vtkDataArraySelection* BaseSelection;
-  vtkDataArraySelection* PointDataArraySelection;
-  vtkDataArraySelection* CellDataArraySelection;
+  vtkNew<vtkDataArraySelection> PointDataArraySelection;
+  vtkNew<vtkDataArraySelection> CellDataArraySelection;
 
   // The observer to modify this object when the array selections are
   // modified.
@@ -186,13 +260,22 @@ protected:
   vtkIdType ProcSize;
 
 private:
-  vtkCGNSReader(const vtkCGNSReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCGNSReader&) VTK_DELETE_FUNCTION;
+  vtkCGNSReader(const vtkCGNSReader&) = delete;
+  void operator=(const vtkCGNSReader&) = delete;
+
+  /**
+   * callback called when SIL selection is modified.
+   */
+  void OnSILStateChanged();
+  bool IgnoreSILChangeEvents;
 
   CGNSRead::vtkCGNSMetaData* Internal; // Metadata
 
-  char* FileName;                // cgns file name
-  int LoadBndPatch;              // option to set section loading for unstructured grid
+  char* FileName; // cgns file name
+#if !defined(VTK_LEGACY_REMOVE)
+  int LoadBndPatch; // option to set section loading for unstructured grid
+  bool LoadMesh;    // option to enable/disable mesh loading
+#endif
   int DoublePrecisionMesh;       // option to set mesh loading to double precision
   int CreateEachSolutionAsBlock; // debug option to create
   bool IgnoreFlowSolutionPointers;
@@ -208,6 +291,20 @@ private:
 
   class vtkPrivate;
   friend class vtkPrivate;
+
+  /**
+   * When reading a temporal file series, we don't want to rebuild the SIL for
+   * each file since it doesn't change (or is not expected to change).
+   *
+   * When reading a partitioned file series, we may not have full information in
+   * each file to fully build the SIL. The vtkCGNSFileSeriesReader handles
+   * building of the SIL across ranks/files and wouldn't want the reader to
+   * update the SIL every time the filename changes, which happens may times for
+   * file series. To support that, we allow vtkCGNSFileSeriesReader to simply
+   * set to SIL. If set, we don't update it on each "parse" of a new file.
+   */
+  friend class vtkCGNSFileSeriesReader;
+  void SetExternalSIL(vtkCGNSSubsetInclusionLattice* sil);
 };
 
 #endif // vtkCGNSReader_h

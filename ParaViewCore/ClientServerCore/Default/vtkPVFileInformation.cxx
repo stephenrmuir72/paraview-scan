@@ -23,7 +23,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVFileInformationHelper.h"
 #include "vtkProcessModule.h"
+#include "vtkResourceFileLocator.h"
 #include "vtkSmartPointer.h"
+#include "vtkVersion.h"
 
 #if defined(_WIN32)
 #define _WIN32_IE 0x0400    // special folder support
@@ -359,6 +361,7 @@ vtkPVFileInformation::vtkPVFileInformation()
   this->Name = NULL;
   this->FullPath = NULL;
   this->FastFileTypeDetection = 0;
+  this->ReadDetailedFileInformation = false;
   this->Hidden = false;
   this->Extension = NULL;
   this->Size = 0;
@@ -410,6 +413,7 @@ void vtkPVFileInformation::CopyFromObject(vtkObject* object)
   }
 
   this->FastFileTypeDetection = helper->GetFastFileTypeDetection();
+  this->ReadDetailedFileInformation = helper->GetReadDetailedFileInformation();
 
   std::string working_directory = vtksys::SystemTools::GetCurrentWorkingDirectory().c_str();
   if (helper->GetWorkingDirectory() && helper->GetWorkingDirectory()[0])
@@ -483,12 +487,7 @@ void vtkPVFileInformation::GetSpecialDirectories()
     std::string dataPath = pm->GetSelfDir() + "/../data";
 #else
     std::string appdir = pm->GetSelfDir();
-    ;
-    std::string dataPath = vtksys::SystemTools::GetFilenameName(appdir) == "bin"
-      ?
-      /* w/o shared forwarding */ appdir + "/../share/paraview-" PARAVIEW_VERSION "/data"
-      :
-      /* w/ shared forwarding  */ appdir + "/../../share/paraview-" PARAVIEW_VERSION "/data";
+    std::string dataPath = appdir + "/../share/paraview-" PARAVIEW_VERSION "/data";
 #endif
     dataPath = vtksys::SystemTools::CollapseFullPath(dataPath);
     if (vtksys::SystemTools::FileIsDirectory(dataPath))
@@ -872,26 +871,34 @@ void vtkPVFileInformation::GetDirectoryListing()
     info->Type = INVALID;
     info->SetHiddenFlag();
 
-    // Recover status info
     vtksys::SystemTools::Stat_t status;
-    int res = vtksys::SystemTools::Stat(info->FullPath, &status);
-    if (res != -1)
+    int res;
+    if (this->ReadDetailedFileInformation)
     {
-      if (!S_ISDIR(status.st_mode))
+      // Recover status info
+      res = vtksys::SystemTools::Stat(info->FullPath, &status);
+      if (res != -1)
       {
-        std::string::size_type pos = std::string(d->d_name).rfind('.');
-        if (pos != std::string::npos)
+        if (!S_ISDIR(status.st_mode))
         {
-          std::string ext = std::string(d->d_name).substr(pos + 1);
-          info->SetExtension(ext.c_str());
+          std::string::size_type pos = std::string(d->d_name).rfind('.');
+          if (pos != std::string::npos)
+          {
+            std::string ext = std::string(d->d_name).substr(pos + 1);
+            info->SetExtension(ext.c_str());
+          }
         }
+        info->Size = status.st_size;
+        info->ModificationTime = status.st_mtime;
       }
-      info->Size = status.st_size;
-      info->ModificationTime = status.st_mtime;
     }
 // fix to bug #09452 such that directories with trailing names can be
 // shown in the file dialog
 #if defined(__SVR4) && defined(__sun)
+    if (!this->ReadDetailedFileInformation)
+    {
+      res = vtksys::SystemTools::Stat(info->FullPath, &status);
+    }
     if (res != -1 && status.st_mode & S_IFDIR)
     {
       info->Type = DIRECTORY;
@@ -1019,43 +1026,46 @@ void vtkPVFileInformation::OrganizeCollection(vtkPVFileInformationSet& info_set)
 
   for (vtkPVFileInformationSet::iterator iter = info_set.begin(); iter != info_set.end();)
   {
-    vtkPVFileInformation* obj = *iter;
-
-    if (obj->Type != FILE_GROUP && !IsDirectory(obj->Type))
+    vtkSmartPointer<vtkPVFileInformation> obj = *iter;
+    // we're going to skip non-groupable file types. Note, we may get INVALID
+    // here since when this->FastFileTypeDetection is true, the grouping
+    // happens before the file types are detected.
+    if (obj->Type != FILE_GROUP && obj->Type != DRIVE && obj->Type != NETWORK_ROOT &&
+      obj->Type != NETWORK_DOMAIN && obj->Type != NETWORK_SERVER && obj->Type != NETWORK_SHARE &&
+      obj->Type != DIRECTORY_GROUP)
     {
-      bool match = false;
-
-      match = this->SequenceParser->ParseFileSequence(obj->GetName());
-
-      if (match)
+      if (this->SequenceParser->ParseFileSequence(obj->GetName()))
       {
-        std::string groupName = this->SequenceParser->GetSequenceName();
-        int groupIndex = this->SequenceParser->GetSequenceIndex();
+        const std::string groupName = this->SequenceParser->GetSequenceName();
+        const int groupIndex = this->SequenceParser->GetSequenceIndex();
 
-        MapOfStringToInfo::iterator iter2 = fileGroups.find(groupName);
-        vtkPVFileInformation* group = 0;
+        // since I want to keep file groups and directory groups separate, for
+        // the key, I'm creating a new key by prefixing it with the group
+        // type.
+        const std::string key_prefix(vtkPVFileInformation::IsDirectory(obj->Type) ? "d." : "f.");
+        const std::string key(key_prefix + groupName);
+
+        MapOfStringToInfo::iterator iter2 = fileGroups.find(key);
         if (iter2 == fileGroups.end())
         {
-          group = vtkPVFileInformation::New();
+          vtkNew<vtkPVFileInformation> group;
+          ;
           group->SetName(groupName.c_str());
           group->SetFullPath((prefix + groupName).c_str());
-          group->Type = FILE_GROUP;
+          group->Type = vtkPVFileInformation::IsDirectory(obj->Type) ? DIRECTORY_GROUP : FILE_GROUP;
           // the group inherits the hidden flag of the first item in the group
           group->Hidden = obj->Hidden;
           group->FastFileTypeDetection = this->FastFileTypeDetection;
-          // fileGroups[groupName] = group;
-          vtkInfo info;
-          info.Group = group;
-          fileGroups[groupName] = info;
-          group->Delete();
 
-          iter2 = fileGroups.find(groupName);
+          vtkInfo info;
+          info.Group = group.GetPointer();
+          iter2 = fileGroups.insert(std::pair<std::string, vtkInfo>(key, info)).first;
         }
 
         iter2->second.Children[groupIndex] = obj;
-        vtkPVFileInformationSet::iterator prev_iter = iter++;
-        info_set.erase(prev_iter);
-        continue;
+
+        iter = info_set.erase(iter);
+        continue; // needed to skip the ++iter, since we already incremented.
       }
     }
     ++iter;
@@ -1191,6 +1201,44 @@ void vtkPVFileInformation::Initialize()
 #else
   this->ModificationTime = time(NULL);
 #endif
+}
+
+//-----------------------------------------------------------------------------
+std::string vtkPVFileInformation::GetParaViewSharedResourcesDirectory()
+{
+  // Look for where the function "GetVTKVersion." lives.
+  auto vtk_libs = vtkGetLibraryPathForSymbol(GetVTKVersion);
+
+  // Where docs might be in relation to the executable
+  std::vector<std::string> prefixes = {
+#if defined(_WIN32) || defined(__APPLE__)
+    ".."
+#else
+    "share/paraview-" PARAVIEW_VERSION
+#endif
+  };
+
+  // Search for the docs directory
+  vtkNew<vtkResourceFileLocator> locator;
+  auto resource_dir = locator->Locate(vtk_libs, prefixes, "doc");
+  if (!resource_dir.empty())
+  {
+    resource_dir = vtksys::SystemTools::CollapseFullPath(resource_dir);
+  }
+
+  return resource_dir;
+}
+
+//-----------------------------------------------------------------------------
+std::string vtkPVFileInformation::GetParaViewExampleFilesDirectory()
+{
+  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/data";
+}
+
+//-----------------------------------------------------------------------------
+std::string vtkPVFileInformation::GetParaViewDocDirectory()
+{
+  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/doc";
 }
 
 //-----------------------------------------------------------------------------

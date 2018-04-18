@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt includes
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QStackedWidget>
 #include <QStringList>
 
 // VTK includes
@@ -55,11 +56,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMOutputPort.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSmartPointer.h"
+#include "vtkTimerLog.h"
 
 // ParaView widget includes
 
 // ParaView core includes
 #include "pqActiveObjects.h"
+#include "pqCompositeDataInformationTreeModel.h"
 #include "pqNonEditableStyledItemDelegate.h"
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
@@ -70,13 +73,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView components includes
 
-class pqProxyInformationWidget::pqUi : public QObject, public Ui::pqProxyInformationWidget
+class pqProxyInformationWidget::pqUi : public Ui::pqProxyInformationWidget
 {
 public:
   pqUi(QObject* p)
-    : QObject(p)
+    : compositeTreeModel(new pqCompositeDataInformationTreeModel(p))
   {
+    this->compositeTreeModel->setHeaderData(0, Qt::Horizontal, "Data Hierarchy");
   }
+
+  QPointer<pqCompositeDataInformationTreeModel> compositeTreeModel;
 };
 
 //-----------------------------------------------------------------------------
@@ -87,10 +93,15 @@ pqProxyInformationWidget::pqProxyInformationWidget(QWidget* p)
   this->VTKConnect = vtkEventQtSlotConnect::New();
   this->Ui = new pqUi(this);
   this->Ui->setupUi(this);
-  QObject::connect(this->Ui->compositeTree,
-    SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this,
-    SLOT(onCurrentItemChanged(QTreeWidgetItem*)), Qt::QueuedConnection);
-  this->updateInformation(); // initialize state.
+  this->Ui->compositeTree->setModel(this->Ui->compositeTreeModel);
+  this->Ui->compositeTree->setItemDelegate(new pqNonEditableStyledItemDelegate(this));
+  this->connect(this->Ui->compositeTree->selectionModel(),
+    SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
+    SLOT(onCurrentChanged(const QModelIndex&)));
+  this->connect(this->Ui->dataTypeProperties, SIGNAL(currentChanged(int)),
+    SLOT(onDataTypePropertiesWidgetChanged(int)));
+  this->onDataTypePropertiesWidgetChanged(0); // set initial size
+  this->updateInformation();                  // initialize state.
 
   this->connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort*)), this,
     SLOT(setOutputPort(pqOutputPort*)));
@@ -101,6 +112,7 @@ pqProxyInformationWidget::~pqProxyInformationWidget()
 {
   this->VTKConnect->Disconnect();
   this->VTKConnect->Delete();
+  delete this->Ui;
 }
 
 //-----------------------------------------------------------------------------
@@ -139,7 +151,10 @@ pqOutputPort* pqProxyInformationWidget::getOutputPort()
 //-----------------------------------------------------------------------------
 void pqProxyInformationWidget::updateInformation()
 {
-  this->Ui->compositeTree->clear();
+  vtkTimerLogScope mark("pqProxyInformationWidget::updateInformation");
+  (void)mark;
+
+  this->Ui->compositeTreeModel->reset(nullptr);
   this->Ui->compositeTree->setVisible(false);
   this->Ui->filename->setText(tr("NA"));
   this->Ui->filename->setToolTip(tr("NA"));
@@ -165,15 +180,12 @@ void pqProxyInformationWidget::updateInformation()
     return;
   }
 
-  vtkPVCompositeDataInformation* compositeInformation =
-    dataInformation->GetCompositeDataInformation();
-
-  if (compositeInformation->GetDataIsComposite())
+  if (this->Ui->compositeTreeModel->reset(dataInformation))
   {
-    QTreeWidgetItem* root = this->fillCompositeInformation(dataInformation);
     this->Ui->compositeTree->setVisible(true);
-    root->setExpanded(true);
-    root->setSelected(true);
+    this->Ui->compositeTree->expandToDepth(1);
+    this->Ui->compositeTree->selectionModel()->setCurrentIndex(
+      this->Ui->compositeTreeModel->rootIndex(), QItemSelectionModel::ClearAndSelect);
   }
 
   this->fillDataInformation(dataInformation);
@@ -256,6 +268,9 @@ void pqProxyInformationWidget::fillDataInformation(vtkPVDataInformation* dataInf
   this->Ui->numberOfPoints->setText(tr("NA"));
   this->Ui->numberOfRows->setText(tr("NA"));
   this->Ui->numberOfColumns->setText(tr("NA"));
+  this->Ui->numberOfTrees->setText(tr("NA"));
+  this->Ui->numberOfVertices->setText(tr("NA"));
+  this->Ui->numberOfLeaves->setText(tr("NA"));
   this->Ui->memory->setText(tr("NA"));
 
   this->Ui->dataArrays->clear();
@@ -289,13 +304,28 @@ void pqProxyInformationWidget::fillDataInformation(vtkPVDataInformation* dataInf
     QString("%1").arg(dataInformation->GetRowDataInformation()->GetNumberOfArrays());
   this->Ui->numberOfColumns->setText(numColumns);
 
-  if (dataInformation->GetDataSetType() == VTK_TABLE)
+  QString numTrees = QString("%1").arg(dataInformation->GetNumberOfTrees());
+  this->Ui->numberOfTrees->setText(numTrees);
+
+  QString numVertices = QString("%1").arg(dataInformation->GetNumberOfVertices());
+  this->Ui->numberOfVertices->setText(numVertices);
+
+  QString numLeaves = QString("%1").arg(dataInformation->GetNumberOfLeaves());
+  this->Ui->numberOfLeaves->setText(numLeaves);
+
+  switch (dataInformation->GetDataSetType())
   {
-    this->Ui->dataTypeProperties->setCurrentWidget(this->Ui->Table);
-  }
-  else
-  {
-    this->Ui->dataTypeProperties->setCurrentWidget(this->Ui->DataSet);
+    case VTK_TABLE:
+      this->Ui->dataTypeProperties->setCurrentWidget(this->Ui->Table);
+      break;
+
+    case VTK_HYPER_TREE_GRID:
+      this->Ui->dataTypeProperties->setCurrentWidget(this->Ui->HyperTreeGrid);
+      break;
+
+    default:
+      this->Ui->dataTypeProperties->setCurrentWidget(this->Ui->DataSet);
+      break;
   }
 
   QString memory = QString("%1 MB").arg(dataInformation->GetMemorySize() / 1000.0, 0, 'g', 2);
@@ -411,9 +441,9 @@ void pqProxyInformationWidget::fillDataInformation(vtkPVDataInformation* dataInf
   else
   {
     xrange = QString("%1 to %2 (delta: %3)");
-    xrange = xrange.arg(bounds[0], -1, 'g', 3);
-    xrange = xrange.arg(bounds[1], -1, 'g', 3);
-    xrange = xrange.arg(bounds[1] - bounds[0], -1, 'g', 3);
+    xrange = xrange.arg(bounds[0], -1, 'g', 6);
+    xrange = xrange.arg(bounds[1], -1, 'g', 6);
+    xrange = xrange.arg(bounds[1] - bounds[0], -1, 'g', 6);
   }
   this->Ui->xRange->setText(xrange);
 
@@ -425,9 +455,9 @@ void pqProxyInformationWidget::fillDataInformation(vtkPVDataInformation* dataInf
   else
   {
     yrange = QString("%1 to %2 (delta: %3)");
-    yrange = yrange.arg(bounds[2], -1, 'g', 3);
-    yrange = yrange.arg(bounds[3], -1, 'g', 3);
-    yrange = yrange.arg(bounds[3] - bounds[2], -1, 'g', 3);
+    yrange = yrange.arg(bounds[2], -1, 'g', 6);
+    yrange = yrange.arg(bounds[3], -1, 'g', 6);
+    yrange = yrange.arg(bounds[3] - bounds[2], -1, 'g', 6);
   }
   this->Ui->yRange->setText(yrange);
 
@@ -439,90 +469,33 @@ void pqProxyInformationWidget::fillDataInformation(vtkPVDataInformation* dataInf
   else
   {
     zrange = QString("%1 to %2 (delta: %3)");
-    zrange = zrange.arg(bounds[4], -1, 'g', 3);
-    zrange = zrange.arg(bounds[5], -1, 'g', 3);
-    zrange = zrange.arg(bounds[5] - bounds[4], -1, 'g', 3);
+    zrange = zrange.arg(bounds[4], -1, 'g', 6);
+    zrange = zrange.arg(bounds[5], -1, 'g', 6);
+    zrange = zrange.arg(bounds[5] - bounds[4], -1, 'g', 6);
   }
   this->Ui->zRange->setText(zrange);
 }
 
 //-----------------------------------------------------------------------------
-QTreeWidgetItem* pqProxyInformationWidget::fillCompositeInformation(
-  vtkPVDataInformation* info, QTreeWidgetItem* parentItem /*=0*/)
+void pqProxyInformationWidget::onCurrentChanged(const QModelIndex& idx)
 {
-  QTreeWidgetItem* node = 0;
-
-  QString label = info ? info->GetPrettyDataTypeString() : tr("NA");
-  if (parentItem)
+  vtkPVDataInformation* dataInformation =
+    this->OutputPort ? this->OutputPort->getDataInformation() : nullptr;
+  if (dataInformation && idx.isValid())
   {
-    node = new QTreeWidgetItem(parentItem, QStringList(label));
+    unsigned int cid = this->Ui->compositeTreeModel->compositeIndex(idx);
+    vtkPVDataInformation* info = dataInformation->GetDataInformationForCompositeIndex(cid);
+    this->fillDataInformation(info);
   }
-  else
-  {
-    node = new QTreeWidgetItem(this->Ui->compositeTree, QStringList(label));
-    this->Ui->compositeTree->setItemDelegate(new pqNonEditableStyledItemDelegate(this));
-  }
-  if (!info)
-  {
-    return node;
-  }
-
-  // we save a ptr to the data information to easily locate the data
-  // information.
-  node->setData(0, Qt::UserRole, QVariant::fromValue((void*)info));
-  node->setFlags(node->flags() | Qt::ItemIsEditable);
-
-  vtkPVCompositeDataInformation* compositeInformation = info->GetCompositeDataInformation();
-
-  if (!compositeInformation->GetDataIsComposite() || compositeInformation->GetDataIsMultiPiece())
-  {
-    return node;
-  }
-
-  bool isNonOverlappingAMR =
-    (strcmp(info->GetCompositeDataClassName(), "vtkNonOverlappingAMR") == 0);
-  bool isOverlappingAMR = (strcmp(info->GetCompositeDataClassName(), "vtkOverlappingAMR") == 0);
-  bool isHB = (strcmp(info->GetCompositeDataClassName(), "vtkHierarchicalBoxDataSet") == 0);
-
-  bool isAMR = isHB || isOverlappingAMR || isNonOverlappingAMR;
-
-  unsigned int numChildren = compositeInformation->GetNumberOfChildren();
-  for (unsigned int cc = 0; cc < numChildren; cc++)
-  {
-    vtkPVDataInformation* childInfo = compositeInformation->GetDataInformation(cc);
-    QTreeWidgetItem* childItem = this->fillCompositeInformation(childInfo, node);
-    childItem->setFlags(childItem->flags() | Qt::ItemIsEditable);
-    const char* name = compositeInformation->GetName(cc);
-    if (name && name[0])
-    {
-      // use name given to the block.
-      childItem->setText(0, name);
-    }
-    else if (isAMR)
-    {
-      childItem->setText(0, QString("Level %1").arg(cc));
-    }
-    else if (childInfo && childInfo->GetCompositeDataClassName())
-    {
-      childItem->setText(0, QString("Block %1").arg(cc));
-    }
-    else
-    {
-      // Use the data classname in the name for the leaf node.
-      childItem->setText(0, QString("%1: %2").arg(cc).arg(childItem->text(0)));
-    }
-  }
-
-  return node;
 }
 
 //-----------------------------------------------------------------------------
-void pqProxyInformationWidget::onCurrentItemChanged(QTreeWidgetItem* item)
+void pqProxyInformationWidget::onDataTypePropertiesWidgetChanged(int idx)
 {
-  if (item)
+  QStackedWidget* stack = this->Ui->dataTypeProperties;
+  for (int i = 0; i < stack->count(); ++i)
   {
-    vtkPVDataInformation* info =
-      reinterpret_cast<vtkPVDataInformation*>(item->data(0, Qt::UserRole).value<void*>());
-    this->fillDataInformation(info);
+    QSizePolicy::Policy policy = i == idx ? QSizePolicy::Expanding : QSizePolicy::Ignored;
+    stack->widget(i)->setSizePolicy(policy, policy);
   }
 }

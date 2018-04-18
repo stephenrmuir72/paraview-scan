@@ -63,6 +63,11 @@ public:
   void SetIndexedColorInFullSet(unsigned int index, double r, double g, double b);
   void GetIndexedColorInFullSet(unsigned int index, double rgb[3]);
 
+  void SetNumberOfIndexedOpacitiesInFullSet(int n);
+  int GetNumberOfIndexedOpacitiesInFullSet();
+  void SetIndexedOpacityInFullSet(unsigned int index, double alpha);
+  void GetIndexedOpacityInFullSet(unsigned int index, double* alpha);
+
   //@{
   /**
    * Set whether to use restrict annotations to only the values
@@ -76,30 +81,41 @@ public:
   /**
    * Override to set only the active annotations
    */
-  virtual void Build() VTK_OVERRIDE;
+  void Build() VTK_OVERRIDE;
 
 protected:
   vtkPVDiscretizableColorTransferFunction();
-  ~vtkPVDiscretizableColorTransferFunction();
+  ~vtkPVDiscretizableColorTransferFunction() override;
 
 private:
-  vtkPVDiscretizableColorTransferFunction(
-    const vtkPVDiscretizableColorTransferFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPVDiscretizableColorTransferFunction&) VTK_DELETE_FUNCTION;
+  vtkPVDiscretizableColorTransferFunction(const vtkPVDiscretizableColorTransferFunction&) = delete;
+  void operator=(const vtkPVDiscretizableColorTransferFunction&) = delete;
 
-  // All annotations.
+  //@{
+  /**
+   * All annotations.
+   */
   vtkAbstractArray* AnnotatedValuesInFullSet;
   vtkStringArray* AnnotationsInFullSet;
+  //@}
 
   vtkDoubleArray* IndexedColorsInFullSet;
+  vtkDoubleArray* IndexedOpacitiesInFullSet;
 
-  // Set of active annotations
+  /**
+   * Set of active annotations.
+   */
   vtkVariantArray* ActiveAnnotatedValues;
 
-  // Set whether only "active" annotations should be display. If off, show all annotations.
+  /**
+   * Set whether only "active" annotations should be display. If off, show all
+   * annotations.
+   */
   bool UseActiveValues;
 
-  // Build time for this subclass
+  /**
+   * Build time for this subclass.
+   */
   vtkTimeStamp BuildTime;
 };
 

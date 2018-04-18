@@ -65,19 +65,28 @@ public:
   vtkGetStringMacro(Postfix);
   //@}
 
+  //@{
+  /**
+   * Set the format to use when displaying the field value
+   */
+  vtkSetStringMacro(Format);
+  vtkGetStringMacro(Format);
+  //@}
+
 protected:
   vtkAnnotateGlobalDataFilter();
-  ~vtkAnnotateGlobalDataFilter();
+  ~vtkAnnotateGlobalDataFilter() override;
 
-  virtual void EvaluateExpression() VTK_OVERRIDE;
+  void EvaluateExpression() VTK_OVERRIDE;
 
   char* Prefix;
   char* Postfix;
   char* FieldArrayName;
+  char* Format;
 
 private:
-  vtkAnnotateGlobalDataFilter(const vtkAnnotateGlobalDataFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAnnotateGlobalDataFilter&) VTK_DELETE_FUNCTION;
+  vtkAnnotateGlobalDataFilter(const vtkAnnotateGlobalDataFilter&) = delete;
+  void operator=(const vtkAnnotateGlobalDataFilter&) = delete;
 };
 
 #endif

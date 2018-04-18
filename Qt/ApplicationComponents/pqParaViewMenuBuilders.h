@@ -68,8 +68,12 @@ public:
   * Builds "Filters" menu.
   * If you want to automatically add toolbars for filters as requested in the
   * configuration pass in a non-null main window.
+  * If you do not want to add the actions from the filters menu to quick launch
+  * maintained by pqApplicationCore (see pqPVApplicationCore::registerForQuicklaunch),
+  * then pass quickLaunchable == false.
   */
-  static void buildFiltersMenu(QMenu& menu, QMainWindow* mainWindow = 0);
+  static void buildFiltersMenu(QMenu& menu, QMainWindow* mainWindow = 0, bool hideDisabled = false,
+    bool quickLaunchable = true);
 
   /**
   * Builds the "Tools" menu.
@@ -101,7 +105,7 @@ public:
   * Builds the context menu shown over the pipeline browser for some common
   * pipeline operations.
   */
-  static void buildPipelineBrowserContextMenu(QWidget&);
+  static void buildPipelineBrowserContextMenu(QMenu& menu);
 
   /**
   * Builds and adds all standard ParaView toolbars.

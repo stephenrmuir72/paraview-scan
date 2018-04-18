@@ -40,12 +40,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkWeakPointer.h"
 
 #include <QtDebug>
+#include <sstream>
 
 class pqGenericPropertyWidgetDecorator::pqInternals
 {
 public:
   vtkWeakPointer<vtkSMProperty> Property;
-  std::string Value;
+  std::vector<std::string> Values;
   bool Inverse;
   bool Enabled;
   bool Visible;
@@ -82,21 +83,38 @@ public:
 
     if (vtkSMProxyProperty::SafeDownCast(this->Property))
     {
-      vtkSMProxyListDomain* pld =
-        vtkSMProxyListDomain::SafeDownCast(this->Property->FindDomain("vtkSMProxyListDomain"));
-      if (!pld)
+      if (vtkSMProxyListDomain::SafeDownCast(this->Property->FindDomain("vtkSMProxyListDomain")))
       {
-        qCritical() << "ProxyProperty without vtkSMProxyListDomain is not supported. "
-                    << "pqGenericPropertyWidgetDecorator may not work as expected.";
-        return false;
+        bool status = false;
+        for (auto it = this->Values.begin(); helper.GetAsProxy(0) && it != this->Values.end(); ++it)
+        {
+          status |= (helper.GetAsProxy(0)->GetXMLName() == *it);
+        }
+        return this->Inverse ? !status : status;
       }
-
-      bool status = (helper.GetAsProxy(0) && (helper.GetAsProxy(0)->GetXMLName() == this->Value));
-      return this->Inverse ? !status : status;
+      if (this->Values.size() == 1 && this->Values[0] == "null")
+      {
+        if (helper.GetNumberOfElements() == 1)
+        {
+          return (helper.GetAsProxy(0) != nullptr ? this->Inverse : !this->Inverse);
+        }
+        else if (helper.GetNumberOfElements() == 0)
+        {
+          return this->Inverse;
+        }
+      }
+      qCritical() << "ProxyProperty not properly specified in XML. "
+                  << "pqGenericPropertyWidgetDecorator may not work as expected.";
+      return false;
     }
 
     vtkVariant val = helper.GetAsVariant(0);
-    bool status = (val.ToString() == this->Value);
+    bool status = false;
+    for (auto it = this->Values.begin(); it != this->Values.end(); ++it)
+    {
+      status |= (val.ToString() == *it);
+    }
+
     return this->Inverse ? !status : status;
   }
 };
@@ -108,10 +126,10 @@ pqGenericPropertyWidgetDecorator::pqGenericPropertyWidgetDecorator(
   , Internals(new pqGenericPropertyWidgetDecorator::pqInternals())
 {
   vtkSMProxy* proxy = this->parentWidget()->proxy();
-  Q_ASSERT(proxy != NULL);
+  Q_ASSERT(proxy != nullptr);
 
   const char* propertyName = config->GetAttribute("property");
-  if (propertyName == NULL || proxy->GetProperty(propertyName) == NULL)
+  if (propertyName == nullptr || proxy->GetProperty(propertyName) == nullptr)
   {
     // this can happen with compound proxies. In which case, silently ignore.
     // qCritical() << "Invalid property='" << (propertyName? propertyName : "(null)")
@@ -128,12 +146,28 @@ pqGenericPropertyWidgetDecorator::pqGenericPropertyWidgetDecorator(
   }
 
   const char* value = config->GetAttribute("value");
-  if (value == NULL)
+  if (value == nullptr)
   {
-    qCritical() << "Missing 'value' in the specified configuration.";
-    return;
+    // see if there are multiple values instead.
+    value = config->GetAttribute("values");
+    if (value == nullptr)
+    {
+      qCritical() << "Missing 'value' in the specified configuration.";
+      return;
+    }
+    std::stringstream ss;
+    ss.str(value);
+    std::string item;
+    auto vec_inserter = std::back_inserter(this->Internals->Values);
+    while (std::getline(ss, item, ' '))
+    {
+      *(vec_inserter++) = item;
+    }
   }
-  this->Internals->Value = value;
+  else
+  {
+    this->Internals->Values.push_back(value);
+  }
 
   const char* mode = config->GetAttribute("mode");
   if (mode && strcmp(mode, "visibility") == 0)
@@ -168,7 +202,7 @@ pqGenericPropertyWidgetDecorator::~pqGenericPropertyWidgetDecorator()
 //-----------------------------------------------------------------------------
 void pqGenericPropertyWidgetDecorator::updateState()
 {
-  if (this->Internals->Property == NULL || this->parentWidget() == NULL)
+  if (this->Internals->Property == nullptr || this->parentWidget() == nullptr)
   {
     return;
   }

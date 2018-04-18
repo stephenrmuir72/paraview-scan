@@ -43,9 +43,9 @@ class vtkSMLinkObserver : public vtkCommand
 public:
   vtkWeakPointer<vtkSMProperty> Output;
   typedef vtkCommand Superclass;
-  virtual const char* GetClassNameInternal() const { return "vtkSMLinkObserver"; }
+  const char* GetClassNameInternal() const override { return "vtkSMLinkObserver"; }
   static vtkSMLinkObserver* New() { return new vtkSMLinkObserver(); }
-  virtual void Execute(vtkObject* caller, unsigned long event, void* calldata)
+  void Execute(vtkObject* caller, unsigned long event, void* calldata) override
   {
     (void)event;
     (void)calldata;
@@ -54,6 +54,12 @@ public:
     {
       // this will copy both checked and unchecked property values.
       this->Output->Copy(input);
+    }
+    vtkSMProxy* parent = vtkSMProxy::SafeDownCast(caller);
+    if (parent && this->Output)
+    {
+      // this will update the output object.
+      this->Output->GetParent()->UpdateVTKObjects();
     }
   }
 };
@@ -97,6 +103,8 @@ public:
               input->AddObserver(vtkCommand::PropertyModifiedEvent, observer));
             this->ObserverIds.push_back(
               input->AddObserver(vtkCommand::UncheckedPropertyModifiedEvent, observer));
+            this->ObserverIds.push_back(
+              parent->AddObserver(vtkCommand::UpdatePropertyEvent, observer));
             observer->FastDelete();
             output->Copy(input);
           }
@@ -230,13 +238,7 @@ public:
   ~vtkSMProxyListDomainInternals() { this->ClearProxies(); }
 
 public:
-  struct ProxyInfo
-  {
-    std::string GroupName;
-    std::string ProxyName;
-  };
-  typedef std::vector<ProxyInfo> VectorOfProxyInfo;
-  VectorOfProxyInfo ProxyTypeList;
+  std::vector<vtkSMProxyListDomain::ProxyType> ProxyTypeList;
 
 private:
   VectorOfProxies ProxyList;
@@ -258,18 +260,19 @@ vtkSMProxyListDomain::~vtkSMProxyListDomain()
 }
 
 //-----------------------------------------------------------------------------
+const std::vector<vtkSMProxyListDomain::ProxyType>& vtkSMProxyListDomain::GetProxyTypes() const
+{
+  return this->Internals->ProxyTypeList;
+}
+
+//-----------------------------------------------------------------------------
 void vtkSMProxyListDomain::CreateProxies(vtkSMSessionProxyManager* pxm)
 {
   assert(pxm);
-
   this->Internals->ClearProxies();
-
-  for (vtkSMProxyListDomainInternals::VectorOfProxyInfo::iterator iter =
-         this->Internals->ProxyTypeList.begin();
-       iter != this->Internals->ProxyTypeList.end(); ++iter)
+  for (const auto& apair : this->Internals->ProxyTypeList)
   {
-    vtkSMProxy* proxy = pxm->NewProxy(iter->GroupName.c_str(), iter->ProxyName.c_str());
-    if (proxy)
+    if (vtkSMProxy* proxy = pxm->NewProxy(apair.GroupName.c_str(), apair.ProxyName.c_str()))
     {
       this->Internals->AddProxy(proxy, this);
       proxy->FastDelete();
@@ -286,10 +289,7 @@ int vtkSMProxyListDomain::IsInDomain(vtkSMProperty* vtkNotUsed(property))
 //-----------------------------------------------------------------------------
 void vtkSMProxyListDomain::AddProxy(const char* group, const char* name)
 {
-  vtkSMProxyListDomainInternals::ProxyInfo info;
-  info.GroupName = group;
-  info.ProxyName = name;
-  this->Internals->ProxyTypeList.push_back(info);
+  this->Internals->ProxyTypeList.push_back(ProxyType(group, name));
 }
 
 //-----------------------------------------------------------------------------
@@ -326,6 +326,22 @@ const char* vtkSMProxyListDomain::GetProxyName(unsigned int cc)
 const char* vtkSMProxyListDomain::GetProxyName(vtkSMProxy* proxy)
 {
   return proxy ? proxy->GetXMLName() : NULL;
+}
+
+//-----------------------------------------------------------------------------
+vtkSMProxy* vtkSMProxyListDomain::GetProxyWithName(const char* pname)
+{
+  vtkSMProxyListDomainInternals::VectorOfProxies::const_iterator iter;
+  const vtkSMProxyListDomainInternals::VectorOfProxies& proxies = this->Internals->GetProxies();
+  for (iter = proxies.begin(); pname != NULL && iter != proxies.end(); iter++)
+  {
+    if (iter->Proxy && iter->Proxy->GetXMLName() && strcmp(iter->Proxy->GetXMLName(), pname) == 0)
+    {
+      return iter->Proxy;
+    }
+  }
+
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------

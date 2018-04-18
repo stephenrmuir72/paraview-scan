@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QPointer>
 #include <QSet>
 #include <QStringList>
+#include <QtDebug>
 
 class pqProxyGroupMenuManager::pqInternal
 {
@@ -123,11 +124,15 @@ public:
   QPointer<QAction> SearchAction;
   unsigned long ProxyManagerCallBackId;
   void* LocalActiveSession;
+
+  QPointer<QMenu> RecentMenu;
 };
 
 //-----------------------------------------------------------------------------
-pqProxyGroupMenuManager::pqProxyGroupMenuManager(QMenu* _menu, const QString& resourceTagName)
+pqProxyGroupMenuManager::pqProxyGroupMenuManager(
+  QMenu* _menu, const QString& resourceTagName, bool quickLaunchable)
   : Superclass(_menu)
+  , SupportsQuickLaunch(quickLaunchable)
 {
   this->ResourceTagName = resourceTagName;
   this->Internal = new pqInternal();
@@ -149,6 +154,15 @@ pqProxyGroupMenuManager::pqProxyGroupMenuManager(QMenu* _menu, const QString& re
   this->Internal->ProxyManagerCallBackId =
     pqCoreUtilities::connect(vtkSMProxyManager::GetProxyManager(),
       vtkSMProxyManager::ActiveSessionChanged, this, SLOT(switchActiveServer()));
+
+  QObject::connect(this->menu(), SIGNAL(aboutToShow()), this, SLOT(updateMenuStyle()));
+
+  // register with pqPVApplicationCore for quicklaunch, if enabled.
+  auto* pvappcore = pqPVApplicationCore::instance();
+  if (quickLaunchable && pvappcore)
+  {
+    pvappcore->registerForQuicklaunch(this->widgetActionsHolder());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -310,17 +324,18 @@ static bool actionTextSort(QAction* a, QAction* b)
 }
 
 //-----------------------------------------------------------------------------
-void pqProxyGroupMenuManager::populateRecentlyUsedMenu(QMenu* rmenu)
+void pqProxyGroupMenuManager::populateRecentlyUsedMenu()
 {
-  QMenu* recentMenu = rmenu ? rmenu : this->menu()->findChild<QMenu*>("Recent");
-  if (recentMenu)
+  // doing this here, ensure that even if multiple pqProxyGroupMenuManager
+  // instances exists for same `resourceTagName`, the recent list remains synced
+  // between all.
+  this->loadRecentlyUsedItems();
+  if (QMenu* recentMenu = this->Internal->RecentMenu)
   {
     recentMenu->clear();
-    for (int cc = 0; cc < this->Internal->RecentlyUsed.size(); cc++)
+    for (const QPair<QString, QString>& key : this->Internal->RecentlyUsed)
     {
-      QPair<QString, QString> key = this->Internal->RecentlyUsed[cc];
-      QAction* action = this->getAction(key.first, key.second);
-      if (action)
+      if (auto action = this->getAction(key.first, key.second))
       {
         recentMenu->addAction(action);
       }
@@ -372,6 +387,7 @@ void pqProxyGroupMenuManager::populateMenu()
   // actions that are no longer shown in the menu. Hence we disconnect all
   // signal connections.
   QMenu* _menu = this->menu();
+
   QList<QAction*> menuActions = _menu->actions();
   foreach (QAction* action, menuActions)
   {
@@ -390,19 +406,22 @@ void pqProxyGroupMenuManager::populateMenu()
   }
   _menu->clear();
 
+  if (this->supportsQuickLaunch())
+  {
 #if defined(Q_WS_MAC) || defined(Q_OS_MAC)
-  this->Internal->SearchAction =
-    _menu->addAction("Search...\tAlt+Space", this, SLOT(quickLaunch()));
+    this->Internal->SearchAction =
+      _menu->addAction("Search...\tAlt+Space", this, SLOT(quickLaunch()));
 #else
-  this->Internal->SearchAction =
-    _menu->addAction("Search...\tCtrl+Space", this, SLOT(quickLaunch()));
+    this->Internal->SearchAction =
+      _menu->addAction("Search...\tCtrl+Space", this, SLOT(quickLaunch()));
 #endif
+  }
 
   if (this->RecentlyUsedMenuSize > 0)
   {
-    QMenu* recentMenu = _menu->addMenu("&Recent") << pqSetName("Recent");
-    this->loadRecentlyUsedItems();
-    this->populateRecentlyUsedMenu(recentMenu);
+    auto* rmenu = _menu->addMenu("&Recent") << pqSetName("Recent");
+    this->Internal->RecentMenu = rmenu;
+    this->connect(rmenu, SIGNAL(aboutToShow()), SLOT(populateRecentlyUsedMenu()));
   }
 
   // Add categories.
@@ -448,6 +467,14 @@ void pqProxyGroupMenuManager::populateMenu()
   }
 
   emit this->menuPopulated();
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyGroupMenuManager::updateMenuStyle()
+{
+  pqSettings* settings = pqApplicationCore::instance()->settings();
+  bool sc = settings->value("GeneralSettings.ForceSingleColumnMenus", false).toBool();
+  this->menu()->setStyleSheet(QString("QMenu { menu-scrollable: %1; }").arg(sc ? 1 : 0));
 }
 
 //-----------------------------------------------------------------------------
@@ -511,8 +538,7 @@ QAction* pqProxyGroupMenuManager::getAction(const QString& pgroup, const QString
     }
 
     // this avoids creating duplicate connections.
-    QObject::disconnect(action, 0, this, 0);
-    QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(triggered()));
+    this->connect(action, SIGNAL(triggered()), SLOT(triggered()), Qt::UniqueConnection);
     return action;
   }
   return 0;
@@ -541,15 +567,18 @@ void pqProxyGroupMenuManager::triggered()
     {
       this->Internal->RecentlyUsed.pop_back();
     }
-    this->populateRecentlyUsedMenu(0);
     this->saveRecentlyUsedItems();
+
+    // while this is not necessary, this overcomes a limitation of our testing
+    // framework where it doesn't trigger "aboutToShow" signal.
+    this->populateRecentlyUsedMenu();
   }
 }
 
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::quickLaunch()
 {
-  if (pqPVApplicationCore::instance())
+  if (this->supportsQuickLaunch() && pqPVApplicationCore::instance())
   {
     pqPVApplicationCore::instance()->quickLaunch();
   }
@@ -800,21 +829,6 @@ void pqProxyGroupMenuManager::lookForNewDefinitions()
       }
     }
   }
-
-  // Removing old definitions that don't exist anymore.
-  QSet<QPair<QString, QString> > setToRemove = this->Internal->Proxies.keys().toSet();
-  setToRemove.subtract(definitionSet);
-  QPair<QString, QString> key;
-  foreach (key, setToRemove)
-  {
-    // This extra test should be removed once the main definition has been updated
-    // with the Hints/ShowInMenu...
-    if (!pxdm->HasDefinition(key.first.toLocal8Bit().data(), key.second.toLocal8Bit().data()))
-    {
-      this->Internal->removeProxy(key.first, key.second);
-    }
-  }
-
   // Update the menu with the current definition
   this->populateMenu();
 }

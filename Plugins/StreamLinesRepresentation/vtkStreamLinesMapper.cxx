@@ -111,7 +111,7 @@ public:
 
 protected:
   Private();
-  ~Private();
+  ~Private() override;
 
   void InitParticle(int);
   bool PrepareGLBuffers(vtkRenderer*, vtkActor*);
@@ -159,8 +159,8 @@ protected:
   bool CreateWideLines;
 
 private:
-  Private(const Private&) VTK_DELETE_FUNCTION;
-  void operator=(const Private&) VTK_DELETE_FUNCTION;
+  Private(const Private&) = delete;
+  void operator=(const Private&) = delete;
 };
 
 vtkStandardNewMacro(vtkStreamLinesMapper::Private)
@@ -619,7 +619,6 @@ bool vtkStreamLinesMapper::Private::PrepareGLBuffers(vtkRenderer* ren, vtkActor*
 
   bool prevCreateWideLines = this->CreateWideLines;
   this->CreateWideLines = actor->GetProperty()->GetLineWidth() > 1.0 &&
-    vtkOpenGLRenderWindow::GetContextSupportsOpenGL32() &&
     actor->GetProperty()->GetLineWidth() > renWin->GetMaximumHardwareLineWidth();
 
   if (!this->Program || (prevCreateWideLines != this->CreateWideLines))
