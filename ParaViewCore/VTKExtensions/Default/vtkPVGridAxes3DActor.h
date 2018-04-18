@@ -97,8 +97,8 @@ public:
    * Overridden to ensure that the transform information is passed on the
    * superclass.
    */
-  void ComputeMatrix() VTK_OVERRIDE;
   double* GetBounds() VTK_OVERRIDE;
+  void ComputeMatrix() VTK_OVERRIDE;
 
 protected:
   vtkPVGridAxes3DActor();
