@@ -15,6 +15,7 @@
 #include "vtkSIVectorPropertyTemplate.h"
 
 #include "vtkClientServerStream.h"
+#include "vtkDataArray.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSIProxy.h"
@@ -121,6 +122,27 @@ vtkMaybeUnused("not used for non-int specializations") bool operator<<(
   {
     copy_to_vector(vtkTypeUInt64);
   }
+  else if (argType == vtkClientServerStream::vtk_object_pointer)
+  {
+    vtkObjectBase* obj;
+    stream.GetArgumentObject(0, 0, &obj, "vtkDataArray");
+    auto arr = vtkDataArray::SafeDownCast(obj);
+    if (arr)
+    {
+      size_t cc = static_cast<size_t>(arr->GetNumberOfComponents());
+      size_t tt = static_cast<size_t>(arr->GetNumberOfTuples());
+      size_t nn = cc * tt;
+      values.reserve(cur_size + nn);
+      for (size_t ii = 0; ii < tt; ++ii)
+      {
+        double* tuple = arr->GetTuple(ii);
+        for (size_t jj = 0; jj < cc; ++jj)
+        {
+          values.push_back(static_cast<int>(tuple[jj]));
+        }
+      }
+    }
+  }
 
 #undef copy_to_vector
 
@@ -198,6 +220,27 @@ vtkMaybeUnused("not used for non-double specializations") bool operator<<(
     values.resize(cur_size + length);
     delete[] fvalues;
     std::copy(fvalues, fvalues + length, &values[cur_size]);
+  }
+  else if (argType == vtkClientServerStream::vtk_object_pointer)
+  {
+    vtkObjectBase* obj;
+    stream.GetArgumentObject(0, 0, &obj, "vtkDataArray");
+    auto arr = vtkDataArray::SafeDownCast(obj);
+    if (arr)
+    {
+      size_t cc = static_cast<size_t>(arr->GetNumberOfComponents());
+      size_t tt = static_cast<size_t>(arr->GetNumberOfTuples());
+      size_t nn = cc * tt;
+      values.reserve(cur_size + nn);
+      for (size_t ii = 0; ii < tt; ++ii)
+      {
+        double* tuple = arr->GetTuple(ii);
+        for (size_t jj = 0; jj < cc; ++jj)
+        {
+          values.push_back(tuple[jj]);
+        }
+      }
+    }
   }
   return false;
 }

@@ -56,6 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMSteeringParametersProxy.h"
 
 //#define pqLiveInsituManagerDebugMacro(x) std::cerr << x << endl;
 #define pqLiveInsituManagerDebugMacro(x)
@@ -152,6 +153,13 @@ bool pqLiveInsituManager::isWriterParametersProxy(vtkSMProxy* proxy)
 }
 
 //-----------------------------------------------------------------------------
+bool pqLiveInsituManager::isSteeringParametersProxy(vtkSMProxy* proxy)
+{
+  auto steering = dynamic_cast<vtkSMSteeringParametersProxy*>(proxy);
+  return !!steering;
+}
+
+//-----------------------------------------------------------------------------
 bool pqLiveInsituManager::isInsitu(pqPipelineSource* pipelineSource)
 {
   pqServer* insituSession = pqLiveInsituManager::instance()->selectedInsituServer();
@@ -242,6 +250,7 @@ pqLiveInsituVisualizationManager* pqLiveInsituManager::connect(pqServer* server,
       new pqLiveInsituVisualizationManager(portNumber, server);
     QObject::connect(mgr, SIGNAL(insituDisconnected()), this, SLOT(onCatalystDisconnected()));
     this->Managers[server] = mgr;
+#if 0
     QMessageBox* mBox = new QMessageBox(QMessageBox::Information, "Ready for Catalyst connections",
       QString("Accepting connections from Catalyst Co-Processor \n"
               "for live-coprocessing on port %1")
@@ -249,6 +258,7 @@ pqLiveInsituVisualizationManager* pqLiveInsituManager::connect(pqServer* server,
       QMessageBox::Ok, pqCoreUtilities::mainWidget());
     mBox->open();
     QObject::connect(mgr, SIGNAL(insituConnected()), mBox, SLOT(close()));
+#endif
     emit connectionInitiated(server);
     return mgr;
   }

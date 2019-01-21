@@ -132,6 +132,10 @@ void vtkSMLiveInsituLinkProxy::LoadState(const vtkSMMessage* msg, vtkSMProxyLoca
           sourceProxyToMarkModified.push_back(realId);
         }
       }
+      else if (user_data.key() == "UpdateSteeringParameter" && this->CatalystSessionCore)
+      {
+        std::cout << "Update steering parameter\n";
+      }
       else if (user_data.key() == "IdMapping" && this->CatalystSessionCore)
       {
         const Variant& mapTable = user_data.variant(0);

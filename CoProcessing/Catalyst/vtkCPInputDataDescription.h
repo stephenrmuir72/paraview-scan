@@ -95,6 +95,13 @@ public:
   vtkBooleanMacro(GenerateMesh, bool);
 
   // Description:
+  // Use this to mark the mesh as holding steering parameters. Off by default.
+  // Note that calling Reset() does **not** change this flag.
+  vtkSetMacro(IsSteering, bool);
+  vtkGetMacro(IsSteering, bool);
+  vtkBooleanMacro(IsSteering, bool);
+
+  // Description:
   // Set the grid input for coprocessing.  The grid should have all of
   // the point data and cell data properly set.
   void SetGrid(vtkDataObject* grid);
@@ -133,6 +140,10 @@ protected:
   // Description:
   // The grid for coprocessing. The grid is not owned by the object.
   vtkDataObject* Grid;
+
+  // Description:
+  // True when the "grid" is a table representing steering parameters.
+  bool IsSteering;
 
 private:
   vtkCPInputDataDescription(const vtkCPInputDataDescription&) = delete;

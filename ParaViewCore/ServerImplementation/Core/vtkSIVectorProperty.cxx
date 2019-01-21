@@ -41,7 +41,6 @@ bool vtkSIVectorProperty::ReadXMLAttributes(vtkSIProxy* proxyhelper, vtkPVXMLEle
   if (!this->Superclass::ReadXMLAttributes(proxyhelper, element))
   {
     return false;
-    ;
   }
 
   const char* numCommand = element->GetAttribute("set_number_command");
@@ -74,7 +73,7 @@ bool vtkSIVectorProperty::ReadXMLAttributes(vtkSIProxy* proxyhelper, vtkPVXMLEle
     this->SetInitialString(initial_string);
   }
 
-  return 1;
+  return true;
 }
 
 //----------------------------------------------------------------------------

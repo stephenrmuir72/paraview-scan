@@ -290,7 +290,8 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
     if (pqLiveInsituManager::isInsituServer(port->getServer()))
     {
       // we don't need to add an extract for writer parameters proxies.
-      if (!pqLiveInsituManager::isWriterParametersProxy(port->getSourceProxy()))
+      if (!pqLiveInsituManager::isWriterParametersProxy(port->getSourceProxy()) &&
+        !pqLiveInsituManager::isSteeringParametersProxy(port->getSourceProxy()))
       {
         pqLiveInsituVisualizationManager* mgr =
           pqLiveInsituManager::managerFromInsitu(port->getServer());
