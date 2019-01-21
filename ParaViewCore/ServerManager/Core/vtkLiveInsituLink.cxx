@@ -664,9 +664,19 @@ void vtkLiveInsituLink::InsituConnect(vtkMultiProcessController* proc0NodesContr
       if (myId < std::min(this->ExtractsDeliveryHelper->GetNumberOfVisualizationProcesses(),
                    this->ExtractsDeliveryHelper->GetNumberOfSimulationProcesses()))
       {
-        vtksys::SystemInformation sysinfo;
-        const char* hostname = sysinfo.GetHostname();
-        this->SetHostname(hostname);
+        if (numProcs > 1)
+        {
+          // When running parallel pvserver processes, the catalyst connection from
+          // the simulation must bbe able to reach them all at separate hostnames/ports.
+          // For that case, fetch the hostname properly.
+          // However, when running a single pvserver process as part of the client GUI,
+          // the hostname should remain as-is since the user may need to override it to
+          // prevent port-forwarded SSH connections from attempting to contact the GUI
+          // by its actual hostname (usually unreachable from the simulation node).
+          vtksys::SystemInformation sysinfo;
+          const char* hostname = sysinfo.GetHostname();
+          this->SetHostname(hostname);
+        }
         int numCommunicationProcs =
           std::min(this->ExtractsDeliveryHelper->GetNumberOfVisualizationProcesses(),
             this->ExtractsDeliveryHelper->GetNumberOfSimulationProcesses());

@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqIntVectorPropertyWidget.h"
 
+#include "vtkPVXMLElement.h"
 #include "vtkSMBooleanDomain.h"
 #include "vtkSMCompositeTreeDomain.h"
 #include "vtkSMDomain.h"
@@ -93,6 +94,14 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
 
   QHBoxLayout* layoutLocal = new QHBoxLayout;
   layoutLocal->setMargin(0);
+
+  vtkPVXMLElement* hints = ivp->GetHints();
+  bool extensible = true;
+  if (hints != nullptr)
+  {
+    auto notExtensible = hints->FindNestedElementByName("NotExtensible");
+    extensible = !notExtensible;
+  }
 
   if (vtkSMBooleanDomain::SafeDownCast(domain))
   {
@@ -197,7 +206,12 @@ pqIntVectorPropertyWidget::pqIntVectorPropertyWidget(
   {
     int elementCount = ivp->GetNumberOfElements();
 
-    if (ivp->GetRepeatable())
+    // The `repeatable` XML attribute really indicates that the property
+    // should be treated as multiple tuple values.
+    // In order to show controls for changing the number of tuples,
+    // we also require the property to be marked extensible (the default).
+    // If the NotExtensible hint is added, these controls will not be shown.
+    if (ivp->GetRepeatable() && extensible)
     {
       pqScalarValueListPropertyWidget* widget =
         new pqScalarValueListPropertyWidget(smproperty, smProxy, this);

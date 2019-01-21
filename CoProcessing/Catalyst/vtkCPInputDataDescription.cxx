@@ -40,6 +40,7 @@ vtkCPInputDataDescription::vtkCPInputDataDescription()
 {
   this->Grid = NULL;
   this->GenerateMesh = false;
+  this->IsSteering = false;
   this->AllFields = false;
   this->Internals = new vtkCPInputDataDescription::vtkInternals();
   this->WholeExtent[0] = this->WholeExtent[2] = this->WholeExtent[4] = 0;
@@ -61,8 +62,9 @@ vtkCPInputDataDescription::~vtkCPInputDataDescription()
 void vtkCPInputDataDescription::Reset()
 {
   this->Internals->Fields.clear();
-  this->AllFields = false;
-  this->GenerateMesh = false;
+  bool isSteering = this->GetIsSteering();
+  this->AllFields = !isSteering;
+  this->GenerateMesh = !isSteering;
 }
 
 //----------------------------------------------------------------------------
@@ -196,7 +198,8 @@ bool vtkCPInputDataDescription::IsFieldPointData(const char* fieldName)
 //----------------------------------------------------------------------------
 bool vtkCPInputDataDescription::GetIfGridIsNecessary()
 {
-  return (this->AllFields || this->GetNumberOfFields() > 0 || this->GenerateMesh);
+  return (this->AllFields || this->GetNumberOfFields() > 0 ||
+    this->GenerateMesh || this->IsSteering);
 }
 
 //----------------------------------------------------------------------------
@@ -208,6 +211,7 @@ void vtkCPInputDataDescription::ShallowCopy(vtkCPInputDataDescription* idd)
   }
   this->AllFields = idd->AllFields;
   this->GenerateMesh = idd->GenerateMesh;
+  this->IsSteering = idd->IsSteering;
   this->SetGrid(idd->Grid);
   memcpy(this->WholeExtent, idd->WholeExtent, 6 * sizeof(int));
   this->Internals->Fields = idd->Internals->Fields;
@@ -219,6 +223,7 @@ void vtkCPInputDataDescription::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
   os << indent << "AllFields: " << this->AllFields << "\n";
   os << indent << "GenerateMesh: " << this->GenerateMesh << "\n";
+  os << indent << "IsSteering: " << this->IsSteering << "\n";
   if (this->Grid)
   {
     os << indent << "Grid: " << this->Grid << "\n";

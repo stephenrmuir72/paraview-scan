@@ -204,16 +204,19 @@ int vtkCPProcessor::RequestDataDescription(vtkCPDataDescription* dataDescription
     return 0;
   }
 
-  // first set all inputs to be off and set to on as needed.
+  // first set all inputs to be off and set to on as needed,
+  // except for steering data (which is always on).
   // we don't use vtkCPInputDataDescription::Reset() because
   // that will reset any field names that were added in.
   for (unsigned int i = 0; i < dataDescription->GetNumberOfInputDescriptions(); i++)
   {
-    dataDescription->GetInputDescription(i)->GenerateMeshOff();
-    dataDescription->GetInputDescription(i)->AllFieldsOff();
+    auto descr = dataDescription->GetInputDescription(i);
+    bool isSteering = descr->GetIsSteering();
+    descr->SetGenerateMesh(!isSteering);
+    descr->SetAllFields(!isSteering);
   }
 
-  dataDescription->ResetInputDescriptions();
+  // dataDescription->ResetInputDescriptions(); // Err, this calls vtkCPInputDataDescription::Reset which we should not do?
   int doCoProcessing = 0;
   for (vtkCPProcessorInternals::PipelineListIterator iter = this->Internal->Pipelines.begin();
        iter != this->Internal->Pipelines.end(); iter++)

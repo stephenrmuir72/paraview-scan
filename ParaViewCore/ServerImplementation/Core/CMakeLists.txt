@@ -43,10 +43,12 @@ set (Module_SRCS
   vtkSIDataArraySelectionProperty.cxx
   vtkSIDirectoryProxy.cxx
   vtkSIDoubleMapProperty.cxx
+  vtkSINamedDoubleVectorProperty.cxx
   vtkSIDoubleVectorProperty.cxx
   vtkSIIdTypeVectorProperty.cxx
   vtkSIIndexSelectionProperty.cxx
   vtkSIInputProperty.cxx
+  vtkSINamedIntVectorProperty.cxx
   vtkSIIntVectorProperty.cxx
   vtkSIMetaReaderProxy.cxx
   vtkSIObject.cxx
@@ -56,6 +58,7 @@ set (Module_SRCS
   vtkSIProxyProperty.cxx
   vtkSISILProperty.cxx
   vtkSISourceProxy.cxx
+  vtkSINamedStringVectorProperty.cxx
   vtkSIStringVectorProperty.cxx
   vtkSITimeLabelProperty.cxx
   vtkSITimeRangeProperty.cxx
@@ -70,6 +73,9 @@ set (${vtk-module}_HDRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSMMessageMinimal.h
   ${CMAKE_CURRENT_BINARY_DIR}/vtkPVMessage.pb.h
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSIVectorPropertyTemplate.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSIVectorPropertyTemplate.txx
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSINamedVectorPropertyTemplate.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSINamedVectorPropertyTemplate.txx
   )
 
 #------------------------------------------------------------------------------

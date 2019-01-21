@@ -2211,6 +2211,20 @@
       </IntVectorProperty>
     </SourceProxy>
     <!-- ==================================================================== -->
+    <SteeringParametersProxy
+      class="vtkPVParameterProducer"
+      name="SteeringParameters">
+      <!--
+        For ParaView Live connections that perform steering, this source
+        is used to advertise certain vtkFieldData arrays on the output of
+        the vtkPVTrivialProducer as properties of the proxy for editing
+        via the ParaView Properties panel.
+        Instances of this proxy are created to hold data-objects whose
+        vtkCPInputDataDescription::GetIsSteering() returns true.
+        See coprocessing.py for where this occurs.
+      -->
+    </SteeringParametersProxy>
+    <!-- ==================================================================== -->
     <SourceProxy class="vtkDistributedTrivialProducer"
                  name="DistributedTrivialProducer">
       <IntVectorProperty command="SetWholeExtent"
