@@ -30,6 +30,7 @@
 #==========================================================================
 set (Module_SRCS
   vtkLiveInsituLink.cxx
+  vtkPVParameterProducer.cxx
   vtkSMAMRLevelsDomain.cxx
   vtkSMArrayListDomain.cxx
   vtkSMArrayRangeDomain.cxx
@@ -77,6 +78,9 @@ set (Module_SRCS
   vtkSMLiveInsituLinkProxy.cxx
   vtkSMMapProperty.cxx
   vtkSMNamedPropertyIterator.cxx
+  vtkSMNamedDoubleVectorProperty.cxx
+  vtkSMNamedIntVectorProperty.cxx
+  vtkSMNamedStringVectorProperty.cxx
   vtkSMNumberOfComponentsDomain.cxx
   vtkSMObject.cxx
   vtkSMOrderedPropertyIterator.cxx
@@ -122,6 +126,7 @@ set (Module_SRCS
   vtkSMStateLoader.cxx
   vtkSMStateLocator.cxx
   vtkSMStateVersionController.cxx
+  vtkSMSteeringParametersProxy.cxx
   vtkSMStringListDomain.cxx
   vtkSMStringVectorProperty.cxx
   vtkSMSubsetInclusionLatticeDomain.cxx

@@ -72,6 +72,7 @@ public:
   static bool isInsituServer(pqServer* server);
   static bool isInsitu(pqPipelineSource* pipelineSource);
   static bool isWriterParametersProxy(vtkSMProxy* proxy);
+  static bool isSteeringParametersProxy(vtkSMProxy* proxy);
   static pqPipelineSource* pipelineSource(pqServer* insituSession);
   static void time(pqPipelineSource* source, double* time, vtkIdType* timeStep);
 

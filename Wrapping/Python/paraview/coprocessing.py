@@ -9,7 +9,11 @@ appropriate for co-processing.
 from __future__ import print_function
 from paraview import simple, servermanager
 from paraview.vtk.vtkPVVTKExtensionsCore import *
+import vtkmodules
+import vtkmodules.vtkCommonCore
 import math
+from vtkmodules.util.numpy_support import vtk_to_numpy
+from numpy import finfo
 
 # If the user created a filename in a location that doesn't exist by default we'll
 # make the directory for them. This can be changed though by setting createDirectoriesIfNeeded
@@ -69,6 +73,7 @@ class CoProcessor(object):
         self.__EnableCinemaDTable = False
         self.__WroteCinemaDHeader = False
         self.__RootDirectory = ""
+        self.__EnableSteering = True
 
     def SetPrintEnsightFormatString(self, enable):
         """If outputting ExodusII files with the purpose of reading them into
@@ -114,6 +119,14 @@ class CoProcessor(object):
         self.__EnableLiveVisualization = enable
         self.__LiveVisualizationFrequency = frequency
 
+    def EnableSteering(self, enable):
+        """Call this method to enable computational steering. When enabled,
+        and when a simulation provides any data descriptions marked as
+        steering parameters, they will be requested by catalyst and
+        presented during live visualization. This option only has an effect
+        when EnableLiveVisualization has been enabled."""
+        self.__EnableSteering = enable
+
     def CreatePipeline(self, datadescription):
         """This methods must be overridden by subclasses to create the
            visualization pipeline."""
@@ -135,6 +148,17 @@ class CoProcessor(object):
         # to provide other channels. similarly, if only specific arrays were requested when
         # generating the script then only those arrays will be provided to the Live connection.
         # note that we want the pipeline built before we do the actual first live connection.
+
+        # Enable steering when live
+        # Note that all steering parameters must (for now) be registered
+        # at the time the data description is initialized.
+        if self.__EnableLiveVisualization and self.__EnableSteering:
+            for ii in range(datadescription.GetNumberOfInputDescriptions()):
+                desc = datadescription.GetInputDescription(ii)
+                if desc.GetIsSteering():
+                    desc.AllFieldsOn()
+                    desc.GenerateMeshOn()
+
         if self.__EnableLiveVisualization and self.NeedToOutput(datadescription, self.__LiveVisualizationFrequency) \
            and self.__LiveVisualizationLink:
             if self.__LiveVisualizationLink.Initialize(servermanager.ActiveConnection.Session.GetSessionProxyManager()):
@@ -209,6 +233,7 @@ class CoProcessor(object):
            self.CreatePipeline().
         """
         if not self.__PipelineCreated:
+           self.CreateSteeringProducers(datadescription)
            self.CreatePipeline(datadescription)
            self.__PipelineCreated = True
            if self.__EnableLiveVisualization:
@@ -218,6 +243,7 @@ class CoProcessor(object):
 
         else:
             simtime = datadescription.GetTime()
+            self.UpdateSteeringProducers(datadescription)
             for name, producer in self.__ProducersMap.items():
                 producer.GetClientSideObject().SetOutput(
                     datadescription.GetInputDescriptionByName(name).GetGrid(),
@@ -380,6 +406,10 @@ class CoProcessor(object):
             self.__LiveVisualizationLink.SetHostname(hostname)
             self.__LiveVisualizationLink.SetInsituPort(int(port))
 
+            # For all the steering producers, set the link so they can
+            # initiate changes across it.
+            self.LinkSteeringProducers()
+
             # Initialize the "link"
             self.__LiveVisualizationLink.Initialize(servermanager.ActiveConnection.Session.GetSessionProxyManager())
 
@@ -415,6 +445,195 @@ class CoProcessor(object):
                     break;
             else:
                 break
+
+    def CreateSteeringProducers(self, datadescription):
+        """Creates a producer proxy for each grid marked with IsSteering set to True.
+
+        Note that this method is extremely similar to self.CreateProducer except
+        that it loops over all input descriptions.
+        """
+        import xml.etree.cElementTree as ET
+        for ii in range(datadescription.GetNumberOfInputDescriptions()):
+            grid = datadescription.GetInputDescription(ii)
+            gridName = datadescription.GetInputDescriptionName(ii)
+            ptree = grid.GetGrid() if grid and grid.GetIsSteering() else None
+            if ptree:
+                producer = simple.SteeringParameters(guiName=gridName)
+                producer.add_attribute("cpSimulationInput", gridName)
+                producer.SMProxy.cpSimulationInput = gridName
+                simTime = datadescription.GetTime()
+                producer.GetClientSideObject().SetOutput(ptree, simTime)
+                # print('Creating producer with link %s' % (self.__LiveVisualizationLink != None))
+                # producer.GetClientSideObject().SetLink(self.__LiveVisualizationLink) # No link exists yet.
+
+                # Now add steering parameters as properties to the proxy:
+                if ptree:
+                    pnames = ptree.GetColumnByName('name')
+                    pdomains = ptree.GetColumnByName('domain')
+                    pdefaults = ptree.GetColumnByName('default')
+                    fields = ptree.GetFieldData()
+                    numParams = ptree.GetNumberOfRows()
+                    if pnames and fields:
+                        root = ET.Element('Proxy')
+                        for pp in range(numParams):
+                            arrayName = pnames.GetValue(pp)
+                            infoArrayName = arrayName + 'Info'
+                            domainName = pdomains.GetValue(pp) if pdomains else None
+                            defaultName = pdefaults.GetValue(pp) if pdefaults else None
+                            parray = fields.GetAbstractArray(arrayName)
+                            pdomain = fields.GetAbstractArray(domainName)
+                            pdefault = fields.GetAbstractArray(defaultName)
+                            ptype = parray.GetDataType() if parray else -1
+                            numComps = parray.GetNumberOfComponents() if parray else 1
+                            # print('Considering %s array %s type %s' % (arrayName, parray, ptype))
+                            if ptype == vtkmodules.vtkCommonCore.VTK_DOUBLE or ptype == vtkmodules.vtkCommonCore.VTK_FLOAT:
+                                tval = parray.GetTuple(0)
+                                prop = ET.SubElement(root, 'NamedDoubleVectorProperty')
+                                pd = {
+                                    'name': arrayName,
+                                    'command': 'SetParameter',
+                                    'property_name': arrayName,
+                                    'information_property': infoArrayName,
+                                    'number_of_elements': str(numComps),
+                                    'number_of_elements_per_command': str(numComps),
+                                    'default_values': ' '.join(['%.17g' % x for x in tval]).strip(),
+                                    'animateable': '1',
+                                    'panel_visibility': 'default'
+                                    }
+                                for attrName, attrValue in pd.items():
+                                    prop.set(attrName, attrValue)
+                                dom = ET.SubElement(prop, 'DoubleRangeDomain')
+                                dom.set('name', 'range')
+                                if pdomain and pdomain.GetDataType() == parray.GetDataType() and pdomain.GetNumberOfTuples() == 2:
+                                    # TODO: Handle vector per-component min/max?
+                                    plim = vtk_to_numpy(pdomain)
+                                    pmin = pdomain.GetTuple(0)
+                                    pmax = pdomain.GetTuple(1)
+                                    if pmin > finfo(plim.dtype).min:
+                                        dom.set('min', '%.17g' % pmin)
+                                    if pmax < finfo(plim.dtype).max:
+                                        dom.set('max', '%.17g' % pmax)
+                                    #print('Array %s range %s -- %s' % (arrayName, pmin, pmax))
+                                hints = ET.SubElement(prop, 'Hints')
+                                # The NoDefault hint tells the client not to immediately set each
+                                # steering parameter to its default value:
+                                ET.SubElement(hints, 'NoDefault')
+                                # The NotExtensible hint tells the client to use the default GUI
+                                # for each parameter (which assumes a fixed, non-extensible number
+                                # of tuples per parameter rather than a user-adjustable number of
+                                # tuples). This prevents a confusing user experience:
+                                ET.SubElement(hints, 'NotExtensible')
+
+                                iprop = ET.SubElement(root, 'NamedDoubleVectorProperty')
+                                ipd = {
+                                    'name': infoArrayName,
+                                    'command': 'GetParameter',
+                                    'property_name': arrayName,
+                                    # 'number_of_elements': str(numComps),
+                                    # 'number_of_elements_per_command': str(numComps),
+                                    # 'default_values': ' '.join(['%.17g' % x for x in tval]).strip(),
+                                    'information_only': '1'
+                                    }
+                                for attrName, attrValue in ipd.items():
+                                    iprop.set(attrName, attrValue)
+                                # dom = ET.SubElement(iprop, 'DoubleArrayInformationHelper')
+                                # print('Adding double param %s, proxy %s, with %s' % (arrayName, producer.SMProxy == None, dfn))
+                            elif ptype == vtkmodules.vtkCommonCore.VTK_STRING:
+                                if numComps > 1:
+                                    print('Catalyst does not support string parameters with multiple components yet.')
+                                    continue
+                                ival = parray.GetValue(0)
+                                prop = ET.SubElement(root, 'NamedStringVectorProperty')
+                                # TODO: Note that because we only support a single component (and really,
+                                # a single value), we can trim enough attributes from above (like
+                                # repeat_command, use_index, number_of_elements_per_command, ...)
+                                # that the <StringListDomain><String value="..."/>...</StringListDomain>
+                                # makes the GUI work properly.
+                                pd = {
+                                    'name': arrayName,
+                                    'command': 'SetParameter',
+                                    'property_name': arrayName,
+                                    'number_of_elements': str(numComps),
+                                    'default_values': ival,
+                                    'animateable': '1',
+                                    'panel_visibility': 'default'
+                                    }
+                                for attrName, attrValue in pd.items():
+                                    prop.set(attrName, attrValue)
+                                if pdomain and pdomain.IsA('vtkStringArray'):
+                                    dom = ET.SubElement(prop, 'StringListDomain')
+                                    dom.set('name', arrayName) # TODO: is this ignored?
+                                    for jj in range(pdomain.GetNumberOfValues()):
+                                        ET.SubElement(dom, 'String').set('value', pdomain.GetValue(jj))
+                                hints = ET.SubElement(prop, 'Hints')
+                                # The NoDefault hint tells the client not to immediately set each
+                                # steering parameter to its default value:
+                                ET.SubElement(hints, 'NoDefault')
+                                # The NotExtensible hint tells the client to use the default GUI
+                                # for each parameter (which assumes a fixed, non-extensible number
+                                # of tuples per parameter rather than a user-adjustable number of
+                                # tuples). This prevents a confusing user experience:
+                                ET.SubElement(hints, 'NotExtensible')
+                                # print('Adding double param %s, proxy %s, with %s' % (arrayName, producer.SMProxy == None, dfn))
+                            elif ptype != vtkmodules.vtkCommonCore.VTK_VARIANT: # ptype is one of the integer types
+                                tval = parray.GetTuple(0)
+                                prop = ET.SubElement(root, 'NamedIntVectorProperty')
+                                pd = {
+                                    'name': arrayName,
+                                    'command': 'SetParameter',
+                                    'property_name': arrayName,
+                                    'number_of_elements': str(numComps),
+                                    'number_of_elements_per_command': str(numComps),
+                                    'default_values': ' '.join(['%.17g' % x for x in tval]).strip(),
+                                    'animateable': '1',
+                                    'panel_visibility': 'default'
+                                    }
+                                for attrName, attrValue in pd.items():
+                                    prop.set(attrName, attrValue)
+                                ET.SubElement(prop, 'IntRangeDomain').set('name', 'range')
+                                hints = ET.SubElement(prop, 'Hints')
+                                # The NoDefault hint tells the client not to immediately set each
+                                # steering parameter to its default value:
+                                ET.SubElement(hints, 'NoDefault')
+                                # The NotExtensible hint tells the client to use the default GUI
+                                # for each parameter (which assumes a fixed, non-extensible number
+                                # of tuples per parameter rather than a user-adjustable number of
+                                # tuples). This prevents a confusing user experience:
+                                ET.SubElement(hints, 'NotExtensible')
+                                # print('Adding double param %s, proxy %s, with %s' % (arrayName, producer.SMProxy == None, dfn))
+                        # Now we've added a property for each parameter;
+                        # extend the definition of the source to include them:
+                        dfn = ET.tostring(root)
+                        producer.SMProxy.ExtendDefinition(dfn)
+                self.__ProducersMap[gridName] = producer
+                producer.UpdatePipeline(simTime)
+
+    def UpdateSteeringProducers(self, datadescription):
+        """Updates the producer proxy for each grid marked with IsSteering set to True.
+        """
+        # print('Update steering producers')
+        for ii in range(datadescription.GetNumberOfInputDescriptions()):
+            grid = datadescription.GetInputDescription(ii)
+            gridName = datadescription.GetInputDescriptionName(ii)
+            ptree = grid.GetGrid() if grid and grid.GetIsSteering() else None
+            if ptree:
+                # print('  Update steering producer %d' % ii)
+                producer = self.__ProducersMap[gridName]
+                # producer.GetClientSideObject().SetOutput(ptree, simTime)
+
+                # print('Creating producer with link %s' % (self.__LiveVisualizationLink != None))
+                # producer.GetClientSideObject().SetLink(self.__LiveVisualizationLink) # No link exists yet.
+
+                # Now update steering parameter proxy properties:
+                if producer:
+                    producer.UpdatePropertyInformation()
+                    # print('Update properties of steering producer')
+
+    def LinkSteeringProducers(self):
+        """Set the live in-situ link object on all the computational steering producers."""
+        for name, producer in self.__ProducersMap.items():
+            if producer.IsA('vtkSMSteeringParametersProxy'):
+                producer.GetClientSideObject().SetLink(self.__LiveVisualizationLink)
 
     def CreateProducer(self, datadescription, inputname):
         """Creates a producer proxy for the grid. This method is generally used in

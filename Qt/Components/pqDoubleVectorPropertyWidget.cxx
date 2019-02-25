@@ -103,9 +103,12 @@ pqDoubleVectorPropertyWidget::pqDoubleVectorPropertyWidget(
   // Fill Layout
   vtkPVXMLElement* hints = dvp->GetHints();
   vtkPVXMLElement* showLabels = nullptr;
+  bool extensible = true;
   if (hints != nullptr)
   {
     showLabels = hints->FindNestedElementByName("ShowComponentLabels");
+    auto notExtensible = hints->FindNestedElementByName("NotExtensible");
+    extensible = !notExtensible;
   }
 
   int elementCount = dvp->GetNumberOfElements();
@@ -138,8 +141,13 @@ pqDoubleVectorPropertyWidget::pqDoubleVectorPropertyWidget(
     }
   }
 
+  // The `repeatable` XML attribute really indicates that the property
+  // should be treated as multiple tuple values.
+  // In order to show controls for changing the number of tuples,
+  // we also require the property to be marked extensible (the default).
+  // If the NotExtensible hint is added, these controls will not be shown.
   vtkSMDoubleRangeDomain* range = vtkSMDoubleRangeDomain::SafeDownCast(domain);
-  if (this->property()->GetRepeatable())
+  if (this->property()->GetRepeatable() && extensible)
   {
     pqScalarValueListPropertyWidget* widget =
       new pqScalarValueListPropertyWidget(smProperty, this->proxy(), this);

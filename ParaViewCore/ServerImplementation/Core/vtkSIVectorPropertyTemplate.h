@@ -69,7 +69,7 @@ protected:
   /**
    * Implements the actual push.
    */
-  bool Push(T* values, int number_of_elements);
+  virtual bool Push(T* values, int number_of_elements);
 
   bool ArgumentIsArray;
 
