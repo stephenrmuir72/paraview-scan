@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLiveInsituManager.h"
 #include "pqLiveInsituVisualizationManager.h"
 #include "pqServer.h"
+#include "pqServerManagerModel.h"
 #include "vtkProcessModule.h"
 #include "vtkSMSession.h"
 
@@ -49,6 +50,10 @@ pqCatalystConnectReaction::pqCatalystConnectReaction(QAction* parentObject)
 {
   QObject::connect(&pqActiveObjects::instance(), SIGNAL(serverChanged(pqServer*)), this,
     SLOT(updateEnableState()));
+
+  pqServerManagerModel* const smm = pqApplicationCore::instance()->getServerManagerModel();
+  QObject::connect(smm, SIGNAL(finishedRemovingServer()), this, SLOT(updateEnableState()));
+
   this->updateEnableState();
 }
 
