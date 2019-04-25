@@ -86,6 +86,7 @@ set(classes
   pqTreeWidgetItem
   pqTreeWidgetItemObject
   pqTreeWidgetSelectionHelper
+  pqVector3DWidget
   pqWaitCursor)
 
 set(qt_components

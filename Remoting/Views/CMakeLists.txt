@@ -95,6 +95,9 @@ set(classes
   vtkPVLODVolume
   vtkPVLogoSource
   vtkPVMaterialLibrary
+  vtkPVMaterial
+  vtkPVMaterialOBJ
+  vtkPVMaterialPrincipled
   vtkPVMultiSliceView
   vtkPVOpenGLInformation
   vtkPVOrthographicSliceView

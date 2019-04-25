@@ -50,12 +50,18 @@ class pqDataRepresentation;
 class PQCOMPONENTS_EXPORT pqTextureSelectorPropertyWidget : public pqPropertyWidget
 {
   Q_OBJECT
+  Q_PROPERTY(QString selectedName READ selectedName USER true);
 
 public:
   pqTextureSelectorPropertyWidget(vtkSMProxy* proxy, vtkSMProperty* property, QWidget* parent = 0);
   ~pqTextureSelectorPropertyWidget() override = default;
 
-protected Q_SLOTS:
+  /**
+   * Get the selected texture name.
+   */
+  const QString& selectedName() const;
+
+protected slots:
   void onTextureChanged(vtkSMProxy* texture);
   void onPropertyChanged();
   void checkAttributes(bool tcoords, bool tangents);
@@ -66,6 +72,7 @@ private:
   vtkSMProxyGroupDomain* Domain;
   pqDataRepresentation* Representation = nullptr;
   pqView* View = nullptr;
+  QString SelectedName;
 };
 
 #endif // _pqTextureSelectorPropertyWidget_h
