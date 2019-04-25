@@ -762,16 +762,45 @@
   </ProxyGroup>
 
   <ProxyGroup name="materials">
+
+    <Proxy class="vtkPVMaterial"
+                 name="Material"
+                 processes="client|renderserver|dataserver">
+      <StringVectorProperty
+          name="Name"
+          command="SetName"
+          animateable="0"
+          panel_visibility="never"
+          number_of_elements="1">
+      </StringVectorProperty>
+      <StringVectorProperty
+          name="Type"
+          command="SetType"
+          animateable="0"
+          panel_visibility="never"
+          number_of_elements="1">
+      </StringVectorProperty>
+      <StringVectorProperty
+                 name="DoubleVariables"
+                 command="AddDoubleVariable"
+                 clean_command="RemoveAllDoubleVariables"
+                 number_of_elements_per_command="4"
+                 element_types="2 1 1 1"
+                 panel_visibility="never"
+                 repeat_command="1">
+      </StringVectorProperty>
+    </Proxy>
+
     <MaterialLibraryProxy class="vtkPVMaterialLibrary"
                  name="MaterialLibrary"
                  processes="client|renderserver|dataserver">
-      <StringVectorProperty
-                 default_values=""
-                 label="Load Materials"
-                 name="LoadMaterials"
-                 number_of_elements="1"
-                 panel_visibility="never">
-      </StringVectorProperty>
+      <ProxyProperty command="AddMaterial"
+                     name="Materials"
+                     remove_command="RemoveMaterial"
+                     repeatable="1">
+      </ProxyProperty>
     </MaterialLibraryProxy>
   </ProxyGroup>
+
+
 </ServerManagerConfiguration>

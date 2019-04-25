@@ -52,7 +52,7 @@ public:
   /**
    * Overridden to control load from server file system.
    */
-  void UpdateVTKObjects() override;
+  // void UpdateVTKObjects() override;
 
 protected:
   vtkSMMaterialLibraryProxy();
