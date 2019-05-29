@@ -24,6 +24,7 @@ for my $line (<fp>) {
             $line =~ s{#\]==\]}{*/};
             $commentBlockStarted = 0;
         }
+        # replace bullets with '-', because '*' will be skipped by doxygen
         $line =~ s{^\s*\*\s+}{ - };
         $result .= "$line\n";
         next;
