@@ -2,8 +2,6 @@
 use warnings;
 use strict;
 
-# print $ARGV[0];
-
 open fp, "<$ARGV[0]";
 
 my $result = q{};
@@ -11,12 +9,16 @@ my $commentBlockStarted = 0;
 my $functionStarted = 0;
 
 for my $line (<fp>) {
+    # remove trailing new lines
     chomp $line;
 
+    # skip empty lines
     if ($line =~ m{^\s*$}) {
         $result .= "\n";
         next;
     }
+
+    # Inside comment block
     if ($commentBlockStarted == 1) {
         if ($line =~ m{#\]==\]}) {
             $line =~ s{#\]==\]}{*/};
@@ -26,6 +28,9 @@ for my $line (<fp>) {
         $result .= "$line\n";
         next;
     }
+
+    # Inside function/macro. Replace content with empty lines so that
+    # definitions are at the correct line number.
     if ($functionStarted == 1) {
         if ($line =~ m{(^endfunction\s*\(.*\)|^endmacro\s*\(.*\))}) {
             $result .= "}\n";
@@ -36,6 +41,7 @@ for my $line (<fp>) {
         next;
     }
 
+    # Start comment block
     if ($line =~ m{#\[==\[}) {
         $line =~ s{#\[==\[}{/**};
         $result .= "$line\n";
@@ -43,13 +49,16 @@ for my $line (<fp>) {
         next;
     }
 
+    # Replace normal comment with empty line
     if ($line =~ m{^\s*#}) {
         $result .= "\n";
         next;
     }
 
+    # Remove end-of-line comment
     $line =~ s{#.*}{};
 
+    # Start function/macro
     if ($line =~ m{(^function\s*\()|(^macro\s*\()}) {
         $functionStarted = 1;
         if ($line =~ m{^function\s*\(}) {
@@ -61,6 +70,8 @@ for my $line (<fp>) {
             $line =~ s{^macro\s*\(}{};
         }
 
+        # first argument is the name of the function/macro,
+        # then the arguments
         $line =~ s{\)\s*$}{};
         my @args = split(' ', $line);
         $result .= $args[0];
@@ -75,6 +86,8 @@ for my $line (<fp>) {
         $result .= ") {\n";
         next;
     }
+
+    # All other lines, replace with empty lines
     $result .= "\n";
     next;
 }
