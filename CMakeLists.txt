@@ -15,7 +15,7 @@ endif (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
 endif ()
 
 project("cgns" C)
-set(CGNS_VERSION "3.3")
+set(CGNS_VERSION "3.4")
 
 if (FALSE) # XXX(kitware): ParaView doesn't need CPack here.
 # Allow for building a package
@@ -91,15 +91,14 @@ if (CGNS_ENABLE_64BIT)
 else (CGNS_ENABLE_64BIT)
   mark_as_advanced(CLEAR CGNS_ENABLE_LEGACY)
 endif (CGNS_ENABLE_64BIT)
-
+	
 if (CGNS_ENABLE_LFS)
+  include(CheckSymbolExists)
   if (WIN32)
-    # Are these functions always available on windows that we don't need to
-    # check?
+    # Windows does not have an _open64 function
     set(HAVE_OPEN64 0)
-    set(HAVE_LSEEK64 1)
+    check_symbol_exists(_lseeki64 "io.h" HAVE_LSEEK64)
   else (WIN32)
-    include(CheckSymbolExists)
     check_symbol_exists(open64 "sys/types.h;sys/stat.h;unistd.h" HAVE_OPEN64)
     check_symbol_exists(lseek64 "sys/types.h;unistd.h" HAVE_LSEEK64)
   endif (WIN32)
@@ -323,6 +322,11 @@ if (CGNS_ENABLE_HDF5)
     mark_as_advanced(FORCE SZIP_LIBRARY)
   endif (HDF5_NEED_SZIP)
 
+  # Check if HDF5 version is 1.8 or greater
+  if (HDF5_VERSION VERSION_LESS "1.8.0")
+    message (FATAL_ERROR "HDF5 version must be greater than 1.8.0")
+  endif (HDF5_VERSION VERSION_LESS "1.8.0")
+
   set(HDF5_NEED_MPI "OFF" CACHE BOOL "Does the HDF5 library require linking to mpi? (Only true if using parallel HDF5)")
   set(MPI_INC)
   set(MPI_LIBS)
@@ -405,6 +409,10 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   set(CMAKE_MACOSX_RPATH TRUE)
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Dashboard and Testing Settings
