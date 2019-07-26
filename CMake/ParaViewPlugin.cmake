@@ -401,7 +401,7 @@ bool ${_paraview_build_TARGET}_static_plugins_func(const char* name, bool load)
 {
   std::string const sname = name;
 
-  ${_paraview_build_calls}
+${_paraview_build_calls}
   return false;
 }
 
