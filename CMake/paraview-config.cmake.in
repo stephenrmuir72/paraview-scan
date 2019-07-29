@@ -60,6 +60,10 @@ endforeach ()
 unset(_paraview_find_package_variable)
 unset(_paraview_find_package_variables)
 
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}Plugins-targets-depends.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}Plugins-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}Plugins-paraview-plugin-properties.cmake")
+
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewClient.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewPlugin.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewServerManager.cmake")
