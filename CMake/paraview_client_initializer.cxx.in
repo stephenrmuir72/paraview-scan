@@ -118,6 +118,8 @@ pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initialize
   // Create main window.
   this->MainWindow = new @_paraview_client_MAIN_WINDOW_CLASS@();
 
+  vtkPVPluginTracker::GetInstance()->LoadPluginConfigurationXMLs("@_paraview_client_NAME@");
+
   // Load required application plugins.
   QString plugin_string = "@_paraview_client_REQUIRED_PLUGINS@";
   QStringList plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
