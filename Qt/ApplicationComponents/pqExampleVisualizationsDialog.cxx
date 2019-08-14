@@ -4,6 +4,7 @@
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
+#include "pqServerManagerModel.h"
 #include "vtkPVConfig.h"
 #include "vtkPVFileInformation.h"
 
@@ -106,6 +107,17 @@ void pqExampleVisualizationsDialog::onButtonPressed()
       xmldata.replace("$PARAVIEW_EXAMPLES_DATA", dataPath);
       pqApplicationCore::instance()->loadStateFromString(
         xmldata.toUtf8().data(), pqActiveObjects::instance().activeServer());
+
+      // Activate a view in the state.
+      // This is needed since XML state currently does not save active view.
+      // Fixes bug #19240.
+      pqServer* server = pqActiveObjects::instance().activeServer();
+      auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+      auto views = smmodel->findItems<pqView*>(server);
+      if (views.size())
+      {
+        pqActiveObjects::instance().setActiveView(views[0]);
+      }
     }
     else
     {
