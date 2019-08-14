@@ -69,6 +69,11 @@ pqActiveObjects::pqActiveObjects()
   QObject::connect(this, SIGNAL(viewChanged(pqView*)), this, SLOT(updateRepresentation()));
   QObject::connect(this, SIGNAL(portChanged(pqOutputPort*)), this, SLOT(updateRepresentation()));
 
+  // Set a default active view when state is loaded since the active view is not saved in state
+  // files.
+  QObject::connect(pqApplicationCore::instance(),
+    SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)), this, SLOT(stateLoaded()));
+
   this->VTKConnector->Connect(vtkSMProxyManager::GetProxyManager(),
     vtkSMProxyManager::ActiveSessionChanged, this, SLOT(onActiveServerChanged()));
 
@@ -237,6 +242,19 @@ void pqActiveObjects::viewSelectionChanged()
   // if view changed, then the active representation may have changed as well.
   this->updateRepresentation();
   // updateRepresentation calls triggerSignals().
+}
+
+//-----------------------------------------------------------------------------
+void pqActiveObjects::stateLoaded()
+{
+  // This is needed since XML state currently does not save active view.
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto views = smmodel->findItems<pqView*>(server);
+  if (views.size())
+  {
+    pqActiveObjects::instance().setActiveView(views[0]);
+  }
 }
 
 //-----------------------------------------------------------------------------

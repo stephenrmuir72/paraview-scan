@@ -186,6 +186,11 @@ private slots:
   void sourceSelectionChanged();
   void viewSelectionChanged();
 
+  /**
+   * Called to set an active view after state is loaded.
+   */
+  void stateLoaded();
+
 protected:
   pqActiveObjects();
   ~pqActiveObjects() override;
