@@ -295,10 +295,25 @@ set_target_properties(vtklibprotoc
   PROPERTIES
     DEFINE_SYMBOL LIBPROTOC_EXPORTS)
 
+find_package(Threads REQUIRED)
+
 vtk_module_add_executable(vtkprotoc
   google/protobuf/compiler/main.cc)
+
+set(vtkprotoc_no_as_needed)
+if (COMMAND target_link_options)
+  target_link_options(vtkprotoc
+    PRIVATE
+      $<$<COMPILER_ID:GNU>-Wl,--no-as-needed>)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(vtkprotoc_no_as_needed
+    -Wl,--no-as-needed)
+endif ()
+
 target_link_libraries(vtkprotoc
   PRIVATE
+    ${vtkprotoc_no_as_needed}
     vtklibprotoc
-    ParaView::protobuf)
+    ParaView::protobuf
+    Threads::Threads)
 add_executable(ParaView::protoc ALIAS vtkprotoc)
