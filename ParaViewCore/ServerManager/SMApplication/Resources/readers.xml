@@ -574,7 +574,7 @@
       <Hints>
         <ReaderFactory
           filename_patterns="plt*"
-          file_description="AMReX plotfiles (grids)"
+          file_description="AMReX/BoxLib plotfiles (grids)"
           is_directory="1" />
       </Hints>
     </Proxy>
@@ -3667,7 +3667,7 @@
       <Hints>
         <ReaderFactory
           filename_patterns="plt*"
-          file_description="AMReX plotfiles (grids)"
+          file_description="AMReX/BoxLib plotfiles (grids)"
           is_directory="1"
         />
       </Hints>
@@ -8846,7 +8846,7 @@ series.
       <Hints>
         <ReaderFactory
           filename_patterns="plt*"
-          file_description="AMReX plotfiles (particles)"
+          file_description="AMReX/BoxLib plotfiles (particles)"
           is_directory="1" />
       </Hints>
       <!-- end AMReXParticlesReader -->
