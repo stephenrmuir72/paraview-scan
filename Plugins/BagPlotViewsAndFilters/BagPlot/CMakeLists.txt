@@ -1,5 +1,4 @@
 set(classes
-  vtkPVExtractBagPlots
   vtkSMFunctionalBagChartSeriesSelectionDomain
   vtkSMBagChartSeriesListDomain
   vtkPVBagChartRepresentation
