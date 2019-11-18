@@ -99,6 +99,7 @@ set(classes
   vtkPVEnSightMasterServerReader
   vtkPVEnSightMasterServerReader2
   vtkPVEnSightMasterServerTranslator
+  vtkPVExtractBagPlots
   vtkPVExtractComponent
   vtkPVExtractVOI
   vtkPVFrustumActor
