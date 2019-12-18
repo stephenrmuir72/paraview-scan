@@ -850,6 +850,7 @@ else ()
     KITS                ${vtk_kits}
     PACKAGE             VTK
     INSTALL_EXPORT      VTK
+    INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
     HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
     CMAKE_DESTINATION   "${paraview_cmake_destination}/vtk"
     HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
@@ -862,7 +863,7 @@ else ()
     TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/VTK/Testing"
     TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/ExternalData/VTK/Testing")
 
-  if (NOT PARAVIEW_USE_EXTERNAL_VTK)
+  if (NOT PARAVIEW_USE_EXTERNAL_VTK AND PARAVIEW_INSTALL_DEVELOPMENT_FILES)
     set(vtk_cmake_dir
       "${CMAKE_CURRENT_SOURCE_DIR}/VTK/CMake")
     set(vtk_cmake_destination
@@ -888,6 +889,7 @@ vtk_module_build(
   MODULES             ${paraview_modules}
   KITS                ${paraview_kits}
   INSTALL_EXPORT      ParaView
+  INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
   HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
   CMAKE_DESTINATION   "${paraview_cmake_destination}"
   HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
@@ -917,6 +919,7 @@ paraview_plugin_build(
   PLUGINS_FILE_NAME "paraview.plugins.xml"
   TARGET            ParaView::paraview_plugins
   INSTALL_EXPORT    ParaViewPlugins
+  INSTALL_HEADERS   "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
   TARGET_COMPONENT  "development"
   PLUGINS_COMPONENT "plugins"
   PLUGINS ${paraview_plugins})
@@ -945,6 +948,7 @@ if (PARAVIEW_ENABLE_PYTHON)
     vtk_module_wrap_python(
       MODULES         ${vtk_modules}
       INSTALL_EXPORT  VTKPython
+      INSTALL_HEADERS "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
       PYTHON_PACKAGE  "vtkmodules"
       MODULE_DESTINATION  "${PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX}"
       CMAKE_DESTINATION   "${paraview_cmake_destination}/vtk"
@@ -954,16 +958,18 @@ if (PARAVIEW_ENABLE_PYTHON)
 
     add_subdirectory(VTK/Wrapping/Python)
 
-    export(
-      EXPORT    VTKPython
-      NAMESPACE VTK::
-      FILE      "${CMAKE_BINARY_DIR}/${paraview_cmake_destination}/vtk/VTKPython-targets.cmake")
-    install(
-      EXPORT      VTKPython
-      NAMESPACE   VTK::
-      FILE        VTKPython-targets.cmake
-      DESTINATION "${paraview_cmake_destination}/vtk"
-      COMPONENT   "development")
+    if (PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+      export(
+        EXPORT    VTKPython
+        NAMESPACE VTK::
+        FILE      "${CMAKE_BINARY_DIR}/${paraview_cmake_destination}/vtk/VTKPython-targets.cmake")
+      install(
+        EXPORT      VTKPython
+        NAMESPACE   VTK::
+        FILE        VTKPython-targets.cmake
+        DESTINATION "${paraview_cmake_destination}/vtk"
+        COMPONENT   "development")
+    endif ()
   endif ()
 
   get_property(vtk_required_python_modules GLOBAL
@@ -978,6 +984,7 @@ if (PARAVIEW_ENABLE_PYTHON)
   vtk_module_wrap_python(
     MODULES         ${paraview_modules}
     INSTALL_EXPORT  ParaViewPython
+    INSTALL_HEADERS "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
     PYTHON_PACKAGE  "paraview.modules"
     MODULE_DESTINATION  "${PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX}"
     CMAKE_DESTINATION   "${paraview_cmake_destination}"
@@ -986,16 +993,18 @@ if (PARAVIEW_ENABLE_PYTHON)
     TARGET          ParaView::pvpythonmodules
     DEPENDS         VTK::vtkpythonmodules)
 
-  export(
-    EXPORT    ParaViewPython
-    NAMESPACE ParaView::
-    FILE      "${CMAKE_BINARY_DIR}/${paraview_cmake_destination}/ParaViewPython-targets.cmake")
-  install(
-    EXPORT      ParaViewPython
-    NAMESPACE   ParaView::
-    FILE        ParaViewPython-targets.cmake
-    DESTINATION "${paraview_cmake_destination}"
-    COMPONENT   "development")
+  if (PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+    export(
+      EXPORT    ParaViewPython
+      NAMESPACE ParaView::
+      FILE      "${CMAKE_BINARY_DIR}/${paraview_cmake_destination}/ParaViewPython-targets.cmake")
+    install(
+      EXPORT      ParaViewPython
+      NAMESPACE   ParaView::
+      FILE        ParaViewPython-targets.cmake
+      DESTINATION "${paraview_cmake_destination}"
+      COMPONENT   "development")
+  endif ()
 endif ()
 
 if (PARAVIEW_ENABLE_WEB)
@@ -1030,9 +1039,11 @@ configure_file(
 
 ExternalData_Add_Target(ParaViewData)
 
-set(paraview_cmake_build_dir
-  "${CMAKE_CURRENT_BINARY_DIR}/${paraview_cmake_destination}")
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ParaViewInstallCMakePackage.cmake")
+if (PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+  set(paraview_cmake_build_dir
+    "${CMAKE_CURRENT_BINARY_DIR}/${paraview_cmake_destination}")
+  include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ParaViewInstallCMakePackage.cmake")
+endif ()
 
 set(is_git FALSE)
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
