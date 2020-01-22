@@ -284,7 +284,7 @@ void pqRenderViewSelectionReaction::setRepresentation(pqDataRepresentation* repr
     if (this->Representation != nullptr)
     {
       this->RepresentationConnection = QObject::connect(
-        this->Representation, &pqDataRepresentation::colorArrayNameModified, this, [this]() {
+        this->Representation.data(), &pqDataRepresentation::colorArrayNameModified, this, [this]() {
           this->endSelection();
           this->updateEnableState();
         });
