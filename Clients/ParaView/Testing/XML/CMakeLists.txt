@@ -90,6 +90,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/quadratic_tets_with_ghost_cells_1.vtu}"
   "DATA{${paraview_test_data_directory_input}/Data/sample.h5part}"
   "DATA{${paraview_test_data_directory_input}/Data/servers-wiki.pvsc}"
+  "DATA{${paraview_test_data_directory_input}/Data/simpleScript.py}"
   "DATA{${paraview_test_data_directory_input}/Data/sineWaves.csv}"
   "DATA{${paraview_test_data_directory_input}/Data/singleSphereAnimation.pvd}"
   "DATA{${paraview_test_data_directory_input}/Data/singleSphereAnimation/,REGEX:.*}"
@@ -299,6 +300,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Preview-AllViews.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/PythonAlgorithmPlugin.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/PythonAlgorithmReadersAndWriters.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/PythonShellRunScript.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotArea.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotArea_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotLines.png}"
@@ -811,6 +813,7 @@ list(APPEND TESTS_WITH_BASELINES
   PropertyConversion2.xml
   PropertyConversion3.xml
   PropertyLink.xml
+  PythonShellRunScript.xml
   QuadraticGhostCells.xml
   ReadXMLPolyDataFileSeries.xml
   RedistributeDataSetFilter.xml
