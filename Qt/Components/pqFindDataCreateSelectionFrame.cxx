@@ -131,6 +131,11 @@ public:
   {
     Ui::FindDataCreateSelectionFrame& ui = this->Ui;
 
+    if (!ui.queryClauseWidget->isVisible())
+    {
+      return;
+    }
+
     pqOutputPort* port = ui.source->currentPort();
     ui.queryClauseWidget->setEnabled(port != NULL);
     ui.runQuery->setEnabled(port != NULL);
