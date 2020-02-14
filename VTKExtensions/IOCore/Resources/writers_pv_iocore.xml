@@ -209,7 +209,7 @@
     </PWriterProxy>
 
     <!-- ================================================================= -->
-    <PWriterProxy class="vtkFileSeriesWriter"
+    <PSWriterProxy class="vtkParallelSerialWriter"
                  file_name_method="SetFileName"
                  name="CSVWriter">
       <Documentation short_help="Writer to write CSV files">Writer to write comma or tab
@@ -310,7 +310,7 @@
         <InitializationHelper class="vtkSMCSVProxiesInitializationHelper" />
       </Hints>
       <!-- End of CSVWriter -->
-    </PWriterProxy>
+    </PSWriterProxy>
 
     <!-- ================================================================= -->
     <PWriterProxy class="vtkFileSeriesWriter"
