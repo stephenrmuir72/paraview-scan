@@ -174,6 +174,15 @@ public:
    */
   static void AddReaderToWhitelist(const char* readerxmlgroup, const char* readerxmlname);
 
+  /**
+   * This function is for ParaView-based applications and is the converse of
+   * `AddReaderToWhitelist`. One can add a reader to the black list so that the
+   * reader factory will never offer it. Note that the black-list is checked
+   * before the white-list, hence a reader added to both lists will be treated
+   * as blacklisted.
+   */
+  static void AddReaderToBlacklist(const char* readerxmlgroup, const char* readerxmlname);
+
 protected:
   vtkSMReaderFactory();
   ~vtkSMReaderFactory() override;

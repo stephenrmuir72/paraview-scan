@@ -55,6 +55,7 @@ class vtkSMReaderFactory::vtkInternals
 {
 public:
   static std::set<std::pair<std::string, std::string> > ReaderWhitelist;
+  static std::set<std::pair<std::string, std::string> > ReaderBlacklist;
   struct vtkValue
   {
     vtkWeakPointer<vtkSMSession> Session;
@@ -219,6 +220,7 @@ public:
   std::set<std::string> Groups;
 };
 std::set<std::pair<std::string, std::string> > vtkSMReaderFactory::vtkInternals::ReaderWhitelist;
+std::set<std::pair<std::string, std::string> > vtkSMReaderFactory::vtkInternals::ReaderBlacklist;
 
 //----------------------------------------------------------------------------
 bool vtkSMReaderFactory::vtkInternals::vtkValue::ExtensionTest(
@@ -358,6 +360,11 @@ void vtkSMReaderFactory::UpdateAvailableReaders()
           // application has specified that it is only interested in a subset of the readers
           // then only that subset will be available.
           std::pair<std::string, std::string> reader(iter->GetGroupName(), iter->GetProxyName());
+          if (vtkInternals::ReaderBlacklist.find(reader) != vtkInternals::ReaderBlacklist.end())
+          {
+            // skip reader in blacklist.
+            continue;
+          }
           if (vtkInternals::ReaderWhitelist.empty() ||
             vtkInternals::ReaderWhitelist.find(reader) != vtkInternals::ReaderWhitelist.end())
           {
@@ -689,6 +696,16 @@ void vtkSMReaderFactory::AddReaderToWhitelist(const char* readerxmlgroup, const 
   if (readerxmlgroup != NULL && readerxmlname != NULL)
   {
     vtkSMReaderFactory::vtkInternals::ReaderWhitelist.insert(
+      std::pair<std::string, std::string>(readerxmlgroup, readerxmlname));
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSMReaderFactory::AddReaderToBlacklist(const char* readerxmlgroup, const char* readerxmlname)
+{
+  if (readerxmlgroup != NULL && readerxmlname != NULL)
+  {
+    vtkSMReaderFactory::vtkInternals::ReaderBlacklist.insert(
       std::pair<std::string, std::string>(readerxmlgroup, readerxmlname));
   }
 }
