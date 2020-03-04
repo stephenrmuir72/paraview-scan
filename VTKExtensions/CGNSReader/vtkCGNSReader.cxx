@@ -522,6 +522,33 @@ int StartsWithFlowSolution(const char* s)
 
   return ret;
 }
+//----------------------------------------------------------------------------
+// Small helper
+const char* get_data_type(const CGNS_ENUMT(DataType_t) dt)
+{
+  const char* dataType;
+  switch (dt)
+  {
+    case CGNS_ENUMV(Integer):
+      dataType = "I4";
+      break;
+    case CGNS_ENUMV(LongInteger):
+      dataType = "I8";
+      break;
+    case CGNS_ENUMV(RealSingle):
+      dataType = "R4";
+      break;
+    case CGNS_ENUMV(RealDouble):
+      dataType = "R8";
+      break;
+    case CGNS_ENUMV(Character):
+      dataType = "C1";
+      break;
+    default:
+      dataType = "MT";
+  }
+  return dataType;
+}
 
 //----------------------------------------------------------------------------
 vtkCGNSReader::vtkCGNSReader()
@@ -668,7 +695,8 @@ int vtkCGNSReader::vtkPrivate::getGridAndSolutionNames(int base, std::string& gr
     {
       CGNSRead::char_33 gname;
       const cgsize_t offset = static_cast<cgsize_t>(self->ActualTimeStep * 32);
-      cgio_read_block_data(self->cgioNum, giterId, offset + 1, offset + 32, (void*)gname);
+      cgio_read_block_data_type(
+        self->cgioNum, giterId, offset + 1, offset + 32, "C1", (void*)gname);
       gname[32] = '\0';
       // NOTE: Names or identifiers contain no spaces and capitalization
       //       is used to distinguish individual words making up a name.
@@ -728,9 +756,9 @@ int vtkCGNSReader::vtkPrivate::getGridAndSolutionNames(int base, std::string& gr
         EndsWithPointers(nodeName))
       {
         CGNSRead::char_33 gname;
-        cgio_read_block_data(self->cgioNum, iterChildId[cc],
+        cgio_read_block_data_type(self->cgioNum, iterChildId[cc],
           (cgsize_t)(self->ActualTimeStep * 32 + 1), (cgsize_t)(self->ActualTimeStep * 32 + 32),
-          (void*)gname);
+          "C1", (void*)gname);
         gname[32] = '\0';
         CGNSRead::removeTrailingWhiteSpaces(gname);
         std::string tmpStr = std::string(gname);
@@ -1193,28 +1221,30 @@ int vtkCGNSReader::vtkPrivate::readSolution(const std::string& solutionNameStr, 
       continue;
     }
     double cgioVarId = solChildId[ff];
+    const char* fieldDataType = get_data_type(cgnsVars[ff].dt);
 
     // quick transfer of data because data types is given by cgns database
     if (cgnsVars[ff].isComponent == false)
     {
-      if (cgio_read_data(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd, fieldSrcStride,
-            cellDim, fieldMemDims, fieldMemStart, fieldMemEnd, fieldMemStride,
+      if (cgio_read_data_type(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd, fieldSrcStride,
+            fieldDataType, cellDim, fieldMemDims, fieldMemStart, fieldMemEnd, fieldMemStride,
             (void*)vtkVars[ff]->GetVoidPointer(0)) != CG_OK)
       {
         char message[81];
         cgio_error_message(message);
-        vtkGenericWarningMacro(<< "cgio_read_data :" << message);
+        vtkGenericWarningMacro(<< "cgio_read_data_type :" << message);
       }
     }
     else
     {
-      if (cgio_read_data(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd, fieldSrcStride,
-            cellDim, fieldVectMemDims, fieldVectMemStart, fieldVectMemEnd, fieldVectMemStride,
+      if (cgio_read_data_type(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd, fieldSrcStride,
+            fieldDataType, cellDim, fieldVectMemDims, fieldVectMemStart, fieldVectMemEnd,
+            fieldVectMemStride,
             (void*)vtkVars[ff]->GetVoidPointer(cgnsVars[ff].xyzIndex - 1)) != CG_OK)
       {
         char message[81];
         cgio_error_message(message);
-        vtkGenericWarningMacro(<< "cgio_read_data :" << message);
+        vtkGenericWarningMacro(<< "cgio_read_data_type :" << message);
       }
     }
     cgio_release_id(self->cgioNum, cgioVarId);
@@ -1444,6 +1474,7 @@ int vtkCGNSReader::vtkPrivate::readBCData(const double nodeId, const int cellDim
             continue;
           }
           double cgioVarId = varIds[ff];
+          const char* fieldDataType = get_data_type(cgnsVars[ff].dt);
 
           cgsize_t dataSize = 1;
           cgsize_t dimVals[12];
@@ -1470,12 +1501,12 @@ int vtkCGNSReader::vtkPrivate::readBCData(const double nodeId, const int cellDim
             // quick transfer of data because data types is given by cgns database
             if (cgnsVars[ff].isComponent == false)
             {
-              if (cgio_read_all_data(
-                    self->cgioNum, cgioVarId, (void*)vtkVars[ff]->GetVoidPointer(0)) != CG_OK)
+              if (cgio_read_all_data_type(self->cgioNum, cgioVarId, fieldDataType,
+                    (void*)vtkVars[ff]->GetVoidPointer(0)) != CG_OK)
               {
                 char message[81];
                 cgio_error_message(message);
-                vtkGenericWarningMacro(<< "cgio_read_data :" << message);
+                vtkGenericWarningMacro(<< "cgio_read_all_data_type :" << message);
               }
               if (dataSize == 1)
               {
@@ -1506,14 +1537,14 @@ int vtkCGNSReader::vtkPrivate::readBCData(const double nodeId, const int cellDim
               fieldVectMemDims[0] = fieldSrcEnd[0] * fieldVectMemStride[0];
               fieldVectMemEnd[0] = fieldSrcEnd[0] * fieldVectMemStride[0];
 
-              if (cgio_read_data(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd,
-                    fieldSrcStride, 1, fieldVectMemDims, fieldVectMemStart, fieldVectMemEnd,
-                    fieldVectMemStride,
+              if (cgio_read_data_type(self->cgioNum, cgioVarId, fieldSrcStart, fieldSrcEnd,
+                    fieldSrcStride, fieldDataType, 1, fieldVectMemDims, fieldVectMemStart,
+                    fieldVectMemEnd, fieldVectMemStride,
                     (void*)vtkVars[ff]->GetVoidPointer(cgnsVars[ff].xyzIndex - 1)) != CG_OK)
               {
                 char message[81];
                 cgio_error_message(message);
-                vtkGenericWarningMacro(<< "cgio_read_data :" << message);
+                vtkGenericWarningMacro(<< "cgio_read_data_type :" << message);
               }
               if (dataSize == 1)
               {
@@ -2227,7 +2258,7 @@ int vtkCGNSReader::GetUnstructuredZone(
 
     //
     CGNSRead::char_33 dataType;
-    std::vector<int> mdata;
+    std::vector<vtkTypeInt32> mdata;
 
     if (cgio_get_name(this->cgioNum, elemIdList[sec], sectionInfoList[sec].name) != CG_OK)
     {
@@ -2242,7 +2273,7 @@ int vtkCGNSReader::GetUnstructuredZone(
       vtkErrorMacro(<< "Unexpected data type for dimension data of Element\n");
     }
 
-    CGNSRead::readNodeData<int>(cgioNum, elemIdList[sec], mdata);
+    CGNSRead::readNodeData<vtkTypeInt32>(cgioNum, elemIdList[sec], mdata);
     if (mdata.size() != 2)
     {
       vtkErrorMacro(<< "Unexpected data for Elements_t node\n");
@@ -2263,8 +2294,8 @@ int vtkCGNSReader::GetUnstructuredZone(
 
     if (strcmp(dataType, "I4") == 0)
     {
-      std::vector<int> mdata2;
-      CGNSRead::readNodeData<int>(this->cgioNum, elemRangeId, mdata2);
+      std::vector<vtkTypeInt32> mdata2;
+      CGNSRead::readNodeData<vtkTypeInt32>(this->cgioNum, elemRangeId, mdata2);
       if (mdata2.size() != 2)
       {
         vtkErrorMacro(<< "Unexpected data for ElementRange node\n");
@@ -2274,8 +2305,8 @@ int vtkCGNSReader::GetUnstructuredZone(
     }
     else if (strcmp(dataType, "I8") == 0)
     {
-      std::vector<cglong_t> mdata2;
-      CGNSRead::readNodeData<cglong_t>(this->cgioNum, elemRangeId, mdata2);
+      std::vector<vtkTypeInt64> mdata2;
+      CGNSRead::readNodeData<vtkTypeInt64>(this->cgioNum, elemRangeId, mdata2);
       if (mdata2.size() != 2)
       {
         vtkErrorMacro(<< "Unexpected data for ElementRange node\n");
@@ -4433,8 +4464,8 @@ int vtkCGNSReader::RequestData(vtkInformation* vtkNotUsed(request),
 
       if (strcmp(dataType, "I4") == 0)
       {
-        std::vector<int> mdata;
-        CGNSRead::readNodeData<int>(this->cgioNum, baseChildId[zone], mdata);
+        std::vector<vtkTypeInt32> mdata;
+        CGNSRead::readNodeData<vtkTypeInt32>(this->cgioNum, baseChildId[zone], mdata);
         for (std::size_t index = 0; index < mdata.size(); index++)
         {
           zsize[index] = static_cast<cgsize_t>(mdata[index]);
@@ -4442,8 +4473,8 @@ int vtkCGNSReader::RequestData(vtkInformation* vtkNotUsed(request),
       }
       else if (strcmp(dataType, "I8") == 0)
       {
-        std::vector<cglong_t> mdata;
-        CGNSRead::readNodeData<cglong_t>(this->cgioNum, baseChildId[zone], mdata);
+        std::vector<vtkTypeInt64> mdata;
+        CGNSRead::readNodeData<vtkTypeInt64>(this->cgioNum, baseChildId[zone], mdata);
         for (std::size_t index = 0; index < mdata.size(); index++)
         {
           zsize[index] = static_cast<cgsize_t>(mdata[index]);
@@ -4720,7 +4751,7 @@ int vtkCGNSReader::CanReadFile(const char* name)
   }
 
   // read data
-  if (cgio_read_all_data(cgioFile, childId, &FileVersion))
+  if (cgio_read_all_data_type(cgioFile, childId, "R4", &FileVersion))
   {
     vtkErrorMacro(<< "read CGNS version number");
     ierr = 0;
