@@ -1,86 +1,84 @@
 from paraview.simple import *
 
 """
-This example is intended to be used with the CxxFullExample
-Particulary, it needs :
-    - a pipeline source named 'Slice1'
-    - a point array named 'velocity'
+This example demonstrates how to use python to connect to a Catalyst session.
 
 At each timestep, the slice is extracted and a non-interactive render view
 is updated. When the connection is lost (probably due to simulation end),
 the interaction is enabled in the view.
 
-First make sure that LiveVisualization is enabled in the script.
-Then:
+First make sure that LiveVisualization is enabled in the script. Then run this example.
+Last run the simulation.
+
+For instance:
+    modify Examples/Catalyst/CxxFullExample/SampleScripts/feslicescript.py
+    ```
     $ pvpython catalystLiveVisualizer.py
     $ ./CxxFullExample feslicescript.py
-
+    ```
 """
 
 # ----------------------------
 # misc callbacks
 # ----------------------------
 def _updateEventCb(obj, event):
-    s = FindSource('Slice1')
     global DataExtracted
-    if s != None and not DataExtracted:
-        extractSlice1Display = Show(s)
-        DataExtracted = True
-        # get color transfer function/color map for 'velocity'
-        velocityLUT = GetColorTransferFunction('velocity')
-        velocityLUT.AutomaticRescaleRangeMode = 'Never'
-        velocityLUT.RGBPoints = [0.0, 0.231373, 0.298039, 0.752941, 325.0, 0.865003, 0.865003, 0.865003, 650.0, 0.705882, 0.0156863, 0.14902]
-        velocityLUT.ScalarRangeInitialized = 1.0
-        # trace defaults for the display properties.
-        extractSlice1Display.Representation = 'Surface'
-        extractSlice1Display.ColorArrayName = ['POINTS', 'velocity']
-        extractSlice1Display.LookupTable = velocityLUT
-        # init the 'PiecewiseFunction' selected for 'ScaleTransferFunction'
-        extractSlice1Display.ScaleTransferFunction.Points = [0.0, 0.0, 0.5, 0.0, 136.29000000000002, 1.0, 0.5, 0.0]
-        # get color legend/bar for velocityLUT in view renderView1
-        velocityLUTColorBar = GetScalarBar(velocityLUT, renderView1)
-        velocityLUTColorBar.Title = 'velocity'
-        velocityLUTColorBar.ComponentTitle = 'Magnitude'
-        # set color bar visibility
-        velocityLUTColorBar.Visibility = 1
-        # show color legend
-        extractSlice1Display.SetScalarBarVisibility(renderView1, True)
 
+    name = _getSourceToExtractName(obj)
+    source = FindSource(name)
+
+    if source != None and not DataExtracted:
+        DataExtracted = True
+        rep = Show(source)
+        info = source.GetPointDataInformation()
+        if info.GetNumberOfArrays() > 0:
+            arrName = info.GetArray(0).Name
+            rep.ColorArrayName = ['POINTS', arrName]
+            ColorBy(rep, arrName)
+
+    prop = GetDisplayProperties(source)
+    prop.RescaleTransferFunctionToDataRange(False, True)
     ResetCamera()
     Render()
 
 def _connectionCreatedCb(obj, event):
     # name comes from the catalyst script
-    ExtractCatalystData(obj, 'Slice1')
+    name = _getSourceToExtractName(obj)
+    ExtractCatalystData(obj, name)
     ProcessServerNotifications()
     Render()
 
 def _connectionClosedCb(obj, event):
-    global timer
-    timer.cancel()
-    del timer
-    print("Connection closed, interaction enabled.")
+    global ProcessEvents
+    ProcessEvents = False
+    print("Connection closed, interaction enabled. Press 'q' to quit.")
     Interact()
-    print("Interaction ended.")
+    print("Exit.")
 
-def _monitorServerNotifications():
-    import threading
-    global timer
-    ProcessServerNotifications()
-    timer = threading.Timer(.2, _monitorServerNotifications)
-    timer.start()
 
 # ----------------------------
+# Utilities methods
+# ----------------------------
+def _monitorServerNotifications():
+    import threading
+    global ProcessEvents
+    ProcessEvents = True
+    ProcessServerNotifications()
+    if ProcessEvents:
+        threading.Timer(.2, _monitorServerNotifications).start()
+
+def _getSourceToExtractName(insituLink):
+    pm = insituLink.GetInsituProxyManager()
+    name = 'input'
+    proxy = pm.GetProxy('sources', name)
+    if proxy == None:
+        # if no one exists, pick another one
+        name = pm.GetProxyName('sources', pm.GetNumberOfProxies('sources') - 1)
+
+    return name
+# ----------------------------
 # Create a render view
-renderView1 = CreateView('RenderView')
-renderView1.ViewSize = [640, 480]
-renderView1.AxesGrid = 'GridAxes3DActor'
-renderView1.CenterOfRotation = [34.5, 32.45, 27.95]
-renderView1.CameraPosition = [199.9732153733271, 32.45, 27.95]
-renderView1.CameraFocalPoint = [34.5, 32.45, 27.95]
-renderView1.CameraViewUp = [0.0, 0.0, 1.0]
-renderView1.CameraFocalDisk = 1.0
-renderView1.CameraParallelScale = 42.827619592968276
+renderView1 = CreateRenderView()
 
 DataExtracted = False
 
