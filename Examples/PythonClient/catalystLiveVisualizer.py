@@ -30,6 +30,7 @@ def _updateEventCb(obj, event):
     if source != None and not DataExtracted:
         DataExtracted = True
         rep = Show(source)
+        rep.Representation = 'Surface'
         info = source.GetPointDataInformation()
         if info.GetNumberOfArrays() > 0:
             arrName = info.GetArray(0).Name
@@ -51,7 +52,7 @@ def _connectionCreatedCb(obj, event):
 def _connectionClosedCb(obj, event):
     global ProcessEvents
     ProcessEvents = False
-    print("Connection closed, interaction enabled. Press 'q' to quit.")
+    print("Connection closed, interaction enabled.\nPress 'q' to quit.")
     Interact()
     print("Exit.")
 
