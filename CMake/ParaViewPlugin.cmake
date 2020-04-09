@@ -1349,14 +1349,12 @@ function (paraview_add_plugin name)
     PROPERTY
       PREFIX "")
 
-  set(_paraview_add_plugin_destination
-    "${_paraview_build_plugin_destination}/${_paraview_build_plugin}")
   install(
     TARGETS "${_paraview_build_plugin}"
     ${_paraview_add_plugin_export_args}
     COMPONENT "${_paraview_build_PLUGINS_COMPONENT}"
-    ARCHIVE DESTINATION "${_paraview_add_plugin_destination}"
-    LIBRARY DESTINATION "${_paraview_add_plugin_destination}")
+    ARCHIVE DESTINATION "${_paraview_add_plugin_destination}/${_paraview_build_plugin}"
+    LIBRARY DESTINATION "${_paraview_add_plugin_destination}/${_paraview_build_plugin}")
 endfunction ()
 
 #[==[.md
