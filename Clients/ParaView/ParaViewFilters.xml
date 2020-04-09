@@ -262,6 +262,7 @@
   <Proxy group="filters" name="ReflectionFilter" />
   <Proxy group="filters" name="RemoveGhostInformation" />
   <Proxy group="filters" name="ResampleToImage" />
+  <Proxy group="filters" name="AdaptiveResampleToImage" />
   <Proxy group="filters" name="ResampleWithDataset" />
   <Proxy group="filters" name="RibbonFilter" />
   <Proxy group="filters" name="RotationalExtrusionFilter" />
@@ -296,6 +297,7 @@
   <Proxy group="filters" name="TableToPolyData" />
   <Proxy group="filters" name="TableToStructuredGrid" />
   <Proxy group="filters" name="IsoVolume" />
+  <Proxy group="filters" name="DeflectNormals" />
 
   <Proxy group="filters" name="GenericClip" />
   <Proxy group="filters" name="GenericContour" />

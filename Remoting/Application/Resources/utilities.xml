@@ -572,6 +572,7 @@
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
       <DoubleVectorProperty information_only="1"
+                            repeatable="1"
                             name="TimestepValues">
         <Documentation>The timesteps currently available. This property does
         not have any information helper since vtkSMTimeKeeperProxy keeps this
@@ -700,6 +701,41 @@
         <BooleanDomain name="bool" />
       </IntVectorProperty>
 
+    </Proxy>
+    <!-- ================================================================= -->
+    <Proxy name="LogRecorder" class="vtkLogRecorder">
+      <IntVectorProperty name="RankEnabled"
+                         command="SetRankEnabled"
+                         default_values="-1"
+                         number_of_elements="1">
+        <Documentation>Set rank to enable logging.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="RankDisabled"
+                         command="SetRankDisabled"
+                         default_values="-1"
+                         number_of_elements="1">
+        <Documentation>Set rank to disable logging.</Documentation>
+      </IntVectorProperty>
+      <Property name="ClearLogs"
+                command="ClearLogs">
+        <Documentation>Invoke to clear logs.</Documentation>
+      </Property>
+      <IntVectorProperty name="Verbosity"
+                         command="SetVerbosity"
+                         default_values="-2"
+                         number_of_elements="1">
+        <Documentation>Set verbosity of desired log entries.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="CategoryVerbosity"
+                         command="SetCategoryVerbosity"
+                         default_values="-1 0"
+                         number_of_elements="2">
+        <Documentation>Set the verbosity of a specific ParaView logging category.</Documentation>
+      </IntVectorProperty>
+      <Property name="ResetCategoryVerbosities"
+                command="ResetCategoryVerbosities">
+        <Documentation>Invoke to clear verbosity elevations.</Documentation>
+      </Property>
     </Proxy>
     <!-- End of group "misc" -->
   </ProxyGroup>
@@ -1393,6 +1429,7 @@
           <Entry text="only *user-modified* properites" value="2" />
         </EnumerationDomain>
       </IntVectorProperty>
+
       <IntVectorProperty name="FullyTraceSupplementalProxies"
         number_of_elements="1"
         default_values="0">
@@ -1402,6 +1439,16 @@
           when accessed the first time in trace.
         </Documentation>
       </IntVectorProperty>
+
+      <IntVectorProperty name="SkipRenderingComponents"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Skip rendering components such as views, representations, etc.
+        </Documentation>
+      </IntVectorProperty>
+
       <IntVectorProperty name="ShowIncrementalTrace"
           default_values="0"
           number_of_elements="1">
@@ -1410,6 +1457,7 @@
             Show trace as it is being generated.
           </Documentation>
       </IntVectorProperty>
+
       <PropertyGroup label="General options">
         <Property name="PropertiesToTraceOnCreate" />
       </PropertyGroup>
@@ -1417,6 +1465,7 @@
         <Property name="FullyTraceSupplementalProxies" />
       </PropertyGroup>
       <PropertyGroup label="Miscellaneous">
+        <Property name="SkipRenderingComponents" />
         <Property name="ShowIncrementalTrace" />
       </PropertyGroup>
       <Hints>
@@ -1444,6 +1493,14 @@
           -->
         </EnumerationDomain>
       </IntVectorProperty>
+      <IntVectorProperty name="SkipRenderingComponents"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Skip rendering components such as views, representations, etc.
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty name="SkipHiddenDisplayProperties"
           default_values="1"
           number_of_elements="1">
@@ -1451,9 +1508,17 @@
           <Documentation>
             Skip displays properties/representations for elements hidden in a view.
           </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator
+            type="GenericDecorator"
+            mode="enabled_state"
+            property="SkipRenderingComponents" value="0">
+          </PropertyWidgetDecorator>
+        </Hints>
       </IntVectorProperty>
       <PropertyGroup label="General options">
         <Property name="PropertiesToTraceOnCreate" />
+        <Property name="SkipRenderingComponents" />
         <Property name="SkipHiddenDisplayProperties" />
       </PropertyGroup>
       <Hints>

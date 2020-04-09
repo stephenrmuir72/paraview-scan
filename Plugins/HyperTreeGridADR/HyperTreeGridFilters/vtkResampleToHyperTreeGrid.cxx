@@ -21,6 +21,7 @@
 #include "vtkBox.h"
 #include "vtkCell.h"
 #include "vtkCell3D.h"
+#include "vtkCellData.h"
 #include "vtkConvexPointSet.h"
 #include "vtkDataArray.h"
 #include "vtkDataSet.h"
@@ -37,7 +38,6 @@
 #include "vtkMath.h"
 #include "vtkMathUtilities.h"
 #include "vtkObjectFactory.h"
-#include "vtkPointData.h"
 #include "vtkPoints.h"
 #include "vtkPolygon.h"
 #include "vtkPolyhedron.h"
@@ -253,7 +253,7 @@ int vtkResampleToHyperTreeGrid::RequestData(
   {
     vtkNew<vtkDoubleArray> scalarField;
     scalarField->SetName((std::string(data->GetName()) + std::string("_measure")).c_str());
-    output->GetPointData()->AddArray(scalarField);
+    output->GetCellData()->AddArray(scalarField);
     this->ScalarField = scalarField;
   }
 
@@ -261,18 +261,18 @@ int vtkResampleToHyperTreeGrid::RequestData(
   {
     vtkNew<vtkDoubleArray> scalarFieldDisplay;
     scalarFieldDisplay->SetName(data->GetName());
-    output->GetPointData()->AddArray(scalarFieldDisplay);
+    output->GetCellData()->AddArray(scalarFieldDisplay);
     this->DisplayScalarField = scalarFieldDisplay;
   }
 
   vtkNew<vtkLongArray> numberOfLeavesInSubtreeField;
   numberOfLeavesInSubtreeField->SetName("Number of leaves");
-  output->GetPointData()->AddArray(numberOfLeavesInSubtreeField);
+  output->GetCellData()->AddArray(numberOfLeavesInSubtreeField);
   this->NumberOfLeavesInSubtreeField = numberOfLeavesInSubtreeField;
 
   vtkNew<vtkLongArray> numberOfPointsInSubtreeField;
   numberOfPointsInSubtreeField->SetName("Number of points");
-  output->GetPointData()->AddArray(numberOfPointsInSubtreeField);
+  output->GetCellData()->AddArray(numberOfPointsInSubtreeField);
   this->NumberOfPointsInSubtreeField = numberOfPointsInSubtreeField;
 
   if (this->ArrayMeasurement)
@@ -374,7 +374,7 @@ bool vtkResampleToHyperTreeGrid::IntersectedVolume(
   double x = std::min(boxBounds[1], voxelBounds[1]) - std::max(boxBounds[0], voxelBounds[0]),
          y = std::min(boxBounds[3], voxelBounds[3]) - std::max(boxBounds[2], voxelBounds[2]),
          z = std::min(boxBounds[5], voxelBounds[5]) - std::max(boxBounds[4], voxelBounds[4]);
-  double min = std::pow(VTK_DBL_MIN, 1.0 / 3.0);
+  const double min = std::pow(VTK_DBL_MIN, 1.0 / 3.0);
   double normalization = volumeUnit < 1.0 ? volumeUnit : 1.0;
   bool nonZeroVolume =
     x >= min / normalization && y >= min / normalization && z >= min / normalization;

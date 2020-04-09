@@ -74,6 +74,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadMaterialsReaction.h"
 #include "pqLoadRestoreWindowLayoutReaction.h"
 #include "pqLoadStateReaction.h"
+#include "pqLogViewerReaction.h"
 #include "pqMainControlsToolbar.h"
 #include "pqManageCustomFiltersReaction.h"
 #include "pqManageFavoritesReaction.h"
@@ -84,6 +85,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
+#include "pqRenameProxyReaction.h"
 #include "pqRepresentationToolbar.h"
 #include "pqResetDefaultSettingsReaction.h"
 #include "pqSaveAnimationGeometryReaction.h"
@@ -202,6 +204,7 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
   new pqDataQueryReaction(ui.actionQuery);
   new pqResetDefaultSettingsReaction(ui.actionResetDefaultSettings);
   new pqSetMainWindowTitleReaction(ui.actionSetMainWindowTitle);
+  new pqRenameProxyReaction(ui.actionRename, propertiesPanel);
 
   if (propertiesPanel)
   {
@@ -306,7 +309,7 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
     pqTestingReaction::LOCK_VIEW_SIZE_CUSTOM);
   menu.addSeparator();
   new pqTimerLogReaction(menu.addAction("Timer Log") << pqSetName("actionToolsTimerLog"));
-  menu.addSeparator(); // --------------------------------------------------
+  new pqLogViewerReaction(menu.addAction("Log Viewer") << pqSetName("actionToolsLogViewer"));
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   menu.addSeparator(); // --------------------------------------------------
@@ -322,7 +325,7 @@ void pqParaViewMenuBuilders::buildViewMenu(QMenu& menu, QMainWindow& mainWindow)
 }
 
 //-----------------------------------------------------------------------------
-void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu)
+void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainWindow* mainWindow)
 {
   // Build the context menu manually so we can insert submenus where needed.
   QAction* actionPBOpen = new QAction(menu.parent());
@@ -352,7 +355,7 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu)
     QApplication::translate("pqPipelineBrowserContextMenu", "&Show All", Q_NULLPTR));
 #ifndef QT_NO_STATUSTIP
   actionPBShowAll->setStatusTip(QApplication::translate(
-    "pqPipelineBrowserContextMenu", "Shoo all source outputs in the pipeline", Q_NULLPTR));
+    "pqPipelineBrowserContextMenu", "Show all source outputs in the pipeline", Q_NULLPTR));
 #endif // QT_NO_STATUSTIP
 
   QAction* actionPBHideAll = new QAction(menu.parent());
@@ -470,18 +473,36 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu)
     "Link this source and current selected source as a selection link", Q_NULLPTR));
 #endif // QT_NO_TOOLTIP
 
+  QAction* actionPBRename = new QAction(menu.parent());
+  actionPBRename->setObjectName(QStringLiteral("actionPBRename"));
+  actionPBRename->setText(
+    QApplication::translate("pqPipelineBrowserContextMenu", "Rename", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+  actionPBRename->setToolTip(QApplication::translate(
+    "pqPipelineBrowserContextMenu", "Rename currently selected source", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_STATUSTIP
+  actionPBRename->setStatusTip(QApplication::translate(
+    "pqPipelineBrowserContextMenu", "Rename currently selected source", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+
   menu.addAction(actionPBOpen);
   menu.addAction(actionPBShowAll);
   menu.addAction(actionPBHideAll);
+  menu.addSeparator();
   menu.addAction(actionPBCopy);
   menu.addAction(actionPBPaste);
+  menu.addSeparator();
+  menu.addAction(actionPBDelete);
+  menu.addAction(actionPBRename);
+  menu.addAction(actionPBReloadFiles);
+  menu.addAction(actionPBIgnoreTime);
+  menu.addSeparator();
   menu.addAction(actionPBChangeInput);
   QMenu* addFilterMenu = menu.addMenu("Add Filter");
   pqParaViewMenuBuilders::buildFiltersMenu(
     *addFilterMenu, nullptr, true /*hide disabled*/, false /*quickLaunchable*/);
-  menu.addAction(actionPBReloadFiles);
-  menu.addAction(actionPBIgnoreTime);
-  menu.addAction(actionPBDelete);
+  menu.addSeparator();
   menu.addAction(actionPBCreateCustomFilter);
   menu.addAction(actionPBLinkSelection);
 
@@ -498,6 +519,7 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu)
   new pqDeleteReaction(actionPBDelete);
   new pqCreateCustomFilterReaction(actionPBCreateCustomFilter);
   new pqLinkSelectionReaction(actionPBLinkSelection);
+  new pqRenameProxyReaction(actionPBRename, mainWindow);
 }
 
 //-----------------------------------------------------------------------------

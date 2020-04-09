@@ -15,8 +15,9 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/can-restarts/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/cloud_layers_1k.jpg}"
   "DATA{${paraview_test_data_directory_input}/Data/CompositeGlyphInput.vtp}"
-  "DATA{${paraview_test_data_directory_input}/Data/CompositeGlyphTree.vtm}"
   "DATA{${paraview_test_data_directory_input}/Data/CompositeGlyphTree/,REGEX:.*}"
+  "DATA{${paraview_test_data_directory_input}/Data/CompositeGlyphTree.vtm}"
+  "DATA{${paraview_test_data_directory_input}/Data/cube_1ts_mod.e}"
   "DATA{${paraview_test_data_directory_input}/Data/CubeStringArray.vtk}"
   "DATA{${paraview_test_data_directory_input}/Data/EnSight/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/ExRestarts/,REGEX:.*}"
@@ -24,6 +25,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/FieldDataBlocks/FieldDataBlocks/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/FileSeries/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/GenericIOReader/,REGEX:.*}"
+  "DATA{${paraview_test_data_directory_input}/Data/HeadMRVolume.mhd}"
+  "DATA{${paraview_test_data_directory_input}/Data/HeadMRVolume.raw}"
   "DATA{${paraview_test_data_directory_input}/Data/Iron_Xdmf/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/LoadState.pvsm}"
   "DATA{${paraview_test_data_directory_input}/Data/LoadStateDialog.pvsm}"
@@ -94,6 +97,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/sineWaves.csv}"
   "DATA{${paraview_test_data_directory_input}/Data/singleSphereAnimation.pvd}"
   "DATA{${paraview_test_data_directory_input}/Data/singleSphereAnimation/,REGEX:.*}"
+  "DATA{${paraview_test_data_directory_input}/Data/SteeringDataGeneratorPlugin.xml}"
   "DATA{${paraview_test_data_directory_input}/Data/tensors.pvti}"
   "DATA{${paraview_test_data_directory_input}/Data/test_fielddata.vtk}"
   "DATA{${paraview_test_data_directory_input}/Data/testxmlpartdscol/,REGEX:.*}"
@@ -152,6 +156,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ClampAndUpdateColorMap-TS12-Unchanged.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ClampAndUpdateColorMap-TS6.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorBy.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorFreehandDrawing.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorFreehandDrawing_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorRangeHandles.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorRangeHandles_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorRangeHandles_B.png}"
@@ -216,8 +222,10 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataDialog7.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataDialog8.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataDialog9.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataMultiBlock.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataSelectLocation.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataSelectLocationMultiblock.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FindDataDialogNaN.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/FreezeQueryMultiblock.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ForceTimeDiamond.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Glyph3DRepresentation_Cylinder.png}"
@@ -366,16 +374,23 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SelectPointsTrace.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeparatedColorMapA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeparatedColorMapB.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeriesPreset.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeriesPresetRegexpNoRegexp.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeriesPresetRegexpYD.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SeriesPresetRegexp.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Slice.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceDirectDoubleColoring.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlane.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlaneCellData.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlaneMultiBlock.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlaneMultiBlockSurface.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlaneMultiBlockSurface_1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlaneMultiBlockSurface.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SliceWithPlane.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SpherePointSource_InterA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SpherePointSource_InterB.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SplitViewTraceScreenshot.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SteeringDataGeneratorA.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SteeringDataGeneratorB.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SteeringDataGeneratorC.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/StepColorSpaceA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/StructuredGridCellBlanking.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/StructuredGridVolumeRendering.png}"
@@ -399,6 +414,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestPythonView.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestPythonView_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestPythonViewScript.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TextSourcesInChartViews.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Threshold.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ThresholdInvert.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TileDisplaySplitView-1x1-tile0_1.png}"
@@ -466,6 +482,7 @@ SET (TESTS_WITHOUT_BASELINES
   ExportFilteredColumnsSpreadsheet.xml
   FavoritesFilters.xml
   FindWidget.xml
+  LogViewer.xml
   ModifyGUIWindowTitle.xml
   OpacityWidgetRange.xml
   OpenHelp.xml
@@ -543,10 +560,12 @@ SET (TESTS_WITH_INLINE_COMPARES
   ResetToVisibleRange.xml
   Ruler.xml
   SaveExodus.xml
-  SelectionLinkParallelCoordinatesView.xml
   SaveLargeScreenshot.xml
+  SelectionLinkParallelCoordinatesView.xml
   Slice.xml
+  SteeringDataGenerator.xml
   TestIsoVolume.xml
+  TextSourcesInChartViews.xml
   Threshold.xml
   TransferFunctionResetOnVisibilityChange.xml
   UpdateTransferFunctionRanges.xml
@@ -566,6 +585,8 @@ SET(TESTS_WITH_BASELINES
   DataAxesGrid.xml
   MoleculeScalarBar.xml
   SelectionByArray.xml
+  SeriesPreset.xml
+  SeriesPresetRegexp.xml
   TestHiddenLineRemoval.xml
   TestOpacityRendering.xml
 )
@@ -680,6 +701,7 @@ endif()
 list(APPEND TESTS_WITH_BASELINES
   4AxesContextView.xml
   AccentuatedFilename.xml
+  AdaptiveResampleToImage.xml
   AMRCutPlane.xml
   AMReXParticlesReader.xml
   Annotations.xml
@@ -709,6 +731,7 @@ list(APPEND TESTS_WITH_BASELINES
   ColorEditorVolumeControls.xml
   ColorLegendMinMaxLabels.xml
   ColorOpacityTableEditing.xml
+  ColorOpacityEditorFreehandDrawing.xml
   ColorOpacityEditorRangeHandles.xml
   CategoricalAutomaticAnnotations.xml
   CategoricalColors.xml
@@ -729,8 +752,9 @@ list(APPEND TESTS_WITH_BASELINES
   EnSight.xml
   EnSightTensorInversion.xml
   EnSightTensorInversionBin.xml
-  ExodusXML.xml
   ExodusGlobalDataWithRestarts.xml
+  ExodusSingleTimeStep.xml
+  ExodusXML.xml
   ExpandSelection.xml
   ExportLinePlotToCSV.xml
   ExportLinePlotToTSV.xml
@@ -826,6 +850,7 @@ list(APPEND TESTS_WITH_BASELINES
 #  SaveAnimationGeometry.xml
   SaveColorMap.xml
   SaveCSV.xml
+  SaveMultiBlockCSV.xml
   SaveOBJ.xml
   SaveTSV.xml
   SaveTXT.xml
@@ -1033,8 +1058,8 @@ endif()
 if(PARAVIEW_USE_PYTHON)
   list(APPEND TESTS_WITH_BASELINES
     ColorByComponentNames.xml # needs programmable filter
-    PythonShellRunScript.xml
     LiveProgrammableSource.xml
+    PythonShellRunScript.xml
     SaveLoadStatePython.xml
     SelectionLabels.xml
     TraceExodus.xml
@@ -1043,6 +1068,7 @@ if(PARAVIEW_USE_PYTHON)
     TraceStatisticsFilter.xml
     TraceSupplementalProxiesFully.xml
     TraceTimeControls.xml
+    TraceWithoutRenderingComponents.xml
   )
   list(APPEND TESTS_WITH_INLINE_COMPARES
     RestoreArrayDefaultTransferFunction.xml
@@ -1073,6 +1099,7 @@ if(PARAVIEW_USE_PYTHON)
       ContextViewSelectionTrace.xml
       ExodusModeShapes.xml
       FindDataPartialArrays.xml
+      FindDataMultiBlock.xml
       FindDataSelectLocation.xml # find data needs python/numpy
       FindDataSelectLocationMultiblock.xml # find data needs python/numpy
       ForceTimeDiamond.xml
@@ -1308,6 +1335,7 @@ set (ExodusModeShapes_FORCE_SERIAL TRUE)
 set (LoadSaveStateAnimation_FORCE_SERIAL TRUE)
 
 # We don't support volume rendering of image data in data server & render server mode
+set(AdaptiveResampleToImage_DISABLE_CRS TRUE)
 set(LoadSaveStateVolume_DISABLE_CRS TRUE)
 set(SeparatedColorMapOpacity_DISABLE_CRS TRUE)
 set(VolumeReprTwoIndepComp_DISABLE_CRS TRUE)
@@ -1354,6 +1382,10 @@ SET (ColorEditorVolumeControls_THRESHOLD 300)
 # This leeway helps that.
 set (PlotDataOverTime-NonDistributed_THRESHOLD 25)
 
+# Test needs to load a plugin, the test only records that for the
+# client side.
+set (SteeringDataGenerator_DISABLE_CS TRUE)
+set (SteeringDataGenerator_DISABLE_CRS TRUE)
 
 # Plot image leeway.
 set (SpreadSheet2_THRESHOLD 50)
@@ -1379,6 +1411,7 @@ set (VolumeRenderingWithContour_THRESHOLD 50)
 set (VolumeNoMapScalars_DISABLE_CRS TRUE)
 set (VolumeNoMapScalars_THRESHOLD 50)
 set (MultiBlockVolumeRendering_DISABLE_CRS TRUE)
+set (ColorOpacityEditorFreehandDrawing_DISABLE_CRS TRUE)
 
 # Histogram filter produces different results when running in parallel, so
 # disable it.

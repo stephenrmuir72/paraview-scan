@@ -22,7 +22,15 @@
  * representation does not support delivery to client (or render server) nodes.
  * In those configurations, it merely delivers a outline for the image to the
  * client and render-server and those nodes simply render the outline.
-*/
+ *
+ * vtkImageVolumeRepresentation has a few caveats:
+ *
+ * 1. It only supports vtkImageData and vtkPartitionedDataSet
+ *    comprising of vtkImageData. In case of latter, any partition not a
+ *    vtkImageData will be silently skipped.
+ *
+ * 2. In distributed mode, bounds on each rank as assumed to be non-overlapping.
+ */
 
 #ifndef vtkImageVolumeRepresentation_h
 #define vtkImageVolumeRepresentation_h
@@ -30,6 +38,7 @@
 #include "vtkNew.h" // needed for vtkNew.
 #include "vtkPVDataRepresentation.h"
 #include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkSmartPointer.h"        // needed for vtkSmartPointer
 
 class vtkColorTransferFunction;
 class vtkExtentTranslator;
@@ -37,11 +46,10 @@ class vtkFixedPointVolumeRayCastMapper;
 class vtkImageData;
 class vtkImplicitFunction;
 class vtkOutlineSource;
-class vtkPExtentTranslator;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
 class vtkPVLODVolume;
-class vtkSmartVolumeMapper;
+class vtkVolumeMapper;
 class vtkVolumeProperty;
 
 class VTKREMOTINGVIEWS_EXPORT vtkImageVolumeRepresentation : public vtkPVDataRepresentation
@@ -98,7 +106,7 @@ public:
   //@}
 
   //***************************************************************************
-  // Forwarded to vtkSmartVolumeMapper.
+  // Forwarded to vtkSmartVolumeMapper/vtkMultiBlockVolumeMapper.
   void SetRequestedRenderMode(int);
   void SetBlendMode(int);
   void SetCropping(int);
@@ -159,8 +167,8 @@ protected:
    */
   virtual vtkPVLODVolume* GetRenderedProp() { return this->Actor; };
 
-  vtkImageData* Cache;
-  vtkSmartVolumeMapper* VolumeMapper;
+  vtkSmartPointer<vtkDataObject> Cache;
+  vtkVolumeMapper* VolumeMapper;
   vtkVolumeProperty* Property;
   vtkPVLODVolume* Actor;
 
@@ -170,16 +178,10 @@ protected:
   unsigned long DataSize;
   double DataBounds[6];
 
-  // meta-data about the input image to pass on to render view for hints
-  // when redistributing data.
-  vtkNew<vtkPExtentTranslator> PExtentTranslator;
-  double Origin[3];
-  double Spacing[3];
-  int WholeExtent[6];
-
   bool MapScalars;
   bool MultiComponentsMapping;
 
+  int WholeExtent[6];
   double CroppingOrigin[3] = { 0, 0, 0 };
   double CroppingScale[3] = { 1, 1, 1 };
 

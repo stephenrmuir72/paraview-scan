@@ -35,6 +35,7 @@ set(classes
   pqAnimationShortcutDecorator
   pqAnimationShortcutWidget
   pqAnimationTimeToolbar
+  pqAnnotationsModel
   pqApplicationComponentsInit
   pqApplicationSettingsReaction
   pqApplyBehavior
@@ -62,6 +63,7 @@ set(classes
   pqChooseColorPresetReaction
   pqCollaborationBehavior
   pqColorAnnotationsPropertyWidget
+  pqColorAnnotationsWidget
   pqColorEditorPropertyWidget
   pqColorMapEditor
   pqColorOpacityEditorWidget
@@ -118,6 +120,7 @@ set(classes
   pqLoadStateReaction
   pqLockPanelsBehavior
   pqLockPanelsReaction
+  pqLogViewerReaction
   pqMainControlsToolbar
   pqMainWindowEventBehavior
   pqManageCustomFiltersReaction
@@ -145,7 +148,7 @@ set(classes
   pqPluginToolBarBehavior
   pqPointPickingHelper
   pqPreviewMenuManager
-  pqPropertyGroupButton
+  pqPropertyCollectionWidget
   pqProxyGroupMenuManager
   pqReaction
   pqReloadFilesReaction
@@ -222,7 +225,7 @@ set(ui_files
   Resources/UI/pqCameraManipulatorWidget.ui
   Resources/UI/pqCameraToolbar.ui
   Resources/UI/pqExportInspector.ui
-  Resources/UI/pqColorAnnotationsPropertyWidget.ui
+  Resources/UI/pqColorAnnotationsWidget.ui
   Resources/UI/pqColorEditorPropertyWidget.ui
   Resources/UI/pqColorMapEditor.ui
   Resources/UI/pqColorOpacityEditorWidget.ui
@@ -246,6 +249,7 @@ set(ui_files
   Resources/UI/pqMoleculePropertyWidget.ui
   Resources/UI/pqOMETransferFunctionsPropertyWidget.ui
   Resources/UI/pqOMETransferFunctionsPropertyWidgetPage.ui
+  Resources/UI/pqPropertyCollectionWidget.ui
   Resources/UI/pqResetScalarRangeToDataOverTime.ui
   Resources/UI/pqSavePresetOptions.ui
   Resources/UI/pqSeriesEditorPropertyWidget.ui

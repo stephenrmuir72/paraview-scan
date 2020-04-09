@@ -158,8 +158,8 @@ public:
     this->Ui.OpacityTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     this->Ui.OpacityTable->horizontalHeader()->setStretchLastSection(true);
 
-    QObject::connect(
-      this->ChoosePresetReaction.data(), SIGNAL(presetApplied()), self, SLOT(presetApplied()));
+    QObject::connect(this->ChoosePresetReaction.data(), SIGNAL(presetApplied(const QString&)), self,
+      SLOT(presetApplied()));
 
     this->HistogramTimer.setSingleShot(true);
     this->HistogramTimer.setInterval(1);
@@ -266,6 +266,7 @@ pqColorOpacityEditorWidget::pqColorOpacityEditorWidget(
 
   this->connect(
     ui.UseLogScaleOpacity, SIGNAL(clicked(bool)), SLOT(useLogScaleOpacityClicked(bool)));
+
   // if the user edits the "DataValue", we need to update the transfer function.
   QObject::connect(
     ui.CurrentDataValue, SIGNAL(textChangedAndEditingFinished()), this, SLOT(currentDataEdited()));
@@ -308,6 +309,19 @@ pqColorOpacityEditorWidget::pqColorOpacityEditorWidget(
   else
   {
     ui.UseLogScale->hide();
+  }
+
+  smproperty = smgroup->GetProperty("UseOpacityControlPointsFreehandDrawing");
+  if (smproperty)
+  {
+    this->addPropertyLink(this, "useOpacityControlPointsFreehandDrawing",
+      SIGNAL(useOpacityControlPointsFreehandDrawingChanged()), smproperty);
+    this->connect(ui.UseOpacityControlPointsFreehandDrawing, SIGNAL(clicked(bool)),
+      SLOT(useOpacityControlPointsFreehandDrawingClicked(bool)));
+  }
+  else
+  {
+    ui.UseOpacityControlPointsFreehandDrawing->hide();
   }
 
   smproperty = smgroup->GetProperty("ShowDataHistogram");
@@ -601,9 +615,6 @@ void pqColorOpacityEditorWidget::updateCurrentData()
   {
     ui.CurrentDataValue->setEnabled(false);
   }
-
-  this->Internals->ColorTableModel.refresh();
-  this->Internals->OpacityTableModel.refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -659,6 +670,12 @@ bool pqColorOpacityEditorWidget::useLogScaleOpacity() const
 }
 
 //-----------------------------------------------------------------------------
+bool pqColorOpacityEditorWidget::useOpacityControlPointsFreehandDrawing() const
+{
+  return this->Internals->Ui.UseOpacityControlPointsFreehandDrawing->isChecked();
+}
+
+//-----------------------------------------------------------------------------
 void pqColorOpacityEditorWidget::setUseLogScale(bool val)
 {
   Ui::ColorOpacityEditorWidget& ui = this->Internals->Ui;
@@ -670,6 +687,13 @@ void pqColorOpacityEditorWidget::setUseLogScaleOpacity(bool val)
 {
   Ui::ColorOpacityEditorWidget& ui = this->Internals->Ui;
   ui.UseLogScaleOpacity->setChecked(val);
+}
+
+//-----------------------------------------------------------------------------
+void pqColorOpacityEditorWidget::setUseOpacityControlPointsFreehandDrawing(bool val)
+{
+  Ui::ColorOpacityEditorWidget& ui = this->Internals->Ui;
+  ui.UseOpacityControlPointsFreehandDrawing->setChecked(val);
 }
 
 //-----------------------------------------------------------------------------
@@ -689,6 +713,13 @@ void pqColorOpacityEditorWidget::useLogScaleClicked(bool log_space)
   this->Internals->Ui.ColorEditor->SetLogScaleXAxis(log_space);
 
   emit this->useLogScaleChanged();
+}
+
+//-----------------------------------------------------------------------------
+void pqColorOpacityEditorWidget::useOpacityControlPointsFreehandDrawingClicked(bool use)
+{
+  this->Internals->Ui.OpacityEditor->SetControlPointsFreehandDrawing(use);
+  emit this->useOpacityControlPointsFreehandDrawingChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -896,8 +927,8 @@ void pqColorOpacityEditorWidget::presetApplied()
   emit this->changeFinished();
 
   // Assume the color map and opacity have changed and refresh
-  this->Internals->ColorTableModel.refresh();
-  this->Internals->OpacityTableModel.refresh();
+  emit this->xrgbPointsChanged();
+  emit this->xvmsPointsChanged();
 }
 
 //-----------------------------------------------------------------------------

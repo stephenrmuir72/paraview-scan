@@ -820,8 +820,6 @@
                             repeat_command="1"
                             use_index="1"
                             set_number_command="SetBottomAxisLabelsNumber">
-        <!-- used to trigger the display pqScalarValueListPropertyWidget -->
-        <ArrayRangeDomain name="scalar_range"/>
         <Hints>
           <PropertyWidgetDecorator type="ShowWidgetDecorator">
             <Property name="BottomAxisUseCustomLabels"
@@ -1122,8 +1120,6 @@
                             repeat_command="1"
                             use_index="1"
                             set_number_command="SetRightAxisLabelsNumber">
-        <!-- used to trigger the display pqScalarValueListPropertyWidget -->
-        <ArrayRangeDomain name="scalar_range"/>
         <Hints>
           <PropertyWidgetDecorator type="ShowWidgetDecorator">
             <Property name="RightAxisUseCustomLabels"
@@ -1414,8 +1410,6 @@
                             repeat_command="1"
                             use_index="1"
                             set_number_command="SetTopAxisLabelsNumber">
-        <!-- used to trigger the display pqScalarValueListPropertyWidget -->
-        <ArrayRangeDomain name="scalar_range"/>
         <Hints>
           <PropertyWidgetDecorator type="ShowWidgetDecorator">
             <Property name="TopAxisUseCustomLabels"
@@ -2491,14 +2485,6 @@
         </Documentation>
         <BooleanDomain name="bool" />
       </IntVectorProperty>
-      <IntVectorProperty command="SetSkyboxResolution"
-                         default_values="1000"
-                         name="SkyboxResolution"
-                         number_of_elements="1">
-        <Documentation>
-          Set the resolution of the skybox.
-        </Documentation>
-      </IntVectorProperty>
       <ProxyProperty command="SetBackgroundTexture"
                      name="BackgroundTexture" panel_widget="texture_selector">
         <ProxyGroupDomain name="groups">
@@ -2664,7 +2650,7 @@
           animateable="0"
           number_of_elements="1">
         <BooleanDomain name="bool" />
-        <Documentation>Controls whether OSPRay casts shadow rays
+        <Documentation>Controls whether OSPRay raycaster back end casts shadow rays
         or not.</Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
@@ -2700,7 +2686,7 @@
             min="0"
             name="range"/>
         <Documentation>Sets the number of occlusion query rays that
-        OSPRay sends at each intersection.</Documentation>
+        OSPRay raycaster sends at each intersection.</Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
           <PropertyWidgetDecorator type="GenericDecorator"
@@ -2718,8 +2704,8 @@
         <IntRangeDomain
             min="1"
             name="range"/>
-        <Documentation>Set the number of primary rays that OSPRay
-        shoots per pixel.</Documentation>
+        <Documentation>Set the number of primary rays that ray tracers
+        shoot per pixel.</Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
           <PropertyWidgetDecorator type="GenericDecorator"
@@ -2738,7 +2724,7 @@
         <IntRangeDomain
             min="1"
             name="range"/>
-        <Documentation>Set the number of render passes OSPRay takes to
+        <Documentation>Set the number of render passes ray tracers take to
         improve image quality. Has no effect unless ParaView
         is started with the --enable-streaming option.</Documentation>
         <Hints>
@@ -2803,7 +2789,33 @@
         <IntRangeDomain
             min="0"
             name="range"/>
-        <Documentation>Set the size of the timestep cache that speeds up flip book animation in OSPRay.</Documentation>
+        <Documentation>Set the size of the timestep cache that speeds up flip book animation in ray tracers.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetBackgroundMode"
+                         label="Background mode"
+                         default_values="2"
+                         name="BackgroundMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <!--<Entry text="None"
+                 value="0" /> Disabled since needs more work. -->
+          <Entry text="Backplate"
+                 value="1" />
+          <Entry text="Environment"
+                 value="2" />
+          <Entry text="Both"
+                 value="3" />
+        </EnumerationDomain>
+        <Documentation>
+          Background behavior for path tracers. Backplate does not move or affect materials. Environment does.
+        </Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
           <PropertyWidgetDecorator type="GenericDecorator"
@@ -2814,11 +2826,12 @@
       </IntVectorProperty>
       <DoubleVectorProperty
           name="BackgroundNorth"
+          label="Environment North"
           command="SetBackgroundNorth"
           default_values="0.0 1.0 0.0"
           animateable="0"
           number_of_elements="3">
-        <Documentation>Sets north pole for gradient and image background in OSPRay path tracer.</Documentation>
+        <Documentation>Sets north pole for gradient and image environmental background in path tracers.</Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
           <PropertyWidgetDecorator type="GenericDecorator"
@@ -2830,10 +2843,11 @@
       <DoubleVectorProperty
           name="BackgroundEast"
           command="SetBackgroundEast"
+          label="Environment East"
           default_values="1.0 0.0 0.0"
           animateable="0"
           number_of_elements="3">
-        <Documentation>Sets east direction for image background in OSPRay path tracer.</Documentation>
+        <Documentation>Sets east direction for image environmental background in path tracers.</Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
           <PropertyWidgetDecorator type="GenericDecorator"
@@ -2842,7 +2856,78 @@
                                    values="1" />
         </Hints>
       </DoubleVectorProperty>
-
+      <DoubleVectorProperty command="SetEnvironmentalBG"
+                            default_values="0.329 0.349 0.427"
+                            name="EnvironmentalBG"
+                            panel_widget="color_selector_with_palette"
+                            number_of_elements="3">
+        <DoubleRangeDomain max="1 1 1"
+                           min="0 0 0"
+                           name="range" />
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetEnvironmentalBG2"
+                            default_values="0 0 0.165"
+                            name="EnvironmentalBG2"
+                            panel_widget="color_selector"
+                            number_of_elements="3">
+        <DoubleRangeDomain max="1 1 1"
+                           min="0 0 0"
+                           name="range" />
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetGradientEnvironmentalBG"
+                         default_values="0"
+                         name="UseGradientEnvironmentalBG"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetTexturedEnvironmentalBG"
+                         default_values="0"
+                         name="UseTexturedEnvironmentalBG"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </IntVectorProperty>
+      <ProxyProperty command="SetEnvironmentalBGTexture"
+                     name="EnvironmentalBGTexture"
+                     panel_widget="texture_selector">
+        <ProxyGroupDomain name="groups">
+          <Group name="textures" />
+        </ProxyGroupDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
+      </ProxyProperty>
       <ProxyProperty
         name="AdditionalLights"
         command="AddLight"
@@ -2895,7 +2980,6 @@
         <Property name="UseTexturedBackground"/>
         <Property name="UseSkyboxBackground"/>
         <Property name="UseEnvironmentLighting"/>
-        <Property name="SkyboxResolution"/>
         <Property name="BackgroundTexture"/>
       </PropertyGroup>
       <PropertyGroup label="Stereo">
@@ -2933,6 +3017,23 @@
         <Property name="Denoise"/>
         <Property name="LightScale"/>
         <Property name="OSPRayTemporalCacheSize"/>
+        <Property name="BackgroundNorth"/>
+        <Property name="BackgroundEast"/>
+        <Property name="BackgroundMode"/>
+      </PropertyGroup>
+      <PropertyGroup label="Path Traced Environmental Background" panel_widget="EnvironmentalBGEditor" panel_visibility="default">
+        <Property name="EnvironmentalBG"/>
+        <Property name="EnvironmentalBG2"/>
+        <Property name="UseGradientEnvironmentalBG"/>
+        <Property name="UseTexturedEnvironmentalBG"/>
+        <Property name="EnvironmentalBGTexture"/>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableOSPRay"
+                                   values="1" />
+        </Hints>
       </PropertyGroup>
 
       <SubProxy command="SetDeliveryManager">
@@ -3086,7 +3187,7 @@
           proxyname="ContextViewDeliveryManager"/>
       </SubProxy>
       <Hints>
-        <ShowOneRepresentationAtATime />
+        <ShowOneRepresentationAtATime type="ParallelCoordinatesRepresentation" />
         <!-- When present, vtkSMParaViewPipelineController::Show() will
              result in hiding other representations that are currently visible
              -->
@@ -3590,7 +3691,7 @@
       </PropertyGroup>
 
       <Hints>
-        <ShowOneRepresentationAtATime />
+        <ShowOneRepresentationAtATime type="PlotMatrixRepresentation" />
         <!-- When present, vtkSMParaViewPipelineController::Show() will
              result in hiding other representations that are currently visible
              -->
@@ -4411,7 +4512,7 @@
                           text="Slice" />
       <InputProperty command="SetInputConnection"
                      name="Input">
-        <DataTypeDomain composite_data_supported="0"
+        <DataTypeDomain composite_data_supported="1"
                         name="input_type">
           <DataType value="vtkImageData" />
         </DataTypeDomain>
@@ -6848,6 +6949,24 @@
           The opacity to use when rendering the model.
         </Documentation>
       </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetSpecular"
+                            default_values="0.0"
+                            name="Specular"
+                            number_of_elements="1">
+        <DoubleRangeDomain max="1" min="0" name="range" />
+        <Documentation>
+          The specularity to use when rendering the model.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetSpecularPower"
+                            default_values="100.0"
+                            name="SpecularPower"
+                            number_of_elements="1">
+        <DoubleRangeDomain max="100" min="0" name="range" />
+        <Documentation>
+          The specularity to use when rendering the model.
+        </Documentation>
+      </DoubleVectorProperty>
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
                          name="MapScalars"
@@ -7053,6 +7172,10 @@
           <PropertyGroup label="Coloring">
             <Property name="Opacity"
                       panel_visibility="default" />
+            <Property name="Specular"
+                      panel_visibility="default" />
+            <Property name="SpecularPower"
+                      panel_visibility="default" />
             <Property name="MapScalars"
                       panel_visibility="default" />
             <Property name="ColorArrayName"
@@ -7084,6 +7207,107 @@
         </ExposedProperties>
       </SubProxy>
     </PVMoleculeRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <ChartRepresentationProxy class="vtkChartTextRepresentation"
+                              name="ChartTextRepresentation"
+                              processes="client|dataserver|renderserver">
+      <Documentation>Representation to show text in Chart views</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <Documentation>Data input for the representation.</Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject" />
+        </DataTypeDomain>
+      </InputProperty>
+      <IntVectorProperty command="SetVisibility"
+                         default_values="1"
+                         name="Visibility"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>Visibility of the representation.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetForceUseCache"
+                         default_values="0"
+                         is_internal="1"
+                         name="ForceUseCache"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Typically UseCache and CacheKey are updated by the View
+        and representations cache based on what the view tells it. However in
+        some cases we may want to force a representation to cache irrespective
+        of the view (e.g. comparative views). In which case these ivars can up
+        set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+        Instead, ForcedCacheKey is used.</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetForcedCacheKey"
+                            default_values="none"
+                            is_internal="1"
+                            name="ForcedCacheKey"
+                            number_of_elements="1">
+        <DoubleRangeDomain name="range" />
+        <Documentation>Typically UseCache and CacheKey are updated by the View
+        and representations cache based on what the view tells it. However in
+        some cases we may want to force a representation to cache irrespective
+        of the view (e.g. comparative views). In which case these ivars can up
+        set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+        Instead, ForcedCacheKey is used.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetInteractivity"
+                         default_values="0"
+                         name="Interactivity"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether user should be able to interactively place the text in the view.
+        </Documentation>
+        <!-- for now, we hide this property since we don't users interact with
+             the text right now -->
+      </IntVectorProperty>
+
+      <SubProxy command="SetTextProperty">
+        <Proxy name="Prop2DProperty" proxygroup="properties" proxyname="ChartTextProperty" />
+        <ExposedProperties>
+          <PropertyGroup label="Font Properties" panel_widget="FontEditor">
+            <Property name="Color" function="Color" />
+            <Property name="Opacity" function="Opacity"/>
+            <Property name="FontFamily" function="Family"/>
+            <Property name="FontFile" function="File"/>
+            <Property name="Bold" function="Bold"/>
+            <Property name="Italic" function="Italics" />
+            <Property name="Shadow" function="Shadow"/>
+            <Property name="FontSize" function="Size"/>
+            <Property name="Justification" function="Justification"/>
+            <Property name="VerticalJustification" default_values="1" />
+          </PropertyGroup>
+        </ExposedProperties>
+      </SubProxy>
+
+      <IntVectorProperty command="SetLabelLocation"
+                         default_values="4"
+                         name="LabelLocation"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <!-- for now, we skip interactive placement functionality
+          <Entry text="AnyLocation" value="0" />
+          -->
+          <Entry text="LowerLeftCorner" value="1" />
+          <Entry text="LowerRightCorner" value="2" />
+          <Entry text="LowerCenter" value="3" />
+          <Entry text="UpperLeftCorner" value="4" />
+          <Entry text="UpperRightCorner" value="5" />
+          <Entry text="UpperCenter" value="6" />
+        </EnumerationDomain>
+        <Documentation>Specify placement of the scalar bar actor.</Documentation>
+      </IntVectorProperty>
+
+      <PropertyGroup label="Text Position" panel_widget="TextLocationEditor">
+        <Property name="LabelLocation" function="WindowLocation" />
+      </PropertyGroup>
+
+    </ChartRepresentationProxy>
 
     <!-- =================================================================== -->
     <ChartRepresentationProxy base_proxygroup="representations"
@@ -7315,6 +7539,13 @@
       </Documentation>
       </StringVectorProperty>
 
+      <StringVectorProperty name="LastPresetName"
+                            number_of_elements="1"
+                            default_values="Spectrum"
+                            panel_visibility="never">
+      <Documentation>Dummy property containing last color preset name.
+        The property widget can set it when a preset is applied, and the domain can read it when a default color is requested.</Documentation>
+      </StringVectorProperty>
       <!-- End of XYChartRepresentationBase -->
     </ChartRepresentationProxy>
 
@@ -8193,6 +8424,8 @@
                   function="SeriesMarkerStyle" />
         <Property name="SeriesPlotCorner"
                   function="SeriesPlotCorner"/>
+        <Property name="LastPresetName"
+                  function="LastPresetName"/>
       </PropertyGroup>
 
       <Hints>
@@ -10150,7 +10383,6 @@
             <Property name="UseTexturedBackground"/>
             <Property name="UseSkyboxBackground"/>
             <Property name="UseEnvironmentLighting"/>
-            <Property name="SkyboxResolution"/>
             <Property name="BackgroundTexture"/>
           </PropertyGroup>
 
@@ -11709,6 +11941,10 @@
         </Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="OSPRayUseScaleArray"
+                                   values="1" />
         </Hints>
       </StringVectorProperty>
       <ProxyProperty command="SetScalingFunction"
@@ -11727,6 +11963,10 @@
         </ProxyListDomain>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="OSPRayUseScaleArray"
+                                   values="1" />
         </Hints>
       </ProxyProperty>
       <StringVectorProperty command="SetMaterial"

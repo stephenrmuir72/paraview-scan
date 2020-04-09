@@ -22,8 +22,10 @@
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkTuple.h"
 
-#include "vtk_jsoncpp.h"
+#include "vtksys/FStream.hxx"
 #include "vtksys/SystemTools.hxx"
+
+#include "vtk_jsoncpp.h"
 
 #include <cassert>
 #include <list>
@@ -98,6 +100,7 @@ public:
     assert(this->CustomPresets.size() > index);
     this->CustomPresets.erase(this->CustomPresets.begin() + index);
     this->SaveToSettings();
+    this->Presets.clear();
     return true;
   }
 
@@ -142,7 +145,7 @@ public:
     Json::CharReaderBuilder builder;
     builder["collectComments"] = false;
     Json::Value root;
-    ifstream file;
+    vtksys::ifstream file;
     file.open(filename);
     if (!file)
     {
@@ -286,13 +289,14 @@ const Json::Value& vtkSMTransferFunctionPresets::GetPreset(unsigned int index)
 }
 
 //----------------------------------------------------------------------------
-const Json::Value& vtkSMTransferFunctionPresets::GetFirstPresetWithName(const char* name)
+const Json::Value& vtkSMTransferFunctionPresets::GetFirstPresetWithName(const char* name, int& idx)
 {
   static Json::Value nullValue;
   if (name == nullptr)
   {
     return nullValue;
   }
+  idx = 0;
   const std::vector<Json::Value>& presets = this->Internals->GetPresets();
   for (std::vector<Json::Value>::const_iterator iter = presets.begin(); iter != presets.end();
        ++iter)
@@ -301,8 +305,18 @@ const Json::Value& vtkSMTransferFunctionPresets::GetFirstPresetWithName(const ch
     {
       return (*iter);
     }
+    idx++;
   }
+
+  idx = -1;
   return nullValue;
+}
+
+//----------------------------------------------------------------------------
+const Json::Value& vtkSMTransferFunctionPresets::GetFirstPresetWithName(const char* name)
+{
+  int idx;
+  return this->GetFirstPresetWithName(name, idx);
 }
 
 //----------------------------------------------------------------------------
@@ -349,6 +363,23 @@ bool vtkSMTransferFunctionPresets::AddPreset(const char* name, const vtkStdStrin
   }
   this->Internals->AddPreset(name, value);
   return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMTransferFunctionPresets::SetPreset(const char* name, const Json::Value& preset)
+{
+  int idx;
+  this->GetFirstPresetWithName(name, idx);
+  if (idx < 0 || this->IsPresetBuiltin(idx))
+  {
+    return false;
+  }
+
+  if (idx >= 0)
+  {
+    this->RemovePreset(idx);
+  }
+  return this->AddPreset(name, preset);
 }
 
 //----------------------------------------------------------------------------
@@ -456,7 +487,7 @@ bool vtkSMTransferFunctionPresets::ImportPresets(const char* filename)
   if (vtksys::SystemTools::LowerCase(vtksys::SystemTools::GetFilenameLastExtension(filename)) ==
     ".xml")
   {
-    ifstream in(filename);
+    vtksys::ifstream in(filename);
     if (in)
     {
       std::ostringstream contents;

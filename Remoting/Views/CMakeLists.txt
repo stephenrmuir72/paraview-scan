@@ -37,6 +37,7 @@ set(classes
   vtkCaveSynchronizedRenderers
   vtkChartRepresentation
   vtkChartSelectionRepresentation
+  vtkChartTextRepresentation
   vtkChartWarning
   vtkCompositeRepresentation
   vtkContext2DScalarBarActor
@@ -55,6 +56,7 @@ set(classes
   vtkLogoSourceRepresentation
   vtkMoleculeRepresentation
   vtkMultiSliceContextItem
+  vtkOrderedCompositingHelper
   vtkOutlineRepresentation
   vtkPointGaussianRepresentation
   vtkPolarAxesRepresentation

@@ -13,7 +13,7 @@ ParaView is being built (e.g., Python, Qt).
 
 The first chapter is a getting started guide by OS that is very helpful if you have never
 built ParaView before and do not know which options you need.
-If you are looking for the generic help, please start at ## Obtaining the source
+If you are looking for the generic help, please read the [Complete Compilation Guide](#complete-compilation-guide)
 
 ## Getting Started Guide
 This is a section intended to help those that have never built ParaView before, are not
@@ -31,18 +31,18 @@ for your operating system. It will be built with the python wrapping, MPI capabi
 Please run the command in a terminal to install the following dependencies depending of your linux distribution.
 
 ##### Ubuntu 18.04 LTS / Debian 10
-`sudo apt-get install git cmake build-essential libgl1-mesa-dev libxt-dev qt5-default libqt5x11extras5-dev libqt5help5 qttools5-dev qtxmlpatterns5-dev-tools libqt5svg5-dev python3-dev libopenmpi-dev libtbb-dev ninja-build`
+`sudo apt-get install git cmake build-essential libgl1-mesa-dev libxt-dev qt5-default libqt5x11extras5-dev libqt5help5 qttools5-dev qtxmlpatterns5-dev-tools libqt5svg5-dev python3-dev python3-numpy libopenmpi-dev libtbb-dev ninja-build`
 
 ##### Centos 7
 
-##### CMake
-Download and install [cmake](https://cmake.org/download/) as the packaged version is not enough considering that
+###### CMake
+Download and install [cmake][cmake-download]) as the packaged version is not enough considering that
 CMake 3.10 or higher is needed.
 
-##### Others
+###### Others
 `sudo yum install python3-devel openmpi-devel mesa-libGL-devel libX11-devel libXt-devel qt5-qtbase-devel qt5-qtx11extras-devel qt5-qttools-devel qt5-qtxmlpatterns-devel tbb-devel ninja-build git`
 
-##### Environement
+###### Environement
 ```sh
 alias ninja ninja-build
 export PATH=$PATH:/usr/lib64/openmpi/bin/
@@ -62,7 +62,7 @@ To build ParaView developement version (usually refered as "master"), please run
 git clone --recursive https://gitlab.kitware.com/paraview/paraview.git
 mkdir paraview_build
 cd paraview_build
-cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION=TBB -DCMAKE_BUILD_TYPE=Release ../paraview
+cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION_TYPE=TBB -DCMAKE_BUILD_TYPE=Release ../paraview
 ninja
 ```
 
@@ -74,7 +74,7 @@ cd paraview
 git checkout tag
 git submodule update --init --recursive
 cd ../paraview_build
-cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION=TBB -DCMAKE_BUILD_TYPE=Release ../paraview
+cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION_TYPE=TBB -DCMAKE_BUILD_TYPE=Release ../paraview
 ninja
 ```
 
@@ -91,10 +91,10 @@ Double click on the paraview executable in the bin directory or run in the previ
  * Download and install [git bash for windows][gitforwindows]
  * Download and install [cmake][cmake-download]
  * Download and install [Visual Studio 2015 Community Edition][visual-studio]
- * Download and install [ninja-build][ninja]
- * Download and install [Microsoft MPI][msmpi]
- * Download and install [Intel TBB for windows][tbb]
+ * Download [ninja-build][ninja] and drop `ninja.exe` in `C:\Windows\`
+ * Download and install both `msmpisetup.exe` and `msmpisdk.msi` from [Microsoft MPI][msmpi]
  * Download and install [Python for windows][pythonwindows]
+ * Download and install [Qt 5.12.3][qt-download-5.12.3] for winfows, make sure to check the MSVC 2015 64-bit component during installation, make sure to add `C:\Qt\Qt5.12.3\5.12.3\msvc2015_64\bin` to your `PATH` environnement variable.
 
 #### Recover the source
  * Open git bash
@@ -128,7 +128,7 @@ git submodule update --init --recursive
  * Open VS2015 x64 Native Tools Command Prompt and run the following commands
 ```sh
 cd C:\pv\pvb
-cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION=TBB -DCMAKE_BUILD_TYPE=Release ..\pv
+cmake -GNinja -DPARAVIEW_ENABLE_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_SMP_IMPLEMENTATION_TYPE=OpenMP -DCMAKE_BUILD_TYPE=Release ..\pv
 ninja
 ```
 
@@ -335,6 +335,8 @@ These settings control capabitities of the build. These begin with the prefix
 Less common, but potentially useful variables are:
 
   * `PARAVIEW_USE_VTKM` (default `ON`): Whether VTK-m based filters are enabled.
+  * `PARAVIEW_USE_FORTRAN` (default `ON` if Fortran compiler found): Enable
+     Fortran support for Catalyst libraries.
 
 #### Feature settings
 
@@ -474,6 +476,47 @@ The following targets are used to build documentation for ParaView:
   * `ParaViewPythonDoc` - build the documentation from ParaView's Python source files.
   * `ParaViewDoc-TGZ` - build a gzipped tarball of ParaView documentation.
 
+## Using spack
+
+[Spack][spack] is a package manager for supercomputers, Linux and macOS. ParaView is one of
+the packages available in Spack. To install ParaView from spack, you can use:
+
+```
+spack install paraview
+```
+
+Please refer to [Spack documentation][spack-docs] for ways of customizing the install,
+including choosing the version and/or variant to build. Based on the version chosen,
+spack will download appropriate ParaView source and build it.
+
+To make it easier to build ParaView using spack from an existing source checkout, we have included
+relevant spack `package.yaml` files within the ParaView codebase itself. This
+also makes it easier to keep the spack package up-to-date with any changes to
+the ParaView buildsystem. With every release (and as frequently as required), we
+will push the changes to the ParaView paraview.yaml file upstream to the
+official spack repository.
+
+To build your existing source checkout of ParaView using Spack, here are the
+steps:
+
+```bash
+# assuming you've installed spack as documented in spack docs
+# and activate the spack environment appropriately
+
+# add custom paraview/package.yaml
+> spack repo add $PARAVIEW_SOURCE_DIR/Utilities/spack/repo
+
+# use info to confirm that the paraview package is available
+# only one version should be available
+> spack info paraview
+
+# install similar to any other spack package
+# e.g. following command installs osmesa-capable ParaView
+# with mpich
+
+> spack install paraview+osmesa^mesa~glx^mpich
+```
+
 [cmake-download]: https://cmake.org/download
 [cmake]: https://cmake.org
 [ffmpeg]: https://ffmpeg.org
@@ -491,5 +534,8 @@ The following targets are used to build documentation for ParaView:
 [pythonwindows]: https://www.python.org/downloads/windows/
 [qt-download]: https://download.qt.io/official_releases/qt
 [qt]: https://qt.io
+[qt-download-5.12.3]: https://download.qt.io/archive/qt/5.12/5.12.3/
 [tbb]: https://github.com/intel/tbb/releases
 [visual-studio]: https://visualstudio.microsoft.com/vs/older-downloads
+[spack]: https://spack.io/
+[spack-docs]: https://spack.readthedocs.io/en/latest/

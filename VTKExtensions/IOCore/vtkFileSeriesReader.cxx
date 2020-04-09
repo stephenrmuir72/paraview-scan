@@ -39,7 +39,8 @@
 #include "vtkStringArray.h"
 #include "vtkTypeTraits.h"
 
-#include <vtksys/SystemTools.hxx>
+#include "vtksys/FStream.hxx"
+#include "vtksys/SystemTools.hxx"
 
 #include "vtkSmartPointer.h"
 #define VTK_CREATE(type, name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -140,10 +141,8 @@ int vtkFileSeriesReaderTimeRanges::GetAggregateTimeInfo(vtkInformation* outInfo)
   timeRange[1] =
     (--this->RangeMap.end())->second->Get(vtkStreamingDemandDrivenPipeline::TIME_RANGE())[1];
 
-  // Special case: if the time range is a single value, suppress it.  This is
-  // most likely from a data set that is a single file with no time anyway.
-  // Even if it is not, how much value added is there for a single time value?
-  if (timeRange[0] >= timeRange[1])
+  // ensure time-range is valid.
+  if (timeRange[0] > timeRange[1])
   {
     outInfo->Remove(vtkStreamingDemandDrivenPipeline::TIME_RANGE());
     outInfo->Remove(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
@@ -783,7 +782,7 @@ int vtkFileSeriesReader::ReadMetaDataFile(const char* metafilename, vtkStringArr
   std::vector<double>& timeValues, int maxFilesToRead /*= VTK_INT_MAX*/)
 {
   // Open the metafile.
-  ifstream metafile(metafilename);
+  vtksys::ifstream metafile(metafilename);
   if (metafile.bad())
   {
     return 0;

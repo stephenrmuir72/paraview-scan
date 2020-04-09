@@ -200,18 +200,8 @@ if (PARAVIEW_ENABLE_MOMENTINVARIANTS)
   set(use_vtk_remote_modules ON)
 endif ()
 
-# For Catalyst, Fortran is optionally needed. Hence we enable
-# Fortran at the top level itself. When individual module called
-# enable_language(...), it failed during first cmake configure but worked o
-# subsequent. enable_language(... OPTIONAL) overcomes that issue altogether.
-if (NOT WIN32)
-  # Theoretically, CheckFortran should not be needed, but it
-  # enable_language(OPTIONAL) fails with Ninja generator.
-  include(CheckFortran)
-  check_fortran_support()
-  if (CMAKE_Fortran_COMPILER)
-    enable_language(Fortran OPTIONAL)
-  endif ()
+if (PARAVIEW_USE_FORTRAN)
+  enable_language(Fortran OPTIONAL)
 endif ()
 
 if (PARAVIEW_USE_EXTERNAL_VTK)
@@ -418,6 +408,8 @@ else ()
   set(VTK_USE_MPI "${PARAVIEW_USE_MPI}")
   # Forward CUDA option to VTK
   set(VTK_USE_CUDA "${PARAVIEW_USE_CUDA}")
+  # Forward Memkind option to VTK.
+  set(VTK_USE_MEMKIND "${PARAVIEW_USE_MEMKIND}")
 
   # Forward logging option to VTK.
   set(VTK_ENABLE_LOGGING ON)
@@ -544,10 +536,10 @@ vtk_module_build(
 
 include(vtkModuleJson)
 vtk_module_json(
-  MODULES "${vtk_modules}"
+  MODULES ${vtk_modules}
   OUTPUT "vtk-modules.json")
 vtk_module_json(
-  MODULES "${paraview_modules}"
+  MODULES ${paraview_modules}
   OUTPUT "paraview-modules.json")
 
 list(LENGTH vtk_modules vtk_modules_len)

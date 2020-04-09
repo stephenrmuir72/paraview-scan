@@ -70,7 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOMETransferFunctionsPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
 #include "pqPauseLiveSourcePropertyWidget.h"
-#include "pqPropertyGroupButton.h"
+#include "pqPropertyCollectionWidget.h"
 #include "pqProxyEditorPropertyWidget.h"
 #include "pqSeriesEditorPropertyWidget.h"
 #include "pqShaderReplacementsSelectorPropertyWidget.h"
@@ -225,7 +225,11 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   }
   else if (panelWidget == "BackgroundEditor")
   {
-    return new pqBackgroundEditorWidget(proxy, group, parentWidget);
+    return new pqBackgroundEditorWidget(proxy, group, parentWidget, false);
+  }
+  else if (panelWidget == "EnvironmentalBGEditor")
+  {
+    return new pqBackgroundEditorWidget(proxy, group, parentWidget, true);
   }
   else if (panelWidget == "ArrayStatus")
   {
@@ -298,6 +302,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "OMETransferFunctions")
   {
     return new pqOMETransferFunctionsPropertyWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "PropertyCollection")
+  {
+    return new pqPropertyCollectionWidget(proxy, group, parentWidget);
   }
   // *** NOTE: When adding new types, please update the header documentation ***
 

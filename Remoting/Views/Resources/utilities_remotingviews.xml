@@ -498,7 +498,7 @@
         <DoubleRangeDomain max="10"
                            min="0"
                            name="range"
-                           resolution="0.01" />
+                           resolution="1000" />
         <Documentation>Set the wheel motion factor for 3D interaction.</Documentation>
       </DoubleVectorProperty>
       <IntVectorProperty name="Camera2DManipulators"
@@ -528,7 +528,7 @@
         <DoubleRangeDomain max="10"
                            min="0"
                            name="range"
-                           resolution="0.01" />
+                           resolution="1000" />
         <Documentation>Set the wheel motion factor for 2D interaction.</Documentation>
       </DoubleVectorProperty>
       <PropertyGroup label="2D Interaction Options">
@@ -787,7 +787,6 @@
         </Documentation>
       </IntVectorProperty>
 
-
       <IntVectorProperty name="EnableOpacityMapping"
                          command="SetEnableOpacityMapping"
                          number_of_elements="1"
@@ -827,6 +826,14 @@
                          name="UseLogScale"
                          number_of_elements="1">
         <BooleanDomain name="bool" />
+      </IntVectorProperty>
+      <IntVectorProperty
+                         default_values="0"
+                         name="UseOpacityControlPointsFreehandDrawing"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation> Proxy only property used by the ColorOpacityWidget to know if freehand drawing should be used
+        </Documentation>
       </IntVectorProperty>
       <IntVectorProperty default_values="0"
                          name="ShowDataHistogram"
@@ -1065,6 +1072,7 @@
         <Property name="RGBPoints" function="XRGBPoints" />
         <Property name="ScalarOpacityFunction" function="ScalarOpacityFunction" />
         <Property name="UseLogScale" function="UseLogScale" />
+        <Property name="UseOpacityControlPointsFreehandDrawing" function="UseOpacityControlPointsFreehandDrawing" />
         <Property name="ShowDataHistogram" function="ShowDataHistogram" />
         <Property name="AutomaticDataHistogramComputation" function="AutomaticDataHistogramComputation" />
         <Property name="DataHistogramNumberOfBins" function="DataHistogramNumberOfBins" />
@@ -2448,6 +2456,7 @@
           <Entry text="Interlaced" value="3" />
           <Entry text="Left Eye Only" value="4" />
           <Entry text="Right Eye Only" value="5" />
+          <Entry text="Both Eyes" value="11" />
           <Entry text="Dresden" value="6" />
           <Entry text="Anaglyph" value="7" />
           <Entry text="Checkerboard" value="8" />
