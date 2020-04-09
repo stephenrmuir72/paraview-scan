@@ -567,7 +567,7 @@ void ${_paraview_build_target_safe}_initialize()
 
       set(_paraview_build_namespace_args)
       if (_paraview_build_NAMESPACE)
-        set(_paraview_build_namespace_args
+        list(APPEND _paraview_build_namespace_args
           NAMESPACE "${_paraview_build_NAMESPACE}::")
       endif ()
 
@@ -1084,7 +1084,7 @@ function (paraview_add_plugin name)
 
     set(_paraview_build_plugin_doc_source_args)
     if (DEFINED _paraview_add_plugin_DOCUMENTATION_DIR)
-      set(_paraview_build_plugin_doc_source_args
+      list(APPEND _paraview_build_plugin_doc_source_args
         SOURCE_DIR "${_paraview_add_plugin_DOCUMENTATION_DIR}")
     endif ()
 
@@ -1349,14 +1349,12 @@ function (paraview_add_plugin name)
     PROPERTY
       PREFIX "")
 
-  set(_paraview_add_plugin_destination
-    "${_paraview_build_plugin_destination}/${_paraview_build_plugin}")
   install(
     TARGETS "${_paraview_build_plugin}"
     ${_paraview_add_plugin_export_args}
     COMPONENT "${_paraview_build_PLUGINS_COMPONENT}"
-    ARCHIVE DESTINATION "${_paraview_add_plugin_destination}"
-    LIBRARY DESTINATION "${_paraview_add_plugin_destination}")
+    ARCHIVE DESTINATION "${_paraview_add_plugin_destination}/${_paraview_build_plugin}"
+    LIBRARY DESTINATION "${_paraview_add_plugin_destination}/${_paraview_build_plugin}")
 endfunction ()
 
 #[==[.md
