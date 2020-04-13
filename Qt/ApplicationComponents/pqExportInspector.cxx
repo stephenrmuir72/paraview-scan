@@ -144,7 +144,6 @@ void pqExportInspector::showEvent(QShowEvent* e)
 void pqExportInspector::Update()
 {
   pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
-  pqActiveObjects& ao = pqActiveObjects::instance();
 
   // filters and writers
   // turn off handling temporarily while we set up the menu
@@ -155,11 +154,6 @@ void pqExportInspector::Update()
   QComboBox* filterChoice = this->Internals->Ui.filterChoice;
 
   QString current = filterChoice->currentText();
-  pqPipelineSource* activeFilter = ao.activeSource();
-  if (activeFilter)
-  {
-    current = activeFilter->getSMName();
-  }
   filterChoice->clear();
   foreach (auto i, filters)
   {
@@ -185,12 +179,6 @@ void pqExportInspector::Update()
   QList<pqView*> views = smModel->findItems<pqView*>();
   QComboBox* viewChoice = this->Internals->Ui.viewChoice;
   current = viewChoice->currentText();
-
-  pqView* activeView = static_cast<pqView*>(ao.activeView());
-  if (activeView)
-  {
-    current = activeView->getSMName();
-  }
 
   viewChoice->clear();
   foreach (auto i, views)
