@@ -155,11 +155,6 @@ void pqExportInspector::Update()
   QComboBox* filterChoice = this->Internals->Ui.filterChoice;
 
   QString current = filterChoice->currentText();
-  pqPipelineSource* activeFilter = ao.activeSource();
-  if (activeFilter)
-  {
-    current = activeFilter->getSMName();
-  }
   filterChoice->clear();
   foreach (auto i, filters)
   {
@@ -185,12 +180,6 @@ void pqExportInspector::Update()
   QList<pqView*> views = smModel->findItems<pqView*>();
   QComboBox* viewChoice = this->Internals->Ui.viewChoice;
   current = viewChoice->currentText();
-
-  pqView* activeView = static_cast<pqView*>(ao.activeView());
-  if (activeView)
-  {
-    current = activeView->getSMName();
-  }
 
   viewChoice->clear();
   foreach (auto i, views)
