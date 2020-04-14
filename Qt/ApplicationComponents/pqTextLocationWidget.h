@@ -65,6 +65,10 @@ protected slots:
   void groupBoxLocationClicked(bool);
   void groupBoxPositionClicked(bool);
 
+  // Check the toolbutton representing the location given
+  // by the string. Disables signals from the toolbutton when checked.
+  void checkWindowLocationButton(const QString& location);
+
 private:
   Q_DISABLE_COPY(pqTextLocationWidget)
   class pqInternals;
