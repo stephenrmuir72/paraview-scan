@@ -35,10 +35,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqPropertiesPanel.h"
 #include "vtkSMPropertyGroup.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 
 // Qt includes
 #include <QString>
+
+//-----------------------------------------------------------------------------
+namespace
+{
+QString WindowLocations[] = { QString("AnyLocation"), QString("LowerLeftCorner"),
+  QString("LowerRightCorner"), QString("LowerCenter"), QString("UpperLeftCorner"),
+  QString("UpperRightCorner"), QString("UpperCenter") };
+}
 
 //-----------------------------------------------------------------------------
 class pqTextLocationWidget::pqInternals
@@ -66,8 +75,12 @@ pqTextLocationWidget::pqTextLocationWidget(
   Ui::TextLocationWidget& ui = this->Internals->Ui;
 
   vtkSMProperty* smproperty = smgroup->GetProperty("WindowLocation");
+  QString windowLocation("AnyLocation");
   if (smproperty)
   {
+    int windowLocationEnum = vtkSMPropertyHelper(smproperty).GetAsInt();
+    windowLocation = WindowLocations[windowLocationEnum];
+    this->checkWindowLocationButton(windowLocation);
     this->addPropertyLink(
       this, "windowLocation", SIGNAL(windowLocationChanged(QString&)), smproperty);
     QObject::connect(
@@ -94,6 +107,11 @@ pqTextLocationWidget::pqTextLocationWidget(
   else
   {
     ui.groupBoxPosition->hide();
+  }
+
+  if (windowLocation == "AnyLocation" && ui.groupBoxPosition - isVisible())
+  {
+    ui.groupBoxPosition->setChecked(true);
   }
 }
 
@@ -152,6 +170,44 @@ void pqTextLocationWidget::groupBoxPositionClicked(bool enable)
   else
   {
     this->emitWindowLocationChangedSignal();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqTextLocationWidget::checkWindowLocationButton(const QString& location)
+{
+  auto& ui = this->Internals->Ui;
+  QToolButton* buttonToCheck = nullptr;
+  if (location == "LowerLeftCorner")
+  {
+    buttonToCheck = ui.toolButtonLL;
+  }
+  else if (location == "LowerRightCorner")
+  {
+    buttonToCheck = ui.toolButtonLR;
+  }
+  else if (location == "LowerCenter")
+  {
+    buttonToCheck = ui.toolButtonLC;
+  }
+  else if (location == "UpperLeftCorner")
+  {
+    buttonToCheck = ui.toolButtonUL;
+  }
+  else if (location == "UpperRightCorner")
+  {
+    buttonToCheck = ui.toolButtonUR;
+  }
+  else if (location == "UpperCenter")
+  {
+    buttonToCheck = ui.toolButtonUC;
+  }
+
+  if (buttonToCheck)
+  {
+    bool blocked = buttonToCheck->blockSignals(true);
+    buttonToCheck->setChecked(true);
+    buttonToCheck->blockSignals(blocked);
   }
 }
 

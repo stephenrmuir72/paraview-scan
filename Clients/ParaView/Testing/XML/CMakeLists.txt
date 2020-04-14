@@ -1083,6 +1083,7 @@ if(PARAVIEW_USE_PYTHON)
 
   list(APPEND TESTS_WITHOUT_BASELINES
     PythonCalculator.xml
+    TextSource.xml
     TraceIntegrateVariables.xml
   )
 
