@@ -1056,7 +1056,7 @@ void pqColorOpacityEditorWidget::setHistogramOutdated()
   this->Internals->HistogramOutdated = true;
   if (this->Internals->Ui.AutomaticDataHistogramComputation->isChecked())
   {
-    this->showDataHistogramClicked(true);
+    this->showDataHistogramClicked(this->showDataHistogram());
   }
   else
   {
@@ -1068,6 +1068,10 @@ void pqColorOpacityEditorWidget::setHistogramOutdated()
 void pqColorOpacityEditorWidget::updateDataHistogramEnableState()
 {
   bool showDataHistogram = this->Internals->Ui.ShowDataHistogram->isChecked();
+  if (!showDataHistogram)
+  {
+    this->Internals->Ui.AutomaticDataHistogramComputation->setChecked(false);
+  }
   this->Internals->Ui.AutomaticDataHistogramComputation->setEnabled(showDataHistogram);
   this->Internals->Ui.DataHistogramNumberOfBins->setEnabled(showDataHistogram);
   this->Internals->Ui.ComputeDataHistogram->setEnabled(
