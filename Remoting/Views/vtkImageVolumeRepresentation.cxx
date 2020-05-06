@@ -31,6 +31,7 @@
 #include "vtkPVRenderView.h"
 #include "vtkPartitionedDataSet.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkRectilinearGrid.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkSmartVolumeMapper.h"
@@ -142,6 +143,7 @@ vtkImageVolumeRepresentation::~vtkImageVolumeRepresentation()
 int vtkImageVolumeRepresentation::FillInputPortInformation(int, vtkInformation* info)
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkRectilinearGrid");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSet");
   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
   return 1;
@@ -217,6 +219,22 @@ int vtkImageVolumeRepresentation::RequestData(
         // generation code to handle overlap in extents, however.
         cache->Crop(ext);
       }
+
+      this->Actor->SetEnableLOD(0);
+      this->VolumeMapper->SetInputData(cache);
+
+      this->OutlineSource->SetBounds(cache->GetBounds());
+      this->OutlineSource->GetBounds(this->DataBounds);
+      this->OutlineSource->Update();
+      this->DataSize = cache->GetActualMemorySize();
+      vtkStreamingDemandDrivenPipeline::GetWholeExtent(
+        inputVector[0]->GetInformationObject(0), this->WholeExtent);
+      this->Cache = cache.GetPointer();
+    }
+    else if (auto inputRD = vtkRectilinearGrid::GetData(inputVector[0], 0))
+    {
+      vtkNew<vtkRectilinearGrid> cache;
+      cache->ShallowCopy(inputRD);
 
       this->Actor->SetEnableLOD(0);
       this->VolumeMapper->SetInputData(cache);
