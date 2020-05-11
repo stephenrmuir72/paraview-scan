@@ -488,6 +488,7 @@ void vtkPVDataInformation::CopyFromDataSet(vtkDataSet* data)
   switch (this->DataSetType)
   {
     case VTK_IMAGE_DATA:
+    case VTK_STRUCTURED_POINTS:
       ext = static_cast<vtkImageData*>(data)->GetExtent();
       break;
     case VTK_STRUCTURED_GRID:

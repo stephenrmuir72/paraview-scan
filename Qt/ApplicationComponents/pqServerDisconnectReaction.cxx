@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAnimationScene.h"
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
+#include "pqLiveInsituManager.h"
+#include "pqLiveInsituVisualizationManager.h"
 #include "pqObjectBuilder.h"
 #include "pqPVApplicationCore.h"
 #include "pqPipelineSource.h"
@@ -94,7 +96,20 @@ void pqServerDisconnectReaction::disconnectFromServer()
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (server)
   {
-    core->getObjectBuilder()->removeServer(server);
+    if (server->getResource().schemeHostsPorts().scheme() == "catalyst")
+    {
+      // let the pqLiveInsituManager handles cleanly the destruction of
+      // the visualization manager and its session (done in its destructor)
+      pqLiveInsituVisualizationManager* livm = pqLiveInsituManager::managerFromInsitu(server);
+      if (livm)
+      {
+        emit livm->insituDisconnected();
+      }
+    }
+    else
+    {
+      core->getObjectBuilder()->removeServer(server);
+    }
   }
 }
 

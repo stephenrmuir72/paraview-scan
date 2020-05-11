@@ -145,7 +145,7 @@ protected:
 private:
   Q_DISABLE_COPY(pqLiveInsituManager)
 
-  typedef QMap<void*, QPointer<pqLiveInsituVisualizationManager> > ManagersType;
+  typedef QMap<pqServer*, QPointer<pqLiveInsituVisualizationManager> > ManagersType;
   ManagersType Managers;
 };
 
