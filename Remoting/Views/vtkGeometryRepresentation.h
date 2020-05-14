@@ -143,6 +143,24 @@ public:
   vtkBooleanMacro(RequestGhostCellsIfNeeded, bool);
   //@}
 
+  /**
+   * Set the normal array used for smooth shading.
+   * It must be a three components array.
+   */
+  virtual void SetNormalArray(const char* val);
+
+  /**
+   * Set the texture coordinates array used for texture mapping.
+   * It must be a two components array.
+   */
+  virtual void SetTCoordArray(const char* val);
+
+  /**
+   * Set the tangent coordinates array used for normal mapping.
+   * It must be a three components array.
+   */
+  virtual void SetTangentArray(const char* val);
+
   //***************************************************************************
   // Forwarded to vtkPVGeometryFilter
   virtual void SetUseOutline(int);

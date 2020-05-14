@@ -22,6 +22,7 @@
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositePolyDataMapper2.h"
+#include "vtkDataObjectTreeIterator.h"
 #include "vtkHyperTreeGrid.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -79,19 +80,63 @@ protected:
   int RequestData(vtkInformation*, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override
   {
-    vtkMultiBlockDataSet* inputMB = vtkMultiBlockDataSet::GetData(inputVector[0], 0);
+    vtkDataSet* inputDS = vtkDataSet::GetData(inputVector[0], 0);
     vtkMultiBlockDataSet* outputMB = vtkMultiBlockDataSet::GetData(outputVector, 0);
+
+    vtkInformation* infoNormals = this->GetInputArrayInformation(0);
+    vtkInformation* infoTCoords = this->GetInputArrayInformation(1);
+    vtkInformation* infoTangents = this->GetInputArrayInformation(2);
+
+    const char* normalsName = nullptr;
+    const char* tcoordsName = nullptr;
+    const char* tangentsName = nullptr;
+
+    if (infoNormals)
+    {
+      normalsName = infoNormals->Get(vtkDataObject::FIELD_NAME());
+    }
+
+    if (infoTCoords)
+    {
+      tcoordsName = infoTCoords->Get(vtkDataObject::FIELD_NAME());
+    }
+
+    if (infoTangents)
+    {
+      tangentsName = infoTangents->Get(vtkDataObject::FIELD_NAME());
+    }
+
+    vtkMultiBlockDataSet* inputMB = vtkMultiBlockDataSet::SafeDownCast(inputDS);
     if (inputMB)
     {
       outputMB->ShallowCopy(inputMB);
+
+      vtkNew<vtkDataObjectTreeIterator> iter;
+      iter->SetDataSet(outputMB);
+      iter->SkipEmptyNodesOn();
+      iter->VisitOnlyLeavesOn();
+      for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      {
+        vtkDataSet* leaf = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
+        if (leaf)
+        {
+          leaf->GetPointData()->SetActiveNormals(normalsName);
+          leaf->GetPointData()->SetActiveTCoords(tcoordsName);
+          leaf->GetPointData()->SetActiveTangents(tangentsName);
+        }
+      }
+
       return 1;
     }
 
-    vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
-    vtkDataObject* clone = inputDO->NewInstance();
-    clone->ShallowCopy(inputDO);
+    auto clone = vtkSmartPointer<vtkDataSet>::Take(inputDS->NewInstance());
+    clone->ShallowCopy(inputDS);
     outputMB->SetBlock(0, clone);
-    clone->Delete();
+
+    clone->GetPointData()->SetActiveNormals(normalsName);
+    clone->GetPointData()->SetActiveTCoords(tcoordsName);
+    clone->GetPointData()->SetActiveTangents(tangentsName);
+
     return 1;
   }
 
@@ -546,6 +591,30 @@ void vtkGeometryRepresentation::SetRepresentation(const char* type)
   {
     vtkErrorMacro("Invalid type: " << type);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetNormalArray(const char* val)
+{
+  this->MultiBlockMaker->SetInputArrayToProcess(
+    0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, val);
+  this->MarkModified();
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetTCoordArray(const char* val)
+{
+  this->MultiBlockMaker->SetInputArrayToProcess(
+    1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, val);
+  this->MarkModified();
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetTangentArray(const char* val)
+{
+  this->MultiBlockMaker->SetInputArrayToProcess(
+    2, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, val);
+  this->MarkModified();
 }
 
 //----------------------------------------------------------------------------
