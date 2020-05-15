@@ -2130,6 +2130,24 @@ int vtkPEnSightGoldReader::CreateUnstructuredGridOutput(
           }
           lineRead = this->ReadNextDataLine(line);
         }
+
+        // prepare an array of Ids describing the vtkPolyhedron object
+        int nodeIndx = 0; // indexing the raw array of point Ids
+        // vtkPolyhedron's info of faces
+        std::vector<vtkIdType> theFaces;
+        theFaces.reserve(elementNodeCount + numFacesPerElement[i]);
+        for (j = 0; j < numFacesPerElement[i]; j++)
+        {
+          // number of points constituting this face
+          theFaces.emplace_back(numNodesPerFace[faceCount + j]);
+
+          for (k = 0; k < numNodesPerFace[faceCount + j]; k++)
+          {
+            // convert EnSight 1-based indexing to VTK 0-based indexing
+            theFaces.emplace_back(intIds[nodeIndx++] - 1);
+          }
+        }
+
         faceCount += numFacesPerElement[i];
 
         // Build element
@@ -2148,8 +2166,8 @@ int vtkPEnSightGoldReader::CreateUnstructuredGridOutput(
           elementNodeCount,
           nodeIds);
           this->GetCellIds(idx, vtkPEnSightReader::NFACED)->InsertNextId(cellId);*/
-        this->InsertNextCellAndId(output, VTK_CONVEX_POINT_SET, elementNodeCount, nodeIds, idx,
-          vtkPEnSightReader::NFACED, i, numElements);
+        this->InsertNextCellAndId(output, VTK_POLYHEDRON, elementNodeCount, nodeIds, idx,
+          vtkPEnSightReader::NFACED, i, numElements, theFaces);
 
         delete[] nodeIds;
         delete[] intIds;
