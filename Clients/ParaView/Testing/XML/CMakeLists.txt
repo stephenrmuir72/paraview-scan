@@ -336,6 +336,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadPartitionedCGNS_FamilySelection.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadPartitionedCGNS_PointData.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadCGNSBCDataset.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RectilinearVolumeRendering.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReloadExodusFile-AfterReload.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReloadExodusFile-BeforeReload.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RemoteRenderingSurface.png}"
@@ -867,6 +868,7 @@ list(APPEND TESTS_WITH_BASELINES
   PropertyLink.xml
   QuadraticGhostCells.xml
   ReadXMLPolyDataFileSeries.xml
+  RectilinearVolumeRendering.xml
   RedistributeDataSetFilter.xml
   RepresentationSelector.xml
   ResampleWithDataset.xml
@@ -1494,8 +1496,9 @@ SET (CompositeSurfaceSelection_DISABLE_CRS TRUE)
 # mode.
 SET (Clip_DISABLE_CRS TRUE)
 
-# Image volume rendering not supported in CRS mode.
+# Image and rectilinear grid volume rendering not supported in CRS mode.
 set (ImageVolumeRendering_DISABLE_CRS TRUE)
+set (RectilinearVolumeRendering_DISABLE_CRS TRUE)
 
 # These Xdmf tests have wireframes, hence the increased thresholds.
 SET (XdmfReadImageData_THRESHOLD 20)
