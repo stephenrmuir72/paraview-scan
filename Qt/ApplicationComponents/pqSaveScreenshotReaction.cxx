@@ -125,19 +125,14 @@ QString pqSaveScreenshotReaction::promptFileName(
 }
 
 //-----------------------------------------------------------------------------
-void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
+vtkSmartPointer<vtkSMProxy> pqSaveScreenshotReaction::saveScreenshot(
+  bool writeImage, const QString& filenameParam)
 {
   pqView* view = pqActiveObjects::instance().activeView();
   if (!view)
   {
     qDebug() << "Cannot save image. No active view.";
-    return;
-  }
-
-  if (clipboardMode)
-  {
-    pqSaveScreenshotReaction::copyScreenshotToClipboard(view->getSize(), false);
-    return;
+    return nullptr;
   }
 
   vtkSMViewProxy* viewProxy = view->getViewProxy();
@@ -149,16 +144,23 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
   if (!shProxy)
   {
     qCritical() << "Incorrect type for `SaveScreenshot` proxy.";
-    return;
+    return nullptr;
   }
 
   // Get the filename first, this will determine some of the options shown.
-  QString filename = pqSaveScreenshotReaction::promptFileName(shProxy, "*.png");
-  if (filename.isEmpty())
+  QString filename;
+  if (filenameParam.isEmpty())
   {
-    return;
+    filename = pqSaveScreenshotReaction::promptFileName(shProxy, "*.png");
+    if (filename.isEmpty())
+    {
+      return nullptr;
+    }
   }
-
+  else
+  {
+    filename = filenameParam;
+  }
   bool restorePreviewMode = false;
 
   // Cache the separator width and color
@@ -209,7 +211,8 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
   dialog.setWindowTitle("Save Screenshot Options");
   dialog.setEnableSearchBar(true);
   dialog.setSettingsKey("SaveScreenshotDialog");
-  if (dialog.exec() == QDialog::Accepted)
+  bool accepted = dialog.exec() == QDialog::Accepted;
+  if (accepted && writeImage)
   {
     shProxy->WriteImage(filename.toLocal8Bit().data());
   }
@@ -233,6 +236,7 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
   // however it is currently needed due to paraview/paraview#17256. Once that's
   // fixed, we should remove this.
   pqApplicationCore::instance()->render();
+  return accepted ? proxy : nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -296,4 +300,29 @@ bool pqSaveScreenshotReaction::copyScreenshotToClipboard(const QSize& size, bool
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+bool pqSaveScreenshotReaction::copyScreenshotToClipboard(bool all_views)
+{
+  pqView* view = pqActiveObjects::instance().activeView();
+  if (!view)
+  {
+    qDebug() << "Cannot save image. No active view.";
+    return false;
+  }
+  return pqSaveScreenshotReaction::copyScreenshotToClipboard(view->getSize(), all_views);
+}
+
+//-----------------------------------------------------------------------------
+void pqSaveScreenshotReaction::onTriggered()
+{
+  if (this->ClipboardMode)
+  {
+    pqSaveScreenshotReaction::copyScreenshotToClipboard(false);
+  }
+  else
+  {
+    pqSaveScreenshotReaction::saveScreenshot();
+  }
 }

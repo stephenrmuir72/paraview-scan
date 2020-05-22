@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSmartPointer.h>
 
 class vtkSMSaveScreenshotProxy;
+class vtkSMProxy;
 
 /**
 * @ingroup Reactions
@@ -59,13 +60,17 @@ public:
   pqSaveScreenshotReaction(QAction* parent, bool clipboardMode = false);
 
   /**
-  * Saves the screenshot.
+  * Sets options and saves a screenshot. The actual saving happens only if
+  * writeImage is true (default) and the dialog was accepted.
+  * If filenameParam is empty (default) the user is promted for a file path otherwise the
+  * filenameParam is used instead.
+  * Returns the proxy (vtkSMSaveScreenshotProxy) with all options for saving if the dialog
+  * was accepted or nullptr otherwise or in case of an error.
   * Note that this method is static. Applications can simply use this without
   * having to create a reaction instance.
-  * If clipboardMode is true, no advanced options are requested and the
-  * screenshot is copied to the clipboard
   */
-  static void saveScreenshot(bool clipboardMode = false);
+  static vtkSmartPointer<vtkSMProxy> saveScreenshot(
+    bool writeImage = true, const QString& filenameParam = "");
 
   /**
   * Save a screenshot given the filename and image properties.
@@ -75,10 +80,14 @@ public:
   static bool saveScreenshot(
     const QString& filename, const QSize& size, int quality, bool all_views = false);
 
+  //@{
   /**
-  * Copy a screenshot to the clipboard.
+  * Copy a screenshot to the clipboard. Size is either passed as a parameter
+  * or is read from the current view.
   */
   static bool copyScreenshotToClipboard(const QSize& size, bool all_views = false);
+  static bool copyScreenshotToClipboard(bool all_views = false);
+  //@}
 
   /**
   * Take a screenshot of the active view or all the views at the given size
@@ -104,7 +113,7 @@ protected:
   /**
   * Called when the action is triggered.
   */
-  void onTriggered() override { pqSaveScreenshotReaction::saveScreenshot(this->ClipboardMode); }
+  void onTriggered() override;
 
   bool ClipboardMode;
 
