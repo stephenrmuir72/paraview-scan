@@ -38,6 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSmartPointer.h>
 
 class vtkSMSaveScreenshotProxy;
+class vtkSMProxy;
+class vtkSMPropertyLink;
 
 /**
 * @ingroup Reactions
@@ -59,13 +61,32 @@ public:
   pqSaveScreenshotReaction(QAction* parent, bool clipboardMode = false);
 
   /**
-  * Saves the screenshot.
-  * Note that this method is static. Applications can simply use this without
-  * having to create a reaction instance.
-  * If clipboardMode is true, no advanced options are requested and the
-  * screenshot is copied to the clipboard
+  * Saves a screenshot. It uses Options::
   */
-  static void saveScreenshot(bool clipboardMode = false);
+  static bool saveScreenshot();
+  class Options
+  {
+    bool RestorePreview;
+    int Width;
+    double Color[3];
+    vtkNew<vtkSMPropertyLink> WidthLink, ColorLink;
+    vtkSmartPointer<vtkSMSaveScreenshotProxy> Proxy;
+
+  public:
+    Options();
+    vtkSmartPointer<vtkSMSaveScreenshotProxy> GetProxy() const { return this->Proxy; }
+    /**
+     * Prompt user for filename using the various format proxies listed for the
+     * given proxy.
+     */
+    QString PromptFileName(const QString& defaultExtension);
+    /**
+     * Fill SaveScreenshot options from the user. The filename is used
+     * to present options to the user based on the image type.
+     */
+    bool Fill(const QString& filename);
+    void Cleanup();
+  };
 
   /**
   * Save a screenshot given the filename and image properties.
@@ -75,10 +96,14 @@ public:
   static bool saveScreenshot(
     const QString& filename, const QSize& size, int quality, bool all_views = false);
 
+  //@{
   /**
-  * Copy a screenshot to the clipboard.
+  * Copy a screenshot to the clipboard. Size is either passed as a parameter
+  * or is read from the current view.
   */
   static bool copyScreenshotToClipboard(const QSize& size, bool all_views = false);
+  static bool copyScreenshotToClipboard(bool all_views = false);
+  //@}
 
   /**
   * Take a screenshot of the active view or all the views at the given size
@@ -104,7 +129,7 @@ protected:
   /**
   * Called when the action is triggered.
   */
-  void onTriggered() override { pqSaveScreenshotReaction::saveScreenshot(this->ClipboardMode); }
+  void onTriggered() override;
 
   bool ClipboardMode;
 
