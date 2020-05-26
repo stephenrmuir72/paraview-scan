@@ -106,7 +106,6 @@ bool pqSaveScreenshotReaction::saveScreenshot()
     return false;
   }
 
-  auto view = pqActiveObjects::instance().activeView();
   auto layout = pqActiveObjects::instance().activeLayout();
 
   bool save_all_views = false;
@@ -222,7 +221,6 @@ bool pqSaveScreenshotReaction::prompt(vtkSMSaveScreenshotProxy* options, const Q
 {
   auto layout =
     vtkSMViewLayoutProxy::SafeDownCast(vtkSMPropertyHelper(options, "Layout").GetAsProxy());
-  auto viewProxy = vtkSMPropertyHelper(options, "View").GetAsProxy();
 
   // Cache the current layout's separator width and color so we can restore it.
   int width = 0;
