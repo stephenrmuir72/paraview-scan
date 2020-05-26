@@ -85,6 +85,60 @@ void pqSaveScreenshotReaction::updateEnableState()
 }
 
 //-----------------------------------------------------------------------------
+void pqSaveScreenshotReaction::onTriggered()
+{
+  if (this->ClipboardMode)
+  {
+    pqSaveScreenshotReaction::saveScreenshotToClipboard(/*all_views*/ false);
+  }
+  else
+  {
+    pqSaveScreenshotReaction::saveScreenshot();
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool pqSaveScreenshotReaction::saveScreenshot()
+{
+  const auto filename = pqSaveScreenshotReaction::promptFileName("*.png");
+  if (filename.isEmpty())
+  {
+    return false;
+  }
+
+  auto view = pqActiveObjects::instance().activeView();
+  auto layout = pqActiveObjects::instance().activeLayout();
+
+  bool save_all_views = false;
+  if (layout)
+  {
+    int previewMode[2] = { -1, -1 };
+    vtkSMPropertyHelper previewHelper(layout, "PreviewMode");
+    previewHelper.Get(previewMode, 2);
+    save_all_views = (previewMode[0] > 0 && previewMode[1] > 0);
+  }
+
+  if (auto options = pqSaveScreenshotReaction::prepare(filename, save_all_views))
+  {
+    if (pqSaveScreenshotReaction::prompt(options))
+    {
+      return pqSaveScreenshotReaction::saveScreenshot(filename, options);
+    }
+  }
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+QString pqSaveScreenshotReaction::promptFileName(const QString& defaultExtension)
+{
+  auto pxm = pqActiveObjects::instance().proxyManager();
+  auto prototype =
+    vtkSMSaveScreenshotProxy::SafeDownCast(pxm->GetPrototypeProxy("misc", "SaveScreenshot"));
+  return pqSaveScreenshotReaction::promptFileName(prototype, defaultExtension);
+}
+
+//-----------------------------------------------------------------------------
 QString pqSaveScreenshotReaction::promptFileName(
   vtkSMSaveScreenshotProxy* prototype, const QString& defaultExtension)
 {
@@ -125,19 +179,20 @@ QString pqSaveScreenshotReaction::promptFileName(
 }
 
 //-----------------------------------------------------------------------------
-void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
+vtkSmartPointer<vtkSMSaveScreenshotProxy> pqSaveScreenshotReaction::prepare(
+  const QString& filename, bool all_views)
 {
   pqView* view = pqActiveObjects::instance().activeView();
   if (!view)
   {
-    qDebug() << "Cannot save image. No active view.";
-    return;
+    qCritical("Cannot save image. No active view.");
+    return nullptr;
   }
 
-  if (clipboardMode)
+  if (filename.isEmpty())
   {
-    pqSaveScreenshotReaction::copyScreenshotToClipboard(view->getSize(), false);
-    return;
+    qCritical("Filename cannot be empty.");
+    return nullptr;
   }
 
   vtkSMViewProxy* viewProxy = view->getViewProxy();
@@ -145,40 +200,52 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
   vtkSMSessionProxyManager* pxm = view->getServer()->proxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
   proxy.TakeReference(pxm->NewProxy("misc", "SaveScreenshot"));
-  vtkSMSaveScreenshotProxy* shProxy = vtkSMSaveScreenshotProxy::SafeDownCast(proxy);
-  if (!shProxy)
+  vtkSMSaveScreenshotProxy* options = vtkSMSaveScreenshotProxy::SafeDownCast(proxy);
+  if (!options)
   {
-    qCritical() << "Incorrect type for `SaveScreenshot` proxy.";
-    return;
+    qCritical("Incorrect type for `SaveScreenshot` proxy.");
+    return nullptr;
   }
 
-  // Get the filename first, this will determine some of the options shown.
-  QString filename = pqSaveScreenshotReaction::promptFileName(shProxy, "*.png");
-  if (filename.isEmpty())
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(options);
+  vtkSMPropertyHelper(options, "View").Set(viewProxy);
+  vtkSMPropertyHelper(options, "Layout").Set(layout);
+  vtkSMPropertyHelper(options, "SaveAllViews").Set(layout != nullptr && all_views ? 1 : 0);
+  options->UpdateDefaultsAndVisibilities(filename.toLocal8Bit().data());
+  controller->PostInitializeProxy(options);
+  return options;
+}
+
+//-----------------------------------------------------------------------------
+bool pqSaveScreenshotReaction::prompt(vtkSMSaveScreenshotProxy* options, const QString& title)
+{
+  auto layout =
+    vtkSMViewLayoutProxy::SafeDownCast(vtkSMPropertyHelper(options, "Layout").GetAsProxy());
+  auto viewProxy = vtkSMPropertyHelper(options, "View").GetAsProxy();
+
+  // Cache the current layout's separator width and color so we can restore it.
+  int width = 0;
+  double color[3] = { 0, 0, 0 };
+  if (layout)
   {
-    return;
+    vtkSMPropertyHelper(layout, "SeparatorWidth").GetAsInt();
+    vtkSMPropertyHelper(layout, "SeparatorColor").Get(color, 3);
   }
 
-  bool restorePreviewMode = false;
-
-  // Cache the separator width and color
-  int width = vtkSMPropertyHelper(shProxy, "SeparatorWidth").GetAsInt();
-  double color[3];
-  vtkSMPropertyHelper(shProxy, "SeparatorColor").Get(color, 3);
   // Link the vtkSMViewLayoutProxy to vtkSMSaveScreenshotProxy to update
   // the SeparatorWidth and SeparatorColor
   vtkNew<vtkSMPropertyLink> widthLink, colorLink;
   if (layout)
   {
-    widthLink->AddLinkedProperty(shProxy, "SeparatorWidth", vtkSMLink::INPUT);
+    widthLink->AddLinkedProperty(options, "SeparatorWidth", vtkSMLink::INPUT);
     widthLink->AddLinkedProperty(layout, "SeparatorWidth", vtkSMLink::OUTPUT);
-    colorLink->AddLinkedProperty(shProxy, "SeparatorColor", vtkSMLink::INPUT);
+    colorLink->AddLinkedProperty(options, "SeparatorColor", vtkSMLink::INPUT);
     colorLink->AddLinkedProperty(layout, "SeparatorColor", vtkSMLink::OUTPUT);
   }
 
-  vtkNew<vtkSMParaViewPipelineController> controller;
-  controller->PreInitializeProxy(shProxy);
-
+  // enter preview mode, if needed so the user gets a better WYSIWYG view.
+  bool restorePreviewMode = false;
   if (layout)
   {
     int previewMode[2] = { -1, -1 };
@@ -191,28 +258,16 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
       previewHelper.Set(layoutSize.GetData(), 2);
       restorePreviewMode = true;
     }
-    else
-    {
-      // if in preview mode, check "save all views".
-      vtkSMPropertyHelper(shProxy, "SaveAllViews").Set(1);
-    }
   }
 
-  vtkSMPropertyHelper(shProxy, "View").Set(viewProxy);
-  vtkSMPropertyHelper(shProxy, "Layout").Set(layout);
-  shProxy->UpdateDefaultsAndVisibilities(filename.toLocal8Bit().data());
-  controller->PostInitializeProxy(shProxy);
-
-  pqProxyWidgetDialog dialog(shProxy, pqCoreUtilities::mainWidget());
+  // present the options to the user.
+  pqProxyWidgetDialog dialog(options, pqCoreUtilities::mainWidget());
   dialog.setObjectName("SaveScreenshotDialog");
   dialog.setApplyChangesImmediately(true);
-  dialog.setWindowTitle("Save Screenshot Options");
+  dialog.setWindowTitle(title.isEmpty() ? QString("Save Screenshot Options") : title);
   dialog.setEnableSearchBar(true);
   dialog.setSettingsKey("SaveScreenshotDialog");
-  if (dialog.exec() == QDialog::Accepted)
-  {
-    shProxy->WriteImage(filename.toLocal8Bit().data());
-  }
+  const bool retCode = (dialog.exec() == QDialog::Accepted);
 
   if (layout)
   {
@@ -229,10 +284,22 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
     widthLink->RemoveAllLinks();
     colorLink->RemoveAllLinks();
   }
+
+  return retCode;
+}
+
+//-----------------------------------------------------------------------------
+bool pqSaveScreenshotReaction::saveScreenshot(
+  const QString& filename, vtkSMSaveScreenshotProxy* options)
+{
+  auto retval = options->WriteImage(filename.toLocal8Bit().data());
+
   // This should not be needed as image capturing code only affects back buffer,
   // however it is currently needed due to paraview/paraview#17256. Once that's
   // fixed, we should remove this.
   pqApplicationCore::instance()->render();
+
+  return retval;
 }
 
 //-----------------------------------------------------------------------------
@@ -263,6 +330,13 @@ vtkSmartPointer<vtkImageData> pqSaveScreenshotReaction::takeScreenshot(
 }
 
 //-----------------------------------------------------------------------------
+vtkSmartPointer<vtkImageData> pqSaveScreenshotReaction::takeScreenshot(
+  vtkSMSaveScreenshotProxy* options)
+{
+  return options ? options->CaptureImage() : nullptr;
+}
+
+//-----------------------------------------------------------------------------
 bool pqSaveScreenshotReaction::saveScreenshot(
   const QString& filename, const QSize& size, int quality, bool all_views)
 {
@@ -275,7 +349,7 @@ bool pqSaveScreenshotReaction::saveScreenshot(
 }
 
 //-----------------------------------------------------------------------------
-bool pqSaveScreenshotReaction::copyScreenshotToClipboard(const QSize& size, bool all_views)
+bool pqSaveScreenshotReaction::saveScreenshotToClipboard(const QSize& size, bool all_views)
 {
   vtkSmartPointer<vtkImageData> image = takeScreenshot(size, all_views);
   if (!image)
@@ -297,3 +371,26 @@ bool pqSaveScreenshotReaction::copyScreenshotToClipboard(const QSize& size, bool
 
   return true;
 }
+
+//-----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
+void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
+{
+  if (clipboardMode)
+  {
+    pqSaveScreenshotReaction::saveScreenshotToClipboard(/*all_views=*/false);
+  }
+  else
+  {
+    pqSaveScreenshotReaction::saveScreenshot();
+  }
+}
+#endif
+
+//-----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
+bool pqSaveScreenshotReaction::copyScreenshotToClipboard(const QSize& size, bool all_views)
+{
+  return pqSaveScreenshotReaction::saveScreenshotToClipboard(size, all_views);
+}
+#endif

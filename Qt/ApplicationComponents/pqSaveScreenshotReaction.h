@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqReaction.h"
 
 #include <vtkImageData.h>
+#include <vtkLegacy.h> // for legacy macros
 #include <vtkSmartPointer.h>
 
 class vtkSMSaveScreenshotProxy;
@@ -59,32 +60,66 @@ public:
   pqSaveScreenshotReaction(QAction* parent, bool clipboardMode = false);
 
   /**
-  * Saves the screenshot.
-  * Note that this method is static. Applications can simply use this without
-  * having to create a reaction instance.
-  * If clipboardMode is true, no advanced options are requested and the
-  * screenshot is copied to the clipboard
+  * Saves the screenshot. This will prompt the user to choose a filename. Based
+  * on the filename chosen, a dialog will be presented to the user to customize
+  * screenshot settings like resolution, etc. and then the screenshot will be
+  * saved.
+  *
+  * @returns true if a screenshot was saved, else false.
   */
-  static void saveScreenshot(bool clipboardMode = false);
+  static bool saveScreenshot();
 
   /**
-  * Save a screenshot given the filename and image properties.
-  * This method is provided only for convenience. This doesn't expose any of the
-  * advanced options available to users when saving screenshots.
-  */
+   * Same as `saveScreenshot` except that the user is not presented any prompts
+   * to choose filename or other options.
+   *
+   * @returns true if a screenshot was saved, else false.
+   */
   static bool saveScreenshot(
     const QString& filename, const QSize& size, int quality, bool all_views = false);
 
   /**
-  * Copy a screenshot to the clipboard.
-  */
-  static bool copyScreenshotToClipboard(const QSize& size, bool all_views = false);
+   * Saves a screenshot to the clipboard. If `all_views` is true, then
+   * the screenshot for the active layout, including all the view in that layout
+   * is saved. If `all_views` is false then only the active view is saved.
+   * The size of the image will be same as the size of the active layout (or
+   * view) respectively.
+   *
+   * @returns true if a screenshot was saved, else false.
+   */
+  static bool saveScreenshotToClipboard(bool all_views = false);
 
+  /**
+  * Save a screenshot to the clipboard at a given `size`.
+  *
+  * @returns true if a screenshot was saved, else false.
+  */
+  static bool saveScreenshotToClipboard(const QSize& size, bool all_views = false);
+
+  //@{
+  /**
+   * Saving of the screenshot split into multiple stages. Use `prepare` to
+   * create an initialize an options proxy. The proxy provides parameters that
+   * can be configured to customize how the screenshot is saved.
+   *
+   * Use `prompt` to present to the user an ability to customize the options.
+   *
+   * Use `saveScreenshot` to generate the screenshot using the options proxy.
+   */
+  static vtkSmartPointer<vtkSMSaveScreenshotProxy> prepare(
+    const QString& filename, bool all_views = false);
+  static bool prompt(vtkSMSaveScreenshotProxy* options, const QString& title = QString());
+  static bool saveScreenshot(const QString& filename, vtkSMSaveScreenshotProxy* options);
+  //@}
+
+  //@{
   /**
   * Take a screenshot of the active view or all the views at the given size
   * and return it as a vtkImageData.
   */
   static vtkSmartPointer<vtkImageData> takeScreenshot(const QSize& size, bool all_views = false);
+  static vtkSmartPointer<vtkImageData> takeScreenshot(vtkSMSaveScreenshotProxy* options);
+  //@}
 
   /**
   * Prompt user for filename using the various format proxies listed for the
@@ -92,6 +127,13 @@ public:
   */
   static QString promptFileName(
     vtkSMSaveScreenshotProxy* saveProxy, const QString& defaultExtension);
+  static QString promptFileName(const QString& defaultExtension);
+
+  /**
+   * @deprecated in ParaView 5.9, use copyScreenshotToClipboard().
+   */
+  VTK_LEGACY(static bool copyScreenshotToClipboard(const QSize& size, bool all_views = false));
+  VTK_LEGACY(static void saveScreenshot(bool));
 
 public Q_SLOTS:
   /**
@@ -104,12 +146,11 @@ protected:
   /**
   * Called when the action is triggered.
   */
-  void onTriggered() override { pqSaveScreenshotReaction::saveScreenshot(this->ClipboardMode); }
-
-  bool ClipboardMode;
+  void onTriggered() override;
 
 private:
   Q_DISABLE_COPY(pqSaveScreenshotReaction)
+  bool ClipboardMode;
 };
 
 #endif
