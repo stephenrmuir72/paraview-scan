@@ -347,6 +347,30 @@ bool pqSaveScreenshotReaction::saveScreenshot(
 }
 
 //-----------------------------------------------------------------------------
+bool pqSaveScreenshotReaction::saveScreenshotToClipboard(bool all_views)
+{
+  pqView* view = pqActiveObjects::instance().activeView();
+  vtkSMViewLayoutProxy* layout = pqActiveObjects::instance().activeLayout();
+  if (!view)
+  {
+    qDebug() << "Cannot save image to clipboard. No active view.";
+    return false;
+  }
+  QSize size;
+  if (all_views)
+  {
+    vtkVector2i s = layout->GetSize();
+    size.setWidth(s[0]);
+    size.setHeight(s[1]);
+  }
+  else
+  {
+    size = view->getSize();
+  }
+  return pqSaveScreenshotReaction::saveScreenshotToClipboard(size, all_views);
+}
+
+//-----------------------------------------------------------------------------
 bool pqSaveScreenshotReaction::saveScreenshotToClipboard(const QSize& size, bool all_views)
 {
   vtkSmartPointer<vtkImageData> image = takeScreenshot(size, all_views);
