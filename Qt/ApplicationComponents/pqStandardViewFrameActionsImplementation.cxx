@@ -912,6 +912,13 @@ void pqStandardViewFrameActionsImplementation::captureViewTriggered()
     // If a modifier key is enabled, let's save screenshot to a file, otherwise
     // copy the screenshot to the clipboard.
     bool clipboardMode = QGuiApplication::queryKeyboardModifiers() == 0;
-    pqSaveScreenshotReaction::saveScreenshot(clipboardMode);
+    if (clipboardMode)
+    {
+      pqSaveScreenshotReaction::copyScreenshotToClipboard(false);
+    }
+    else
+    {
+      pqSaveScreenshotReaction::saveScreenshot();
+    }
   }
 }
