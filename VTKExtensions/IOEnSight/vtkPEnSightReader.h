@@ -781,10 +781,16 @@ protected:
    * Take Distributed Read into account.
    */
   void InsertNextCellAndId(vtkUnstructuredGrid*, int vtkCellType, vtkIdType numPoints,
-    vtkIdType* points, int partId, int ensightCellType, vtkIdType globalId, vtkIdType numElements);
+    vtkIdType* points, int partId, int ensightCellType, vtkIdType globalId, vtkIdType numElements,
+    vtkIdType numFaces = 0, vtkIdType* faces = nullptr);
   void InsertVariableComponent(vtkFloatArray* array, int i, int component, float* content,
     int partId, int ensightCellType, int insertionType);
   //@}
+
+  /**
+   * Convenience method to map the point ids from current rank to global ids.
+   */
+  void MapToGlobalIds(vtkIdType* inputIds, vtkIdType numPoints, int partId, vtkIdType* globalIds);
 
   /**
    * 1. Find future split dimension for distribution (biggest)
