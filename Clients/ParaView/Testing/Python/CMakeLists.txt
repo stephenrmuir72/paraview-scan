@@ -188,13 +188,13 @@ paraview_add_test_python(
 unset(paraview_python_args)
 
 #------------------------------------------------------------------------------
-set(_vtk_testing_python_exe "$<TARGET_FILE:ParaView::smTestDriver>")
-set(_vtk_test_python_args
-  --allow-errors
-  --script-ignore-output-errors
-  --script $<TARGET_FILE:ParaView::pvbatch> -sym 
-    ${CMAKE_CURRENT_SOURCE_DIR}/TestCatalystDriver.py
-  --client $<TARGET_FILE:ParaView::pvpython> -dr)
-vtk_add_test_python(NO_DATA NO_RT TestCatalystClient.py)
-unset(_vtk_testing_python_exe)
-unset(_vtk_test_python_args)
+if (PARAVIEW_USE_MPI AND MPIEXEC_EXECUTABLE)
+  set(_vtk_testing_python_exe "$<TARGET_FILE:ParaView::smTestDriver>")
+  set(_vtk_test_python_args
+    --script $<TARGET_FILE:ParaView::pvbatch> -sym
+      ${CMAKE_CURRENT_SOURCE_DIR}/TestCatalystDriver.py
+    --client $<TARGET_FILE:ParaView::pvpython> -dr)
+  vtk_add_test_python(NO_DATA NO_RT TestCatalystClient.py)
+  unset(_vtk_testing_python_exe)
+  unset(_vtk_test_python_args)
+endif()

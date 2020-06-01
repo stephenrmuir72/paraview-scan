@@ -23,6 +23,7 @@ For instance:
 # ----------------------------
 def _updateEventCb(obj, event):
     global DataExtracted
+    global liveInsituLink
 
     name = _getSourceToExtractName(obj)
     source = FindSource(name)
@@ -42,6 +43,17 @@ def _updateEventCb(obj, event):
     ResetCamera()
     Render()
 
+
+    if source != None:
+        dataObject = source.GetClientSideObject().GetOutputDataObject(0)
+        currentTime = dataObject.GetFieldData().GetArray('TimeValue').GetValue(0)
+        # if connection closes due to simulation end, it creates error messages
+        # leading to test failure. So stop live visu before the end of simu.
+        if  currentTime >= 0.5:
+            liveInsituLink.RemoveObservers("UpdateEvent")
+            liveInsituLink.RemoveObservers("ConnectionClosedEvent")
+            EndTest()
+
 def _connectionCreatedCb(obj, event):
     # name comes from the catalyst script
     name = _getSourceToExtractName(obj)
@@ -49,13 +61,17 @@ def _connectionCreatedCb(obj, event):
     ProcessServerNotifications()
     Render()
 
-def _connectionClosedCb(obj, event):
-    global ProcessEvents
-    global renderView1
-    ProcessEvents = False
+def _connectionClosedCb(obj=None, event=None):
     print("Connection closed")
     Render()
+    EndTest()
 
+
+def EndTest():
+    global renderView1
+    # stop watching for events to process.
+    global ProcessEvents
+    ProcessEvents = False
 
     import os
     import sys
@@ -68,7 +84,7 @@ def _connectionClosedCb(obj, event):
     from paraview.vtk.test import Testing
     from paraview.vtk.util.misc import vtkGetTempDir
     Testing.VTK_TEMP_DIR = vtkGetTempDir()
-    Testing.compareImage(renderView1.GetRenderWindow(), baseline_file, threshold=40)
+    Testing.compareImage(renderView1.GetRenderWindow(), baseline_file)
     Testing.interact()
 
 
