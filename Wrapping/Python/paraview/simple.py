@@ -103,6 +103,22 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=11111, timeout = 
 
 # -----------------------------------------------------------------------------
 
+def ConnectToCatalyst(ds_host='localhost', ds_port=22222):
+    """Creates a connection to a catalyst simulation. Example usage::
+    return a LiveInsituLink object.
+
+    > Connect("amber") # Connect to a single server at default port
+    > Connect("amber", 12345) # Connect to a single server at port 12345
+    """
+    displaySession = servermanager.ActiveConnection.Session
+    insituLink = servermanager.ConnectToCatalyst(ds_host, ds_port)
+    ProcessServerNotifications()
+    insituLink.InvokeCommand('Initialize')
+    SetActiveConnection(servermanager.GetConnectionFromSession(displaySession))
+    return insituLink
+
+# -----------------------------------------------------------------------------
+
 def ReverseConnect(port=11111):
     """Create a reverse connection to a server.  Listens on port and waits for
     an incoming connection from the server."""
@@ -2095,6 +2111,35 @@ def CreateTexture(filename=None):
     controller = servermanager.ParaViewPipelineController()
     controller.SMController.RegisterTextureProxy(textureproxy, filename)
     return servermanager._getPyProxy(textureproxy)
+
+#==============================================================================
+# Catalyst Methods
+#==============================================================================
+def ExtractCatalystData(link, name):
+    ''' Extract data called "name" from simu managed by the LiveInsituLink link.
+        Register it in displaySession
+    '''
+    displaySession = servermanager.ActiveConnection.Session
+    proxy = link.CreateExtract('sources', name, 0)
+    displaySession.GetSessionProxyManager().RegisterProxy('sources', name, proxy)
+    data = FindSource(name)
+    return data
+
+def PauseCatalyst(link, pause = True):
+    ''' Pause / Unpause the Catalyst simu managed by the LiveInsituLink link.
+    '''
+    link.GetProperty('SimulationPaused').SetElement(0, 1 if pause else 0)
+    link.UpdateVTKObjects()
+    if not pause:
+        link.InvokeCommand('LiveChanged')
+
+def ProcessServerNotifications():
+    ''' Looks for events to process from server.
+    '''
+    pm = servermanager.vtkProcessModule.GetProcessModule()
+    nam = pm.GetNetworkAccessManager()
+    while nam.ProcessEvents(1) == 1:
+        pass
 
 #==============================================================================
 # Miscellaneous functions.
