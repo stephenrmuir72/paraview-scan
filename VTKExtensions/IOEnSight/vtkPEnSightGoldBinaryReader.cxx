@@ -3155,9 +3155,6 @@ int vtkPEnSightGoldBinaryReader::CreateUnstructuredGridOutput(
         faceCount += numFacesPerElement[i];
       }
 
-      delete[] numFacesPerElement;
-      delete[] numNodesPerFace;
-
       for (i = 0; i < numElements; i++)
       {
         numNodes += numNodesPerElement[i];
@@ -3176,11 +3173,27 @@ int vtkPEnSightGoldBinaryReader::CreateUnstructuredGridOutput(
       nodeIdList = new int[numNodes];
       this->ReadIntArray(nodeIdList, numNodes);
 
+      int faceIdx = 0; // indexing faces throughout all polyhedra
+      int nodeIdx = 0; // indexing nodes throughout all polyhedra
+
       for (i = 0; i < numElements; i++)
       {
         // For each nfaced...
         elementNodeCount = 0;
         nodeIds = new vtkIdType[numNodesPerElement[i]];
+
+        // array of Ids describing a vtkPolyhedron
+        std::vector<vtkIdType> faceArray;
+        faceArray.reserve(numFacesPerElement[i] + numNodesPerElement[i]);
+        for (j = 0; j < numFacesPerElement[i]; j++, faceIdx++)
+        {
+          faceArray.emplace_back(numNodesPerFace[faceIdx]);
+          for (int k = 0; k < numNodesPerFace[faceIdx]; k++)
+          {
+            faceArray.emplace_back(nodeIdList[nodeIdx++] - 1);
+          }
+        }
+
         for (j = 0; j < numNodesPerElement[i]; j++)
         {
           // For each Node (Point) in Element (Nfaced) ...
@@ -3192,11 +3205,15 @@ int vtkPEnSightGoldBinaryReader::CreateUnstructuredGridOutput(
           }
           nodeCount++;
         }
-        this->InsertNextCellAndId(
-          output, VTK_CONVEX_POINT_SET, elementNodeCount, nodeIds, idx, cellType, i, numElements);
+
+        this->InsertNextCellAndId(output, VTK_POLYHEDRON, elementNodeCount, nodeIds, idx, cellType,
+          i, numElements, faceArray);
 
         delete[] nodeIds;
       }
+
+      delete[] numNodesPerFace;
+      delete[] numFacesPerElement;
 
       delete[] nodeMarker;
       delete[] nodeIdList;
