@@ -140,6 +140,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AAXAxis.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AAYAxis.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AAZAxis.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AnisotropyPBR.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid2.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid3.png}"
@@ -795,7 +796,9 @@ list(APPEND TESTS_WITH_BASELINES
   AMReXParticlesReader.xml
   AnimationUseCamera.xml
   AnimationSetTimeCursor.xml
+  AnisotropyPBR.xml
   Annotations.xml
+  ClearCoatPBR.xml
   ConvertToMolecule.xml
   ContourCellData.xml
   CopyPasteProperties.xml
