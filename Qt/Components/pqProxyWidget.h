@@ -60,9 +60,9 @@ class PQCOMPONENTS_EXPORT pqProxyWidget : public QWidget
   typedef QWidget Superclass;
 
 public:
-  pqProxyWidget(vtkSMProxy* proxy, QWidget* parent = 0, Qt::WindowFlags flags = 0);
+  pqProxyWidget(vtkSMProxy* proxy, QWidget* parent = 0, Qt::WindowFlags flags = Qt::WindowFlags{});
   pqProxyWidget(vtkSMProxy* proxy, const QStringList& properties, QWidget* parent = 0,
-    Qt::WindowFlags flags = 0);
+    Qt::WindowFlags flags = Qt::WindowFlags{});
   ~pqProxyWidget() override;
 
   /**
