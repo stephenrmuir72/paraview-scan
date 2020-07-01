@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!--
+     In this test we want to make sure for two things:
+      1) Aspect ratio of the generated preview is same (up to integer rounding error) with the target resolution
+      2) Size fills up the window area. Since this is non-trivial test we check size against some precomputed values extracted by running the test locally.
+  -->
+
+  <!-- Setup data -->
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menuSources" />
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/representationToolbar/displayRepresentation/comboBox" command="activated" arguments="Surface" />
+  <pqevent object="pqClientMainWindow/variableToolbar/displayColor/Variables" command="activated" arguments="RTData" />
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menu_Edit" />
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="1280 x 720 (HD)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="830,470" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.77" />
+
+  <!--
+  <pqevent object="pqClientMainWindow/CoreUtilitiesPromptUser/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
+  -->
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="1280 x 800 (WXGA)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="830,520" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.6" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="1280 x 1024 (SXGA)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="710,568" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.25" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="1600 x 900 (HD+)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="830,471" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.77" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="1920 x 1080 (FHD)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="830,471" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.77" />
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menu_Edit" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="3840 x 2160 (4K UHD)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="830,471" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1.77" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="Custom ..." />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/resolutionX" command="set_string" arguments="400" />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/resolutionY" command="set_string" arguments="400" />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="size" arguments="400,400" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1" />
+
+  <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="Custom ..." />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/resolutionX" command="set_string" arguments="800" />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/resolutionY" command="set_string" arguments="800" />
+  <pqevent object="pqClientMainWindow/CustomResolutionDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="470,470" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="aspectRatio" arguments="1" />
+</pqevents>

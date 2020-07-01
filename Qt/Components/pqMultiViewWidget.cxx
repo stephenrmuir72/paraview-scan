@@ -224,8 +224,11 @@ public:
       vtkVector2i tsize(size.width(), size.height());
       const QRect crect = this->Container->parentWidget()->contentsRect();
       vtkVector2i csize(crect.width(), crect.height());
-      const int magnification = vtkSMSaveScreenshotProxy::ComputeMagnification(tsize, csize);
+
+      vtkSMSaveScreenshotProxy::ResizeWithSameAspectRatio(tsize, csize);
+      const double magnification = vtkSMSaveScreenshotProxy::ComputeMagnification(tsize, csize);
       this->setCustomDevicePixelRatio(magnification);
+
       this->Container->setMaximumSize(csize[0], csize[1]);
       vtkLogF(
         TRACE, "cur=(%d, %d), new=(%d, %d)", crect.width(), crect.height(), csize[0], csize[1]);

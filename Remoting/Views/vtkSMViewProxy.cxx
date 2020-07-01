@@ -32,6 +32,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkRendererCollection.h"
+#include "vtkResizingWindowToImageFilter.h"
 #include "vtkSMDataDeliveryManagerProxy.h"
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProperty.h"
@@ -100,7 +101,7 @@ const char* GetRepresentationNameFromHints(const char* viewType, vtkPVXMLElement
  * `vtkSMViewProxy::RenderForImageCapture()` when the filter wants to request a
  * render.
  */
-class WindowToImageFilter : public vtkWindowToImageFilter
+class WindowToImageFilter : public vtkResizingWindowToImageFilter
 {
 public:
   static WindowToImageFilter* New();
@@ -711,10 +712,12 @@ vtkImageData* vtkSMViewProxy::CaptureWindowInternal(int magX, int magY)
   vtkNew<vtkSMViewProxyNS::WindowToImageFilter> w2i;
   w2i->SetInput(renWin);
   w2i->SetParent(this);
-  w2i->SetScale(magX, magY);
-  w2i->ReadFrontBufferOff();
-  w2i->ShouldRerenderOff(); // WindowToImageFilter can re-render as needed too,
-                            // we just don't require the first render.
+  int targetSize[2];
+  int* sizeptr = renWin->GetSize();
+  targetSize[0] = sizeptr[0] * magX;
+  targetSize[1] = sizeptr[1] * magY;
+
+  w2i->SetSize(targetSize[0], targetSize[1]);
 
   // Note how we simply called `Update` here. Since `WindowToImageFilter` calls
   // this->RenderForImageCapture() we don't have to worry too much even if it

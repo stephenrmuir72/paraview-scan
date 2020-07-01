@@ -8,7 +8,7 @@
   <!--
   <pqevent object="pqClientMainWindow/CoreUtilitiesPromptUser/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
   -->
-  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="size" arguments="640,400" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container" command="sizeGreaterOrEqual" arguments="640,400" />
   <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menu_Edit" />
   <pqevent object="pqClientMainWindow/menubar/menu_View/Preview" command="activate" arguments="Custom ..." />
   <pqevent object="pqClientMainWindow/CustomResolutionDialog" command="key" arguments="16777248" />

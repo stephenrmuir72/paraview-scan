@@ -551,18 +551,46 @@ vtkSMSaveScreenshotProxy::CapturePreppedImages()
 }
 
 //----------------------------------------------------------------------------
-int vtkSMSaveScreenshotProxy::ComputeMagnification(const vtkVector2i& targetSize, vtkVector2i& size)
+double vtkSMSaveScreenshotProxy::ComputeMagnification(
+  const vtkVector2i& targetSize, vtkVector2i& size)
 {
-  int magnification = 1;
+  double magnification = 1.0;
 
   // If fullsize > viewsize, then magnification is involved.
-  int temp = std::ceil(targetSize[0] / static_cast<double>(size[0]));
+  double temp = targetSize[0] / static_cast<double>(size[0]);
   magnification = std::max(temp, magnification);
-  temp = std::ceil(targetSize[1] / static_cast<double>(size[1]));
+  temp = targetSize[1] / static_cast<double>(size[1]);
 
   magnification = std::max(temp, magnification);
-  size = targetSize / vtkVector2i(magnification);
+  size[0] = std::ceil(targetSize[0] / magnification);
+  size[1] = std::ceil(targetSize[1] / magnification);
   return magnification;
+}
+//----------------------------------------------------------------------------
+void vtkSMSaveScreenshotProxy::ResizeWithSameAspectRatio(
+  const vtkVector2i& targetSize, vtkVector2i& size)
+{
+
+  // preview fits in current window no reason to resize
+  if (targetSize[0] < size[0] && targetSize[1] < size[1])
+  {
+    size = targetSize;
+    return;
+  }
+
+  vtkVector2i sizeTmp;
+  sizeTmp[0] = size[0];
+  sizeTmp[1] = size[1];
+
+  sizeTmp[1] = std::ceil(sizeTmp[0] * targetSize[1] / static_cast<double>(targetSize[0]));
+
+  if (sizeTmp[1] > size[1])
+  {
+    // target height is too big
+    sizeTmp[1] = size[1];
+    sizeTmp[0] = std::ceil(targetSize[0] * sizeTmp[1] / static_cast<double>(targetSize[1]));
+  }
+  size = sizeTmp;
 }
 
 //----------------------------------------------------------------------------

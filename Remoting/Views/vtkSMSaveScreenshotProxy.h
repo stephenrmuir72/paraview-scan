@@ -99,7 +99,14 @@ public:
    * This method is useful when the interest is in preserving the target aspect
    * ratio as closely as possible than reaching the target size.
    */
-  static int ComputeMagnification(const vtkVector2i& targetSize, vtkVector2i& size);
+  static double ComputeMagnification(const vtkVector2i& targetSize, vtkVector2i& size);
+  /**
+   * Given a \p targetSize and an upper limit for the windows size in \p size return
+   * a size that fits the window while mantaining same aspect ratio with targetSize.
+   * In contrast to ComputeMagnification the scale factor/magnification is not a integer
+   * value
+   */
+  static void ResizeWithSameAspectRatio(const vtkVector2i& targetSize, vtkVector2i& size);
 
   //@{
   /**

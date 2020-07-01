@@ -534,6 +534,7 @@ SET (TESTS_WITHOUT_BASELINES
   OpenHelp.xml
   PartialArrayInLineChart.xml
   PointCellDataConversion.xml
+  PreviewAspectRatio.xml
   ReloadCGNSFile.xml
   SearchBox.xml
   ServerConnectDialog.xml
