@@ -92,12 +92,8 @@ public:
   // Get general config settings.
   vtknvindex_config_settings* get_config_settings() const;
 
-// Get ParaView's domain subdivision affinity.
-#ifdef USE_KDTREE
-  mi::base::Handle<vtknvindex_KDTree_affinity> get_affinity() const;
-#else
+  // Get ParaView's domain subdivision affinity.
   mi::base::Handle<vtknvindex_affinity> get_affinity() const;
-#endif
 
   // Get regular (and irregular) volume general properties.
   vtknvindex_regular_volume_properties* get_regular_volume_properties() const;
@@ -136,13 +132,9 @@ private:
   vtknvindex_cluster_properties(const vtknvindex_cluster_properties&) = delete;
   void operator=(const vtknvindex_cluster_properties&) = delete;
 
-  mi::Sint32 m_rank_id; // Rank id for the host.
-#ifdef USE_KDTREE
-  mi::base::Handle<vtknvindex_KDTree_affinity> m_affinity; // Affinity for NVIDIA IndeX.
-#else
+  mi::Sint32 m_rank_id;                             // Rank id for the host.
   mi::base::Handle<vtknvindex_affinity> m_affinity; // Affinity for NVIDIA IndeX.
-#endif
-  vtknvindex_config_settings* m_config_settings; // Configuration settings.
+  vtknvindex_config_settings* m_config_settings;    // Configuration settings.
   vtknvindex_regular_volume_properties*
     m_regular_vol_properties;                             // Regular/irregular volume properties.
   mi::Uint32 m_num_ranks;                                 // Total number of MPI ranks.

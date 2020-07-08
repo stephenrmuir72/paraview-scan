@@ -30,7 +30,6 @@
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMDeserializerProtobuf.h"
 #include "vtkSMDocumentation.h"
-#include "vtkSMExportProxyDepot.h"
 #include "vtkSMPipelineState.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxy.h"
@@ -50,12 +49,14 @@
 #include "vtkStringList.h"
 #include "vtkVersion.h"
 
+#include "vtksys/FStream.hxx"
+#include "vtksys/RegularExpression.hxx"
+
 #include <assert.h>
 #include <map>
 #include <set>
 #include <sstream>
 #include <vector>
-#include <vtksys/RegularExpression.hxx>
 
 #include "vtkSMSessionProxyManagerInternals.h"
 
@@ -158,9 +159,6 @@ vtkSMSessionProxyManager::vtkSMSessionProxyManager(vtkSMSession* session)
   this->PipelineState = vtkSMPipelineState::New();
   this->PipelineState->SetSession(this->Session);
 
-  this->ExportDepot = vtkSMExportProxyDepot::New();
-  this->ExportDepot->Session = this;
-
   // setup event forwarder so that it forwards all events fired by this class via
   // the global proxy manager.
   vtkNew<vtkSMProxyManagerForwarder> forwarder;
@@ -184,9 +182,6 @@ vtkSMSessionProxyManager::~vtkSMSessionProxyManager()
 
   this->PipelineState->Delete();
   this->PipelineState = NULL;
-
-  this->ExportDepot->Delete();
-  this->ExportDepot = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -1261,7 +1256,7 @@ void vtkSMSessionProxyManager::LoadXMLState(
 bool vtkSMSessionProxyManager::SaveXMLState(const char* filename)
 {
   vtkPVXMLElement* rootElement = this->SaveXMLState();
-  ofstream os(filename, ios::out);
+  vtksys::ofstream os(filename, ios::out);
   if (!os.is_open())
   {
     return false;

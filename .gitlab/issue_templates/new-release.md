@@ -48,12 +48,13 @@ git tag -a -m 'ParaView @VERSION@@RC@' v@VERSION@@RC@ HEAD
 ```
   - Integrate changes to `master` branch
     - [ ] Create a merge request targeting `master` (do *not* add `Backport: release`)
-    - [ ] Get positive review
     - [ ] `Do: merge`
   - Update VTK's `paraview/release` branch
-    - [ ] `git push origin paraview-vtk-submodule-hash:paraview/release`
+    - [ ] Change directory to VTK source
+    - [ ] `git push origin <paraview-vtk-submodule-hash>:paraview/release`
     - [ ] Update kwrobot with the new `paraview/release` branch rules
   - Integrate changes to `release` branch
+    - [ ] Change directory to ParaView source. Stay on the `update-to-v@VERSION@@RC@` branch.
     - [ ] `git config -f .gitmodules submodule.VTK.branch paraview/release`
     - [ ] `git commit -m "release: follow VTK's paraview/release branch" .gitmodules`
     - [ ] Merge new `release` branch into `master` using `-s ours`
@@ -80,15 +81,12 @@ git tag -a -m 'ParaView @VERSION@@RC@' v@VERSION@@RC@ HEAD
 ```
   - Integrate changes to `master` branch
     - [ ] Create a merge request targeting `master` (do *not* add `Backport: release`)
-    - [ ] Get positive review
     - [ ] `Do: merge`
   - Integrate changes to `release` branch
     - [ ] `git push origin update-to-v@VERSION@@RC@:release v@VERSION@@RC@`
 
 If making a non-RC release, additionally:
 
-  - Update documentation page
-    - [ ] See `https://github.com/Kitware/paraview-docs/blob/master/README.md`
 -->
 
   - Create tarballs
@@ -123,6 +121,7 @@ set(paraview_FROM_SOURCE_DIR OFF CACHE BOOL "Force source dir off" FORCE)
 ```
   - Update versions
     - [ ] Guide selections in `versions.cmake`
+    - [ ] `paraview_SOURCE_SELECTION` version in `README.md`
     - [ ] Docker: update default tag strings (in `Scripts/docker/ubuntu/Dockerfile`)
       - [ ] ARG PARAVIEW_TAG=v@VERSION@@RC@
       - [ ] ARG SUPERBUILD_TAG=v@VERSION@@RC@
@@ -140,7 +139,7 @@ git gitlab-push
     - [ ] Remove explicit version forcing added in CMakeLists.txt and force push
 ```
 git add CMakeLists.txt
-git commit --amend
+git commit --amend --no-edit
 git gitlab-push -f
 ```
   - Finalize merge request
@@ -148,7 +147,17 @@ git gitlab-push -f
     - [ ] Get positive review
     - [ ] `Do: merge`
     - [ ] `git tag -a -m 'ParaView superbuild @VERSION@@RC@' v@VERSION@@RC@ HEAD`
+  - Update common-superbuild's `paraview/release` branch
+    - [ ] Change directory to superbuild source
+    - [ ] `git push origin <paraview-superbuild-submodule-hash>:paraview/release`
+    - [ ] Update kwrobot with the new `paraview/release` branch rules
   - Integrate changes to `release` branch
+    - [ ] Change directory to ParaView Superbuild source. Stay on the `update-to-v@VERSION@@RC@` branch.
+    - [ ] `git config -f .gitmodules submodule.superbuild.branch paraview/release`
+    - [ ] `git commit -m "release: follow common-superbuild's paraview/release branch" .gitmodules`
+    - [ ] Merge new `release` branch into `master` using `-s ours`
+      - `git checkout master`
+      - `git merge --no-ff -s ours -m "Merge branch 'release'" update-to-v@VERSION@@RC@`
     - [ ] `git push origin update-to-v@VERSION@@RC@:release v@VERSION@@RC@`
     - [ ] Update kwrobot with the new `release` branch rules
 
@@ -188,7 +197,7 @@ git gitlab-push
     - [ ] Remove explicit version forcing added in CMakeLists.txt, amend the commit, and force push
 ```
 git add CMakeLists.txt
-git commit --amend
+git commit --amend --no-edit
 git gitlab-push -f
 ```
   - Finalize merge request
@@ -246,7 +255,7 @@ If making a non-RC release:
 
 # Update documentation
 
-  - [ ] Upload versioned documentation to `https://github.com/kitware/paraview-docs`
+  - [ ] Upload versioned documentation to `https://github.com/kitware/paraview-docs` (see `https://github.com/Kitware/paraview-docs/blob/master/README.md`)
   - [ ] Write and publish blog post with release notes.
   - [ ] Update release notes
     (https://www.paraview.org/Wiki/ParaView_Release_Notes)
@@ -259,7 +268,8 @@ If making a non-RC release:
 <!--
 If making a non-RC release:
 
-  - [ ] Update link to ParaView Guide PDF at https://www.paraview.org/paraview-guide/
+  - [ ] Request update of version number in "Download Latest Release" text on www.kitware.org
+  - [ ] Request update of link to ParaView Guide PDF at https://www.paraview.org/paraview-guide/
   - [ ] Move unclosed issues to next release milestone in GitLab
 -->
 

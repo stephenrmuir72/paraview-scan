@@ -27,7 +27,6 @@
 #include "vtkCommunicator.h"
 #include "vtkCuller.h"
 #include "vtkDataRepresentation.h"
-#include "vtkEquirectangularToCubeMapTexture.h"
 #include "vtkFXAAOptions.h"
 #include "vtkFloatArray.h"
 #include "vtkGeometryRepresentation.h"
@@ -53,7 +52,7 @@
 #include "vtkMultiProcessStream.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPKdTree.h"
+#include "vtkOrderedCompositingHelper.h"
 #include "vtkPVAxesWidget.h"
 #include "vtkPVCameraCollection.h"
 #include "vtkPVCenterAxesActor.h"
@@ -75,8 +74,6 @@
 #include "vtkPVTrackballRotate.h"
 #include "vtkPVTrackballZoom.h"
 #include "vtkPVTrackballZoomToMouse.h"
-#include "vtkPartitionOrdering.h"
-#include "vtkPartitionOrderingInterface.h"
 #include "vtkPointData.h"
 #include "vtkProcessModule.h"
 #include "vtkRenderViewBase.h"
@@ -91,6 +88,7 @@
 #include "vtkTextActor.h"
 #include "vtkTextProperty.h"
 #include "vtkTextRepresentation.h"
+#include "vtkTexture.h"
 #include "vtkTimerLog.h"
 #include "vtkTrackballPan.h"
 #include "vtkTrivialProducer.h"
@@ -318,7 +316,6 @@ vtkInformationKeyMacro(vtkPVRenderView, RENDER_EMPTY_IMAGES, Integer);
 vtkInformationKeyMacro(vtkPVRenderView, REQUEST_STREAMING_UPDATE, Request);
 vtkInformationKeyMacro(vtkPVRenderView, REQUEST_PROCESS_STREAMED_PIECE, Request);
 vtkInformationKeyRestrictedMacro(vtkPVRenderView, VIEW_PLANES, DoubleVector, 24);
-vtkInformationKeyRestrictedMacro(vtkPVRenderView, GEOMETRY_BOUNDS, DoubleVector, 6);
 
 vtkCxxSetObjectMacro(vtkPVRenderView, LastSelection, vtkSelection);
 
@@ -502,8 +499,6 @@ vtkPVRenderView::vtkPVRenderView()
   this->SynchronizedRenderers = vtkPVSynchronizedRenderer::New();
   this->SynchronizedRenderers->Initialize(this->GetSession());
   this->SynchronizedRenderers->SetRenderer(this->RenderView->GetRenderer());
-
-  this->Skybox->SetTexture(this->CubeMap);
 }
 
 //----------------------------------------------------------------------------
@@ -1051,13 +1046,7 @@ void vtkPVRenderView::SynchronizeGeometryBounds()
       for (int port = 0, num_ports = deliveryManager->GetNumberOfPorts(pvrepr); port < num_ports;
            ++port)
       {
-        auto info = deliveryManager->GetPieceInformation(pvrepr, /*low_res=*/false, port);
-        if (info->Has(GEOMETRY_BOUNDS()) && info->Length(GEOMETRY_BOUNDS()) == 6)
-        {
-          double gbds[6];
-          info->Get(GEOMETRY_BOUNDS(), gbds);
-          bbox.AddBounds(gbds);
-        }
+        bbox.AddBox(deliveryManager->GetTransformedGeometryBounds(pvrepr, port));
       }
     }
   }
@@ -1259,8 +1248,6 @@ void vtkPVRenderView::Update()
   this->DistributedRenderingRequired = false;
   this->NonDistributedRenderingRequired = false;
   this->ForceDataDistributionMode = -1;
-
-  this->PartitionOrdering->SetImplementation(NULL);
 
   // clear discrete interaction style state.
   this->DiscreteCameras = NULL;
@@ -1506,50 +1493,32 @@ void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
     "use_lod=%d, use_distributed_rendering=%d, use_ordered_compositing=%d", use_lod_rendering,
     use_distributed_rendering, use_ordered_compositing);
 
-  // If ordered compositing is needed, we have two options: either we're
-  // supposed to (i) build a KdTree and redistribute data or we are expected
-  // to (ii) use a custom partition provided via `vtkPartitionOrder` built
-  // using local data bounds and not bother redistributing data at all.
-  // Let's determine which path we're expected to take and do work
-  // accordingly.
   auto deliveryManager =
     vtkPVRenderViewDataDeliveryManager::SafeDownCast(this->GetDeliveryManager());
   if (use_ordered_compositing)
   {
-    auto poImpl = this->PartitionOrdering->GetImplementation();
-    if (poImpl == nullptr || vtkPKdTree::SafeDownCast(poImpl) != nullptr)
-    {
-      vtkTimerLog::FormatAndMarkEvent(
-        "Using ordered compositing w/ data redistribution, if needed");
-      vtkVLogF(PARAVIEW_LOG_RENDERING_VERBOSITY(),
-        "Using ordered compositing w/ data redistribution, if needed");
-      // not using a custom (bounds-based ordering) i.e. we use in path (i). Let
-      // the delivery manager redistrbute data as it deems necessary.
-      deliveryManager->RedistributeDataForOrderedCompositing(use_lod_rendering);
-      this->PartitionOrdering->SetImplementation(deliveryManager->GetKdTree());
+    vtkTimerLog::FormatAndMarkEvent("Using ordered compositing w/ data redistribution, if needed");
+    vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(),
+      "Using ordered compositing w/ data redistribution as needed");
+    // Let the delivery manager redistribute data as it deems necessary.
+    deliveryManager->RedistributeDataForOrderedCompositing(use_lod_rendering);
 
-      deliveryManager->SetUseRedistributedDataAsDeliveredData(true);
-    }
-    else
-    {
-      vtkTimerLog::FormatAndMarkEvent("Using ordered compositing with w/o data redistribution");
-      vtkVLogF(PARAVIEW_LOG_RENDERING_VERBOSITY(),
-        "Using ordered compositing with w/o data redistribution");
-      // using custom rendering ordering without any data redistribution i.e.
-      // path (ii).
+    // DeliveryManager will generate bounding boxes that help order the ranks
+    // for rendering. Pass those to the SynchronizedRenderers instance.
+    const auto& cuts = deliveryManager->GetCuts();
+    auto controller = vtkMultiProcessController::GetGlobalController();
+    assert(static_cast<int>(cuts.size()) == controller->GetNumberOfProcesses());
+    this->OrderedCompositingHelper->SetBoundingBoxes(cuts);
+    (void)controller;
 
-      // clear off redistributed data.
-      deliveryManager->ClearRedistributedData(use_lod_rendering);
-
-      deliveryManager->SetUseRedistributedDataAsDeliveredData(false);
-    }
     // tell `this->SynchronizedRenderers` who to order the ranks when doing
     // parallel rendering.
-    this->SynchronizedRenderers->SetPartitionOrdering(this->PartitionOrdering.GetPointer());
+    this->SynchronizedRenderers->SetOrderedCompositingHelper(this->OrderedCompositingHelper);
+    deliveryManager->SetUseRedistributedDataAsDeliveredData(true);
   }
   else
   {
-    this->SynchronizedRenderers->SetPartitionOrdering(nullptr);
+    this->SynchronizedRenderers->SetOrderedCompositingHelper(nullptr);
     deliveryManager->SetUseRedistributedDataAsDeliveredData(false);
   }
 
@@ -1719,6 +1688,7 @@ vtkAlgorithmOutput* vtkPVRenderView::GetPieceProducerLOD(
 }
 
 //----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
 void vtkPVRenderView::MarkAsRedistributable(
   vtkInformation* info, vtkPVDataRepresentation* repr, bool value /*=true*/, int port)
 {
@@ -1729,9 +1699,13 @@ void vtkPVRenderView::MarkAsRedistributable(
     return;
   }
 
-  vtkPVRenderViewDataDeliveryManager::SafeDownCast(view->GetDeliveryManager())
-    ->MarkAsRedistributable(repr, value, port);
+  VTK_LEGACY_REPLACED_BODY("vtkPVRenderView::MarkAsRedistributable", "ParaView 5.9",
+    "vtkPVRenderView::SetOrderedCompositingConfiguration");
+  vtkPVRenderView::SetOrderedCompositingConfiguration(info, repr,
+    vtkPVRenderView::DATA_IS_REDISTRIBUTABLE | vtkPVRenderView::USE_DATA_FOR_LOAD_BALANCING,
+    nullptr, port);
 }
+#endif
 
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetRedistributionMode(
@@ -1779,6 +1753,21 @@ void vtkPVRenderView::SetRedistributionModeToDuplicateBoundaryCells(
 }
 
 //----------------------------------------------------------------------------
+void vtkPVRenderView::SetRedistributionModeToUniquelyAssignBoundaryCells(
+  vtkInformation* info, vtkPVDataRepresentation* repr, int port)
+{
+  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
+  if (!view)
+  {
+    vtkGenericWarningMacro("Missing VIEW().");
+    return;
+  }
+
+  vtkPVRenderViewDataDeliveryManager::SafeDownCast(view->GetDeliveryManager())
+    ->SetRedistributionModeToUniquelyAssignBoundaryCells(repr, port);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetStreamable(vtkInformation* info, vtkPVDataRepresentation* repr, bool val)
 {
   vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
@@ -1793,9 +1782,8 @@ void vtkPVRenderView::SetStreamable(vtkInformation* info, vtkPVDataRepresentatio
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::SetOrderedCompositingInformation(vtkInformation* info,
-  vtkPVDataRepresentation* repr, vtkExtentTranslator* translator, const int whole_extents[6],
-  const double origin[3], const double spacing[3])
+void vtkPVRenderView::SetOrderedCompositingConfiguration(
+  vtkInformation* info, vtkPVDataRepresentation* repr, int config, const double* bounds, int port)
 {
   vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
   if (!view)
@@ -1803,23 +1791,27 @@ void vtkPVRenderView::SetOrderedCompositingInformation(vtkInformation* info,
     vtkGenericWarningMacro("Missing VIEW().");
     return;
   }
+
   vtkPVRenderViewDataDeliveryManager::SafeDownCast(view->GetDeliveryManager())
-    ->SetOrderedCompositingInformation(repr, translator, whole_extents, origin, spacing);
+    ->SetOrderedCompositingConfiguration(repr, config, bounds, port);
 }
 
 //----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
+void vtkPVRenderView::SetOrderedCompositingInformation(vtkInformation*, vtkPVDataRepresentation*,
+  vtkExtentTranslator*, const int[6], const double[3], const double[3])
+{
+  VTK_LEGACY_BODY("vtkPVRenderView::SetOrderedCompositingInformation", "ParaView 5.9");
+}
+#endif
+
+//----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
 void vtkPVRenderView::SetOrderedCompositingInformation(vtkInformation* info, const double bounds[6])
 {
-  vtkPVRenderView* view = vtkPVRenderView::SafeDownCast(info->Get(VIEW()));
-  if (!view)
-  {
-    vtkGenericWarningMacro("Missing VIEW().");
-    return;
-  }
-  vtkNew<vtkPartitionOrdering> partitionOrdering;
-  partitionOrdering->Construct(bounds);
-  view->PartitionOrdering->SetImplementation(partitionOrdering.GetPointer());
+  VTK_LEGACY_BODY("vtkPVRenderView::SetOrderedCompositingInformation", "ParaView 5.9");
 }
+#endif
 
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetDeliverToAllProcesses(
@@ -1862,30 +1854,8 @@ void vtkPVRenderView::SetGeometryBounds(vtkInformation* info, vtkPVDataRepresent
     vtkGenericWarningMacro("Missing VIEW().");
     return;
   }
-
-  vtkBoundingBox bbox(bounds);
-  if (matrix && bbox.IsValid())
-  {
-    double min_point[4] = { bounds[0], bounds[2], bounds[4], 1 };
-    double max_point[4] = { bounds[1], bounds[3], bounds[5], 1 };
-    matrix->MultiplyPoint(min_point, min_point);
-    matrix->MultiplyPoint(max_point, max_point);
-    double transformed_bounds[6];
-    transformed_bounds[0] = min_point[0] / min_point[3];
-    transformed_bounds[2] = min_point[1] / min_point[3];
-    transformed_bounds[4] = min_point[2] / min_point[3];
-    transformed_bounds[1] = max_point[0] / max_point[3];
-    transformed_bounds[3] = max_point[1] / max_point[3];
-    transformed_bounds[5] = max_point[2] / max_point[3];
-    bbox.SetBounds(transformed_bounds);
-  }
-
-  auto pinfo = self->GetDeliveryManager()->GetPieceInformation(repr, /*low_res=*/false, port);
-  assert(pinfo != nullptr);
-
-  double tbds[6];
-  bbox.GetBounds(tbds);
-  pinfo->Set(GEOMETRY_BOUNDS(), tbds, 6);
+  vtkPVRenderViewDataDeliveryManager::SafeDownCast(self->GetDeliveryManager())
+    ->SetGeometryBounds(repr, bounds, matrix, port);
 }
 
 //----------------------------------------------------------------------------
@@ -2511,14 +2481,17 @@ void vtkPVRenderView::UpdateSkybox()
 
   if (this->NeedSkybox && texture != nullptr)
   {
-    this->CubeMap->SetInputTexture(vtkOpenGLTexture::SafeDownCast(texture));
-    this->CubeMap->InterpolateOn();
+    this->Skybox->SetProjection(vtkSkybox::Sphere);
+    this->Skybox->SetFloorRight(0.0, 0.0, 1.0);
+    this->Skybox->SetTexture(texture);
     this->GetRenderer()->AddActor(this->Skybox);
-    this->GetRenderer()->SetEnvironmentCubeMap(this->CubeMap, true);
+    texture->MipmapOn();
+    texture->InterpolateOn();
+    this->GetRenderer()->SetEnvironmentTexture(texture, true);
   }
   else
   {
-    this->GetRenderer()->SetEnvironmentCubeMap(nullptr);
+    this->GetRenderer()->SetEnvironmentTexture(nullptr);
   }
 }
 
@@ -2526,6 +2499,46 @@ void vtkPVRenderView::UpdateSkybox()
 void vtkPVRenderView::SetUseEnvironmentLighting(bool val)
 {
   this->GetRenderer()->SetUseImageBasedLighting(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundMode(int val)
+{
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  vtkRenderer* ren = this->GetRenderer();
+  vtkOSPRayRendererNode::SetBackgroundMode(val, ren);
+#else
+  (void)val;
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBG(double r, double g, double b)
+{
+  this->GetRenderer()->SetEnvironmentalBG(r, g, b);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBG2(double r, double g, double b)
+{
+  this->GetRenderer()->SetEnvironmentalBG2(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBGTexture(vtkTexture* texture)
+{
+  this->GetRenderer()->SetEnvironmentTexture(texture, true);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetGradientEnvironmentalBG(int val)
+{
+  this->GetRenderer()->SetGradientEnvironmentalBG(val ? true : false);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetTexturedEnvironmentalBG(int val)
+{
+  this->GetRenderer()->SetUseImageBasedLighting(val ? true : false);
 }
 
 //*****************************************************************
@@ -3151,16 +3164,18 @@ void vtkPVRenderView::SetEnableOSPRay(bool v)
   }
   this->Internals->IsInOSPRay = v;
   vtkRenderer* ren = this->GetRenderer();
-  if (this->Internals->IsInOSPRay)
+  if (v)
   {
     ren->SetUseShadows(this->Internals->OSPRayShadows);
     this->Internals->SavedRenderPass = this->SynchronizedRenderers->GetRenderPass();
     this->SynchronizedRenderers->SetRenderPass(this->Internals->OSPRayPass.GetPointer());
+    this->SynchronizedRenderers->SetRayTracingState(0, true);
   }
   else
   {
     ren->SetUseShadows(false);
     this->SynchronizedRenderers->SetRenderPass(this->Internals->SavedRenderPass);
+    this->SynchronizedRenderers->SetRayTracingState(0, false);
   }
   this->Modified();
 #else
@@ -3196,6 +3211,8 @@ void vtkPVRenderView::SetOSPRayRendererType(std::string name)
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkRenderer* ren = this->GetRenderer();
   vtkOSPRayRendererNode::SetRendererType(name, ren);
+  bool pathtrace = (name.find(std::string("pathtracer")) != std::string::npos);
+  this->SynchronizedRenderers->SetRayTracingState(1, pathtrace);
 #else
   (void)name;
 #endif
@@ -3460,15 +3477,5 @@ void vtkPVRenderView::SynchronizeMaximumIds(vtkIdType* maxPointId, vtkIdType* ma
 
     *maxPointId = static_cast<vtkIdType>(ptid);
     *maxCellId = static_cast<vtkIdType>(cellid);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkPVRenderView::SetSkyboxResolution(int resolution)
-{
-  if (this->CubeMap->GetCubeMapSize() != static_cast<unsigned int>(resolution))
-  {
-    this->CubeMap->SetCubeMapSize(resolution);
-    this->Modified();
   }
 }
