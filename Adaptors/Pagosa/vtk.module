@@ -1,0 +1,14 @@
+NAME
+  ParaView::AdaptorsPagosa
+LIBRARY_NAME
+  vtkPVAdaptorsPagosa
+GROUPS
+  PARAVIEW_CORE
+CONDITION
+  PARAVIEW_USE_PYTHON
+DEPENDS
+  ParaView::Catalyst
+  ParaView::PythonCatalyst
+  VTK::CommonDataModel
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI
