@@ -34,7 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqComponentsModule.h"
 
+#include <QList>
 #include <QScopedPointer>
+#include <QVariant>
 #include <QWidget>
 #include <vector>
 
@@ -61,6 +63,7 @@ class PQCOMPONENTS_EXPORT pqAnimationTimeWidget : public QWidget
   Q_PROPERTY(QString playMode READ playMode WRITE setPlayMode)
   Q_PROPERTY(bool playModeReadOnly READ playModeReadOnly WRITE setPlayModeReadOnly)
   Q_PROPERTY(QString timeLabel READ timeLabel WRITE setTimeLabel)
+  Q_PROPERTY(QList<QVariant> timestepValues READ timestepValues WRITE setTimestepValues)
 
   typedef QWidget Superclass;
 
@@ -73,6 +76,9 @@ public:
   * controlled/reflected by this widget.
   */
   vtkSMProxy* animationScene() const;
+
+  void setTimestepValues(const QList<QVariant>& list);
+  QList<QVariant> timestepValues();
 
   /**
   * Get/set the current time value.
@@ -116,22 +122,17 @@ public:
   */
   void setTimeLabel(const QString& val);
   QString timeLabel() const;
-signals:
+Q_SIGNALS:
   void timeValueChanged();
   void playModeChanged();
   void dummySignal();
 
-public slots:
+public Q_SLOTS:
   /**
   * Set the animation scene proxy which is reflected/controlled by this
   * widget.
   */
   void setAnimationScene(vtkSMProxy* animationScene);
-
-  /**
-   * Clear the combobox and fill it with current time values.
-   */
-  void repopulateTimeComboBox();
 
 protected:
   /**
@@ -139,11 +140,11 @@ protected:
    */
   QString formatDouble(double value);
 
-private slots:
+private Q_SLOTS:
   void updateTimestepCountLabelVisibility();
 
   /**
-  * called when the user changes the timestepValue spinbox manually
+  * called when the user changes the timestepValues spinbox manually
   * to change the current timestep. We will update the current time and
   * result in triggering  timeValueChanged() if time indeed changed.
   */

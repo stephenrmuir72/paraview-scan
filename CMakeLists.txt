@@ -28,17 +28,8 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12...3.16 FATAL_ERROR)
 project(ParaView)
-
-foreach (policy IN ITEMS
-    CMP0083 # CMake 3.14
-    CMP0077 # CMake 3.16
-    )
-  if (POLICY ${policy})
-    cmake_policy(SET ${policy} NEW)
-  endif ()
-endforeach ()
 
 # Disallow in-source build
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
@@ -82,6 +73,11 @@ endif ()
 
 set(paraview_cmake_dir "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 set(vtk_cmake_dir "${CMAKE_CURRENT_SOURCE_DIR}/VTK/CMake")
+if (NOT IS_DIRECTORY "${vtk_cmake_dir}")
+  message(FATAL_ERROR
+    "Failed to find the VTK CMake directory. Did you forget to initialize the "
+    "submodule? (git submodule update --init --recursive)")
+endif ()
 list(APPEND CMAKE_MODULE_PATH
   "${paraview_cmake_dir}"
   "${vtk_cmake_dir}")
@@ -100,7 +96,6 @@ include(vtkCompilerPlatformFlags)
 include(vtkCompilerExtraFlags)
 include(vtkInitializeBuildType)
 include(vtkSupportMacros)
-include(vtkDirectories)
 
 include(CMakeDependentOption)
 include(ParaViewOptions)
@@ -173,33 +168,29 @@ if (PARAVIEW_BUILD_TESTING)
   set(BUILD_TESTING ON)
 endif ()
 
-cmake_dependent_option(PARAVIEW_BUILD_CATALYST_ADAPTORS
-  "Build Adaptors for various simulation codes" OFF
-  # XXX: Adaptors need some work yet.
-  "FALSE;NOT WIN32" OFF)
-mark_as_advanced(PARAVIEW_BUILD_CATALYST_ADAPTORS)
-
-
 if (PARAVIEW_USE_PYTHON)
-  set(PARAVIEW_PYTHON_VERSION "3"
-    CACHE STRING "")
-  set_property(CACHE PARAVIEW_PYTHON_VERSION
-    PROPERTY
-      STRINGS "2;3")
-  if (NOT PARAVIEW_PYTHON_VERSION STREQUAL "2" AND
-      NOT PARAVIEW_PYTHON_VERSION STREQUAL "3")
-    message(FATAL_ERROR
-      "`PARAVIEW_PYTHON_VERSION` must either be 2 or 3.")
+  if (DEFINED PARAVIEW_PYTHON_VERSION)
+    if (PARAVIEW_PYTHON_VERSION STREQUAL "3")
+      message(DEPRECATION
+        "Python 2 is no longer supported. Ignoring the explicit "
+        "`PARAVIEW_PYTHON_VERSION=3` request as it is the only valid value "
+        "now.")
+    else ()
+      message(FATAL_ERROR
+        "Python 2 is no longer supported. Please either set "
+        "`PARAVIEW_PYTHON_VERSION=3` or remove the option completely.")
+    endif ()
+    unset(PARAVIEW_PYTHON_VERSION)
+    unset(PARAVIEW_PYTHON_VERSION CACHE)
   endif ()
-  set(VTK_PYTHON_VERSION "${PARAVIEW_PYTHON_VERSION}")
+  set(VTK_PYTHON_VERSION 3)
 endif ()
 
 if (PARAVIEW_USE_PYTHON AND PARAVIEW_BUILD_TESTING)
   # testing needs Python interpreter i.e. `PYTHON_EXECUTABLE` without which
   # our `find_python_module` checks to determine which tests to add or exclude
   # will fail. We find it here.
-  find_package(PythonInterp "${PARAVIEW_PYTHON_VERSION}" QUIET)
-  mark_as_advanced(PYTHON_EXECUTABLE)
+  find_package(Python3 3.3 QUIET COMPONENTS Interpreter)
   include(FindPythonModules)
 endif()
 
@@ -208,18 +199,8 @@ if (PARAVIEW_ENABLE_MOMENTINVARIANTS)
   set(use_vtk_remote_modules ON)
 endif ()
 
-# For Catalyst, Fortran is optionally needed. Hence we enable
-# Fortran at the top level itself. When individual module called
-# enable_language(...), it failed during first cmake configure but worked o
-# subsequent. enable_language(... OPTIONAL) overcomes that issue altogether.
-if (NOT WIN32)
-  # Theoretically, CheckFortran should not be needed, but it
-  # enable_language(OPTIONAL) fails with Ninja generator.
-  include(CheckFortran)
-  check_fortran_support()
-  if (CMAKE_Fortran_COMPILER)
-    enable_language(Fortran OPTIONAL)
-  endif ()
+if (PARAVIEW_USE_FORTRAN)
+  enable_language(Fortran OPTIONAL)
 endif ()
 
 if (PARAVIEW_USE_EXTERNAL_VTK)
@@ -234,8 +215,10 @@ else ()
   include(vtkObjectFactory)
   include(vtkExternalData)
   include(vtkVersion)
+  include(VTKDetermineVersion)
   set(VTK_VERSION
       "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}")
+  determine_version("${CMAKE_CURRENT_SOURCE_DIR}/VTK" "${GIT_EXECUTABLE}" "VTK")
 
   if (PARAVIEW_USE_PYTHON)
     include(vtkModuleWrapPython)
@@ -269,9 +252,9 @@ set(paraview_default_plugins
   FlipBookPlugin
   GenericIOReader
   GeodesicMeasurement
-  GLTFReader
   GMVReader
   HyperTreeGridADR
+  IOSSReader
   LagrangianParticleTracker
   Moments
   MooseXfemClip
@@ -282,7 +265,6 @@ set(paraview_default_plugins
   # ParFlow - Because of dependency to nlohmann_json
   SaveStateAndScreenshot
   SLACTools
-  SierraPlotTools
   StreamLinesRepresentation
   StreamingParticles
   SurfaceLIC
@@ -304,6 +286,7 @@ paraview_plugin_scan(
 set(paraview_source_directories
   "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
   "${CMAKE_CURRENT_SOURCE_DIR}/Clients"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Adaptors"
   "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
   "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
   "${CMAKE_CURRENT_SOURCE_DIR}/Web"
@@ -384,9 +367,9 @@ if (PARAVIEW_USE_EXTERNAL_VTK)
   endif ()
 
   if (PARAVIEW_USE_PYTHON)
-    find_package("Python${PARAVIEW_PYTHON_VERSION}" QUIET REQUIRED COMPONENTS Interpreter)
-    set(PYTHON_VERSION_MAJOR "${Python${PARAVIEW_PYTHON_VERSION}_VERSION_MAJOR}")
-    set(PYTHON_VERSION_MINOR "${Python${PARAVIEW_PYTHON_VERSION}_VERSION_MINOR}")
+    find_package(Python3 3.3 QUIET REQUIRED COMPONENTS Interpreter)
+    set(PYTHON_VERSION_MAJOR "${Python3_VERSION_MAJOR}")
+    set(PYTHON_VERSION_MINOR "${Python3_VERSION_MINOR}")
     if (NOT PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX)
       vtk_module_python_default_destination(PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX)
     endif ()
@@ -427,6 +410,8 @@ else ()
   set(VTK_USE_MPI "${PARAVIEW_USE_MPI}")
   # Forward CUDA option to VTK
   set(VTK_USE_CUDA "${PARAVIEW_USE_CUDA}")
+  # Forward Memkind option to VTK.
+  set(VTK_USE_MEMKIND "${PARAVIEW_USE_MEMKIND}")
 
   # Forward logging option to VTK.
   set(VTK_ENABLE_LOGGING ON)
@@ -445,6 +430,9 @@ else ()
 
   vtk_module_find_modules(vtk_module_files "${CMAKE_CURRENT_SOURCE_DIR}/VTK")
   vtk_module_find_kits(vtk_kit_files "${CMAKE_CURRENT_SOURCE_DIR}/VTK")
+  # Exclude VTK's examples.
+  list(FILTER vtk_module_files EXCLUDE REGEX "/Examples/")
+  list(FILTER vtk_kit_files EXCLUDE REGEX "/Examples/")
   vtk_module_scan(
     MODULE_FILES        ${vtk_module_files}
     KIT_FILES           ${vtk_kit_files}
@@ -468,9 +456,9 @@ else ()
   endif ()
 
   if (PARAVIEW_USE_PYTHON)
-    find_package("Python${PARAVIEW_PYTHON_VERSION}" QUIET REQUIRED COMPONENTS Interpreter)
-    set(PYTHON_VERSION_MAJOR "${Python${PARAVIEW_PYTHON_VERSION}_VERSION_MAJOR}")
-    set(PYTHON_VERSION_MINOR "${Python${PARAVIEW_PYTHON_VERSION}_VERSION_MINOR}")
+    find_package("Python3" 3.3 QUIET REQUIRED COMPONENTS Interpreter)
+    set(PYTHON_VERSION_MAJOR "${Python3_VERSION_MAJOR}")
+    set(PYTHON_VERSION_MINOR "${Python3_VERSION_MINOR}")
     if (NOT PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX)
       vtk_module_python_default_destination(PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX)
     endif ()
@@ -505,6 +493,7 @@ else ()
     TEST_DATA_TARGET    ParaViewData
     BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
     USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
+    ENABLE_WRAPPING     ON
     TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/VTK/Testing"
     TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/ExternalData/VTK/Testing")
 
@@ -555,10 +544,10 @@ vtk_module_build(
 
 include(vtkModuleJson)
 vtk_module_json(
-  MODULES "${vtk_modules}"
+  MODULES ${vtk_modules}
   OUTPUT "vtk-modules.json")
 vtk_module_json(
-  MODULES "${paraview_modules}"
+  MODULES ${paraview_modules}
   OUTPUT "paraview-modules.json")
 
 list(LENGTH vtk_modules vtk_modules_len)
@@ -793,14 +782,6 @@ if (FALSE) # XXX(FIXME)
 endif()
 endif()
 #------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-if (PARAVIEW_BUILD_CATALYST_ADAPTORS)
-  # BuildAdaptors.cmake builds the adaptors as a separate project. We mark is
-  # OPTIONAL for Catalyst packages that don't have the adaptors included.
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CoProcessing/Adaptors/BuildAdaptors.cmake
-          OPTIONAL)
-endif()
 
 install(
   FILES       "${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt"

@@ -27,6 +27,7 @@
 
 #include <cassert>
 
+#include "vtksys/FStream.hxx"
 #include "vtksys/SystemInformation.hxx"
 #include "vtksys/SystemTools.hxx"
 
@@ -65,14 +66,14 @@
 //-------------------------------------------------------------------------------------------------
 bool file_to_string(const std::string& file_path, std::string& out_file_string)
 {
-  std::ifstream src_file;
+  vtksys::ifstream src_file;
 
   src_file.open(file_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
   if (!src_file.is_open())
     return false;
 
-  const std::ifstream::pos_type src_file_size = src_file.tellg();
+  const vtksys::ifstream::pos_type src_file_size = src_file.tellg();
   src_file.seekg(std::ios::beg);
 
   out_file_string.resize(src_file_size, '\0');
@@ -212,14 +213,8 @@ void vtknvindex_scene::set_visibility(bool visibility)
       // Update scene transformation
       if (visibility)
       {
-// Reset the affinity information to IndeX in case it changed. Otherwise it will be ignored.
-
-#ifdef USE_KDTREE
-        mi::base::Handle<vtknvindex_KDTree_affinity> affinity =
-          m_cluster_properties->get_affinity();
-#else
+        // Reset the affinity information to IndeX in case it changed. Otherwise it will be ignored.
         mi::base::Handle<vtknvindex_affinity> affinity = m_cluster_properties->get_affinity();
-#endif
 
         // NVIDIA IndeX session will take ownership of the affinity.
         affinity->retain();
@@ -287,12 +282,9 @@ void vtknvindex_scene::create_scene(vtkRenderer* ren, vtkVolume* vol,
   if (m_scene_created)
     return;
 
-// Set the affinity information.
-#ifdef USE_KDTREE
-  mi::base::Handle<vtknvindex_KDTree_affinity> affinity = m_cluster_properties->get_affinity();
-#else
+  // Set the affinity information.
   mi::base::Handle<vtknvindex_affinity> affinity = m_cluster_properties->get_affinity();
-#endif
+
   std::ostringstream s;
   affinity->scene_dump_affinity_info(s);
   INFO_LOG << s.str();
@@ -828,12 +820,8 @@ void vtknvindex_scene::update_volume(
     }
   }
 
-// Set the affinity information.
-#ifdef USE_KDTREE
-  mi::base::Handle<vtknvindex_KDTree_affinity> affinity = m_cluster_properties->get_affinity();
-#else
+  // Set the affinity information.
   mi::base::Handle<vtknvindex_affinity> affinity = m_cluster_properties->get_affinity();
-#endif
 
   std::ostringstream s;
   affinity->scene_dump_affinity_info(s);
@@ -1559,7 +1547,7 @@ void vtknvindex_scene::export_session()
       INFO_LOG << "Writing export session to file '"
                << vtksys::SystemTools::JoinPath(path_components) << "'";
 
-      std::ofstream f(output_filename.c_str());
+      vtksys::ofstream f(output_filename.c_str());
       f << s.str();
       std::ostringstream af;
       m_cluster_properties->get_affinity()->scene_dump_affinity_info(af);

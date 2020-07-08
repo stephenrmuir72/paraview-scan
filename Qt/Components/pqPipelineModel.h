@@ -62,6 +62,7 @@ class ModifiedLiveInsituLink;
 class QFont;
 class QPixmap;
 class QString;
+class pqExtractGenerator;
 class pqPipelineModelDataItem;
 class pqPipelineModelInternal;
 class pqPipelineSource;
@@ -90,6 +91,7 @@ public:
     Server = 0,
     Proxy,
     Port,
+    ExtractGenerator,
     Link
   };
 
@@ -326,7 +328,7 @@ public:
   */
   void disableFilterSession();
 
-public slots:
+public Q_SLOTS:
   /**
   * Called when a new server connection is detected. Adds the connection to the
   * list.
@@ -360,6 +362,22 @@ public slots:
   */
   void removeConnection(pqPipelineSource* source, pqPipelineSource* sink, int);
 
+  //@{
+  /**
+   * Called to update extract generator connections.
+   */
+  void addConnection(pqServerManagerModelItem* source, pqExtractGenerator* sink);
+  void removeConnection(pqServerManagerModelItem* source, pqExtractGenerator* sink);
+  //@}
+
+  //@{
+  /**
+   * Add/remove extract generator.
+   */
+  void addExtractGenerator(pqExtractGenerator*);
+  void removeExtractGenerator(pqExtractGenerator*);
+  //@}
+
   /**
   * Updates the icons in the current window column.
   * The current window column shows whether or not the source is
@@ -368,10 +386,10 @@ public slots:
   */
   void setView(pqView* module);
 
-signals:
+Q_SIGNALS:
   void firstChildAdded(const QModelIndex& index);
 
-private slots:
+private Q_SLOTS:
   void onInsituConnectionInitiated(pqServer* server);
 
   void serverDataChanged();
