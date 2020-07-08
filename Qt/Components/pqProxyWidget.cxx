@@ -234,6 +234,13 @@ public:
   static pqProxyWidgetItem* newGroupItem(
     pqPropertyWidget* widget, const QString& label, QObject* parentObj)
   {
+    if (widget->isSingleRowItem())
+    {
+      pqProxyWidgetItem* item = newItem(widget, label, parentObj);
+      item->Group = true;
+      return item;
+    }
+
     pqProxyWidgetItem* item = newItem(widget, QString(), parentObj);
     item->Group = true;
     if (!label.isEmpty() && widget->showLabel())
@@ -381,6 +388,15 @@ public:
 
     this->PropertyWidget->updateWidget(show_advanced);
     this->PropertyWidget->setEnabled(enabled);
+    if (this->InformationOnly)
+    {
+      QPalette palette = this->PropertyWidget->palette();
+      auto styleSheet =
+        QString(":disabled { color: %1; background-color: %2 }")
+          .arg(palette.color(QPalette::Active, QPalette::WindowText).name(QColor::HexArgb))
+          .arg(palette.color(QPalette::Active, QPalette::Base).name(QColor::HexArgb));
+      this->PropertyWidget->setStyleSheet(styleSheet);
+    }
     this->PropertyWidget->show();
 
     if (this->GroupFooter)
@@ -510,20 +526,37 @@ bool skip_group(vtkSMPropertyGroup* smgroup, const QStringList& chosenProperties
 } // end of namespace {}
 
 //-----------------------------------------------------------------------------------
-QWidget* pqProxyWidget::newGroupLabelWidget(const QString& labelText, QWidget* parent)
+QWidget* pqProxyWidget::newGroupLabelWidget(
+  const QString& labelText, QWidget* parent, const QList<QWidget*>& buttons)
 {
   QWidget* widget = new QWidget(parent);
 
-  QVBoxLayout* hbox = new QVBoxLayout(widget);
-  hbox->setContentsMargins(0, pqPropertiesPanel::suggestedVerticalSpacing(), 0, 0);
-  hbox->setSpacing(0);
+  QVBoxLayout* vbox = new QVBoxLayout(widget);
+  vbox->setContentsMargins(0, pqPropertiesPanel::suggestedVerticalSpacing(), 0, 0);
+  vbox->setSpacing(0);
 
   QLabel* label = new QLabel(QString("<html><b>%1</b></html>").arg(labelText), widget);
   label->setWordWrap(true);
   label->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
-  hbox->addWidget(label);
 
-  hbox->addWidget(newHLine(parent));
+  if (buttons.size() > 0)
+  {
+    auto hbox = new QHBoxLayout();
+    hbox->setContentsMargins(0, 0, 0, 0);
+    hbox->setSpacing(pqPropertiesPanel::suggestedHorizontalSpacing());
+    hbox->addWidget(label);
+    for (auto& button : buttons)
+    {
+      hbox->addWidget(button);
+    }
+
+    vbox->addLayout(hbox);
+  }
+  else
+  {
+    vbox->addWidget(label);
+  }
+  vbox->addWidget(newHLine(parent));
   return widget;
 }
 
@@ -1049,7 +1082,7 @@ void pqProxyWidget::createPropertyWidgets(const QStringList& properties)
     pqPropertyWidget* pwidget = this->createWidgetForProperty(smproperty, smproxy, this);
     if (!pwidget)
     {
-      vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "skip since failed to determine widget type.");
+      vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "skip since could not determine widget type.");
       continue;
     }
 
@@ -1275,8 +1308,8 @@ bool pqProxyWidget::restoreDefaults()
   // the properties have been reset.
   if (anyReset)
   {
-    emit changeAvailable();
-    emit changeFinished();
+    Q_EMIT changeAvailable();
+    Q_EMIT changeFinished();
   }
   return anyReset;
 }
@@ -1310,5 +1343,5 @@ void pqProxyWidget::onChangeFinished()
       pqSender->apply();
     }
   }
-  emit this->changeFinished();
+  Q_EMIT this->changeFinished();
 }

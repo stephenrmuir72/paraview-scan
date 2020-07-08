@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqInteractivePropertyWidget.h"
 
+#include <memory>
+
 /**
  * @class pqBoxPropertyWidget
  * @brief custom property widget using vtkBoxWidget2 and vtkBoxRepresentation.
@@ -62,6 +64,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * **UseReferenceBounds** and **ReferenceBounds** must be used together i.e. both
  * are required for this to work.
  *
+ * The constructor accepts a boolean "hideReferenceBounds" to toggle the visibility
+ * of reference bounds items. This is useful when reference bounds are fixed by an
+ * external entity that doesn't want the user to modify it.
+ *
  * Note while all of the above are optional, it really doesn't make much sense
  * to use this widget if any of them are not specified.
  */
@@ -71,19 +77,31 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqBoxPropertyWidget : public pqInteractiveP
   typedef pqInteractivePropertyWidget Superclass;
 
 public:
-  pqBoxPropertyWidget(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = 0);
+  pqBoxPropertyWidget(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = 0,
+    bool hideReferenceBounds = false);
   ~pqBoxPropertyWidget() override;
 
-protected slots:
+  void mouseMoveEvent(QMouseEvent*) override;
+  void keyPressEvent(QKeyEvent*) override;
+  void keyReleaseEvent(QKeyEvent*) override;
+  void focusOutEvent(QFocusEvent*) override;
+
+protected Q_SLOTS:
   /**
   * Places the interactive widget using current data source information.
   */
   void placeWidget() override;
+  void onEnableInteractive(bool isEnabled);
 
 private:
   Q_DISABLE_COPY(pqBoxPropertyWidget)
+  void translate(double);
+
   pqPropertyLinks WidgetLinks;
   bool BoxIsRelativeToInput;
+
+  struct pqInternals;
+  std::unique_ptr<pqInternals> Internals;
 };
 
 #endif

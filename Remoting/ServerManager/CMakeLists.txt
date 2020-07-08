@@ -51,6 +51,7 @@ set(classes
   vtkSIInputProperty
   vtkSIIntVectorProperty
   vtkSIMetaReaderProxy
+  vtkSIMultiplexerSourceProxy
   vtkSIObject
   vtkSIProperty
   vtkSIProxy
@@ -76,6 +77,8 @@ set(classes
   vtkSMCompoundSourceProxy
   vtkSMCompoundSourceProxyDefinitionBuilder
   vtkSMCoreUtilities
+  vtkSMDataAssemblyDomain
+  vtkSMDataExtractWriterProxy
   vtkSMDataSourceProxy
   vtkSMDataTypeDomain
   vtkSMDeserializer
@@ -93,8 +96,10 @@ set(classes
   vtkSMDoubleRangeDomain
   vtkSMDoubleVectorProperty
   vtkSMEnumerationDomain
-  vtkSMExportProxyDepot
   vtkSMExtentDomain
+  vtkSMExtractsController
+  vtkSMExtractTriggerProxy
+  vtkSMExtractWriterProxy
   vtkSMFieldDataDomain
   vtkSMFileListDomain
   vtkSMFixedTypeDomain
@@ -109,6 +114,8 @@ set(classes
   vtkSMLoadStateOptionsProxy
   vtkSMMapProperty
   vtkSMMessage
+  vtkSMMultiplexerSourceProxy
+  vtkSMMultiplexerInputDomain
   vtkSMNamedPropertyIterator
   vtkSMNullProxy
   vtkSMNumberOfComponentsDomain

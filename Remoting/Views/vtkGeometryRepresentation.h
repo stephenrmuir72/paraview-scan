@@ -143,6 +143,24 @@ public:
   vtkBooleanMacro(RequestGhostCellsIfNeeded, bool);
   //@}
 
+  /**
+   * Set the normal array used for smooth shading.
+   * It must be a three components array.
+   */
+  virtual void SetNormalArray(const char* val);
+
+  /**
+   * Set the texture coordinates array used for texture mapping.
+   * It must be a two components array.
+   */
+  virtual void SetTCoordArray(const char* val);
+
+  /**
+   * Set the tangent coordinates array used for normal mapping.
+   * It must be a three components array.
+   */
+  virtual void SetTangentArray(const char* val);
+
   //***************************************************************************
   // Forwarded to vtkPVGeometryFilter
   virtual void SetUseOutline(int);
@@ -156,6 +174,7 @@ public:
   virtual void SetColor(double r, double g, double b);
   virtual void SetDiffuseColor(double r, double g, double b);
   virtual void SetEdgeColor(double r, double g, double b);
+  virtual void SetInteractiveSelectionColor(double r, double g, double b);
   virtual void SetInterpolation(int val);
   virtual void SetLineWidth(double val);
   virtual void SetOpacity(double val);
@@ -167,6 +186,7 @@ public:
   virtual void SetRenderLinesAsTubes(bool);
   virtual void SetRoughness(double val);
   virtual void SetMetallic(double val);
+  virtual void SetEdgeTint(double r, double g, double b);
   virtual void SetBaseColorTexture(vtkTexture* tex);
   virtual void SetMaterialTexture(vtkTexture* tex);
   virtual void SetNormalTexture(vtkTexture* tex);
@@ -212,6 +232,11 @@ public:
   virtual void SetMapScalars(int val);
   virtual void SetStatic(int val);
   //@}
+
+  /**
+   * Sets the selection used by the mapper.
+   */
+  virtual void SetSelection(vtkSelection* selection);
 
   /**
    * Provides access to the actor used by this representation.
@@ -401,6 +426,11 @@ protected:
    * all the data to decide if it is doing translucent rendering.
    */
   virtual bool NeedsOrderedCompositing();
+
+  /**
+   * Used by SetNormalArray, SetTCoordArray and SetTangentArray
+   */
+  virtual void SetPointArrayToProcess(int p, const char* val);
 
   vtkAlgorithm* GeometryFilter;
   vtkAlgorithm* MultiBlockMaker;

@@ -12,6 +12,7 @@ set(PY_TESTS
   ColorPaletteInStateFile.py
   CSVWriterReader.py,NO_VALID
   GenerateIdScalarsBackwardsCompatibility.py,NO_VALID
+  GetActiveCamera.py,NO_VALID
   GhostCellsInMergeBlocks.py
   IntegrateAttributes.py,NO_VALID
   LookupTable.py,NO_VALID
@@ -72,6 +73,7 @@ set(ParaView::RemotingApplication_ARGS)
 # Add tests for pvbatch.
 
 vtk_module_test_data(
+  "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SaveAnimation_right.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiView_chart_view.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiView_render_view.png")
 
