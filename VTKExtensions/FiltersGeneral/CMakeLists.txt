@@ -44,6 +44,7 @@ set(classes
   vtkOMETIFFChannelCalculator
   vtkPEquivalenceSet
   vtkPlotEdges
+  vtkPolyhedralToSimpleCellsFilter
   vtkPVArrayCalculator
   vtkPVClipClosedSurface
   vtkPVClipDataSet
