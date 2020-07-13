@@ -32,6 +32,7 @@ set(classes
   vtkCellIntegrator
   vtkCleanUnstructuredGrid
   vtkCleanUnstructuredGridCells
+  vtkConvertPolyhedraFilter
   vtkEquivalenceSet
   vtkExtractScatterPlot
   vtkFlashContour
@@ -44,7 +45,6 @@ set(classes
   vtkOMETIFFChannelCalculator
   vtkPEquivalenceSet
   vtkPlotEdges
-  vtkPolyhedralToSimpleCellsFilter
   vtkPVArrayCalculator
   vtkPVClipClosedSurface
   vtkPVClipDataSet

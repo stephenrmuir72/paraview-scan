@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkPolyhedralToSimpleCellsFilter.cxx
+  Module:    vtkConvertPolyhedraFilter.cxx
 
   Copyright (c) Menno Deij - van Rijswijk (MARIN)
   All rights reserved.
@@ -13,7 +13,7 @@
 
 =========================================================================*/
 
-#include "vtkPolyhedralToSimpleCellsFilter.h"
+#include "vtkConvertPolyhedraFilter.h"
 
 #include "vtkCellData.h"
 #include "vtkCellIterator.h"
@@ -29,19 +29,19 @@
 #include <set>
 #include <vector>
 
-vtkStandardNewMacro(vtkPolyhedralToSimpleCellsFilter);
+vtkStandardNewMacro(vtkConvertPolyhedraFilter);
 
 //------------------------------------------------------------------------------
-vtkPolyhedralToSimpleCellsFilter::vtkPolyhedralToSimpleCellsFilter()
+vtkConvertPolyhedraFilter::vtkConvertPolyhedraFilter()
 {
 }
 
 //------------------------------------------------------------------------------
-vtkPolyhedralToSimpleCellsFilter::~vtkPolyhedralToSimpleCellsFilter()
+vtkConvertPolyhedraFilter::~vtkConvertPolyhedraFilter()
 {
 }
 
-void vtkPolyhedralToSimpleCellsFilter::InsertNextPolyhedralCell(
+void vtkConvertPolyhedraFilter::InsertNextPolyhedralCell(
   vtkUnstructuredGridBase* grid, vtkIdList* faces) const
 {
   if (grid == nullptr || faces == nullptr)
@@ -371,7 +371,7 @@ void vtkPolyhedralToSimpleCellsFilter::InsertNextPolyhedralCell(
     }
   }
 }
-void vtkPolyhedralToSimpleCellsFilter::InsertNextPolygonalCell(
+void vtkConvertPolyhedraFilter::InsertNextPolygonalCell(
   vtkUnstructuredGridBase* grid, vtkIdList* vertices) const
 {
   if (grid == nullptr || vertices == nullptr)
@@ -408,7 +408,7 @@ void vtkPolyhedralToSimpleCellsFilter::InsertNextPolygonalCell(
 }
 
 //------------------------------------------------------------------------------
-int vtkPolyhedralToSimpleCellsFilter::RequestData(vtkInformation* vtkNotUsed(request),
+int vtkConvertPolyhedraFilter::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   // get the info objects
@@ -469,7 +469,7 @@ int vtkPolyhedralToSimpleCellsFilter::RequestData(vtkInformation* vtkNotUsed(req
 }
 
 //------------------------------------------------------------------------------
-void vtkPolyhedralToSimpleCellsFilter::PrintSelf(ostream& os, vtkIndent indent)
+void vtkConvertPolyhedraFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

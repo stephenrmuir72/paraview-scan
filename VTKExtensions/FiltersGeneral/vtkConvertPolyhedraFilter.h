@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkPolyhedralToSimpleCellsFilter.h
+  Module:    vtkConvertPolyhedraFilter.h
 
   Copyright (c) Menno Deij - van Rijswijk (MARIN)
   All rights reserved.
@@ -14,17 +14,17 @@
 =========================================================================*/
 
 /**
- * @class   vtkPolyhedralToSimpleCellsFilter
+ * @class   vtkConvertPolyhedraFilter
  * @brief   Converts polyhedral and polygonal cells to simple cells if possible
  *
  *
- * vtkPolyhedralToSimpleCellsFilter takes an unstructured grid comprised of
- * cells of any cell type and attempts to convert polyhedral cells to simple
- * cells if possible.
+ * vtkConvertPolyhedraFilter takes an unstructured grid comprised of
+ * cells of any cell type and attempts to convert polyhedral cells and polygonal
+ * cels to simple cells if possible.
  */
 
-#ifndef vtkPolyhedralToSimpleCellsFilter_h
-#define vtkPolyhedralToSimpleCellsFilter_h
+#ifndef vtkConvertPolyhedraFilter_h
+#define vtkConvertPolyhedraFilter_h
 
 #include "vtkPVVTKExtensionsFiltersGeneralModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
@@ -33,24 +33,24 @@ class vtkUnstructuredGridBase;
 class vtkIdList;
 class TestPolyhedralToSimpleCellsFilter; // for testing purposes
 
-class VTKPVVTKEXTENSIONSFILTERSGENERAL_EXPORT vtkPolyhedralToSimpleCellsFilter
+class VTKPVVTKEXTENSIONSFILTERSGENERAL_EXPORT vtkConvertPolyhedraFilter
   : public vtkUnstructuredGridAlgorithm
 {
 public:
-  static vtkPolyhedralToSimpleCellsFilter* New();
-  vtkTypeMacro(vtkPolyhedralToSimpleCellsFilter, vtkUnstructuredGridAlgorithm);
+  static vtkConvertPolyhedraFilter* New();
+  vtkTypeMacro(vtkConvertPolyhedraFilter, vtkUnstructuredGridAlgorithm);
 
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
-  vtkPolyhedralToSimpleCellsFilter();
-  ~vtkPolyhedralToSimpleCellsFilter() override;
+  vtkConvertPolyhedraFilter();
+  ~vtkConvertPolyhedraFilter() override;
 
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
 private:
-  vtkPolyhedralToSimpleCellsFilter(const vtkPolyhedralToSimpleCellsFilter&) = delete;
-  void operator=(const vtkPolyhedralToSimpleCellsFilter&) = delete;
+  vtkConvertPolyhedraFilter(const vtkConvertPolyhedraFilter&) = delete;
+  void operator=(const vtkConvertPolyhedraFilter&) = delete;
 
   // forward declared test class is friend so that it can call
   // the two functions below without having to expose them as public

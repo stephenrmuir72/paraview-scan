@@ -310,11 +310,11 @@
       <!-- End PlotEdges -->
     </SourceProxy>
 
-    <SourceProxy class="vtkPolyhedralToSimpleCellsFilter"
-                 label="Simplify Polyhedral Cells"
-                 name="PolyhedralToSimpleCells">
-      <Documentation long_help="Attempt to reinterpret polyhedral cells as simple cells.">
-Attempt to reinterpret polyhedral cells as simple cells (tetrahedron, pyramid, wedge
+    <SourceProxy class="vtkConvertPolyhedraFilter"
+                 label="Convert Polyhedral Cells"
+                 name="ConvertPolyhedra">
+      <Documentation long_help="Attempt to convert polyhedral cells tp simple cells.">
+Attempt to convert polyhedral cells to simple cells (tetrahedron, pyramid, wedge
 or hexahedron). It will speed up downstream processing if polyhedral cells can
 be treated as simple cells.
       </Documentation>
@@ -325,9 +325,9 @@ be treated as simple cells.
           <Group name="filters" />
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
-          <DataType value="vtkUnstructuredGrid" />
+          <DataType value="vtkUnstructuredGridBase" />
         </DataTypeDomain>
-        <Documentation>This property specifies the input to the Simplify Polyhedral Cells
+        <Documentation>This property specifies the input to the Convert Polyhedral Cells
         filter.</Documentation>
       </InputProperty>
     </SourceProxy>
