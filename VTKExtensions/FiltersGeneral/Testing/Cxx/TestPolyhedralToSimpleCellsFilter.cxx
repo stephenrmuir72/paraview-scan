@@ -97,10 +97,11 @@ public:
     // === VTK_TETRA === //
     ug->Reset();
     auto arr = new vtkIdType[17]{
-      4, 3, 0, 1, 2, // side
-      3, 1, 2, 3,    // side
-      3, 1, 3, 0,    // side
-      3, 0, 2, 3     // side
+      4,          // nr faces
+      3, 0, 1, 2, // side
+      3, 1, 2, 3, // side
+      3, 1, 3, 0, // side
+      3, 0, 2, 3  // side
     };
 
     ids->SetArray(arr, 17);
@@ -112,11 +113,12 @@ public:
     // === VTK_PYRAMID === //
     ug->Reset();
     arr = new vtkIdType[22]{
-      5, 3, 0, 1, 4, // side
-      3, 4, 1, 2,    // side
-      3, 2, 3, 4,    // side
-      3, 3, 4, 0,    // side
-      4, 0, 1, 2, 3  // bottom
+      5,            // nr faces
+      3, 0, 1, 4,   // side
+      3, 4, 1, 2,   // side
+      3, 2, 3, 4,   // side
+      3, 3, 4, 0,   // side
+      4, 0, 1, 2, 3 // bottom
     };
 
     ids->Reset();
@@ -131,7 +133,8 @@ public:
     // === VTK_WEDGE === //
     ug->Reset();
     arr = new vtkIdType[24]{
-      5, 3, 0, 1, 2, // top
+      5,             // nr faces
+      3, 0, 1, 2,    // top
       4, 0, 3, 4, 1, // side
       4, 3, 5, 2, 0, // side
       4, 2, 5, 4, 1, // side
@@ -149,11 +152,12 @@ public:
 
     // === VTK_HEXAHEDRON === //
     ug->Reset();
-    arr = new vtkIdType[31]{ 6, 4, 0, 1, 2, 3, // bottom
-      4, 2, 6, 5, 1,                           // side
-      4, 5, 4, 0, 1,                           // side
-      4, 4, 5, 6, 7,                           // top
-      4, 3, 7, 6, 2,                           // side
+    arr = new vtkIdType[31]{ 6, // nr faces
+      4, 0, 1, 2, 3,            // bottom
+      4, 2, 6, 5, 1,            // side
+      4, 5, 4, 0, 1,            // side
+      4, 4, 5, 6, 7,            // top
+      4, 3, 7, 6, 2,            // side
       4, 7, 3, 0, 4 };
 
     ids->Reset();

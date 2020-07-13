@@ -15,13 +15,14 @@
 
 #include "vtkPolyhedralToSimpleCellsFilter.h"
 
+#include "vtkCellData.h"
 #include "vtkCellIterator.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
-#include "vtkUnstructuredGrid.h"
-
-#include "vtkCellData.h"
+#include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkUnstructuredGridBase.h"
+
 #include <algorithm>
 #include <array>
 #include <map>
@@ -41,7 +42,7 @@ vtkPolyhedralToSimpleCellsFilter::~vtkPolyhedralToSimpleCellsFilter()
 }
 
 void vtkPolyhedralToSimpleCellsFilter::InsertNextPolyhedralCell(
-  vtkUnstructuredGrid* grid, vtkIdList* faces) const
+  vtkUnstructuredGridBase* grid, vtkIdList* faces) const
 {
   if (grid == nullptr || faces == nullptr)
   {
@@ -371,7 +372,7 @@ void vtkPolyhedralToSimpleCellsFilter::InsertNextPolyhedralCell(
   }
 }
 void vtkPolyhedralToSimpleCellsFilter::InsertNextPolygonalCell(
-  vtkUnstructuredGrid* grid, vtkIdList* vertices) const
+  vtkUnstructuredGridBase* grid, vtkIdList* vertices) const
 {
   if (grid == nullptr || vertices == nullptr)
   {
@@ -415,10 +416,10 @@ int vtkPolyhedralToSimpleCellsFilter::RequestData(vtkInformation* vtkNotUsed(req
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
   // get the input and output
-  vtkUnstructuredGrid* input =
-    vtkUnstructuredGrid::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkUnstructuredGrid* output =
-    vtkUnstructuredGrid::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkUnstructuredGridBase* input =
+    vtkUnstructuredGridBase::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkUnstructuredGridBase* output =
+    vtkUnstructuredGridBase::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   if (input == nullptr || output == nullptr)
   {

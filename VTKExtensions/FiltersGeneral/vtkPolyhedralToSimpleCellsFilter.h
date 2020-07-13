@@ -29,6 +29,7 @@
 #include "vtkPVVTKExtensionsFiltersGeneralModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
 
+class vtkUnstructuredGridBase;
 class vtkIdList;
 class TestPolyhedralToSimpleCellsFilter; // for testing purposes
 
@@ -55,8 +56,8 @@ private:
   // the two functions below without having to expose them as public
   friend class TestPolyhedralToSimpleCellsFilter;
 
-  void InsertNextPolyhedralCell(vtkUnstructuredGrid*, vtkIdList*) const;
-  void InsertNextPolygonalCell(vtkUnstructuredGrid*, vtkIdList*) const;
+  void InsertNextPolyhedralCell(vtkUnstructuredGridBase*, vtkIdList*) const;
+  void InsertNextPolygonalCell(vtkUnstructuredGridBase*, vtkIdList*) const;
 };
 
 #endif
