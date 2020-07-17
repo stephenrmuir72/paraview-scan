@@ -125,22 +125,35 @@ int vtkVolumeRepresentationPreprocessor::RequestData(vtkInformation* vtkNotUsed(
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
   // get the input and output
-  vtkSmartPointer<vtkDataObject> input =
-    vtkDataObject::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkDataObject* output = vtkDataObject::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto input = vtkDataObject::GetData(inputVector[0], 0);
+  auto output = vtkDataObject::GetData(outputVector, 0);
 
   if (vtkCompositeDataSet::SafeDownCast(input))
   {
     this->ExtractDataSet(input, output);
     this->Tetrahedralize(output, output);
+    if (auto outputCD = vtkCompositeDataSet::SafeDownCast(output))
+    {
+      vtkSmartPointer<vtkCompositeDataIterator> iter;
+      iter.TakeReference(outputCD->NewIterator());
+      for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      {
+        auto objectUG = vtkUnstructuredGrid::SafeDownCast(iter->GetCurrentDataObject());
+        if (objectUG)
+        {
+          objectUG->RemoveGhostCells();
+        }
+      }
+    }
   }
   else
   {
     this->Tetrahedralize(input, output);
+    if (auto outputUG = vtkUnstructuredGrid::SafeDownCast(output))
+    {
+      outputUG->RemoveGhostCells();
+    }
   }
-  // FIXME: vtkUnstructuredGrid::RemoveGhostCells() is not applicable for
-  // vtkCompositeDatasets, currently commented out.
-  // output->RemoveGhostCells();
   return 1;
 }
 

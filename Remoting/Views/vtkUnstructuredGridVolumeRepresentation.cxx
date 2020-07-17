@@ -159,19 +159,18 @@ int vtkUnstructuredGridVolumeRepresentation::RequestData(
     else if (auto cd =
                vtkCompositeDataSet::SafeDownCast(this->Preprocessor->GetOutputDataObject(0)))
     {
-      vtkBoundingBox bbox;
-      vtkSmartPointer<vtkCompositeDataIterator> iter;
-      iter.TakeReference(cd->NewIterator());
-      for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      cd->GetBounds(this->DataBounds);
+      if (this->UseSeparateOpacityArray)
       {
-        double bds[6];
-        ds = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
-        ds->GetBounds(bds);
-        bbox.AddBounds(bds);
-      }
-      if (bbox.IsValid())
-      {
-        bbox.GetBounds(this->DataBounds);
+        vtkSmartPointer<vtkCompositeDataIterator> iter;
+        iter.TakeReference(cd->NewIterator());
+        for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+        {
+          if (auto objectDS = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject()))
+          {
+            this->AppendOpacityComponent(objectDS);
+          }
+        }
       }
     }
   }
