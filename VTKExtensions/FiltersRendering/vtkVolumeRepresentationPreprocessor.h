@@ -25,24 +25,26 @@
  *
  * @sa
  * vtkExtractBlock vtkTriangleFilter
-*/
+ */
 
 #ifndef vtkVolumeRepresentationPreprocessor_h
 #define vtkVolumeRepresentationPreprocessor_h
 
+#include "vtkDataObjectAlgorithm.h"
 #include "vtkPVVTKExtensionsFiltersRenderingModule.h" // needed for export macro
 #include "vtkSmartPointer.h"                          // for vtkSmartPointer
-#include "vtkUnstructuredGridAlgorithm.h"
+
+#include <set>
 
 class vtkCompositeDataSet;
 class vtkExtractBlock;
 
 class VTKPVVTKEXTENSIONSFILTERSRENDERING_EXPORT vtkVolumeRepresentationPreprocessor
-  : public vtkUnstructuredGridAlgorithm
+  : public vtkDataObjectAlgorithm
 {
 public:
   static vtkVolumeRepresentationPreprocessor* New();
-  vtkTypeMacro(vtkVolumeRepresentationPreprocessor, vtkUnstructuredGridAlgorithm);
+  vtkTypeMacro(vtkVolumeRepresentationPreprocessor, vtkDataObjectAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
@@ -56,25 +58,28 @@ public:
 
   //@{
   /**
-   * Sets which block will be extracted for volume rendering.
-   * Ignored if input is not multiblock.  Default is 0.
+   * Select the block indices to extract for volume rendering.
+   * Default is 0.
    */
-  vtkSetMacro(ExtractedBlockIndex, unsigned int);
-  vtkGetMacro(ExtractedBlockIndex, unsigned int);
+  bool AddExtractedBlockIndex(unsigned int index);
+  bool RemoveExtractedBlockIndex(unsigned int index);
+  bool RemoveAllExtractedBlockIndices();
   //@}
 
 protected:
   vtkVolumeRepresentationPreprocessor();
   ~vtkVolumeRepresentationPreprocessor() override;
 
-  vtkSmartPointer<vtkUnstructuredGrid> Tetrahedralize(vtkDataObject*);
-  vtkSmartPointer<vtkDataSet> ExtractDataSet(vtkCompositeDataSet*);
+  void Tetrahedralize(vtkDataObject*, vtkDataObject*);
+  void ExtractDataSet(vtkDataObject*, vtkDataObject*);
 
+  int RequestDataObject(vtkInformation* request, vtkInformationVector** inputVector,
+    vtkInformationVector* outputVector) override;
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
   int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int TetrahedraOnly;
-  unsigned int ExtractedBlockIndex;
+  std::set<unsigned int> ExtractedBlockIndices;
 
 private:
   vtkVolumeRepresentationPreprocessor(const vtkVolumeRepresentationPreprocessor&) = delete;

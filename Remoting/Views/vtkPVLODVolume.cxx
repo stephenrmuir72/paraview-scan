@@ -20,6 +20,7 @@
 #include "vtkLODProp3D.h"
 #include "vtkMapper.h"
 #include "vtkMath.h"
+#include "vtkMultiBlockUnstructuredGridVolumeMapper.h"
 #include "vtkMultiBlockVolumeMapper.h"
 #include "vtkObjectFactory.h"
 #include "vtkProperty.h"
@@ -102,6 +103,10 @@ bool vtkPVLODVolume::CanRender()
             imageVolumeMapper->GetArrayAccessMode(), imageVolumeMapper->GetArrayId(),
             imageVolumeMapper->GetArrayName(), unused);
       return scalars != NULL;
+    }
+    if (vtkMultiBlockUnstructuredGridVolumeMapper::SafeDownCast(mapper))
+    {
+      return true;
     }
     else if (vtkUnstructuredGridVolumeMapper* ugMapper =
                vtkUnstructuredGridVolumeMapper::SafeDownCast(mapper))

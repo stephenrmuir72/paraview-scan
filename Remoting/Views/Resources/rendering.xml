@@ -135,7 +135,7 @@
     <!-- end of Camera Proxy -->
   </ProxyGroup>
   <ProxyGroup name="mappers">
-    <Proxy class="vtkProjectedTetrahedraMapper"
+    <Proxy class="vtkMultiBlockUnstructuredGridVolumeMapper"
            name="ProjectedTetrahedraMapper"
            processes="client|renderserver|dataserver">
       <IntVectorProperty name="UseFloatingPointFrameBuffer"

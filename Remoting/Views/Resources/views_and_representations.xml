@@ -5679,15 +5679,16 @@
           </PropertyWidgetDecorator>
         </Hints>
       </IntVectorProperty>
-      <IntVectorProperty command="SetExtractedBlockIndex"
-                         default_values="0"
+      <IntVectorProperty clean_command="RemoveAllExtractedBlockIndices"
+                         command="AddExtractedBlockIndex"
                          name="ExtractedBlockIndex"
-                         number_of_elements="1">
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
         <Documentation>In case of multiblock datasets, choose the index of
         the dataset to volume render. The index must point to an
         unstructured grid dataset. If the input is not a multiblock dataset
         then this index is ignored.</Documentation>
-        <CompositeTreeDomain mode="leaves"
+        <CompositeTreeDomain mode="all"
                              name="tree">
           <RequiredProperties>
             <Property function="Input"

@@ -17,6 +17,8 @@
 #include "vtkAlgorithmOutput.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkCommand.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkDataObjectTree.h"
 #include "vtkDataSet.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkImageData.h"
@@ -24,6 +26,7 @@
 #include "vtkInformationVector.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
+#include "vtkMultiBlockUnstructuredGridVolumeMapper.h"
 #include "vtkMultiBlockVolumeMapper.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
@@ -148,11 +151,28 @@ int vtkUnstructuredGridVolumeRepresentation::RequestData(
     if (ds)
     {
       ds->GetBounds(this->DataBounds);
+      if (this->UseSeparateOpacityArray)
+      {
+        this->AppendOpacityComponent(ds);
+      }
     }
-
-    if (this->UseSeparateOpacityArray)
+    else if (auto cd =
+               vtkCompositeDataSet::SafeDownCast(this->Preprocessor->GetOutputDataObject(0)))
     {
-      this->AppendOpacityComponent(ds);
+      vtkBoundingBox bbox;
+      vtkSmartPointer<vtkCompositeDataIterator> iter;
+      iter.TakeReference(cd->NewIterator());
+      for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      {
+        double bds[6];
+        ds = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
+        ds->GetBounds(bds);
+        bbox.AddBounds(bds);
+      }
+      if (bbox.IsValid())
+      {
+        bbox.GetBounds(this->DataBounds);
+      }
     }
   }
   else
@@ -233,7 +253,8 @@ int vtkUnstructuredGridVolumeRepresentation::ProcessViewRequest(
     vtkAlgorithmOutput* producerPort = vtkPVRenderView::GetPieceProducer(inInfo, this);
     vtkAlgorithmOutput* producerPortLOD = vtkPVRenderView::GetPieceProducerLOD(inInfo, this);
 
-    if (vtkUnstructuredGrid::SafeDownCast(producerPort->GetProducer()->GetOutputDataObject(0)))
+    if (vtkUnstructuredGrid::SafeDownCast(producerPort->GetProducer()->GetOutputDataObject(0)) ||
+      vtkCompositeDataSet::SafeDownCast(producerPort->GetProducer()->GetOutputDataObject(0)))
     {
       vtkAbstractVolumeMapper* activeMapper = this->GetActiveVolumeMapper();
       activeMapper->SetInputConnection(producerPort);
@@ -399,11 +420,28 @@ void vtkUnstructuredGridVolumeRepresentation::PrintSelf(ostream& os, vtkIndent i
 // Forwarded to vtkVolumeRepresentationPreprocessor
 
 //----------------------------------------------------------------------------
-void vtkUnstructuredGridVolumeRepresentation::SetExtractedBlockIndex(unsigned int index)
+void vtkUnstructuredGridVolumeRepresentation::AddExtractedBlockIndex(unsigned int index)
 {
-  if (this->Preprocessor->GetExtractedBlockIndex() != index)
+  if (this->Preprocessor->AddExtractedBlockIndex(index))
   {
-    this->Preprocessor->SetExtractedBlockIndex(index);
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridVolumeRepresentation::RemoveExtractedBlockIndex(unsigned int index)
+{
+  if (this->Preprocessor->RemoveExtractedBlockIndex(index))
+  {
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridVolumeRepresentation::RemoveAllExtractedBlockIndices()
+{
+  if (this->Preprocessor->RemoveAllExtractedBlockIndices())
+  {
     this->MarkModified();
   }
 }

@@ -20,7 +20,7 @@
  * vtkUnstructuredGridVolumeRepresentation is a representation for volume
  * rendering vtkUnstructuredGrid datasets. It simply renders a translucent
  * surface for LOD i.e. interactive rendering.
-*/
+ */
 
 #ifndef vtkUnstructuredGridVolumeRepresentation_h
 #define vtkUnstructuredGridVolumeRepresentation_h
@@ -31,6 +31,7 @@
 class vtkAbstractVolumeMapper;
 class vtkColorTransferFunction;
 class vtkDataSet;
+class vtkMultiBlockUnstructuredGridVolumeMapper;
 class vtkOutlineSource;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
@@ -73,7 +74,9 @@ public:
 
   //***************************************************************************
   // Forwarded to vtkVolumeRepresentationPreprocessor
-  void SetExtractedBlockIndex(unsigned int index);
+  void AddExtractedBlockIndex(unsigned int index);
+  void RemoveExtractedBlockIndex(unsigned int index);
+  void RemoveAllExtractedBlockIndices();
 
   //***************************************************************************
   // Forwarded to vtkResampleToImage
@@ -130,7 +133,7 @@ protected:
     vtkInformationVector* outputVector);
 
   vtkNew<vtkVolumeRepresentationPreprocessor> Preprocessor;
-  vtkNew<vtkProjectedTetrahedraMapper> DefaultMapper;
+  vtkNew<vtkMultiBlockUnstructuredGridVolumeMapper> DefaultMapper;
 
   vtkNew<vtkResampleToImage> ResampleToImageFilter;
 
