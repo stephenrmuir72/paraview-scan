@@ -36,7 +36,6 @@
 #include "vtkPVLODVolume.h"
 #include "vtkPVRenderView.h"
 #include "vtkPolyDataMapper.h"
-#include "vtkProjectedTetrahedraMapper.h"
 #include "vtkRenderer.h"
 #include "vtkResampleToImage.h"
 #include "vtkSMPTools.h"

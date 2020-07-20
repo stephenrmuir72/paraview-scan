@@ -35,7 +35,6 @@ class vtkMultiBlockUnstructuredGridVolumeMapper;
 class vtkOutlineSource;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
-class vtkProjectedTetrahedraMapper;
 class vtkPVGeometryFilter;
 class vtkPVLODVolume;
 class vtkResampleToImage;
