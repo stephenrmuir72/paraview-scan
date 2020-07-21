@@ -171,11 +171,17 @@ public:
    *    Attribute `port` is optional and only needed to explicitly specify
    *    different view types for different output ports.
    *
+   *    Additionally, the attribute `use_for_proxy` can be added (with value "1"). In that case
+   *    the icon will be also used for the proxy node in the pipeline browser. It will be
+   *    shown instead of the icon of the first port in case of single-output sources, and also
+   *    in place of the generic icon used otherwise for multi-output sources.
+   *
    * # Using GetPreferredViewType
    *    If no PipelineIcon as been provided, we fall back to using
    *    GetPreferredViewType.
    */
-  virtual const char* GetPipelineIcon(vtkSMSourceProxy* producer, int outputPort);
+  virtual const char* GetPipelineIcon(
+    vtkSMSourceProxy* producer, int outputPort, bool useForProxy = false);
 
   /**
    * Overridden to create color and opacity transfer functions if applicable.
