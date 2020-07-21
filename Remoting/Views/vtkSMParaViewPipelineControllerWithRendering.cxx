@@ -80,9 +80,19 @@ vtkPVXMLElement* vtkFindChildFromHints(vtkPVXMLElement* hints, const int outputP
     {
       int port;
       // If port exists, then it must match the port number for this port.
-      if (child->GetScalarAttribute("port", &port) && (port != outputPort))
+      if (child->GetScalarAttribute("port", &port))
       {
-        continue;
+        if (outputPort != port)
+        {
+          continue; // this hint is for a different port
+        }
+      }
+      else
+      {
+        if (outputPort >= 0)
+        {
+          continue; // this hint is for producer, not for the requested port
+        }
       }
       // if xmlAttributeName and xmlAttributeValue are provided, the XML must match the
       // (name,value) pair, if present.
@@ -752,7 +762,7 @@ const char* vtkSMParaViewPipelineControllerWithRendering::GetPipelineIcon(
   }
 
   // 2. If not, return the prefered view type
-  return this->GetPreferredViewType(producer, outputPort);
+  return outputPort >= 0 ? this->GetPreferredViewType(producer, outputPort) : nullptr;
 }
 
 //----------------------------------------------------------------------------
