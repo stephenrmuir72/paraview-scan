@@ -78,7 +78,7 @@ vtkPVXMLElement* vtkFindChildFromHints(vtkPVXMLElement* hints, const int outputP
     {
       int port;
       // If port exists, then it must match the port number for this port.
-      if (child->GetScalarAttribute("port", &port) && (port != outputPort))
+      if (outputPort >= 0 && child->GetScalarAttribute("port", &port) && (port != outputPort))
       {
         continue;
       }
@@ -715,17 +715,19 @@ const char* vtkSMParaViewPipelineControllerWithRendering::GetPreferredViewType(
 
 //----------------------------------------------------------------------------
 const char* vtkSMParaViewPipelineControllerWithRendering::GetPipelineIcon(
-  vtkSMSourceProxy* producer, int outputPort)
+  vtkSMSourceProxy* producer, int outputPort, bool useForProxy)
 {
   // 1. Check if there's a hint for the producer. If so, use that.
-  vtkPVXMLElement* hint = vtkFindChildFromHints(producer->GetHints(), outputPort, "PipelineIcon");
+  vtkPVXMLElement* hint = useForProxy
+    ? vtkFindChildFromHints(producer->GetHints(), outputPort, "PipelineIcon", "use_for_proxy", "1")
+    : vtkFindChildFromHints(producer->GetHints(), outputPort, "PipelineIcon");
   if (hint && hint->GetAttribute("name"))
   {
     return hint->GetAttribute("name");
   }
 
   // 2. If not, return the prefered view type
-  return this->GetPreferredViewType(producer, outputPort);
+  return outputPort >= 0 ? this->GetPreferredViewType(producer, outputPort) : nullptr;
 }
 
 //----------------------------------------------------------------------------
