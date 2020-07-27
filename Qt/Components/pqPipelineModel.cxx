@@ -233,18 +233,13 @@ public:
       case pqPipelineModel::Proxy:
       {
         pqPipelineSource* source = qobject_cast<pqPipelineSource*>(this->Object);
-        if (source->getNumberOfOutputPorts() > 1)
-        {
-          // icon is shown on the output ports.
-          return PipelineModelIconType::INDETERMINATE;
-        }
-        return this->getIconType(source->getOutputPort(0));
+        return this->getProxyIconType(source);
       }
 
       case pqPipelineModel::Port:
       {
         pqOutputPort* port = qobject_cast<pqOutputPort*>(this->Object);
-        return this->getIconType(port);
+        return this->getPortIconType(port);
       }
 
       case pqPipelineModel::Link:
@@ -404,7 +399,7 @@ private:
       : PipelineModelIconType::LAST;
   }
 
-  QString getIconType(pqOutputPort* port) const
+  QString getPortIconType(pqOutputPort* port) const
   {
     if (port->getSource()->property("INSITU_EXTRACT").toBool())
     {
@@ -427,6 +422,25 @@ private:
     }
 
     return PipelineModelIconType::GEOMETRY;
+  }
+
+  QString getProxyIconType(pqPipelineSource* source) const
+  {
+    // check if there is an icon associated with this source proxy
+    QString iconType = this->Controller->GetPipelineIcon(source->getSourceProxy());
+    if (!iconType.isEmpty())
+    {
+      return iconType;
+    }
+
+    // use a default icon for multi-output sources
+    if (source->getNumberOfOutputPorts() > 1)
+    {
+      return PipelineModelIconType::INDETERMINATE;
+    }
+
+    // for single-output sources, use the icon of the sole output port
+    return this->getPortIconType(source->getOutputPort(0));
   }
 };
 
