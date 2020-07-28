@@ -45,7 +45,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSourceProxy.h"
 
 #include <QKeySequence>
-#include <QShortcut>
 
 //-----------------------------------------------------------------------------
 pqFlipBookReaction::pqFlipBookReaction(
