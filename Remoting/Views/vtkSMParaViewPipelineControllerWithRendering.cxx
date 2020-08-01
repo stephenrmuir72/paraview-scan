@@ -77,16 +77,18 @@ vtkPVXMLElement* vtkFindChildFromHints(vtkPVXMLElement* hints, const int outputP
     if (child && child->GetName() && strcmp(child->GetName(), xmlTag) == 0)
     {
       int port;
-      // If port exists, then it must match the port number for this port.
       if (child->GetScalarAttribute("port", &port))
       {
+        // If port exists, then it must match the port number for this port.
         if (outputPort != port)
         {
           continue; // this hint is for a different port
         }
       }
-      else
+      else if (strcmp(xmlTag, "PipelineIcon") == 0)
       {
+        // If port does not exist, PipelineIcon interprets it as
+        // a specification of the proxy icon (for outputPort < 0).
         if (outputPort >= 0)
         {
           continue; // this hint is for producer, not for the requested port
