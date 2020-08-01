@@ -426,17 +426,11 @@ private:
 
   QString getProxyIconType(pqPipelineSource* source) const
   {
-    // check if there is an icon associated with this source proxy
-    QString iconType = this->Controller->GetPipelineIcon(source->getSourceProxy());
-    if (!iconType.isEmpty())
-    {
-      return iconType;
-    }
-
-    // use a default icon for multi-output sources
+    // use user-specified or default icon for multi-output sources
     if (source->getNumberOfOutputPorts() > 1)
     {
-      return PipelineModelIconType::INDETERMINATE;
+      QString iconType = this->Controller->GetPipelineIcon(source->getSourceProxy());
+      return iconType.isEmpty() ? PipelineModelIconType::INDETERMINATE : iconType;
     }
 
     // for single-output sources, use the icon of the sole output port
