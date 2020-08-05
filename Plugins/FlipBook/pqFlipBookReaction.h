@@ -38,11 +38,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QSpinBox>
 
 class pqDataRepresentation;
+class pqModalShortcut;
 class pqPipelineModel;
 class pqRepresentation;
 class pqView;
-
-class QShortcut;
 
 /**
  * @ingroup Reactions
@@ -110,10 +109,10 @@ private:
 
   QPointer<pqView> View;
   QTimer* Timer;
-  QPointer<QShortcut> ShortCutNext;
 
   QList<QPointer<pqDataRepresentation> > VisibleRepresentations;
   int VisibilityIndex;
+  QPointer<pqModalShortcut> StepActionMode;
 };
 
 #endif
