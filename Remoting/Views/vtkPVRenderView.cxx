@@ -97,6 +97,7 @@
 #include "vtkWindowToImageFilter.h"
 
 #include "vtkLightingMapPass.h"
+#include "vtkToneMappingPass.h"
 #include "vtkValuePass.h"
 
 #if VTK_MODULE_ENABLE_ParaView_icet
@@ -126,6 +127,10 @@ public:
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkNew<vtkOSPRayPass> OSPRayPass;
 #endif
+
+  vtkSmartPointer<vtkImageProcessingPass> SavedImageProcessingPass;
+
+  vtkNew<vtkToneMappingPass> ToneMappingPass;
   vtkSmartPointer<vtkRenderPass> SavedRenderPass;
   int FieldAssociation;
   int FieldAttributeType;
@@ -381,6 +386,8 @@ vtkPVRenderView::vtkPVRenderView()
   this->NeedsOrderedCompositing = false;
   this->RenderEmptyImages = false;
   this->UseFXAA = false;
+  this->UseSSAO = false;
+  this->UseToneMapping = false;
   this->DistributedRenderingRequired = false;
   this->NonDistributedRenderingRequired = false;
   this->DistributedRenderingRequiredLOD = false;
@@ -508,6 +515,7 @@ vtkPVRenderView::~vtkPVRenderView()
   if (win)
   {
     this->Internals->ValuePasses->ReleaseGraphicsResources(win);
+    this->Internals->ToneMappingPass->ReleaseGraphicsResources(win);
   }
 
   // this ensure that the renderer releases graphics resources before the window
@@ -852,6 +860,11 @@ bool vtkPVRenderView::PrepareSelect(int fieldAssociation, const char* array)
     }
   }
 
+  // Disable image processing pass to preserve vertex indices in the color buffer
+  // created by the hardwareSelector render pass
+  this->Internals->SavedImageProcessingPass = this->SynchronizedRenderers->GetImageProcessingPass();
+  this->SynchronizedRenderers->SetImageProcessingPass(nullptr);
+
   return true;
 }
 
@@ -900,6 +913,9 @@ void vtkPVRenderView::PostSelect(vtkSelection* sel, const char* array)
       geom->SetArrayIdNames(nullptr, nullptr);
     }
   }
+
+  // Restore image processing pass
+  this->SynchronizedRenderers->SetImageProcessingPass(this->Internals->SavedImageProcessingPass);
 
   this->MakingSelection = false;
   this->GetRenderWindow()->SetSwapBuffers(this->PreviousSwapBuffers);
@@ -1576,6 +1592,21 @@ void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
   }
   this->OrientationWidget->GetRenderer()->SetUseFXAA(use_fxaa);
   this->OrientationWidget->GetRenderer()->SetFXAAOptions(this->FXAAOptions.Get());
+
+  // Configure SSAO
+  this->RenderView->GetRenderer()->SetUseSSAO(this->UseSSAO);
+  this->RenderView->GetRenderer()->SetSSAOKernelSize(this->KernelSize);
+  this->RenderView->GetRenderer()->SetSSAOBlur(this->Blur);
+  if (this->UseSSAODefaultPresets && this->GeometryBounds.IsValid())
+  {
+    this->RenderView->GetRenderer()->SetSSAORadius(0.1 * this->GeometryBounds.GetDiagonalLength());
+    this->RenderView->GetRenderer()->SetSSAOBias(0.001 * this->GeometryBounds.GetDiagonalLength());
+  }
+  else
+  {
+    this->RenderView->GetRenderer()->SetSSAORadius(this->Radius);
+    this->RenderView->GetRenderer()->SetSSAOBias(this->Bias);
+  }
 
   if (this->ShowAnnotation)
   {
@@ -2416,18 +2447,88 @@ void vtkPVRenderView::SetMaintainLuminance(int val)
 }
 
 //*****************************************************************
+// Forward to vtkPVImageProcessingPasses instance
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseToneMapping(bool v)
+{
+  if (v && this->SynchronizedRenderers->GetImageProcessingPass() == nullptr)
+  {
+    this->SynchronizedRenderers->SetImageProcessingPass(this->Internals->ToneMappingPass);
+  }
+  else if (this->SynchronizedRenderers->GetImageProcessingPass() ==
+    this->Internals->ToneMappingPass)
+  {
+    this->SynchronizedRenderers->SetImageProcessingPass(nullptr);
+  }
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetToneMappingType(int v)
+{
+  this->Internals->ToneMappingPass->SetToneMappingType(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetExposure(double v)
+{
+  this->Internals->ToneMappingPass->SetExposure(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetContrast(double v)
+{
+  this->Internals->ToneMappingPass->SetContrast(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetShoulder(double v)
+{
+  this->Internals->ToneMappingPass->SetShoulder(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetMidIn(double v)
+{
+  this->Internals->ToneMappingPass->SetMidIn(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetMidOut(double v)
+{
+  this->Internals->ToneMappingPass->SetMidOut(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetHdrMax(double v)
+{
+  this->Internals->ToneMappingPass->SetHdrMax(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseACES(bool v)
+{
+  this->Internals->ToneMappingPass->SetUseACES(v);
+}
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetGenericFilmicPresets(int type)
+{
+  if (this->Internals->ToneMappingPass->GetToneMappingType() == vtkToneMappingPass::GenericFilmic)
+  {
+    if (type == 1)
+    {
+      this->Internals->ToneMappingPass->SetGenericFilmicDefaultPresets();
+    }
+    else if (type == 2)
+    {
+      this->Internals->ToneMappingPass->SetGenericFilmicUncharted2Presets();
+    }
+  }
+}
+
+//*****************************************************************
 // Forward to 3D renderer.
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetUseDepthPeeling(int val)
 {
   this->GetRenderer()->SetUseDepthPeeling(val);
 }
-
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetUseDepthPeelingForVolumes(bool val)
 {
   this->GetRenderer()->SetUseDepthPeelingForVolumes(val);
 }
-
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetMaximumNumberOfPeels(int val)
 {
