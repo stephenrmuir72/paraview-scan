@@ -174,22 +174,32 @@ void vtkSMFieldDataDomain::Update(vtkSMProperty* vtkNotUsed(prop))
     dataInfo = this->GetInputDataInformation("Input");
   }
   this->RemoveAllEntries();
-  for (int idx = 0; idx < vtkSMInputArrayDomain::NUMBER_OF_ATTRIBUTE_TYPES; idx++)
+  if (dataInfo)
   {
-    auto label = vtkSMFieldDataDomain::GetAttributeTypeAsString(idx);
-    if (!label)
+    for (int idx = 0; idx < vtkSMInputArrayDomain::NUMBER_OF_ATTRIBUTE_TYPES; idx++)
     {
-      continue;
+      auto label = vtkSMFieldDataDomain::GetAttributeTypeAsString(idx);
+      if (!label)
+      {
+        continue;
+      }
+      if (idx == vtkDataObject::FIELD)
+      {
+        continue;
+      }
+      if (!dataInfo->IsAttributeValid(idx))
+      {
+        continue;
+      }
+      this->AddEntry(label, idx);
     }
-    if (idx == vtkDataObject::FIELD && !this->EnableFieldDataSelection)
+
+    // FIELD is always considered last
+    if (this->EnableFieldDataSelection && dataInfo->IsAttributeValid(vtkDataObject::FIELD))
     {
-      continue;
+      auto label = vtkSMFieldDataDomain::GetAttributeTypeAsString(vtkDataObject::FIELD);
+      this->AddEntry(label, vtkDataObject::FIELD);
     }
-    if (dataInfo && !dataInfo->IsAttributeValid(idx))
-    {
-      continue;
-    }
-    this->AddEntry(label, idx);
   }
   this->DomainModified();
 }
