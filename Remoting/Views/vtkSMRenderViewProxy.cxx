@@ -479,11 +479,17 @@ const char* vtkSMRenderViewProxy::GetRepresentationType(vtkSMSourceProxy* produc
   }
 
   vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
+
+  // PointSetRepresentation has to be the last to be checked before
+  // GeometryRepresentation, as it should be
+  // enabled with vtkPointSet input exclusively: it should not be used for
+  // vtkPolyData or vtkUnstructuredGrid as they use other representations.
   const char* representationsToTry[] = { "UnstructuredGridRepresentation",
     "StructuredGridRepresentation", "UniformGridRepresentation", "AMRRepresentation",
-    "PVMoleculeRepresentation", "GeometryRepresentation", NULL };
-  for (int cc = 0; representationsToTry[cc] != NULL; ++cc)
+    "PVMoleculeRepresentation", "PointSetRepresentation", "GeometryRepresentation", nullptr };
+  for (int cc = 0; representationsToTry[cc] != nullptr; ++cc)
   {
+    std::cout << "rep " << representationsToTry[cc] << std::endl;
     vtkSMProxy* prototype = pxm->GetPrototypeProxy("representations", representationsToTry[cc]);
     if (prototype)
     {
