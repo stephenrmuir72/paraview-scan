@@ -60,6 +60,8 @@ public:
     vtkMultiBlockDataSet* outputMB = vtkMultiBlockDataSet::GetData(outVec, 0);
 
     vtkDataObject* clone = inputDO->NewInstance();
+    std::cout << "inputDO " << inputDO->GetClassName() << std::endl;
+    std::cout << "clone " << clone->GetClassName() << std::endl;
     clone->ShallowCopy(inputDO);
     outputMB->SetBlock(0, clone);
     clone->Delete();
@@ -68,7 +70,7 @@ public:
 
   int FillInputPortInformation(int, vtkInformation* info) override
   {
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPointSet");
     info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataObjectTree");
     return 1;
   }
@@ -86,8 +88,10 @@ vtkGlyph3DRepresentation::vtkGlyph3DRepresentation()
   this->GlyphMultiBlockMaker = vtkGlyphRepresentationMultiBlockMaker::New();
 
   this->GlyphMapper = vtkGlyph3DMapper::New();
+  std::cout << "coucou " << std::endl;
   this->LODGlyphMapper = vtkGlyph3DMapper::New();
   this->GlyphActor = vtkPVLODActor::New();
+  std::cout << "ah " << std::endl;
 
   this->DummySource = vtkArrowSource::New();
 
@@ -159,13 +163,15 @@ int vtkGlyph3DRepresentation::FillInputPortInformation(int port, vtkInformation*
 {
   if (port == 0)
   {
-    return this->Superclass::FillInputPortInformation(port, info);
+    int retVal = this->Superclass::FillInputPortInformation(port, info);
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPointSet");
+    return retVal;
   }
   else if (port == 1)
   {
     info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
     info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataObjectTree");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPointSet");
     return 1;
   }
 
@@ -176,9 +182,14 @@ int vtkGlyph3DRepresentation::FillInputPortInformation(int port, vtkInformation*
 int vtkGlyph3DRepresentation::RequestData(
   vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  std::cout << "vtkGlyph3DRepresentation::RequestData" << std::endl;
   vtkAlgorithmOutput* glyphSourcePort = (inputVector[1]->GetNumberOfInformationObjects() == 1)
     ? this->GetInternalOutputPort(1)
     : this->DummySource->GetOutputPort();
+
+  std::cout << "vtkGlyph3DRepresentation::RequestData " << inputVector[1]->GetNumberOfInformationObjects()  << std::endl;
+
+  std::cout << "map " << this->GlyphMapper << ", " << this->LODGlyphMapper << std::endl;
 
   this->GlyphMultiBlockMaker->SetInputConnection(glyphSourcePort);
 
@@ -271,6 +282,8 @@ int vtkGlyph3DRepresentation::ProcessViewRequest(
     if (glyphMBDS && glyphMBDS->GetNumberOfBlocks() == 1)
     {
       vtkDataObject* realGlyph = glyphMBDS->GetBlock(0);
+      std::cout << "GlyphMapper->SetInputDataObject" << std::endl;
+      std::cout << realGlyph->GetClassName() << std::endl;
       this->GlyphMapper->SetInputDataObject(1, realGlyph);
     }
     else

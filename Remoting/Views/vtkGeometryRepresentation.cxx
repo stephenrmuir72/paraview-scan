@@ -472,6 +472,7 @@ int vtkGeometryRepresentation::RequestData(
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
     if (inInfo->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()))
     {
+      std::cout << "WHOLE EXTENT " << std::endl;
       vtkAlgorithmOutput* aout = this->GetInternalOutputPort();
       vtkPVTrivialProducer* prod = vtkPVTrivialProducer::SafeDownCast(aout->GetProducer());
       if (prod)
@@ -483,6 +484,7 @@ int vtkGeometryRepresentation::RequestData(
   }
   else
   {
+    std::cout << "ELSE" << std::endl;
     vtkNew<vtkMultiBlockDataSet> placeholder;
     this->GeometryFilter->SetInputDataObject(0, placeholder);
   }

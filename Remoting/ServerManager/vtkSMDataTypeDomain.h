@@ -91,6 +91,13 @@ public:
    */
   const char* GetDataTypeName(unsigned int idx);
 
+  enum Typing { DYNAMIC, STATIC };
+
+  /**
+   * Returns the data typing requirement (Typing::STATIC or Typing::DYNAMIC).
+   */
+  int GetDataTypeTyping(unsigned int idx);
+
   /**
    * Returns if the data type is composite.
    */

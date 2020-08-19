@@ -36,9 +36,11 @@
 struct vtkSMDataTypeDomainAllowedType
 {
   vtkSMDataTypeDomainAllowedType() = delete;
-  vtkSMDataTypeDomainAllowedType(std::string Name, bool HasChildren = false, bool MatchAny = false,
-    std::vector<std::string> Children = {});
+  vtkSMDataTypeDomainAllowedType(std::string Name,
+      int typing = vtkSMDataTypeDomain::Typing::DYNAMIC,
+      bool HasChildren = false, bool MatchAny = false, std::vector<std::string> Children = {});
   std::string typeName;
+  int typing;
   bool hasChildren;
   bool childMatchAny;
   std::vector<std::string> childAllowedTypes;
@@ -50,8 +52,9 @@ struct vtkSMDataTypeDomainInternals
 };
 
 vtkSMDataTypeDomainAllowedType::vtkSMDataTypeDomainAllowedType(
-  std::string Name, bool HasChildren, bool MatchAny, std::vector<std::string> Children)
+  std::string Name, int Typing, bool HasChildren, bool MatchAny, std::vector<std::string> Children)
   : typeName(Name)
+  , typing(Typing)
   , hasChildren(HasChildren)
   , childMatchAny(MatchAny)
   , childAllowedTypes(Children){};
@@ -73,10 +76,6 @@ static vtkDataObject* GetDataObjectOfType(const char* classname)
   if (strcmp(classname, "vtkDataSet") == 0)
   {
     classname = "vtkImageData";
-  }
-  else if (strcmp(classname, "vtkPointSet") == 0)
-  {
-    classname = "vtkPolyData";
   }
   else if (strcmp(classname, "vtkCompositeDataSet") == 0)
   {
@@ -137,6 +136,12 @@ unsigned int vtkSMDataTypeDomain::GetNumberOfDataTypes()
 const char* vtkSMDataTypeDomain::GetDataTypeName(unsigned int idx)
 {
   return this->DTInternals->DataTypes[idx].typeName.c_str();
+}
+
+//---------------------------------------------------------------------------
+int vtkSMDataTypeDomain::GetDataTypeTyping(unsigned int idx)
+{
+  return this->DTInternals->DataTypes[idx].typing;
 }
 
 //---------------------------------------------------------------------------
@@ -242,7 +247,7 @@ int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0
     {
       continue;
     }
-    // Unfortunately, vtkDataSet, vtkPointSet, and vtkUnstructuredGridBase have
+    // Unfortunately, vtkDataSet and vtkUnstructuredGridBase have
     // to be handled specially. These classes are abstract and can not be
     // instantiated.
     if (strcmp(info->GetDataClassName(), "vtkDataSet") == 0)
@@ -253,26 +258,18 @@ int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0
       }
       continue;
     }
-    if (strcmp(info->GetDataClassName(), "vtkPointSet") == 0)
-    {
-      if ((strcmp(this->GetDataTypeName(i), "vtkPointSet") == 0) ||
-        (strcmp(this->GetDataTypeName(i), "vtkDataSet") == 0))
-      {
-        return 1;
-      }
-      continue;
-    }
     if (strcmp(info->GetDataClassName(), "vtkUnstructuredGridBase") == 0)
     {
-      if ((strcmp(this->GetDataTypeName(i), "vtkPointSet") == 0) ||
-        (strcmp(this->GetDataTypeName(i), "vtkDataSet") == 0) ||
+      if ((strcmp(this->GetDataTypeName(i), "vtkDataSet") == 0) ||
         (strcmp(this->GetDataTypeName(i), "vtkUnstructuredGridBase") == 0))
       {
         return 1;
       }
       continue;
     }
-    if (dobj->IsA(this->GetDataTypeName(i)))
+    if ((dobj->IsA(this->GetDataTypeName(i)) && this->GetDataTypeTyping(i) == Typing::DYNAMIC)
+        || (!strcmp(dobj->GetClassName(), this->GetDataTypeName(i))
+          && this->GetDataTypeTyping(i) == Typing::STATIC))
     {
       return 1;
     }
@@ -285,7 +282,9 @@ int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0
     // Composite data with specified child
     for (unsigned int i = 0; i < numTypes; i++)
     {
-      if (cDobj->IsA(this->GetDataTypeName(i)))
+      if ((cDobj->IsA(this->GetDataTypeName(i)) && this->GetDataTypeTyping(i) == Typing::DYNAMIC)
+          || (!strcmp(cDobj->GetClassName(), this->GetDataTypeName(i))
+            && this->GetDataTypeTyping(i) == Typing::STATIC))
       {
         if (!this->DataTypeHasChildren(i))
         {
@@ -374,6 +373,22 @@ int vtkSMDataTypeDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement*
                     << "Can not parse domain xml.");
       return 0;
     }
+
+    const char* typingStr = selement->GetAttribute("typing");
+    int typing = Typing::DYNAMIC;
+    if (typingStr)
+    {
+      if (!strcmp(typingStr, "static"))
+      {
+        typing = Typing::STATIC;
+      }
+      else if (strcmp(typingStr, "dynamic"))
+      {
+        vtkErrorMacro(<< typingStr << " is not a valid value for attribute type."
+            << " It has to be either \"static\" or \"dynamic\"");
+      }
+    }
+
     // For composite data with specified child data type
     const char* childMatch = selement->GetAttribute("child_match");
     if (childMatch)
@@ -418,7 +433,9 @@ int vtkSMDataTypeDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement*
         }
         childValues.push_back(childValue);
       }
-      this->DTInternals->DataTypes.emplace_back(value, true, compositeChildMatchAny, childValues);
+
+      this->DTInternals->DataTypes.emplace_back(value, typing,
+          true, compositeChildMatchAny, childValues);
     }
     else if (selement->GetNumberOfNestedElements())
     {
@@ -428,7 +445,7 @@ int vtkSMDataTypeDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement*
     }
     else
     {
-      this->DTInternals->DataTypes.emplace_back(value);
+      this->DTInternals->DataTypes.emplace_back(value, typing);
     }
   }
   return 1;

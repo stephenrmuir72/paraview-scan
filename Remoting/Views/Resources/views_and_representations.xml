@@ -4468,10 +4468,10 @@
         <Documentation>Set the visibility for the selection, if
         any.</Documentation>
       </IntVectorProperty>
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          text="Surface" />
       <RepresentationType subproxy="OutlineRepresentation"
                           text="Outline" />
-      <RepresentationType subproxy="OutlineRepresentation"
-                          text="Points" />
       <RepresentationType subproxy="Glyph3DRepresentation"
                           subtype="Surface"
                           text="3D Glyphs" />
@@ -4486,7 +4486,7 @@
         types available correctly.</Documentation>
       </StringVectorProperty>
       <StringVectorProperty command="SetActiveRepresentation"
-                            default_values="Outline"
+                            default_values="Point Gaussian"
                             name="Representation"
                             number_of_elements="1"
                             panel_visibility="default"
@@ -4533,25 +4533,11 @@
                       panel_visibility="advanced" />
             <Property name="MultiComponentsMapping"
                       panel_visibility="advanced" />
-            <Property name="InterpolateScalarsBeforeMapping"
-                      panel_visibility="advanced" />
           </PropertyGroup>
 
           <PropertyGroup label="Styling">
             <Property name="Opacity"
                       panel_visibility="default" />
-            <Property name="PointSize"
-                      panel_visibility="advanced"
-                      panel_visibility_default_for_representation="points" />
-            <Property name="LineWidth"
-                      panel_visibility="advanced"
-                      panel_visibility_default_for_representation="wireframe" />
-            <Property name="RenderLinesAsTubes"
-                      panel_visibility="advanced"
-                      panel_visibility_default_for_representation="wireframe"/>
-            <Property name="RenderPointsAsSpheres"
-                      panel_visibility="advanced"
-                      panel_visibility_default_for_representation="points"/>
             <Hints>
               <!--Hide for volume and slice representation-->
               <PropertyWidgetDecorator type="CompositeDecorator">
@@ -4560,10 +4546,6 @@
                                            mode="visibility"
                                            property="Representation"
                                            value="Outline" />
-                  <PropertyWidgetDecorator type="GenericDecorator"
-                                           mode="visibility"
-                                           property="Representation"
-                                           value="Points" />
                   <PropertyWidgetDecorator type="GenericDecorator"
                                            mode="visibility"
                                            property="Representation"
@@ -4594,10 +4576,6 @@
             <Property name="Ambient" panel_visibility="advanced"/>
             <Property name="Diffuse" panel_visibility="advanced"/>
             <Property name="Roughness" panel_visibility="advanced"/>
-            <Property name="Metallic" panel_visibility="advanced"/>
-            <Property name="EdgeTint"
-                      panel_widget="color_selector"
-                      panel_visibility="advanced"/>
             <Property name="SelectTCoordArray" panel_visibility="advanced"/>
             <Property name="SelectNormalArray" panel_visibility="advanced"/>
             <Property name="SelectTangentArray" panel_visibility="advanced"/>
@@ -4630,19 +4608,6 @@
                 </Expression>
               </PropertyWidgetDecorator>
             </Hints>
-          </PropertyGroup>
-
-          <PropertyGroup label="Backface Styling">
-            <Property name="BackfaceRepresentation"
-                      panel_visibility="advanced" />
-            <Property name="BackfaceAmbientColor"
-                      panel_widget="color_selector"
-                      panel_visibility="advanced" />
-            <Property name="BackfaceDiffuseColor"
-                      panel_widget="color_selector"
-                      panel_visibility="advanced" />
-            <Property name="BackfaceOpacity"
-                      panel_visibility="advanced" />
           </PropertyGroup>
 
           <PropertyGroup label="Transforming">
@@ -4926,7 +4891,7 @@
                      name="Input">
         <DataTypeDomain composite_data_supported="1"
                         name="input_type">
-          <DataType value="vtkPointSet" />
+          <DataType value="vtkPointSet" typing="static" />
         </DataTypeDomain>
         <InputArrayDomain attribute_type="point"
                           name="input_array_point"
@@ -7062,7 +7027,7 @@
                      port_index="1">
         <Documentation>Specify the source objects.</Documentation>
         <DataTypeDomain name="input_type">
-          <DataType value="vtkPolyData" />
+          <DataType value="vtkPointSet" />
           <DataType value="vtkDataObjectTree" />
         </DataTypeDomain>
         <ProxyListDomain name="proxy_list">

@@ -275,8 +275,10 @@ int vtkPVGeometryFilter::RequestDataObject(
       return 1;
     }
 
+    std::cout << "output " << output << std::endl;
     if (vtkPolyData::SafeDownCast(output) == NULL)
     {
+      std::cout << "CRIME SCENE " << std::endl;
       output = vtkPolyData::New();
       outputVector->GetInformationObject(0)->Set(vtkDataObject::DATA_OBJECT(), output);
       output->FastDelete();
@@ -529,6 +531,11 @@ void vtkPVGeometryFilter::ExecuteBlock(vtkDataObject* input, vtkPolyData* output
   {
     this->ExplicitStructuredGridExecute(
       static_cast<vtkExplicitStructuredGrid*>(input), output, doCommunicate, wholeExtent);
+    return;
+  }
+  if (input->IsA("vtkPointSet"))
+  {
+    this->PointSetExecute(static_cast<vtkPointSet*>(input), output, doCommunicate);
     return;
   }
   if (input->IsA("vtkDataSet"))
@@ -1660,6 +1667,41 @@ void vtkPVGeometryFilter::PolyDataExecute(
         output->GetCellData()->RemoveArray(vtkPVRecoverGeometryWireframe::ORIGINAL_FACE_IDS());
       }
     }
+    return;
+  }
+
+  this->OutlineFlag = 1;
+  this->DataSetExecute(input, output, doCommunicate);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVGeometryFilter::PointSetExecute(
+  vtkPointSet* input, vtkPolyData* output, int doCommunicate)
+{
+  std::cout << "PointSetExecute " << std::endl;
+  if (!this->UseOutline)
+  {
+    std::cout << "!UseOutline" << std::endl;
+    this->OutlineFlag = 0;
+    output->ShallowCopy(input);
+    std::cout << "output number of points " << output->GetNumberOfPoints() << std::endl;
+    if (this->PassThroughPointIds)
+    {
+      std::cout << "PassTroughPointIds" << std::endl;
+      vtkNew<vtkIdTypeArray> originalPointIds;
+      originalPointIds->SetName("vtkOriginalPointIds");
+      originalPointIds->SetNumberOfComponents(1);
+      vtkPointData* outputPD = output->GetPointData();
+      outputPD->AddArray(originalPointIds.Get());
+      vtkIdType numTup = output->GetNumberOfPoints();
+      originalPointIds->SetNumberOfValues(numTup);
+      for (vtkIdType pId = 0; pId < numTup; pId++)
+      {
+        originalPointIds->SetValue(pId, pId);
+      }
+    }
+
+    output->RemoveGhostCells();
     return;
   }
 

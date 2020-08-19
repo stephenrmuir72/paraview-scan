@@ -113,6 +113,7 @@ public:
       else if (child && child->GetName() && strcmp(child->GetName(), "ShareProperties") == 0)
       {
         const char* name = child->GetAttribute("parent_subproxy");
+        std::cout << "name " << name << std::endl;
         if (!name || !name[0])
         {
           continue;

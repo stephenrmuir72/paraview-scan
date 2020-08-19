@@ -39,6 +39,7 @@ class vtkInformationIntegerVectorKey;
 class vtkInformationVector;
 class vtkMultiProcessController;
 class vtkOutlineSource;
+class vtkPointSet;
 class vtkPolyData;
 class vtkPVRecoverGeometryWireframe;
 class vtkRectilinearGrid;
@@ -254,6 +255,8 @@ protected:
 
   void DataSetExecute(vtkDataSet* input, vtkPolyData* output, int doCommunicate);
   void GenericDataSetExecute(vtkGenericDataSet* input, vtkPolyData* output, int doCommunicate);
+
+  void PointSetExecute(vtkPointSet* input, vtkPolyData* output, int doCommunicate);
 
   void ImageDataExecute(
     vtkImageData* input, vtkPolyData* output, int doCommunicate, int updatePiece, const int* ext);
