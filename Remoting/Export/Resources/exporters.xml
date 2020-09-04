@@ -133,6 +133,28 @@
                             number_of_elements="1">
         <Documentation>Name of the file to be written.</Documentation>
       </StringVectorProperty>
+      <IntVectorProperty command="SetFormatting"
+                         default_values="0"
+                         name="SetFormatting"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="Default"
+                 value="0" />
+          <Entry text="Fixed"
+                 value="1" />
+          <Entry text="Scientific"
+                 value="2" />
+          <Entry text="Hexfloat"
+                 value="3" />
+        </EnumerationDomain>
+        <Documentation>Formatting to use to write numeric values with</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetPrecision"
+                         default_values="6"
+                         name="SetPrecision"
+                         number_of_elements="1">
+        <Documentation>Precision to use to write numeric values with</Documentation>
+      </IntVectorProperty>
       <Hints>
         <ExporterFactory extensions="csv tsv txt" />
       </Hints>
