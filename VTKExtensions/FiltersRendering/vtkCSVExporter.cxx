@@ -18,6 +18,7 @@
 #include "vtkFieldData.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
+#include "vtkVariant.h"
 
 #include "vtksys/FStream.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -86,6 +87,7 @@ vtkCSVExporter::vtkCSVExporter()
   this->Internals = new vtkInternals();
   this->Mode = STREAM_ROWS;
   this->WriteToOutputString = false;
+  this->Formatting = vtkVariant::DEFAULT_FORMATTING;
 }
 
 //----------------------------------------------------------------------------
@@ -191,7 +193,7 @@ void vtkCSVExporter::AddColumn(
   {
     this->Internals->AddColumnValue(this->FieldDelimiter,
       xarray ? xarray->GetTuple1(cc) : static_cast<double>(cc),
-      yarray->GetVariantValue(cc).ToString());
+      yarray->GetVariantValue(cc).ToString(this->Formatting, this->Precision));
   }
   this->Internals->ColumnCount++;
 }
@@ -291,7 +293,7 @@ void vtkCSVExporter::WriteData(vtkFieldData* data)
             ? vtkVariant(value.ToInt())
             : value;
 
-          (*this->OutputStream) << value.ToString().c_str();
+          (*this->OutputStream) << value.ToString(this->Formatting, this->Precision).c_str();
         }
         first = false;
       }
