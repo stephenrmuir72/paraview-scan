@@ -89,6 +89,24 @@ public:
 
   //@{
   /**
+   * Set a formatting to use when exporting to csv.
+   * Default is vtkVariant::DEFAULT_FORMATTING
+   */
+  vtkSetMacro(Formatting, int);
+  vtkGetMacro(Formatting, int);
+  //@}
+
+  //@{
+  /**
+   * Set a precision to use when exporting to csv.
+   * Default is 6
+   */
+  vtkSetMacro(Precision, int);
+  vtkGetMacro(Precision, int);
+  //@}
+
+  //@{
+  /**
    * In STREAM_ROWS mode, this API can be used to change columns labels
    * when exporting.
    */
@@ -161,6 +179,9 @@ protected:
 
   bool WriteToOutputString;
   std::string OutputString;
+
+  int Formatting;
+  int Precision = 6;
 
 private:
   vtkCSVExporter(const vtkCSVExporter&) = delete;
