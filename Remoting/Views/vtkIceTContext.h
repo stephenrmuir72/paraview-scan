@@ -105,6 +105,7 @@ private:
   void operator=(const vtkIceTContext&) = delete;
 
   vtkIceTContextOpaqueHandle* Context;
+  vtkTimeStamp ContextCreationTime;
 };
 
 #endif // vtkIceTContext_h

@@ -19,6 +19,7 @@
 
 #include "vtkIceTContext.h"
 
+#include "vtkLogger.h"
 #include "vtkMPI.h"
 #include "vtkMPICommunicator.h"
 #include "vtkMPIController.h"
@@ -67,7 +68,17 @@ void vtkIceTContext::SetController(vtkMultiProcessController* controller)
 {
   if (controller == this->Controller)
   {
-    return;
+      if (controller && this->Context &&
+          controller->GetMTime() > this->ContextCreationTime)
+      {
+          // the controller has been modified, maybe a new communicator was
+          // provided, lets re-create the IceT context.
+          vtkLogF(TRACE, "Controller has been modified, recreating IceT context.");
+      }
+      else
+      {
+          return;
+      }
   }
 
   vtkIceTContextOpaqueHandle* newContext = NULL;
@@ -110,6 +121,7 @@ void vtkIceTContext::SetController(vtkMultiProcessController* controller)
 
   this->Controller = controller;
   this->Context = newContext;
+  this->ContextCreationTime.Modified();
 
   if (this->Controller)
   {
