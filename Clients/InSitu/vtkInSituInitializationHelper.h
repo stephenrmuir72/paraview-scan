@@ -79,6 +79,13 @@ public:
   static void Finalize();
 
   /**
+   * An experimental feature supported by InSitu-ParaView is to change the MPI communicator
+   * used. This can be done using this method.
+   */
+
+  static void ChangeGlobalCommunicator(vtkTypeUInt64 comm);
+
+  /**
    * Add Python analysis scripts or packages. This should be called after
    * `Initialize` but before `Finalize` to add analysis pipelines. The `path`
    * can point to a Python script, a directory containing a Python package or a

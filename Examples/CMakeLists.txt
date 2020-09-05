@@ -83,6 +83,7 @@ add_example(Catalyst
   TEST_TIMEOUT 600)
 
 add_example(Catalyst2/CFullExample)
+add_example(Catalyst2/CElasticProcessingExample)
 add_example(Catalyst2/CxxFullExample)
 add_example(Catalyst2/CxxImageDataExample)
 add_example(Catalyst2/CxxMultiChannelInputExample)

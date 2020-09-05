@@ -75,6 +75,34 @@ vtkInSituInitializationHelper::~vtkInSituInitializationHelper()
 }
 
 //----------------------------------------------------------------------------
+void vtkInSituInitializationHelper::ChangeGlobalCommunicator(vtkTypeUInt64 comm)
+{
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  {
+    vtkVLogScopeF(
+      PARAVIEW_LOG_CATALYST_VERBOSITY(), "Initializing MPI communicator using 'comm' (%llu)", comm);
+    // convert comm to MPI handle.
+    MPI_Comm mpicomm = MPI_Comm_f2c(comm);
+    vtkMPICommunicatorOpaqueComm opaqueComm(&mpicomm);
+    vtkNew<vtkMPICommunicator> mpiCommunicator;
+    mpiCommunicator->InitializeExternal(&opaqueComm);
+    if (auto controller = vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController()))
+    {
+      controller->SetCommunicator(mpiCommunicator);
+    }
+    else
+    {
+      vtkLogF(ERROR,
+          "Cannot change communicator since existing global controller is not a vtkMPIController.");
+    }
+  }
+#else
+  vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(),
+    "ParaView not built with MPI enabled. 'comm' (%lu) is ignored.", comm);
+#endif
+}
+
+//----------------------------------------------------------------------------
 void vtkInSituInitializationHelper::Initialize(vtkTypeUInt64 comm)
 {
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI

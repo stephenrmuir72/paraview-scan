@@ -133,6 +133,15 @@ void catalyst_execute(const conduit_node* params)
     return;
   }
 
+
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  if (cpp_params.has_path("catalyst/mpi_comm"))
+  {
+    vtkTypeUInt64 comm = cpp_params["catalyst/mpi_comm"].to_int64();
+    vtkInSituInitializationHelper::ChangeGlobalCommunicator(comm);
+  }
+#endif
+
   // catalyst/timestep or catalyst/cycle is used to indicate the timestep
   // catalyst/time is used to provide the time
   const int timestep = root.has_path("state/timestep")
@@ -189,8 +198,16 @@ void catalyst_execute(const conduit_node* params)
 void catalyst_finalize(const conduit_node* params)
 {
   vtkVLogScopeFunction(PARAVIEW_LOG_CATALYST_VERBOSITY());
-
   const auto& cpp_params = (*conduit::cpp_node(params));
+
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  if (cpp_params.has_path("catalyst/mpi_comm"))
+  {
+    vtkTypeUInt64 comm = cpp_params["catalyst/mpi_comm"].to_int64();
+    vtkInSituInitializationHelper::ChangeGlobalCommunicator(comm);
+  }
+#endif
+
   if (cpp_params.has_path("catalyst") &&
     !vtkCatalystBlueprint::Verify("finalize", cpp_params["catalyst"]))
   {

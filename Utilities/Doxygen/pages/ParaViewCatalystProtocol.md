@@ -108,3 +108,16 @@ The 'channel' protocol is as follows:
 ### protocol: 'finalize'
 
 Currently, this is empty.
+
+## Changing MPI communicator during execution (EXPERIMENTAL)
+
+For MPI-enabled builds, ParaView-Catalyst supports an experimental feature to
+change the MPI communicator used by ParaView during execution. To support this,
+both the 'execute' and 'finalize' protocol support the `catalyst/mpi_comm`
+parameter (similar to 'initialize' protocol).
+
+This is currently only supported as an experimental feature and is not expected
+to work generally. A few caveats:
+
+* the root node cannot change after initialization
+* the communicator for `initialize` and `finalize` must be same
