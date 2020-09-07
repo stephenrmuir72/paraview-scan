@@ -29,81 +29,34 @@
 #
 #==========================================================================
 
-#
-# This script tests the ParaView install tree by building the examples
-#
-# The script expects the following input variables:
-# PARAVIEW_BINARY_DIR : Build path for ParaView (To run 'make install' here)
-# PARAVIEW_INSTALL_DIR : Install path for ParaView Examples are built against
-#                        (This should be CMAKE_INSTALL_PREFIX set for ParaView)
-# PARAVIEW_SOURCE_DIR : ParaView source dir (For source location of Examples)
-# PARAVIEW_TEST_DIR : Temporary directory for location of Examples build tree
-# PARAVIEW_VERSION : ParaView version string used when creating the installtree
+# Location where we'll install ParaView
+# Don't forget to update Examples/CMakeLists.txt if you change this
+# location (or test name)
+set(install_root "${CMAKE_BINARY_DIR}/Testing/Temporary/InstallRoot")
 
-message (STATUS "Building Examples against ParaView install tree")
-message("CTEST_FULL_OUTPUT") # Don't truncate test output.
-# Remove the drive letter from `PARAVIEW_INSTALL_DIR` so we can append it to
-# DESTDIR safely.
-if (WIN32 AND IS_ABSOLUTE "${PARAVIEW_INSTALL_DIR}")
-  string(REGEX REPLACE "^.:" "" PARAVIEW_INSTALL_DIR "${PARAVIEW_INSTALL_DIR}")
-endif ()
-set (ParaView_DIR
-  $ENV{DESTDIR}${PARAVIEW_INSTALL_DIR}/${PARAVIEW_CMAKE_DESTINATION})
-message(STATUS "ParaView_DIR: ${ParaView_DIR}")
+# add a prep-test to cleanup old directories.
+if (CMAKE_VERSION VERSION_LESS "3.17")
+  add_test(
+    NAME "ParaView::Install::Prepare"
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory "${install_root}")
+else()
+  add_test(
+    NAME "ParaView::Install::Prepare"
+    COMMAND "${CMAKE_COMMAND}" -E rm -rf "${install_root}")
+endif()
 
-# Build target "INSTALL" for paraview
-if (MSVC)
-  set (install_tgt "INSTALL")
-  set (opt "/maxcpucount")
-else ()
-  set (install_tgt "install")
-  set (opt "-j5")
-endif ()
-execute_process (COMMAND ${CMAKE_COMMAND}
-  --build ${PARAVIEW_BINARY_DIR}
-  --target ${install_tgt}
-  -- ${opt}
-  WORKING_DIRECTORY ${PARAVIEW_BINARY_DIR}
-  RESULT_VARIABLE irv)
-if (NOT irv EQUAL 0)
-  message(FATAL_ERROR "Could not build target 'install' for ParaView")
-endif ()
-
-set(generator_args)
-if (CMAKE_GENERATOR)
-  list(APPEND generator_args
-    -G "${CMAKE_GENERATOR}")
-endif ()
-if (CMAKE_GENERATOR_PLATFORM)
-  list(APPEND generator_args
-    -A "${CMAKE_GENERATOR_PLATFORM}")
-endif ()
-if (CMAKE_GENERATOR_TOOLSET)
-  list(APPEND generator_args
-    -T "${CMAKE_GENERATOR_TOOLSET}")
-endif ()
-
-set (INSTALL_TEST_BUILD_DIR ${PARAVIEW_TEST_DIR}/Examples-bld)
-if (NOT EXISTS ${INSTALL_TEST_BUILD_DIR})
-  file(MAKE_DIRECTORY
-    ${INSTALL_TEST_BUILD_DIR})
-endif ()
-execute_process (
-  COMMAND ${CMAKE_COMMAND}
-  ${generator_args}
-  -DParaView_DIR:PATH=${ParaView_DIR}
-  -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
-  -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-  ${PARAVIEW_SOURCE_DIR}/Examples
-  WORKING_DIRECTORY ${INSTALL_TEST_BUILD_DIR}
-  RESULT_VARIABLE crv)
-if (NOT crv EQUAL 0)
-  message(FATAL_ERROR "Configuration failed with return code ${crv}")
-endif ()
-execute_process (
-  COMMAND ${CMAKE_COMMAND} --build ${INSTALL_TEST_BUILD_DIR} --clean-first
-  WORKING_DIRECTORY ${INSTALL_TEST_BUILD_DIR}
-  RESULT_VARIABLE rv)
-if (NOT rv EQUAL 0)
-  message(FATAL_ERROR "Build failed with return code ${rv}")
-endif ()
+add_test(
+  NAME "ParaView::Install"
+  COMMAND "${CMAKE_COMMAND}"
+          --install "${CMAKE_BINARY_DIR}"
+          --config $<CONFIGURATION>
+          --prefix "${install_root}")
+set_tests_properties("ParaView::Install::Prepare"
+  PROPERTIES
+    FIXTURES_SETUP "ParaView::Install::Prepare")
+set_tests_properties("ParaView::Install"
+    PROPERTIES
+      FIXTURES_REQUIRED "ParaView::Install::Prepare"
+      FIXTURES_SETUP    "ParaView::Install"
+      # 10 minutes should be enough time.
+      TIMEOUT 600)
