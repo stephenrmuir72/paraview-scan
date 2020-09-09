@@ -35,16 +35,11 @@
 set(install_root "${CMAKE_BINARY_DIR}/Testing/Temporary/InstallRoot")
 
 # add a prep-test to cleanup old directories.
-if (CMAKE_VERSION VERSION_LESS "3.17")
-  add_test(
-    NAME "ParaView::Install::Prepare"
-    COMMAND "${CMAKE_COMMAND}" -E remove_directory "${install_root}")
-else()
-  add_test(
-    NAME "ParaView::Install::Prepare"
-    COMMAND "${CMAKE_COMMAND}" -E rm -rf "${install_root}")
-endif()
-
+add_test(
+  NAME "ParaView::Install::Prepare"
+  COMMAND "${CMAKE_COMMAND}"
+          -DTARGET_DIRECTORY:PATH=${install_root}
+          -P "${CMAKE_CURRENT_LIST_DIR}/CreateEmptyDirectory.cmake")
 add_test(
   NAME "ParaView::Install"
   COMMAND "${CMAKE_COMMAND}"
