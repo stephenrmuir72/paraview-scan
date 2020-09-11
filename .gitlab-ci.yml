@@ -48,7 +48,7 @@ package:documentation:
         - .doxygen_build_linux
         - .linux_builder_tags
         - .doxygen_log_artifacts
-        - .run_scheduled
+          #- .run_scheduled
 
 # macOS
 
