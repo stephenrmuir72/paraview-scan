@@ -116,7 +116,7 @@
         - test -n "$GITHUB_SSH_PRIVATE_KEY" || exit 1
         - GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i $GITHUB_SSH_PRIVATE_KEY"
         - chmod 600 $GITHUB_SSH_PRIVATE_KEY
-        - pip3 install sphinx twisted
+        - pip3 install sphinx twisted sphinx-rtd-theme
         - .gitlab/ci/sccache.sh
         - git clone $PARAVIEW_DOCS_REPO paraview-docs
         - mkdir -p build
