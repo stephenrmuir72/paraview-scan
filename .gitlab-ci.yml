@@ -44,7 +44,7 @@ package:spack-centos7:
 
 package:documentation:
     extends:
-        - .centos7
+        - .centos8
         - .doxygen_build_linux
         - .linux_builder_tags
         - .doxygen_log_artifacts
