@@ -121,3 +121,49 @@
 
     interruptible: true
     timeout: 3 hours
+
+
+.build_nogui_osmesa:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - yum install -y python3 python3-devel qt5-qtbase-devel qt5-qttools-devel qt5-qtsvg-devel qt5-qtxmlpatterns-devel openmpi-devel mesa-libOSMesa-devel
+        - .gitlab/ci/sccache.sh
+        - sccache --start-server
+        - sccache --show-stats
+        - mkdir build
+        - cd build
+        - $LAUNCHER cmake -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi -DPARAVIEW_USE_PYTHON=ON -DVTK_WRAP_PYTHON=ON -DPARAVIEW_USE_MPI=ON  -DVTK_OPENGL_HAS_OSMESA=ON -DVTK_USE_X=OFF ..
+        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+
+    interruptible: true
+    timeout: 1 hours
+
+
+.build_nogui_icc:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - yum install -y python3 python3-devel qt5-qtbase-devel qt5-qttools-devel qt5-qtsvg-devel qt5-qtxmlpatterns-devel openmpi-devel mesa-libOSMesa-devel wget glibc-devel.x86_64 libstdc++-devel.x86_64 tar
+        - wget -O icc.tgz  $ICC_DOWNLOAD_LINK
+        - tar -xvzf icc.tgz
+        - cd parallel_studio_xe_*
+        - bash ./install.sh --silent=$GIT_CLONE_PATH/.gitlab/config.cfg
+        - cp .gitlab/intel.sh /etc/profile.d/
+        - source /etc/profile.d/intel.sh
+        - CC=icc CXX=icpc
+        - .gitlab/ci/sccache.sh
+        - sccache --start-server
+        - sccache --show-stats
+        - mkdir build
+        - cd build
+        - $LAUNCHER cmake -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi -DPARAVIEW_USE_PYTHON=ON -DVTK_WRAP_PYTHON=ON -DPARAVIEW_USE_MPI=ON  -DVTK_OPENGL_HAS_OSMESA=ON -DVTK_USE_X=OFF ..
+        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+
+    variables:
+      ICC_DOWNLOAD_LINK: http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/11542/parallel_studio_xe_2017_update4_composer_edition_for_cpp_online.tgz
+
+    interruptible: true
+    timeout: 1 hours
