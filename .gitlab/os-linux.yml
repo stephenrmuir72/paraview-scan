@@ -92,6 +92,10 @@
 
 .doxygen_build_linux:
     stage: package
+    environment:
+      name: documentation
+      url: https://kitware.github.io/paraview-docs/latest/cxx/
+
     needs: []
 
     script:
