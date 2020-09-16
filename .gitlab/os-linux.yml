@@ -16,6 +16,14 @@
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
 
+.centos7_icc:
+    image: "kitware/paraview:ci-centos7-icc-20200916"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+
 ## Tags
 
 .linux_builder_tags:
@@ -121,3 +129,41 @@
 
     interruptible: true
     timeout: 3 hours
+
+
+.build_nogui_osmesa:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - yum install -y python3 python3-devel qt5-qtbase-devel qt5-qttools-devel qt5-qtsvg-devel qt5-qtxmlpatterns-devel openmpi-devel mesa-libOSMesa-devel
+        - sccache --start-server
+        - sccache --show-stats
+        - mkdir build
+        - cd build
+        - $LAUNCHER cmake -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi -DPARAVIEW_USE_PYTHON=ON -DVTK_WRAP_PYTHON=ON -DPARAVIEW_USE_MPI=ON  -DVTK_OPENGL_HAS_OSMESA=ON -DVTK_USE_X=OFF ..
+        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+
+    interruptible: true
+    timeout: 1 hours
+
+
+.build_nogui_icc:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - mkdir build
+        - cd build
+        - export PATH="/opt/intel/compilers_and_libraries_2020.0.166/linux/bin/intel64:$PATH"
+        - export PATH="/opt/intel/compilers_and_libraries_2020.0.166/linux/mpi/intel64/bin/:$PATH"
+        - $LAUNCHER cmake -DPARAVIEW_USE_PYTHON=ON -DVTK_WRAP_PYTHON=ON -DPARAVIEW_USE_MPI=ON -DVTK_USE_X=OFF ..
+        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+
+    variables:
+        CC: icc
+        CXX: icpc
+        LIBRARY_PATH: "/opt/intel/compilers_and_libraries/linux/mpi/intel64/lib:$LIBRARY_PATH"
+
+    interruptible: true
+    timeout: 1 hours
