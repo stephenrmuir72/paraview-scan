@@ -42,7 +42,6 @@ package:spack-centos7:
         - .run_scheduled
 
 # macOS
-
 build:macos-python-qt:
     extends:
         - .macos_python_qt
@@ -50,6 +49,22 @@ build:macos-python-qt:
         - .macos_builder_tags
         - .cmake_build_artifacts
         - .run_manually
+
+build:osmesa:
+    extends:
+        - .centos7
+        - .build_nogui_osmesa
+        - .linux_builder_tags
+        - .build_log_artifacts
+        - .run_automatically
+
+build:icc:
+    extends:
+        - .centos7_icc
+        - .build_nogui_icc
+        - .linux_builder_tags
+        - .build_log_artifacts
+        - .run_automatically
 
 test:macos-python-qt:
     extends:
@@ -71,7 +86,6 @@ deploy:documentation:
         - .run_scheduled
 
 # Triggers
-
 ## Superbuild
 
 superbuild:
