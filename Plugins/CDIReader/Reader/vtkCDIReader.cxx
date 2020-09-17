@@ -240,6 +240,33 @@ int SphericalToCartesian(double rho, double phi, double theta, double* x, double
 }
 
 //----------------------------------------------------------------------------
+//  Compute mollweide projection
+//  https://en.wikipedia.org/wiki/Mollweide_projection
+//----------------------------------------------------------------------------
+
+inline double compute_mollweide_theta(const double lon, const double lat)
+{
+  const double pi = vtkMath::Pi();
+
+  if (abs(lat) == pi / 2.)
+    return lat;
+
+  double theta = lat;
+  for (int i = 0; i < 5; i++)
+    theta = theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
+  return theta;
+}
+
+inline void mollweide_project(const double raw_lon, const double lat, double* tx, double* ty)
+{
+  const double pi = vtkMath::Pi();
+  const double lon = raw_lon > pi ? raw_lon - (2 * pi) : raw_lon;
+  const double theta = compute_mollweide_theta(lon, lat);
+  *tx = (2 * sqrt(2) / pi) * lon * cos(theta);
+  *ty = sqrt(2) * sin(theta);
+}
+
+//----------------------------------------------------------------------------
 //  Function to convert lon/lat coordinates to cartesian
 //----------------------------------------------------------------------------
 int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode)
@@ -269,10 +296,7 @@ int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
   }
   else if (projectionMode == 3) // Mollweide
   {
-    tx = (2 * sqrt(2) / vtkMath::Pi()) * lon *
-      cos((lat) - ((2 * lat + sin(2 * lat) - vtkMath::Pi() * sin(lat)) / (2 + 2 * cos(lat))));
-    ty = sqrt(2) *
-      sin((lat) - ((2 * lat + sin(2 * lat) - vtkMath::Pi() * sin(lat)) / (2 + 2 * cos(lat))));
+    mollweide_project(lon, lat, &tx, &ty);
     tz = 0.0;
   }
   else if (projectionMode == 4) // Catalyst (lat/lon)
