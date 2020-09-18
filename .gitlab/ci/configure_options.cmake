@@ -29,3 +29,6 @@ configuration_flag(PARAVIEW_USE_PYTHON "python")
 
 # qt
 configuration_flag(PARAVIEW_USE_QT "qt")
+
+# ADIOS 
+configuration_flag(PARAVIEW_ENABLE_ADIOS "adios")
