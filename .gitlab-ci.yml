@@ -50,18 +50,18 @@ build:macos-python-qt:
         - .cmake_build_artifacts
         - .run_manually
 
-build:osmesa:
+build:linux-osmesa:
     extends:
-        - .centos7
-        - .build_nogui_osmesa
+        - .centos7_osmesa
+        - .linux_builder_osmesa
         - .linux_builder_tags
         - .build_log_artifacts
         - .run_automatically
 
-build:icc:
+build:linux-icc:
     extends:
         - .centos7_icc
-        - .build_nogui_icc
+        - .linux_builder_icc
         - .linux_builder_tags
         - .build_log_artifacts
         - .run_automatically
