@@ -16,6 +16,16 @@
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
 
+.centos7_osmesa:
+    image: "kitware/paraview:ci-centos7-osmesa-20200918"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
+
+
 .centos7_icc:
     image: "kitware/paraview:ci-centos7-icc-20200916"
 
@@ -23,6 +33,7 @@
         GIT_SUBMODULE_STRATEGY: none
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_shared_adios_mpi_offscreen_python_icc
 
 ## Tags
 
@@ -143,22 +154,13 @@
         - yum install -y openmpi-devel mesa-libOSMesa-devel
         - sccache --start-server
         - sccache --show-stats
-        - mkdir build
-        - cd build
-        - $LAUNCHER cmake  \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi \
-          -DPARAVIEW_BUILD_SHARED_LIBS=OFF \
-          -DPARAVIEW_ENABLE_ADIOS2=ON \
-          -DPARAVIEW_USE_MPI=ON \
-          -DPARAVIEW_USE_PYTHON=ON \
-          -DVTK_OPENGL_HAS_OSMESA=ON \
-          -DVTK_USE_X=OFF \
-          -DVTK_WRAP_PYTHON=ON ..
-        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -j -VV -S .gitlab/ci/ctest_build.cmake  &> $GIT_CLONE_PATH/compile_output.log
 
     interruptible: true
     timeout: 1 hours
+    variables:
+      CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
 
 
 .build_nogui_icc:
@@ -169,23 +171,11 @@
         - yum install -y openmpi-devel
         - sccache --start-server
         - sccache --show-stats
-        - mkdir build
-        - cd build
         # source returns 1 because intel MPI is not installed, here we use OMPI
         - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh  intel64 || true
 
-        - $LAUNCHER cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_C_COMPILER="icc" \
-          -DCMAKE_CXX_COMPILER="icpc" \
-          -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi \
-          -DPARAVIEW_BUILD_SHARED_LIBS=ON \
-          -DPARAVIEW_ENABLE_ADIOS2=ON \
-          -DPARAVIEW_USE_MPI=ON \
-          -DPARAVIEW_USE_PYTHON=ON \
-          -DVTK_USE_X=OFF \
-          -DVTK_WRAP_PYTHON=ON ..
-        - $LAUNCHER cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -j -VV -S .gitlab/ci/ctest_build.cmake  &> $GIT_CLONE_PATH/compile_output.log
 
     interruptible: true
     timeout: 1 hours
