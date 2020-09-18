@@ -66,6 +66,14 @@ build:linux-icc:
         - .build_log_artifacts
         - .run_automatically
 
+test:linux-osmesa:
+    extends:
+        - .centos7_osmesa
+        - .linux_test_osmesa
+        - .linux_builder_tags
+        - .test_log_artifacts
+        - .run_automatically
+
 test:macos-python-qt:
     extends:
         - .macos_python_qt
