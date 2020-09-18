@@ -145,16 +145,20 @@
     interruptible: true
     timeout: 3 hours
 
+.before_script_build_linux: &before_script_build_linux
+        - sccache --start-server
+        - sccache --show-stats
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake  &> $GIT_CLONE_PATH/compile_output.log
+        - sccache --show-stats
+
 
 .linux_builder_osmesa:
     stage: build
 
     script:
         - *before_script_linux
-        - sccache --start-server
-        - sccache --show-stats
-        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
-        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake  &> $GIT_CLONE_PATH/compile_output.log
+        - *before_script_build_linux
 
     interruptible: true
     timeout: 1 hours
@@ -165,13 +169,21 @@
 
     script:
         - *before_script_linux
-        - sccache --start-server
-        - sccache --show-stats
-        # source returns 1 because intel MPI is not installed, here we use OMPI
-        - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh  intel64 || true
+        - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true
+        - *before_script_build_linux
 
-        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
-        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake  &> $GIT_CLONE_PATH/compile_output.log
+    interruptible: true
+    timeout: 1 hours
+
+.linux_test_osmesa:
+    stage: test
+    needs:
+      - build:linux-osmesa
+
+    script:
+        - *before_script_linux
+        - *before_script_build_linux
+        - $LAUNCHER ctest -V --output-on-failure -S .gitlab/ci/ctest_package.cmake &> $GIT_CLONE_PATH/test_output.log
 
     interruptible: true
     timeout: 1 hours
