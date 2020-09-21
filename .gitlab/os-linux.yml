@@ -16,13 +16,34 @@
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
 
-.centos7_icc:
-    image: "kitware/paraview:ci-centos7-icc-20200916"
+.centos7_osmesa:
+    image: "kitware/paraview:ci-centos7-osmesa-20200918"
 
     variables:
         GIT_SUBMODULE_STRATEGY: none
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
+        MESA_GL_VERSION_OVERRIDE: "3.2"
+
+.centos7_osmesa_mpi:
+    image: "kitware/paraview:ci-centos7-osmesa-20200918"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
+        MESA_GL_VERSION_OVERRIDE: "3.2"
+
+.centos7_icc:
+    image: "kitware/paraview:ci-centos7-icc-20200918"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_shared_adios_mpi_python_icc
 
 ## Tags
 
@@ -32,6 +53,13 @@
         - docker
         - linux
         - paraview
+
+.linux_test_tags:
+    tags:
+        - build
+        - docker
+        - linux
+        - test
 
 ## Linux-specific scripts
 
@@ -134,58 +162,45 @@
     interruptible: true
     timeout: 3 hours
 
+.before_script_build_linux: &before_script_build_linux
+        - sccache --start-server
+        - sccache --show-stats
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake &> $GIT_CLONE_PATH/compile_output.log
+        - sccache --show-stats
 
-.build_nogui_osmesa:
+
+.linux_builder_osmesa:
     stage: build
 
     script:
         - *before_script_linux
-        - yum install -y openmpi-devel mesa-libOSMesa-devel
-        - sccache --start-server
-        - sccache --show-stats
-        - mkdir build
-        - cd build
-        - $LAUNCHER cmake  \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi \
-          -DPARAVIEW_BUILD_SHARED_LIBS=OFF \
-          -DPARAVIEW_ENABLE_ADIOS2=ON \
-          -DPARAVIEW_USE_MPI=ON \
-          -DPARAVIEW_USE_PYTHON=ON \
-          -DVTK_OPENGL_HAS_OSMESA=ON \
-          -DVTK_USE_X=OFF \
-          -DVTK_WRAP_PYTHON=ON ..
-        - cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+        - *before_script_build_linux
 
     interruptible: true
     timeout: 1 hours
 
 
-.build_nogui_icc:
+.linux_builder_icc:
     stage: build
 
     script:
         - *before_script_linux
-        - yum install -y openmpi-devel
-        - sccache --start-server
-        - sccache --show-stats
-        - mkdir build
-        - cd build
-        # source returns 1 because intel MPI is not installed, here we use OMPI
-        - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh  intel64 || true
+        - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true
+        - *before_script_build_linux
 
-        - $LAUNCHER cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_C_COMPILER="icc" \
-          -DCMAKE_CXX_COMPILER="icpc" \
-          -DCMAKE_PREFIX_PATH=/usr/lib64/openmpi \
-          -DPARAVIEW_BUILD_SHARED_LIBS=ON \
-          -DPARAVIEW_ENABLE_ADIOS2=ON \
-          -DPARAVIEW_USE_MPI=ON \
-          -DPARAVIEW_USE_PYTHON=ON \
-          -DVTK_USE_X=OFF \
-          -DVTK_WRAP_PYTHON=ON ..
-        - $LAUNCHER cmake --build . -j &> $GIT_CLONE_PATH/compile_output.log
+    interruptible: true
+    timeout: 1 hours
+
+.linux_test_osmesa:
+    stage: build
+    #needs:
+    #- build:linux-osmesa
+
+    script:
+        - *before_script_linux
+        - *before_script_build_linux
+        - $LAUNCHER ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
 
     interruptible: true
     timeout: 1 hours
