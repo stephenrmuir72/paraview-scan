@@ -1,9 +1,22 @@
 # Lists of paths for artifacts of various stages.
 
-.doxygen_log_artifacts:
+.build_log_artifacts:
     artifacts:
         expire_in: 1 week
         when: always
+        paths:
+            - compile_output.log
+
+.test_log_artifacts:
+    extends: .build_log_artifacts
+    artifacts:
+        paths:
+            - compile_output.log
+            - build/Testing/Temporary/LastTest.log
+
+.doxygen_log_artifacts:
+    extends: .build_log_artifacts
+    artifacts:
         paths:
             - compile_output.log
             - doxygen_output.log
