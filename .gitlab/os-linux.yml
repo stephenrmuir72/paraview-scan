@@ -9,12 +9,39 @@
 # newer compilers.
 
 .centos7:
-    image: "kitware/paraview:ci-centos7-20200911"
+    image: "kitware/paraview:ci-centos7-20200923"
 
     variables:
         GIT_SUBMODULE_STRATEGY: none
         LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+
+.fedora31_osmesa:
+    image: "kitware/paraview:ci-fedora31-20200923"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: ""
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_static_adios_offscreen_python_osmesa
+
+.centos7_osmesa_mpi:
+    extends: .centos7
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
+
+.centos7_icc:
+    image: "kitware/paraview:ci-centos7-icc-20200918"
+
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+        LAUNCHER: "scl enable devtoolset-7 --"
+        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        CMAKE_CONFIGURATION: linux_shared_adios_mpi_python_icc
 
 ## Tags
 
@@ -24,6 +51,12 @@
         - docker
         - linux
         - paraview
+
+.linux_test_tags:
+    tags:
+        - docker
+        - paraview
+        - linux
 
 ## Linux-specific scripts
 
@@ -122,6 +155,49 @@
         CURRENT_RELEASE: nightly
         GIT_SSH_COMMAND: ""
         PARAVIEW_DOC_UPLOAD: "true"
+
+    interruptible: true
+    timeout: 3 hours
+
+.before_script_build_linux: &before_script_build_linux
+        - sccache --start-server
+        - sccache --show-stats
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake &> $GIT_CLONE_PATH/compile_output.log
+        - sccache --show-stats
+
+
+.linux_builder_osmesa:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - *before_script_build_linux
+
+    interruptible: true
+    timeout: 1 hours
+
+
+.linux_builder_icc:
+    stage: build
+
+    script:
+        - *before_script_linux
+        - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true
+        - *before_script_build_linux
+
+    interruptible: true
+    timeout: 1 hours
+
+.linux_test_osmesa:
+    stage: test
+    needs:
+        - build:linux-osmesa
+
+    script:
+        - *before_script_linux
+        - *before_script_build_linux
+        - $LAUNCHER ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
 
     interruptible: true
     timeout: 3 hours
