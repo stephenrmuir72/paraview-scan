@@ -9,7 +9,7 @@
 # newer compilers.
 
 .centos7:
-    image: "kitware/paraview:ci-centos7-20200911"
+    image: "kitware/paraview:ci-centos7-20200923"
 
     variables:
         GIT_SUBMODULE_STRATEGY: none
@@ -26,7 +26,7 @@
         CMAKE_CONFIGURATION: linux_static_adios_offscreen_python_osmesa
 
 .centos7_osmesa_mpi:
-    image: "kitware/paraview:ci-centos7-osmesa-20200918"
+    extends: .centos7
 
     variables:
         GIT_SUBMODULE_STRATEGY: none
