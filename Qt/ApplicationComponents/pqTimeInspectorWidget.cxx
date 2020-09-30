@@ -33,15 +33,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqTimeInspectorWidget.h"
 
 #include "pqActiveObjects.h"
+#include "pqAnimationManager.h"
 #include "pqAnimationModel.h"
+#include "pqAnimationScene.h"
 #include "pqAnimationTrack.h"
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
+#include "pqPVApplicationCore.h"
 #include "pqPropertyLinks.h"
 #include "pqPropertyLinksConnection.h"
 #include "pqProxy.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "pqUndoStack.h"
 #include "vtkCommand.h"
 #include "vtkCompositeAnimationPlayer.h"
 #include "vtkNew.h"
@@ -50,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMTrace.h"
 
 #include <QHeaderView>
 #include <QLineF>
@@ -241,6 +246,7 @@ class pqTimeInspectorWidget::pqInternals
 {
 public:
   void* VoidServer;
+  QPointer<pqAnimationScene> Scene;
   QPointer<pqServer> Server;
   Ui::TimeInspectorWidget Ui;
   pqPropertyLinks Links;
@@ -280,11 +286,21 @@ pqTimeInspectorWidget::pqTimeInspectorWidget(QWidget* parentObject)
 
   pqCoreUtilities::connect(vtkPVGeneralSettings::GetInstance(), vtkCommand::ModifiedEvent, this,
     SLOT(generalSettingsChanged()));
+
+  this->connect(pqPVApplicationCore::instance()->animationManager(),
+    SIGNAL(activeSceneChanged(pqAnimationScene*)), SLOT(setAnimationScene(pqAnimationScene*)));
 }
 
 //-----------------------------------------------------------------------------
 pqTimeInspectorWidget::~pqTimeInspectorWidget()
 {
+}
+
+//-----------------------------------------------------------------------------
+void pqTimeInspectorWidget::setAnimationScene(pqAnimationScene* scene)
+{
+  this->Internals->Scene = scene;
+  QObject::connect(scene, SIGNAL(animationTime(double)), this, SLOT(updateSceneTime()));
 }
 
 //-----------------------------------------------------------------------------
@@ -328,7 +344,10 @@ void pqTimeInspectorWidget::updateScene()
   vtkSMSession* session = curServer->session();
   vtkNew<vtkSMParaViewPipelineController> controller;
 
-  vtkSMProxy* sceneProxy = controller->FindAnimationScene(session);
+  pqAnimationScene* scene = this->Internals->Scene;
+
+  vtkSMProxy* sceneProxy = scene ? scene->getProxy() : nullptr;
+
   if (!sceneProxy)
   {
     // The sceneProxy may be null when cleaning up a session. Hence,
@@ -336,7 +355,7 @@ void pqTimeInspectorWidget::updateScene()
     return;
   }
 
-  this->Internals->Ui.AnimationTimeWidget->setAnimationScene(sceneProxy);
+  this->Internals->Ui.AnimationTimeWidget->setAnimationScene(scene);
 
   links.addTraceablePropertyLink(this, "sceneStartTime", SIGNAL(dummySignal()), sceneProxy,
     sceneProxy->GetProperty("StartTime"));
@@ -571,10 +590,27 @@ double pqTimeInspectorWidget::sceneCurrentTime() const
 //-----------------------------------------------------------------------------
 void pqTimeInspectorWidget::setSceneCurrentTime(double time)
 {
-  pqAnimationModel* animationModel = this->Internals->Ui.AnimationWidget->animationModel();
-  assert(animationModel);
-  animationModel->setCurrentTime(time);
-  Q_EMIT this->sceneCurrentTimeChanged();
+  BEGIN_UNDO_EXCLUDE();
+
+  vtkSMProxy* animationScene = this->Internals->Scene->getProxy();
+  {
+    // Use another scope to prevent modifications to the TimeKeeper from
+    // being traced.
+    SM_SCOPED_TRACE(PropertiesModified).arg("proxy", animationScene);
+    vtkSMPropertyHelper(animationScene, "AnimationTime").Set(time);
+  }
+  animationScene->UpdateVTKObjects();
+
+  END_UNDO_EXCLUDE();
+}
+
+//-----------------------------------------------------------------------------
+void pqTimeInspectorWidget::updateSceneTime()
+{
+  double time = this->Internals->Scene->getAnimationTime();
+
+  pqAnimationModel* animModel = this->Internals->Ui.AnimationWidget->animationModel();
+  animModel->setCurrentTime(time);
 }
 
 //-----------------------------------------------------------------------------

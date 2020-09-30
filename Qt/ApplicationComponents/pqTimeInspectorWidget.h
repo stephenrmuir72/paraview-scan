@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVariant>
 #include <QWidget>
 
+class pqAnimationScene;
 class pqAnimationTrack;
 class pqServer;
 class pqServerManagerModelItem;
@@ -147,6 +148,14 @@ public Q_SLOTS:
   * set the current time for the scene.
   */
   void setSceneCurrentTime(double);
+
+  void setAnimationScene(pqAnimationScene* scene);
+
+protected Q_SLOTS:
+  /**
+  * called when scene time changes
+  */
+  void updateSceneTime();
 
 private Q_SLOTS:
   /**
