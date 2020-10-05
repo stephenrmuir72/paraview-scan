@@ -6,7 +6,8 @@ yum install -y \
    python-twisted-core python-twisted-web python-twisted-words \
    python3 python3-devel qt5-qtbase-devel qt5-qttools-devel \
    qt5-qtsvg-devel qt5-qtxmlpatterns-devel doxygen openmpi-devel \
-   python36-numpy python3-pandas python3-pandas-datareader
+   python36-numpy openmpi-devel mesa-libOSMesa-devel \
+   python3-pandas python3-pandas-datareader
 
 pip3 install sphinx
 
