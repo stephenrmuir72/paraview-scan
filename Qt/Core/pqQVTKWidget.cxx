@@ -36,7 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include "QVTKOpenGLNativeWidget.h"
-#include "QVTKOpenGLStereoWidget.h"
 #include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
 #include "pqOptions.h"
@@ -47,6 +46,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSession.h"
 #include "vtkSMViewProxy.h"
 #include "vtksys/SystemTools.hxx"
+
+#include <Windows.h>
 
 #include <chrono>
 #include <numeric>
@@ -70,7 +71,7 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
 
   if (useStereo)
   {
-    auto ptr = new QVTKOpenGLStereoWidget(parentObject, f);
+    auto ptr = new pqQVTKWidgetBase(parentObject, f);
     baseClass.setValue(ptr);
     layout->addWidget(ptr);
 
@@ -90,7 +91,7 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
-    baseClass.value<QVTKOpenGLStereoWidget*>()->setEnableHiDPI(
+    baseClass.value<pqQVTKWidgetBase*>()->setEnableHiDPI(
       vtksys::SystemTools::GetEnv("DASHBOARD_TEST_FROM_CTEST") ? false : true);
   }
   else
@@ -102,9 +103,9 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
   // if active stereo requested, then we need to request appropriate context.
   if (options->GetStereoType() && strcmp(options->GetStereoType(), "Crystal Eyes") == 0)
   {
-#if PARAVIEW_USING_QVTKOPENGLWIDGET
-    auto fmt = this->defaultFormat(/*supports_stereo =*/true);
-    this->setFormat(fmt);
+#if PARAVIEW_USING_QVTKOPENGLSTEREOWIDGET
+    auto fmt = baseClass.value<pqQVTKWidgetBase*>()->defaultFormat(/*supports_stereo =*/true);
+    baseClass.value<pqQVTKWidgetBase*>()->setFormat(fmt);
     vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "requesting stereo-capable context.");
 #else
     vtkLogF(WARNING,
@@ -177,7 +178,7 @@ vtkTypeUInt32 pqQVTKWidget::getProxyId()
 }
 
 //----------------------------------------------------------------------------
-#if PARAVIEW_USING_QVTKOPENGLWIDGET
+#if PARAVIEW_USING_QVTKOPENGLSTEREOWIDGET
 void pqQVTKWidget::resizeEvent(QResizeEvent* evt)
 {
   this->Superclass::resizeEvent(evt);
@@ -214,7 +215,7 @@ void pqQVTKWidget::prepareContextForRendering()
 
   if (this->useStereo)
   {
-    ret = baseClass.value<QVTKOpenGLStereoWidget*>()->isValid();
+    ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
   }
   else
   {
@@ -233,7 +234,7 @@ void pqQVTKWidget::prepareContextForRendering()
 
     if (this->useStereo)
     {
-      ret = baseClass.value<QVTKOpenGLStereoWidget*>()->isValid();
+      ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
     }
     else
     {
@@ -243,7 +244,7 @@ void pqQVTKWidget::prepareContextForRendering()
 
   if (this->useStereo)
   {
-    ret = baseClass.value<QVTKOpenGLStereoWidget*>()->isValid();
+    ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
   }
   else
   {
@@ -269,8 +270,8 @@ void pqQVTKWidget::setRenderWindow(vtkRenderWindow* win)
 {
   if (this->useStereo)
   {
-    baseClass.value<QVTKOpenGLStereoWidget*>()->setUnscaledDPI(win->GetDPI());
-    baseClass.value<QVTKOpenGLStereoWidget*>()->setRenderWindow(win);
+    baseClass.value<pqQVTKWidgetBase*>()->setUnscaledDPI(win->GetDPI());
+    baseClass.value<pqQVTKWidgetBase*>()->setRenderWindow(win);
   }
   else
   {
@@ -284,7 +285,7 @@ QVTKInteractor* pqQVTKWidget::interactor() const
 {
   if (this->useStereo)
   {
-    return baseClass.value<QVTKOpenGLStereoWidget*>()->interactor();
+    return baseClass.value<pqQVTKWidgetBase*>()->interactor();
   }
   else
   {
@@ -297,7 +298,7 @@ bool pqQVTKWidget::isValid()
 {
   if (this->useStereo)
   {
-    return baseClass.value<QVTKOpenGLStereoWidget*>()->isValid();
+    return baseClass.value<pqQVTKWidgetBase*>()->isValid();
   }
   else
   {
@@ -310,7 +311,7 @@ vtkRenderWindow* pqQVTKWidget::renderWindow() const
 {
   if (this->useStereo)
   {
-    return baseClass.value<QVTKOpenGLStereoWidget*>()->renderWindow();
+    return baseClass.value<pqQVTKWidgetBase*>()->renderWindow();
   }
   else
   {
@@ -327,7 +328,7 @@ void pqQVTKWidget::notifyQApplication(QMouseEvent* e)
     // be propagated back to the internal QVTKOpenGLWindow when being fired
     // explicitly on the widget instance. We have to use a custom event
     // callback in this case to ensure that events are passed to the window.
-    qApp->notify(baseClass.value<QVTKOpenGLStereoWidget*>()->embeddedOpenGLWindow(), e);
+    qApp->notify(baseClass.value<pqQVTKWidgetBase*>()->embeddedOpenGLWindow(), e);
   }
   else
   {
@@ -340,7 +341,7 @@ void pqQVTKWidget::setEnableHiDPI(bool flag)
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
-    baseClass.value<QVTKOpenGLStereoWidget*>()->setEnableHiDPI(flag);
+    baseClass.value<pqQVTKWidgetBase*>()->setEnableHiDPI(flag);
   }
   else
   {
@@ -353,7 +354,7 @@ void pqQVTKWidget::setCustomDevicePixelRatio(double cdpr)
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
-    baseClass.value<QVTKOpenGLStereoWidget*>()->setCustomDevicePixelRatio(cdpr);
+    baseClass.value<pqQVTKWidgetBase*>()->setCustomDevicePixelRatio(cdpr);
   }
   else
   {
@@ -366,7 +367,7 @@ double pqQVTKWidget::effectiveDevicePixelRatio() const
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
-    return baseClass.value<QVTKOpenGLStereoWidget*>()->effectiveDevicePixelRatio();
+    return baseClass.value<pqQVTKWidgetBase*>()->effectiveDevicePixelRatio();
   }
   else
   {
