@@ -7,13 +7,6 @@
         paths:
             - compile_output.log
 
-.test_log_artifacts:
-    extends: .build_log_artifacts
-    artifacts:
-        paths:
-            - compile_output.log
-            - $GIT_CLONE_PATH/build/Testing/Temporary/LastTest.log
-
 .doxygen_log_artifacts:
     extends: .build_log_artifacts
     artifacts:
