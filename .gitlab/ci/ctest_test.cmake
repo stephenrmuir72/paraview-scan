@@ -32,6 +32,11 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "\\.UnstructuredVolumeRenderingVectorComponent$")
 endif ()
 
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
+  # MPI obviously cannot be tested in GitLab CI
+  list(APPEND test_exclusions "\\.MPI")
+endif ()
+
 string(REPLACE ";" "|" test_exclusions "${test_exclusions}")
 if (test_exclusions)
   set(test_exclusions "(${test_exclusions})")
