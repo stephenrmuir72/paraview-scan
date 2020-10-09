@@ -1,0 +1,10 @@
+NAME
+  zSpace
+CONDITION
+  WIN32
+DESCRIPTION
+  Interact with the scene via a zSpace device
+REQUIRES_MODULES
+  ParaView::RemotingViews
+  VTK::CommonCore
+  VTK::RenderingCore

@@ -1,0 +1,13 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="views">
+    <RenderViewProxy name="zSpaceView" class="vtkPVZSpaceView"
+        label="zSpace view"
+        processes="client|renderserver|dataserver"
+        base_proxygroup="views" base_proxyname="RenderView">
+    <Documentation>
+      This view allows visualization and interaction of the scene with a zSpace device.
+    </Documentation>
+    <!--  -->
+    </RenderViewProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>
