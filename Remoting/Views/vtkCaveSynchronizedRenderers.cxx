@@ -182,7 +182,6 @@ void vtkCaveSynchronizedRenderers::ComputeCamera(vtkCamera* camera)
     camera->SetScreenBottomLeft(this->DisplayOrigin);
     camera->SetScreenBottomRight(this->DisplayX);
     camera->SetScreenTopRight(this->DisplayY);
-    camera->SetUseOffAxisProjection(true);
     camera->SetEyePosition(eyePosition);
     camera->SetEyeSeparation(this->EyeSeparation);
 
