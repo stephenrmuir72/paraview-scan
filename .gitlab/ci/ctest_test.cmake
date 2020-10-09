@@ -29,7 +29,10 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
 
     # Unstructured grid volume rendering (paraview/paraview#19130)
     "\\.MultiBlockVolumeRendering$"
-    "\\.UnstructuredVolumeRenderingVectorComponent$")
+    "\\.UnstructuredVolumeRenderingVectorComponent$"
+
+    # MPI obviously cannot be tested in GitLab CI
+    "\\.MPI")
 endif ()
 
 string(REPLACE ";" "|" test_exclusions "${test_exclusions}")

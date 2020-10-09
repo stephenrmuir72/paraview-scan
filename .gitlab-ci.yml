@@ -43,10 +43,10 @@ build:spack-centos7:
 
 build:linux-osmesa:
     extends:
-        - .centos7_osmesa_mpi
+        - .fedora31_osmesa
         - .linux_builder_osmesa
         - .linux_builder_tags
-        - .build_log_artifacts
+        - .cmake_build_artifacts
         - .run_automatically
 
 build:linux-icc:
@@ -55,14 +55,34 @@ build:linux-icc:
         - .linux_builder_icc
         - .linux_builder_tags
         - .build_log_artifacts
+        - .cmake_build_artifacts
         - .run_automatically
 
 test:linux-osmesa:
+    dependencies:
+        - build:linux-osmesa
+    needs:
+        - build:linux-osmesa
+
     extends:
         - .fedora31_osmesa
         - .linux_tester_osmesa
         - .linux_tester_tags
-        - .test_log_artifacts
+        - .cmake_test_artifacts
+        - .run_automatically
+
+test:linux-icc:
+    dependencies:
+        - build:linux-icc
+    needs:
+        - build:linux-icc
+
+    extends:
+        - .centos7_icc
+        - .linux_tester_icc
+        - .linux_tester_tags
+        - .cmake_test_artifacts
+        - .cmake_test_artifacts
         - .run_automatically
 
 # macOS
