@@ -1,14 +1,6 @@
 # Lists of paths for artifacts of various stages.
 
-.build_log_artifacts:
-    artifacts:
-        expire_in: 1 week
-        when: always
-        paths:
-            - compile_output.log
-
 .doxygen_log_artifacts:
-    extends: .build_log_artifacts
     artifacts:
         expire_in: 1 day
         paths:
@@ -21,14 +13,16 @@
     artifacts:
         expire_in: 1d
         paths:
+            # Logs of the build
+            - compile_output.log
+
             # The artifacts of the build.
             - build/bin/
             - build/lib/
             - build/VTK/Utilities/KWIML/vtkkwiml/test/kwiml_test
 
-            # Python packages
+            # Python packages go here
             - build/lib64/
-            - compile_output.log
 
             # Needed for installation.
             - build/CMakeCache.txt

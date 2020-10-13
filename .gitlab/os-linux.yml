@@ -184,16 +184,17 @@
         - $LAUNCHER ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
 
     interruptible: true
-    timeout: 3 hours
+    timeout: 1 hours
 
 .linux_tester_icc:
     stage: test
 
     script:
         - *before_script_linux
+        - yum install -y mesa-libGL-devel
         - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true
         - export PATH="/usr/lib64/openmpi/bin:$PATH"
         - ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
 
     interruptible: true
-    timeout: 3 hours
+    timeout: 1 hours
