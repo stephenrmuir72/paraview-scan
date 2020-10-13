@@ -8,28 +8,27 @@
 # compatibility with many Linux distros while also providing easy ways to get
 # newer compilers.
 
-.centos7:
-    image: "kitware/paraview:ci-centos7-20201005"
-
+.linux:
     variables:
-        GIT_SUBMODULE_STRATEGY: none
-        LAUNCHER: "scl enable devtoolset-7 --"
         GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
+        GIT_SUBMODULE_STRATEGY: none
+
+.centos7:
+    extends: .linux
+    image: "kitware/paraview:ci-centos7-20201005"
+    variables:
+        LAUNCHER: "scl enable devtoolset-7 --"
 
 .fedora31_icc:
+    extends: .linux
     image: "kitware/paraview:ci-fedora31-icc-20201012"
-
     variables:
-        GIT_SUBMODULE_STRATEGY: none
         CMAKE_CONFIGURATION: linux_shared_adios_mpi_python_icc
-        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
 
 .fedora31_osmesa:
+    extends: .linux
     image: "kitware/paraview:ci-fedora31-20200923"
-
     variables:
-        GIT_SUBMODULE_STRATEGY: none
-        GIT_CLONE_PATH: $CI_BUILDS_DIR/gitlab-kitware-sciviz-ci
         CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
 
 .linux_builder_tags:
@@ -183,9 +182,6 @@
         - *before_script_linux
         - $LAUNCHER ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
 
-    variables:
-        CMAKE_PREFIX_PATH: "/usr/lib64/openmpi"
-
     interruptible: true
     timeout: 3 hours
 
@@ -195,13 +191,7 @@
     script:
         - *before_script_linux
         - source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true
-        - export LD_LIBRARY_PATH="/usr/lib64/openmpi/lib:$LD_LIBRARY_PATH"
-        - export PATH="/usr/lib64/openmpi/bin:$PATH"
         - ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
-
-    variables:
-        CMAKE_PREFIX_PATH: "/usr/lib64/openmpi"
-        LD_LIBRARY_PATH: ""
 
     interruptible: true
     timeout: 3 hours
