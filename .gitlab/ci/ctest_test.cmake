@@ -32,6 +32,24 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "\\.UnstructuredVolumeRenderingVectorComponent$")
 endif ()
 
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
+  list(APPEND test_exclusions 
+    # MPI obviously cannot be tested in GitLab CI
+    "MPI"
+
+    # Disabled as for now :TODO: before merging
+    "^ParaViewExample-Catalyst$")
+endif ()
+
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "mpi")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/lib64/openmpi")
+endif ()
+
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "icc")
+  set(ENV{CC}  "icc")
+  set(ENV{CXX} "icpc")
+endif ()
+
 string(REPLACE ";" "|" test_exclusions "${test_exclusions}")
 if (test_exclusions)
   set(test_exclusions "(${test_exclusions})")
