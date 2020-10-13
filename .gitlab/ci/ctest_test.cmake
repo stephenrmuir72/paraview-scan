@@ -41,6 +41,10 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
     "^ParaViewExample-Catalyst$")
 endif ()
 
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "mpi")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/lib64/openmpi")
+endif ()
+
 if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "icc")
   set(ENV{CC}  "icc")
   set(ENV{CXX} "icpc")
