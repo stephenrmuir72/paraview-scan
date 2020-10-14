@@ -38,7 +38,7 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
     #"MPI"
 
     # Disabled as for now :TODO: before merging
-    "^ParaViewExample-Catalyst$")
+    #"^ParaViewExample-Catalyst$")
 endif ()
 
 if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "mpi")
