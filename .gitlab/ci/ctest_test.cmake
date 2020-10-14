@@ -32,20 +32,16 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "\\.UnstructuredVolumeRenderingVectorComponent$")
 endif ()
 
-if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
-  list(APPEND test_exclusions 
-    # MPI obviously cannot be tested in GitLab CI
-    #"MPI"
-
-    # Disabled as for now :TODO: before merging
-    "^ParaViewExample-Catalyst$")
-endif ()
-
 if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "mpi")
   list(APPEND CMAKE_PREFIX_PATH "/usr/lib64/openmpi")
   set(ENV{OMPI_ALLOW_RUN_AS_ROOT_CONFIRM} "1")
   set(ENV{OMPI_ALLOW_RUN_AS_ROOT} "1")
-  set(MPIEXEC_PREFLAGS     "-mca orte_base_help_aggregate 0"    CACHE STRING "")
+
+  if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "linux")
+    list(APPEND test_exclusions 
+      # Disabled as it fails and it is not actually ran in Buildbot
+      "^ParaViewExample-Catalyst$")
+  endif ()
 endif ()
 
 if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "icc")
