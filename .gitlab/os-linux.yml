@@ -21,13 +21,13 @@
 
 .fedora31_icc:
     extends: .linux
-    image: "kitware/paraview:ci-fedora31-icc-20201012"
+    image: "kitware/paraview:ci-fedora31-icc-20201014"
     variables:
         CMAKE_CONFIGURATION: linux_shared_adios_mpi_python_icc
 
 .fedora31_osmesa:
     extends: .linux
-    image: "kitware/paraview:ci-fedora31-20200923"
+    image: "kitware/paraview:ci-fedora31-20201014"
     variables:
         CMAKE_CONFIGURATION: linux_static_adios_mpi_offscreen_python_osmesa
 
