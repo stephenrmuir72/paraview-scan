@@ -230,6 +230,8 @@
           <Property name="RotationInfo" />
           <Property name="Scale" />
           <Property name="ScaleInfo" />
+          <Property name="RotationOrigin" />
+          <Property name="RotationOriginInfo" />
         </ExposedProperties>
       </SubProxy>
       <SubProxy>
@@ -1199,6 +1201,8 @@
           <Property name="RotationInfo" />
           <Property name="Scale" />
           <Property name="ScaleInfo" />
+          <Property name="RotationOrigin" />
+          <Property name="RotationOriginInfo" />
         </ExposedProperties>
       </SubProxy>
       <!-- End of BoxRepresentation -->
