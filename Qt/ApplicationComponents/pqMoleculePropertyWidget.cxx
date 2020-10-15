@@ -180,6 +180,12 @@ pqMoleculePropertyWidget::pqMoleculePropertyWidget(
 }
 
 //-----------------------------------------------------------------------------
+pqMoleculePropertyWidget::~pqMoleculePropertyWidget()
+{
+  delete this->Internals;
+}
+
+//-----------------------------------------------------------------------------
 void pqMoleculePropertyWidget::updateWidget(bool showing_advanced_properties)
 {
   this->Internals->showAdvancedProperties = showing_advanced_properties;
