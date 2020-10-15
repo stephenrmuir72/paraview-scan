@@ -377,6 +377,7 @@ double pqQVTKWidget::effectiveDevicePixelRatio() const
     return baseClass.value<QVTKOpenGLNativeWidget*>()->effectiveDevicePixelRatio();
   }
 }
+
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setViewSize(int width, int height)
 {
@@ -391,4 +392,11 @@ void pqQVTKWidget::setViewSize(int width, int height)
       this->ViewProxy->UpdateVTKObjects();
     }
   }
+}
+
+//----------------------------------------------------------------------------
+QWidget* pqQVTKWidget::renderWidget() const
+{
+  return this->useStereo ? static_cast<QWidget*>(this->baseClass.value<pqQVTKWidgetBase*>())
+                         : static_cast<QWidget*>(this->baseClass.value<QVTKOpenGLNativeWidget*>());
 }

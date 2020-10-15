@@ -60,10 +60,12 @@ set(classes
   pqImageUtil
   pqInteractiveViewLink
   pqInterfaceTracker
+  pqKeySequences
   pqLinkViewWidget
   pqLinksModel
   pqLogViewerWidget
   pqMainWindowEventManager
+  pqModalShortcut
   pqMultiSliceAxisWidget
   pqMultiSliceView
   pqNonEditableStyledItemDelegate
