@@ -79,6 +79,8 @@ public:
     bool hideReferenceBounds = false);
   ~pqBoxPropertyWidget() override;
 
+  void updateWidget(bool showing_advanced_properties) override;
+
 protected Q_SLOTS:
   /**
   * Places the interactive widget using current data source information.
@@ -89,6 +91,11 @@ private:
   Q_DISABLE_COPY(pqBoxPropertyWidget)
   pqPropertyLinks WidgetLinks;
   bool BoxIsRelativeToInput;
+
+  void updateRotationOriginVisibility();
+
+  class pqInternals;
+  pqInternals* Internals;
 };
 
 #endif
