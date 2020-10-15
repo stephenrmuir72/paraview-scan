@@ -33,6 +33,9 @@ vtkPVTransform::vtkPVTransform()
 
   // Set scale to 1
   this->AbsoluteScale[0] = this->AbsoluteScale[1] = this->AbsoluteScale[2] = 1;
+
+  // Set origin of rotation to 0
+  this->RotationOrigin[0] = this->RotationOrigin[1] = this->RotationOrigin[2] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -45,6 +48,26 @@ vtkPVTransform::~vtkPVTransform()
 void vtkPVTransform::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+
+  os << indent << "AbsolutePosition: "
+     << "( " << this->AbsolutePosition[0] << ", " << this->AbsolutePosition[1] << ", "
+     << this->AbsolutePosition[2] << ")\n";
+
+  os << indent << "AbsoluteRotation: "
+     << "( " << this->AbsoluteRotation[0] << ", " << this->AbsoluteRotation[1] << ", "
+     << this->AbsoluteRotation[2] << ")\n";
+
+  os << indent << "AbsoluteScale: "
+     << "( " << this->AbsoluteScale[0] << ", " << this->AbsoluteScale[1] << ", "
+     << this->AbsoluteScale[2] << ")\n";
+
+  os << indent << "RotationOrigin: "
+     << "( " << this->RotationOrigin[0] << ", " << this->RotationOrigin[1] << ", "
+     << this->RotationOrigin[2] << ")\n";
+
+  os << indent << "AbsoluteRotationAroundOrigin: "
+     << "( " << this->AbsoluteRotationAroundOrigin[0] << ", " << this->AbsoluteRotationAroundOrigin[1] << ", "
+     << this->AbsoluteRotationAroundOrigin[2] << ")\n";
 }
 
 //----------------------------------------------------------------------------
@@ -52,9 +75,19 @@ void vtkPVTransform::UpdateMatrix()
 {
   this->AbsoluteTransform->Identity();
   this->AbsoluteTransform->Translate(this->AbsolutePosition);
+
+  this->AbsoluteTransform->Translate(this->RotationOrigin);
+
   this->AbsoluteTransform->RotateZ(this->AbsoluteRotation[2]);
   this->AbsoluteTransform->RotateX(this->AbsoluteRotation[0]);
   this->AbsoluteTransform->RotateY(this->AbsoluteRotation[1]);
+
+  this->AbsoluteTransform->RotateZ(this->AbsoluteRotationAroundOrigin[2]);
+  this->AbsoluteTransform->RotateX(this->AbsoluteRotationAroundOrigin[0]);
+  this->AbsoluteTransform->RotateY(this->AbsoluteRotationAroundOrigin[1]);
+
+  this->AbsoluteTransform->Translate(- this->RotationOrigin[0], - this->RotationOrigin[1], - this->RotationOrigin[2]);
+
   this->AbsoluteTransform->Scale(this->AbsoluteScale);
 
   // Delegate the setting to the vtkMatrix
@@ -75,6 +108,11 @@ void vtkPVTransform::SetAbsoluteRotation(double xyz[3])
 void vtkPVTransform::SetAbsoluteScale(double xyz[3])
 {
   this->SetAbsoluteScale(xyz[0], xyz[1], xyz[2]);
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetAbsoluteRotationAroundOrigin(double xyz[3])
+{
+  this->SetAbsoluteRotationAroundOrigin(xyz[0], xyz[1], xyz[2]);
 }
 //----------------------------------------------------------------------------
 void vtkPVTransform::SetAbsolutePosition(double x, double y, double z)
@@ -102,4 +140,48 @@ void vtkPVTransform::SetAbsoluteScale(double x, double y, double z)
   this->AbsoluteScale[2] = z;
 
   UpdateMatrix(); // This will call modified... No need to do it twice
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetRotationOrigin(double xyz[3])
+{
+  this->SetRotationOrigin(xyz[0], xyz[1], xyz[2]);
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetRotationOrigin(double x, double y, double z)
+{
+  this->RotationOrigin[0] = x;
+  this->RotationOrigin[1] = y;
+  this->RotationOrigin[2] = z;
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetAbsoluteRotationAroundOrigin(double x, double y, double z)
+{
+  this->AbsoluteRotationAroundOrigin[0] = x;
+  this->AbsoluteRotationAroundOrigin[1] = y;
+  this->AbsoluteRotationAroundOrigin[2] = z;
+
+  // this->AbsoluteTransform->Identity();
+  // this->AbsoluteTransform->Translate(this->AbsolutePosition);
+  // this->AbsoluteTransform->RotateZ(this->AbsoluteRotation[2]);
+  // this->AbsoluteTransform->RotateX(this->AbsoluteRotation[0]);
+  // this->AbsoluteTransform->RotateY(this->AbsoluteRotation[1]);
+
+  // // Convert rotation origin from world space to model space
+  // double rModelSpace[3] = { this->RotationOrigin[0] - this->AbsolutePosition[0], 
+  //                           this->RotationOrigin[1] - this->AbsolutePosition[1],
+  //                           this->RotationOrigin[2] - this->AbsolutePosition[2] };
+
+
+  // this->AbsoluteTransform->Translate(rModelSpace);
+  // this->AbsoluteTransform->RotateZ(this->AbsoluteRotationAroundOrigin[2]);
+  // this->AbsoluteTransform->RotateX(this->AbsoluteRotationAroundOrigin[0]);
+  // this->AbsoluteTransform->RotateY(this->AbsoluteRotationAroundOrigin[1]);
+  // this->AbsoluteTransform->Translate(- rModelSpace[0], - rModelSpace[1], - rModelSpace[2]);
+
+  // double pos[3] = {0.0,0.0,0.0};
+  // double resPos[3] = {0.0,0.0,0.0};
+
+  // this->AbsoluteTransform->TransformPoint(pos, this->AbsolutePosition);
+
+  this->UpdateMatrix();
 }

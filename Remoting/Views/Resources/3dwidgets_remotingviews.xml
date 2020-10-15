@@ -230,6 +230,9 @@
           <Property name="RotationInfo" />
           <Property name="Scale" />
           <Property name="ScaleInfo" />
+          <Property name="RotationOrigin" />
+          <Property name="AbsoluteRotationAroundOrigin" />
+          <Property name="AbsoluteRotationAroundOriginInfo" />
         </ExposedProperties>
       </SubProxy>
       <SubProxy>
@@ -1191,7 +1194,7 @@
       <SubProxy>
         <Proxy name="Transform"
                proxygroup="extended_sources"
-               proxyname="Transform2"></Proxy>
+               proxyname="Transform3"></Proxy>
         <ExposedProperties>
           <Property name="Position" />
           <Property name="PositionInfo" />
@@ -1199,6 +1202,9 @@
           <Property name="RotationInfo" />
           <Property name="Scale" />
           <Property name="ScaleInfo" />
+          <Property name="RotationOrigin" />
+          <Property name="AbsoluteRotationAroundOrigin" />
+          <Property name="AbsoluteRotationAroundOriginInfo" />
         </ExposedProperties>
       </SubProxy>
       <!-- End of BoxRepresentation -->

@@ -37,14 +37,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMUncheckedPropertyHelper.h"
 
+class pqBoxPropertyWidget::pqInternals
+{
+public:
+  Ui::BoxPropertyWidget Ui;
+  bool showAdvancedProperties;
+
+  pqInternals(pqBoxPropertyWidget* self)
+    : showAdvancedProperties(false)
+  {
+    this->Ui.setupUi(self);
+  }
+};
+
 //-----------------------------------------------------------------------------
 pqBoxPropertyWidget::pqBoxPropertyWidget(
   vtkSMProxy* smproxy, vtkSMPropertyGroup* smgroup, QWidget* parentObject, bool hideReferenceBounds)
   : Superclass("representations", "BoxWidgetRepresentation", smproxy, smgroup, parentObject)
   , BoxIsRelativeToInput(false)
+  , Internals(new pqInternals(this))
 {
-  Ui::BoxPropertyWidget ui;
-  ui.setupUi(this);
+  Ui::BoxPropertyWidget& ui = this->Internals->Ui;
 
   vtkSMProxy* wdgProxy = this->widgetProxy();
 
@@ -140,6 +153,52 @@ pqBoxPropertyWidget::pqBoxPropertyWidget(
     ui.enableMoveFaces->hide();
   }
 
+  if (vtkSMProperty* rotationOrigin = smgroup->GetProperty("RotationOrigin"))
+  {
+    this->addPropertyLink(
+      ui.rotationOriginX, "text2", SIGNAL(textChangedAndEditingFinished()), rotationOrigin, 0);
+    this->addPropertyLink(
+      ui.rotationOriginY, "text2", SIGNAL(textChangedAndEditingFinished()), rotationOrigin, 1);
+    this->addPropertyLink(
+      ui.rotationOriginZ, "text2", SIGNAL(textChangedAndEditingFinished()), rotationOrigin, 2);
+    ui.labelRotationOrigin->setText(rotationOrigin->GetXMLLabel());
+    QString tooltip = this->getTooltip(rotationOrigin);
+    ui.rotationOriginX->setToolTip(tooltip);
+    ui.rotationOriginY->setToolTip(tooltip);
+    ui.rotationOriginZ->setToolTip(tooltip);
+    ui.labelRotationOrigin->setToolTip(tooltip);
+  }
+  else
+  {
+    ui.labelRotationOrigin->hide();
+    ui.rotationOriginX->hide();
+    ui.rotationOriginY->hide();
+    ui.rotationOriginZ->hide();
+  }
+
+  if (vtkSMProperty* absoluteRotationAroundOrigin = smgroup->GetProperty("AbsoluteRotationAroundOrigin"))
+  {
+    this->addPropertyLink(
+      ui.absoluteRotationAroundOriginX, "text2", SIGNAL(textChangedAndEditingFinished()), absoluteRotationAroundOrigin, 0);
+    this->addPropertyLink(
+      ui.absoluteRotationAroundOriginY, "text2", SIGNAL(textChangedAndEditingFinished()), absoluteRotationAroundOrigin, 1);
+    this->addPropertyLink(
+      ui.absoluteRotationAroundOriginZ, "text2", SIGNAL(textChangedAndEditingFinished()), absoluteRotationAroundOrigin, 2);
+    ui.labelAbsoluteRotationAroundOrigin->setText(absoluteRotationAroundOrigin->GetXMLLabel());
+    QString tooltip = this->getTooltip(absoluteRotationAroundOrigin);
+    ui.absoluteRotationAroundOriginX->setToolTip(tooltip);
+    ui.absoluteRotationAroundOriginY->setToolTip(tooltip);
+    ui.absoluteRotationAroundOriginZ->setToolTip(tooltip);
+    ui.labelAbsoluteRotationAroundOrigin->setToolTip(tooltip);
+  }
+  else
+  {
+    ui.labelAbsoluteRotationAroundOrigin->hide();
+    ui.absoluteRotationAroundOriginX->hide();
+    ui.absoluteRotationAroundOriginY->hide();
+    ui.absoluteRotationAroundOriginZ->hide();
+  }
+
   auto useRefBounds = smgroup->GetProperty("UseReferenceBounds");
   auto refBounds = smgroup->GetProperty("ReferenceBounds");
   if (useRefBounds && refBounds)
@@ -214,6 +273,12 @@ pqBoxPropertyWidget::pqBoxPropertyWidget(
 
       const double orient[3] = { 0, 0, 0 };
       vtkSMPropertyHelper(wdgProxy, "Rotation").Set(orient, 3);
+
+      const double rotationOrigin[3] = { 0, 0, 0 };
+      vtkSMPropertyHelper(wdgProxy, "RotationOrigin").Set(rotationOrigin, 3);
+
+      const double absoluteRotationAroundOrigin[3] = { 0, 0, 0 };
+      vtkSMPropertyHelper(wdgProxy, "AbsoluteRotationAroundOrigin").Set(absoluteRotationAroundOrigin, 3);
     }
     else
     {
@@ -228,6 +293,12 @@ pqBoxPropertyWidget::pqBoxPropertyWidget(
       vtkSMPropertyHelper(wdgProxy, "Rotation").Set(orient, 3);
 
       vtkSMPropertyHelper(wdgProxy, "Position").Set(bbox.GetMinPoint(), 3);
+
+      const double rotationOrigin[3] = { 0, 0, 0 };
+      vtkSMPropertyHelper(wdgProxy, "RotationOrigin").Set(rotationOrigin, 3);
+      
+      const double absoluteRotationAroundOrigin[3] = { 0, 0, 0 };
+      vtkSMPropertyHelper(wdgProxy, "AbsoluteRotationAroundOrigin").Set(absoluteRotationAroundOrigin, 3);
     }
     wdgProxy->UpdateVTKObjects();
     Q_EMIT this->changeAvailable();
@@ -239,6 +310,7 @@ pqBoxPropertyWidget::pqBoxPropertyWidget(
 //-----------------------------------------------------------------------------
 pqBoxPropertyWidget::~pqBoxPropertyWidget()
 {
+  delete this->Internals;
 }
 
 //-----------------------------------------------------------------------------
@@ -263,4 +335,26 @@ void pqBoxPropertyWidget::placeWidget()
     vtkSMPropertyHelper(wdgProxy, "PlaceWidget").Set(bds, 6);
     wdgProxy->UpdateVTKObjects();
   }
+}
+
+//-----------------------------------------------------------------------------
+void pqBoxPropertyWidget::updateWidget(bool showing_advanced_properties)
+{
+  this->Internals->showAdvancedProperties = showing_advanced_properties;
+  this->updateRotationOriginVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void pqBoxPropertyWidget::updateRotationOriginVisibility()
+{
+  Ui::BoxPropertyWidget& ui = this->Internals->Ui;
+  bool advanced = this->Internals->showAdvancedProperties;
+  ui.labelRotationOrigin->setVisible(advanced);
+  ui.rotationOriginX->setVisible(advanced);
+  ui.rotationOriginY->setVisible(advanced);
+  ui.rotationOriginZ->setVisible(advanced);
+  ui.labelAbsoluteRotationAroundOrigin->setVisible(advanced);
+  ui.absoluteRotationAroundOriginX->setVisible(advanced);
+  ui.absoluteRotationAroundOriginY->setVisible(advanced);
+  ui.absoluteRotationAroundOriginZ->setVisible(advanced);
 }
