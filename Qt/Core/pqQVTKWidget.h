@@ -48,12 +48,13 @@ class vtkSMProxy;
 class vtkSMSession;
 
 /**
- * pqQVTKWidget has a QVTKOpenGL*Widget object to which it adds awareness for view proxies.
- * The advantage of doing that is that pqQVTKWidget can automatically update the
- * "ViewSize" property on the view proxy whenever the widget's size/position changes.
+ * @class pqQVTKWidget
+ * @brief QWidget subclass to show rendering results from vtkSMViewProxy.
  *
- * This class also enables image-caching by default (image caching support is
- * provided by its contained QVTKOpenGL*Widget class).
+ * pqQVTKWidget is used by ParaView to show rendering results from a
+ * vtkSMViewProxy (or subclass) in QWidget. Internally, it uses a
+ * QVTKOpenGLNativeWidget, or QVTKOpenGLStereoWidget based on whether stereo
+ * mode is enabled and supported on the platform.
  */
 class PQCORE_EXPORT pqQVTKWidget : public QWidget
 {
@@ -104,6 +105,11 @@ public:
   double effectiveDevicePixelRatio() const;
   void setViewSize(int width, int height);
 
+  /**
+   * Provides access to the internal QWidget subclass used for actual rendering.
+   * This may be QVTKOpenGLStereoWidget or QVTKOpenGLNativeWidget
+   */
+  QWidget* renderWidget() const;
 public Q_SLOTS:
   void paintMousePointer(int x, int y);
 
