@@ -985,6 +985,7 @@ list(APPEND TESTS_WITH_BASELINES
   Text2D.xml
   TextBillboard3D.xml
   TextureUsages.xml
+  TransformFilterRotationOrigin.xml
   UndoRedo.xml
   UndoRedo1.xml
   UndoRedo2.xml

@@ -33,6 +33,9 @@ vtkPVTransform::vtkPVTransform()
 
   // Set scale to 1
   this->AbsoluteScale[0] = this->AbsoluteScale[1] = this->AbsoluteScale[2] = 1;
+
+  // Set origin of rotation to 0
+  this->RotationOrigin[0] = this->RotationOrigin[1] = this->RotationOrigin[2] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -45,6 +48,23 @@ vtkPVTransform::~vtkPVTransform()
 void vtkPVTransform::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+
+  os << indent << "AbsolutePosition: "
+     << "( " << this->AbsolutePosition[0] << ", " << this->AbsolutePosition[1] << ", " << this->AbsolutePosition[2]
+     << ", " << this->AbsolutePosition[3] << ")\n";
+
+  os << indent << "AbsoluteRotation: "
+     << "( " << this->AbsoluteRotation[0] << ", " << this->AbsoluteRotation[1] << ", " << this->AbsoluteRotation[2]
+     << ", " << this->AbsoluteRotation[3] << ")\n";
+
+  os << indent << "AbsoluteScale: "
+     << "( " << this->AbsoluteScale[0] << ", " << this->AbsoluteScale[1] << ", " << this->AbsoluteScale[2]
+     << ", " << this->AbsoluteScale[3] << ")\n";
+
+  os << indent << "RotationOrigin: "
+     << "( " << this->RotationOrigin[0] << ", " << this->RotationOrigin[1] << ", " << this->RotationOrigin[2]
+     << ", " << this->RotationOrigin[3] << ")\n";
+
 }
 
 //----------------------------------------------------------------------------
@@ -52,9 +72,18 @@ void vtkPVTransform::UpdateMatrix()
 {
   this->AbsoluteTransform->Identity();
   this->AbsoluteTransform->Translate(this->AbsolutePosition);
+
+  // Change rotation origin
+  this->AbsoluteTransform->Translate(this->RotationOrigin);
+
   this->AbsoluteTransform->RotateZ(this->AbsoluteRotation[2]);
   this->AbsoluteTransform->RotateX(this->AbsoluteRotation[0]);
   this->AbsoluteTransform->RotateY(this->AbsoluteRotation[1]);
+
+  // Inverse translate
+  this->AbsoluteTransform->Translate(
+    -this->RotationOrigin[0], -this->RotationOrigin[1], -this->RotationOrigin[2]);
+
   this->AbsoluteTransform->Scale(this->AbsoluteScale);
 
   // Delegate the setting to the vtkMatrix
@@ -102,4 +131,18 @@ void vtkPVTransform::SetAbsoluteScale(double x, double y, double z)
   this->AbsoluteScale[2] = z;
 
   UpdateMatrix(); // This will call modified... No need to do it twice
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetRotationOrigin(double xyz[3])
+{
+  this->SetRotationOrigin(xyz[0], xyz[1], xyz[2]);
+}
+//----------------------------------------------------------------------------
+void vtkPVTransform::SetRotationOrigin(double x, double y, double z)
+{
+  this->RotationOrigin[0] = x;
+  this->RotationOrigin[1] = y;
+  this->RotationOrigin[2] = z;
+
+  UpdateMatrix();
 }
