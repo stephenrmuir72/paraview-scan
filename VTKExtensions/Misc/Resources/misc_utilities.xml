@@ -12,7 +12,7 @@
                             number_of_elements="3">
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
-      <DoubleVectorProperty command="GetPosition"
+      <DoubleVectorProperty command="GetAbsolutePosition"
                             default_values="0.0 0.0 0.0"
                             information_only="1"
                             name="PositionInfo"
@@ -27,7 +27,7 @@
                             number_of_elements="3">
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
-      <DoubleVectorProperty command="GetOrientation"
+      <DoubleVectorProperty command="GetAbsoluteRotation"
                             default_values="0.0 0.0 0.0"
                             information_only="1"
                             name="RotationInfo"
@@ -47,6 +47,21 @@
                             information_only="1"
                             name="ScaleInfo"
                             number_of_elements="3" />
+
+      <!-- <DoubleVectorProperty command="SetRotationOrigin"
+                            default_values="0.0 0.0 0.0"
+                            information_property="RotationOriginInfo"
+                            label="Origin of rotation"
+                            name="RotationOrigin"
+                            number_of_elements="3">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="GetRotationOrigin"
+                            default_values="0.0 0.0 0.0"
+                            information_only="1"
+                            name="RotationOriginInfo"
+                            number_of_elements="3" /> -->
+
     </Proxy>
 
     <!-- ================================================================== -->
@@ -59,7 +74,7 @@
                             number_of_elements="3">
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
-      <DoubleVectorProperty command="GetAbsolutePosition"
+      <DoubleVectorProperty command="GetPosition"
                             default_values="0.0 0.0 0.0"
                             information_only="1"
                             name="PositionInfo"
@@ -72,11 +87,12 @@
                             number_of_elements="3">
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
-      <DoubleVectorProperty command="GetAbsoluteRotation"
+      <DoubleVectorProperty command="GetOrientation"
                             default_values="0.0 0.0 0.0"
                             information_only="1"
                             name="RotationInfo"
                             number_of_elements="3" />
+
       <DoubleVectorProperty command="SetAbsoluteScale"
                             default_values="1.0 1.0 1.0"
                             information_property="ScaleInfo"
@@ -85,16 +101,42 @@
                             number_of_elements="3">
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>
-      <DoubleVectorProperty command="GetAbsoluteScale"
+      <DoubleVectorProperty command="GetScale"
                             default_values="1.0 1.0 1.0"
                             information_only="1"
                             name="ScaleInfo"
                             number_of_elements="3" />
+
+      <DoubleVectorProperty command="SetRotationOrigin"
+                            default_values="0.0 0.0 0.0"
+                            label="Origin of rotation"
+                            name="RotationOrigin"
+                            number_of_elements="3">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty command="SetAbsoluteRotationAroundOrigin"
+                            default_values="0.0 0.0 0.0"
+                            information_property="AbsoluteRotationAroundOriginInfo"
+                            label="Rotation around the origin"
+                            name="AbsoluteRotationAroundOrigin"
+                            number_of_elements="3">
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="GetAbsoluteRotationAroundOrigin"
+                            default_values="0.0 0.0 0.0"
+                            information_only="1"
+                            name="AbsoluteRotationAroundOriginInfo"
+                            number_of_elements="3" />
+
       <InputProperty is_internal="1" name="DummyInput" />
       <PropertyGroup panel_widget="InteractiveBox">
         <Property function="Position" name="Position" />
         <Property function="Rotation" name="Rotation" />
         <Property function="Scale" name="Scale" />
+        <Property function="RotationOrigin" name="RotationOrigin" />
+        <Property function="AbsoluteRotationAroundOrigin" name="AbsoluteRotationAroundOrigin" />
+        <Property function="AbsoluteRotationAroundOriginInfo" name="AbsoluteRotationAroundOriginInfo" />
         <Property function="Input" name="DummyInput" />
       </PropertyGroup>
       <Hints>

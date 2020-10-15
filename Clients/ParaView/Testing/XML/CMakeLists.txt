@@ -990,6 +990,7 @@ list(APPEND TESTS_WITH_BASELINES
   TextBillboard3D.xml
   TextureUsages.xml
   ToneMapping.xml
+  TransformFilterRotationOrigin.xml
   UndoRedo.xml
   UndoRedo1.xml
   UndoRedo2.xml

@@ -52,7 +52,7 @@ class pqMoleculePropertyWidget : public pqPropertyGroupWidget
 public:
   pqMoleculePropertyWidget(
     vtkSMProxy* smproxy, vtkSMPropertyGroup* smgroup, QWidget* parentObject = 0);
-  ~pqMoleculePropertyWidget() override = default;
+  ~pqMoleculePropertyWidget() override;
 
   /**
    * Override to show/hide relevant widgets depending on the advanced properties status.

@@ -28,6 +28,8 @@
 #include "vtkTransform.h"
 class vtkTransform;
 
+#include <iostream>
+
 class VTKPVVTKEXTENSIONSMISC_EXPORT vtkPVTransform : public vtkTransform
 {
 public:
@@ -62,6 +64,39 @@ public:
   vtkGetVector3Macro(AbsoluteScale, double);
   //@}
 
+  //@{
+  /**
+   * Get/Set Origin of the rotation.
+   */
+  void SetRotationOrigin(double xyz[3]);
+  void SetRotationOrigin(double x, double y, double z);
+  vtkGetVector3Macro(RotationOrigin, double);
+  //@}
+
+  //@{
+  /**
+   * Get/Set rotation around the rotation.
+   */
+  void SetAbsoluteRotationAroundOrigin(double xyz[3]);
+  void SetAbsoluteRotationAroundOrigin(double x, double y, double z);
+  vtkGetVector3Macro(AbsoluteRotationAroundOrigin, double);
+  //@}
+
+
+  double* GetPositionWithoutOrigin() VTK_SIZEHINT(3)
+  {
+    this->GetPositionWithoutOrigin(this->ReturnValue);
+    return this->ReturnValue;
+  }
+  void GetPositionWithoutOrigin(double pos[3]);
+
+  double* GetOrientation2() VTK_SIZEHINT(3)
+  {
+    this->GetOrientation2(this->ReturnValue);
+    return this->ReturnValue;
+  }
+  void GetOrientation2(double orient[3]);
+
 protected:
   vtkPVTransform();
   ~vtkPVTransform() override;
@@ -71,6 +106,8 @@ protected:
   double AbsolutePosition[3];
   double AbsoluteRotation[3];
   double AbsoluteScale[3];
+  double RotationOrigin[3];
+  double AbsoluteRotationAroundOrigin[3];
   vtkTransform* AbsoluteTransform;
 
 private:
