@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QResizeEvent>
 #include <QVBoxLayout>
 
+#include "QVTKOpenGLStereoWidget.h"
 #include "QVTKOpenGLNativeWidget.h"
 #include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
@@ -326,7 +327,14 @@ void pqQVTKWidget::notifyQApplication(QMouseEvent* e)
     // be propagated back to the internal QVTKOpenGLWindow when being fired
     // explicitly on the widget instance. We have to use a custom event
     // callback in this case to ensure that events are passed to the window.
-    qApp->notify(baseClass.value<pqQVTKWidgetBase*>()->embeddedOpenGLWindow(), e);
+    if (QVTKOpenGLStereoWidget* w = dynamic_cast<QVTKOpenGLStereoWidget*>(baseClass.value<pqQVTKWidgetBase*>()))
+    {
+      qApp->notify(baseClass.value<pqQVTKWidgetBase*>()->embeddedOpenGLWindow(), e);
+    }
+    else
+    {
+      qApp->notify(baseClass.value<QVTKOpenGLNativeWidget*>(), e);
+    }
   }
   else
   {
