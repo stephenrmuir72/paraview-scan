@@ -4,8 +4,10 @@ set(index_url_root "https://www.paraview.org/files/dependencies")
 
 set(index_version "2.4.20200424")
 if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "vs2019")
-  set(index_subdir "nvidia-index-libs-${index_version}-windows-x64")
-  set(sha256sum "a04071aa73496cc73cce5b8dc6ebf48815ce48e6d15b3187e3be468743bfe7bc")
+  #set(index_subdir "nvidia-index-libs-${index_version}-windows-x64")
+  #set(sha256sum "a04071aa73496cc73cce5b8dc6ebf48815ce48e6d15b3187e3be468743bfe7bc")
+  set(index_subdir "nvidia-index-libs-${index_version}_CUDA_101-windows-x64")
+  set(sha256sum "39dd1d09abdab30d2aae3f528a5256df133564f64f090bfe93a47269266354c6")
 else ()
   message(FATAL_ERROR
     "Unknown platform for IndeX")
