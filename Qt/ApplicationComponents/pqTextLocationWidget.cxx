@@ -105,6 +105,15 @@ pqTextLocationWidget::pqTextLocationWidget(
     ui.radioButtonPosition->hide();
   }
 
+  auto inter = smproxy->GetProperty("Interactivity");
+  if (inter)
+  {
+   // auto ivp = vtkSMIntVectorProperty::SafeDownCast(Property);
+   // if (ivp) {
+      this->addPropertyLink(ui.radioButtonPosition, "checked", SIGNAL(clicked()), inter, 0);
+    //}
+  }
+
   this->updateUI();
 }
 

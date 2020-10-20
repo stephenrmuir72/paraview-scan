@@ -103,7 +103,17 @@ void vtkTextSourceRepresentation::SetVisibility(bool val)
 //----------------------------------------------------------------------------
 void vtkTextSourceRepresentation::SetInteractivity(bool val)
 {
-  if (this->TextWidgetRepresentation && this->TextWidgetRepresentation->GetWidget())
+  vtkTextRepresentation* repr = this->TextWidgetRepresentation
+    ? vtkTextRepresentation::SafeDownCast(this->TextWidgetRepresentation->GetRepresentation())
+    : nullptr;
+
+  if (repr && repr->GetWindowLocation() != 0)
+  {
+    val = false;
+  }
+
+  if (this->TextWidgetRepresentation
+      && this->TextWidgetRepresentation->GetWidget())
   {
     this->TextWidgetRepresentation->GetWidget()->SetProcessEvents(val);
   }
