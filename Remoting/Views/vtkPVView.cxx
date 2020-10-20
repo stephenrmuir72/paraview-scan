@@ -126,7 +126,6 @@ protected:
   {
     this->SetReadyForRendering(false);
     this->Superclass::SetShowWindow(false);
-    this->Superclass::SetUseOffScreenBuffers(true);
   }
   ~vtkOffscreenOpenGLRenderWindow()
   {

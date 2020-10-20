@@ -417,8 +417,11 @@ void vtkViewLayout::Paint(vtkViewport* vp)
   auto& internals = (*this->Internals);
   vtkOpenGLRenderUtilities::MarkDebugEvent("vtkViewLayout::Paint Start");
   auto renderer = vtkOpenGLRenderer::SafeDownCast(vp);
-
   assert(renderer != nullptr);
+
+  auto camera = renderer->GetActiveCamera();
+  const bool leftEye = camera->GetLeftEye() != 0;
+
   auto window = vtkOpenGLRenderWindow::SafeDownCast(renderer->GetRenderWindow());
   auto ostate = window->GetState();
 
@@ -445,30 +448,28 @@ void vtkViewLayout::Paint(vtkViewport* vp)
     {
       auto renWin = vtkOpenGLRenderWindow::SafeDownCast(item.View->GetRenderWindow());
       const int* size = renWin->GetActualSize();
-      if (auto fbo = renWin ? renWin->GetRenderFramebuffer() : nullptr)
+      if (renWin && renWin->GetRenderFramebuffer() != nullptr &&
+          /** checking for FBO index simply let's us determine if the renWin rendered
+           * yet or not **/
+          renWin->GetRenderFramebuffer()->GetFBOIndex() != 0)
       {
         vtkVLogF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "paste back results from `%s`",
           item.View->GetLogName().c_str());
         // blit fbo to screen.
+        vtkVector4i destVP;
         if (this->InTileDisplay)
         {
-          ostate->vtkglScissor(
+          destVP = vtkVector4i(
             item.TiledOrigin[0], item.TiledOrigin[1], item.TiledSize[0], item.TiledSize[1]);
         }
         else
         {
-          ostate->vtkglScissor(0, 0, size[0], size[1]);
+          destVP = vtkVector4i(0, 0, size[0], size[1]);
         }
-        // only blit if the FBO has been created and initialized
-        if (fbo->GetFBOIndex())
-        {
-          fbo->SaveCurrentBindingsAndBuffers(GL_READ_FRAMEBUFFER);
-          fbo->Bind(GL_READ_FRAMEBUFFER);
-          const int extents[] = { 0, size[0], 0, size[1] };
-          fbo->Blit(extents, extents, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-          fbo->RestorePreviousBindingsAndBuffers(GL_READ_FRAMEBUFFER);
-          vtkOpenGLCheckErrorMacro("Failed after paste-back");
-        }
+        const vtkVector4i srcVP{ 0, 0, size[0], size[1] };
+        renWin->BlitDisplayFramebuffer(/*right=*/leftEye ? 0 : 1, srcVP[0], srcVP[1], srcVP[2],
+          srcVP[3], destVP[0], destVP[1], destVP[2], destVP[3], GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        vtkOpenGLCheckErrorMacro("Failed after paste-back");
       }
     }
   }
