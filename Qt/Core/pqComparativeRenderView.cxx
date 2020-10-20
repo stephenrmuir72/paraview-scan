@@ -146,8 +146,14 @@ void pqComparativeRenderView::updateViewWidgets(QWidget* container /*=NULL*/)
     currentViewsSet.insert(temp);
   }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   QSet<vtkSMViewProxy*> oldViews =
     QSet<vtkSMViewProxy*>::fromList(this->Internal->RenderWidgets.keys());
+#else
+  auto const& render_keys = this->Internal->RenderWidgets.keys();
+  QSet<vtkSMViewProxy*> oldViews =
+    QSet<vtkSMViewProxy*>(render_keys.begin(), render_keys.end());
+#endif
 
   QSet<vtkSMViewProxy*> removed = oldViews - currentViewsSet;
   QSet<vtkSMViewProxy*> added = currentViewsSet - oldViews;
