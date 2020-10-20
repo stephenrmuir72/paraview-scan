@@ -232,7 +232,12 @@ bool pqServerConfigurationImporter::fetch(const QUrl& url)
 
   bool return_value = false;
   QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-  if (reply->error() != QNetworkReply::NoError)
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+  auto error = reply->error();
+#else
+  auto error = reply->networkError();
+#endif
+  if (error != QNetworkReply::NoError)
   {
     Q_EMIT this->message(QString("Request failed: %1").arg(reply->errorString()));
   }
