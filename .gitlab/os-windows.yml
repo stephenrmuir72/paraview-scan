@@ -77,8 +77,8 @@
         - *before_script_windows
         - *before_script_windows_deps
         # Build and activate the venv
-        - $pwdpath\.gitlab\python\python -m venv $pwdpath\build\ci-venv
-        - $pwdpath\build\ci-venv\bin\Activate.ps1
+        - Invoke-Expression -Command "$pwdpath\.gitlab\python\python -m venv $pwdpath\build\ci-venv"
+        - Invoke-Expression -Command build\ci-venv\bin\Activate.ps1
         - pip install -r $pwdpath\.gitlab\ci\requirements.txt
         - Set-Item -Force -Path "env:PATH" -Value "$env:PATH;$env:SCCACHE_PATH"
         - Invoke-Expression -Command .gitlab/ci/vcvarsall.ps1
@@ -97,7 +97,7 @@
         - *before_script_windows
         - *before_script_windows_deps
         # Reuse the venv from the build step (avoids version changes between build and testing).
-        - $pwdpath\build\ci-venv\bin\Activate.ps1
+        - Invoke-Expression -Command build\ci-venv\bin\Activate.ps1
         # Some tests run CMake steps, so we need a compiler environment.
         - Invoke-Expression -Command .gitlab/ci/vcvarsall.ps1
         - ctest --output-on-failure -V -S .gitlab/ci/ctest_test.cmake
