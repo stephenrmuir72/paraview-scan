@@ -2,6 +2,24 @@
 #
 #   sha256sum $files | awk '{ print "set(\"" $2 "_hash\" " $1 ")" }' >> $thisfile
 
+set("5.12.9-0-202006121743qtbase-Windows-Windows_10-MSVC2015-Windows-Windows_10-X86_64.7z_hash" d7ad7d0fb35bad9aa311e221d56c3d85bd4ebc8ff522b1f34e09fa9a5846460f)
+set("5.12.9-0-202006121743qtsvg-Windows-Windows_10-MSVC2015-Windows-Windows_10-X86_64.7z_hash" 5863d9268f424a7faff325c126faa02b48e7771c21a0a1dab9eed45700e33dfa)
+set("5.12.9-0-202006121743qttools-Windows-Windows_10-MSVC2015-Windows-Windows_10-X86_64.7z_hash" 181a8b3639359fbb69a6fb9a98905db7a0c63a262dc2a2f9b62b6088d5b3215f)
+set("5.12.9-0-202006121743qtxmlpatterns-Windows-Windows_10-MSVC2015-Windows-Windows_10-X86_64.7z_hash" 00a16930d8aae2ca8bbcc79995dc369afa788e054b29dd27fe9288ae3e13d532)
+
+set("5.12.9-0-202006121743qtbase-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z_hash" 7712f1e47dc47a5f25b98569e81cbf0b6dca7def817d2ada3483da98a7991f72)
+set("5.12.9-0-202006121743qtsvg-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z_hash" 25d85b84369da1bf69e14e1147370b94019cf192c3d8e642f64f46473cb78ab8)
+set("5.12.9-0-202006121743qttools-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z_hash" 7f9be775907b407df2695ec5f42feb9ec24885c65f53ec55a0b103eb362a146e)
+set("5.12.9-0-202006121743qtxmlpatterns-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z_hash" 3118e845c0d67ac829e406f0969efa92469beb7dcffdc70fff7bac4ac5c9eeb5)
+
+if (msvc_year STREQUAL "2015")
+  set("5.12.9-0-202006121743d3dcompiler_47-x64.7z_hash" 12243821b0d66f53d565ee6225aecdc9d040de265d14d5a292f90a6bce4d3bcc)
+  set("5.12.9-0-202006121743opengl32sw-64-mesa_12_0_rc2.7z_hash" 60666adf13b6f80ca2f84c633eb43cffda074c037fbf29f4157ef240de1fa98d)
+else ()
+  set("5.12.9-0-202006121743d3dcompiler_47-x64.7z_hash" e2f89eb9f4409165eb386a6f2a1effbf8a8f93b52992e8d9bc66ddc35b8425c9)
+  set("5.12.9-0-202006121743opengl32sw-64-mesa_12_0_rc2.7z_hash" aff0bf36c62e7b082a97ac8c29e759e231951562e5087b7566001f16e1cc5092)
+endif ()
+
 set("5.15.0-0-202002260536d3dcompiler_47-x64.7z_hash" 428a8b5d74b31d42a234d9ddc05a1f13f9a651b0798094215b25263108983a95)
 set("5.15.0-0-202002260536opengl32sw-64-mesa_12_0_rc2.7z_hash" dd40f61374ba988afabcb239713a10504816d7afc2997707c7ebcbe57eb30112)
 set("5.15.0-0-202002260536qtbase-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z_hash" c041596be8f7a16c7be9ea6757c14766ff3200ab6d56f7db8f865dbfe039fe20)
