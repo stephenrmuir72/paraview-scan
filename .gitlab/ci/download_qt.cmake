@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Input variables.
-set(qt_version_major "5")
-set(qt_version_minor "15")
-set(qt_version_patch "0")
+if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "qtmin")
+  set(qt_version_major "5")
+  set(qt_version_minor "12")
+  set(qt_version_patch "9")
+else ()
+  set(qt_version_major "5")
+  set(qt_version_minor "15")
+  set(qt_version_patch "0")
+endif ()
 # This URL is only visible inside of Kitware's network. Please use your own Qt
 # Account to obtain these files.
 set(qt_url_root "https://paraview.org/files/dependencies/internal/qt")
@@ -33,7 +39,9 @@ set(qt_version_nodot "${qt_version_major}${qt_version_minor}${qt_version_patch}"
 # Files needed to download.
 set(qt_files)
 if (qt_platform STREQUAL "windows_x86")
-  if (msvc_year STREQUAL "2017")
+  if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "qtmin")
+    set(qt_build_stamp "202006121743")
+  elseif (msvc_year STREQUAL "2017")
     set(qt_build_stamp "202002260536")
   elseif (msvc_year STREQUAL "2015")
     set(qt_build_stamp "202005150700")
