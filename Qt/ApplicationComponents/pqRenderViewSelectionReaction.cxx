@@ -81,6 +81,8 @@ pqRenderViewSelectionReaction::pqRenderViewSelectionReaction(
   , MouseMovingTimer(this)
   , MouseMoving(false)
 {
+  this->MousePosition[0] = 0;
+  this->MousePosition[1] = 1;
   for (size_t i = 0; i < sizeof(this->ObserverIds) / sizeof(this->ObserverIds[0]); ++i)
   {
     this->ObserverIds[i] = 0;
@@ -635,6 +637,8 @@ void pqRenderViewSelectionReaction::preSelection()
   int x = rmp->GetInteractor()->GetEventPosition()[0];
   int y = rmp->GetInteractor()->GetEventPosition()[1];
   int* size = rmp->GetInteractor()->GetSize();
+  this->MousePosition[0] = x;
+  this->MousePosition[1] = y;
 
   vtkSMPreselectionPipeline* pipeline;
   switch (this->Mode)
@@ -751,6 +755,8 @@ void pqRenderViewSelectionReaction::fastPreSelection()
 
   int x = rmp->GetInteractor()->GetEventPosition()[0];
   int y = rmp->GetInteractor()->GetEventPosition()[1];
+  this->MousePosition[0] = x;
+  this->MousePosition[1] = y;
 
   int region[4] = { x, y, x, y };
 
@@ -863,10 +869,9 @@ void pqRenderViewSelectionReaction::UpdateTooltip()
   bool showTooltip;
   if (pipeline->CanDisplayTooltip(showTooltip))
   {
-    double tooltipPos[2];
     std::string tooltipText;
     if (showTooltip && !this->MouseMoving &&
-      pipeline->GetTooltipInfo(association, tooltipPos, tooltipText))
+      pipeline->GetTooltipInfo(association, tooltipText))
     {
       QWidget* widget = this->View->widget();
 
@@ -875,7 +880,7 @@ void pqRenderViewSelectionReaction::UpdateTooltip()
 
       // Convert renderer based position to a global position
       QPoint pos = widget->mapToGlobal(
-        QPoint(tooltipPos[0] / dpr, widget->size().height() - (tooltipPos[1] / dpr)));
+        QPoint(this->MousePosition[0] / dpr, widget->size().height() - (this->MousePosition[1] / dpr)));
 
       QToolTip::showText(pos, tooltipText.c_str());
     }
