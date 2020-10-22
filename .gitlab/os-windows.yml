@@ -74,6 +74,9 @@
     - git submodule foreach --recursive cmake -P "$pwdpath/.gitlab/ci/fetch_submodule.cmake"
     - git submodule sync --recursive
     - git submodule update --init --recursive
+    - git status
+    - git -C VTK status
+    - git -C VTK/ThirdParty/vtkm/vtkvtkm/vtk-m status
 
 .before_script_windows_deps: &before_script_windows_deps
     - cmake -P .gitlab/ci/download_qt.cmake
