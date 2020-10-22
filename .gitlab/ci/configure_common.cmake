@@ -1,3 +1,7 @@
+# Temporarily test VRPlugin with VRUI support
+set(PARAVIEW_PLUGIN_ENABLE_VRPlugin ON)
+set(PARAVIEW_PLUGIN_VRPlugin_USE_VRUI ON)
+
 # Stock CI builds test everything possible (platforms will disable modules as
 # needed).
 set(PARAVIEW_BUILD_ALL_MODULES ON CACHE BOOL "")
