@@ -32,9 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef vtkVRUIPipe_h
 #define vtkVRUIPipe_h
 #include <string>
-#ifdef QTSOCK
+
 class QTcpSocket;
-#endif
 
 class vtkVRUIServerState;
 
@@ -60,11 +59,7 @@ public:
 // Description:
 // Constructor from tcp socket.
 // \pre socket_exists: socket!=0
-#ifdef QTSOCK
   vtkVRUIPipe(QTcpSocket* socket);
-#else
-  vtkVRUIPipe(int socket);
-#endif
 
   // Description:
   // Destructor.
@@ -126,11 +121,7 @@ public:
   }
 
 protected:
-#ifdef QTSOCK
   QTcpSocket* Socket;
-#else
-  int Socket; /* socket file descriptor */
-#endif
 
 private:
   vtkVRUIPipe() = delete;
