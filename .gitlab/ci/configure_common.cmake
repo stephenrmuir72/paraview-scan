@@ -10,6 +10,12 @@ set(VTK_USE_LARGE_DATA ON CACHE BOOL "")
 
 set(PARAVIEW_BUILD_CATALYST_ADAPTORS ON CACHE BOOL "")
 
+# Test VRPlugin with VRUI support
+if (PARAVIEW_USE_QT)
+  set(PARAVIEW_PLUGIN_ENABLE_VRPlugin ON CACHE BOOL "")
+  set(PARAVIEW_PLUGIN_VRPlugin_USE_VRUI ON CACHE BOOL "")
+endif
+
 # The install trees on CI machines need help since dependencies are not in a
 # default location.
 set(PARAVIEW_RELOCATABLE_INSTALL ON CACHE BOOL "")
