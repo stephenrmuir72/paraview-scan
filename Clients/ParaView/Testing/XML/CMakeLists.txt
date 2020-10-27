@@ -654,6 +654,7 @@ SET(TESTS_WITH_BASELINES
   SeriesPresetRegexp.xml
   TestHiddenLineRemoval.xml
   TestOpacityRendering.xml
+  TextSourceBorder.xml
 )
 
 if(PARAVIEW_ENABLE_VISITBRIDGE)

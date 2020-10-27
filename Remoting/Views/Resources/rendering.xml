@@ -448,7 +448,7 @@
       </IntVectorProperty>
       <IntVectorProperty animateable="0"
                          command="SetVerticalJustification"
-                         default_values="0"
+                         default_values="1"
                          name="VerticalJustification"
                          number_of_elements="1">
         <EnumerationDomain name="enum">
