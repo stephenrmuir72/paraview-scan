@@ -9087,6 +9087,17 @@
                proxygroup="representations"
                proxyname="TextWidgetRepresentation"></Proxy>
         <ExposedProperties>
+
+          <Property name="ShowBorder" />
+          <Property name="BorderColor" />
+          <Property name="BorderThickness" />
+          <Property name="BorderRadius" />
+          <Property name="BorderResolution" />
+          <Property name="PolygonColor" />
+          <Property name="PolygonOpacity" />
+          <Property name="RightPadding" />
+          <Property name="TopPadding" />
+
           <!-- properties for Text -->
           <Property name="Orientation" panel_visibility="never"/>
           <PropertyGroup label="Font Properties" panel_widget="FontEditor">
