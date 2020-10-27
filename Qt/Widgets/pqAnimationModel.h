@@ -201,6 +201,9 @@ protected:
   double timeFromTick(int tick);
   int tickFromTime(double pos);
   void drawForeground(QPainter* painter, const QRectF& rect) override;
+  QRectF drawTimeLabel(double time, const QRectF& row, QPainter* painter,
+    const QFontMetrics& metrics, QList<const QRectF*> const& priorities);
+  void updateNewTime(QGraphicsSceneMouseEvent* mouseEvent);
   bool hitTestCurrentTimePoly(const QPointF& pos);
   pqAnimationTrack* hitTestTracks(const QPointF& pos);
   pqAnimationKeyFrame* hitTestKeyFrame(pqAnimationTrack* t, const QPointF& pos);
