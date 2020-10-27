@@ -782,6 +782,7 @@ list(APPEND TESTS_WITH_BASELINES
   AMReXParticlesReader.xml
   AnimationUseCamera.xml
   AnimationSetTimeCursor.xml
+  AnimationMoveKeyframe.xml
   Annotations.xml
   ConvertToMolecule.xml
   ContourCellData.xml
