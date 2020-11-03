@@ -66,12 +66,12 @@ public:
   * It is essential to call this resetCamera, to ensure that the reset camera
   * action gets pushed on the interaction undo stack.
   */
-  virtual void resetCamera() = 0;
+  virtual void resetCamera(bool closeTo = false) = 0;
 
   /**
   * Called to reset the view's display.  This method calls resetCamera().
   */
-  void resetDisplay() override;
+  void resetDisplay(bool closeTo = false) override;
 
 protected Q_SLOTS:
   virtual void initializeAfterObjectsCreated();
