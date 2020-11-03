@@ -108,15 +108,15 @@ public:
   /**
    * For backwards compatibility in Python scripts.
    */
-  void ResetCamera();
-  void ResetCamera(double bounds[6]);
-  void ResetCamera(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
+  void ResetCamera(bool closeTo = false);
+  void ResetCamera(double bounds[6], bool closeTo = false);
+  void ResetCamera(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, bool closeTo = false);
   //@}
 
   /**
    * Convenience method for zooming to a representation.
    */
-  virtual void ZoomTo(vtkSMProxy* representation);
+  virtual void ZoomTo(vtkSMProxy* representation, bool closeTo = false);
 
   //@{
   /**

@@ -229,8 +229,34 @@
      <normaloff>:/pqWidgets/Icons/pqZoomToData.svg</normaloff>:/pqWidgets/Icons/pqZoomToData.svg</iconset>
    </property>
   </action>
+  <action name="actionZoomCloseToData">
+   <property name="text">
+    <string>ZCTD</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom Close To Data</string>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZoomToData.svg</normaloff>:/pqWidgets/Icons/pqZoomToData.svg</iconset>
+   </property>
+  </action>
+  <action name="actionResetCameraClose">
+   <property name="text">
+    <string>ZCTD</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Camera Close</string>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetCamera.svg</normaloff>:/pqWidgets/Icons/pqResetCamera.svg</iconset>
+   </property>
+  </action>
   <addaction name="actionResetCamera"/>
   <addaction name="actionZoomToData"/>
+  <addaction name="actionResetCameraClose"/>
+  <addaction name="actionZoomCloseToData"/>
   <addaction name="actionZoomToBox"/>
   <addaction name="actionPositiveX"/>
   <addaction name="actionNegativeX"/>

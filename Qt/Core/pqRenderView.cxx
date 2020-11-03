@@ -227,10 +227,10 @@ void pqRenderView::onResetCameraEvent()
 }
 
 //-----------------------------------------------------------------------------
-void pqRenderView::resetCamera()
+void pqRenderView::resetCamera(bool closeTo)
 {
   this->fakeInteraction(true);
-  this->getRenderViewProxy()->ResetCamera();
+  this->getRenderViewProxy()->ResetCamera(closeTo);
   this->fakeInteraction(false);
   this->render();
 }
