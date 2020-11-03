@@ -63,6 +63,7 @@ private:
   Q_DISABLE_COPY(pqCameraToolbar)
   void constructor();
   QAction* ZoomToDataAction;
+  QAction* ZoomCloseToDataAction;
 };
 
 #endif
