@@ -9,6 +9,7 @@ yum install -y \
    python3-numpy openmpi-devel mesa-libOSMesa-devel \
    python3-pandas python3-pandas-datareader \
    mesa-libOSMesa-devel mesa-libOSMesa \
-   python3-sphinx
+   python3-sphinx \
+   libXcursor-devel
 
 yum clean all
