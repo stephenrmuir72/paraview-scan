@@ -26,6 +26,7 @@
 
 #include "vtkPVVTKExtensionsMiscModule.h" //needed for exports
 #include "vtkTransform.h"
+#include "vtkNew.h"
 class vtkTransform;
 
 class VTKPVVTKEXTENSIONSMISC_EXPORT vtkPVTransform : public vtkTransform
@@ -64,14 +65,14 @@ public:
 
 protected:
   vtkPVTransform();
-  ~vtkPVTransform() override;
+  ~vtkPVTransform() override = default;
 
-  void UpdateMatrix();
+  virtual void UpdateMatrix();
 
   double AbsolutePosition[3];
   double AbsoluteRotation[3];
   double AbsoluteScale[3];
-  vtkTransform* AbsoluteTransform;
+  vtkNew<vtkTransform> AbsoluteTransform;
 
 private:
   vtkPVTransform(const vtkPVTransform&) = delete;
