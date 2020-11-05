@@ -16,15 +16,11 @@
 
 #include "vtkObjectFactory.h"
 
-#include <assert.h>
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPVTransform);
 //----------------------------------------------------------------------------
 vtkPVTransform::vtkPVTransform()
 {
-  this->AbsoluteTransform = vtkTransform::New();
-
   // Set position to 0
   this->AbsolutePosition[0] = this->AbsolutePosition[1] = this->AbsolutePosition[2] = 0;
 
@@ -33,12 +29,6 @@ vtkPVTransform::vtkPVTransform()
 
   // Set scale to 1
   this->AbsoluteScale[0] = this->AbsoluteScale[1] = this->AbsoluteScale[2] = 1;
-}
-
-//----------------------------------------------------------------------------
-vtkPVTransform::~vtkPVTransform()
-{
-  this->AbsoluteTransform->Delete();
 }
 
 //----------------------------------------------------------------------------
