@@ -929,6 +929,7 @@ list(APPEND TESTS_WITH_BASELINES
   ResampleWithDataset.xml
   RescaleToTemporal.xml
   ReverseLegend.xml
+  RotateAroundOrigin.xml
   RotateCamera90.xml
 #  SaveAnimationGeometry.xml
   SaveColorMap.xml
