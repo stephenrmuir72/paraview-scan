@@ -67,10 +67,10 @@
 
 .linux_builder_tags:
     tags:
-      - build
+      #       - build
       - docker
       - linux
-      - paraview
+      #- paraview
 
 .linux_tester_tags:
     tags:
