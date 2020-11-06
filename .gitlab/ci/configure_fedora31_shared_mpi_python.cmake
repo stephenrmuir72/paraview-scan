@@ -1,3 +1,8 @@
 set(MPI_PREFLAGS                        "--mca orte_base_help_aggregate 0"  CACHE STRING "")
+set(PARAVIEW_CLIENT_RENDER_SERVER_TESTS ON CACHE STRING "")
+set(PARAVIEW_MULTI_CLIENT_TESTING ON CACHE STRING "")
+set(PARAVIEW_PLUGIN_ENABLE_FlipBookPlugin ON CACHE STRING "")
+set(PARAVIEW_PLUGIN_ENABLE_LagrangianParticleTracker ON CACHE STRING "")
+set(PARAVIEW_PLUGIN_ENABLE_SaveStateAndScreenshot ON CACHE STRING "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora31.cmake")
