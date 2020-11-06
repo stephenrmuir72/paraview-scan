@@ -56,12 +56,21 @@
     variables:
         CMAKE_CONFIGURATION: fedora31_static_mpi_offscreen_osmesa_python
 
+.fedora31_shared_debug_mpi_python:
+    extends:
+        - .fedora31
+        - .fedora_openmpi_addon
+
+    variables:
+        CMAKE_CONFIGURATION: fedora31_shared_mpi_python
+        CMAKE_BUILD_TYPE: debug
+
 .linux_builder_tags:
     tags:
-        - build
-        - docker
-        - linux
-        - paraview
+      - build
+      - docker
+      - linux
+      - paraview
 
 .linux_tester_tags:
     tags:
