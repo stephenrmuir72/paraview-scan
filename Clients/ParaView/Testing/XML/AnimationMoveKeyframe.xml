@@ -5,6 +5,7 @@
   <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menuSources" />
   <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="CubeSource" />
   <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/CreateDeleteWidget/PropertyCombo" command="activated" arguments="X Length" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/1QHeaderView0" command="mousePress" arguments="1,1,0,0,0,2" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/1QHeaderView0" command="mouseRelease" arguments="1,0,0,0,0,2" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/TrackHeader" command="mousePress" arguments="1,1,0,0,0,2" />
@@ -18,15 +19,16 @@
   <pqevent object="1QDialog0/pqKeyFrameEditor/tableView" command="editAccepted" arguments="1.2,2" />
   <pqevent object="1QDialog0/pqKeyFrameEditor/pbNew" command="activate" arguments="" />
   <pqevent object="1QDialog0/1QDialogButtonBox0/1QPushButton0" command="activate" arguments="" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0." />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0." />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0.3" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="key" arguments="16777220" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mousePress" arguments="1,1,0,346,80" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mouseMove" arguments="1,0,0,634,78" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mouseRelease" arguments="1,0,0,634,78" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0." />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0.6" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="key" arguments="16777220" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mousePress" arguments="1,1,0,351,75" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mouseMove" arguments="1,0,0,83,72" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/qt_scrollarea_viewport/1QGraphicsView0/1QWidget0" command="mouseRelease" arguments="1,0,0,83,72" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0." />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0." />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="set_string" arguments="0.8" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/AnimationTimeWidget/timeValue" command="key" arguments="16777220" />
+  <pqevent object="pqClientMainWindow/cameraToolbar/actionResetCamera" command="activate" arguments="" />
 </pqevents>
