@@ -114,6 +114,19 @@ public:
   */
   double endTime() const;
   /**
+  * get the zoom start time
+  */
+  double zoomStartTime() const;
+  /**
+  * get the zoom end time
+  */
+  double zoomEndTime() const;
+  /**
+  * get the zoom factor
+  */
+  double zoomFactor() const;
+
+  /**
   * get whether this scene is interactive
   */
   bool interactive() const;
@@ -123,6 +136,11 @@ public:
 
   void setRowHeight(int);
   int rowHeight() const;
+
+  /**
+  * positions the zoom window with its beginning at zoomStartTime
+  */
+  void positionZoom(double zoomStartTime);
 
   /**
   * provides access to the custom ticks set using
@@ -180,6 +198,11 @@ public Q_SLOTS:
    */
   void setTimeNotation(const QChar& notation);
 
+  /**
+   * Scales the drawing of the track to the current zoom.
+   */
+  void zoomTrack(pqAnimationTrack* track);
+
 Q_SIGNALS:
   // emitted when a track is double clicked on
   void trackSelected(pqAnimationTrack*);
@@ -187,6 +210,8 @@ Q_SIGNALS:
   void currentTimeSet(double);
   // emitted when the time of a keyframe was changed by this model
   void keyFrameTimeChanged(pqAnimationTrack* track, pqAnimationKeyFrame* kf, int end, double time);
+  // emitted when the zoom factor or position are changed
+  void zoomChanged();
 
 protected Q_SLOTS:
 
@@ -221,6 +246,7 @@ protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+  void wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) override;
 
   double timeToNormalizedTime(double) const;
   double normalizedTimeToTime(double) const;
@@ -237,6 +263,9 @@ private:
   double CurrentTime;
   double StartTime;
   double EndTime;
+  double ZoomStartTime;
+  double ZoomEndTime;
+  double ZoomFactor;
   int RowHeight;
   bool Interactive;
 
@@ -245,6 +274,9 @@ private:
   // vars to support interaction
   bool CurrentTimeGrabbed;
   double NewCurrentTime;
+  double FramePositionGrabbed;
+  double OldZoomStartTime;
+  bool TimeLineGrabbed;
   pqAnimationTrack* CurrentTrackGrabbed;
   pqAnimationKeyFrame* CurrentKeyFrameGrabbed;
   int CurrentKeyFrameEdge;

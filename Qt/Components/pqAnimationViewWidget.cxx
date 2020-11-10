@@ -71,6 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSetName.h"
 #include "pqSignalAdaptors.h"
 #include "pqTimeKeeper.h"
+#include "pqTimelineScrollbar.h"
 #include "pqUndoStack.h"
 
 #include "vtkCamera.h"
@@ -93,21 +94,21 @@ class pqAnimationViewWidget::pqInternal
 {
 public:
   pqInternal()
-    : AnimationWidget(NULL)
-    , AnimationTimeWidget(NULL)
-    , PlayMode(NULL)
-    , StartTime(NULL)
-    , StartTimeLabel(NULL)
-    , EndTime(NULL)
-    , EndTimeLabel(NULL)
-    , DurationLabel(NULL)
-    , Duration(NULL)
-    , CreateSource(NULL)
-    , CreateProperty(NULL)
-    , LockEndTime(NULL)
-    , LockStartTime(NULL)
-    , SelectedCueProxy(NULL)
-    , SelectedDataProxy(NULL)
+    : AnimationWidget(nullptr)
+    , AnimationTimeWidget(nullptr)
+    , PlayMode(nullptr)
+    , StartTime(nullptr)
+    , StartTimeLabel(nullptr)
+    , EndTime(nullptr)
+    , EndTimeLabel(nullptr)
+    , DurationLabel(nullptr)
+    , Duration(nullptr)
+    , CreateSource(nullptr)
+    , CreateProperty(nullptr)
+    , LockEndTime(nullptr)
+    , LockStartTime(nullptr)
+    , SelectedCueProxy(nullptr)
+    , SelectedDataProxy(nullptr)
   {
   }
 
@@ -143,7 +144,7 @@ public:
     {
       return iter.value();
     }
-    return NULL;
+    return nullptr;
   }
   pqAnimationCue* findCue(pqAnimationTrack* track)
   {
@@ -155,7 +156,7 @@ public:
         return iter.key();
       }
     }
-    return NULL;
+    return nullptr;
   }
   QString cueName(pqAnimationCue* cue)
   {
@@ -325,7 +326,7 @@ pqAnimationViewWidget::pqAnimationViewWidget(QWidget* _parent)
 
   this->Internal->CreateSource = new pqAnimatableProxyComboBox(w) << pqSetName("ProxyCombo");
 #if VTK_MODULE_ENABLE_ParaView_pqPython
-  this->Internal->CreateSource->addProxy(0, "Python", NULL);
+  this->Internal->CreateSource->addProxy(0, "Python", nullptr);
 #endif
   this->Internal->CreateProperty = new pqAnimatablePropertiesComboBox(w)
     << pqSetName("PropertyCombo");
@@ -364,6 +365,12 @@ pqAnimationViewWidget::pqAnimationViewWidget(QWidget* _parent)
 
   QObject::connect(this->Internal->CreateSource, SIGNAL(currentProxyChanged(vtkSMProxy*)), this,
     SLOT(setCurrentProxy(vtkSMProxy*)));
+
+  pqTimelineScrollbar* timelineScrollbar = new pqTimelineScrollbar(this);
+  timelineScrollbar->linkSpacing(this->Internal->AnimationWidget);
+  timelineScrollbar->setAnimationModel(this->Internal->AnimationWidget->animationModel());
+
+  vboxlayout->addWidget(timelineScrollbar);
 
   vboxlayout->addWidget(this->Internal->AnimationWidget);
 }
@@ -456,7 +463,7 @@ void pqAnimationViewWidget::onSceneCuesChanged()
   // add new tracks
   foreach (pqAnimationCue* cue, cues)
   {
-    if (cue == NULL)
+    if (cue == nullptr)
     {
       continue;
     }
@@ -550,6 +557,8 @@ void pqAnimationViewWidget::keyFramesChanged(QObject* cueObject)
     newFrame->setEndValue(endValue);
     newFrame->setIcon(QIcon(icon));
   }
+  pqAnimationModel* animModel = this->Internal->AnimationWidget->animationModel();
+  animModel->zoomTrack(track);
 }
 
 //-----------------------------------------------------------------------------
@@ -636,7 +645,7 @@ void pqAnimationViewWidget::trackSelected(pqAnimationTrack* track)
 
   if (track->property().toString().startsWith("TimeKeeper"))
   {
-    this->Internal->Editor = new pqPipelineTimeKeyFrameEditor(this->Internal->Scene, cue, NULL);
+    this->Internal->Editor = new pqPipelineTimeKeyFrameEditor(this->Internal->Scene, cue, nullptr);
     this->Internal->Editor->resize(600, 400);
   }
   else if (this->Internal->pythonCue(cue))
@@ -906,7 +915,7 @@ void pqAnimationViewWidget::createTrack()
 
   if (!curProxy)
   {
-// curProxy == NULL is only used for "Python" track for now. Of course,
+// curProxy == nullptr is only used for "Python" track for now. Of course,
 // we only support that when python is enabled.
 // we allow creating as many python tracks as needed, hence we don't check
 // if there exists a track already (which is the case with others).
@@ -919,7 +928,7 @@ void pqAnimationViewWidget::createTrack()
   // check that we don't already have one
   foreach (pqAnimationCue* cue, this->Internal->TrackMap.keys())
   {
-    if (cue->getAnimatedProxy() == NULL)
+    if (cue->getAnimatedProxy() == nullptr)
     {
       continue; // skip Python tracks.
     }
@@ -1007,7 +1016,7 @@ void pqAnimationViewWidget::createPythonTrack()
   BEGIN_UNDO_SET("Add Animation Track");
 
   pqAnimationCue* cue = this->Internal->Scene->createCue("PythonAnimationCue");
-  assert(cue != NULL);
+  assert(cue != nullptr);
   (void)cue;
   END_UNDO_SET();
 #else

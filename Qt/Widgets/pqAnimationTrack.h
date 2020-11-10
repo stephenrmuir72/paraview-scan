@@ -95,8 +95,6 @@ Q_SIGNALS:
   void enabledChanged();
 
 protected:
-  void adjustKeyFrameRects();
-
   void paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:

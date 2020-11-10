@@ -84,7 +84,7 @@ public Q_SLOTS:
   void setEndValue(const QVariant&);
   void setIcon(const QIcon& icon);
   void setBoundingRect(const QRectF& r);
-  void adjustRect();
+  void adjustRect(double startPos, double endPos);
 
 Q_SIGNALS:
   void startValueChanged();

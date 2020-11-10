@@ -45,6 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxy.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "pqTimelineScrollbar.h"
 #include "pqUndoStack.h"
 #include "vtkCommand.h"
 #include "vtkCompositeAnimationPlayer.h"
@@ -100,7 +101,7 @@ protected:
       vtkSMProxy* aproxy = reinterpret_cast<vtkSMProxy*>(var.value<void*>());
       proxies.push_back(aproxy);
     }
-    proxies.push_back(NULL);
+    proxies.push_back(nullptr);
     assert(proxies.size() > 0);
     vtkSMPropertyHelper(this->propertySM())
       .Set(&proxies[0], static_cast<unsigned int>(proxies.size() - 1));
@@ -132,7 +133,7 @@ class pqTimeInspectorWidget::TimeTrack : public pqAnimationTrack
   double DataTime;
 
 public:
-  TimeTrack(vtkSMProxy* sourceProxy, QObject* parentObj = NULL)
+  TimeTrack(vtkSMProxy* sourceProxy, QObject* parentObj = nullptr)
     : Superclass(parentObj)
     , Source(sourceProxy)
     , HasDataTime(false)
@@ -188,9 +189,9 @@ protected:
     pqAnimationModel* model = this->animationModel();
     foreach (double mark, this->Markers)
     {
-      if (mark >= model->startTime() && mark <= model->endTime())
+      if (mark >= model->zoomStartTime() && mark <= model->zoomEndTime())
       {
-        mark = (mark - model->startTime()) / (model->endTime() - model->startTime());
+        mark = (mark - model->zoomStartTime()) / (model->zoomEndTime() - model->zoomStartTime());
         mark = trackRectF.left() + mark * trackRectF.width();
         QLineF line(mark, trackRectF.top() + 10, mark, trackRectF.top() + trackRectF.height() - 10);
         p->drawLine(line);
@@ -198,10 +199,10 @@ protected:
     }
     if (this->HasDataTime)
     {
-      if (this->DataTime >= model->startTime() && this->DataTime <= model->endTime())
+      if (this->DataTime >= model->zoomStartTime() && this->DataTime <= model->zoomEndTime())
       {
-        double time =
-          (this->DataTime - model->startTime()) / (model->endTime() - model->startTime());
+        double time = (this->DataTime - model->zoomStartTime()) /
+          (model->zoomEndTime() - model->zoomStartTime());
         time = trackRectF.left() + time * trackRectF.width();
         QLineF line(time, trackRectF.top() + 3, time, trackRectF.top() + trackRectF.height() - 3);
         pen.setColor(QColor("green"));
@@ -254,7 +255,7 @@ public:
   QList<QVariant> SuppressedTimeSources;
 
   pqInternals(pqTimeInspectorWidget* self)
-    : VoidServer(NULL)
+    : VoidServer(nullptr)
   {
     this->Ui.setupUi(self);
     this->Ui.AnimationWidget->createDeleteHeader()->hide();
@@ -289,6 +290,10 @@ pqTimeInspectorWidget::pqTimeInspectorWidget(QWidget* parentObject)
 
   this->connect(pqPVApplicationCore::instance()->animationManager(),
     SIGNAL(activeSceneChanged(pqAnimationScene*)), SLOT(setAnimationScene(pqAnimationScene*)));
+
+  pqTimelineScrollbar* timelineScrollbar = this->Internals->Ui.TimelineScrollbar;
+  timelineScrollbar->linkSpacing(this->Internals->Ui.AnimationWidget);
+  timelineScrollbar->setAnimationModel(this->Internals->Ui.AnimationWidget->animationModel());
 }
 
 //-----------------------------------------------------------------------------
@@ -339,7 +344,7 @@ void pqTimeInspectorWidget::updateScene()
     animationModel->setStartTime(0.0);
     animationModel->setEndTime(1.0);
     animationModel->setMode(pqAnimationModel::Sequence);
-    this->Internals->Ui.AnimationTimeWidget->setAnimationScene(NULL);
+    this->Internals->Ui.AnimationTimeWidget->setAnimationScene(nullptr);
     // FIXME: remove all tracks.
     return;
   }
@@ -474,7 +479,7 @@ void pqTimeInspectorWidget::setSceneTimeSteps(const QList<QVariant>& val)
   }
   else
   {
-    animationModel->setTickMarks(0, NULL);
+    animationModel->setTickMarks(0, nullptr);
   }
 
   this->generalSettingsChanged();
@@ -633,7 +638,7 @@ void pqTimeInspectorWidget::toggleTrackSuppression(pqAnimationTrack* track)
     }
     this->Internals->SuppressedTimeSources = newValue;
   }
-  Q_EMIT this->suppressedTimeSourcesChanged();
+  emit this->suppressedTimeSourcesChanged();
 }
 
 //-----------------------------------------------------------------------------
