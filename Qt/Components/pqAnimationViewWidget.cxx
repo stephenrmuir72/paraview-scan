@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLineEdit>
 #include <QPointer>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtDebug>
@@ -108,6 +109,7 @@ public:
     , LockStartTime(NULL)
     , SelectedCueProxy(NULL)
     , SelectedDataProxy(NULL)
+    , TimeScrollbarGranularity(100000)
   {
   }
 
@@ -126,6 +128,9 @@ public:
   QLabel* EndTimeLabel;
   QLabel* DurationLabel;
   QLineEdit* Duration;
+  QScrollBar* TimeScrollBar;
+  const int TimeScrollbarGranularity;
+  QSpacerItem* TimeScrollBarSpacer;
   pqPropertyLinks Links;
   pqPropertyLinks DurationLink;
   pqAnimatableProxyComboBox* CreateSource;
@@ -346,12 +351,16 @@ pqAnimationViewWidget::pqAnimationViewWidget(QWidget* _parent)
     this, SLOT(toggleTrackEnabled(pqAnimationTrack*)));
   QObject::connect(
     this->Internal->AnimationWidget, SIGNAL(createTrackClicked()), this, SLOT(createTrack()));
+  QObject::connect(this->Internal->AnimationWidget, SIGNAL(timelineOffsetChanged(int)), this,
+    SLOT(updateTimeScrollbarOffset(int)));
 
   QObject::connect(this->Internal->AnimationWidget->animationModel(),
     SIGNAL(currentTimeSet(double)), this, SLOT(setCurrentTime(double)));
   QObject::connect(this->Internal->AnimationWidget->animationModel(),
     SIGNAL(keyFrameTimeChanged(pqAnimationTrack*, pqAnimationKeyFrame*, int, double)), this,
     SLOT(setKeyFrameTime(pqAnimationTrack*, pqAnimationKeyFrame*, int, double)));
+  QObject::connect(this->Internal->AnimationWidget->animationModel(), SIGNAL(zoomChanged()), this,
+    SLOT(updateTimeScrollbar()));
 
   QObject::connect(
     &pqActiveObjects::instance(), SIGNAL(viewChanged(pqView*)), this, SLOT(setActiveView(pqView*)));
@@ -364,6 +373,18 @@ pqAnimationViewWidget::pqAnimationViewWidget(QWidget* _parent)
 
   QObject::connect(this->Internal->CreateSource, SIGNAL(currentProxyChanged(vtkSMProxy*)), this,
     SLOT(setCurrentProxy(vtkSMProxy*)));
+
+  this->Internal->TimeScrollBar = new QScrollBar(this);
+  this->Internal->TimeScrollBar->setOrientation(Qt::Orientation::Horizontal);
+  QHBoxLayout* timeLayout = new QHBoxLayout;
+  this->Internal->TimeScrollBarSpacer = new QSpacerItem(0, 0);
+  timeLayout->addSpacerItem(this->Internal->TimeScrollBarSpacer);
+  timeLayout->addWidget(this->Internal->TimeScrollBar);
+  vboxlayout->addLayout(timeLayout);
+  this->updateTimeScrollbar();
+
+  QObject::connect(
+    this->Internal->TimeScrollBar, SIGNAL(actionTriggered(int)), this, SLOT(setTimeZoom(int)));
 
   vboxlayout->addWidget(this->Internal->AnimationWidget);
 }
@@ -550,6 +571,8 @@ void pqAnimationViewWidget::keyFramesChanged(QObject* cueObject)
     newFrame->setEndValue(endValue);
     newFrame->setIcon(QIcon(icon));
   }
+  pqAnimationModel* animModel = this->Internal->AnimationWidget->animationModel();
+  animModel->zoomTrack(track);
 }
 
 //-----------------------------------------------------------------------------
@@ -1031,6 +1054,75 @@ void pqAnimationViewWidget::onTimeLabelChanged()
   // Update labels
   this->Internal->StartTimeLabel->setText(QString("Start %1:").arg(timeName));
   this->Internal->EndTimeLabel->setText(QString("End %1:").arg(timeName));
+}
+
+//-----------------------------------------------------------------------------
+void pqAnimationViewWidget::updateTimeScrollbarOffset(int offset)
+{
+  this->Internal->TimeScrollBarSpacer->changeSize(offset, 0);
+}
+
+//-----------------------------------------------------------------------------
+void pqAnimationViewWidget::setTimeZoom(int action)
+{
+  pqAnimationModel* animModel = this->Internal->AnimationWidget->animationModel();
+  double timeValue;
+
+  switch (action)
+  {
+    case QAbstractSlider::SliderSingleStepAdd:
+      timeValue =
+        this->Internal->TimeScrollBar->value() + this->Internal->TimeScrollBar->pageStep();
+      this->Internal->TimeScrollBar->setValue(timeValue);
+      break;
+    case QAbstractSlider::SliderSingleStepSub:
+      timeValue =
+        this->Internal->TimeScrollBar->value() - this->Internal->TimeScrollBar->pageStep();
+      this->Internal->TimeScrollBar->setValue(timeValue);
+      break;
+    default:
+      timeValue = this->Internal->TimeScrollBar->sliderPosition();
+  }
+
+  if (timeValue >= this->Internal->TimeScrollBar->maximum())
+  {
+    timeValue = animModel->endTime() -
+      (animModel->endTime() - animModel->startTime()) / animModel->zoomFactor();
+  }
+  else if (timeValue <= this->Internal->TimeScrollBar->minimum())
+  {
+    timeValue = animModel->startTime();
+  }
+  else
+  {
+    timeValue = (timeValue / this->Internal->TimeScrollbarGranularity) *
+        (animModel->endTime() - animModel->startTime()) +
+      animModel->startTime();
+  }
+  animModel->positionZoom(timeValue);
+}
+
+//-----------------------------------------------------------------------------
+void pqAnimationViewWidget::updateTimeScrollbar()
+{
+  pqAnimationModel* animModel = this->Internal->AnimationWidget->animationModel();
+  QScrollBar* scrollb = this->Internal->TimeScrollBar;
+
+  if (animModel->zoomFactor() == 1)
+  {
+    scrollb->setVisible(false);
+    return;
+  }
+
+  scrollb->setVisible(true);
+  int rangeMax = this->Internal->TimeScrollbarGranularity -
+    (this->Internal->TimeScrollbarGranularity / animModel->zoomFactor());
+  scrollb->setPageStep(this->Internal->TimeScrollbarGranularity / animModel->zoomFactor());
+  scrollb->setRange(0, rangeMax);
+  int relativeTime = ((animModel->zoomStartTime() - animModel->startTime()) /
+                       (animModel->endTime() - animModel->startTime())) *
+    this->Internal->TimeScrollbarGranularity;
+  scrollb->setValue(relativeTime);
 }
 
 //-----------------------------------------------------------------------------

@@ -73,16 +73,7 @@ void pqAnimationTrack::setBoundingRect(const QRectF& r)
   this->removeFromIndex();
   this->Rect = r;
   this->addToIndex();
-  this->adjustKeyFrameRects();
   this->update();
-}
-
-void pqAnimationTrack::adjustKeyFrameRects()
-{
-  foreach (pqAnimationKeyFrame* f, this->Frames)
-  {
-    f->adjustRect();
-  }
 }
 
 pqAnimationKeyFrame* pqAnimationTrack::addKeyFrame()

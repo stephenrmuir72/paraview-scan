@@ -187,6 +187,8 @@ void pqAnimationWidget::updateGeometries()
 
   this->setViewportMargins(width1 + width2 + width3, 0, 0, 0);
 
+  Q_EMIT this->timelineOffsetChanged(width1 + width2 + width3);
+
   QRect vg = this->contentsRect();
   this->CreateDeleteHeader->setGeometry(vg.left(), vg.top(), width1, vg.height());
   this->EnabledHeader->setGeometry(vg.left() + width1, vg.top(), width3, vg.height());
@@ -275,6 +277,14 @@ void pqAnimationWidget::showEvent(QShowEvent* e)
 {
   this->Superclass::showEvent(e);
   this->updateGeometries();
+}
+
+void pqAnimationWidget::wheelEvent(QWheelEvent* e)
+{
+  if (e->modifiers().testFlag(Qt::KeyboardModifier::NoModifier))
+  {
+    this->Superclass::wheelEvent(e);
+  }
 }
 
 void pqAnimationWidget::headerDeleteClicked(int which)

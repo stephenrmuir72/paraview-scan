@@ -134,6 +134,22 @@ protected Q_SLOTS:
 
   void generalSettingsChanged();
 
+  /**
+  * called when the offset of the time scrollbar
+  * must be updated
+  */
+  void updateTimeScrollbar();
+
+  /**
+  * called when the time scrollbar must be updated
+  */
+  void updateTimeScrollbarOffset(int);
+
+  /**
+  * called when the time scrollbar is being used in the GUI
+  */
+  void setTimeZoom(int);
+
 private:
   Q_DISABLE_COPY(pqAnimationViewWidget)
 

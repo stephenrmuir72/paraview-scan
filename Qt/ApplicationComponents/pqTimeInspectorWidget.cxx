@@ -188,9 +188,9 @@ protected:
     pqAnimationModel* model = this->animationModel();
     foreach (double mark, this->Markers)
     {
-      if (mark >= model->startTime() && mark <= model->endTime())
+      if (mark >= model->zoomStartTime() && mark <= model->zoomEndTime())
       {
-        mark = (mark - model->startTime()) / (model->endTime() - model->startTime());
+        mark = (mark - model->zoomStartTime()) / (model->zoomEndTime() - model->zoomStartTime());
         mark = trackRectF.left() + mark * trackRectF.width();
         QLineF line(mark, trackRectF.top() + 10, mark, trackRectF.top() + trackRectF.height() - 10);
         p->drawLine(line);
@@ -198,10 +198,10 @@ protected:
     }
     if (this->HasDataTime)
     {
-      if (this->DataTime >= model->startTime() && this->DataTime <= model->endTime())
+      if (this->DataTime >= model->zoomStartTime() && this->DataTime <= model->zoomEndTime())
       {
-        double time =
-          (this->DataTime - model->startTime()) / (model->endTime() - model->startTime());
+        double time = (this->DataTime - model->zoomStartTime()) /
+          (model->zoomEndTime() - model->zoomStartTime());
         time = trackRectF.left() + time * trackRectF.width();
         QLineF line(time, trackRectF.top() + 3, time, trackRectF.top() + trackRectF.height() - 3);
         pen.setColor(QColor("green"));
@@ -252,9 +252,11 @@ public:
   pqPropertyLinks Links;
   QList<QVariant> TimeSources;
   QList<QVariant> SuppressedTimeSources;
+  const int TimeScrollbarGranularity;
 
   pqInternals(pqTimeInspectorWidget* self)
     : VoidServer(NULL)
+    , TimeScrollbarGranularity(100000)
   {
     this->Ui.setupUi(self);
     this->Ui.AnimationWidget->createDeleteHeader()->hide();
@@ -277,8 +279,13 @@ pqTimeInspectorWidget::pqTimeInspectorWidget(QWidget* parentObject)
   assert(animationModel);
   this->connect(animationModel, SIGNAL(currentTimeSet(double)), SLOT(setSceneCurrentTime(double)));
 
+  QObject::connect(animationModel, SIGNAL(zoomChanged()), this, SLOT(updateTimeScrollbar()));
+
   this->connect(this->Internals->Ui.AnimationWidget, SIGNAL(enableTrackClicked(pqAnimationTrack*)),
     SLOT(toggleTrackSuppression(pqAnimationTrack*)));
+
+  QObject::connect(this->Internals->Ui.AnimationWidget, SIGNAL(timelineOffsetChanged(int)), this,
+    SLOT(updateTimeScrollbarOffset(int)));
 
   this->connect(
     &pqActiveObjects::instance(), SIGNAL(serverChanged(pqServer*)), SLOT(setServer(pqServer*)));
@@ -289,6 +296,11 @@ pqTimeInspectorWidget::pqTimeInspectorWidget(QWidget* parentObject)
 
   this->connect(pqPVApplicationCore::instance()->animationManager(),
     SIGNAL(activeSceneChanged(pqAnimationScene*)), SLOT(setAnimationScene(pqAnimationScene*)));
+
+  this->updateTimeScrollbar();
+
+  QObject::connect(this->Internals->Ui.timeLineScrollBar, SIGNAL(actionTriggered(int)), this,
+    SLOT(setTimeZoom(int)));
 }
 
 //-----------------------------------------------------------------------------
@@ -634,6 +646,75 @@ void pqTimeInspectorWidget::toggleTrackSuppression(pqAnimationTrack* track)
     this->Internals->SuppressedTimeSources = newValue;
   }
   Q_EMIT this->suppressedTimeSourcesChanged();
+}
+
+//-----------------------------------------------------------------------------
+void pqTimeInspectorWidget::updateTimeScrollbarOffset(int offset)
+{
+  this->Internals->Ui.scrollBarSpacer->changeSize(offset, 0);
+}
+
+//-----------------------------------------------------------------------------
+void pqTimeInspectorWidget::setTimeZoom(int action)
+{
+  pqAnimationModel* animModel = this->Internals->Ui.AnimationWidget->animationModel();
+  double timeValue;
+
+  switch (action)
+  {
+    case QAbstractSlider::SliderSingleStepAdd:
+      timeValue = this->Internals->Ui.timeLineScrollBar->value() +
+        this->Internals->Ui.timeLineScrollBar->pageStep();
+      this->Internals->Ui.timeLineScrollBar->setValue(timeValue);
+      break;
+    case QAbstractSlider::SliderSingleStepSub:
+      timeValue = this->Internals->Ui.timeLineScrollBar->value() -
+        this->Internals->Ui.timeLineScrollBar->pageStep();
+      this->Internals->Ui.timeLineScrollBar->setValue(timeValue);
+      break;
+    default:
+      timeValue = this->Internals->Ui.timeLineScrollBar->sliderPosition();
+  }
+
+  if (timeValue >= this->Internals->Ui.timeLineScrollBar->maximum())
+  {
+    timeValue = animModel->endTime() -
+      (animModel->endTime() - animModel->startTime()) / animModel->zoomFactor();
+  }
+  else if (timeValue <= this->Internals->Ui.timeLineScrollBar->minimum())
+  {
+    timeValue = animModel->startTime();
+  }
+  else
+  {
+    timeValue = (timeValue / this->Internals->TimeScrollbarGranularity) *
+        (animModel->endTime() - animModel->startTime()) +
+      animModel->startTime();
+  }
+  animModel->positionZoom(timeValue);
+}
+
+//-----------------------------------------------------------------------------
+void pqTimeInspectorWidget::updateTimeScrollbar()
+{
+  pqAnimationModel* animModel = this->Internals->Ui.AnimationWidget->animationModel();
+  QScrollBar* scrollb = this->Internals->Ui.timeLineScrollBar;
+
+  if (animModel->zoomFactor() == 1)
+  {
+    scrollb->setVisible(false);
+    return;
+  }
+
+  scrollb->setVisible(true);
+  int rangeMax = this->Internals->TimeScrollbarGranularity -
+    (this->Internals->TimeScrollbarGranularity / animModel->zoomFactor());
+  scrollb->setPageStep(this->Internals->TimeScrollbarGranularity / animModel->zoomFactor());
+  scrollb->setRange(0, rangeMax);
+  int relativeTime = ((animModel->zoomStartTime() - animModel->startTime()) /
+                       (animModel->endTime() - animModel->startTime())) *
+    this->Internals->TimeScrollbarGranularity;
+  scrollb->setValue(relativeTime);
 }
 
 //-----------------------------------------------------------------------------
