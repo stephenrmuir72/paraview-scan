@@ -61,6 +61,16 @@
     variables:
         CMAKE_CONFIGURATION: fedora33_static_mpi_offscreen_osmesa_python
 
+.fedora33_shared_debug_mpi_python:
+    extends:
+        - .fedora33
+        - .fedora_mpich_addon
+
+    variables:
+        CMAKE_CONFIGURATION: fedora33_shared_mpi_python
+        CMAKE_BUILD_TYPE: Debug
+        MPI_THREAD_SINGLE: 1
+
 .linux_builder_tags:
     tags:
         - build
