@@ -82,6 +82,26 @@ test:fedora31-shared-icc-mpi-python:
     needs:
         - build:fedora31-shared-icc-mpi-python
 
+build:fedora33-shared-debug-mpi-python-qt:
+    extends:
+        - .fedora33_shared_debug_mpi_python_qt
+        - .cmake_build_linux
+        - .linux_builder_tags
+        - .cmake_build_artifacts
+        - .run_manually
+
+test:fedora33-shared-debug-mpi-python-qt:
+    extends:
+        - .fedora33_shared_debug_mpi_python_qt
+        - .cmake_test_linux
+        - .linux_tester_tags
+        - .cmake_test_artifacts
+        - .run_automatically
+    dependencies:
+        - build:fedora33-shared-debug-mpi-python-qt
+    needs:
+        - build:fedora33-shared-debug-mpi-python-qt
+
 # macOS
 
 build:macos-python-qt:
