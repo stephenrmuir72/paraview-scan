@@ -171,6 +171,29 @@ pqFontPropertyWidget::pqFontPropertyWidget(
     ui.Justification->hide();
   }
 
+  smproperty = smgroup->GetProperty("BackgroundOpacity");
+  if (smproperty)
+  {
+    this->addPropertyLink(ui.BackgroundOpacity, "value", SIGNAL(valueChanged(double)), smproperty);
+  }
+  else
+  {
+    ui.BackgroundOpacity->hide();
+  }
+
+  smproperty = smgroup->GetProperty("BackgroundColor");
+  if (smproperty)
+  {
+    this->addPropertyLink(
+      ui.BackgroundColor, "chosenColorRgbF", SIGNAL(chosenColorChanged(const QColor&)), smproperty);
+
+    new pqColorPaletteLinkHelper(ui.BackgroundColor, smproxy, smproxy->GetPropertyName(smproperty));
+  }
+  else
+  {
+    ui.BackgroundColor->hide();
+  }
+
   onFontFamilyChanged();
 }
 

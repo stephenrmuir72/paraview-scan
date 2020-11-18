@@ -9303,6 +9303,19 @@
             <Property name="FontSize" function="Size"/>
             <Property name="Justification" function="Justification"/>
           </PropertyGroup>
+
+          <!-- properties for Background-->
+          <PropertyGroup label="Background Properties" panel_widget="FontEditor">
+            <Property name="BackgroundColor" function="BackgroundColor"/>
+            <Property name="BackgroundOpacity" function="BackgroundOpacity"/>
+            <Hints>
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="TextPropMode"
+                                       value="0" />
+            </Hints>
+          </PropertyGroup>
+
           <!-- properties for Text Position-->
           <PropertyGroup label="Text Position" panel_widget="TextLocationEditor">
             <Property name="WindowLocation" />

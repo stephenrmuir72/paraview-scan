@@ -665,6 +665,8 @@
           <Property name="Italic" />
           <Property name="Shadow" />
           <Property name="FontSize" />
+          <Property name="BackgroundColor"/>
+          <Property name="BackgroundOpacity"/>
         </ExposedProperties>
       </SubProxy>
       <SubProxy>

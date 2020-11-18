@@ -355,6 +355,28 @@
   </ProxyGroup>
   <ProxyGroup name="properties">
     <Proxy class="vtkTextProperty" name="TextPropertyBase" processes="client|dataserver|renderserver" >
+      <DoubleVectorProperty command="SetBackgroundOpacity"
+                            default_values="0"
+                            name="BackgroundOpacity"
+                            number_of_elements="1">
+        <DoubleRangeDomain max="1.0"
+                           min="0.0"
+                           name="range" />
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty animateable="0"
+                            argument_is_array="1"
+                            command="SetBackgroundColor"
+                            default_values="1.0 1.0 1.0"
+                            name="BackgroundColor"
+                            number_of_elements="3">
+        <DoubleRangeDomain max="1 1 1" min="0 0 0" name="range" />
+        <Hints>
+          <PropertyLink group="settings" proxy="ColorPalette" property="TextAnnotationColor"
+            unlink_if_modified="1" />
+        </Hints>
+      </DoubleVectorProperty>
+
       <DoubleVectorProperty animateable="0"
                             command="SetOpacity"
                             default_values="1.0"
