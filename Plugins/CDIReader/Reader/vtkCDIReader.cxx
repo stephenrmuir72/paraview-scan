@@ -1727,7 +1727,7 @@ int vtkCDIReader::ConstructGridGeometry()
   // check for duplicates in the Point list and update the triangle list
   this->RemoveDuplicates(
     this->CLonVertices, this->CLatVertices, size, this->OrigConnections, new_cells);
-  this->NumberLocalCells = floor(new_cells[0] / 3.0);
+  this->NumberLocalCells = new_cells[0] / this->PointsPerCell;
   this->NumberLocalPoints = new_cells[1];
 
   this->PointX = new double[this->NumberLocalPoints];
