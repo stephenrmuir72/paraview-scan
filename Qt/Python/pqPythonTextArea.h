@@ -33,14 +33,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqPythonTextArea_h
 #define pqPythonTextArea_h
 
-#include "pqPythonModule.h"
+#include <pqPythonModule.h>
+#include <pqPythonUndoCommand.h>
 
+#include <QKeyEvent>
+#include <QUndoStack>
 #include <QWidget>
 
 class QTextEdit;
 
 class pqPythonLineNumberArea;
 class pqPythonSyntaxHighlighter;
+class pqPythonUndoStack;
+class pqPythonFileIO;
 
 /**
  * @class pqPythonTextArea
@@ -64,21 +69,94 @@ public:
    */
   QTextEdit* GetTextEdit() { return this->TextEdit; }
 
+  /**
+   * @brief Get the undo action
+   */
+  QAction* GetUndoAction();
+
+  /**
+   * @brief Get the redo action
+   */
+  QAction* GetRedoAction();
+
+  QAction* GetNewFileAction();
+
+  QAction* GetOpenFileAction();
+
+  QAction* GetSaveFileAction();
+
+  QAction* GetSaveFileAsAction();
+
+  QAction* GetSaveFileAsMacroAction();
+
+  bool SaveOnClose();
+
+  bool OpenFile(const QString& filename);
+
+  void SetDefaultSaveDirectory(const QString& dir);
+
+signals:
+  void BufferErased();
+  void FileOpened(const QString&);
+  void FileSaved(const QString&);
+  void FileSavedAsMacro(const QString&);
+
+protected:
+  /**
+   * @brief Filter the KeyEvent CTRL+Z
+   * @details We need to filter the QTextEdit KeyEvent
+   * otherwise our undo/redo actions are not triggered.
+   */
+  bool eventFilter(QObject* obj, QEvent* event) override;
+
 private:
   /**
    * @brief The editable text area
    */
-  QTextEdit* TextEdit;
+  QTextEdit* TextEdit = nullptr;
 
   /**
    * @brief The line number area widget
    */
-  pqPythonLineNumberArea* LineNumberArea;
+  pqPythonLineNumberArea* LineNumberArea = nullptr;
 
   /**
    * @brief The syntax highlighter used to color the \ref TextEdit
    */
-  pqPythonSyntaxHighlighter* SyntaxHighlighter;
+  pqPythonSyntaxHighlighter* SyntaxHighlighter = nullptr;
+
+  /**
+   * @brief The IO module used to save the \ref TextEdit
+   */
+  pqPythonFileIO* FileIO = nullptr;
+
+  /**
+   * @brief The text QUndoStack
+   */
+  QUndoStack UndoStack;
+
+  /**
+   * @brief The last history entry in the undo stack
+   * @details Unfortunatly, QTextEdit doesn't keep
+   * a text hystory, which we need for the \ref UndoStack.
+   */
+  pqPythonTextHistoryEntry lastEntry;
+
+  /**
+   * @brief The Undo action
+   */
+  QAction* UndoAction = nullptr;
+
+  Qt::KeyboardModifier UndoMofidier = Qt::ControlModifier;
+  Qt::Key UndoKey = Qt::Key_Z;
+
+  /**
+   * @brief The Redo action
+   */
+  QAction* RedoAction = nullptr;
+
+  Qt::KeyboardModifier RedoMofidier = Qt::ControlModifier;
+  Qt::Key RedoKey = Qt::Key_Y;
 };
 
 #endif // pqPythonTextArea_h
