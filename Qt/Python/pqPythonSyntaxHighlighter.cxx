@@ -202,6 +202,10 @@ QString pqPythonSyntaxHighlighter::Highlight(const QString& text) const
 void pqPythonSyntaxHighlighter::ConnectHighligter() const
 {
   connect(&this->TextEdit, &QTextEdit::textChanged, [this]() {
+    // We block all text signals (this is done to avoid pushing twice
+    // the text in the undo stack)
+    const bool oldState = this->TextEdit.blockSignals(true);
+
     const QString text = this->TextEdit.toPlainText();
     const int cursorPosition = this->TextEdit.textCursor().position();
 
@@ -215,5 +219,8 @@ void pqPythonSyntaxHighlighter::ConnectHighligter() const
 
     const int hScrollBarValue = this->TextEdit.horizontalScrollBar()->value();
     this->TextEdit.horizontalScrollBar()->setValue(hScrollBarValue);
+
+    // re-enable the signals
+    this->TextEdit.blockSignals(oldState);
   });
 }
