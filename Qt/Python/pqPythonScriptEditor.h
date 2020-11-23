@@ -57,54 +57,25 @@ public:
    */
   void scrollToBottom();
 
-public Q_SLOTS:
-
   void open(const QString& filename);
+
+public Q_SLOTS:
   void setText(const QString& text);
-
-  // Returns true if the new file was created.  If the user was prompted to save
-  // data before creating a new file and clicked cancel, then no new file will
-  // be created and this method returns false.
-  bool newFile();
-
-Q_SIGNALS:
-  void fileSaved();
 
 protected:
   void closeEvent(QCloseEvent* event) override;
-
-private Q_SLOTS:
-  void open();
-  bool save();
-  bool saveAs();
-  bool saveAsMacro();
-  void documentWasModified();
 
 private:
   void createActions();
   void createMenus();
   void createStatusBar();
-  void readSettings();
-  void writeSettings();
-  bool maybeSave();
-  void loadFile(const QString& fileName);
-  bool saveFile(const QString& fileName);
-  void setCurrentFile(const QString& fileName);
-  QString strippedName(const QString& fullFileName);
 
   pqPythonTextArea* TextArea;
-
-  QString CurrentFile;
-  QString DefaultSaveDirectory;
 
   QMenu* fileMenu;
   QMenu* editMenu;
   QMenu* helpMenu;
-  QAction* newAct;
-  QAction* openAct;
-  QAction* saveAct;
-  QAction* saveAsAct;
-  QAction* saveAsMacroAct;
+
   QAction* exitAct;
   QAction* cutAct;
   QAction* copyAct;
