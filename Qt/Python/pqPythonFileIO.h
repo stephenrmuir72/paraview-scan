@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 
-class PQPYTHON_EXPORT pqPythonFileIO : public QObject
+class PQPYTHON_EXPORT pqPythonFileIO : public QWidget
 {
   Q_OBJECT
 public:
@@ -57,7 +57,7 @@ public:
     END
   };
 
-  pqPythonFileIO(QObject* parent, QTextEdit& text);
+  pqPythonFileIO(QWidget* parent, QTextEdit& text);
 
   QAction* GetAction(const IOAction action) { return &Actions[action]; }
 

@@ -50,8 +50,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     return false;                                                                                  \
   }
 
-pqPythonFileIO::pqPythonFileIO(QObject* parent, QTextEdit& text)
-  : QObject(parent)
+pqPythonFileIO::pqPythonFileIO(QWidget* parent, QTextEdit& text)
+  : QWidget(parent)
   , TextEdit(text)
 {
   connect(&Actions[IOAction::NewFile], SIGNAL(triggered()), this, SLOT(NewFile()));
@@ -115,7 +115,7 @@ bool pqPythonFileIO::Open()
     return false;
   }
 
-  const QString filename = QFileDialog::getOpenFileName(nullptr);
+  const QString filename = QFileDialog::getOpenFileName(this);
   return this->LoadFile(filename);
 }
 
@@ -133,7 +133,7 @@ bool pqPythonFileIO::Save()
 
 bool pqPythonFileIO::SaveAs()
 {
-  QString filename = pqFileDialog::getSaveFileName(nullptr, nullptr, QString("Save File"),
+  QString filename = pqFileDialog::getSaveFileName(nullptr, this, QString("Save File"),
     this->DefaultSaveDirectory, QString("Python Script (*.py)"));
 
   if (filename.isEmpty())
@@ -161,7 +161,7 @@ bool pqPythonFileIO::SaveAsMacro()
   }
 
   const QString filename = pqFileDialog::getSaveFileName(
-    nullptr, nullptr, tr("Save Macro"), userMacroDir, tr("Python script (*.py)"));
+    nullptr, this, tr("Save Macro"), userMacroDir, tr("Python script (*.py)"));
 
   if (!filename.isEmpty() && this->SaveFile(filename))
   {
