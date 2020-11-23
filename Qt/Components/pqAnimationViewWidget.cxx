@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLineEdit>
 #include <QPointer>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtDebug>
@@ -645,7 +646,8 @@ void pqAnimationViewWidget::trackSelected(pqAnimationTrack* track)
     Ui::PythonAnimationCue ui;
     ui.setupUi(&dialog);
 #if VTK_MODULE_ENABLE_ParaView_pqPython
-    new pqPythonSyntaxHighlighter(ui.script, ui.script);
+    pqPythonSyntaxHighlighter* highlighter = new pqPythonSyntaxHighlighter(ui.script, *ui.script);
+    highlighter->ConnectHighligter();
 #endif
     ui.script->setPlainText(vtkSMPropertyHelper(cue->getProxy(), "Script").GetAsString());
     if (dialog.exec() == QDialog::Accepted)
