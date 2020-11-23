@@ -104,7 +104,10 @@ public:
   /**
    * @brief Returns the current history entry
    */
-  const pqPythonTextHistoryEntry& GetCurrentHistoryEntry() const { return currentHistoryEntry; }
+  const pqPythonTextHistoryEntry& GetCurrentHistoryEntry() const
+  {
+    return this->CurrentHistoryEntry;
+  }
 
 private:
   /**
@@ -114,12 +117,12 @@ private:
   void Swap_Impl(const pqPythonTextHistoryEntry& h);
 
   /// @brief The text to do the undo/redo on
-  QTextEdit& text;
+  QTextEdit& Text;
 
   /**
    * @brief The text syntax highlighter
    */
-  pqPythonSyntaxHighlighter* highlighter;
+  pqPythonSyntaxHighlighter* Highlighter;
 
   /**
    * @brief The last history entry in the text
@@ -127,17 +130,17 @@ private:
    * contained in the text. This is being modified when performing
    * the undo function.
    */
-  pqPythonTextHistoryEntry& textLastHystoryEntry;
+  pqPythonTextHistoryEntry& TextLastHystoryEntry;
 
   /**
    * @brief The last version of the text
    */
-  const pqPythonTextHistoryEntry lastHistoryEntry;
+  const pqPythonTextHistoryEntry LastHistoryEntry;
 
   /**
    * @brief The current version of the text
    */
-  const pqPythonTextHistoryEntry currentHistoryEntry;
+  const pqPythonTextHistoryEntry CurrentHistoryEntry;
 };
 
 #endif // pqPythonUndoStack_h

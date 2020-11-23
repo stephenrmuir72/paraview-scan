@@ -36,11 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 pqPythonUndoCommand::pqPythonUndoCommand(QTextEdit& text, pqPythonSyntaxHighlighter* highlighter,
   pqPythonTextHistoryEntry& lastHistoryEntry, const pqPythonTextHistoryEntry&& currentHistoryEntry)
-  : text(text)
-  , highlighter(highlighter)
-  , textLastHystoryEntry(lastHistoryEntry)
-  , lastHistoryEntry(lastHistoryEntry)
-  , currentHistoryEntry(currentHistoryEntry)
+  : Text(text)
+  , Highlighter(highlighter)
+  , TextLastHystoryEntry(lastHistoryEntry)
+  , LastHistoryEntry(lastHistoryEntry)
+  , CurrentHistoryEntry(currentHistoryEntry)
 {
 }
 
@@ -49,34 +49,34 @@ void pqPythonUndoCommand::Swap_Impl(const pqPythonTextHistoryEntry& h)
 {
   // We block all text signals (this is done to avoid pushing twice
   // the text in the undo stack)
-  const bool oldState = text.blockSignals(true);
+  const bool oldState = this->Text.blockSignals(true);
 
-  this->text.setHtml(highlighter->Highlight(h.content));
+  this->Text.setHtml(this->Highlighter->Highlight(h.content));
 
   // Move the cursor
-  QTextCursor cursor = text.textCursor();
+  QTextCursor cursor = this->Text.textCursor();
   cursor.setPosition(h.cursorPosition);
-  text.setTextCursor(cursor);
+  this->Text.setTextCursor(cursor);
 
   // re-enable the signals
-  text.blockSignals(oldState);
+  this->Text.blockSignals(oldState);
 };
 
 //-----------------------------------------------------------------------------
 void pqPythonUndoCommand::undo()
 {
   // We only undo if the last entry is not empty
-  if (!this->lastHistoryEntry.IsEmpty())
+  if (!this->LastHistoryEntry.IsEmpty())
   {
-    this->Swap_Impl(this->lastHistoryEntry);
-    this->textLastHystoryEntry = lastHistoryEntry;
-    text.document()->setModified(true);
+    this->Swap_Impl(this->LastHistoryEntry);
+    this->TextLastHystoryEntry = this->LastHistoryEntry;
+    this->Text.document()->setModified(true);
   }
 }
 
 //-----------------------------------------------------------------------------
 void pqPythonUndoCommand::redo()
 {
-  this->Swap_Impl(this->currentHistoryEntry);
-  text.document()->setModified(true);
+  this->Swap_Impl(this->CurrentHistoryEntry);
+  this->Text.document()->setModified(true);
 }
