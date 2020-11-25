@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     return false;                                                                                  \
   }
 
+//----------------------------------------------------------------------------
 pqPythonFileIO::pqPythonFileIO(QWidget* parent, QTextEdit& text)
   : QWidget(parent)
   , TextEdit(text)
@@ -61,6 +62,7 @@ pqPythonFileIO::pqPythonFileIO(QWidget* parent, QTextEdit& text)
   connect(&Actions[IOAction::SaveFileAsMacro], SIGNAL(triggered()), this, SLOT(SaveAsMacro()));
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveOnClose()
 {
   if (this->NeedSave())
@@ -83,6 +85,7 @@ bool pqPythonFileIO::SaveOnClose()
   return true;
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::OpenFile(const QString& filename)
 {
   if (!this->SaveOnClose())
@@ -93,6 +96,7 @@ bool pqPythonFileIO::OpenFile(const QString& filename)
   return this->LoadFile(filename);
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::NewFile()
 {
   if (!this->SaveOnClose())
@@ -108,6 +112,7 @@ bool pqPythonFileIO::NewFile()
   return true;
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::Open()
 {
   if (!this->SaveOnClose())
@@ -116,9 +121,15 @@ bool pqPythonFileIO::Open()
   }
 
   const QString filename = QFileDialog::getOpenFileName(this);
+  if (filename.isEmpty())
+  {
+    return false;
+  }
+
   return this->LoadFile(filename);
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::Save()
 {
   if (this->Filename.isEmpty())
@@ -131,6 +142,7 @@ bool pqPythonFileIO::Save()
   }
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveAs()
 {
   QString filename = pqFileDialog::getSaveFileName(nullptr, this, QString("Save File"),
@@ -149,6 +161,7 @@ bool pqPythonFileIO::SaveAs()
   return this->SaveFile(filename);
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveAsMacro()
 {
   const QString userMacroDir = pqCoreUtilities::getParaViewUserDirectory() + "/Macros";
@@ -172,6 +185,7 @@ bool pqPythonFileIO::SaveAsMacro()
   return false;
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::LoadFile(const QString& filename)
 {
   Q_OPEN_FILE_(filename, QFile::ReadOnly | QFile::Text);
@@ -192,6 +206,7 @@ bool pqPythonFileIO::LoadFile(const QString& filename)
   return true;
 }
 
+//----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveFile(const QString& filename)
 {
   Q_OPEN_FILE_(filename, QFile::WriteOnly | QFile::Text);
