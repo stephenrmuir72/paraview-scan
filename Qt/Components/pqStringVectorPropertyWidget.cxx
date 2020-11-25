@@ -77,7 +77,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLabel>
 #include <QPushButton>
 #include <QRegExp>
-#include <QScrollBar>
 #include <QStyle>
 #include <QTextEdit>
 #include <QTreeWidget>

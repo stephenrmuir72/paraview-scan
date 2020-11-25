@@ -46,7 +46,11 @@ class pqPythonSyntaxHighlighter;
 
 /**
  * @struct PythonTextHistory
- * @brief POD data struct that contains the command data to perform undo/redo operations
+ * @brief Data structure that contains information to perform the undo
+ * and redo operations.
+ *
+ * @details This structure is part of the public headers as other
+ * might need to instantiate and pass it to the \ref pqPythonUndoCommand.
  */
 struct pqPythonTextHistoryEntry
 {
@@ -64,7 +68,7 @@ struct pqPythonTextHistoryEntry
   QString content = "";
 
   /**
-   * @brief The absolute cursor position within \ref pqPythonUndoCommand::text
+   * @brief The absolute cursor position within \ref pqPythonUndoCommand::Text
    */
   std::int32_t cursorPosition = -1;
 

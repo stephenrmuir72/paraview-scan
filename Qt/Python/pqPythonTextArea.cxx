@@ -53,6 +53,9 @@ pqPythonTextArea::pqPythonTextArea(QWidget* parent)
   , FileIO(new pqPythonFileIO(this, *this->TextEdit))
 {
   this->TextEdit->setUndoRedoEnabled(false);
+  this->TextEdit->setAcceptDrops(false);
+  this->TextEdit->setAcceptRichText(false);
+  this->TextEdit->setContextMenuPolicy(Qt::NoContextMenu);
 
   // Install the Undo/Redo event filter
   this->TextEdit->installEventFilter(this);
