@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqPythonModule.h"
 
+#include <pqCoreUtilities.h>
+
 #include <QMainWindow>
 
 class QAction;
@@ -42,6 +44,10 @@ class QMenu;
 class pqPythonManager;
 class pqPythonTextArea;
 
+/**
+ * @class pqPythonScriptEditor
+ * @brief Paraview Python Editor widget
+ */
 class PQPYTHON_EXPORT pqPythonScriptEditor : public QMainWindow
 {
   Q_OBJECT
@@ -49,27 +55,71 @@ class PQPYTHON_EXPORT pqPythonScriptEditor : public QMainWindow
 public:
   explicit pqPythonScriptEditor(QWidget* parent = nullptr);
 
+  /**
+   * @brief Sets the default save directory for the current buffer
+   */
   void setSaveDialogDefaultDirectory(const QString& dir);
+
+  /**
+   * @brief Sets the \ref pqPythonManager used for the macros
+   */
   void setPythonManager(pqPythonManager* manager);
 
-  /*
-   * Scroll the editor to the bottom of the scroll area
+  /**
+   * @brief Scroll the editor to the bottom of the scroll area
    */
   void scrollToBottom();
 
+  /**
+   * @brief Open a file inside the editor
+   */
   void open(const QString& filename);
 
+  /**
+   * @brief Utility function that provides a single instance
+   * of the editor
+   */
+  static pqPythonScriptEditor* GetUniqueInstance()
+  {
+    static pqPythonScriptEditor* instance = new pqPythonScriptEditor(pqCoreUtilities::mainWidget());
+    return instance;
+  }
+
 public Q_SLOTS:
+  /**
+   * @brief Q_SLOT that sets the current buffer to \ref text
+   * @details Override the current buffer (even if it is not saved).
+   * This method is only used by the \ref pqTraceAction widget.
+   */
   void setText(const QString& text);
 
 protected:
+  /**
+   * @brief Override the QMainWindow closeEvent
+   * @details We ask the user wants to save the current
+   * file if it's not already saved
+   */
   void closeEvent(QCloseEvent* event) override;
 
 private:
+  /**
+   * @brief Setup the widget actions
+   */
   void createActions();
+
+  /**
+   * @brief Setup the widget menus
+   */
   void createMenus();
+
+  /**
+   * @brief Setup the status bar
+   */
   void createStatusBar();
 
+  /**
+   * The central text widget
+   */
   pqPythonTextArea* TextArea;
 
   QMenu* fileMenu;
@@ -81,6 +131,10 @@ private:
   QAction* copyAct;
   QAction* pasteAct;
 
+  /**
+   * The python manager only used for the
+   * paraview macro system
+   */
   pqPythonManager* pythonManager;
 };
 

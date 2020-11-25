@@ -43,10 +43,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 
+/**
+ * @class pqPythonFileIO
+ * @brief Handles loading (resp. saving) from (resp. to) the disk to
+ * (resp. from) a QTextEdit widget.
+ *
+ * @details \todo This class should be a QObject instead of a QWidget
+ * as it isn't meant to be displayed.
+ * The problem is that QFileDialog requires a QWidget as parent for the
+ * Qt hierarchy and not a QWidget...
+ */
 class PQPYTHON_EXPORT pqPythonFileIO : public QWidget
 {
   Q_OBJECT
 public:
+  /**
+   * @brief All the \ref pqPythonFileIO QAction
+   */
   enum class IOAction : std::uint8_t
   {
     NewFile = 0,
@@ -57,50 +70,146 @@ public:
     END
   };
 
+  /**
+   * @brief Default constructor is not valid for this class
+   */
+  pqPythonFileIO() = delete;
+
+  /**
+   * @brief Construct a pqPythonFileIO
+   * @param[in] parent the parent for the Qt hierarchy
+   * @param[in] text the QTextEdit this object acts on
+   */
   pqPythonFileIO(QWidget* parent, QTextEdit& text);
 
+  /**
+   * @param[in] action the wanted action
+   * @returns a pointer to the QAction
+   */
   QAction* GetAction(const IOAction action) { return &Actions[action]; }
 
+  /**
+   * @brief Saves and close the underlying file
+   * @return true if the saving process was successful,
+   * false if the user discarded the saves or if something
+   * wrong happened during file I/O
+   */
   bool SaveOnClose();
 
+  /**
+   * @brief Opens and load the given file
+   * @param[in] filename the file to be opened
+   * @returns false if the file is invalid
+   */
   bool OpenFile(const QString& filename);
 
+  /**
+   * @brief Sets the default save directory
+   */
   void SetDefaultSaveDirectory(const QString& dir) { this->DefaultSaveDirectory = dir; }
 
 signals:
+  /**
+   * @brief Signals that the QTextEdit buffer has been erased
+   */
   void BufferErased();
+
+  /**
+   * @brief Signals that a file has been opened
+   */
   void FileOpened(const QString&);
+
+  /**
+   * @brief Signals that the file has been saved
+   */
   void FileSaved(const QString&);
+
+  /**
+   * @brief Signals that the file has been saved under
+   * the macro directory from Paraview
+   */
   void FileSavedAsMacro(const QString&);
 
 private slots:
+  /**
+   * @brief Creates a new file
+   * @details Save the current buffer if needed
+   * and clears the underlying \ref TextEdit
+   */
   bool NewFile();
+
+  /**
+   * @brief Opens a new file
+   * @details Ask the user which file to open
+   */
   bool Open();
+
+  /**
+   * @brief Saves the underlying file
+   * @details If no file is associated, ask the
+   * user which file to save this buffer in
+   */
   bool Save();
+
+  /**
+   * @brief Saves the current file under a new file
+   */
   bool SaveAs();
+
+  /**
+   * @brief Saves the current file under the macro directory
+   */
   bool SaveAsMacro();
 
 private:
+  /**
+   * @brief Internal utility function that opens and load the \ref filename
+   */
   bool LoadFile(const QString& filename);
 
+  /**
+   * @brief Internal utility function that saves the \ref filename
+   */
   bool SaveFile(const QString& filename);
 
+  /**
+   * @brief Internal utility function that tells if this buffer needs to be saved
+   */
   bool NeedSave() const { return this->TextEdit.document()->isModified(); }
 
+  /**
+   * @brief Sets the internal buffer modified
+   */
   void SetModified(bool modified) { this->TextEdit.document()->setModified(modified); }
 
+  /**
+   * @brief The QTextEdit widget
+   */
   QTextEdit& TextEdit;
 
+  /**
+   * @brief The default save directory (ie ~/home)
+   */
   QString DefaultSaveDirectory = QDir::homePath();
 
+  /**
+   * @brief The associated filename
+   */
   QString Filename = "";
 
+  /**
+   * @class EnumArray
+   * @brief Static array accessible through an enum
+   */
   template <typename E, class T, std::size_t N = static_cast<size_t>(E::END)>
   struct EnumArray : public std::array<T, N>
   {
     T& operator[](E e) { return std::array<T, N>::operator[](static_cast<size_t>(e)); }
   };
 
+  /**
+   * @brief The list of QAction
+   */
   EnumArray<IOAction, QAction> Actions;
 };
 
