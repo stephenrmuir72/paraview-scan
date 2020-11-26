@@ -214,7 +214,9 @@ set_property(SOURCE pqApplicationComponentsInit.cxx APPEND
     COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=${built_shared}")
 
 set(headers
-  pqCatalystContinueReaction.h)
+  pqCatalystContinueReaction.h
+  pqPythonScriptEditorReaction.h
+  )
 
 if (TARGET ParaView::pqPython)
   list(APPEND classes
