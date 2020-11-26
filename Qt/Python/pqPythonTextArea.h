@@ -69,14 +69,8 @@ public:
    */
   QTextEdit* GetTextEdit() { return this->TextEdit; }
 
-  /**
-   * @brief Get the undo action
-   */
   QAction* GetUndoAction();
 
-  /**
-   * @brief Get the redo action
-   */
   QAction* GetRedoAction();
 
   QAction* GetNewFileAction();
