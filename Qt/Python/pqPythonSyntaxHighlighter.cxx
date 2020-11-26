@@ -43,6 +43,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QTextCursor>
 #include <QTextEdit>
 
+namespace globals
+{
+constexpr const char* kFourSpaces = "    ";
+}
+
 //-----------------------------------------------------------------------------
 pqPythonSyntaxHighlighter::pqPythonSyntaxHighlighter(QObject* p, QTextEdit& textEdit)
   : Superclass(p)
@@ -95,8 +100,6 @@ pqPythonSyntaxHighlighter::pqPythonSyntaxHighlighter(QObject* p, QTextEdit& text
     }
   }
 
-  // Replace tabs with 4 spaces
-  this->ReplaceTabs = true;
   // Use a fixed-width font for text edits displaying code
   QFont font("Monospace");
   // cause Qt to select an fixed-width font if Monospace isn't found
@@ -104,7 +107,7 @@ pqPythonSyntaxHighlighter::pqPythonSyntaxHighlighter(QObject* p, QTextEdit& text
   this->TextEdit.setFont(font);
   // Set tab width equal to 4 spaces
   QFontMetrics metrics = this->TextEdit.fontMetrics();
-  this->TextEdit.setTabStopDistance(metrics.horizontalAdvance("    "));
+  this->TextEdit.setTabStopDistance(metrics.horizontalAdvance(globals::kFourSpaces));
 }
 
 //-----------------------------------------------------------------------------
@@ -131,7 +134,7 @@ bool pqPythonSyntaxHighlighter::eventFilter(QObject* obj, QEvent* ev)
     QKeyEvent* keyEvent = static_cast<QKeyEvent*>(ev);
     if (keyEvent->key() == Qt::Key_Tab)
     {
-      this->TextEdit.textCursor().insertText("    ");
+      this->TextEdit.textCursor().insertText(globals::kFourSpaces);
       return true;
     }
   }
@@ -149,7 +152,7 @@ QString pqPythonSyntaxHighlighter::Highlight(const QString& text) const
     ++leadingWhiteSpaceLength;
   }
 
-  QString result("");
+  QString result;
   if (leadingWhiteSpaceLength < text.length())
   {
     while (trailingWhiteSpaceLength < text.length() &&

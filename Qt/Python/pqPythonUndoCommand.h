@@ -118,14 +118,11 @@ private:
    * @brief Utility function that mutates the \ref text
    * using the given history value \ref h.
    */
-  void Swap_Impl(const pqPythonTextHistoryEntry& h);
+  void SwapImpl(const pqPythonTextHistoryEntry& h);
 
   /// @brief The text to do the undo/redo on
   QTextEdit& Text;
 
-  /**
-   * @brief The text syntax highlighter
-   */
   pqPythonSyntaxHighlighter* Highlighter;
 
   /**
@@ -133,17 +130,20 @@ private:
    * @details This is a direct reference to the history entry
    * contained in the text. This is being modified when performing
    * the undo function.
+   *
+   * If we don't modify the current history entry in the next
+   * when performing an undo, the overall undo stack is not
+   * what we expect it to be. Let's take the following commands:
+   * [enter 1 ... enter 2 ... undo ... enter 3 ... undo]
+   * Without modifying the \ref TextLastHystoryEntry we would get
+   * 1 -> 12 -> 1 -> 13 -> 12, which is wrong.
+   * This problem arises from the fact that the QTextEdit doesn't keep
+   * its last state in memory.
    */
   pqPythonTextHistoryEntry& TextLastHystoryEntry;
 
-  /**
-   * @brief The last version of the text
-   */
   const pqPythonTextHistoryEntry LastHistoryEntry;
 
-  /**
-   * @brief The current version of the text
-   */
   const pqPythonTextHistoryEntry CurrentHistoryEntry;
 };
 

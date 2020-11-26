@@ -156,6 +156,7 @@ QAction* pqPythonTextArea::GetRedoAction()
   return RedoAction;
 }
 
+//-----------------------------------------------------------------------------
 bool pqPythonTextArea::SaveOnClose()
 {
   if (this->FileIO->SaveOnClose())
@@ -167,11 +168,13 @@ bool pqPythonTextArea::SaveOnClose()
   return false;
 }
 
+//-----------------------------------------------------------------------------
 bool pqPythonTextArea::OpenFile(const QString& filename)
 {
   return this->FileIO->OpenFile(filename);
 }
 
+//-----------------------------------------------------------------------------
 void pqPythonTextArea::SetDefaultSaveDirectory(const QString& dir)
 {
   this->FileIO->SetDefaultSaveDirectory(dir);
@@ -179,26 +182,31 @@ void pqPythonTextArea::SetDefaultSaveDirectory(const QString& dir)
 
 using Action = pqPythonFileIO::IOAction;
 
+//-----------------------------------------------------------------------------
 QAction* pqPythonTextArea::GetNewFileAction()
 {
   return this->FileIO->GetAction(Action::NewFile);
 }
 
+//-----------------------------------------------------------------------------
 QAction* pqPythonTextArea::GetOpenFileAction()
 {
   return this->FileIO->GetAction(Action::OpenFile);
 }
 
+//-----------------------------------------------------------------------------
 QAction* pqPythonTextArea::GetSaveFileAction()
 {
   return this->FileIO->GetAction(Action::SaveFile);
 }
 
+//-----------------------------------------------------------------------------
 QAction* pqPythonTextArea::GetSaveFileAsAction()
 {
   return this->FileIO->GetAction(Action::SaveFileAs);
 }
 
+//-----------------------------------------------------------------------------
 QAction* pqPythonTextArea::GetSaveFileAsMacroAction()
 {
   return this->FileIO->GetAction(Action::SaveFileAsMacro);
