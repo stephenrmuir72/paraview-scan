@@ -47,6 +47,18 @@ class pqPythonTextArea;
 /**
  * @class pqPythonScriptEditor
  * @brief Paraview Python Editor widget
+ * @details This widget can be used as a embedded Qt python editor
+ * inside paraview. It provides functionality to read, write and edit
+ * python script and paraview macros within paraview itself. The text editor
+ * provides basic functionality such as undo/redo, line numbering and
+ * syntax highlighting (through pygments).
+ *
+ * You can either use this widget as a sole editor, or get the paraview
+ * static one from \ref GetUniqueInstance (which gives you the editor
+ * used for the macro and the scripts).
+ *
+ * \note This class handles the main window components. If you are interested only
+ * in the text editor itself, please see \ref pqPythonTextArea.
  */
 class PQPYTHON_EXPORT pqPythonScriptEditor : public QMainWindow
 {
@@ -57,6 +69,9 @@ public:
 
   /**
    * @brief Sets the default save directory for the current buffer
+   * @details Internally, it is only used for the QFileDialog
+   * directory argument when saving or loading a file (ie the
+   * folder from which the QFileDialog is launched).
    */
   void setSaveDialogDefaultDirectory(const QString& dir);
 
@@ -77,7 +92,7 @@ public:
 
   /**
    * @brief Utility function that provides a single instance
-   * of the editor
+   * of the editor.
    */
   static pqPythonScriptEditor* GetUniqueInstance()
   {
@@ -102,24 +117,12 @@ protected:
   void closeEvent(QCloseEvent* event) override;
 
 private:
-  /**
-   * @brief Setup the widget actions
-   */
   void createActions();
 
-  /**
-   * @brief Setup the widget menus
-   */
   void createMenus();
 
-  /**
-   * @brief Setup the status bar
-   */
   void createStatusBar();
 
-  /**
-   * The central text widget
-   */
   pqPythonTextArea* TextArea;
 
   QMenu* fileMenu;
@@ -132,8 +135,9 @@ private:
   QAction* pasteAct;
 
   /**
-   * The python manager only used for the
+   * @brief The python manager only used for the
    * paraview macro system
+   * \todo remove it
    */
   pqPythonManager* pythonManager;
 };
