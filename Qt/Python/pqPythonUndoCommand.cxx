@@ -45,7 +45,7 @@ pqPythonUndoCommand::pqPythonUndoCommand(QTextEdit& text, pqPythonSyntaxHighligh
 }
 
 //-----------------------------------------------------------------------------
-void pqPythonUndoCommand::Swap_Impl(const pqPythonTextHistoryEntry& h)
+void pqPythonUndoCommand::SwapImpl(const pqPythonTextHistoryEntry& h)
 {
   // We block all text signals (this is done to avoid pushing twice
   // the text in the undo stack)
@@ -70,7 +70,7 @@ void pqPythonUndoCommand::undo()
   // We only undo if the last entry is not empty
   if (!this->LastHistoryEntry.IsEmpty())
   {
-    this->Swap_Impl(this->LastHistoryEntry);
+    this->SwapImpl(this->LastHistoryEntry);
     this->TextLastHystoryEntry = this->LastHistoryEntry;
     this->Text.document()->setModified(true);
   }
@@ -79,6 +79,6 @@ void pqPythonUndoCommand::undo()
 //-----------------------------------------------------------------------------
 void pqPythonUndoCommand::redo()
 {
-  this->Swap_Impl(this->CurrentHistoryEntry);
+  this->SwapImpl(this->CurrentHistoryEntry);
   this->Text.document()->setModified(true);
 }

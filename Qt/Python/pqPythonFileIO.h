@@ -59,6 +59,12 @@ class PQPYTHON_EXPORT pqPythonFileIO : public QWidget
 public:
   /**
    * @brief All the \ref pqPythonFileIO QAction
+   * provided by this class.
+   *
+   * @details Each action is connected to
+   * the proper functionality at construction
+   * (ie there is no need to connect them
+   * when using this class)
    */
   enum class IOAction : std::uint8_t
   {
@@ -83,6 +89,7 @@ public:
   pqPythonFileIO(QWidget* parent, QTextEdit& text);
 
   /**
+   * @brief Get one of the action listed in \ref IOAction
    * @param[in] action the wanted action
    * @returns a pointer to the QAction
    */
@@ -153,6 +160,7 @@ private slots:
 
   /**
    * @brief Saves the current file under a new file
+   * and opens it in the editor
    */
   bool SaveAs();
 
@@ -162,29 +170,18 @@ private slots:
   bool SaveAsMacro();
 
 private:
-  /**
-   * @brief Internal utility function that opens and load the \ref filename
-   */
   bool LoadFile(const QString& filename);
 
-  /**
-   * @brief Internal utility function that saves the \ref filename
-   */
   bool SaveFile(const QString& filename);
 
   /**
    * @brief Internal utility function that tells if this buffer needs to be saved
+   * @details For now, we use the modified property of the QTextDocument
    */
   bool NeedSave() const { return this->TextEdit.document()->isModified(); }
 
-  /**
-   * @brief Sets the internal buffer modified
-   */
   void SetModified(bool modified) { this->TextEdit.document()->setModified(modified); }
 
-  /**
-   * @brief The QTextEdit widget
-   */
   QTextEdit& TextEdit;
 
   /**
@@ -192,9 +189,6 @@ private:
    */
   QString DefaultSaveDirectory = QDir::homePath();
 
-  /**
-   * @brief The associated filename
-   */
   QString Filename = "";
 
   /**
@@ -209,6 +203,7 @@ private:
 
   /**
    * @brief The list of QAction
+   * listed in \ref IOAction
    */
   EnumArray<IOAction, QAction> Actions;
 };

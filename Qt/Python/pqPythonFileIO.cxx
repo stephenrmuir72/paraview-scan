@@ -105,7 +105,7 @@ bool pqPythonFileIO::NewFile()
   }
 
   this->TextEdit.clear();
-  this->Filename = "";
+  this->Filename.clear();
   this->SetModified(false);
   this->BufferErased();
 
@@ -120,8 +120,9 @@ bool pqPythonFileIO::Open()
     return false;
   }
 
-  const QString filename = QFileDialog::getOpenFileName(this);
-  if (filename.isEmpty())
+  const QString filename = QFileDialog::getOpenFileName(
+    this, tr("Open File"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
+  if (filename.isEmpty() || !filename.endsWith(".py"))
   {
     return false;
   }
@@ -145,8 +146,8 @@ bool pqPythonFileIO::Save()
 //----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveAs()
 {
-  QString filename = pqFileDialog::getSaveFileName(nullptr, this, QString("Save File"),
-    this->DefaultSaveDirectory, QString("Python Script (*.py)"));
+  QString filename = QFileDialog::getOpenFileName(
+    this, tr("Save File"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
 
   if (filename.isEmpty())
   {
