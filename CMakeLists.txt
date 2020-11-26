@@ -805,25 +805,8 @@ endif()
 #------------------------------------------------------------------------------
 # Test to check install tree
 #------------------------------------------------------------------------------
-if (BUILD_TESTING AND PARAVIEW_INSTALL_DEVELOPMENT_FILES)
-  add_test( NAME pv.TestDevelopmentInstall
-    COMMAND ${CMAKE_COMMAND}
-    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
-    -DPARAVIEW_BINARY_DIR:PATH=${CMAKE_BINARY_DIR}
-    -DPARAVIEW_INSTALL_DIR:PATH=${CMAKE_INSTALL_PREFIX}
-    -DPARAVIEW_SOURCE_DIR:PATH=${CMAKE_SOURCE_DIR}
-    -DPARAVIEW_TEST_DIR:PATH=${CMAKE_BINARY_DIR}/Testing/Temporary
-    -DPARAVIEW_CMAKE_DESTINATION:STRING=${paraview_cmake_destination}
-    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-    -DCMAKE_GENERATOR:STRING=${CMAKE_GENERATOR}
-    -DCMAKE_GENERATOR_PLATFORM:STRING=${CMAKE_GENERATOR_PLATFORM}
-    -DCMAKE_GENERATOR_TOOLSET:STRING=${CMAKE_GENERATOR_TOOLSET}
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/CMake/ParaViewTestInstall.cmake)
-  set_tests_properties(pv.TestDevelopmentInstall PROPERTIES
-    LABELS "paraview"
-    ENVIRONMENT "DESTDIR=${CMAKE_BINARY_DIR}/test-install"
-    # 10 minutes should be enough time.
-    TIMEOUT 600)
+if (BUILD_TESTING )
+  include(ParaViewTestInstall)
 endif()
 #------------------------------------------------------------------------------
 
