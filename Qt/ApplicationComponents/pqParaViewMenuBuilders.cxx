@@ -82,6 +82,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPVApplicationCore.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqPythonScriptEditorReaction.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
@@ -347,6 +348,9 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
   menu.addSeparator(); // --------------------------------------------------
   new pqTraceReaction(menu.addAction("Start Trace") << pqSetName("actionToolsStartStopTrace"),
     "Start Trace", "Stop Trace");
+  menu.addSeparator();
+  new pqPythonScriptEditorReaction(
+    menu.addAction("Python Script Editor...") << pqSetName("actionToolsOpenScriptEditor"));
 #endif
 }
 

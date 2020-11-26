@@ -43,7 +43,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLineEdit>
 #include <QPointer>
 #include <QPushButton>
-#include <QScrollBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtDebug>
