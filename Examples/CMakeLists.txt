@@ -51,6 +51,7 @@ else ()
 endif ()
 
 add_example(Plugins/Autostart)
+add_example(Plugins/ComplexPluginArchitecture)
 add_example(Plugins/DockWidget)
 add_example(Plugins/ElevationFilter)
 add_example(Plugins/GUIMyToolBar)

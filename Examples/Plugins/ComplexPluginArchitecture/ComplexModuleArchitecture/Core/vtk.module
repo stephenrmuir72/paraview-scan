@@ -1,0 +1,5 @@
+NAME
+  ComplexModuleArchitecture::Core
+DEPENDS
+  VTK::CommonCore
+PRIVATE_DEPENDS
