@@ -1859,6 +1859,32 @@ def RemoveCameraLink(linkName):
     servermanager.ProxyManager().UnRegisterLink(linkName)
 
 #==============================================================================
+# SelectionLink methods
+#==============================================================================
+
+def AddSelectionLink(objProxy, objProxyOther, linkName, convertToIndices = True):
+    """Create a selection link between two filters proxies.
+    A name must be given so that the link can be referred to by name.
+    If a link with the given name already exists it will be removed first."""
+    if not objProxyOther:
+        objProxyOther = GetActiveSource()
+    link = servermanager.vtkSMSelectionLink()
+    link.SetConvertToIndices(convertToIndices)
+    link.AddLinkedSelection(objProxy.SMProxy, 2)
+    link.AddLinkedSelection(objProxyOther.SMProxy, 2)
+    link.AddLinkedSelection(objProxyOther.SMProxy, 1)
+    link.AddLinkedSelection(objProxy.SMProxy, 1)
+    RemoveSelectionLink(linkName)
+    servermanager.ProxyManager().RegisterLink(linkName, link)
+
+# -----------------------------------------------------------------------------
+
+def RemoveSelectionLink(linkName):
+    """Remove a selection link with the given name."""
+    servermanager.ProxyManager().UnRegisterLink(linkName)
+
+
+#==============================================================================
 # Animation methods
 #==============================================================================
 
