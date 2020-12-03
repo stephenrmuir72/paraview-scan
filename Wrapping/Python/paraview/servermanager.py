@@ -1697,6 +1697,12 @@ class FieldDataInformation(object):
             return True
         return False
 
+    def __contains__(self, key):
+        """Implementation of the dictionary API"""
+        if self.GetArray(key):
+            return True
+        return False
+
     def __iter__(self):
         """Implementation of the dictionary API"""
         return FieldDataInformationIterator(self)
