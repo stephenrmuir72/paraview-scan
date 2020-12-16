@@ -26,6 +26,8 @@
 
 .fedora31_icc:
     extends: .linux
+    # XXX(icc): See note below about git-lfs. That can be removed once this
+    # image contains git-lfs in it.
     image: "kitware/paraview:ci-fedora31-icc-20201014"
 
     variables:
@@ -121,6 +123,9 @@
     - '[ -n "$MODULES" ] && . /etc/profile.d/modules.sh && module load $MODULES'
     # Enable the Intel compiler if required.
     - '[ "$CC" = "icc" ] && source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64 || true'
+    # XXX(icc): The icc container lacks git-lfs. A rebuild of the container
+    # will be necessary.
+    - '[ "$CC" = "icc" ] && dnf install --setopt=install_weak_deps=False -y git-lfs'
 
 .cmake_build_linux:
     stage: build
