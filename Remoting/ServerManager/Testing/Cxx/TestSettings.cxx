@@ -129,7 +129,7 @@ int TestSettings(int argc, char* argv[])
   auto contourLocatorProperty = vtkSMProxyProperty::SafeDownCast(contour->GetProperty("Locator"));
   if (!contourLocatorProperty)
   {
-    std::cerr << "No contour locator property in GenericContour\n";
+    std::cerr << "No contour locator property in GenericContour" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -138,13 +138,14 @@ int TestSettings(int argc, char* argv[])
   vtkSMProxy* locator1 = proxyListDomain->GetProxy(1);
   contourLocatorProperty->SetProxy(0, locator1);
   settings->SetProxySettings(contour);
-  contourLocatorProperty->SetProxy(0, locator0);
 
-  contour->ResetPropertiesToDefault();
+  contourLocatorProperty->SetProxy(0, locator0);
+  settings->GetProxySettings(contour);
+  contour->ResetPropertiesToDomainDefaults();
 
   if (strcmp(contourLocatorProperty->GetProxy(0)->GetXMLName(), locator1->GetXMLName()) != 0)
   {
-    std::cerr << "Wrong selected locator. Should be " << locator1->GetXMLName() << std::endl;
+    std::cerr << "Wrong selected locator. Should be " << locator1->GetXMLName() << ". but has "  << contourLocatorProperty->GetProxy(0)->GetXMLName() << std::endl;
     std::cerr << *settings << std::endl;
     return EXIT_FAILURE;
   }
