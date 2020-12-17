@@ -144,7 +144,6 @@ void vtkVRGrabPointStyle::HandleButton(const vtkVREvent& event)
   //  else if (event.data.button.state && role == "Reset world")
   //    {
   //    vtkNew<vtkMatrix4x4> transformMatrix;
-  //    /* WRS: is there a way to get this property-helper method once at the initialization? */
   //    vtkSMPropertyHelper(this->ControlledProxy,
   //                        this->ControlledPropertyName).Set(&transformMatrix.GetPointer()->Element[0][0],
   //                        16);
