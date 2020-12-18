@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QApplication>
 #include <QFile>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QTextStream>
 
@@ -120,8 +119,8 @@ bool pqPythonFileIO::Open()
     return false;
   }
 
-  const QString filename = QFileDialog::getOpenFileName(
-    this, tr("Open File"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
+  const QString filename = pqFileDialog::getSaveFileName(
+    nullptr, this, tr("Save File"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
   if (filename.isEmpty() || !filename.endsWith(".py"))
   {
     return false;
@@ -146,8 +145,8 @@ bool pqPythonFileIO::Save()
 //----------------------------------------------------------------------------
 bool pqPythonFileIO::SaveAs()
 {
-  QString filename = QFileDialog::getOpenFileName(
-    this, tr("Save File"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
+  QString filename = pqFileDialog::getSaveFileName(
+    nullptr, this, tr("Save File As"), this->DefaultSaveDirectory, tr("Python Script (*.py)"));
 
   if (filename.isEmpty())
   {
@@ -175,7 +174,7 @@ bool pqPythonFileIO::SaveAsMacro()
   }
 
   const QString filename = pqFileDialog::getSaveFileName(
-    nullptr, this, tr("Save Macro"), userMacroDir, tr("Python script (*.py)"));
+    nullptr, this, tr("Save As Macro"), userMacroDir, tr("Python script (*.py)"));
 
   if (!filename.isEmpty() && this->SaveFile(filename))
   {
