@@ -55,6 +55,7 @@ public:
   }
 
   QString justification;
+  QString verticalJustification;
 };
 
 //-----------------------------------------------------------------------------
@@ -171,6 +172,18 @@ pqFontPropertyWidget::pqFontPropertyWidget(
     ui.Justification->hide();
   }
 
+  smproperty = smgroup->GetProperty("VerticalJustification");
+  if (smproperty)
+  {
+    this->setupVerticalJustificationButton();
+    this->addPropertyLink(
+      this, "verticalJustification", SIGNAL(verticalJustificationChanged(QString&)), smproperty);
+  }
+  else
+  {
+    ui.VerticalJustification->hide();
+  }
+
   onFontFamilyChanged();
 }
 
@@ -189,18 +202,39 @@ void pqFontPropertyWidget::setJustification(QString& str)
     return;
   }
   this->Internals->justification = str;
+
+  this->UpdateToolButtonIcon(str, this->Internals->Ui.Justification);
+
+  Q_EMIT this->justificationChanged(str);
+}
+
+//-----------------------------------------------------------------------------
+void pqFontPropertyWidget::setVerticalJustification(QString& str)
+{
+  if (this->Internals->verticalJustification == str)
+  {
+    return;
+  }
+  this->Internals->verticalJustification = str;
+
+  this->UpdateToolButtonIcon(str, this->Internals->Ui.VerticalJustification);
+
+  Q_EMIT this->verticalJustificationChanged(str);
+}
+
+//-----------------------------------------------------------------------------
+void pqFontPropertyWidget::UpdateToolButtonIcon(QString& str, QToolButton* justification)
+{
   // Change toolbutton icon
-  QList<QAction*> acts = this->Internals->Ui.Justification->menu()->actions();
+  QList<QAction*> acts = justification->menu()->actions();
   for (QList<QAction*>::iterator i = acts.begin(); i != acts.end(); ++i)
   {
     if ((*i)->text() == str)
     {
-      this->Internals->Ui.Justification->setIcon((*i)->icon());
+      justification->setIcon((*i)->icon());
       break;
     }
   }
-
-  Q_EMIT this->justificationChanged(str);
 }
 
 //-----------------------------------------------------------------------------
@@ -210,19 +244,25 @@ QString pqFontPropertyWidget::justification() const
 }
 
 //-----------------------------------------------------------------------------
+QString pqFontPropertyWidget::verticalJustification() const
+{
+  return this->Internals->verticalJustification;
+}
+
+//-----------------------------------------------------------------------------
 void pqFontPropertyWidget::setupJustificationButton()
 {
   Ui::FontPropertyWidget& ui = this->Internals->Ui;
   QActionGroup* actionGroup = new QActionGroup(this);
   actionGroup->setExclusive(true);
   QAction* leftAlign =
-    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignLeft16.png"), tr("Left"), actionGroup);
+    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignLeft.svg"), tr("Left"), actionGroup);
   leftAlign->setIconVisibleInMenu(true);
   QAction* rightAlign =
-    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignRight16.png"), tr("Right"), actionGroup);
+    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignRight.svg"), tr("Right"), actionGroup);
   rightAlign->setIconVisibleInMenu(true);
   QAction* centerAlign =
-    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignCenter16.png"), tr("Center"), actionGroup);
+    new QAction(QIcon(":/pqWidgets/Icons/pqTextAlignCenter.svg"), tr("Center"), actionGroup);
   centerAlign->setIconVisibleInMenu(true);
   QMenu* popup = new QMenu(this);
   popup->addAction(leftAlign);
@@ -234,10 +274,41 @@ void pqFontPropertyWidget::setupJustificationButton()
 }
 
 //-----------------------------------------------------------------------------
+void pqFontPropertyWidget::setupVerticalJustificationButton()
+{
+  Ui::FontPropertyWidget& ui = this->Internals->Ui;
+  QActionGroup* actionGroup = new QActionGroup(this);
+  actionGroup->setExclusive(true);
+  QAction* centerAlign = new QAction(
+    QIcon(":/pqWidgets/Icons/pqTextVerticalAlignCenter.svg"), tr("Center"), actionGroup);
+  centerAlign->setIconVisibleInMenu(true);
+  QAction* bottomAlign = new QAction(
+    QIcon(":/pqWidgets/Icons/pqTextVerticalAlignBottom.svg"), tr("Bottom"), actionGroup);
+  bottomAlign->setIconVisibleInMenu(true);
+  QAction* topAlign =
+    new QAction(QIcon(":/pqWidgets/Icons/pqTextVerticalAlignTop.svg"), tr("Top"), actionGroup);
+  topAlign->setIconVisibleInMenu(true);
+  QMenu* popup = new QMenu(this);
+  popup->addAction(centerAlign);
+  popup->addAction(bottomAlign);
+  popup->addAction(topAlign);
+  ui.VerticalJustification->setMenu(popup);
+  QObject::connect(actionGroup, SIGNAL(triggered(QAction*)), this,
+    SLOT(changeVerticalJustificationIcon(QAction*)));
+}
+
+//-----------------------------------------------------------------------------
 void pqFontPropertyWidget::changeJustificationIcon(QAction* action)
 {
   QString str = action->text();
   this->setJustification(str);
+}
+
+//-----------------------------------------------------------------------------
+void pqFontPropertyWidget::changeVerticalJustificationIcon(QAction* action)
+{
+  QString str = action->text();
+  this->setVerticalJustification(str);
 }
 
 //-----------------------------------------------------------------------------

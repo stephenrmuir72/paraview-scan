@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationComponentsModule.h"
 #include "pqPropertyGroupWidget.h"
 
+class QActionGroup;
 class vtkSMPropertyGroup;
 
 /**
@@ -48,6 +49,8 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqFontPropertyWidget : public pqPropertyGro
 {
   Q_OBJECT
   Q_PROPERTY(QString justification READ justification WRITE setJustification)
+  Q_PROPERTY(
+    QString verticalJustification READ verticalJustification WRITE setVerticalJustification)
 
   typedef pqPropertyGroupWidget Superclass;
 
@@ -56,15 +59,22 @@ public:
   ~pqFontPropertyWidget() override;
 
   QString justification() const;
+  QString verticalJustification() const;
 Q_SIGNALS:
   void justificationChanged(QString&);
+  void verticalJustificationChanged(QString&);
 
 protected:
   void setJustification(QString&);
+  void setVerticalJustification(QString&);
   void setupJustificationButton();
+  void setupVerticalJustificationButton();
+  void UpdateToolButtonIcon(QString& str, QToolButton* justification);
+  QActionGroup* CreateFontActionGroup(QToolButton* justification);
 
 protected Q_SLOTS:
   void changeJustificationIcon(QAction*);
+  void changeVerticalJustificationIcon(QAction*);
   void onFontFamilyChanged();
 
 private:
