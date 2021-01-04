@@ -190,17 +190,11 @@ private:
    */
   pqPythonTextHistoryEntry lastEntry;
 
-  /**
-   * @brief The Undo action
-   */
   QAction* UndoAction = nullptr;
 
   Qt::KeyboardModifier UndoMofidier = Qt::ControlModifier;
   Qt::Key UndoKey = Qt::Key_Z;
 
-  /**
-   * @brief The Redo action
-   */
   QAction* RedoAction = nullptr;
 
   Qt::KeyboardModifier RedoMofidier = Qt::ControlModifier;
