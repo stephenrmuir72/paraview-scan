@@ -82,7 +82,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPVApplicationCore.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
-#include "pqPythonScriptEditorReaction.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
@@ -110,8 +109,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
 #include "pqMacroReaction.h"
-#include "pqPythonManager.h"
 #include "pqTraceReaction.h"
+
+#include <pqPythonManager.h>
+#include <pqPythonScriptEditorReaction.h>
 #endif
 
 #include <QApplication>

@@ -215,13 +215,16 @@ set_property(SOURCE pqApplicationComponentsInit.cxx APPEND
 
 set(headers
   pqCatalystContinueReaction.h
-  pqPythonScriptEditorReaction.h
   )
 
 if (TARGET ParaView::pqPython)
   list(APPEND classes
     pqMacroReaction
-    pqTraceReaction)
+    pqTraceReaction
+  )
+  list(APPEND headers
+    pqPythonScriptEditorReaction.h
+  )
 endif ()
 
 set(ui_files

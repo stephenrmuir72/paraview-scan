@@ -57,6 +57,12 @@ class pqPythonTextArea;
  * static one from \ref GetUniqueInstance (which gives you the editor
  * used for the macro and the scripts).
  *
+ * Note that \ref GetUniqueInstance is a lazy way of having a unique instance
+ * of the editor ready to be used. A better approach would be to actually change
+ * the code that uses this class to reflect that peculiar behavior (and not embed
+ * it inside the class). Also note that you can freely instantiate as many editor
+ * as you want as two instances of this class don't share any common data.
+ *
  * \note This class handles the main window components. If you are interested only
  * in the text editor itself, please see \ref pqPythonTextArea.
  */
