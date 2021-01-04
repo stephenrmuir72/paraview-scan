@@ -83,7 +83,6 @@ void pqPythonLineNumberArea::paintEvent(QPaintEvent* event)
     painter.setPen((this->TextEdit.textCursor().blockNumber() == firstBlockId)
         ? palette.text().color()
         : palette.placeholderText().color());
-
     const QString number = QString::number(firstBlockId + 1);
     painter.drawText(-5, blockCursorRect.y() + 2, size.width(),
       this->TextEdit.fontMetrics().height(), Qt::AlignRight, number);
