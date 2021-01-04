@@ -98,6 +98,13 @@ pqPythonSyntaxHighlighter::pqPythonSyntaxHighlighter(QObject* p, QTextEdit& text
       PyObject_SetAttrString(this->HtmlFormatter, "noclasses", Py_True);
       PyObject_SetAttrString(this->HtmlFormatter, "nobackground", Py_True);
     }
+    else
+    {
+      qWarning(
+        "The ParaView python module failed to load Pygment for the python syntax highlighting \
+        in the editor. Please verify that you have correctly installed the Python Pygment module if you want \
+        to have the syntax highlighting working in the editor");
+    }
   }
 
   // Use a fixed-width font for text edits displaying code
