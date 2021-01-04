@@ -137,7 +137,6 @@ private:
   /**
    * @brief The python manager only used for the
    * paraview macro system
-   * \todo remove it
    */
   pqPythonManager* pythonManager;
 };
