@@ -350,7 +350,7 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
     "Start Trace", "Stop Trace");
   menu.addSeparator();
   new pqPythonScriptEditorReaction(
-    menu.addAction("Python Script Editor...") << pqSetName("actionToolsOpenScriptEditor"));
+    menu.addAction("Python Script Editor") << pqSetName("actionToolsOpenScriptEditor"));
 #endif
 }
 

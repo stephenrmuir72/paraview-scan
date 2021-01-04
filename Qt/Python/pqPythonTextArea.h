@@ -69,20 +69,54 @@ public:
    */
   QTextEdit* GetTextEdit() { return this->TextEdit; }
 
+  /**
+   * @brief Returns a unique action that triggers an
+   * undo command on the text.
+   */
   QAction* GetUndoAction();
 
+  /**
+   * @brief Returns a unique action that triggers an
+   * redo command on the text.
+   */
   QAction* GetRedoAction();
 
+  /**
+   * @brief Returns the new file unique action
+   */
   QAction* GetNewFileAction();
 
+  /**
+   * @brief Returns the open file unique action
+   */
   QAction* GetOpenFileAction();
 
+  /**
+   * @brief Returns the save file unique action
+   */
   QAction* GetSaveFileAction();
 
+  /**
+   * @brief Returns the save as file action.
+   * Compared to the SaveFile action, this one
+   * always open a dialog asking where to save the
+   * copy of the current opened buffer.
+   */
   QAction* GetSaveFileAsAction();
 
+  /**
+   * @brief Same as \ref GetSaveFileAsAction
+   * but saves a copy of the buffer as a ParaView
+   * Python macro.
+   */
   QAction* GetSaveFileAsMacroAction();
 
+  /**
+   * @brief Saves and closes the current opened
+   * buffer when a Qt close event occurs.
+   *
+   * Return false if the buffer has not been saved.
+   */
   bool SaveOnClose();
 
   bool OpenFile(const QString& filename);
@@ -90,9 +124,29 @@ public:
   void SetDefaultSaveDirectory(const QString& dir);
 
 signals:
+  /**
+   * @brief Triggered when the current text
+   * buffer is erased
+   */
   void BufferErased();
+
+  /**
+   * @brief Triggers after a file has been
+   * successfuly opened in the current buffer.
+   */
   void FileOpened(const QString&);
+
+  /**
+   * @brief Triggers after a successful
+   * saves of the current buffer.
+   */
   void FileSaved(const QString&);
+
+  /**
+   * @brief Triggers after a successful
+   * copy of the current buffer to a new
+   * file.
+   */
   void FileSavedAsMacro(const QString&);
 
 protected:
