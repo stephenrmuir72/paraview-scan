@@ -56,9 +56,12 @@ void pqPythonUndoCommand::SwapImpl(const pqPythonTextHistoryEntry& h)
   this->Text.setUpdatesEnabled(true);
 
   // Move the cursor
-  QTextCursor cursor = this->Text.textCursor();
-  cursor.setPosition(h.cursorPosition);
-  this->Text.setTextCursor(cursor);
+  if (!h.IsEmpty())
+  {
+    QTextCursor cursor = this->Text.textCursor();
+    cursor.setPosition(h.cursorPosition);
+    this->Text.setTextCursor(cursor);
+  }
 
   // re-enable the signals
   this->Text.blockSignals(oldState);
@@ -67,13 +70,9 @@ void pqPythonUndoCommand::SwapImpl(const pqPythonTextHistoryEntry& h)
 //-----------------------------------------------------------------------------
 void pqPythonUndoCommand::undo()
 {
-  // We only undo if the last entry is not empty
-  if (!this->LastHistoryEntry.IsEmpty())
-  {
-    this->SwapImpl(this->LastHistoryEntry);
-    this->TextLastHystoryEntry = this->LastHistoryEntry;
-    this->Text.document()->setModified(true);
-  }
+  this->SwapImpl(this->LastHistoryEntry);
+  this->TextLastHystoryEntry = this->LastHistoryEntry;
+  this->Text.document()->setModified(true);
 }
 
 //-----------------------------------------------------------------------------
