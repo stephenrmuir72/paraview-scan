@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * The problem is that QFileDialog requires a QWidget as parent for the
  * Qt hierarchy and not a QWidget...
  */
-class PQPYTHON_EXPORT pqPythonFileIO : public QWidget
+class PQPYTHON_EXPORT pqPythonFileIO : public QObject
 {
   Q_OBJECT
 public:
