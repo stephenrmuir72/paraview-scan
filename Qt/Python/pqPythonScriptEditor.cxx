@@ -74,6 +74,8 @@ pqPythonScriptEditor::pqPythonScriptEditor(QWidget* p)
   pqApplicationCore::instance()->settings()->restoreState("PythonScriptEditor", *this);
   vtkPythonInterpreter::Initialize();
 
+  this->setWindowTitle(tr("ParaView Python Script Editor"));
+
   const auto StrippedName = [](const QString& s) { return QFileInfo(s).fileName(); };
 
   connect(this->TextArea, &pqPythonTextArea::FileSavedAsMacro,
