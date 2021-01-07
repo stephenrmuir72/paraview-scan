@@ -48,7 +48,8 @@ class vtkSMPropertyGroup;
 class PQAPPLICATIONCOMPONENTS_EXPORT pqFontPropertyWidget : public pqPropertyGroupWidget
 {
   Q_OBJECT
-  Q_PROPERTY(QString justification READ justification WRITE setJustification)
+  Q_PROPERTY(
+    QString horizontalJustification READ horizontalJustification WRITE setHorizontalJustification)
   Q_PROPERTY(
     QString verticalJustification READ verticalJustification WRITE setVerticalJustification)
 
@@ -58,16 +59,16 @@ public:
   pqFontPropertyWidget(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = 0);
   ~pqFontPropertyWidget() override;
 
-  QString justification() const;
+  QString horizontalJustification() const;
   QString verticalJustification() const;
 Q_SIGNALS:
-  void justificationChanged(QString&);
+  void horizontalJustificationChanged(QString&);
   void verticalJustificationChanged(QString&);
 
 protected:
-  void setJustification(QString&);
+  void setHorizontalJustification(QString&);
   void setVerticalJustification(QString&);
-  void setupJustificationButton();
+  void setupHorizontalJustificationButton();
   void setupVerticalJustificationButton();
   void UpdateToolButtonIcon(QString& str, QToolButton* justification);
   QActionGroup* CreateFontActionGroup(QToolButton* justification);

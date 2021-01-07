@@ -54,7 +54,7 @@ public:
     this->Ui.mainLayout->setSpacing(pqPropertiesPanel::suggestedHorizontalSpacing());
   }
 
-  QString justification;
+  QString horizontalJustification;
   QString verticalJustification;
 };
 
@@ -160,16 +160,16 @@ pqFontPropertyWidget::pqFontPropertyWidget(
     ui.Shadow->hide();
   }
 
-  smproperty = smgroup->GetProperty("Justification");
+  smproperty = smgroup->GetProperty("HorizontalJustification");
   if (smproperty)
   {
-    this->setupJustificationButton();
-    this->addPropertyLink(
-      this, "justification", SIGNAL(justificationChanged(QString&)), smproperty);
+    this->setupHorizontalJustificationButton();
+    this->addPropertyLink(this, "horizontalJustification",
+      SIGNAL(horizontalJustificationChanged(QString&)), smproperty);
   }
   else
   {
-    ui.Justification->hide();
+    ui.HorizontalJustification->hide();
   }
 
   smproperty = smgroup->GetProperty("VerticalJustification");
@@ -195,17 +195,17 @@ pqFontPropertyWidget::~pqFontPropertyWidget()
 }
 
 //-----------------------------------------------------------------------------
-void pqFontPropertyWidget::setJustification(QString& str)
+void pqFontPropertyWidget::setHorizontalJustification(QString& str)
 {
-  if (this->Internals->justification == str)
+  if (this->Internals->horizontalJustification == str)
   {
     return;
   }
-  this->Internals->justification = str;
+  this->Internals->horizontalJustification = str;
 
-  this->UpdateToolButtonIcon(str, this->Internals->Ui.Justification);
+  this->UpdateToolButtonIcon(str, this->Internals->Ui.HorizontalJustification);
 
-  Q_EMIT this->justificationChanged(str);
+  Q_EMIT this->horizontalJustificationChanged(str);
 }
 
 //-----------------------------------------------------------------------------
@@ -238,9 +238,9 @@ void pqFontPropertyWidget::UpdateToolButtonIcon(QString& str, QToolButton* justi
 }
 
 //-----------------------------------------------------------------------------
-QString pqFontPropertyWidget::justification() const
+QString pqFontPropertyWidget::horizontalJustification() const
 {
-  return this->Internals->justification;
+  return this->Internals->horizontalJustification;
 }
 
 //-----------------------------------------------------------------------------
@@ -250,7 +250,7 @@ QString pqFontPropertyWidget::verticalJustification() const
 }
 
 //-----------------------------------------------------------------------------
-void pqFontPropertyWidget::setupJustificationButton()
+void pqFontPropertyWidget::setupHorizontalJustificationButton()
 {
   Ui::FontPropertyWidget& ui = this->Internals->Ui;
   QActionGroup* actionGroup = new QActionGroup(this);
@@ -268,7 +268,7 @@ void pqFontPropertyWidget::setupJustificationButton()
   popup->addAction(leftAlign);
   popup->addAction(rightAlign);
   popup->addAction(centerAlign);
-  ui.Justification->setMenu(popup);
+  ui.HorizontalJustification->setMenu(popup);
   QObject::connect(
     actionGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeJustificationIcon(QAction*)));
 }
@@ -301,7 +301,7 @@ void pqFontPropertyWidget::setupVerticalJustificationButton()
 void pqFontPropertyWidget::changeJustificationIcon(QAction* action)
 {
   QString str = action->text();
-  this->setJustification(str);
+  this->setHorizontalJustification(str);
 }
 
 //-----------------------------------------------------------------------------

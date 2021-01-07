@@ -1830,7 +1830,7 @@
           <Property name="Italic"/>
           <Property name="Shadow"/>
           <Property name="FontSize"/>
-          <Property name="Justification"/>
+          <Property name="HorizontalJustification"/>
         </ExposedProperties>
       </SubProxy>
       <!-- End of FlagpoleLabel -->
@@ -1889,7 +1889,7 @@
           <Property name="Italic"/>
           <Property name="Shadow"/>
           <Property name="FontSize"/>
-          <Property name="Justification"/>
+          <Property name="HorizontalJustification"/>
         </ExposedProperties>
       </SubProxy>
       <!-- End of BillboardTextActor3D -->

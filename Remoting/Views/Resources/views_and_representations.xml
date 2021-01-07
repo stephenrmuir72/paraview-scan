@@ -188,7 +188,7 @@
         <Property name="ChartTitleBold" function="Bold" />
         <Property name="ChartTitleItalic" function="Italics"/>
         <Property name="ChartTitleFontSize" function="Size" />
-        <Property name="ChartTitleAlignment" function="Justification" />
+        <Property name="ChartTitleAlignment" function="HorizontalJustification" />
       </PropertyGroup>
     </Proxy>
     <!-- ================================================================== -->
@@ -4635,7 +4635,7 @@
             <Property exposed_name="SelectionCellLabelFontFile" name="CellLabelFontFile" function="File"/>
             <Property exposed_name="SelectionCellLabelFontSize" name="CellLabelFontSize" function="Size"/>
             <Property exposed_name="SelectionCellLabelItalic" name="CellLabelItalic" function="Italics"/>
-            <Property exposed_name="SelectionCellLabelJustification" name="CellLabelJustification" function="Justification"/>
+            <Property exposed_name="SelectionCellLabelJustification" name="CellLabelJustification" function="HorizontalJustification"/>
             <Property exposed_name="SelectionCellLabelOpacity" name="CellLabelOpacity" function="Opacity"/>
             <Property exposed_name="SelectionCellLabelShadow" name="CellLabelShadow" function="Shadow"/>
           </PropertyGroup>
@@ -4649,7 +4649,7 @@
             <Property exposed_name="SelectionPointLabelFontFile" name="PointLabelFontFile" function="File"/>
             <Property exposed_name="SelectionPointLabelFontSize" name="PointLabelFontSize" function="Size"/>
             <Property exposed_name="SelectionPointLabelItalic" name="PointLabelItalic" function="Italics"/>
-            <Property exposed_name="SelectionPointLabelJustification" name="PointLabelJustification" function="Justification"/>
+            <Property exposed_name="SelectionPointLabelJustification" name="PointLabelJustification" function="HorizontalJustification"/>
             <Property exposed_name="SelectionPointLabelOpacity" name="PointLabelOpacity" function="Opacity"/>
             <Property exposed_name="SelectionPointLabelShadow" name="PointLabelShadow" function="Shadow"/>
           </PropertyGroup>
@@ -7231,7 +7231,7 @@
         <Property name="CellLabelFontFile" function="File"/>
         <Property name="CellLabelFontSize" function="Size"/>
         <Property name="CellLabelItalic" function="Italics"/>
-        <Property name="CellLabelJustification" function="Justification"/>
+        <Property name="CellLabelJustification" function="HorizontalJustification"/>
         <Property name="CellLabelOpacity" function="Opacity"/>
         <Property name="CellLabelShadow" function="Shadow"/>
       </PropertyGroup>
@@ -7243,7 +7243,7 @@
         <Property name="PointLabelFontFile" function="File"/>
         <Property name="PointLabelFontSize" function="Size"/>
         <Property name="PointLabelItalic" function="Italics"/>
-        <Property name="PointLabelJustification" function="Justification"/>
+        <Property name="PointLabelJustification" function="HorizontalJustification"/>
         <Property name="PointLabelOpacity" function="Opacity"/>
         <Property name="PointLabelShadow" function="Shadow"/>
       </PropertyGroup>
@@ -7789,7 +7789,7 @@
             <Property name="Italic" function="Italics" />
             <Property name="Shadow" function="Shadow"/>
             <Property name="FontSize" function="Size"/>
-            <Property name="Justification" function="Justification"/>
+            <Property name="HorizontalJustification" function="HorizontalJustification"/>
             <Property name="VerticalJustification" default_values="1" />
           </PropertyGroup>
         </ExposedProperties>
@@ -9321,7 +9321,7 @@
             <Property name="Italic" function="Italics" />
             <Property name="Shadow" function="Shadow"/>
             <Property name="FontSize" function="Size"/>
-            <Property name="Justification" function="Justification"/>
+            <Property name="HorizontalJustification" function="HorizontalJustification"/>
             <Property name="VerticalJustification" function="VerticalJustification"/>
           </PropertyGroup>
           <!-- properties for Text Position-->
@@ -9544,7 +9544,7 @@
             <Property name="Italic" function="Italics" />
             <Property name="Shadow" function="Shadow"/>
             <Property name="FontSize" function="Size"/>
-            <Property name="Justification" function="Justification"/>
+            <Property name="HorizontalJustification" function="HorizontalJustification"/>
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>

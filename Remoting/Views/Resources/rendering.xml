@@ -466,7 +466,7 @@
       <IntVectorProperty animateable="0"
                          command="SetJustification"
                          default_values="0"
-                         name="Justification"
+                         name="HorizontalJustification"
                          number_of_elements="1">
         <EnumerationDomain name="enum">
           <Entry text="Left"

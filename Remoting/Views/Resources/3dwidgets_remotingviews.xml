@@ -664,7 +664,7 @@
                proxygroup="properties"
                proxyname="TextPropertyCentered"></Proxy>
         <ExposedProperties>
-          <Property name="Justification" />
+          <Property name="HorizontalJustification" />
           <Property name="VerticalJustification" />
           <Property name="LineOffset" />
           <Property name="LineSpacing" />
