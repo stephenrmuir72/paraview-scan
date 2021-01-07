@@ -36,7 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pqCoreUtilities.h>
 #include <pqMasterOnlyReaction.h>
 #include <pqPVApplicationCore.h>
-#include <pqPythonScriptEditor.h>
+
+#include "pqPythonScriptEditor.h"
 
 class PQAPPLICATIONCOMPONENTS_EXPORT pqPythonScriptEditorReaction : public pqMasterOnlyReaction
 {
