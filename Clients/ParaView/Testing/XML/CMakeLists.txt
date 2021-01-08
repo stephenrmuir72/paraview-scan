@@ -542,8 +542,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestB.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestC.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestD.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestD_1.png}")
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomClosestD.png}")
 
 SET (TESTS_WITHOUT_BASELINES
   AboutDialog.xml
