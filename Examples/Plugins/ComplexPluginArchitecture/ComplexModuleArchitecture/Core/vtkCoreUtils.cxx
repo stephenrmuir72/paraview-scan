@@ -14,14 +14,16 @@
 =========================================================================*/
 #include "vtkCoreUtils.h"
 
+#include <math.h>
+
 //----------------------------------------------------------------------------
 float vtkCoreUtils::RadiansFromDegrees(float x)
 {
-  return x * 0.017453292f;
+  return x * M_PI / 180.0f;
 }
 
 //----------------------------------------------------------------------------
 double vtkCoreUtils::RadiansFromDegrees(double x)
 {
-  return x * 0.017453292519943295;
+  return x * M_PI / 180.0;
 }

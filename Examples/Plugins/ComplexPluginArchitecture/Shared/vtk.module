@@ -2,4 +2,3 @@ NAME
   ComplexPluginArchitecture::Shared
 DEPENDS
   VTK::CommonCore
-PRIVATE_DEPENDS

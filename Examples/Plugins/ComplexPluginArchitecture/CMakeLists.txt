@@ -10,16 +10,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}"
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
 
-# Adding a vtk module that will be used by both plugins
-vtk_module_scan(
-  MODULE_FILES        "${CMAKE_CURRENT_SOURCE_DIR}/Shared/vtk.module"
-  REQUEST_MODULES     ComplexPluginArchitecture::Shared
-  PROVIDES_MODULES    my_modules)
-
-vtk_module_build(
-  MODULES             ${my_modules}
-  INSTALL_EXPORT      ComplexPluginArchitecture)
-
 # Adding both plugins
 set("_paraview_plugin_default_ComplexModuleArchitecture" ON)
 set("_paraview_plugin_default_GUIMyToolBar" ON)
@@ -38,6 +28,16 @@ foreach (module IN LISTS required_modules)
     return ()
   endif ()
 endforeach ()
+
+# Adding a vtk module that will be used by both plugins
+vtk_module_scan(
+  MODULE_FILES        "${CMAKE_CURRENT_SOURCE_DIR}/Shared/vtk.module"
+  REQUEST_MODULES     ComplexPluginArchitecture::Shared
+  PROVIDES_MODULES    my_modules)
+
+vtk_module_build(
+  MODULES             ${my_modules}
+  INSTALL_EXPORT      ComplexPluginArchitecture)
 
 paraview_plugin_build(
   RUNTIME_DESTINATION "${CMAKE_INSTALL_BINDIR}"
