@@ -146,7 +146,6 @@ bool vtkSMAnimationSceneWriter::Save()
 
   bool status = this->SaveInitialize(this->StartFileCount);
   bool cachingFlag = this->AnimationScene->GetForceDisableCaching();
-  this->AnimationScene->SetForceDisableCaching(true);
 
   if (status)
   {
