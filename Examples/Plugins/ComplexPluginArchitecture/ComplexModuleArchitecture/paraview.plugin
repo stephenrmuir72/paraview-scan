@@ -4,5 +4,3 @@ DESCRIPTION
   An example plugin that shows how to create a plugin with a complex module architecture using also a shared vtk module
 REQUIRES_MODULES
   ComplexPluginArchitecture::Shared
-  ComplexModuleArchitecture::Core
-  ComplexModuleArchitecture::Filters
