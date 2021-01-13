@@ -20,15 +20,6 @@ paraview_plugin_scan(
   PROVIDES_PLUGINS  plugins
   REQUIRES_MODULES  required_modules)
 
-foreach (module IN LISTS required_modules)
-  if (NOT TARGET "${module}")
-    message(#FATAL_ERROR
-      "Skipping example ${CMAKE_PROJECT_NAME}: Missing required module: "
-      "${module}")
-    return ()
-  endif ()
-endforeach ()
-
 # Adding a vtk module that will be used by both plugins
 vtk_module_scan(
   MODULE_FILES        "${CMAKE_CURRENT_SOURCE_DIR}/Shared/vtk.module"
@@ -38,6 +29,15 @@ vtk_module_scan(
 vtk_module_build(
   MODULES             ${my_modules}
   INSTALL_EXPORT      ComplexPluginArchitecture)
+
+foreach (module IN LISTS required_modules)
+  if (NOT TARGET "${module}")
+    message(#FATAL_ERROR
+      "Skipping example ${CMAKE_PROJECT_NAME}: Missing required module: "
+      "${module}")
+    return ()
+  endif ()
+endforeach ()
 
 paraview_plugin_build(
   RUNTIME_DESTINATION "${CMAKE_INSTALL_BINDIR}"

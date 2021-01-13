@@ -2,3 +2,4 @@ NAME
   ComplexPluginArchitecture::Shared
 DEPENDS
   VTK::CommonCore
+  VTK::FiltersCore

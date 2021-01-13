@@ -1,7 +1,8 @@
 paraview_add_plugin(ComplexModuleArchitecture
   VERSION "1.0"
   SERVER_MANAGER_XML filters.xml
-  MODULES 
+  MODULES
+    ComplexPluginArchitecture::Shared
     ComplexModuleArchitecture::Core 
     ComplexModuleArchitecture::Filters
   MODULE_FILES 
