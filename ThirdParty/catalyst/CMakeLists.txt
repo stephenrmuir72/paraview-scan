@@ -28,8 +28,12 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
-vtk_module_third_party_internal(
-  VERSION "master"
-  LICENSE_FILES "vtkcatalyst/catalyst/License.txt"
-  SUBDIRECTORY vtkcatalyst
-  INTERFACE)
+vtk_module_third_party(
+  INTERNAL
+    VERSION "master"
+    LICENSE_FILES "vtkcatalyst/catalyst/License.txt"
+    STANDARD_INCLUDE_DIRS
+  EXTERNAL
+    PACKAGE catalyst
+    TARGETS catalyst
+    STANDARD_INCLUDE_DIRS)
