@@ -17,7 +17,7 @@
  *
  * vtkLogoSourceRepresentation is a representation to show a Logo. The input is
  * expected to a be a vtkImageData that can be passed to a vtkLogoRepresentation.
-*/
+ */
 
 #ifndef vtkLogoSourceRepresentation_h
 #define vtkLogoSourceRepresentation_h
@@ -61,6 +61,14 @@ public:
   vtkGetMacro(Opacity, double);
   //@}
 
+  //@{
+  /**
+   * Set the display location of the logo
+   */
+  vtkSetMacro(SendToBackground, bool);
+  vtkGetMacro(SendToBackground, bool);
+  //@}
+
   /**
    * vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
    * typically called by the vtkView to request meta-data from the
@@ -101,6 +109,7 @@ protected:
   vtkNew<vtkImageData> ImageCache;
   vtk3DWidgetRepresentation* LogoWidgetRepresentation = nullptr;
   double Opacity = 1.0;
+  bool SendToBackground = false;
 
 private:
   vtkLogoSourceRepresentation(const vtkLogoSourceRepresentation&) = delete;

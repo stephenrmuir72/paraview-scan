@@ -140,6 +140,8 @@ int vtkLogoSourceRepresentation::ProcessViewRequest(
       image->GetDimensions(dims);
       repr->SetImage(image);
       repr->GetImageProperty()->SetOpacity(this->Opacity);
+      repr->GetImageProperty()->SetDisplayLocation(
+        this->SendToBackground ? VTK_BACKGROUND_LOCATION : VTK_FOREGROUND_LOCATION);
       repr->SetVisibility(true);
       float height = repr->GetPosition2()[1];
       repr->SetPosition2(height * dims[0] / dims[1], height);
