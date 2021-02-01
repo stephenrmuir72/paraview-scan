@@ -71,6 +71,8 @@ paraview_client_add(
   APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/pvIcon.ico"
   SOURCES           ${sources}
   PLUGINS_TARGETS   ParaView::paraview_plugins
+  PLUGINS_DESTINATION
+                    "${CMAKE_INSTALL_LIBDIR}/paraview${paraview_version_suffix}/plugins"
   APPLICATION_XMLS  ${xmls})
 
 find_package(Qt5 REQUIRED QUIET COMPONENTS Widgets)
