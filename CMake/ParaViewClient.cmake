@@ -37,7 +37,8 @@ paraview_client_add(
   [FORCE_UNIX_LAYOUT    <ON|OFF>]
   [BUNDLE_DESTINATION   <directory>]
   [RUNTIME_DESTINATION  <directory>]
-  [LIBRARY_DESTINATION  <directory>])
+  [LIBRARY_DESTINATION  <directory>]
+  [PLUGINS_DESTINATION  <directory>])
 ```
 
   * `NAME`: (Required) The name of the application. This is used as the target
@@ -78,11 +79,14 @@ paraview_client_add(
   * `LIBRARY_DESTINATION`: (Defaults to `${CMAKE_INSTALL_LIBDIR}`) Where
     libraries are placed. Sets up `RPATH` on ELF platforms (e.g., Linux and the
     BSD family).
+  * `PLUGINS_DESTINATION`: (Defaults to `<RUNTIME_DESTINATION>`) Where plugins
+    for the application are located. The configuration file will be placed in
+    this directory.
 #]==]
 function (paraview_client_add)
   cmake_parse_arguments(_paraview_client
     ""
-    "NAME;APPLICATION_NAME;ORGANIZATION;TITLE;SPLASH_IMAGE;BUNDLE_DESTINATION;BUNDLE_ICON;BUNDLE_PLIST;APPLICATION_ICON;MAIN_WINDOW_CLASS;MAIN_WINDOW_INCLUDE;VERSION;FORCE_UNIX_LAYOUT;PLUGINS_TARGET;DEFAULT_STYLE;RUNTIME_DESTINATION;LIBRARY_DESTINATION;NAMESPACE;EXPORT"
+    "NAME;APPLICATION_NAME;ORGANIZATION;TITLE;SPLASH_IMAGE;BUNDLE_DESTINATION;BUNDLE_ICON;BUNDLE_PLIST;APPLICATION_ICON;MAIN_WINDOW_CLASS;MAIN_WINDOW_INCLUDE;VERSION;FORCE_UNIX_LAYOUT;PLUGINS_TARGET;DEFAULT_STYLE;RUNTIME_DESTINATION;LIBRARY_DESTINATION;PLUGINS_DESTINATION;NAMESPACE;EXPORT"
     "REQUIRED_PLUGINS;OPTIONAL_PLUGINS;APPLICATION_XMLS;SOURCES;QCH_FILES;QCH_FILE;PLUGINS_TARGETS"
     ${ARGN})
 
@@ -151,6 +155,11 @@ function (paraview_client_add)
   if (NOT DEFINED _paraview_client_LIBRARY_DESTINATION)
     set(_paraview_client_LIBRARY_DESTINATION
       "${CMAKE_INSTALL_LIBDIR}")
+  endif ()
+
+  if (NOT DEFINED _paraview_client_PLUGINS_DESTINATION)
+    set(_paraview_client_PLUGINS_DESTINATION
+      "${_paraview_client_RUNTIME_DESTINATION}")
   endif ()
 
   if (DEFINED _paraview_client_QCH_FILE)
@@ -402,9 +411,9 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
         ${_paraview_client_PLUGINS_TARGETS})
 
     set(_paraview_client_binary_destination
-      "${_paraview_client_RUNTIME_DESTINATION}")
+      "${_paraview_client_PLUGINS_DESTINATION}")
     set(_paraview_client_conf_destination
-      "${_paraview_client_binary_destination}")
+      "${_paraview_client_PLUGINS_DESTINATION}")
     if (APPLE)
       string(APPEND _paraview_client_binary_destination
         "/${_paraview_client_NAME}.app/Contents/Resources")
