@@ -312,7 +312,16 @@ void vtkPVPluginTracker::LoadPluginConfigurationXMLs(const char* appname)
       }
     }
 #endif // defined(__APPLE__)
-    // Load it from beside the executable.
+    // Load it from the application resource directory.
+    {
+      auto conf = exe_dir + PARAVIEW_RELATIVE_LIBPATH "/" PARAVIEW_SUBDIR "/" + appname + ".conf";
+      if (vtksys::SystemTools::FileExists(conf))
+      {
+        this->LoadPluginConfigurationXMLConf(exe_dir, conf);
+        return;
+      }
+    }
+    // Load it from beside the executable (legacy location).
     {
       auto conf = exe_dir + "/" + appname + ".conf";
       if (vtksys::SystemTools::FileExists(conf))
@@ -352,11 +361,17 @@ void vtkPVPluginTracker::LoadPluginConfigurationXMLConf(
   vtksys::ifstream fin(conf.c_str());
   std::string line;
   // TODO: Replace with a JSON parser.
+  auto conf_dir = vtksys::SystemTools::GetFilenamePath(conf_dir);
   while (std::getline(fin, line))
   {
     if (!vtksys::SystemTools::FileIsFullPath(line))
     {
-      line = std::string(exe_dir).append("/").append(line);
+      auto old_line = line;
+      line = std::string(conf_dir).append("/").append(old_line);
+      if (!vtksys::SystemTools::FileExists(line, true))
+      {
+        line = std::string(exe_dir).append("/").append(old_line);
+      }
     }
 
     this->LoadPluginConfigurationXML(line.c_str(), false);
