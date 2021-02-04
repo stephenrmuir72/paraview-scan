@@ -18,17 +18,18 @@
  * This class handles most of the non GUI related methods
  * for adding OpenVR support to ParaView. It is instantiated
  * by the pqOpenVRDockPanel.
-*/
+ */
 
 #ifndef vtkPVOpenVRHelper_h
 #define vtkPVOpenVRHelper_h
 
 #include "vtkNew.h" // for ivars
 #include "vtkObject.h"
-#include <array>  // for method sig
-#include <map>    // for ivar
-#include <set>    // for ivar
-#include <vector> // for ivar
+#include "vtkSmartPointer.h" // for ivar
+#include <array>             // for method sig
+#include <map>               // for ivar
+#include <set>               // for ivar
+#include <vector>            // for ivar
 
 class pqOpenVRControls;
 class vtkActor;
@@ -242,7 +243,7 @@ protected:
 
   std::map<int, vtkPVOpenVRHelperLocation> Locations;
 
-  vtkEventData* LastEventData;
+  vtkSmartPointer<vtkEventData> LastEventData;
 
 private:
   vtkPVOpenVRHelper(const vtkPVOpenVRHelper&) = delete;
