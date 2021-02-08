@@ -368,6 +368,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadPartitionedCGNS_LoadPatches.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadPartitionedCGNS_PointData.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReadCGNSBCDataset.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RearrangeLayoutA.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RearrangeLayoutB.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RectilinearVolumeRendering.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReloadExodusFile-AfterReload.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ReloadExodusFile-BeforeReload.png}"
@@ -630,6 +632,7 @@ SET (TESTS_WITH_INLINE_COMPARES
   QuartilePlot.xml
   ReadPartitionedCGNS.xml
   ReadCGNSBCDataset.xml
+  RearrangeLayout.xml
   RectilinearFractal.xml
   ReloadExodusFile.xml
   RemoteRendering.xml
