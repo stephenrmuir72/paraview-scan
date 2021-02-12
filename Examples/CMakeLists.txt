@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.8)
 project(ParaViewExamples)
 
+if (NOT BUILD_SHARED_LIBS)
+  set(CMAKE_JOB_POOL_LINK static_exe_link)
+  set_property(GLOBAL APPEND PROPERTY
+    JOB_POOLS "${CMAKE_JOB_POOL_LINK}=1")
+endif ()
+
 if (ParaView_BINARY_DIR)
   function (add_example dir)
     cmake_parse_arguments(arg "" "TEST_TIMEOUT" "" ${ARGN})
