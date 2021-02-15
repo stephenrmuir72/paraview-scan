@@ -5,5 +5,5 @@ paraview_add_plugin(CDIReader
   MODULE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Reader/vtk.module")
 
 if (BUILD_TESTING)
-  add_subdirectory(Testing)
+  add_subdirectory(Testing/XML)
 endif ()
