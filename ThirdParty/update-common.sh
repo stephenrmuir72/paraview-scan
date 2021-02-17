@@ -68,7 +68,12 @@ git_archive () {
         tar -C "$extractdir" -x
 }
 
+confirm_archive_all_exists () {
+    git help -a | grep -q archive-all || die "git requires an archive-all command. Please run 'pip install git-archive-all'"
+}
+
 git_archive_all () {
+    confirm_archive_all_exists
     local tmptarball="temp.tar"
     git archive-all --prefix="" "$tmptarball"
     mkdir -p "$extractdir/$name-reduced"
