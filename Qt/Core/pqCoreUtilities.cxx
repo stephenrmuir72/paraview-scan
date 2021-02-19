@@ -282,7 +282,17 @@ bool pqCoreUtilities::promptUser(const QString& settingsKey, QMessageBox::Icon i
 //-----------------------------------------------------------------------------
 QString pqCoreUtilities::number(double value)
 {
-  std::ostringstream str;
-  str << vtkNumberToString()(value);
-  return QString::fromLocal8Bit(str.str().c_str());
+  std::ostringstream stream;
+  stream << vtkNumberToString()(value);
+  return QString::fromStdString(stream.str());
+}
+
+QByteArray pqCoreUtilities::QStringToQBytes(const QString& value)
+{
+  return value.toUtf8();
+}
+
+std::string pqCoreUtilities::QStringToString(const QString& value)
+{
+  return QStringToQBytes(value).toStdString();
 }

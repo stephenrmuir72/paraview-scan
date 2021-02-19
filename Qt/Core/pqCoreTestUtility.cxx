@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqColorDialogEventTranslator.h"
 #include "pqConsoleWidgetEventPlayer.h"
 #include "pqConsoleWidgetEventTranslator.h"
+#include "pqCoreUtilities.h"
 #include "pqEventDispatcher.h"
 #include "pqFileDialogEventPlayer.h"
 #include "pqFileDialogEventTranslator.h"
@@ -107,7 +108,7 @@ bool saveImage(vtkWindowToImageFilter* Capture, const QFileInfo& File)
 {
   WriterT* const writer = WriterT::New();
   writer->SetInputConnection(Capture->GetOutputPort());
-  writer->SetFileName(File.filePath().toLocal8Bit().data());
+  writer->SetFileName(pqCoreUtilities::QStringToQBytes(File.filePath()).data());
   writer->Write();
   const bool result = writer->GetErrorCode() == vtkErrorCode::NoError;
   writer->Delete();
@@ -262,9 +263,9 @@ bool pqCoreTestUtility::CompareImage(vtkRenderWindow* renderWindow, const QStrin
 
   vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
   testing->AddArgument("-T");
-  testing->AddArgument(tempDirectory.toLocal8Bit().data());
+  testing->AddArgument(pqCoreUtilities::QStringToQBytes(tempDirectory).data());
   testing->AddArgument("-V");
-  testing->AddArgument(referenceImage.toLocal8Bit().data());
+  testing->AddArgument(pqCoreUtilities::QStringToQBytes(referenceImage).data());
   testing->SetRenderWindow(renderWindow);
   bool ret = testing->RegressionTest(threshold) == vtkTesting::PASSED;
   renderWindow->SetSize(originalSize);
@@ -277,9 +278,9 @@ bool pqCoreTestUtility::CompareImage(vtkImageData* testImage, const QString& Ref
 {
   vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
   testing->AddArgument("-T");
-  testing->AddArgument(TempDirectory.toLocal8Bit().data());
+  testing->AddArgument(pqCoreUtilities::QStringToQBytes(TempDirectory).data());
   testing->AddArgument("-V");
-  testing->AddArgument(ReferenceImage.toLocal8Bit().data());
+  testing->AddArgument(pqCoreUtilities::QStringToQBytes(ReferenceImage).data());
   vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
   tp->SetOutput(testImage);
   if (testing->RegressionTest(tp, Threshold) == vtkTesting::PASSED)
@@ -441,12 +442,13 @@ bool pqCoreTestUtility::CompareImage(const QString& testPNGImage, const QString&
   double threshold, ostream& output, const QString& tempDirectory)
 {
   vtkNew<vtkPNGReader> reader;
-  if (!reader->CanReadFile(testPNGImage.toLocal8Bit().data()))
+  if (!reader->CanReadFile(pqCoreUtilities::QStringToQBytes(testPNGImage).data()))
   {
-    output << "Cannot read file : " << testPNGImage.toLocal8Bit().data() << endl;
+    output << "Cannot read file : " << pqCoreUtilities::QStringToQBytes(testPNGImage).data()
+           << endl;
     return false;
   }
-  reader->SetFileName(testPNGImage.toLocal8Bit().data());
+  reader->SetFileName(pqCoreUtilities::QStringToQBytes(testPNGImage).data());
   reader->Update();
   return pqCoreTestUtility::CompareImage(
     reader->GetOutput(), referenceImage, threshold, output, tempDirectory);
@@ -504,6 +506,6 @@ bool pqCoreTestUtility::CompareTile(pqView* view, int rank, int tdx, int tdy,
 
   const QString imagepath =
     QString("%1/tile-%2.png").arg(tempDirectory).arg(QFileInfo(baseline).baseName());
-  layout->SaveAsPNG(rank, imagepath.toLocal8Bit().data());
+  layout->SaveAsPNG(rank, pqCoreUtilities::QStringToQBytes(imagepath).data());
   return pqCoreTestUtility::CompareImage(imagepath, baseline, threshold, output, tempDirectory);
 }

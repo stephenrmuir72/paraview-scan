@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqExtractor.h"
 #include "pqFiltersMenuReaction.h"
 #include "pqMenuReactionUtils.h"
@@ -182,7 +183,8 @@ pqExtractor* pqExtractorsMenuReaction::createExtractor(
   auto view = activeObjects.activeView() ? activeObjects.activeView()->getProxy() : nullptr;
   auto port =
     activeObjects.activePort() ? activeObjects.activePort()->getOutputPortProxy() : nullptr;
-  auto prototype = pxm->GetPrototypeProxy(group.toLocal8Bit().data(), name.toLocal8Bit().data());
+  auto prototype = pxm->GetPrototypeProxy(
+    pqCoreUtilities::QStringToQBytes(group).data(), pqCoreUtilities::QStringToQBytes(name).data());
 
   vtkNew<vtkSMExtractsController> controller;
   vtkSMProxy* input = nullptr;
@@ -200,7 +202,7 @@ pqExtractor* pqExtractorsMenuReaction::createExtractor(
   }
 
   BEGIN_UNDO_SET(QString("Create Extract Generator '%1'").arg(name));
-  auto generator = controller->CreateExtractor(input, name.toLocal8Bit());
+  auto generator = controller->CreateExtractor(input, pqCoreUtilities::QStringToQBytes(name));
   END_UNDO_SET();
   auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
   return generator ? smmodel->findItem<pqExtractor*>(generator) : nullptr;

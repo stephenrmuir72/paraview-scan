@@ -205,7 +205,7 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
 
   vtkSMPropertyHelper(shProxy, "View").Set(viewProxy);
   vtkSMPropertyHelper(shProxy, "Layout").Set(layout);
-  shProxy->UpdateDefaultsAndVisibilities(filename.toLocal8Bit().data());
+  shProxy->UpdateDefaultsAndVisibilities(pqCoreUtilities::QStringToQBytes(filename).data());
   controller->PostInitializeProxy(shProxy);
 
   pqProxyWidgetDialog dialog(shProxy, pqCoreUtilities::mainWidget());
@@ -216,7 +216,7 @@ void pqSaveScreenshotReaction::saveScreenshot(bool clipboardMode)
   dialog.setSettingsKey("SaveScreenshotDialog");
   if (dialog.exec() == QDialog::Accepted)
   {
-    shProxy->WriteImage(filename.toLocal8Bit().data());
+    shProxy->WriteImage(pqCoreUtilities::QStringToQBytes(filename).data());
   }
 
   if (layout)
@@ -276,7 +276,8 @@ bool pqSaveScreenshotReaction::saveScreenshot(
   {
     return false;
   }
-  return vtkSMUtilities::SaveImage(image, filename.toLocal8Bit().data(), quality) != 0;
+  return vtkSMUtilities::SaveImage(
+           image, pqCoreUtilities::QStringToQBytes(filename).data(), quality) != 0;
 }
 
 //-----------------------------------------------------------------------------

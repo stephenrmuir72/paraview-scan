@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QStyle>
 
 #include <pqApplicationCore.h>
+#include <pqCoreUtilities.h>
 #include <pqServer.h>
 #include <vtkClientServerStream.h>
 #include <vtkCollection.h>
@@ -331,7 +332,7 @@ public:
       helper->UpdatePropertyInformation();
       QString separator =
         pqSMAdaptor::getElementProperty(helper->GetProperty("PathSeparator")).toString();
-      this->Separator = separator.toLocal8Bit().data()[0];
+      this->Separator = pqCoreUtilities::QStringToQBytes(separator).data()[0];
       // Since this isn't going through the proxy widget we have to manually restore the setting
       vtkSMPropertyHelper(helper, "ReadDetailedFileInformation")
         .Set(getShowDetailedInformationSetting());
@@ -717,7 +718,7 @@ bool pqFileDialogModel::mkdir(const QString& dirName)
   else
   {
     // File system is local.
-    ret = (vtkDirectory::MakeDirectory(dirPath.toLocal8Bit().data()) != 0);
+    ret = (vtkDirectory::MakeDirectory(pqCoreUtilities::QStringToQBytes(dirPath).data()) != 0);
   }
 
   this->beginResetModel();
@@ -751,7 +752,7 @@ bool pqFileDialogModel::rmdir(const QString& dirName)
   else
   {
     // File system is local.
-    ret = (vtkDirectory::DeleteDirectory(dirPath.toLocal8Bit().data()) != 0);
+    ret = (vtkDirectory::DeleteDirectory(pqCoreUtilities::QStringToQBytes(dirPath).data()) != 0);
   }
 
   this->beginResetModel();
@@ -805,7 +806,8 @@ bool pqFileDialogModel::rename(const QString& oldname, const QString& newname)
   }
   else
   {
-    ret = (vtkDirectory::Rename(oldPath.toLocal8Bit().data(), newPath.toLocal8Bit().data()) != 0);
+    ret = (vtkDirectory::Rename(pqCoreUtilities::QStringToQBytes(oldPath).data(),
+             pqCoreUtilities::QStringToQBytes(newPath).data()) != 0);
   }
 
   this->beginResetModel();

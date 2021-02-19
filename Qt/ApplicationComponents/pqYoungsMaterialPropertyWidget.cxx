@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqArraySelectionWidget.h"
 #include "pqArraySelectorPropertyWidget.h"
+#include "pqCoreUtilities.h"
 #include "pqPropertyLinksConnection.h"
 #include "pqSMAdaptor.h"
 #include "vtkSMPropertyGroup.h"
@@ -263,10 +264,10 @@ void pqYoungsMaterialPropertyWidget::updateComboBoxes()
   // check if there's a normal and ordering array already defined for this
   // volume-fraction array. If so, show it.
   const char* orderingArray = vtkSMUncheckedPropertyHelper(this->proxy(), "OrderingArrays")
-                                .GetStatus(label.toLocal8Bit().data(), "");
+                                .GetStatus(pqCoreUtilities::QStringToQBytes(label).data(), "");
 
   const char* normalArray = vtkSMUncheckedPropertyHelper(this->proxy(), "NormalArrays")
-                              .GetStatus(label.toLocal8Bit().data(), "");
+                              .GetStatus(pqCoreUtilities::QStringToQBytes(label).data(), "");
 
   if (orderingArray == nullptr || strlen(orderingArray) == 0)
   {

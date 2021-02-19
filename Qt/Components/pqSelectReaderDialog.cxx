@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QListWidgetItem>
 
+#include "pqCoreUtilities.h"
 #include "pqServer.h"
 #include "vtkSMReaderFactory.h"
 #include "vtkStringList.h"
@@ -86,7 +87,7 @@ pqSelectReaderDialog::pqSelectReaderDialog(
 
   // populate the list view with readers
   vtkStringList* readers =
-    readerFactory->GetPossibleReaders(file.toLocal8Bit().data(), s->session());
+    readerFactory->GetPossibleReaders(pqCoreUtilities::QStringToQBytes(file).data(), s->session());
   this->Internal->updateList(readers);
 };
 

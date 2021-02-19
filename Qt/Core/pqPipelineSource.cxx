@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 
 // ParaView
+#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
@@ -250,7 +251,7 @@ pqOutputPort* pqPipelineSource::getOutputPort(int outputport) const
 pqOutputPort* pqPipelineSource::getOutputPort(const QString& name) const
 {
   vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(this->getProxy());
-  unsigned int index = source->GetOutputPortIndex(name.toLocal8Bit().data());
+  unsigned int index = source->GetOutputPortIndex(pqCoreUtilities::QStringToQBytes(name).data());
   if (index != VTK_UNSIGNED_INT_MAX)
   {
     return this->getOutputPort(static_cast<int>(index));

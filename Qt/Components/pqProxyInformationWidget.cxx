@@ -250,11 +250,12 @@ void pqProxyInformationWidget::updateInformation()
             source->getProxy()->UpdatePropertyInformation(smprop);
           }
           QString filename = pqSMAdaptor::getElementProperty(smprop).toString();
-          QString path = vtksys::SystemTools::GetFilenamePath(filename.toUtf8().data()).c_str();
+          QString path =
+            vtksys::SystemTools::GetFilenamePath(filename.toUtf8().toStdString()).c_str();
 
           this->Ui->properties->show();
           this->Ui->filename->setText(
-            vtksys::SystemTools::GetFilenameName(filename.toUtf8().data()).c_str());
+            vtksys::SystemTools::GetFilenameName(filename.toUtf8().toStdString()).c_str());
           this->Ui->filename->setToolTip(filename);
           this->Ui->filename->setStatusTip(filename);
           this->Ui->path->setText(path);

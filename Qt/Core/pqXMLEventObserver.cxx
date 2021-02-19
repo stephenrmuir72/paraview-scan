@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqXMLEventObserver.h"
 #include "pqCoreTestUtility.h"
+#include "pqCoreUtilities.h"
 #include "pqEventTypes.h"
 
 #include <QTextStream>
@@ -86,17 +87,22 @@ void pqXMLEventObserver::onRecordEvent(
       if (command == pqCoreTestUtility::PQ_COMPAREVIEW_PROPERTY_NAME)
       {
         *this->Stream << "  <pqcompareview "
-                      << "object=\"" << textToXML(widget).toLocal8Bit().data() << "\" "
-                      << "baseline=\"" << textToXML(arguments).toLocal8Bit().data() << "\" "
+                      << "object=\"" << pqCoreUtilities::QStringToQBytes(textToXML(widget)).data()
+                      << "\" "
+                      << "baseline=\""
+                      << pqCoreUtilities::QStringToQBytes(textToXML(arguments)).data() << "\" "
                       << "threshold=\"5\" "
                       << "/>\n";
       }
       else
       {
         *this->Stream << "  <pqcheck "
-                      << "object=\"" << textToXML(widget).toLocal8Bit().data() << "\" "
-                      << "property=\"" << textToXML(command).toLocal8Bit().data() << "\" "
-                      << "arguments=\"" << textToXML(arguments).toLocal8Bit().data() << "\" "
+                      << "object=\"" << pqCoreUtilities::QStringToQBytes(textToXML(widget)).data()
+                      << "\" "
+                      << "property=\""
+                      << pqCoreUtilities::QStringToQBytes(textToXML(command)).data() << "\" "
+                      << "arguments=\""
+                      << pqCoreUtilities::QStringToQBytes(textToXML(arguments)).data() << "\" "
                       << "/>\n";
       }
     }
@@ -107,9 +113,12 @@ void pqXMLEventObserver::onRecordEvent(
     if (this->Stream)
     {
       *this->Stream << "  <pqevent "
-                    << "object=\"" << textToXML(widget).toLocal8Bit().data() << "\" "
-                    << "command=\"" << textToXML(command).toLocal8Bit().data() << "\" "
-                    << "arguments=\"" << textToXML(arguments).toLocal8Bit().data() << "\" "
+                    << "object=\"" << pqCoreUtilities::QStringToQBytes(textToXML(widget)).data()
+                    << "\" "
+                    << "command=\"" << pqCoreUtilities::QStringToQBytes(textToXML(command)).data()
+                    << "\" "
+                    << "arguments=\""
+                    << pqCoreUtilities::QStringToQBytes(textToXML(arguments)).data() << "\" "
                     << "/>\n";
     }
   }

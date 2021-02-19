@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqServerConfiguration.h"
 
+#include "pqCoreUtilities.h"
 #include "pqQtDeprecated.h"
 #include "pqServerResource.h"
 #include "vtkNew.h"
@@ -81,7 +82,7 @@ pqServerConfiguration::~pqServerConfiguration() = default;
 //-----------------------------------------------------------------------------
 void pqServerConfiguration::setName(const QString& arg_name)
 {
-  this->XML->SetAttribute("name", arg_name.toLocal8Bit().data());
+  this->XML->SetAttribute("name", pqCoreUtilities::QStringToQBytes(arg_name).data());
 }
 
 //-----------------------------------------------------------------------------
@@ -123,7 +124,7 @@ void pqServerConfiguration::setResource(const pqServerResource& arg_resource)
 //-----------------------------------------------------------------------------
 void pqServerConfiguration::setResource(const QString& str)
 {
-  this->XML->SetAttribute("resource", str.toLocal8Bit().data());
+  this->XML->SetAttribute("resource", pqCoreUtilities::QStringToQBytes(str).data());
 
   // Make sure this->ActualURI is correctly updated if needed
   this->parseSshPortForwardingXML();
@@ -640,7 +641,7 @@ void pqServerConfiguration::setStartupToCommand(
   QStringList commandList = command_str.split(" ", PV_QT_SKIP_EMPTY_PARTS);
   assert(commandList.size() >= 1);
 
-  xmlCommand->SetAttribute("exec", commandList[0].toLocal8Bit().data());
+  xmlCommand->SetAttribute("exec", pqCoreUtilities::QStringToQBytes(commandList[0]).data());
   xmlCommand->SetAttribute("timeout", QString::number(timeout).toUtf8().data());
   xmlCommand->SetAttribute("delay", QString::number(delay).toUtf8().data());
 
@@ -659,7 +660,7 @@ void pqServerConfiguration::setStartupToCommand(
     vtkNew<vtkPVXMLElement> xmlArgument;
     xmlArgument->SetName("Argument");
     xmlArguments->AddNestedElement(xmlArgument.GetPointer());
-    xmlArgument->AddAttribute("value", commandList[i].toLocal8Bit().data());
+    xmlArgument->AddAttribute("value", pqCoreUtilities::QStringToQBytes(commandList[i]).data());
   }
 }
 

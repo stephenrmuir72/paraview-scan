@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqServerConfigurationImporter.h"
 
+#include "pqCoreUtilities.h"
 #include "pqEventDispatcher.h" // For blocking test events during configuration download
 
 #include "vtkNew.h"
@@ -274,7 +275,7 @@ void pqServerConfigurationImporter::readCurrentData()
 bool pqServerConfigurationImporter::processDownloadedContents()
 {
   vtkNew<vtkPVXMLParser> parser;
-  if (!parser->Parse(this->Internals->ActiveFetchedData.toLocal8Bit().data()))
+  if (!parser->Parse(pqCoreUtilities::QStringToQBytes(this->Internals->ActiveFetchedData).data()))
   {
     return false;
   }

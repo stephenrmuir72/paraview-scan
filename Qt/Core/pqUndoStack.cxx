@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUndoStack.h"
 
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqProxyModifiedStateUndoElement.h"
 #include "pqServer.h"
 #include "vtkEventQtSlotConnect.h"
@@ -170,7 +171,7 @@ void pqUndoStack::beginUndoSet(QString label)
 {
   if (this->Implementation->NestedCount == 0)
   {
-    this->Implementation->UndoStackBuilder->Begin(label.toLocal8Bit().data());
+    this->Implementation->UndoStackBuilder->Begin(pqCoreUtilities::QStringToQBytes(label).data());
   }
 
   this->Implementation->NestedCount++;

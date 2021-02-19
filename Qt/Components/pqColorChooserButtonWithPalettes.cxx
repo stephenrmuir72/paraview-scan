@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqColorChooserButtonWithPalettes.h"
 
 #include "pqActiveObjects.h"
+#include "pqCoreUtilities.h"
 #include "pqServer.h"
 #include "pqSetName.h"
 #include "vtkSMDoubleVectorProperty.h"
@@ -147,7 +148,7 @@ void pqColorChooserButtonWithPalettes::actionTriggered(QAction* action)
     assert(globalProps);
 
     vtkSMDoubleVectorProperty* dvp = vtkSMDoubleVectorProperty::SafeDownCast(
-      globalProps->GetProperty(prop_name.toLocal8Bit().data()));
+      globalProps->GetProperty(pqCoreUtilities::QStringToQBytes(prop_name).data()));
     color.setRgbF(dvp->GetElement(0), dvp->GetElement(1), dvp->GetElement(2));
     pqColorPaletteLinkHelper* helper = this->findChild<pqColorPaletteLinkHelper*>();
     if (helper)
@@ -190,14 +191,15 @@ void pqColorPaletteLinkHelper::setSelectedPaletteColor(const QString& colorName)
   vtkSMSettingsProxy* palette = button->colorPalette();
   if (palette && this->SMProxy)
   {
-    auto oldLink =
-      palette->GetSourcePropertyName(this->SMProxy, this->SMPropertyName.toLocal8Bit().data());
+    auto oldLink = palette->GetSourcePropertyName(
+      this->SMProxy, pqCoreUtilities::QStringToQBytes(this->SMPropertyName).data());
     if (oldLink)
     {
-      palette->RemoveLink(oldLink, this->SMProxy, this->SMPropertyName.toLocal8Bit().data());
+      palette->RemoveLink(
+        oldLink, this->SMProxy, pqCoreUtilities::QStringToQBytes(this->SMPropertyName).data());
     }
-    palette->AddLink(colorName.toLocal8Bit().data(), this->SMProxy,
-      this->SMPropertyName.toLocal8Bit().data(),
+    palette->AddLink(pqCoreUtilities::QStringToQBytes(colorName).data(), this->SMProxy,
+      pqCoreUtilities::QStringToQBytes(this->SMPropertyName).data(),
       /*unlink_if_modified=*/true);
   }
 }
@@ -212,7 +214,8 @@ QString pqColorPaletteLinkHelper::selectedPaletteColor() const
   vtkSMSettingsProxy* palette = button->colorPalette();
   if (palette && this->SMProxy)
   {
-    return palette->GetSourcePropertyName(this->SMProxy, this->SMPropertyName.toLocal8Bit().data());
+    return palette->GetSourcePropertyName(
+      this->SMProxy, pqCoreUtilities::QStringToQBytes(this->SMPropertyName).data());
   }
 
   return QString();

@@ -32,6 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqImageUtil.h"
 
+#include "pqCoreUtilities.h"
+
 #include "vtkErrorCode.h"
 #include "vtkImageData.h"
 #include "vtkSMUtilities.h"
@@ -148,7 +150,8 @@ int pqImageUtil::saveImage(vtkImageData* vtkimage, const QString& filename, int 
     return vtkErrorCode::NoFileNameError;
   }
 
-  error_code = vtkSMUtilities::SaveImage(vtkimage, filename.toLocal8Bit().data(), quality);
+  error_code =
+    vtkSMUtilities::SaveImage(vtkimage, pqCoreUtilities::QStringToQBytes(filename).data(), quality);
 
   return error_code;
 }

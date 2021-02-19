@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqSettings.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
@@ -210,7 +211,7 @@ void pqCustomFilterManagerModel::importCustomFiltersFromSettings()
   }
 
   vtkPVXMLParser* parser = vtkPVXMLParser::New();
-  parser->Parse(state.toLocal8Bit().data());
+  parser->Parse(pqCoreUtilities::QStringToQBytes(state).data());
 
   proxyManager->LoadCustomProxyDefinitions(parser->GetRootElement());
 

@@ -49,6 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSMProperty.h>
 
 // ParaView includes
+#include "pqCoreUtilities.h"
 #include <pqSMAdaptor.h>
 #include <pqTimer.h>
 
@@ -143,11 +144,11 @@ void pqWidgetRangeDomain::setRange(QVariant min, QVariant max)
   {
     if (!this->Internal->MinProp.isEmpty())
     {
-      range->setProperty(this->Internal->MinProp.toLocal8Bit().data(), min);
+      range->setProperty(pqCoreUtilities::QStringToQBytes(this->Internal->MinProp).data(), min);
     }
     if (!this->Internal->MaxProp.isEmpty())
     {
-      range->setProperty(this->Internal->MaxProp.toLocal8Bit().data(), max);
+      range->setProperty(pqCoreUtilities::QStringToQBytes(this->Internal->MaxProp).data(), max);
     }
   }
 }

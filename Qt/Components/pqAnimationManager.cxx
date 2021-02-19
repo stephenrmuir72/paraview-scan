@@ -32,6 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAnimationManager.h"
 #include "ui_pqAbortAnimation.h"
 
+#include "pqCoreUtilities.h"
+
 #include "vtkMath.h"
 #include "vtkNew.h"
 #include "vtkPVServerInformation.h"
@@ -218,13 +220,13 @@ bool pqAnimationManager::saveGeometry(const QString& filename, pqView* view)
 
   SM_SCOPED_TRACE(CallFunction)
     .arg("WriteAnimationGeometry")
-    .arg(filename.toLocal8Bit().data())
+    .arg(pqCoreUtilities::QStringToQBytes(filename).data())
     .arg("view", view->getProxy())
     .arg("comment", "save animation geometry from a view");
 
   vtkSMProxy* sceneProxy = scene->getProxy();
   vtkSMAnimationSceneGeometryWriter* writer = vtkSMAnimationSceneGeometryWriter::New();
-  writer->SetFileName(filename.toLocal8Bit().data());
+  writer->SetFileName(pqCoreUtilities::QStringToQBytes(filename).data());
   writer->SetAnimationScene(sceneProxy);
   writer->SetViewModule(view->getProxy());
   bool status = writer->Save();

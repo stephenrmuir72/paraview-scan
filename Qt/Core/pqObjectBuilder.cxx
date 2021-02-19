@@ -59,6 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqAnimationCue.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqInterfaceTracker.h"
 #include "pqOutputPort.h"
@@ -152,7 +153,8 @@ pqPipelineSource* pqObjectBuilder::createSource(
   vtkNew<vtkSMParaViewPipelineController> controller;
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy(sm_group.toLocal8Bit().data(), sm_name.toLocal8Bit().data()));
+  proxy.TakeReference(pxm->NewProxy(pqCoreUtilities::QStringToQBytes(sm_group).data(),
+    pqCoreUtilities::QStringToQBytes(sm_name).data()));
   if (!pqObjectBuilderNS::preCreatePipelineProxy(controller, proxy))
   {
     return nullptr;
@@ -171,7 +173,8 @@ pqPipelineSource* pqObjectBuilder::createFilter(const QString& sm_group, const Q
   vtkNew<vtkSMParaViewPipelineController> controller;
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy(sm_group.toLocal8Bit().data(), sm_name.toLocal8Bit().data()));
+  proxy.TakeReference(pxm->NewProxy(pqCoreUtilities::QStringToQBytes(sm_group).data(),
+    pqCoreUtilities::QStringToQBytes(sm_name).data()));
   if (!pqObjectBuilderNS::preCreatePipelineProxy(controller, proxy))
   {
     return nullptr;
@@ -184,7 +187,8 @@ pqPipelineSource* pqObjectBuilder::createFilter(const QString& sm_group, const Q
     QString input_port_name = mapIter.key();
     QList<pqOutputPort*>& inputs = mapIter.value();
 
-    vtkSMProperty* prop = proxy->GetProperty(input_port_name.toLocal8Bit().data());
+    vtkSMProperty* prop =
+      proxy->GetProperty(pqCoreUtilities::QStringToQBytes(input_port_name).data());
     if (!prop)
     {
       qCritical() << "Failed to locate input property " << input_port_name;
@@ -343,7 +347,7 @@ pqView* pqObjectBuilder::createView(const QString& type, pqServer* server)
 
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy("views", type.toLocal8Bit().data()));
+  proxy.TakeReference(pxm->NewProxy("views", pqCoreUtilities::QStringToQBytes(type).data()));
   if (!proxy)
   {
     qDebug() << "Failed to create a proxy for the requested view type:" << type;
@@ -430,8 +434,8 @@ pqDataRepresentation* pqObjectBuilder::createDataRepresentation(
   QString srcProxyName = source->getProxy()->GetXMLName();
   if (representationType != "")
   {
-    reprProxy.TakeReference(
-      pxm->NewProxy("representations", representationType.toLocal8Bit().data()));
+    reprProxy.TakeReference(pxm->NewProxy(
+      "representations", pqCoreUtilities::QStringToQBytes(representationType).data()));
   }
   else
   {
@@ -487,7 +491,8 @@ vtkSMProxy* pqObjectBuilder::createProxy(
 
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy(sm_group.toLocal8Bit().data(), sm_name.toLocal8Bit().data()));
+  proxy.TakeReference(pxm->NewProxy(pqCoreUtilities::QStringToQBytes(sm_group).data(),
+    pqCoreUtilities::QStringToQBytes(sm_name).data()));
   if (!proxy.GetPointer())
   {
     qCritical() << "Failed to create proxy: " << sm_group << ", " << sm_name;
@@ -500,7 +505,7 @@ vtkSMProxy* pqObjectBuilder::createProxy(
     proxy->SetPrototype(true);
   }
 
-  pxm->RegisterProxy(reg_group.toLocal8Bit().data(), proxy);
+  pxm->RegisterProxy(pqCoreUtilities::QStringToQBytes(reg_group).data(), proxy);
   return proxy;
 }
 
@@ -617,8 +622,8 @@ void pqObjectBuilder::destroyProxyInternal(pqProxy* proxy)
   if (proxy)
   {
     vtkSMSessionProxyManager* pxm = proxy->proxyManager();
-    pxm->UnRegisterProxy(proxy->getSMGroup().toLocal8Bit().data(),
-      proxy->getSMName().toLocal8Bit().data(), proxy->getProxy());
+    pxm->UnRegisterProxy(pqCoreUtilities::QStringToQBytes(proxy->getSMGroup()).data(),
+      pqCoreUtilities::QStringToQBytes(proxy->getSMName()).data(), proxy->getProxy());
   }
 }
 
@@ -689,8 +694,8 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
   }
   else if (server_resource.scheme() == "cs")
   {
-    id = vtkSMSession::ConnectToRemote(
-      resource.host().toLocal8Bit().data(), resource.port(11111), connectionTimeout);
+    id = vtkSMSession::ConnectToRemote(pqCoreUtilities::QStringToQBytes(resource.host()).data(),
+      resource.port(11111), connectionTimeout);
   }
   else if (server_resource.scheme() == "csrc")
   {
@@ -700,9 +705,10 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
   }
   else if (server_resource.scheme() == "cdsrs")
   {
-    id = vtkSMSession::ConnectToRemote(server_resource.dataServerHost().toLocal8Bit().data(),
+    id = vtkSMSession::ConnectToRemote(
+      pqCoreUtilities::QStringToQBytes(server_resource.dataServerHost()).data(),
       server_resource.dataServerPort(11111),
-      server_resource.renderServerHost().toLocal8Bit().data(),
+      pqCoreUtilities::QStringToQBytes(server_resource.renderServerHost()).data(),
       server_resource.renderServerPort(22221), connectionTimeout);
   }
   else if (server_resource.scheme() == "cdsrsrc")

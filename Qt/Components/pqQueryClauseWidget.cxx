@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqQueryCompositeTreeDialog.h"
 
 #include "pqCompositeDataInformationTreeModel.h"
+#include "pqCoreUtilities.h"
 #include "pqHelpWindow.h"
 #include "pqMultiQueryClauseWidget.h"
 #include "pqOutputPort.h"
@@ -787,7 +788,8 @@ void pqQueryClauseWidget::addSelectionQualifiers(vtkSMProxy* selSource)
       this->LastQuery = query;
       if (!query.isEmpty())
       {
-        vtkSMPropertyHelper(selSource, "QueryString").Set(query.toLocal8Bit().constData());
+        vtkSMPropertyHelper(selSource, "QueryString")
+          .Set(pqCoreUtilities::QStringToQBytes(query).constData());
       }
     }
     break;

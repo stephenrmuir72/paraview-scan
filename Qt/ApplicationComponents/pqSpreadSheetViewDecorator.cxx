@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QWidget>
 #include <QWidgetAction>
 
+#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqEventDispatcher.h"
 #include "pqExportReaction.h"
@@ -258,7 +259,7 @@ static void populateMenu(pqSpreadSheetView* view, QMenu* menu)
       if (checkState != Qt::Checked)
       {
         // all columns are hidden.
-        hidden_columns.push_back(cb->text().toLocal8Bit().data());
+        hidden_columns.push_back(pqCoreUtilities::QStringToString(cb->text()));
       }
     }
 

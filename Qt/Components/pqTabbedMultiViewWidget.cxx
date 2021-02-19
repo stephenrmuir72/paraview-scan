@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqMultiViewWidget.h"
 #include "pqObjectBuilder.h"
 #include "pqServer.h"
@@ -714,7 +715,7 @@ void pqTabbedMultiViewWidget::contextMenuRequested(const QPoint& point)
     {
       SM_SCOPED_TRACE(CallFunction)
         .arg("RenameLayout")
-        .arg(newName.toLocal8Bit().data())
+        .arg(pqCoreUtilities::QStringToQBytes(newName).data())
         .arg((vtkObject*)proxy->getProxy());
 
       proxy->rename(newName);

@@ -55,6 +55,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView includes.
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
 #include "pqServerManagerModel.h"
@@ -373,8 +374,8 @@ void pqPipelineFilter::inputChanged(const QString& portname)
     return;
   }
 
-  vtkSMInputProperty* ivp =
-    vtkSMInputProperty::SafeDownCast(this->getProxy()->GetProperty(portname.toLocal8Bit().data()));
+  vtkSMInputProperty* ivp = vtkSMInputProperty::SafeDownCast(
+    this->getProxy()->GetProperty(pqCoreUtilities::QStringToQBytes(portname).data()));
   if (!ivp)
   {
     qCritical() << "Failed to locate input property " << portname;

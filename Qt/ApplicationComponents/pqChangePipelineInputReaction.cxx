@@ -113,7 +113,7 @@ void pqChangePipelineInputReaction::changeInput()
     }
 
     vtkSMInputProperty* ip = vtkSMInputProperty::SafeDownCast(
-      filter->getProxy()->GetProperty(inputPortName.toLocal8Bit().data()));
+      filter->getProxy()->GetProperty(pqCoreUtilities::QStringToQBytes(inputPortName).data()));
     ip->SetProxies(static_cast<unsigned int>(inputPtrs.size()), &inputPtrs[0], &inputPorts[0]);
   }
   filter->getProxy()->UpdateVTKObjects();

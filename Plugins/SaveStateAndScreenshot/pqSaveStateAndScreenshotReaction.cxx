@@ -155,10 +155,10 @@ void pqSaveStateAndScreenshotReaction::onTriggered()
     QString stateFile = pathNoExt + ".pvsm";
     pqSaveStateReaction::saveState(stateFile);
     QString screenshotFile = pathNoExt + ".png";
-    shProxy->WriteImage(screenshotFile.toLocal8Bit().data());
+    shProxy->WriteImage(pqCoreUtilities::QStringToQBytes(screenshotFile).data());
     QString textFile = pathNoExt + ".txt";
-    std::ofstream ofs(textFile.toLocal8Bit().data(), std::ofstream::out);
-    ofs << nameNoExt.toLocal8Bit().data() << std::endl;
+    std::ofstream ofs(pqCoreUtilities::QStringToQBytes(textFile).data(), std::ofstream::out);
+    ofs << pqCoreUtilities::QStringToQBytes(nameNoExt).data() << std::endl;
     ofs.close();
   }
 }

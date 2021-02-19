@@ -23,6 +23,7 @@
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
@@ -378,7 +379,7 @@ void pqSLACManager::checkActionEnabled()
 //-----------------------------------------------------------------------------
 void pqSLACManager::showField(QString name)
 {
-  this->showField(name.toLocal8Bit().data());
+  this->showField(pqCoreUtilities::QStringToQBytes(name).data());
 }
 
 void pqSLACManager::showField(const char* name)
@@ -460,7 +461,7 @@ void pqSLACManager::showField(const char* name)
     if (!rangeData)
     {
       QString magName = QString("%1_M").arg(name);
-      rangeData = ranges->GetColumnByName(magName.toLocal8Bit().data());
+      rangeData = ranges->GetColumnByName(pqCoreUtilities::QStringToQBytes(magName).data());
     }
 
     this->CurrentFieldRangeKnown = true;
@@ -554,13 +555,13 @@ void pqSLACManager::updatePlotField()
 
       double color[3] = { 0.0, 0.0, 0.0 };
       vtkSMPropertyHelper(reprProxy, "SeriesColor")
-        .SetStatus(seriesName.toLocal8Bit().data(), color, 3);
+        .SetStatus(pqCoreUtilities::QStringToQBytes(seriesName).data(), color, 3);
 
       vtkSMPropertyHelper(reprProxy, "SeriesLineThickness")
-        .SetStatus(seriesName.toLocal8Bit().data(), 1);
+        .SetStatus(pqCoreUtilities::QStringToQBytes(seriesName).data(), 1);
 
       vtkSMPropertyHelper(reprProxy, "SeriesLineStyle")
-        .SetStatus(seriesName.toLocal8Bit().data(), 1);
+        .SetStatus(pqCoreUtilities::QStringToQBytes(seriesName).data(), 1);
     }
     else
     {

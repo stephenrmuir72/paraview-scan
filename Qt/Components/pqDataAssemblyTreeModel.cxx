@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqDataAssemblyTreeModel.h"
 
+#include "pqCoreUtilities.h"
+
 #include "vtkDataAssembly.h"
 #include "vtkDataAssemblyVisitor.h"
 #include "vtkObjectFactory.h"
@@ -408,7 +410,7 @@ void pqDataAssemblyTreeModel::setCheckedNodes(const QStringList& paths)
   {
     std::vector<std::string> path_queries;
     std::transform(paths.begin(), paths.end(), std::back_inserter(path_queries),
-      [](const QString& qstring) { return qstring.toLocal8Bit().data(); });
+      [](const QString& qstring) { return pqCoreUtilities::QStringToQBytes(qstring).data(); });
 
     internals.clearData(Qt::CheckStateRole);
     const QVariant val = Qt::Checked;

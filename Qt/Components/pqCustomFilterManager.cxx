@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCustomFilterManager.h"
 #include "ui_pqCustomFilterManager.h"
 
+#include "pqCoreUtilities.h"
 #include "pqCustomFilterManagerModel.h"
 #include "pqFileDialog.h"
 
@@ -117,7 +118,7 @@ void pqCustomFilterManager::importFiles(const QStringList& files)
     // Make sure name is unique among filters
     // Should this be done in vtkSMProxyManager???
     vtkPVXMLParser* parser = vtkPVXMLParser::New();
-    parser->SetFileName((*iter).toLocal8Bit().data());
+    parser->SetFileName(pqCoreUtilities::QStringToQBytes(*iter).data());
     parser->Parse();
     vtkPVXMLElement* root = parser->GetRootElement();
     if (!root)
@@ -136,7 +137,7 @@ void pqCustomFilterManager::importFiles(const QStringList& files)
         if (name && group)
         {
           QString newname = this->getUnusedFilterName(group, name);
-          currentElement->SetAttribute("name", newname.toLocal8Bit().data());
+          currentElement->SetAttribute("name", pqCoreUtilities::QStringToQBytes(newname).data());
         }
       }
     }
@@ -158,8 +159,8 @@ QString pqCustomFilterManager::getUnusedFilterName(const QString& group, const Q
 
   QString tempName = name;
   int counter = 1;
-  while (
-    proxyManager->GetProxyDefinition(group.toLocal8Bit().data(), tempName.toLocal8Bit().data()))
+  while (proxyManager->GetProxyDefinition(pqCoreUtilities::QStringToQBytes(group).data(),
+    pqCoreUtilities::QStringToQBytes(tempName).data()))
   {
     tempName = QString(name + " (" + QString::number(counter) + ")");
     counter++;
@@ -196,15 +197,17 @@ void pqCustomFilterManager::exportSelected(const QStringList& files)
     filter = this->Model->getCustomFilterName(*iter);
     definition = vtkPVXMLElement::New();
     definition->SetName("CustomProxyDefinition");
-    definition->AddAttribute("name", filter.toLocal8Bit().data());
-    element = proxyManager->GetProxyDefinition("filters", filter.toLocal8Bit().data());
+    definition->AddAttribute("name", pqCoreUtilities::QStringToQBytes(filter).data());
+    element =
+      proxyManager->GetProxyDefinition("filters", pqCoreUtilities::QStringToQBytes(filter).data());
     if (element)
     {
       definition->AddAttribute("group", "filters");
     }
     else
     {
-      element = proxyManager->GetProxyDefinition("sources", filter.toLocal8Bit().data());
+      element = proxyManager->GetProxyDefinition(
+        "sources", pqCoreUtilities::QStringToQBytes(filter).data());
       definition->AddAttribute("group", "sources");
     }
     definition->AddNestedElement(element);
@@ -216,7 +219,7 @@ void pqCustomFilterManager::exportSelected(const QStringList& files)
   QStringList::ConstIterator jter = files.begin();
   for (; jter != files.end(); ++jter)
   {
-    vtksys::ofstream os((*jter).toLocal8Bit().data(), ios::out);
+    vtksys::ofstream os(pqCoreUtilities::QStringToQBytes(*jter).data(), ios::out);
     root->PrintXML(os, vtkIndent());
   }
 
@@ -274,13 +277,17 @@ void pqCustomFilterManager::removeSelected()
   foreach (QString filter, filters)
   {
     // Unregister the custom filter from the server manager.
-    if (proxyManager->GetProxyDefinition("filters", filter.toLocal8Bit().data()))
+    if (proxyManager->GetProxyDefinition(
+          "filters", pqCoreUtilities::QStringToQBytes(filter).data()))
     {
-      proxyManager->UnRegisterCustomProxyDefinition("filters", filter.toLocal8Bit().data());
+      proxyManager->UnRegisterCustomProxyDefinition(
+        "filters", pqCoreUtilities::QStringToQBytes(filter).data());
     }
-    else if (proxyManager->GetProxyDefinition("sources", filter.toLocal8Bit().data()))
+    else if (proxyManager->GetProxyDefinition(
+               "sources", pqCoreUtilities::QStringToQBytes(filter).data()))
     {
-      proxyManager->UnRegisterCustomProxyDefinition("sources", filter.toLocal8Bit().data());
+      proxyManager->UnRegisterCustomProxyDefinition(
+        "sources", pqCoreUtilities::QStringToQBytes(filter).data());
     }
   }
 }

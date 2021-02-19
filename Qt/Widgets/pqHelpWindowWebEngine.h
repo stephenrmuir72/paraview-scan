@@ -49,6 +49,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>
 
+#include <pqCoreUtilities.h>
+
 namespace
 {
 
@@ -85,7 +87,7 @@ public:
     buffer->setData(array);
     buffer->open(QIODevice::ReadOnly);
     connect(buffer, &QIODevice::aboutToClose, buffer, &QObject::deleteLater);
-    request->reply(content_type.toLocal8Bit(), buffer);
+    request->reply(pqCoreUtilities::QStringToQBytes(content_type), buffer);
   }
 
 private:

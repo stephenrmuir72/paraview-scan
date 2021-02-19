@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActionGroupInterface.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqInterfaceTracker.h"
 #include "pqQtDeprecated.h"
 
@@ -158,7 +159,7 @@ void pqPluginActionGroupBehavior::addPluginInterface(QObject* iface)
   else if (splitName.size())
   {
     QString msg = QString("Do not know what action group \"%1\" is").arg(splitName[0]);
-    qWarning("%s", msg.toLocal8Bit().data());
+    qWarning("%s", pqCoreUtilities::QStringToQBytes(msg).data());
   }
   else
   {

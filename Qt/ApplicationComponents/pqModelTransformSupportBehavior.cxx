@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqModelTransformSupportBehavior.h"
 
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqPipelineSource.h"
 #include "pqServerManagerModel.h"
@@ -86,18 +87,19 @@ void SafeSetAxisTitle(vtkSMProxy* gridAxis, const char* pname, const char* value
 
   QString key = QString("MTSBAutoTitle.%1").arg(pname);
   if (prop->IsValueDefault() ||
-    (gridAxis->HasAnnotation(key.toLocal8Bit().data()) &&
-        strcmp(gridAxis->GetAnnotation(key.toLocal8Bit().data()), helper.GetAsString()) == 0))
+    (gridAxis->HasAnnotation(pqCoreUtilities::QStringToQBytes(key).data()) &&
+        strcmp(gridAxis->GetAnnotation(pqCoreUtilities::QStringToQBytes(key).data()),
+          helper.GetAsString()) == 0))
   {
     if (value)
     {
       helper.Set(value);
-      gridAxis->SetAnnotation(key.toLocal8Bit().data(), value);
+      gridAxis->SetAnnotation(pqCoreUtilities::QStringToQBytes(key).data(), value);
     }
     else
     {
       prop->ResetToDefault();
-      gridAxis->RemoveAnnotation(key.toLocal8Bit().data());
+      gridAxis->RemoveAnnotation(pqCoreUtilities::QStringToQBytes(key).data());
     }
   }
 }

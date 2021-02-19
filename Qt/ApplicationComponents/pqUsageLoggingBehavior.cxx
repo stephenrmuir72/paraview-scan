@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqUsageLoggingBehavior.h"
 
+#include "pqCoreUtilities.h"
+
 #include "vtkNew.h"
 #include "vtkPVConfig.h"
 #include "vtkPVLogger.h"
@@ -64,7 +66,8 @@ pqUsageLoggingBehavior::pqUsageLoggingBehavior(QObject* parentObject)
       if (doc.isNull())
       {
         vtkLogF(ERROR, "Invalid usage-logging config '%s'. Not be a valid json string:\n %s",
-          fname.toLocal8Bit().data(), error.errorString().toLocal8Bit().data());
+          pqCoreUtilities::QStringToQBytes(fname).data(),
+          pqCoreUtilities::QStringToQBytes(error.errorString()).data());
       }
       else
       {
@@ -99,10 +102,12 @@ QString pqUsageLoggingBehavior::configurationFile() const
   locator->SetLogVerbosity(vtkPVLogger::GetApplicationVerbosity());
 
   auto configFName = pqUsageLoggingBehavior::configFileName();
-  auto path = locator->Locate(vtk_libs, prefixes, configFName.toLocal8Bit().data());
+  auto path = locator->Locate(vtk_libs, prefixes, pqCoreUtilities::QStringToString(configFName));
   if (!path.empty())
   {
-    return vtksys::SystemTools::CollapseFullPath(configFName.toLocal8Bit().data(), path).c_str();
+    return vtksys::SystemTools::CollapseFullPath(
+             pqCoreUtilities::QStringToString(configFName), path)
+      .c_str();
   }
   return QString();
 }
@@ -133,7 +138,7 @@ void pqUsageLoggingBehavior::logUsage(const QJsonObject& config)
     }
   }
   vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "query-params: %s",
-    query.toString().toLocal8Bit().data());
+    pqCoreUtilities::QStringToQBytes(query.toString()).data());
 
   auto networkManager = new QNetworkAccessManager(this);
   QNetworkRequest networkRequest(serviceUrl);

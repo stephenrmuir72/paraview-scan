@@ -9,6 +9,8 @@
 #include <QTimer>
 #include <QWidget>
 
+#include <pqCoreUtilities.h>
+
 int QTestApp::Error = 0;
 
 QTestApp::QTestApp(int _argc, char** _argv)
@@ -47,7 +49,7 @@ int QTestApp::exec()
 
 void QTestApp::messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-  QByteArray localMsg = msg.toLocal8Bit();
+  QByteArray localMsg = pqCoreUtilities::QStringToQBytes(msg);
   switch (type)
   {
     case QtDebugMsg:

@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqAnnotationsModel.h"
 
+#include "pqCoreUtilities.h"
+
 #include <QMimeData>
 #include <QPainter>
 #include <QPixmap>
@@ -334,7 +336,8 @@ QVariant pqAnnotationsModel::data(const QModelIndex& idx, int role) const
     {
       auto value = this->Internals->Items[idx.row()].Value;
       unsigned int unused = 0;
-      res = this->VisibilityDomain->IsInDomain(value.toLocal8Bit().data(), unused) != 0;
+      res = this->VisibilityDomain->IsInDomain(
+              pqCoreUtilities::QStringToQBytes(value).data(), unused) != 0;
     }
 
     return res ? true : false;

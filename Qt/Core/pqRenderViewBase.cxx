@@ -116,7 +116,7 @@ public:
       QString txt = "Full resolution render in: ";
       txt += QString::number(this->TimeLeftBeforeFullResolution);
       txt += " s";
-      this->writeToStatusBar(txt.toLocal8Bit().data());
+      this->writeToStatusBar(pqCoreUtilities::QStringToQBytes(txt).data());
       this->TimeLeftBeforeFullResolution -= 0.1;
     }
     else

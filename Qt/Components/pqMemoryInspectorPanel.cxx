@@ -24,6 +24,7 @@ using Ui::pqMemoryInspectorPanelForm;
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqRenderView.h"
 #include "pqServerManagerModel.h"
 #include "pqView.h"
@@ -1494,8 +1495,8 @@ void pqMemoryInspectorPanel::ExecuteRemoteCommand()
       case ITEM_DATA_CLIENT_RANK:
       case ITEM_DATA_SERVER_RANK:
       {
-        string host((const char*)item->data(0, ITEM_KEY_HOST_NAME).toString().toLocal8Bit());
-        string pid((const char*)item->data(0, ITEM_KEY_PID).toString().toLocal8Bit());
+        string host(pqCoreUtilities::QStringToString(item->data(0, ITEM_KEY_HOST_NAME).toString()));
+        string pid(pqCoreUtilities::QStringToString(item->data(0, ITEM_KEY_PID).toString()));
 
         int serverSystemType = item->data(0, ITEM_KEY_SYSTEM_TYPE).toInt();
 

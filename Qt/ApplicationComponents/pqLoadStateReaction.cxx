@@ -90,9 +90,10 @@ void pqLoadStateReaction::loadState(const QString& filename, bool dialogBlocked,
     aproxy.TakeReference(pxm->NewProxy("options", "LoadStateOptions"));
     vtkSMLoadStateOptionsProxy* proxy = vtkSMLoadStateOptionsProxy::SafeDownCast(aproxy);
     vtkSMPropertyHelper(proxy, "DataDirectory")
-      .Set(vtksys::SystemTools::GetParentDirectory(filename.toLocal8Bit().data()).c_str());
+      .Set(vtksys::SystemTools::GetParentDirectory(pqCoreUtilities::QStringToString(filename))
+             .c_str());
 
-    if (proxy && proxy->PrepareToLoad(filename.toLocal8Bit().data()))
+    if (proxy && proxy->PrepareToLoad(pqCoreUtilities::QStringToQBytes(filename).data()))
     {
       vtkNew<vtkSMParaViewPipelineController> controller;
       controller->InitializeProxy(proxy);
