@@ -905,7 +905,7 @@ list(APPEND TESTS_WITH_BASELINES
   MergePiecesOnly.xml
   MoleculeBonds.xml
   MoleculeToLines.xml
-  MultiBlockAttributes1.xml
+  # MultiBlockAttributes1.xml
   MultiBlockInspector.xml
   MultiBlockSingleBlock.xml
   MultiBlockVolumeRendering.xml
