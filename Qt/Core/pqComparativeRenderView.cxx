@@ -130,7 +130,7 @@ vtkSMRenderViewProxy* pqComparativeRenderView::getRenderViewProxy() const
 }
 
 //-----------------------------------------------------------------------------
-void pqComparativeRenderView::updateViewWidgets(QWidget* container /*=NULL*/)
+void pqComparativeRenderView::updateViewWidgets(QWidget* container /*=nullptr*/)
 {
   // Create QVTKWidgets for new view modules and destroy old ones.
   vtkNew<vtkCollection> currentViews;

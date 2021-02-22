@@ -62,8 +62,8 @@ public:
     // don't call this if this->NumberOfValues == 1.
     double* ValuesFromString(const char* str)
     {
-      double* values = NULL;
-      if (str != NULL && *str != 0)
+      double* values = nullptr;
+      if (str != nullptr && *str != 0)
       {
         std::vector<std::string> parts = vtksys::SystemTools::SplitString(str, ',');
         if (static_cast<unsigned int>(parts.size()) == this->NumberOfValues)
@@ -84,7 +84,7 @@ public:
       this->AnchorX = other.AnchorX;
       this->AnchorY = other.AnchorY;
       this->NumberOfValues = other.NumberOfValues;
-      this->MinValues = this->MaxValues = NULL;
+      this->MinValues = this->MaxValues = nullptr;
       if (this->NumberOfValues > 0)
       {
         this->MinValues = new double[this->NumberOfValues];
@@ -186,7 +186,7 @@ public:
 
           this->MinValues = this->ValuesFromString(elem->GetAttribute("min_values"));
           this->MaxValues = this->ValuesFromString(elem->GetAttribute("max_values"));
-          return this->MaxValues != NULL && this->MinValues != NULL;
+          return this->MaxValues != nullptr && this->MinValues != nullptr;
         }
         else
         {
@@ -269,7 +269,7 @@ vtkSMProperty* vtkPVComparativeAnimationCue::GetAnimatedProperty()
 {
   if (!this->AnimatedPropertyName || !this->AnimatedProxy)
   {
-    return NULL;
+    return nullptr;
   }
 
   return this->AnimatedProxy->GetProperty(this->AnimatedPropertyName);
@@ -281,9 +281,9 @@ vtkSMDomain* vtkPVComparativeAnimationCue::GetAnimatedDomain()
   vtkSMProperty* property = this->GetAnimatedProperty();
   if (!property)
   {
-    return NULL;
+    return nullptr;
   }
-  vtkSMDomain* domain = NULL;
+  vtkSMDomain* domain = nullptr;
   vtkSMDomainIterator* iter = property->NewDomainIterator();
   iter->Begin();
   if (!iter->IsAtEnd())
@@ -561,7 +561,7 @@ double* vtkPVComparativeAnimationCue::GetValues(
     }
   }
 
-  return numValues > 0 ? this->Values : NULL;
+  return numValues > 0 ? this->Values : nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -617,7 +617,7 @@ vtkPVXMLElement* vtkPVComparativeAnimationCue::AppendCommandInfo(vtkPVXMLElement
 {
   if (!proxyElem)
   {
-    return NULL;
+    return nullptr;
   }
 
   std::vector<vtkInternals::vtkCueCommand>::iterator iter;

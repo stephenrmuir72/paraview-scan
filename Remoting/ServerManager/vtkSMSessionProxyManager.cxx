@@ -178,10 +178,10 @@ vtkSMSessionProxyManager::~vtkSMSessionProxyManager()
   this->Observer->Delete();
 
   this->ProxyDefinitionManager->Delete();
-  this->ProxyDefinitionManager = NULL;
+  this->ProxyDefinitionManager = nullptr;
 
   this->PipelineState->Delete();
-  this->PipelineState = NULL;
+  this->PipelineState = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -213,12 +213,12 @@ void vtkSMSessionProxyManager::InstantiateGroupPrototypes(const char* groupName)
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
     const char* xml_name = iter->GetProxyName();
-    if (this->GetProxy(newgroupname.str().c_str(), xml_name) == NULL)
+    if (this->GetProxy(newgroupname.str().c_str(), xml_name) == nullptr)
     {
       vtkSMProxy* proxy = this->NewProxy(groupName, xml_name);
       if (proxy)
       {
-        proxy->SetSession(NULL);
+        proxy->SetSession(nullptr);
         proxy->SetLocation(0);
         proxy->SetPrototype(true);
         this->RegisterProxy(newgroupname.str().c_str(), xml_name, proxy);
@@ -347,7 +347,7 @@ vtkSMDocumentation* vtkSMSessionProxyManager::GetProxyDocumentation(
   }
 
   vtkSMProxy* proxy = this->GetPrototypeProxy(groupName, proxyName);
-  return proxy ? proxy->GetDocumentation() : NULL;
+  return proxy ? proxy->GetDocumentation() : nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -405,7 +405,7 @@ vtkSMProxy* vtkSMSessionProxyManager::GetPrototypeProxy(const char* groupname, c
 {
   if (!this->ProxyDefinitionManager)
   {
-    return NULL;
+    return nullptr;
   }
 
   std::string protype_group = groupname;
@@ -416,10 +416,10 @@ vtkSMProxy* vtkSMSessionProxyManager::GetPrototypeProxy(const char* groupname, c
     return proxy;
   }
 
-  // silently ask for the definition. If not found return NULL.
+  // silently ask for the definition. If not found return nullptr.
   vtkPVXMLElement* xmlElement =
-    this->ProxyDefinitionManager->GetCollapsedProxyDefinition(groupname, name, NULL, false);
-  if (xmlElement == NULL)
+    this->ProxyDefinitionManager->GetCollapsedProxyDefinition(groupname, name, nullptr, false);
+  if (xmlElement == nullptr)
   {
     // No definition was located for the requested proxy.
     // Cannot create the prototype.
@@ -499,7 +499,7 @@ void vtkSMSessionProxyManager::GetProxies(
     this->Internals->RegisteredProxyMap.find(group);
   if (it != this->Internals->RegisteredProxyMap.end())
   {
-    if (name == NULL)
+    if (name == nullptr)
     {
       vtkSMProxyManagerProxyMapType::iterator it2 = it->second.begin();
       std::set<vtkTypeUInt32> ids;
@@ -564,7 +564,7 @@ void vtkSMSessionProxyManager::GetProxyNames(
 //---------------------------------------------------------------------------
 std::string vtkSMSessionProxyManager::RegisterProxy(const char* groupname, vtkSMProxy* proxy)
 {
-  assert(proxy != NULL);
+  assert(proxy != nullptr);
 
   std::string label = vtkSMCoreUtilities::SanitizeName(proxy->GetXMLLabel());
   std::string name = this->GetUniqueProxyName(groupname, label.c_str());
@@ -845,12 +845,12 @@ void vtkSMSessionProxyManager::RegisterProxy(
     return;
   }
 
-  if (groupname == NULL)
+  if (groupname == nullptr)
   {
     vtkErrorMacro("'groupname' cannot be NULL.");
     return;
   }
-  if (name == NULL || name[0] == 0)
+  if (name == nullptr || name[0] == 0)
   {
     // come up with a new name and register the proxy.
     this->RegisterProxy(groupname, proxy);
@@ -1000,7 +1000,7 @@ const char* vtkSMSessionProxyManager::GetLinkName(int idx)
   int numlinks = this->GetNumberOfLinks();
   if (idx >= numlinks)
   {
-    return NULL;
+    return nullptr;
   }
   vtkSMSessionProxyManagerInternals::LinkType::iterator it =
     this->Internals->RegisteredLinkMap.begin();
@@ -1045,7 +1045,7 @@ vtkSMLink* vtkSMSessionProxyManager::GetRegisteredLink(const char* name)
   {
     return it->second.GetPointer();
   }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1060,7 +1060,7 @@ const char* vtkSMSessionProxyManager::GetRegisteredLinkName(vtkSMLink* link)
       return it->first.c_str();
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1211,7 +1211,7 @@ int vtkSMSessionProxyManager::AreProxiesModified()
 
 //---------------------------------------------------------------------------
 void vtkSMSessionProxyManager::LoadXMLState(
-  const char* filename, vtkSMStateLoader* loader /*=NULL*/)
+  const char* filename, vtkSMStateLoader* loader /*=nullptr*/)
 {
   vtkPVXMLParser* parser = vtkPVXMLParser::New();
   parser->SetFileName(filename);
@@ -1222,8 +1222,8 @@ void vtkSMSessionProxyManager::LoadXMLState(
 }
 
 //---------------------------------------------------------------------------
-void vtkSMSessionProxyManager::LoadXMLState(
-  vtkPVXMLElement* rootElement, vtkSMStateLoader* loader /*=NULL*/, bool keepOriginalIds /*=false*/)
+void vtkSMSessionProxyManager::LoadXMLState(vtkPVXMLElement* rootElement,
+  vtkSMStateLoader* loader /*=nullptr*/, bool keepOriginalIds /*=false*/)
 {
   if (!rootElement)
   {
@@ -1275,7 +1275,7 @@ vtkPVXMLElement* vtkSMSessionProxyManager::SaveXMLState()
 
   vtkSMProxyManager::LoadStateInformation info;
   info.RootElement = root;
-  info.ProxyLocator = NULL;
+  info.ProxyLocator = nullptr;
   this->InvokeEvent(vtkCommand::SaveStateEvent, &info);
   return root;
 }
@@ -1577,7 +1577,7 @@ vtkPVXMLElement* vtkSMSessionProxyManager::GetProxyHints(
   }
 
   vtkSMProxy* proxy = this->GetPrototypeProxy(groupName, proxyName);
-  return proxy ? proxy->GetHints() : NULL;
+  return proxy ? proxy->GetHints() : nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1673,7 +1673,7 @@ void vtkSMSessionProxyManager::LoadState(const vtkSMMessage* msg, vtkSMProxyLoca
 
     // Make sure the expected selection model exist by creating a new empty one
     // that will be filled by the LoadState
-    if (model == NULL)
+    if (model == nullptr)
     {
       model = vtkSMProxySelectionModel::New();
       this->RegisterSelectionModel(name, model);
@@ -1707,7 +1707,7 @@ void vtkSMSessionProxyManager::LoadState(const vtkSMMessage* msg, vtkSMProxyLoca
       // Do nothing as we already know about it
     }
     else if ((link = vtkSMLink::SafeDownCast(this->Session->GetRemoteObject(remoteObjectId))) !=
-      NULL)
+      nullptr)
     {
       // The link exist but is not registered
       this->RegisterLink(name, link);
@@ -1829,7 +1829,7 @@ vtkSMProxySelectionModel* vtkSMSessionProxyManager::GetSelectionModelAt(int idx)
     if (iter == this->Internals->SelectionModels.end())
     {
       // Out of range
-      return NULL;
+      return nullptr;
     }
     iter++;
   }
@@ -1917,11 +1917,11 @@ vtkSMProxy* vtkSMSessionProxyManager::FindProxy(
   for (iter->Begin(reggroup); !iter->IsAtEnd(); iter->Next())
   {
     vtkSMProxy* proxy = iter->GetProxy();
-    if (proxy != NULL && proxy->GetXMLGroup() && proxy->GetXMLName() &&
+    if (proxy != nullptr && proxy->GetXMLGroup() && proxy->GetXMLName() &&
       strcmp(proxy->GetXMLGroup(), xmlgroup) == 0 && strcmp(proxy->GetXMLName(), xmltype) == 0)
     {
       return proxy;
     }
   }
-  return NULL;
+  return nullptr;
 }

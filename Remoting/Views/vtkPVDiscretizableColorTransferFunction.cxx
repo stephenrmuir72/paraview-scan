@@ -26,8 +26,8 @@ vtkStandardNewMacro(vtkPVDiscretizableColorTransferFunction);
 //-------------------------------------------------------------------------
 vtkPVDiscretizableColorTransferFunction::vtkPVDiscretizableColorTransferFunction()
 {
-  this->AnnotatedValuesInFullSet = NULL;
-  this->AnnotationsInFullSet = NULL;
+  this->AnnotatedValuesInFullSet = nullptr;
+  this->AnnotationsInFullSet = nullptr;
   this->IndexedColorsInFullSet = vtkDoubleArray::New();
   this->IndexedColorsInFullSet->SetNumberOfComponents(3);
   this->IndexedOpacitiesInFullSet = vtkDoubleArray::New();

@@ -166,7 +166,7 @@ vtkSMProxy* vtkSMProxyLink::GetLinkedProxy(int index)
   }
   if (iter == this->Internals->LinkedProxies.end())
   {
-    return NULL;
+    return nullptr;
   }
   return iter->Proxy;
 }
@@ -412,7 +412,7 @@ void vtkSMProxyLink::LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locat
 //-----------------------------------------------------------------------------
 void vtkSMProxyLink::UpdateState()
 {
-  if (this->Session == NULL)
+  if (this->Session == nullptr)
   {
     return;
   }

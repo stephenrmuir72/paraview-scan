@@ -168,7 +168,7 @@ vtkPVSelectionSource::vtkPVSelectionSource()
   this->Mode = ID;
   this->ContainingCells = 1;
   this->Inverse = 0;
-  this->ArrayName = NULL;
+  this->ArrayName = nullptr;
   for (int cc = 0; cc < 32; cc++)
   {
     this->Frustum[cc] = 0;
@@ -354,7 +354,7 @@ void vtkPVSelectionSource::RemoveAllThresholds()
 //----------------------------------------------------------------------------
 void vtkPVSelectionSource::SetArrayName(const char* arrayName)
 {
-  if (this->ArrayName == NULL && arrayName == NULL)
+  if (this->ArrayName == nullptr && arrayName == nullptr)
   {
     return;
   }

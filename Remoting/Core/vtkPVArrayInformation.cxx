@@ -61,12 +61,12 @@ vtkStandardNewMacro(vtkPVArrayInformation);
 //----------------------------------------------------------------------------
 vtkPVArrayInformation::vtkPVArrayInformation()
 {
-  this->Name = NULL;
-  this->Ranges = NULL;
-  this->FiniteRanges = NULL;
-  this->ComponentNames = NULL;
-  this->DefaultComponentName = NULL;
-  this->InformationKeys = NULL;
+  this->Name = nullptr;
+  this->Ranges = nullptr;
+  this->FiniteRanges = nullptr;
+  this->ComponentNames = nullptr;
+  this->DefaultComponentName = nullptr;
+  this->InformationKeys = nullptr;
   this->IsPartial = 0;
   this->Initialize();
 }
@@ -108,12 +108,12 @@ void vtkPVArrayInformation::Initialize()
   if (this->Ranges)
   {
     delete[] this->Ranges;
-    this->Ranges = NULL;
+    this->Ranges = nullptr;
   }
   if (this->FiniteRanges)
   {
     delete[] this->FiniteRanges;
-    this->FiniteRanges = NULL;
+    this->FiniteRanges = nullptr;
   }
 
   this->IsPartial = 0;
@@ -196,12 +196,12 @@ void vtkPVArrayInformation::SetNumberOfComponents(int numComps)
   if (this->Ranges)
   {
     delete[] this->Ranges;
-    this->Ranges = NULL;
+    this->Ranges = nullptr;
   }
   if (this->FiniteRanges)
   {
     delete[] this->FiniteRanges;
-    this->FiniteRanges = NULL;
+    this->FiniteRanges = nullptr;
   }
   this->NumberOfComponents = numComps;
   if (numComps <= 0)
@@ -228,13 +228,13 @@ void vtkPVArrayInformation::SetNumberOfComponents(int numComps)
 //----------------------------------------------------------------------------
 void vtkPVArrayInformation::SetComponentName(vtkIdType component, const char* name)
 {
-  if (component < 0 || name == NULL)
+  if (component < 0 || name == nullptr)
   {
     return;
   }
 
   unsigned int index = static_cast<unsigned int>(component);
-  if (this->ComponentNames == NULL)
+  if (this->ComponentNames == nullptr)
   {
     // delayed allocate
     this->ComponentNames = new vtkPVArrayInformation::vtkInternalComponentNames();
@@ -248,7 +248,7 @@ void vtkPVArrayInformation::SetComponentName(vtkIdType component, const char* na
   }
   else if (index > this->ComponentNames->size())
   {
-    this->ComponentNames->resize(index + 1, NULL);
+    this->ComponentNames->resize(index + 1, nullptr);
   }
 
   // replace an existing element
@@ -318,7 +318,7 @@ double* vtkPVArrayInformation::GetComponentRange(int comp)
   if (comp >= this->NumberOfComponents || this->NumberOfComponents <= 0)
   {
     vtkErrorMacro("Bad component");
-    return NULL;
+    return nullptr;
   }
   if (this->NumberOfComponents > 1)
   { // Shift over vector mag range.
@@ -338,7 +338,7 @@ void vtkPVArrayInformation::GetComponentRange(int comp, double range[2])
 
   ptr = this->GetComponentRange(comp);
 
-  if (ptr == NULL)
+  if (ptr == nullptr)
   {
     range[0] = VTK_DOUBLE_MAX;
     range[1] = -VTK_DOUBLE_MAX;
@@ -374,7 +374,7 @@ double* vtkPVArrayInformation::GetComponentFiniteRange(int comp)
   if (comp >= this->NumberOfComponents || this->NumberOfComponents <= 0)
   {
     vtkErrorMacro("Bad component");
-    return NULL;
+    return nullptr;
   }
   if (this->NumberOfComponents > 1)
   { // Shift over vector mag range.
@@ -392,7 +392,7 @@ void vtkPVArrayInformation::GetComponentFiniteRange(int comp, double range[2])
 {
   double* ptr = this->GetComponentFiniteRange(comp);
 
-  if (ptr == NULL)
+  if (ptr == nullptr)
   {
     range[0] = VTK_DOUBLE_MAX;
     range[1] = -VTK_DOUBLE_MAX;
@@ -616,7 +616,7 @@ void vtkPVArrayInformation::DeepCopy(vtkPVArrayInformation* info)
 //----------------------------------------------------------------------------
 int vtkPVArrayInformation::Compare(vtkPVArrayInformation* info)
 {
-  if (info == NULL)
+  if (info == nullptr)
   {
     return 0;
   }
@@ -802,7 +802,7 @@ void vtkPVArrayInformation::CopyToStream(vtkClientServerStream* css)
   for (int i = 0; i < num; ++i)
   {
     compName = this->ComponentNames->at(i);
-    *css << (compName ? compName->c_str() : static_cast<const char*>(NULL));
+    *css << (compName ? compName->c_str() : static_cast<const char*>(nullptr));
   }
 
   int nkeys = this->GetNumberOfInformationKeys();
@@ -925,7 +925,7 @@ void vtkPVArrayInformation::CopyFromStream(const vtkClientServerStream* css)
         vtkErrorMacro("Error parsing component name from message.");
         return;
       }
-      // note comp_name may be NULL, but that's okay.
+      // note comp_name may be nullptr, but that's okay.
       this->SetComponentName(cc, comp_name);
     }
   }
@@ -1007,7 +1007,7 @@ void vtkPVArrayInformation::AddInformationKeys(vtkPVArrayInformation* info)
 //----------------------------------------------------------------------------
 void vtkPVArrayInformation::AddInformationKey(const char* location, const char* name)
 {
-  if (this->InformationKeys == NULL)
+  if (this->InformationKeys == nullptr)
   {
     this->InformationKeys = new vtkInternalInformationKeys();
   }
@@ -1036,7 +1036,7 @@ int vtkPVArrayInformation::GetNumberOfInformationKeys()
 const char* vtkPVArrayInformation::GetInformationKeyLocation(int index)
 {
   if (index < 0 || index >= this->GetNumberOfInformationKeys())
-    return NULL;
+    return nullptr;
 
   return this->InformationKeys->at(index).Location.c_str();
 }
@@ -1045,7 +1045,7 @@ const char* vtkPVArrayInformation::GetInformationKeyLocation(int index)
 const char* vtkPVArrayInformation::GetInformationKeyName(int index)
 {
   if (index < 0 || index >= this->GetNumberOfInformationKeys())
-    return NULL;
+    return nullptr;
 
   return this->InformationKeys->at(index).Name.c_str();
 }

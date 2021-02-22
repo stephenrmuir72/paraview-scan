@@ -43,7 +43,7 @@ vtkMPIMToNSocketConnectionPortInformation::vtkMPIMToNSocketConnectionPortInforma
 vtkMPIMToNSocketConnectionPortInformation::~vtkMPIMToNSocketConnectionPortInformation()
 {
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -170,7 +170,7 @@ const char* vtkMPIMToNSocketConnectionPortInformation::GetProcessHostName(
   if (processNumber >= this->Internals->Connections.size())
   {
     vtkErrorMacro("Process number greater than number of processes");
-    return NULL;
+    return nullptr;
   }
 
   if (this->Internals->Connections[processNumber].HostName.size() == 0)

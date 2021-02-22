@@ -40,7 +40,7 @@ vtkSMAnimationSceneWriter::vtkSMAnimationSceneWriter()
 //-----------------------------------------------------------------------------
 vtkSMAnimationSceneWriter::~vtkSMAnimationSceneWriter()
 {
-  this->SetAnimationScene((vtkSMAnimationScene*)NULL);
+  this->SetAnimationScene((vtkSMAnimationScene*)nullptr);
   this->SetFileName(0);
 }
 
@@ -51,7 +51,7 @@ void vtkSMAnimationSceneWriter::SetAnimationScene(vtkSMProxy* proxy)
   this->SetSession(proxy->GetSession());
 
   this->SetAnimationScene(
-    proxy ? vtkSMAnimationScene::SafeDownCast(proxy->GetClientSideObject()) : NULL);
+    proxy ? vtkSMAnimationScene::SafeDownCast(proxy->GetClientSideObject()) : nullptr);
 }
 
 //-----------------------------------------------------------------------------

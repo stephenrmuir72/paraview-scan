@@ -41,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt includes.
 
 //-----------------------------------------------------------------------------
-pqServerManagerModelItem::pqServerManagerModelItem(QObject* _parent /*=null*/)
+pqServerManagerModelItem::pqServerManagerModelItem(QObject* _parent /*=nullptr*/)
   : QObject(_parent)
 {
   this->Connector = 0;

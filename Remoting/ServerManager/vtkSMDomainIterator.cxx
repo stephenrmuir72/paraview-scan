@@ -47,12 +47,12 @@ void vtkSMDomainIterator::SetProperty(vtkSMProperty* proxy)
 {
   if (this->Property != proxy)
   {
-    if (this->Property != NULL)
+    if (this->Property != nullptr)
     {
       this->Property->UnRegister(this);
     }
     this->Property = proxy;
-    if (this->Property != NULL)
+    if (this->Property != nullptr)
     {
       this->Property->Register(this);
       this->Begin();

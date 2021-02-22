@@ -90,7 +90,7 @@ vtkSMOutputPort* pqOutputPort::getOutputPortProxy() const
 
   if (!source || !source->GetOutputPortsCreated())
   {
-    return NULL;
+    return nullptr;
   }
 
   return source->GetOutputPort(this->PortNumber);
@@ -322,5 +322,6 @@ void pqOutputPort::renderAllViews(bool force /*=false*/)
 //-----------------------------------------------------------------------------
 vtkSMSourceProxy* pqOutputPort::getSourceProxy() const
 {
-  return this->getSource() ? vtkSMSourceProxy::SafeDownCast(this->getSource()->getProxy()) : NULL;
+  return this->getSource() ? vtkSMSourceProxy::SafeDownCast(this->getSource()->getProxy())
+                           : nullptr;
 }

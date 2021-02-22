@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //-----------------------------------------------------------------------------
 pqBoxChartView::pqBoxChartView(const QString& group, const QString& name,
-  vtkSMContextViewProxy* viewModule, pqServer* server, QObject* p /*=NULL*/)
+  vtkSMContextViewProxy* viewModule, pqServer* server, QObject* p /*=nullptr*/)
   : Superclass(chartViewType(), group, name, viewModule, server, p)
 {
   QObject::connect(this, SIGNAL(representationAdded(pqRepresentation*)), this,

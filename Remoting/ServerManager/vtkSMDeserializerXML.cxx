@@ -72,7 +72,7 @@ vtkSMProxy* vtkSMDeserializerXML::NewProxy(vtkTypeUInt32 id, vtkSMProxyLocator* 
 
 //----------------------------------------------------------------------------
 vtkSMProxy* vtkSMDeserializerXML::CreateProxy(
-  const char* xmlgroup, const char* xmlname, const char* subProxyName /*=NULL*/)
+  const char* xmlgroup, const char* xmlname, const char* subProxyName /*=nullptr*/)
 {
   vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
   vtkSMProxy* proxy = pxm->NewProxy(xmlgroup, xmlname, subProxyName);
@@ -82,7 +82,7 @@ vtkSMProxy* vtkSMDeserializerXML::CreateProxy(
 //----------------------------------------------------------------------------
 vtkPVXMLElement* vtkSMDeserializerXML::LocateProxyElement(vtkTypeUInt32 vtkNotUsed(id))
 {
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------

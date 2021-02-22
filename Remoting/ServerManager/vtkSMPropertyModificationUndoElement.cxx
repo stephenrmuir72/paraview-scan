@@ -63,10 +63,10 @@ int vtkSMPropertyModificationUndoElement::RevertToState()
     return 0;
   }
   vtkSMProxy* proxy = vtkSMProxy::SafeDownCast(this->Session->GetRemoteObject(this->ProxyGlobalID));
-  vtkSMProperty* property = (proxy ? proxy->GetProperty(this->PropertyName) : NULL);
+  vtkSMProperty* property = (proxy ? proxy->GetProperty(this->PropertyName) : nullptr);
   if (property)
   {
-    property->ReadFrom(this->PropertyState, 0, NULL); // 0 because only one
+    property->ReadFrom(this->PropertyState, 0, nullptr); // 0 because only one
     proxy->UpdateProperty(this->PropertyName);
   }
   return 1;

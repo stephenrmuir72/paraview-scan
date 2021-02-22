@@ -52,23 +52,23 @@ public:
 vtkPythonProgrammableFilter::vtkPythonProgrammableFilter()
   : Implementation(new vtkPythonProgrammableFilterImplementation())
 {
-  this->Script = NULL;
-  this->InformationScript = NULL;
-  this->UpdateExtentScript = NULL;
-  this->CheckNeedsUpdateScript = NULL;
+  this->Script = nullptr;
+  this->InformationScript = nullptr;
+  this->UpdateExtentScript = nullptr;
+  this->CheckNeedsUpdateScript = nullptr;
   this->PythonPath = 0;
   this->SetExecuteMethod(vtkPythonProgrammableFilter::ExecuteScript, this);
   this->OutputDataSetType = VTK_POLY_DATA;
   this->NeedsUpdate = false;
-  this->Request = NULL;
+  this->Request = nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkPythonProgrammableFilter::~vtkPythonProgrammableFilter()
 {
-  this->SetScript(NULL);
-  this->SetInformationScript(NULL);
-  this->SetUpdateExtentScript(NULL);
+  this->SetScript(nullptr);
+  this->SetInformationScript(nullptr);
+  this->SetUpdateExtentScript(nullptr);
   this->SetPythonPath(0);
 
   delete this->Implementation;
@@ -164,7 +164,7 @@ int vtkPythonProgrammableFilter::ProcessRequest(
 {
   this->Request = request;
   int retVal = this->Superclass::ProcessRequest(request, inputVector, outputVector);
-  this->Request = NULL;
+  this->Request = nullptr;
   return retVal;
 }
 //----------------------------------------------------------------------------

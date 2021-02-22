@@ -65,7 +65,7 @@ vtkSMProperty::vtkSMProperty()
   this->Documentation = 0;
   this->Repeatable = 0;
   this->IgnoreSynchronization = 0;
-  this->Links = NULL;
+  this->Links = nullptr;
 
   this->Hints = 0;
   this->BlockModifiedEvents = false;
@@ -99,7 +99,7 @@ vtkSMProperty::~vtkSMProperty()
   if (this->Links)
   {
     this->Links->Delete();
-    this->Links = NULL;
+    this->Links = nullptr;
   }
 }
 
@@ -124,7 +124,7 @@ void vtkSMProperty::UnRegister(vtkObjectBase* obj)
 //---------------------------------------------------------------------------
 int vtkSMProperty::IsInDomains()
 {
-  return this->IsInDomains(NULL);
+  return this->IsInDomains(nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -156,7 +156,7 @@ void vtkSMProperty::AddDomain(const char* name, vtkSMDomain* domain)
   if (it != this->PInternals->Domains.end())
   {
     vtkWarningMacro("Domain " << name << " already exists. Replacing");
-    it->second->SetProperty(NULL);
+    it->second->SetProperty(nullptr);
   }
 
   this->PInternals->Domains[name] = domain;
@@ -207,7 +207,7 @@ void vtkSMProperty::RemoveFromSourceLink()
   {
     // Remove this instance as a subscriber to the source proxy
     this->PInternals->LinkSourceProperty->RemoveLinkedProperty(this);
-    this->PInternals->LinkSourceProperty = NULL;
+    this->PInternals->LinkSourceProperty = nullptr;
   }
 }
 

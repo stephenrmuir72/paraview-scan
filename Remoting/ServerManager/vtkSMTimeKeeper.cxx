@@ -229,7 +229,7 @@ void vtkSMTimeKeeper::UpdateTimeSteps()
 
   std::set<double> timesteps;
   double timerange[2] = { VTK_DOUBLE_MAX, VTK_DOUBLE_MIN };
-  const char* label = NULL;
+  const char* label = nullptr;
   int nbDiffCustomLabel = 0;
 
   vtkInternal::SourcesType::iterator iter;
@@ -303,7 +303,7 @@ void vtkSMTimeKeeper::UpdateTimeSteps()
   // Make sure the label is valid and if several source try to override that
   // label in a different manner, we simply rollback to the default "Time :" value
   vtkSMStringVectorProperty::SafeDownCast(this->TimeLabelProperty)
-    ->SetElement(0, (nbDiffCustomLabel > 0 || label == NULL) ? "Time" : label);
+    ->SetElement(0, (nbDiffCustomLabel > 0 || label == nullptr) ? "Time" : label);
 }
 
 //----------------------------------------------------------------------------

@@ -108,9 +108,9 @@ int vtkSMProxyConfigurationWriter::WriteConfiguration(const char* cFilename)
   }
 
   // If there client has set an extension then we add it if it's not
-  // present. To save with out th eextension, set it NULL.
+  // present. To save with out th eextension, set it nullptr.
   const char* cExt = this->GetFileExtension();
-  cExt = (cExt == NULL ? "" : cExt);
+  cExt = (cExt == nullptr ? "" : cExt);
   std::string filename(cFilename);
   std::string ext(cExt);
   if (!ext.empty() && (filename.size() <= ext.size() ||

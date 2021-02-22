@@ -274,7 +274,7 @@ void vtkSMUtilities::Merge(
     outIt.NextSpan();
   }
 
-  if (borderWidth < 1 || borderColorRGB == NULL)
+  if (borderWidth < 1 || borderColorRGB == nullptr)
   {
     return;
   }
@@ -340,7 +340,7 @@ vtkSmartPointer<vtkImageData> vtkSMUtilities::MergeImages(
 {
   if (images.size() == 0)
   {
-    return NULL;
+    return nullptr;
   }
   if (images.size() == 1)
   {

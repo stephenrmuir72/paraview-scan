@@ -93,7 +93,7 @@ bool vtkPVFilePathEncodingHelper::CallObjectMethod(const char* method, bool igno
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << object << method;
   stream << vtkPVFileInformationHelper::Utf8ToLocalWin32(this->Path);
-  if (this->SecondaryPath != NULL)
+  if (this->SecondaryPath != nullptr)
   {
     stream << vtkPVFileInformationHelper::Utf8ToLocalWin32(this->SecondaryPath);
   }
