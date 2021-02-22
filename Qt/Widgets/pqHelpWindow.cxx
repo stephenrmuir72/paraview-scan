@@ -123,9 +123,7 @@ pqHelpWindow::pqHelpWindow(QHelpEngine* engine, QWidget* parentObject, Qt::Windo
 }
 
 //-----------------------------------------------------------------------------
-pqHelpWindow::~pqHelpWindow()
-{
-}
+pqHelpWindow::~pqHelpWindow() = default;
 
 //-----------------------------------------------------------------------------
 void pqHelpWindow::showPage(const QString& url)

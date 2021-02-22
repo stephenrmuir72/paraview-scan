@@ -37,6 +37,4 @@ pqAutoStartInterface::pqAutoStartInterface()
 }
 
 //-----------------------------------------------------------------------------
-pqAutoStartInterface::~pqAutoStartInterface()
-{
-}
+pqAutoStartInterface::~pqAutoStartInterface() = default;
