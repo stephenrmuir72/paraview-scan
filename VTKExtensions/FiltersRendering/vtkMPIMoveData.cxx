@@ -133,7 +133,7 @@ vtkMPIMoveData::~vtkMPIMoveData()
 void vtkMPIMoveData::InitializeForCommunicationForParaView()
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  if (pm == NULL)
+  if (pm == nullptr)
   {
     vtkWarningMacro("No process module found.");
     return;
@@ -450,7 +450,7 @@ int vtkMPIMoveData::RequestData(
         this->DataServerGatherToZero(input, tmp);
         this->DataServerSendToClient(tmp);
         tmp->Delete();
-        tmp = NULL;
+        tmp = nullptr;
         vtkVLogF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "pass-through");
         output->ShallowCopy(input);
         return 1;
@@ -529,7 +529,7 @@ void vtkMPIMoveData::DataServerAllToN(vtkDataObject* input, vtkDataObject* outpu
 
   // Perform the M to N operation.
   vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "redistribute MxN (M=%d, N=%d)", m, n);
-  vtkAllToNRedistributeCompositePolyData* AllToN = NULL;
+  vtkAllToNRedistributeCompositePolyData* AllToN = nullptr;
   AllToN = vtkAllToNRedistributeCompositePolyData::New();
   AllToN->SetController(controller);
   AllToN->SetNumberOfProcesses(n);
@@ -573,7 +573,7 @@ void vtkMPIMoveData::DataServerGatherAll(vtkDataObject* input, vtkDataObject* ou
   // One data set, one buffer.
   vtkIdType inBufferLength = this->BufferTotalLength;
   char* inBuffer = this->Buffers;
-  this->Buffers = NULL;
+  this->Buffers = nullptr;
   this->ClearBuffer();
 
   // Allocate arrays used by the AllGatherV call.
@@ -646,7 +646,7 @@ void vtkMPIMoveData::DataServerGatherToZero(vtkDataObject* input, vtkDataObject*
   // One data set, one buffer.
   vtkIdType inBufferLength = this->BufferTotalLength;
   char* inBuffer = this->Buffers;
-  this->Buffers = NULL;
+  this->Buffers = nullptr;
   this->ClearBuffer();
 
   if (myId == 0)
@@ -685,7 +685,7 @@ void vtkMPIMoveData::DataServerGatherToZero(vtkDataObject* input, vtkDataObject*
   this->ClearBuffer();
 
   delete[] inBuffer;
-  inBuffer = NULL;
+  inBuffer = nullptr;
 
   vtkTimerLog::MarkEndEvent("Dataserver gathering to 0");
 }
@@ -817,7 +817,7 @@ void vtkMPIMoveData::RenderServerZeroReceiveFromDataServerZero(vtkDataObject* da
 //-----------------------------------------------------------------------------
 void vtkMPIMoveData::DataServerSendToClient(vtkDataObject* output)
 {
-  if (this->ClientDataServerSocketController == NULL)
+  if (this->ClientDataServerSocketController == nullptr)
   {
     return;
   }
@@ -979,7 +979,7 @@ void vtkMPIMoveData::MarshalDataToBuffer(vtkDataObject* data)
   writer->WriteToOutputStringOn();
   writer->Write();
 
-  char* buffer = NULL;
+  char* buffer = nullptr;
   vtkIdType buffer_length = 0;
 
   if (vtkMPIMoveData::UseZLibCompression)
@@ -1096,7 +1096,7 @@ void vtkMPIMoveData::ReconstructDataFromBuffer(vtkDataObject* data)
       clone->SetExtent(extent);
       // reconstructing data distributted on MPI node, so global ids are valid
       // global ids attributes are removed when appending data so we set
-      // the active global ids attribute to null which keeps the global ids array.
+      // the active global ids attribute to nullptr which keeps the global ids array.
       unsetGlobalIdsAttribute(clone);
       pieces.push_back(clone);
       clone->Delete();
@@ -1111,7 +1111,7 @@ void vtkMPIMoveData::ReconstructDataFromBuffer(vtkDataObject* data)
     mystring->Delete();
     mystring = 0;
     reader->Delete();
-    reader = NULL;
+    reader = nullptr;
     delete[] realBuffer;
     realBuffer = 0;
   }

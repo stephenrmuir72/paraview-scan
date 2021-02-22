@@ -75,7 +75,7 @@ int vtkAllToNRedistributeCompositePolyData::RequestDataObject(
       return 1;
     }
 
-    if (vtkPolyData::SafeDownCast(output) == NULL)
+    if (vtkPolyData::SafeDownCast(output) == nullptr)
     {
       output = vtkPolyData::New();
       outputVector->GetInformationObject(0)->Set(vtkDataObject::DATA_OBJECT(), output);
@@ -118,7 +118,7 @@ int vtkAllToNRedistributeCompositePolyData::RequestData(
   allToN->SetNumberOfProcesses(this->NumberOfProcesses);
 
   // This assumes that the vtkPVGeometryFilter has ensured that all processes
-  // have the same non-null leaf nodes.
+  // have the same non-nullptr leaf nodes.
   vtkCompositeDataIterator* iter = cdInput->NewIterator();
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
