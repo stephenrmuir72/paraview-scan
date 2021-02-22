@@ -229,7 +229,7 @@ protected:
     , SuffixFormat(nullptr)
   {
   }
-  ~SceneImageWriterImageSeries() { this->SetSuffixFormat(nullptr); }
+  ~SceneImageWriterImageSeries() override { this->SetSuffixFormat(nullptr); }
 
   bool SaveInitialize(int startCount) override
   {
