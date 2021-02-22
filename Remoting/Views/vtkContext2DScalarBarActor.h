@@ -38,7 +38,6 @@ class vtkColorLegend;
 class vtkColorTransferFunctionItem;
 class vtkContextActor;
 class vtkContext2D;
-class vtkContextItem;
 class vtkContextScene;
 class vtkDoubleArray;
 class vtkImageData;
