@@ -94,7 +94,7 @@ QRect pqCheckableHeaderViewInternal::checkBoxRect(
 {
   QStyleOptionButton checkBoxStyleOption;
   QRect cboxRect = this->Style->subElementRect(QStyle::SE_CheckBoxIndicator, &checkBoxStyleOption);
-  int buttonMargin = this->Style->pixelMetric(QStyle::PM_ButtonMargin, NULL, view);
+  int buttonMargin = this->Style->pixelMetric(QStyle::PM_ButtonMargin, nullptr, view);
 
   int ch = cboxRect.height();
   int cw = cboxRect.width();

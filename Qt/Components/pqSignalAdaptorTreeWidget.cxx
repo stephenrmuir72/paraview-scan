@@ -115,10 +115,10 @@ QTreeWidgetItem* pqSignalAdaptorTreeWidget::newItem(const QStringList& columnVal
     return 0;
   }
 
-  QTreeWidgetItem* item = NULL;
+  QTreeWidgetItem* item = nullptr;
   if (this->ItemCreatorFunctionPtr)
   {
-    item = (*this->ItemCreatorFunctionPtr)(NULL, columnValues);
+    item = (*this->ItemCreatorFunctionPtr)(nullptr, columnValues);
   }
 
   if (!item)

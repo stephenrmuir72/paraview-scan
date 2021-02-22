@@ -157,7 +157,7 @@ pqPipelineSource* pqObjectBuilder::createSource(
   proxy.TakeReference(pxm->NewProxy(sm_group.toLocal8Bit().data(), sm_name.toLocal8Bit().data()));
   if (!pqObjectBuilderNS::preCreatePipelineProxy(controller, proxy))
   {
-    return NULL;
+    return nullptr;
   }
 
   pqPipelineSource* source = pqObjectBuilderNS::postCreatePipelineProxy(controller, proxy, server);
@@ -176,7 +176,7 @@ pqPipelineSource* pqObjectBuilder::createFilter(const QString& sm_group, const Q
   proxy.TakeReference(pxm->NewProxy(sm_group.toLocal8Bit().data(), sm_name.toLocal8Bit().data()));
   if (!pqObjectBuilderNS::preCreatePipelineProxy(controller, proxy))
   {
-    return NULL;
+    return nullptr;
   }
 
   // Now for every input port, connect the inputs.
@@ -268,7 +268,7 @@ pqPipelineSource* pqObjectBuilder::createReader(
   proxy.TakeReference(pxm->NewProxy(sm_group.toUtf8().data(), sm_name.toUtf8().data()));
   if (!pqObjectBuilderNS::preCreatePipelineProxy(controller, proxy))
   {
-    return NULL;
+    return nullptr;
   }
 
   QString pname = this->getFileNamePropertyName(proxy);
@@ -340,7 +340,7 @@ pqView* pqObjectBuilder::createView(const QString& type, pqServer* server)
   if (!server)
   {
     qDebug() << "Cannot create view without server.";
-    return NULL;
+    return nullptr;
   }
 
   vtkSMSessionProxyManager* pxm = server->proxyManager();
@@ -349,7 +349,7 @@ pqView* pqObjectBuilder::createView(const QString& type, pqServer* server)
   if (!proxy)
   {
     qDebug() << "Failed to create a proxy for the requested view type:" << type;
-    return NULL;
+    return nullptr;
   }
 
   // notify the world that we may create a new view. applications may handle
@@ -414,13 +414,13 @@ pqDataRepresentation* pqObjectBuilder::createDataRepresentation(
   if (!opPort || !view)
   {
     qCritical() << "Missing required attribute.";
-    return NULL;
+    return nullptr;
   }
 
   if (!view->canDisplay(opPort))
   {
     // View cannot display this source, nothing to do here.
-    return NULL;
+    return nullptr;
   }
 
   vtkSmartPointer<vtkSMProxy> reprProxy;
@@ -444,7 +444,7 @@ pqDataRepresentation* pqObjectBuilder::createDataRepresentation(
   // Could not determine representation proxy to create.
   if (!reprProxy)
   {
-    return NULL;
+    return nullptr;
   }
 
   vtkNew<vtkSMParaViewPipelineController> controller;
@@ -493,7 +493,7 @@ vtkSMProxy* pqObjectBuilder::createProxy(
   if (!proxy.GetPointer())
   {
     qCritical() << "Failed to create proxy: " << sm_group << ", " << sm_name;
-    return NULL;
+    return nullptr;
   }
   else if (reg_group.contains("prototypes"))
   {
@@ -567,10 +567,10 @@ void pqObjectBuilder::destroySources(pqServer* server)
       if (sources[i]->getAllConsumers().size() == 0)
       {
         builder->destroy(sources[i]);
-        sources[i] = NULL;
+        sources[i] = nullptr;
       }
     }
-    sources.removeAll(NULL);
+    sources.removeAll(nullptr);
   }
 }
 
@@ -651,7 +651,7 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
   {
     qCritical() << "createServer called while waiting for previous connection "
                    "to be established.";
-    return NULL;
+    return nullptr;
   }
 
   // Create a modified version of the resource that only contains server information
@@ -722,7 +722,7 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
     qCritical() << "Unknown server type: " << server_resource.scheme() << "\n";
   }
 
-  pqServer* server = NULL;
+  pqServer* server = nullptr;
   if (id != 0)
   {
     server = smModel->findServer(id);
@@ -774,7 +774,7 @@ pqServer* pqObjectBuilder::resetServer(pqServer* server)
   pm->UnRegisterSession(session);
   smModel->endRemoveServer();
 
-  server = NULL;
+  server = nullptr;
 
   // Let the pqServerManagerModel know the resource to use for the connection
   // to be created.
@@ -783,7 +783,7 @@ pqServer* pqObjectBuilder::resetServer(pqServer* server)
   // re-register session.
   vtkIdType id = pm->RegisterSession(session);
 
-  pqServer* newServer = NULL;
+  pqServer* newServer = nullptr;
   if (id != 0)
   {
     newServer = smModel->findServer(id);

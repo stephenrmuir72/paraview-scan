@@ -137,15 +137,15 @@ pqApplicationCore::pqApplicationCore(
 void pqApplicationCore::constructor()
 {
   // Only 1 pqApplicationCore instance can be created.
-  assert(pqApplicationCore::Instance == NULL);
+  assert(pqApplicationCore::Instance == nullptr);
   pqApplicationCore::Instance = this;
 
-  this->UndoStack = NULL;
-  this->RecentlyUsedResourcesList = NULL;
-  this->ServerConfigurations = NULL;
-  this->Settings = NULL;
+  this->UndoStack = nullptr;
+  this->RecentlyUsedResourcesList = nullptr;
+  this->ServerConfigurations = nullptr;
+  this->Settings = nullptr;
 #ifdef PARAVIEW_USE_QTHELP
-  this->HelpEngine = NULL;
+  this->HelpEngine = nullptr;
 #endif
 
   // initialize statics in case we're a static library
@@ -248,7 +248,7 @@ pqApplicationCore::~pqApplicationCore()
     delete this->HelpEngine;
     QFile::remove(collectionFile);
   }
-  this->HelpEngine = NULL;
+  this->HelpEngine = nullptr;
 #endif
 
   // We don't call delete on these since we have already setup parent on these

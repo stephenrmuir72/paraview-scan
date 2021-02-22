@@ -288,7 +288,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-pqDataInformationModel::pqDataInformationModel(QObject* _parent /*=NULL*/)
+pqDataInformationModel::pqDataInformationModel(QObject* _parent /*=nullptr*/)
   : QAbstractTableModel(_parent)
 {
   this->Internal = new pqDataInformationModelInternal();
@@ -564,12 +564,12 @@ pqOutputPort* pqDataInformationModel::getItemFor(const QModelIndex& idx) const
 {
   if (!idx.isValid() && idx.model() != this)
   {
-    return NULL;
+    return nullptr;
   }
   if (idx.row() >= this->Internal->Sources.size())
   {
     qDebug() << "Index: " << idx.row() << " beyond range.";
-    return NULL;
+    return nullptr;
   }
   return this->Internal->Sources[idx.row()].OutputPort;
 }

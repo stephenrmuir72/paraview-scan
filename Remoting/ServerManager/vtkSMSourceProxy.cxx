@@ -150,7 +150,7 @@ vtkTypeUInt32 vtkSMSourceProxy::GetGlobalID()
 {
   bool has_gid = this->HasGlobalID();
 
-  if (!has_gid && this->Session != NULL)
+  if (!has_gid && this->Session != nullptr)
   {
     // reserve 1+MAX_NUMBER_OF_PORTS contiguous IDs for the source proxies and possible extract
     // selection proxies.
@@ -169,7 +169,8 @@ unsigned int vtkSMSourceProxy::GetNumberOfOutputPorts()
 //---------------------------------------------------------------------------
 vtkSMOutputPort* vtkSMSourceProxy::GetOutputPort(unsigned int idx)
 {
-  return idx == VTK_UNSIGNED_INT_MAX ? NULL : this->PInternals->OutputPorts[idx].Port.GetPointer();
+  return idx == VTK_UNSIGNED_INT_MAX ? nullptr
+                                     : this->PInternals->OutputPorts[idx].Port.GetPointer();
 }
 
 //---------------------------------------------------------------------------
@@ -465,7 +466,7 @@ void vtkSMSourceProxy::SetOutputPort(
   this->PInternals->OutputPorts[index].Name = name;
   this->PInternals->OutputPorts[index].Port = port;
   this->PInternals->OutputPorts[index].Documentation = doc;
-  if (port && port->GetSourceProxy() == NULL)
+  if (port && port->GetSourceProxy() == nullptr)
   {
     port->SetSourceProxy(this);
   }
@@ -598,7 +599,7 @@ void vtkSMSourceProxy::CreateSelectionProxies()
     // became alive because of the SelectionRepresentation before the
     // CreateSelectionProxies() get called on the original source proxy...
     if ((esProxy = vtkSMSourceProxy::SafeDownCast(
-           this->Session->GetRemoteObject(this->GetGlobalID() + j + 1))) != NULL)
+           this->Session->GetRemoteObject(this->GetGlobalID() + j + 1))) != nullptr)
     {
       esProxy->DisableSelectionProxies = true;
       this->PInternals->SelectionProxies[j] = esProxy;

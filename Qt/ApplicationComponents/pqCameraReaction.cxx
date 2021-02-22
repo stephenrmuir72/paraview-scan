@@ -73,7 +73,7 @@ void pqCameraReaction::updateEnableState()
       if (hints)
       {
         cameraResetButtonsEnabled =
-          hints->FindNestedElementByName("DisableCameraToolbarButtons") == NULL;
+          hints->FindNestedElementByName("DisableCameraToolbarButtons") == nullptr;
       }
 
       this->parentAction()->setEnabled(cameraResetButtonsEnabled);

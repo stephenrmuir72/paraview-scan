@@ -163,7 +163,7 @@ vtkSMProxy* vtkSMProxySelectionModel::GetSelectedProxy(unsigned int idx)
     return vtkSMProxy::SafeDownCast(iter->GetPointer());
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -315,7 +315,7 @@ void vtkSMProxySelectionModel::LoadState(const vtkSMMessage* msg, vtkSMProxyLoca
   this->Internal->Initialized = true;
 
   // Load current proxy
-  vtkSMProxy* currentProxy = NULL;
+  vtkSMProxy* currentProxy = nullptr;
   if (msg->GetExtension(ProxySelectionModelState::current_proxy) != 0)
   {
     vtkTypeUInt32 currentProxyId = msg->GetExtension(ProxySelectionModelState::current_proxy);

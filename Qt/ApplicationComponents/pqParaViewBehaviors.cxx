@@ -264,10 +264,10 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     pqWidgetEventPlayer* player =
       pqApplicationCore::instance()->testUtility()->eventPlayer()->getWidgetEventPlayer(
         "pqStreamingTestingEventPlayer");
-    pqStreamingTestingEventPlayer* splayer = NULL;
+    pqStreamingTestingEventPlayer* splayer = nullptr;
     if (!player)
     {
-      splayer = new pqStreamingTestingEventPlayer(NULL);
+      splayer = new pqStreamingTestingEventPlayer(nullptr);
       // the testUtility takes ownership of the player.
       pqApplicationCore::instance()->testUtility()->eventPlayer()->addWidgetEventPlayer(splayer);
     }

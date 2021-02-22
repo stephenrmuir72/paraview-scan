@@ -568,7 +568,7 @@ public:
 
     this->InputMTime = input->GetMTime();
 
-    if (dataToSort) // Might be NULL
+    if (dataToSort) // Might be nullptr
     {
       this->DataMTime = dataToSort->GetMTime();
     }
@@ -596,7 +596,7 @@ public:
   {
     // See if one process is able to sort the table,
     // if not then just say NOT sortable
-    int localCanSort = (this->DataToSort == NULL) ? 0 : 1;
+    int localCanSort = (this->DataToSort == nullptr) ? 0 : 1;
     int globalCanSort;
     this->MPI->AllReduce(&localCanSort, &globalCanSort, 1, vtkCommunicator::MAX_OP);
     if (globalCanSort == 0)
@@ -633,7 +633,7 @@ public:
     {
       localRatio = sqrt(static_cast<double>(this->DataToSort->GetNumberOfComponents()));
     }
-    else if (this->DataToSort == NULL)
+    else if (this->DataToSort == nullptr)
     {
       localRatio = 0;
     }
@@ -729,7 +729,7 @@ public:
 
     // Build empty local table with empty arrays so they stay in the same order
     vtkSmartPointer<vtkTable> localResult;
-    localResult.TakeReference(NewSubsetTable(input, NULL, 0, blockSize));
+    localResult.TakeReference(NewSubsetTable(input, nullptr, 0, blockSize));
 
     // Get the array size of each processes
     vtkIdType* tableSizes = new vtkIdType[this->NumProcs];
@@ -969,7 +969,7 @@ public:
     else
     {
       // Ask other processes to provide metadata for table decoration
-      this->DecorateTable(input, NULL, mergePid);
+      this->DecorateTable(input, nullptr, mergePid);
     }
 
     return 1;
@@ -1064,7 +1064,7 @@ public:
       }
 
       vtkIdType max = size + offset;
-      if (sorter != NULL && sorter->Array != NULL)
+      if (sorter != nullptr && sorter->Array != nullptr)
       {
         max = (max > sorter->ArraySize) ? sorter->ArraySize : max;
         for (vtkIdType idx = offset; idx < max; ++idx)
@@ -1527,7 +1527,7 @@ int vtkSortedTableStreamer::RequestData(vtkInformation* vtkNotUsed(request),
 
   // --------------------------------------------------------------------------
   // Caution: Because this filter can be used behind a cell/point extractor
-  // based on a selection, the input can be empty and arrayToProcess can be NULL.
+  // based on a selection, the input can be empty and arrayToProcess can be nullptr.
   // And this can happen on all processes if the selection do not select a
   // single point/cell.
   // --------------------------------------------------------------------------

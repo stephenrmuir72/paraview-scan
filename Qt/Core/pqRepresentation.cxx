@@ -57,7 +57,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqRepresentation::pqRepresentation(const QString& group, const QString& name, vtkSMProxy* repr,
-  pqServer* server, QObject* _parent /*=null*/)
+  pqServer* server, QObject* _parent /*=nullptr*/)
   : pqProxy(group, name, repr, server, _parent)
 {
   this->Internal = new pqRepresentation::pqInternal();
@@ -94,7 +94,7 @@ pqView* pqRepresentation::getView() const
 //-----------------------------------------------------------------------------
 vtkSMViewProxy* pqRepresentation::getViewProxy() const
 {
-  return (this->Internal->View ? this->Internal->View->getViewProxy() : NULL);
+  return (this->Internal->View ? this->Internal->View->getViewProxy() : nullptr);
 }
 
 //-----------------------------------------------------------------------------

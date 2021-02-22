@@ -624,7 +624,7 @@ vtkAMRDualContour::vtkAMRDualContour()
   this->EnableMergePoints = 1;
   this->TriangulateCap = 1;
 
-  this->Controller = NULL;
+  this->Controller = nullptr;
   this->SetController(vtkMultiProcessController::GetGlobalController());
 
   // Pipeline
@@ -645,7 +645,7 @@ vtkAMRDualContour::~vtkAMRDualContour()
     delete this->BlockLocator;
     this->BlockLocator = 0;
   }
-  this->SetController(NULL);
+  this->SetController(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -769,7 +769,7 @@ void vtkAMRDualContour::InitializeRequest(vtkNonOverlappingAMR* hbdsInput)
   }
   else
   {
-    this->Helper->SetController(NULL);
+    this->Helper->SetController(nullptr);
   }
   this->Helper->Initialize(hbdsInput);
 }

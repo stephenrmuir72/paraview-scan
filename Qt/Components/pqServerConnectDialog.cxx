@@ -238,7 +238,7 @@ pqServerConnectDialog::pqServerConnectDialog(
 pqServerConnectDialog::~pqServerConnectDialog()
 {
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -651,7 +651,7 @@ void pqServerConnectDialog::saveServers()
   QString filters;
   filters += "ParaView server configuration file (*.pvsc)";
 
-  pqFileDialog dialog(NULL, this, tr("Save Server Configuration File"), QString(), filters);
+  pqFileDialog dialog(nullptr, this, tr("Save Server Configuration File"), QString(), filters);
   dialog.setObjectName("SaveServerConfigurationDialog");
   dialog.setFileMode(pqFileDialog::AnyFile);
   if (dialog.exec() == QDialog::Accepted)
@@ -668,7 +668,7 @@ void pqServerConnectDialog::loadServers()
   filters += "ParaView server configuration file (*.pvsc)";
   filters += ";;All files (*)";
 
-  pqFileDialog dialog(NULL, this, tr("Load Server Configuration File"), QString(), filters);
+  pqFileDialog dialog(nullptr, this, tr("Load Server Configuration File"), QString(), filters);
   dialog.setObjectName("LoadServerConfigurationDialog");
   dialog.setFileMode(pqFileDialog::ExistingFile);
   if (dialog.exec() == QDialog::Accepted)
@@ -703,7 +703,7 @@ const pqServerConfiguration& pqServerConnectDialog::configurationToConnect() con
 
 //-----------------------------------------------------------------------------
 bool pqServerConnectDialog::selectServer(pqServerConfiguration& selected_configuration,
-  QWidget* dialogParent /*=NULL*/, const pqServerResource& selector /*=pqServerResource()*/)
+  QWidget* dialogParent /*=nullptr*/, const pqServerResource& selector /*=pqServerResource()*/)
 {
   // see if only 1 server matched the selector (if valid). In that case, no
   // need to popup the dialog.

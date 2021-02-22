@@ -38,12 +38,12 @@ void vtkSMOrderedPropertyIterator::SetProxy(vtkSMProxy* proxy)
 {
   if (this->Proxy != proxy)
   {
-    if (this->Proxy != NULL)
+    if (this->Proxy != nullptr)
     {
       this->Proxy->UnRegister(this);
     }
     this->Proxy = proxy;
-    if (this->Proxy != NULL)
+    if (this->Proxy != nullptr)
     {
       this->Proxy->Register(this);
       this->Begin();

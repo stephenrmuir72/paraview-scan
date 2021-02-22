@@ -81,7 +81,7 @@ public:
   * selected_configuration will be set to the chosen configuration.
   */
   static bool selectServer(pqServerConfiguration& selected_configuration,
-    QWidget* dialogParent = NULL, const pqServerResource& selector = pqServerResource());
+    QWidget* dialogParent = nullptr, const pqServerResource& selector = pqServerResource());
 
 Q_SIGNALS:
 

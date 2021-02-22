@@ -188,7 +188,7 @@ vtkPVDataInformation* vtkSMDomain::GetInputDataInformation(const char* function,
   vtkSMProperty* inputProperty = this->GetRequiredProperty(function);
   if (!inputProperty)
   {
-    return NULL;
+    return nullptr;
   }
 
   vtkSMUncheckedPropertyHelper helper(inputProperty);
@@ -201,7 +201,7 @@ vtkPVDataInformation* vtkSMDomain::GetInputDataInformation(const char* function,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------

@@ -299,7 +299,7 @@ void pqCustomFilterDefinitionWizard::addAutoIncludedProxies()
       for (unsigned int i = 0; i < proxy_count; i++)
       {
         vtkSMProxy* proxy = pp->GetProxy(i);
-        if (!proxy || pxm->GetProxyName("sources", proxy) != NULL)
+        if (!proxy || pxm->GetProxyName("sources", proxy) != nullptr)
         {
           continue;
         }

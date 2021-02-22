@@ -124,6 +124,6 @@ vtkSpyPlotIStream::~vtkSpyPlotIStream()
   if (this->Buffer)
   {
     delete[] this->Buffer;
-    this->Buffer = NULL;
+    this->Buffer = nullptr;
   }
 }

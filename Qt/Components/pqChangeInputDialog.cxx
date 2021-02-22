@@ -68,7 +68,7 @@ public:
 pqChangeInputDialog::pqChangeInputDialog(vtkSMProxy* filterProxy, QWidget* parentObject)
   : Superclass(parentObject)
 {
-  assert(filterProxy != NULL);
+  assert(filterProxy != nullptr);
 
   this->Internals = new pqInternals();
   this->Internals->Proxy = filterProxy;
@@ -103,7 +103,7 @@ pqChangeInputDialog::pqChangeInputDialog(vtkSMProxy* filterProxy, QWidget* paren
     for (unsigned int cc = 0; cc < numProxies; cc++)
     {
       pqPipelineSource* source = smModel->findItem<pqPipelineSource*>(helper.GetAsProxy(cc));
-      if (source == NULL)
+      if (source == nullptr)
       {
         qDebug("Not all current inputs to this filter are know to the ProxyManager");
         continue;

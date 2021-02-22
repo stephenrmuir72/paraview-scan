@@ -1190,7 +1190,7 @@ void vtkSMTestDriver::PrintLine(const char* pname, const char* line)
 //----------------------------------------------------------------------------
 int vtkSMTestDriver::WaitForAndPrintLine(const char* pname, vtksysProcess* process,
   std::string& line, double timeout, std::vector<char>& out, std::vector<char>& err,
-  const char* string_to_wait_for, int* foundWaiting, std::string* matched_line /*=NULL*/)
+  const char* string_to_wait_for, int* foundWaiting, std::string* matched_line /*=nullptr*/)
 {
   int pipe = this->WaitForLine(process, line, timeout, out, err);
   if (pipe == vtksysProcess_Pipe_STDOUT || pipe == vtksysProcess_Pipe_STDERR)
@@ -1240,7 +1240,7 @@ bool vtkSMTestDriver::SetupClient(vtksysProcess* process, const ExecutableInfo& 
       std::vector<const char*>::iterator iter = clientCommand.begin();
       iter++;
       clientCommand.insert(iter, this->ServerURL.c_str());
-      clientCommand.push_back(NULL);
+      clientCommand.push_back(nullptr);
     }
     this->ReportCommand(&clientCommand[0], "client");
     vtksysProcess_SetCommand(process, &clientCommand[0]);

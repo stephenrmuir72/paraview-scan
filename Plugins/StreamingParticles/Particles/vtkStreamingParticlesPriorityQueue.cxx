@@ -188,7 +188,7 @@ void vtkStreamingParticlesPriorityQueue::UpdatePriorities(const double view_plan
   for (unsigned int level = 0; level < num_levels; level++)
   {
     vtkMultiBlockDataSet* mb = vtkMultiBlockDataSet::SafeDownCast(metadata->GetBlock(level));
-    assert(mb != NULL);
+    assert(mb != nullptr);
 
     unsigned int num_blocks = mb->GetNumberOfBlocks();
     if (num_blocks > num_block_per_level)

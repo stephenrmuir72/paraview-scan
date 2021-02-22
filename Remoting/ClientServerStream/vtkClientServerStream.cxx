@@ -582,7 +582,7 @@ VTK_CLIENT_SERVER_OPERATOR(double)
 //----------------------------------------------------------------------------
 vtkClientServerStream& vtkClientServerStream::operator<<(const char* x)
 {
-  // String length will include null terminator.  NULL string will be
+  // String length will include null terminator.  nullptr string will be
   // length 0.
   vtkTypeUInt32 length = static_cast<vtkTypeUInt32>(x ? (strlen(x) + 1) : 0);
   *this << vtkClientServerStream::string_value;
@@ -1166,7 +1166,7 @@ int vtkClientServerStream::GetArgument(int message, int argument, const char** v
       }
       else
       {
-        // String pointer value was NULL.
+        // String pointer value was nullptr.
         *value = 0;
       }
       return 1;
@@ -1196,7 +1196,7 @@ int vtkClientServerStream::GetArgument(int message, int argument, vtkStdString* 
 //----------------------------------------------------------------------------
 int vtkClientServerStream::GetArgument(int message, int argument, std::string* value) const
 {
-  char* tmp = NULL;
+  char* tmp = nullptr;
   if (this->GetArgument(message, argument, &tmp) && tmp)
   {
     *value = tmp;
@@ -1256,7 +1256,7 @@ int vtkClientServerStream::GetArgument(int message, int argument, vtkClientServe
 }
 
 //----------------------------------------------------------------------------
-// Template to implement GetArgument zero-to-null-pointer conversions.
+// Template to implement GetArgument zero-to-nullptr-pointer conversions.
 template <class SourceType>
 int vtkClientServerStreamGetArgumentPointer(
   SourceType*, const unsigned char* src, vtkObjectBase** dest)
@@ -1265,7 +1265,7 @@ int vtkClientServerStreamGetArgumentPointer(
   SourceType value;
   memcpy(&value, src, sizeof(value));
 
-  // Values of 0 can be converted to a NULL pointer.
+  // Values of 0 can be converted to a nullptr pointer.
   if (value == static_cast<SourceType>(0))
   {
     *dest = 0;
@@ -1302,7 +1302,7 @@ int vtkClientServerStream::GetArgument(int message, int argument, vtkObjectBase*
         // Copy the value out of the stream.
         vtkClientServerID id;
         memcpy(&id.ID, data, sizeof(id.ID));
-        // ID value 0 can be converted to a NULL pointer.
+        // ID value 0 can be converted to a nullptr pointer.
         if (id.ID == 0)
         {
           *value = 0;
@@ -2290,7 +2290,7 @@ void vtkClientServerStream::PrintArgumentInternal(
     break;
     case vtkClientServerStream::string_value:
     {
-      const char* arg = NULL;
+      const char* arg = nullptr;
       this->GetArgument(message, argument, &arg);
       if (annotate)
       {
@@ -2447,10 +2447,10 @@ void vtkClientServerStream::ArgumentToString(ostream& os, int m, int a, vtkInden
 {
   vtkClientServerStream::Types type = this->GetArgumentType(m, a);
 
-  // Special case for strings: string0 == null, string() == ""
+  // Special case for strings: string0 == nullptr, string() == ""
   if (type == vtkClientServerStream::string_value)
   {
-    const char* arg = NULL;
+    const char* arg = nullptr;
     this->GetArgument(m, a, &arg);
     if (!arg)
     {
@@ -2494,7 +2494,7 @@ void vtkClientServerStream::ArgumentValueToString(ostream& os, int m, int a, vtk
     break;
     case vtkClientServerStream::string_value:
     {
-      const char* arg = NULL;
+      const char* arg = nullptr;
       this->GetArgument(m, a, &arg);
       if (arg)
       {
@@ -2942,11 +2942,11 @@ int vtkClientServerStream::AddArgumentFromString(
     // Report where to continue scanning.
     *next = typeEnd;
 
-    // Special case for strings: string0 == null
+    // Special case for strings: string0 == nullptr
     if ((strncmp(typeBegin, "string0", typeEnd - typeBegin) == 0) ||
       (strncmp(typeBegin, "str0", typeEnd - typeBegin) == 0))
     {
-      // Insert the null string.
+      // Insert the nullptr string.
       *this << static_cast<char*>(0);
       return 1;
     }

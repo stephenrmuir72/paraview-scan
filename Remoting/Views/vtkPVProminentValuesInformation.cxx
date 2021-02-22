@@ -186,7 +186,7 @@ void vtkPVProminentValuesInformation::DeepCopy(vtkPVProminentValuesInformation* 
 //----------------------------------------------------------------------------
 int vtkPVProminentValuesInformation::Compare(vtkPVProminentValuesInformation* info)
 {
-  if (info == NULL)
+  if (info == nullptr)
   {
     return 0;
   }
@@ -219,11 +219,11 @@ void vtkPVProminentValuesInformation::CopyFromObject(vtkObject* obj)
     // fully setup yet.
     if (strcmp(algo->GetClassName(), "vtkPVNullSource") == 0)
     {
-      // Don't gather any data information from the hypothetical null source.
+      // Don't gather any data information from the hypothetical nullptr source.
       return;
     }
     auto info = algo->GetExecutive()->GetOutputInformation(this->PortNumber);
-    if (!info || vtkDataObject::GetData(info) == NULL)
+    if (!info || vtkDataObject::GetData(info) == nullptr)
     {
       return;
     }

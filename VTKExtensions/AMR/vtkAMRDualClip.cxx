@@ -1031,7 +1031,7 @@ vtkAMRDualClip::vtkAMRDualClip()
   this->EnableMultiProcessCommunication = 0;
   this->EnableMergePoints = 0;
 
-  this->Controller = NULL;
+  this->Controller = nullptr;
   this->SetController(vtkMultiProcessController::GetGlobalController());
 
   // Pipeline
@@ -1052,7 +1052,7 @@ vtkAMRDualClip::~vtkAMRDualClip()
     delete this->BlockLocator;
     this->BlockLocator = 0;
   }
-  this->SetController(NULL);
+  this->SetController(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -1172,7 +1172,7 @@ vtkMultiBlockDataSet* vtkAMRDualClip::DoRequestData(
   }
   else
   {
-    this->Helper->SetController(NULL);
+    this->Helper->SetController(nullptr);
   }
 
   // @TODO: Check if this is the right thing to do.

@@ -217,7 +217,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-pqCameraDialog::pqCameraDialog(QWidget* _p /*=null*/, Qt::WindowFlags f /*=0*/)
+pqCameraDialog::pqCameraDialog(QWidget* _p /*=nullptr*/, Qt::WindowFlags f /*=0*/)
   : pqDialog(_p, f)
 {
   this->Internal = new pqCameraDialogInternal;
@@ -365,7 +365,7 @@ void pqCameraDialog::setupGUI()
     {
       // check if it is a camera link
       vtkSMCameraLink* cameraLink = vtkSMCameraLink::SafeDownCast(cameraLinks->GetItemAsObject(i));
-      if (cameraLink != NULL)
+      if (cameraLink != nullptr)
       {
         const char* linkName = pxm->GetRegisteredLinkName(cameraLink);
         if (model->hasInteractiveViewLink(linkName))

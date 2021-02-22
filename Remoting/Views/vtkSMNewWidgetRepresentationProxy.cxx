@@ -263,7 +263,7 @@ void vtkSMNewWidgetRepresentationProxy::ExecuteEvent(unsigned long event)
 bool vtkSMNewWidgetRepresentationProxy::LinkProperties(
   vtkSMProxy* controlledProxy, vtkSMPropertyGroup* controlledPropertyGroup)
 {
-  if (this->Internal->ControlledProxy != NULL)
+  if (this->Internal->ControlledProxy != nullptr)
   {
     vtkErrorMacro("Cannot `LinkProperties` with multiple proxies.");
     return false;

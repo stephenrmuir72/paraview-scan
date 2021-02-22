@@ -77,7 +77,7 @@ public:
 vtkSpyPlotHistoryReader::vtkSpyPlotHistoryReader()
   : Info(new MetaInfo)
 {
-  this->CachedOutput = NULL;
+  this->CachedOutput = nullptr;
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
   this->FileName = 0;
@@ -217,7 +217,7 @@ int vtkSpyPlotHistoryReader::RequestData(vtkInformation* vtkNotUsed(request),
     return 1;
   }
 
-  if (this->CachedOutput == NULL)
+  if (this->CachedOutput == nullptr)
   {
     // fill the output on the first request
     this->CachedOutput = new CachedTables();

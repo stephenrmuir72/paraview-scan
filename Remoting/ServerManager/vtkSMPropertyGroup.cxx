@@ -61,7 +61,7 @@ vtkSMPropertyGroup::~vtkSMPropertyGroup()
   this->SetPanelVisibility(0);
   delete this->Internals;
   this->Documentation->Delete();
-  this->Documentation = NULL;
+  this->Documentation = nullptr;
   this->SetHints(0);
 }
 
@@ -102,7 +102,7 @@ vtkSMProperty* vtkSMPropertyGroup::GetProperty(const char* function) const
     return this->Internals->PropertiesMap[function];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ const char* vtkSMPropertyGroup::GetFunction(vtkSMProperty* property) const
       }
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ int vtkSMPropertyGroup::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* gr
     // "name".
     const char* propname = elem->GetAttribute("exposed_name") ? elem->GetAttribute("exposed_name")
                                                               : elem->GetAttribute("name");
-    vtkSMProperty* property = propname ? proxy->GetProperty(propname) : NULL;
+    vtkSMProperty* property = propname ? proxy->GetProperty(propname) : nullptr;
     if (!property)
     {
       vtkWarningMacro("Failed to locate property '" << (propname ? propname : "(none)")

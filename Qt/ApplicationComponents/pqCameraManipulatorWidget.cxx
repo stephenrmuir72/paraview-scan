@@ -157,7 +157,7 @@ pqCameraManipulatorWidget::pqCameraManipulatorWidget(
 pqCameraManipulatorWidget::~pqCameraManipulatorWidget()
 {
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //-----------------------------------------------------------------------------

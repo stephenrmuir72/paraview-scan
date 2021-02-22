@@ -295,13 +295,13 @@ vtkSMProxy* pqAnimatablePropertiesComboBox::getCurrentProxy() const
       }
       else
       {
-        return NULL;
+        return nullptr;
       }
     }
 
     return info.Proxy;
   }
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------

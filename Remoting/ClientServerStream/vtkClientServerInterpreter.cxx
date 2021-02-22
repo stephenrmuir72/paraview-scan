@@ -453,7 +453,7 @@ int vtkClientServerInterpreter::ProcessCommandInvoke(const vtkClientServerStream
 int vtkClientServerInterpreter::ProcessCommandDelete(const vtkClientServerStream& msg, int midx)
 {
   // This command ignores any previous result.
-  if (this->LastResultMessage == NULL)
+  if (this->LastResultMessage == nullptr)
   {
     return 0;
   }
@@ -769,7 +769,7 @@ void vtkClientServerInterpreter::AddCommandFunction(const char* cname,
     return;
   }
 
-  vtkClientServerInterpreterInternals::ContextInformation* context = NULL;
+  vtkClientServerInterpreterInternals::ContextInformation* context = nullptr;
   if (ctx || freeFunction)
   {
     context = new vtkClientServerInterpreterInternals::ContextInformation(ctx, freeFunction);
@@ -825,7 +825,7 @@ void vtkClientServerInterpreter::AddNewInstanceFunction(const char* name,
     return;
   }
 
-  vtkClientServerInterpreterInternals::ContextInformation* context = NULL;
+  vtkClientServerInterpreterInternals::ContextInformation* context = nullptr;
   if (ctx || freeFunction)
   {
     context = new vtkClientServerInterpreterInternals::ContextInformation(ctx, freeFunction);
@@ -1002,7 +1002,7 @@ vtkObjectBase* vtkClientServerInterpreter::NewInstance(const char* classname)
 {
   if (!this->Internal->NewInstanceFunctions.count(classname))
   {
-    return NULL;
+    return nullptr;
   }
 
   const vtkClientServerInterpreterInternals::NewInstanceFunction* n =

@@ -44,7 +44,7 @@ void coprocessorinitialize(void* handle)
     vtkMultiProcessController::SetGlobalController(controller);
   }
 
-  if (handle != NULL)
+  if (handle != nullptr)
   {
     vtkMPICommunicatorOpaqueComm mpicomm((MPI_Comm*)handle);
     vtkMPICommunicator* comm = vtkMPICommunicator::New();

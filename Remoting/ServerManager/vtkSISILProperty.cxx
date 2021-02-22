@@ -65,7 +65,7 @@ bool vtkSISILProperty::ReadXMLAttributes(vtkSIProxy* proxyhelper, vtkPVXMLElemen
   bool retValue = this->Superclass::ReadXMLAttributes(proxyhelper, element);
 
   // Parse extra attribute
-  this->SetSubTree(element->GetAttribute("subtree")); // if none => set NULL
+  this->SetSubTree(element->GetAttribute("subtree")); // if none => set nullptr
   if (!this->SubTree)
   {
     std::ostringstream proxyDefinition;

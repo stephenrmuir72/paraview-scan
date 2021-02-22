@@ -158,7 +158,7 @@ pqServer* pqServerManagerModel::findServer(const pqServerResource& resource) con
       return server;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -259,7 +259,7 @@ void pqServerManagerModel::findItemsHelper(const pqServerManagerModel* const mod
 void pqServerManagerModel::onProxyRegistered(
   const QString& group, const QString& name, vtkSMProxy* proxy)
 {
-  if (group.endsWith("_prototypes") || proxy->GetSession() == NULL)
+  if (group.endsWith("_prototypes") || proxy->GetSession() == nullptr)
   {
     // Ignore prototype proxies.
     return;

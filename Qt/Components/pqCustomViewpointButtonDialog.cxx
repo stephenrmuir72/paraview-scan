@@ -220,7 +220,7 @@ pqCustomViewpointButtonDialog::pqCustomViewpointButtonDialog(QWidget* Parent, Qt
 pqCustomViewpointButtonDialog::~pqCustomViewpointButtonDialog()
 {
   delete this->ui;
-  this->ui = NULL;
+  this->ui = nullptr;
 }
 
 //------------------------------------------------------------------------------

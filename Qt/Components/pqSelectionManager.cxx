@@ -59,7 +59,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-pqSelectionManager::pqSelectionManager(QObject* _parent /*=null*/)
+pqSelectionManager::pqSelectionManager(QObject* _parent /*=nullptr*/)
   : QObject(_parent)
 {
   this->Implementation = new pqSelectionManagerImplementation;
@@ -124,7 +124,7 @@ void pqSelectionManager::setActiveView(pqView* view)
 void pqSelectionManager::onItemRemoved(pqServerManagerModelItem* item)
 {
   // return if removed item is not a pqPipelineSource
-  if (qobject_cast<pqPipelineSource*>(item) == NULL)
+  if (qobject_cast<pqPipelineSource*>(item) == nullptr)
   {
     return;
   }
@@ -160,7 +160,7 @@ void pqSelectionManager::expandSelection(int layers)
 //-----------------------------------------------------------------------------
 void pqSelectionManager::clearSelection(pqOutputPort* outputPort)
 {
-  if (outputPort == NULL)
+  if (outputPort == nullptr)
   {
     // Clear all selection
     if (this->Implementation->SelectedPorts.count() > 0)
@@ -217,7 +217,7 @@ pqOutputPort* pqSelectionManager::getSelectedPort() const
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -262,7 +262,7 @@ void pqSelectionManager::select(pqOutputPort* selectedPort)
   // Cleanup the set, before filling it again
   this->Implementation->SelectedPorts.clear();
 
-  if (selectedPort != NULL)
+  if (selectedPort != nullptr)
   {
 
     // Insert the selected port and render it
@@ -288,7 +288,7 @@ void pqSelectionManager::select(pqOutputPort* selectedPort)
       // check it is a selection link
       vtkSMSelectionLink* selectionLink =
         vtkSMSelectionLink::SafeDownCast(selectionLinks->GetItemAsObject(i));
-      if (selectionLink != NULL)
+      if (selectionLink != nullptr)
       {
         for (unsigned int j = 0; j < selectionLink->GetNumberOfLinkedObjects(); j++)
         {
@@ -310,7 +310,7 @@ void pqSelectionManager::select(pqOutputPort* selectedPort)
             pqPipelineSource* linkedSource = psmm->findItem<pqPipelineSource*>(proxy);
 
             // Check it is valid
-            if (linkedSource != NULL &&
+            if (linkedSource != nullptr &&
               linkedSource->getNumberOfOutputPorts() > selectedPort->getPortNumber())
             {
               // Recover the corresponding outputport
@@ -372,7 +372,7 @@ void pqSelectionManager::onLinkRemoved()
     for (unsigned int i = 0; i < proxy->GetNumberOfOutputPorts(); i++)
     {
       // if the port contains a selection
-      if (port->getSourceProxy()->GetSelectionInput(i) != NULL)
+      if (port->getSourceProxy()->GetSelectionInput(i) != nullptr)
       {
         // Reupdate current selection with the found selected port
         this->select(port);

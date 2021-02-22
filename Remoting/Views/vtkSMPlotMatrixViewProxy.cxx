@@ -152,5 +152,5 @@ void vtkSMPlotMatrixViewProxy::SendAnimationPath()
 vtkAbstractContextItem* vtkSMPlotMatrixViewProxy::GetContextItem()
 {
   vtkPVPlotMatrixView* pvview = vtkPVPlotMatrixView::SafeDownCast(this->GetClientSideObject());
-  return pvview ? pvview->GetContextItem() : NULL;
+  return pvview ? pvview->GetContextItem() : nullptr;
 }

@@ -87,7 +87,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqPipelineSource::pqPipelineSource(
-  const QString& name, vtkSMProxy* proxy, pqServer* server, QObject* _parent /*=NULL*/)
+  const QString& name, vtkSMProxy* proxy, pqServer* server, QObject* _parent /*=nullptr*/)
   : pqProxy("sources", name, proxy, server, _parent)
 {
   this->Internal = new pqPipelineSourceInternal(name, proxy);
@@ -241,7 +241,7 @@ pqOutputPort* pqPipelineSource::getOutputPort(int outputport) const
   {
     qCritical() << "Invalid output port : pqPipelineSource::getOutputPort(" << outputport
                 << "). Available number of output ports: " << this->Internal->OutputPorts.size();
-    return NULL;
+    return nullptr;
   }
   return this->Internal->OutputPorts[outputport];
 }
@@ -278,7 +278,7 @@ pqPipelineSource* pqPipelineSource::getConsumer(int outputport, int index) const
     qCritical() << "Invalid output port : pqPipelineSource::getConsumer(" << outputport << ", "
                 << index
                 << "). Available number of output ports: " << this->Internal->OutputPorts.size();
-    return NULL;
+    return nullptr;
   }
 
   return this->Internal->OutputPorts[outputport]->getConsumer(index);

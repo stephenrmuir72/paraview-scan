@@ -22,9 +22,9 @@ vtkSIVectorProperty::vtkSIVectorProperty()
 {
   this->NumberOfElementsPerCommand = 1;
   this->UseIndex = false;
-  this->CleanCommand = NULL;
-  this->SetNumberCommand = NULL;
-  this->InitialString = NULL;
+  this->CleanCommand = nullptr;
+  this->SetNumberCommand = nullptr;
+  this->InitialString = nullptr;
 }
 
 //----------------------------------------------------------------------------

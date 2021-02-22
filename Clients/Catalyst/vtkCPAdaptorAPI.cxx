@@ -42,8 +42,8 @@ void ClearFieldDataFromGrid(vtkDataSet* grid)
 }
 } // end namespace
 
-vtkCPDataDescription* vtkCPAdaptorAPI::CoProcessorData = NULL;
-vtkCPProcessor* vtkCPAdaptorAPI::CoProcessor = NULL;
+vtkCPDataDescription* vtkCPAdaptorAPI::CoProcessorData = nullptr;
+vtkCPProcessor* vtkCPAdaptorAPI::CoProcessor = nullptr;
 bool vtkCPAdaptorAPI::IsTimeDataSet = false;
 
 //-----------------------------------------------------------------------------

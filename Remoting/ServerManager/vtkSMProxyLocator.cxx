@@ -64,7 +64,7 @@ vtkSMProxy* vtkSMProxyLocator::LocateProxy(vtkTypeUInt32 id)
   iter = this->Internal->AssignedProxies.find(id);
   if (iter != this->Internal->AssignedProxies.end())
   {
-    if (iter->second.GetPointer() != NULL)
+    if (iter->second.GetPointer() != nullptr)
     {
       // add to the Proxies map.
       this->Internal->Proxies[id] = iter->second;
@@ -152,6 +152,6 @@ void vtkSMProxyLocator::SetSession(vtkSMSession* s)
   this->Session = s;
   if (this->Deserializer)
   {
-    this->Deserializer->SetSessionProxyManager(s ? s->GetSessionProxyManager() : NULL);
+    this->Deserializer->SetSessionProxyManager(s ? s->GetSessionProxyManager() : nullptr);
   }
 }

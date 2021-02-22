@@ -26,9 +26,9 @@
 vtkSMRemoteObject::vtkSMRemoteObject()
 {
   this->GlobalID = 0;
-  this->GlobalIDString = NULL;
+  this->GlobalIDString = nullptr;
   this->Location = 0;
-  this->Session = NULL;
+  this->Session = nullptr;
   this->Prototype = false;
   this->ClientOnlyLocationFlag = false;
 }
@@ -42,7 +42,7 @@ vtkSMRemoteObject::~vtkSMRemoteObject()
   }
   this->SetSession(0);
   delete[] this->GlobalIDString;
-  this->GlobalIDString = NULL;
+  this->GlobalIDString = nullptr;
 }
 //----------------------------------------------------------------------------
 void vtkSMRemoteObject::SetSession(vtkSMSession* session)
@@ -69,7 +69,7 @@ bool vtkSMRemoteObject::HasGlobalID()
 //---------------------------------------------------------------------------
 vtkTypeUInt32 vtkSMRemoteObject::GetGlobalID()
 {
-  if (this->Session != NULL && this->GlobalID == 0)
+  if (this->Session != nullptr && this->GlobalID == 0)
   {
     this->SetGlobalID(this->GetSession()->GetNextGlobalUniqueIdentifier());
   }

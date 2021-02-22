@@ -39,7 +39,7 @@ vtkSMUndoStackBuilder::vtkSMUndoStackBuilder()
 {
   this->UndoStack = 0;
   this->UndoSet = vtkUndoSet::New();
-  this->Label = NULL;
+  this->Label = nullptr;
   this->EnableMonitoring = 0;
   this->IgnoreAllChanges = false;
 }
@@ -50,9 +50,9 @@ vtkSMUndoStackBuilder::~vtkSMUndoStackBuilder()
   if (this->UndoSet)
   {
     this->UndoSet->Delete();
-    this->UndoSet = NULL;
+    this->UndoSet = nullptr;
   }
-  this->SetLabel(NULL);
+  this->SetLabel(nullptr);
   this->SetUndoStack(0);
 }
 //-----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ void vtkSMUndoStackBuilder::Clear()
 //-----------------------------------------------------------------------------
 void vtkSMUndoStackBuilder::InitializeUndoSet()
 {
-  this->SetLabel(NULL);
+  this->SetLabel(nullptr);
   this->UndoSet->RemoveAllElements();
 }
 

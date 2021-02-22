@@ -130,7 +130,7 @@ void pqDisplayRepresentationWidget::setRepresentation(pqDataRepresentation* disp
   {
     this->Internal->PQRepr->disconnect(this);
   }
-  vtkSMProxy* proxy = display ? display->getProxy() : NULL;
+  vtkSMProxy* proxy = display ? display->getProxy() : nullptr;
   this->setRepresentation(proxy);
   this->Internal->PQRepr = display;
   if (display)
@@ -149,8 +149,8 @@ void pqDisplayRepresentationWidget::setRepresentation(vtkSMProxy* proxy)
   delete this->Internal->Domain;
   bool prev = this->Internal->comboBox->blockSignals(true);
   this->Internal->comboBox->clear();
-  vtkSMProperty* smproperty = proxy ? proxy->GetProperty("Representation") : NULL;
-  this->Internal->comboBox->setEnabled(smproperty != NULL);
+  vtkSMProperty* smproperty = proxy ? proxy->GetProperty("Representation") : nullptr;
+  this->Internal->comboBox->setEnabled(smproperty != nullptr);
   if (!smproperty)
   {
     this->Internal->comboBox->addItem("Representation");

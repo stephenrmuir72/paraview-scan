@@ -63,7 +63,7 @@ pqPropertyWidgetDecorator* pqPropertyWidgetInterface::createWidgetDecorator(
   Q_UNUSED(type);
   Q_UNUSED(config);
   Q_UNUSED(widget);
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------

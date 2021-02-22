@@ -208,7 +208,7 @@ vtkSMProxy* vtkSMSelectionHelper::NewSelectionSourceFromSelectionInternal(vtkSMS
     if (idList)
     {
       for (unsigned int cc = 0, max = blocks->GetNumberOfElements();
-           (cc < max && originalSelSource != NULL); ++cc)
+           (cc < max && originalSelSource != nullptr); ++cc)
       {
         block_ids.insert(blocks->GetElement(cc));
       }
@@ -1073,7 +1073,7 @@ vtkSMProxy* vtkLocateRepresentation(vtkSMProxy* viewProxy, vtkPVDataRepresentati
   if (!view)
   {
     vtkGenericWarningMacro("View proxy must be a proxy for vtkView.");
-    return NULL;
+    return nullptr;
   }
 
   // now locate the proxy for this repr.
@@ -1082,7 +1082,7 @@ vtkSMProxy* vtkLocateRepresentation(vtkSMProxy* viewProxy, vtkPVDataRepresentati
   {
     vtkSMProxy* reprProxy = helper.GetAsProxy(cc);
     vtkPVDataRepresentation* cur_repr =
-      vtkPVDataRepresentation::SafeDownCast(reprProxy ? reprProxy->GetClientSideObject() : NULL);
+      vtkPVDataRepresentation::SafeDownCast(reprProxy ? reprProxy->GetClientSideObject() : nullptr);
     if (cur_repr == repr)
     {
       return reprProxy;
@@ -1093,7 +1093,7 @@ vtkSMProxy* vtkLocateRepresentation(vtkSMProxy* viewProxy, vtkPVDataRepresentati
       return reprProxy;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool vtkInputIsComposite(vtkSMProxy* proxy)

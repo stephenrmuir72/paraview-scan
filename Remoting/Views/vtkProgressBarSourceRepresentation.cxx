@@ -157,7 +157,7 @@ int vtkProgressBarSourceRepresentation::ProcessViewRequest(
     vtkProgressBarRepresentation* repr =
       vtkProgressBarRepresentation::SafeDownCast(this->ProgressBarWidgetRepresentation
           ? this->ProgressBarWidgetRepresentation->GetRepresentation()
-          : NULL);
+          : nullptr);
     if (repr)
     {
       repr->SetProgressRate(progressRate);

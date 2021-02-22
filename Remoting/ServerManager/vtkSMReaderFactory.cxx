@@ -151,7 +151,7 @@ public:
     // support that.
     bool CanCreatePrototype(vtkSMSession* session)
     {
-      return (this->GetPrototypeProxy(session, this->Group.c_str(), this->Name.c_str()) != NULL);
+      return (this->GetPrototypeProxy(session, this->Group.c_str(), this->Name.c_str()) != nullptr);
     }
 
     // Returns true if the reader can read the file. More correctly, it returns
@@ -415,7 +415,7 @@ void vtkSMReaderFactory::RegisterPrototype(const char* xmlgroup, const char* xml
 //----------------------------------------------------------------------------
 vtkStringList* vtkSMReaderFactory::GetReaders(vtkSMSession* session)
 {
-  return this->GetPossibleReaders(NULL, session);
+  return this->GetPossibleReaders(nullptr, session);
 }
 
 //----------------------------------------------------------------------------
@@ -689,7 +689,7 @@ void vtkSMReaderFactory::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSMReaderFactory::AddReaderToWhitelist(const char* readerxmlgroup, const char* readerxmlname)
 {
-  if (readerxmlgroup != NULL && readerxmlname != NULL)
+  if (readerxmlgroup != nullptr && readerxmlname != nullptr)
   {
     vtkSMReaderFactory::vtkInternals::ReaderWhitelist.insert(
       std::pair<std::string, std::string>(readerxmlgroup, readerxmlname));
