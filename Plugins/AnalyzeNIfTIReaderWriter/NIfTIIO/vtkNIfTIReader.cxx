@@ -21,9 +21,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtk_zlib.h"
-#include "vtknifti1.h"
-#include "vtknifti1_io.h"
-#include "vtkznzlib.h"
+#include "ThirdParty/vtknifti1.h"
+#include "ThirdParty/vtknifti1_io.h"
+#include "ThirdParty/vtkznzlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>

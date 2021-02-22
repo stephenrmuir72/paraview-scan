@@ -17,7 +17,7 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
-#include "vtknifti1_io.h"
+#include "ThirdParty/vtknifti1_io.h"
 
 #include "vtkFieldData.h"
 #include "vtkUnsignedCharArray.h"
