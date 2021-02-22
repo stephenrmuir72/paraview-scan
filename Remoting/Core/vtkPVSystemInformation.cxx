@@ -22,14 +22,10 @@
 
 vtkStandardNewMacro(vtkPVSystemInformation);
 //----------------------------------------------------------------------------
-vtkPVSystemInformation::vtkPVSystemInformation()
-{
-}
+vtkPVSystemInformation::vtkPVSystemInformation() = default;
 
 //----------------------------------------------------------------------------
-vtkPVSystemInformation::~vtkPVSystemInformation()
-{
-}
+vtkPVSystemInformation::~vtkPVSystemInformation() = default;
 
 //----------------------------------------------------------------------------
 void vtkPVSystemInformation::CopyFromObject(vtkObject*)
