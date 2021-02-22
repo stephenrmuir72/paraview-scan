@@ -34,7 +34,7 @@ vtkStandardNewMacro(vtkPVClientServerSynchronizedRenderers);
 vtkCxxSetObjectMacro(vtkPVClientServerSynchronizedRenderers, Compressor, vtkImageCompressor);
 //----------------------------------------------------------------------------
 vtkPVClientServerSynchronizedRenderers::vtkPVClientServerSynchronizedRenderers()
-  : Compressor(NULL)
+  : Compressor(nullptr)
   , LossLessCompression(true)
   , NVPipeSupport(false)
 {
@@ -44,7 +44,7 @@ vtkPVClientServerSynchronizedRenderers::vtkPVClientServerSynchronizedRenderers()
 //----------------------------------------------------------------------------
 vtkPVClientServerSynchronizedRenderers::~vtkPVClientServerSynchronizedRenderers()
 {
-  this->SetCompressor(NULL);
+  this->SetCompressor(nullptr);
 }
 
 //----------------------------------------------------------------------------

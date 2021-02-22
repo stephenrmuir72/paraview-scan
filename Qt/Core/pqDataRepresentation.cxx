@@ -225,7 +225,7 @@ vtkPVDataInformation* pqDataRepresentation::getRepresentedDataInformation(
   {
     return repr->GetRepresentedDataInformation();
   }
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------

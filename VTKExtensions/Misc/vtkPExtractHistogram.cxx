@@ -88,7 +88,7 @@ int vtkPExtractHistogram::RequestData(
 
   vtkTable* output = vtkTable::GetData(outputVector, 0);
   vtkSmartPointer<vtkDataArray> oldExtents = output->GetRowData()->GetArray("bin_extents");
-  if (oldExtents == NULL)
+  if (oldExtents == nullptr)
   {
     // Nothing to do if there is no data
     return 1;

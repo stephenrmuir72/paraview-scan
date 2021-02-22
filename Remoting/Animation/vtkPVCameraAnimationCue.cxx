@@ -35,14 +35,14 @@ vtkPVCameraAnimationCue::vtkPVCameraAnimationCue()
 //----------------------------------------------------------------------------
 vtkPVCameraAnimationCue::~vtkPVCameraAnimationCue()
 {
-  this->SetView(NULL);
+  this->SetView(nullptr);
   this->SetTimeKeeper(nullptr);
 }
 
 //----------------------------------------------------------------------------
 vtkCamera* vtkPVCameraAnimationCue::GetCamera()
 {
-  return this->View ? this->View->GetActiveCamera() : NULL;
+  return this->View ? this->View->GetActiveCamera() : nullptr;
 }
 
 //----------------------------------------------------------------------------

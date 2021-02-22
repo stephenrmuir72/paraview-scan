@@ -72,7 +72,8 @@ namespace
 class vtkTimerLogSmartMarkEvent
 {
 public:
-  vtkTimerLogSmartMarkEvent(const char* eventString, vtkMultiProcessController* controller = NULL)
+  vtkTimerLogSmartMarkEvent(
+    const char* eventString, vtkMultiProcessController* controller = nullptr)
     : EventString(eventString)
     , Controller(controller)
   {
@@ -756,7 +757,7 @@ vtkAMRDualGridHelper::~vtkAMRDualGridHelper()
   this->DegenerateRegionQueue.clear();
 
   this->Controller->UnRegister(this);
-  this->Controller = NULL;
+  this->Controller = nullptr;
 }
 //----------------------------------------------------------------------------
 void vtkAMRDualGridHelper::PrintSelf(ostream& os, vtkIndent indent)
@@ -778,9 +779,9 @@ void vtkAMRDualGridHelper::SetController(vtkMultiProcessController* controller)
 
   if (!controller)
   {
-    // It is common to use NULL for a multi process controller when no parallel
+    // It is common to use nullptr for a multi process controller when no parallel
     // communication is needed (for example, in a serial program).  Rather than
-    // have to constantly check for a NULL pointer, use a dummy controller
+    // have to constantly check for a nullptr pointer, use a dummy controller
     // so that we don't have to constantly check for it.
     if (!this->Controller->IsA("vtkDummyController"))
     {
@@ -789,7 +790,7 @@ void vtkAMRDualGridHelper::SetController(vtkMultiProcessController* controller)
     return;
   }
 
-  // Controller is never NULL.
+  // Controller is never nullptr.
   this->Controller->UnRegister(this);
 
   this->Controller = controller;
@@ -2590,7 +2591,7 @@ void vtkAMRDualGridHelper::UnmarshalBlocks(vtkIntArray* inBuffer)
         int y = *buffer++;
         int z = *buffer++;
 
-        vtkAMRDualGridHelperBlock* block = level->AddGridBlock(x, y, z, blockIdx, NULL);
+        vtkAMRDualGridHelperBlock* block = level->AddGridBlock(x, y, z, blockIdx, nullptr);
         block->ProcessId = *buffer++;
 
         block->OriginIndex[0] = this->StandardBlockDimensions[0] * x - 1;
@@ -2622,7 +2623,7 @@ void vtkAMRDualGridHelper::UnmarshalBlocksFromOne(vtkIntArray* inBuffer, int vtk
       int y = *buffer++;
       int z = *buffer++;
 
-      vtkAMRDualGridHelperBlock* block = level->AddGridBlock(x, y, z, blockIdx, NULL);
+      vtkAMRDualGridHelperBlock* block = level->AddGridBlock(x, y, z, blockIdx, nullptr);
       block->ProcessId = *buffer++;
 
       block->OriginIndex[0] = this->StandardBlockDimensions[0] * x - 1;

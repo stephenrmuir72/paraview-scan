@@ -29,8 +29,8 @@ vtkStandardNewMacro(vtkPVTestUtilities);
 //-----------------------------------------------------------------------------
 void vtkPVTestUtilities::Initialize(int argc, char** argv)
 {
-  this->DataRoot = NULL;
-  this->TempRoot = NULL;
+  this->DataRoot = nullptr;
+  this->TempRoot = nullptr;
   this->Argc = argc;
   this->Argv = argv;
   if (!((argc == 0) || (argv == 0)))

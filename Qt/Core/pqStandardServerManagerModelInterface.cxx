@@ -74,7 +74,7 @@ namespace
 inline pqProxy* CreatePQView(
   const QString& group, const QString& name, vtkSMViewProxy* proxy, pqServer* server)
 {
-  QObject* parent = NULL;
+  QObject* parent = nullptr;
   QString xmlname = proxy->GetXMLName();
   if (vtkSMSpreadSheetViewProxy::SafeDownCast(proxy))
   {
@@ -146,7 +146,7 @@ inline pqProxy* CreatePQView(
     return new pqXYChartView(
       group, name, vtkSMContextViewProxy::SafeDownCast(proxy), server, parent);
   }
-  return NULL;
+  return nullptr;
 }
 }
 
@@ -172,7 +172,7 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
   }
   else if (group == "layouts")
   {
-    return new pqProxy(group, name, proxy, server, NULL);
+    return new pqProxy(group, name, proxy, server, nullptr);
   }
   else if (group == "sources")
   {

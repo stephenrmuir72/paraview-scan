@@ -53,7 +53,7 @@ void vtkPVClassNameInformation::CopyFromObject(vtkObject* obj)
     return;
   }
   vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(obj);
-  if (algo == NULL || this->PortNumber == -1)
+  if (algo == nullptr || this->PortNumber == -1)
   {
     this->SetVTKClassName(obj->GetClassName());
   }

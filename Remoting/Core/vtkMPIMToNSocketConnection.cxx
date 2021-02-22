@@ -101,7 +101,7 @@ void vtkMPIMToNSocketConnection::Initialize(int waiting_process_type)
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions* options = pm->GetOptions();
-  assert(options != NULL);
+  assert(options != nullptr);
 
   this->SetController(pm->GetGlobalController());
   this->Internals->SelfHostName = options->GetHostName();

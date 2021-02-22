@@ -67,7 +67,7 @@ vtkCommandOptions::~vtkCommandOptions()
   this->CleanArgcArgv();
   delete this->Internals;
 
-  this->SetApplicationPath(NULL);
+  this->SetApplicationPath(nullptr);
 
   if (this->XMLParser)
   {
@@ -109,7 +109,7 @@ int vtkCommandOptions::WrongArgument(const char* argument)
   if (this->XMLConfigFile && strcmp(argument, this->XMLConfigFile) == 0)
   {
     // if the UnknownArgument is the XMLConfigFile then set the
-    // UnknownArgument to null as it really is not Unknown anymore.
+    // UnknownArgument to nullptr as it really is not Unknown anymore.
     if (this->UnknownArgument && (strcmp(this->UnknownArgument, this->XMLConfigFile) == 0))
     {
       this->SetUnknownArgument(0);
@@ -332,7 +332,7 @@ int vtkCommandOptions::GetLastArgument()
 //----------------------------------------------------------------------------
 void vtkCommandOptions::ComputeApplicationPath()
 {
-  this->SetApplicationPath(NULL);
+  this->SetApplicationPath(nullptr);
 
   std::string argv0 = this->GetArgv0();
   if (argv0.size())

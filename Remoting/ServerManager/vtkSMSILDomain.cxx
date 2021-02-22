@@ -56,7 +56,7 @@ vtkGraph* vtkSMSILDomain::GetSIL()
     vtkSMIdTypeVectorProperty::SafeDownCast(this->GetRequiredProperty("TimeStamp"));
   vtkSMProperty* silProp = this->GetRequiredProperty("ArrayList");
 
-  if (timestamp != NULL)
+  if (timestamp != nullptr)
   {
     // Check timestamp to know if the SIL fetch is needed
     timestamp->GetParent()->UpdatePropertyInformation(timestamp);
@@ -71,7 +71,7 @@ vtkGraph* vtkSMSILDomain::GetSIL()
       timestamp->GetParent()->GatherInformation(this->SIL);
     }
   }
-  else if (silProp != NULL)
+  else if (silProp != nullptr)
   {
     // With no timestamp, we simply fecth each time the request is made
     silProp->GetParent()->GatherInformation(this->SIL);

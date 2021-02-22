@@ -146,7 +146,7 @@ vtkPVPlotMatrixRepresentation::vtkPVPlotMatrixRepresentation()
 vtkPVPlotMatrixRepresentation::~vtkPVPlotMatrixRepresentation()
 {
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -223,7 +223,7 @@ void vtkPVPlotMatrixRepresentation::PrepareForRendering()
   // vtkPVPlotMatrixRepresentation doesn't support multiblock of tables, so we
   // only consider the first vtkTable.
   vtkTable* table = this->GetLocalOutput();
-  plotMatrix->SetVisible(table != NULL && this->GetVisibility());
+  plotMatrix->SetVisible(table != nullptr && this->GetVisibility());
   if (plotMatrix && table)
   {
     plotMatrix->SetInput(table);
@@ -266,7 +266,7 @@ void vtkPVPlotMatrixRepresentation::SetVisibility(bool visible)
 //----------------------------------------------------------------------------
 void vtkPVPlotMatrixRepresentation::SetSeriesVisibility(const char* series, bool visibility)
 {
-  assert(series != NULL);
+  assert(series != nullptr);
   this->Internals->SeriesVisibilities.push_back(std::pair<std::string, bool>(series, visibility));
   this->Modified();
 }

@@ -99,16 +99,16 @@ void pqOptions::Initialize()
 {
   this->Superclass::Initialize();
 
-  this->AddArgument("--baseline-directory", NULL, &this->TestDirectory,
+  this->AddArgument("--baseline-directory", nullptr, &this->TestDirectory,
     "Set the baseline directory where test recorder will store baseline images.");
 
-  this->AddArgument("--test-directory", NULL, &this->TestDirectory,
+  this->AddArgument("--test-directory", nullptr, &this->TestDirectory,
     "Set the temporary directory where test-case output will be stored.");
 
-  this->AddArgument("--data-directory", NULL, &this->DataDirectory,
+  this->AddArgument("--data-directory", nullptr, &this->DataDirectory,
     "Set the data directory where test-case data are located.");
 
-  this->AddBooleanArgument("--exit", NULL, &this->ExitAppWhenTestsDone,
+  this->AddBooleanArgument("--exit", nullptr, &this->ExitAppWhenTestsDone,
     "Exit application when testing is done. Use for testing.");
 
   this->AddArgument("--server", "-s", &this->ServerResourceName,
@@ -116,21 +116,21 @@ void pqOptions::Initialize()
 
   // add new Command Option for loading StateFile (Bug #5711)
   this->AddArgument(
-    "--state", NULL, &this->StateFileName, "Load the specified statefile (.pvsm or .py).");
+    "--state", nullptr, &this->StateFileName, "Load the specified statefile (.pvsm or .py).");
 
-  this->AddCallback("--test-script", NULL, &::AddTestScript, this,
+  this->AddCallback("--test-script", nullptr, &::AddTestScript, this,
     "Add test script. Can be used multiple times to "
     "specify multiple tests.");
-  this->AddCallback("--test-baseline", NULL, &::AddTestBaseline, this,
+  this->AddCallback("--test-baseline", nullptr, &::AddTestBaseline, this,
     "Add test baseline. Can be used multiple times to specify "
     "multiple baselines for multiple tests, in order.");
-  this->AddCallback("--test-threshold", NULL, &::AddTestImageThreshold, this,
+  this->AddCallback("--test-threshold", nullptr, &::AddTestImageThreshold, this,
     "Add test image threshold. "
     "Can be used multiple times to specify multiple image thresholds for "
     "multiple tests in order. When recording test can be a directory to record image in");
 
   this->AddArgument(
-    "--script", NULL, &this->PythonScript, "Set a python script to be evaluated on startup.");
+    "--script", nullptr, &this->PythonScript, "Set a python script to be evaluated on startup.");
 
   this->AddBooleanArgument("--test-master", 0, &this->TestMaster,
     "(For testing) When present, tests master configuration.");

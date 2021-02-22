@@ -81,7 +81,7 @@ vtkSMCompoundSourceProxy::vtkSMCompoundSourceProxy()
 vtkSMCompoundSourceProxy::~vtkSMCompoundSourceProxy()
 {
   delete this->CSInternals;
-  this->CSInternals = NULL;
+  this->CSInternals = nullptr;
 }
 //----------------------------------------------------------------------------
 void vtkSMCompoundSourceProxy::PrintSelf(ostream& os, vtkIndent indent)
@@ -242,7 +242,7 @@ int vtkSMCompoundSourceProxy::ReadXMLAttributes(
   }
 
   // Initialise exposed properties --------------------------------------------
-  vtkPVXMLElement* exposedProperties = NULL;
+  vtkPVXMLElement* exposedProperties = nullptr;
   exposedProperties = element->FindNestedElementByName("ExposedProperties");
   numElems = exposedProperties ? exposedProperties->GetNumberOfNestedElements() : 0;
   for (unsigned int i = 0; i < numElems; i++)

@@ -546,7 +546,7 @@ void vtkGridConnectivityExecuteProcess(vtkGridConnectivity* self, vtkUnstructure
       (ghostArray->GetNumberOfComponents() != 1 || ghostArray->GetNumberOfTuples() != numCells))
     {
       vtkGenericWarningMacro("Poorly formed ghost cells. Ignoring them.");
-      ghostArray = NULL;
+      ghostArray = nullptr;
     }
     double* statusPtr = 0;
     if (statusArray)

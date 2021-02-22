@@ -745,7 +745,7 @@ int vtkFileSeriesReader::RequestData(
 int vtkFileSeriesReader::RequestInformationForInput(
   int index, vtkInformation* request, vtkInformationVector* outputVector)
 {
-  if ((index != this->_FileIndex) || (outputVector != NULL))
+  if ((index != this->_FileIndex) || (outputVector != nullptr))
   {
     if (this->GetNumberOfFileNames() > 0)
     {
@@ -784,7 +784,7 @@ int vtkFileSeriesReader::RequestInformationForInput(
       }
     }
     return this->Reader->ProcessRequest(
-      tempRequest, (vtkInformationVector**)NULL, tempOutputVector);
+      tempRequest, (vtkInformationVector**)nullptr, tempOutputVector);
   }
   return 1;
 }

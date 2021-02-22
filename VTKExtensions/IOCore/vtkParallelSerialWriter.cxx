@@ -39,7 +39,7 @@ namespace
 {
 bool vtkIsEmpty(vtkDataObject* dobj)
 {
-  for (int cc = 0; (dobj != NULL) && (cc < vtkDataObject::NUMBER_OF_ASSOCIATIONS); ++cc)
+  for (int cc = 0; (dobj != nullptr) && (cc < vtkDataObject::NUMBER_OF_ASSOCIATIONS); ++cc)
   {
     if (dobj->GetNumberOfElements(cc) > 0)
     {

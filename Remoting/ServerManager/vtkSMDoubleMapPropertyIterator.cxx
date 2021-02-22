@@ -50,12 +50,12 @@ void vtkSMDoubleMapPropertyIterator::SetProperty(vtkSMDoubleMapProperty* propert
 {
   if (this->Property != property)
   {
-    if (this->Property != NULL)
+    if (this->Property != nullptr)
     {
       this->Property->UnRegister(this);
     }
     this->Property = property;
-    if (this->Property != NULL)
+    if (this->Property != nullptr)
     {
       this->Property->Register(this);
       this->Begin();

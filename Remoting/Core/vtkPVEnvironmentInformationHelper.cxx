@@ -21,7 +21,7 @@ vtkStandardNewMacro(vtkPVEnvironmentInformationHelper);
 //-----------------------------------------------------------------------------
 vtkPVEnvironmentInformationHelper::vtkPVEnvironmentInformationHelper()
 {
-  this->Variable = NULL;
+  this->Variable = nullptr;
 }
 
 //-----------------------------------------------------------------------------

@@ -201,7 +201,7 @@ void vtkPVOptions::Initialize()
     " This option only works with software rendering or mangled Mesa on Unix.",
     vtkPVOptions::PVRENDER_SERVER | vtkPVOptions::PVSERVER | vtkPVOptions::PVBATCH);
 #ifdef VTK_OPENGL_HAS_EGL
-  this->AddArgument("--egl-device-index", NULL, &this->EGLDeviceIndex,
+  this->AddArgument("--egl-device-index", nullptr, &this->EGLDeviceIndex,
     "Render offscreen through the Native Platform Interface (EGL) on the graphics card "
     "specified by the device index.",
     vtkPVOptions::PVRENDER_SERVER | vtkPVOptions::PVSERVER | vtkPVOptions::PVBATCH);
@@ -593,7 +593,7 @@ int vtkPVOptions::WrongArgument(const char* argument)
     return 1;
   }
 
-  if (this->ParaViewDataName == NULL && this->GetProcessType() == PVCLIENT)
+  if (this->ParaViewDataName == nullptr && this->GetProcessType() == PVCLIENT)
   {
     // BUG #11199. Assume it's a data file.
     this->SetParaViewDataName(argument);

@@ -88,11 +88,11 @@ vtkSMLink::vtkSMLink()
 //-----------------------------------------------------------------------------
 vtkSMLink::~vtkSMLink()
 {
-  ((vtkSMLinkObserver*)this->Observer)->Link = NULL;
+  ((vtkSMLinkObserver*)this->Observer)->Link = nullptr;
   this->Observer->Delete();
-  this->Observer = NULL;
+  this->Observer = nullptr;
   delete this->State;
-  this->State = NULL;
+  this->State = nullptr;
 }
 
 //-----------------------------------------------------------------------------

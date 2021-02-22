@@ -162,7 +162,7 @@ public:
   vtkPVDataRepresentation* GetRepresentationForPropId(int id)
   {
     std::map<int, vtkWeakPointer<vtkPVDataRepresentation> >::iterator iter = this->PropMap.find(id);
-    return (iter != this->PropMap.end() ? iter->second : NULL);
+    return (iter != this->PropMap.end() ? iter->second : nullptr);
   }
 
   void PreRender(vtkRenderViewBase* vtkNotUsed(renderView)) {}
@@ -229,12 +229,12 @@ public:
         {
           allocatedTimeList[index1] = allocatedTimeList[index2];
           propList[index1] = propList[index2];
-          propList[index2] = NULL;
+          propList[index2] = nullptr;
           allocatedTimeList[index2] = 0.0;
         }
         else
         {
-          propList[index1] = propList[index2] = NULL;
+          propList[index1] = propList[index2] = nullptr;
           allocatedTimeList[index1] = allocatedTimeList[index2] = 0.0;
         }
       }
@@ -294,7 +294,7 @@ void IceTPassEnableFloatPass(bool enable, vtkPVSynchronizedRenderer* sr)
 void vtkUpdateTrackballZoomManipulators(
   vtkPVInteractorStyle* style, bool useDollyForPerspectiveProjection)
 {
-  if (style == NULL)
+  if (style == nullptr)
   {
     return;
   }
@@ -572,10 +572,10 @@ vtkPVRenderView::~vtkPVRenderView()
     this->PolygonStyle = 0;
   }
 
-  this->Internals->SavedRenderPass = NULL;
+  this->Internals->SavedRenderPass = nullptr;
 
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -627,7 +627,7 @@ vtkRenderer* vtkPVRenderView::GetRenderer(int rendererType)
     case DEFAULT_RENDERER:
       return this->RenderView->GetRenderer();
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1016,7 +1016,7 @@ void vtkPVRenderView::SetMaxClipBounds(double* bounds)
 //----------------------------------------------------------------------------
 void vtkPVRenderView::ResetCameraClippingRange()
 {
-  if (this->GeometryBounds.IsValid() && !this->LockBounds && this->DiscreteCameras == NULL)
+  if (this->GeometryBounds.IsValid() && !this->LockBounds && this->DiscreteCameras == nullptr)
   {
     double bounds[6];
     this->GeometryBounds.GetBounds(bounds);
@@ -1304,14 +1304,14 @@ void vtkPVRenderView::Update()
   this->ForceDataDistributionMode = -1;
 
   // clear discrete interaction style state.
-  this->DiscreteCameras = NULL;
+  this->DiscreteCameras = nullptr;
   this->PreviousDiscreteCameraIndex = -1;
 
   this->Superclass::Update();
 
   // Update camera zoom manipulators based on whether we have discrete position.
-  vtkUpdateTrackballZoomManipulators(this->TwoDInteractorStyle, this->DiscreteCameras == NULL);
-  vtkUpdateTrackballZoomManipulators(this->ThreeDInteractorStyle, this->DiscreteCameras == NULL);
+  vtkUpdateTrackballZoomManipulators(this->TwoDInteractorStyle, this->DiscreteCameras == nullptr);
+  vtkUpdateTrackballZoomManipulators(this->ThreeDInteractorStyle, this->DiscreteCameras == nullptr);
 
   // After every update we can expect the representation geometries to change.
   // Thus we need to determine whether we are doing to remote-rendering or not,
@@ -1493,7 +1493,7 @@ void vtkPVRenderView::Render(bool interactive, bool skip_rendering)
   // involve any communication, doing this on every render is not a big deal.
   this->ResetCameraClippingRange();
 
-  if (this->DiscreteCameras != NULL)
+  if (this->DiscreteCameras != nullptr)
   {
     vtkCamera* camera = this->GetActiveCamera();
     int index = this->DiscreteCameras->FindClosestCamera(camera);
@@ -1739,7 +1739,7 @@ vtkAlgorithmOutput* vtkPVRenderView::GetPieceProducer(
   if (!view)
   {
     vtkGenericWarningMacro("Missing VIEW().");
-    return NULL;
+    return nullptr;
   }
 
   return view->GetDeliveryManager()->GetProducer(repr, false, port);
@@ -1753,7 +1753,7 @@ vtkAlgorithmOutput* vtkPVRenderView::GetPieceProducerLOD(
   if (!view)
   {
     vtkGenericWarningMacro("Missing VIEW().");
-    return NULL;
+    return nullptr;
   }
 
   return view->GetDeliveryManager()->GetProducer(repr, true, port);
@@ -1954,7 +1954,7 @@ vtkDataObject* vtkPVRenderView::GetCurrentStreamedPiece(
   if (!self)
   {
     vtkGenericWarningMacro("Missing VIEW().");
-    return NULL;
+    return nullptr;
   }
 
   return vtkPVRenderViewDataDeliveryManager::SafeDownCast(self->GetDeliveryManager())
@@ -3194,7 +3194,7 @@ void vtkPVRenderView::EndValueCapture()
 
   this->Internals->IsInCapture = false;
   this->SynchronizedRenderers->SetRenderPass(this->Internals->SavedRenderPass);
-  this->Internals->SavedRenderPass = NULL;
+  this->Internals->SavedRenderPass = nullptr;
   this->SetOrientationAxesVisibility(this->Internals->SavedOrientationState);
   this->SetShowAnnotation(this->Internals->SavedAnnotationState);
 }
@@ -3219,7 +3219,7 @@ void vtkPVRenderView::StopCaptureLuminance()
 {
   this->Internals->IsInCapture = false;
   this->SynchronizedRenderers->SetRenderPass(this->Internals->SavedRenderPass);
-  this->Internals->SavedRenderPass = NULL;
+  this->Internals->SavedRenderPass = nullptr;
   this->SetOrientationAxesVisibility(this->Internals->SavedOrientationState);
   this->SetShowAnnotation(this->Internals->SavedAnnotationState);
 }
@@ -3264,7 +3264,7 @@ vtkFloatArray* vtkPVRenderView::GetCapturedZBuffer()
 //----------------------------------------------------------------------------
 void vtkPVRenderView::CaptureValuesFloat()
 {
-  vtkFloatArray* values = NULL;
+  vtkFloatArray* values = nullptr;
 #if VTK_MODULE_ENABLE_ParaView_icet
   vtkIceTSynchronizedRenderers* IceTSynchronizedRenderers =
     vtkIceTSynchronizedRenderers::SafeDownCast(
@@ -3661,7 +3661,7 @@ vtkPVCameraCollection* vtkPVRenderView::GetDiscreteCameras(
   if (!self)
   {
     vtkGenericWarningMacro("Missing VIEW().");
-    return NULL;
+    return nullptr;
   }
 
   return self->DiscreteCameras;

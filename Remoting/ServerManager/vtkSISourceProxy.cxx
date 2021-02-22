@@ -76,7 +76,7 @@ vtkAlgorithmOutput* vtkSISourceProxy::GetOutputPort(int port)
     return this->Internals->OutputPorts[port];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -89,7 +89,7 @@ bool vtkSISourceProxy::CreateVTKObjects()
   }
 
   vtkAlgorithm* algorithm = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
-  if (algorithm == NULL)
+  if (algorithm == nullptr)
   {
     return true;
   }
@@ -107,7 +107,7 @@ void vtkSISourceProxy::OnCreateVTKObjects()
   this->Superclass::OnCreateVTKObjects();
 
   vtkAlgorithm* algorithm = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
-  if (algorithm == NULL)
+  if (algorithm == nullptr)
   {
     return;
   }
@@ -150,11 +150,11 @@ bool vtkSISourceProxy::CreateOutputPorts()
   for (int cc = 0; cc < ports; cc++)
   {
     internals.OutputPorts[cc] = algo->GetOutputPort(cc);
-    if (vtkPVCompositeDataPipeline::SafeDownCast(algo->GetExecutive()) != NULL)
+    if (vtkPVCompositeDataPipeline::SafeDownCast(algo->GetExecutive()) != nullptr)
     {
       // add the post filters to the source proxy
       // so that we can do automatic conversion of properties.
-      if (internals.PostFilters[cc] == NULL)
+      if (internals.PostFilters[cc] == nullptr)
       {
         internals.PostFilters[cc] = vtkSmartPointer<vtkPVPostFilter>::New();
       }

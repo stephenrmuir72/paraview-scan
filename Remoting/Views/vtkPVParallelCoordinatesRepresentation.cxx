@@ -83,7 +83,7 @@ vtkPVParallelCoordinatesRepresentation::vtkPVParallelCoordinatesRepresentation()
 vtkPVParallelCoordinatesRepresentation::~vtkPVParallelCoordinatesRepresentation()
 {
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ void vtkPVParallelCoordinatesRepresentation::SetVisibility(bool visible)
 void vtkPVParallelCoordinatesRepresentation::SetSeriesVisibility(
   const char* series, bool visibility)
 {
-  assert(series != NULL);
+  assert(series != nullptr);
   this->Internals->SeriesVisibilities.push_back(std::pair<std::string, bool>(series, visibility));
   this->Modified();
 }
@@ -170,7 +170,7 @@ void vtkPVParallelCoordinatesRepresentation::PrepareForRendering()
 
   vtkChartParallelCoordinates* chart = this->GetChart();
   vtkTable* plotInput = this->GetLocalOutput();
-  chart->SetVisible(plotInput != NULL && this->GetVisibility());
+  chart->SetVisible(plotInput != nullptr && this->GetVisibility());
   chart->GetPlot(0)->GetPen()->SetWidth(this->LineThickness);
   chart->GetPlot(0)->GetPen()->SetLineType(this->LineStyle);
   chart->GetPlot(0)->GetPen()->SetColorF(this->Color[0], this->Color[1], this->Color[2]);

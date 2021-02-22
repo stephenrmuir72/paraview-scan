@@ -76,7 +76,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqAnimationScene::pqAnimationScene(const QString& group, const QString& name, vtkSMProxy* proxy,
-  pqServer* server, QObject* _parent /*=NULL*/)
+  pqServer* server, QObject* _parent /*=nullptr*/)
   : pqProxy(group, name, proxy, server, _parent)
 {
   vtkObject* animationScene = vtkObject::SafeDownCast(proxy->GetClientSideObject());
@@ -235,7 +235,7 @@ pqAnimationCue* pqAnimationScene::createCue(
 //-----------------------------------------------------------------------------
 pqAnimationCue* pqAnimationScene::createCue(const QString& cuetype)
 {
-  return this->createCueInternal(cuetype, NULL, NULL, -1);
+  return this->createCueInternal(cuetype, nullptr, nullptr, -1);
 }
 
 //-----------------------------------------------------------------------------

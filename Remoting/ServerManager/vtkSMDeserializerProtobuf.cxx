@@ -57,7 +57,7 @@ vtkSMProxy* vtkSMDeserializerProtobuf::NewProxy(vtkTypeUInt32 id, vtkSMProxyLoca
   vtkSMSession* session = this->GetSession();
   // Make sure that the requested proxy does not already exist
   assert("SMDeserializer should not create a proxy if that proxy exist" &&
-    (session == NULL || session->GetRemoteObject(id) == NULL));
+    (session == nullptr || session->GetRemoteObject(id) == nullptr));
 
   vtkSMMessage msg;
   // First extract state for the requested proxy
@@ -89,7 +89,7 @@ vtkSMProxy* vtkSMDeserializerProtobuf::NewProxy(vtkTypeUInt32 id, vtkSMProxyLoca
   const char* type = msg.GetExtension(ProxyState::xml_name).c_str();
   const char* subProxyName = (msg.HasExtension(ProxyState::xml_sub_proxy_name))
     ? msg.GetExtension(ProxyState::xml_sub_proxy_name).c_str()
-    : NULL;
+    : nullptr;
 
   if (!type)
   {

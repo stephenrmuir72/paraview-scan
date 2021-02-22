@@ -694,8 +694,8 @@ void vtkPVXMLElement::Merge(vtkPVXMLElement* element, const char* attributeName)
     for (iter2 = this->Internal->NestedElements.begin();
          iter2 != this->Internal->NestedElements.end(); ++iter2)
     {
-      const char* attr1 = attributeName ? this->GetAttribute(attributeName) : NULL;
-      const char* attr2 = attributeName ? element->GetAttribute(attributeName) : NULL;
+      const char* attr1 = attributeName ? this->GetAttribute(attributeName) : nullptr;
+      const char* attr2 = attributeName ? element->GetAttribute(attributeName) : nullptr;
       if (0 == strcmp((*iter)->Name, (*iter2)->Name) &&
         (!attributeName || (!attr1 || !attr2 || 0 == strcmp(attr1, attr2))))
       {

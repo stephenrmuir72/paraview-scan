@@ -96,7 +96,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqView::pqView(const QString& type, const QString& group, const QString& name, vtkSMViewProxy* view,
-  pqServer* server, QObject* _parent /*=null*/)
+  pqServer* server, QObject* _parent /*=nullptr*/)
   : pqProxy(group, name, view, server, _parent)
 {
   this->ViewType = type;
@@ -171,7 +171,7 @@ void pqView::initialize()
   this->onRepresentationsChanged();
 
   // Create the widget.
-  if (this->widget() == NULL)
+  if (this->widget() == nullptr)
   {
     qWarning("This view doesn't have a QWidget. May not work as expected.");
   }

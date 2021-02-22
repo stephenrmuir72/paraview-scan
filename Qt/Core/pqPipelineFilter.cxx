@@ -78,7 +78,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqPipelineFilter::pqPipelineFilter(
-  QString name, vtkSMProxy* proxy, pqServer* server, QObject* p /*=NULL*/)
+  QString name, vtkSMProxy* proxy, pqServer* server, QObject* p /*=nullptr*/)
   : pqPipelineSource(name, proxy, server, p)
 {
   this->Internal = new pqInternal();
@@ -329,7 +329,7 @@ pqOutputPort* pqPipelineFilter::getAnyInput() const
       return iter.value()[0];
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------

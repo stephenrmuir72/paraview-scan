@@ -73,7 +73,7 @@ void vtkCopy(std::vector<const char*>& dest, const std::vector<std::string>& src
   {
     dest[cc] = src[cc].c_str();
   }
-  dest.push_back(NULL);
+  dest.push_back(nullptr);
 }
 }
 
