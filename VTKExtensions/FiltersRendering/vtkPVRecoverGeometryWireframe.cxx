@@ -62,7 +62,7 @@ public:
     , MaxEndPoint(other.MaxEndPoint)
   {
   }
-  ~EdgeEndpoints() {}
+  ~EdgeEndpoints() = default;
   const vtkIdType MinEndPoint;
   const vtkIdType MaxEndPoint;
   inline bool operator==(const EdgeEndpoints& other) const
@@ -138,13 +138,9 @@ using namespace vtkPVRecoverGeometryWireframeNamespace;
 vtkStandardNewMacro(vtkPVRecoverGeometryWireframe);
 
 //-----------------------------------------------------------------------------
-vtkPVRecoverGeometryWireframe::vtkPVRecoverGeometryWireframe()
-{
-}
+vtkPVRecoverGeometryWireframe::vtkPVRecoverGeometryWireframe() = default;
 
-vtkPVRecoverGeometryWireframe::~vtkPVRecoverGeometryWireframe()
-{
-}
+vtkPVRecoverGeometryWireframe::~vtkPVRecoverGeometryWireframe() = default;
 
 void vtkPVRecoverGeometryWireframe::PrintSelf(ostream& os, vtkIndent indent)
 {
