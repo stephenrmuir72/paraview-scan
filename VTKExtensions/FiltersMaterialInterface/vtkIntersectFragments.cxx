@@ -386,10 +386,10 @@ void vtkIntersectFragments::BuildLoadingArray(vector<vtkIdType>& loadingArray, i
 // Load a buffer containing the number of polys for each fragment
 // or fragment piece that we own. Return the size in vtkIdType's
 // of the packed buffer and the buffer itself. Pass in a
-// pointer initialized to null, allocation is internal.
+// pointer initialized to nullptr, allocation is internal.
 int vtkIntersectFragments::PackLoadingArray(vtkIdType*& buffer, int blockId)
 {
-  assert("Buffer appears to have been pre-allocated." && buffer == 0);
+  assert("Buffer appears to have been pre-allocated." && buffer == nullptr);
 
   vtkMultiPieceDataSet* intersectGeometry =
     dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
@@ -425,7 +425,7 @@ int vtkIntersectFragments::UnPackLoadingArray(
 {
   const int sizeOfPl = vtkMaterialInterfacePieceLoading::SIZE;
 
-  assert("Buffer is null pointer." && buffer != 0);
+  assert("Buffer is nullptr pointer." && buffer != 0);
   assert("Buffer size is incorrect." && bufSize % sizeOfPl == 0);
 
   vtkMultiPieceDataSet* intersectGeometry =
@@ -1300,7 +1300,7 @@ vtkMTimeType vtkIntersectFragments::GetMTime()
   vtkMTimeType mTime = this->Superclass::GetMTime();
   vtkMTimeType time;
 
-  if (this->CutFunction != NULL)
+  if (this->CutFunction != nullptr)
   {
     time = this->CutFunction->GetMTime();
     mTime = (time > mTime ? time : mTime);

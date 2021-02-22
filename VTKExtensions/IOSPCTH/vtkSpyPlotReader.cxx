@@ -142,7 +142,7 @@ void vtkSpyPlotReader::SetTimeStepsInternal(const vtkSpyPlotReader::VectorOfDoub
 // whether the dataset is AMR.
 void vtkSpyPlotReader::SetFileName(const char* filename)
 {
-  if (this->FileName == NULL && filename == NULL)
+  if (this->FileName == nullptr && filename == nullptr)
   {
     return;
   }
@@ -184,7 +184,7 @@ int vtkSpyPlotReader::RequestDataObject(
   vtkInformation* req, vtkInformationVector** vtkNotUsed(inV), vtkInformationVector* outV)
 {
   vtkInformation* outInfo = outV->GetInformationObject(0);
-  vtkCompositeDataSet* outData = NULL;
+  vtkCompositeDataSet* outData = nullptr;
 
   // Call UpdateFile (which sets IsAMR) because RequestInformation isn't called
   // before RequestDataObject
@@ -511,7 +511,8 @@ int vtkSpyPlotReader::UpdateTimeStep(
     }
   }
   this->CurrentTimeStep = closestStep;
-  if ((outputData != NULL) && (static_cast<int>(this->TimeSteps->size()) > this->CurrentTimeStep))
+  if ((outputData != nullptr) &&
+    (static_cast<int>(this->TimeSteps->size()) > this->CurrentTimeStep))
   {
     outputData->GetInformation()->Set(
       vtkDataObject::DATA_TIME_STEP(), (*this->TimeSteps)[this->CurrentTimeStep]);
@@ -645,7 +646,7 @@ int vtkSpyPlotReader::RequestData(vtkInformation* request,
     return 0;
   }
 
-  vtkPolyData* tracersData = NULL;
+  vtkPolyData* tracersData = nullptr;
 
   if (this->GenerateTracerArray == 1)
   {
@@ -705,10 +706,10 @@ int vtkSpyPlotReader::RequestData(vtkInformation* request,
   this->SetGlobalMinLevelAndSpacing(blockIterator);
   // export global bounds, minimum level, spacing, and box size
   // in field data arrays for use by downstream filters
-  if (hbds != NULL)
+  if (hbds != nullptr)
   {
     this->AddAttributes(hbds);
-    assert("FieldData should not be NULL!" && hbds->GetFieldData() != NULL);
+    assert("FieldData should not be nullptr!" && hbds->GetFieldData() != nullptr);
 
     vtkFieldData* fd = hbds->GetFieldData();
     (void)fd; // only used for asserts
@@ -2258,8 +2259,8 @@ void vtkSpyPlotReader::SetGlobalLevels(vtkCompositeDataSet* composite)
   // the global number of levels. Otherwise, the number of levels is 1.
   if (this->IsAMR)
   {
-    // hbDS is non-null.
-    assert("check: ds is vtkNonOverlappingAMR" && hbDS != NULL);
+    // hbDS is non-nullptr.
+    assert("check: ds is vtkNonOverlappingAMR" && hbDS != nullptr);
     numberOfLevels = hbDS->GetNumberOfLevels();
     unsigned long ulintMsgValue;
     // Update it from the children

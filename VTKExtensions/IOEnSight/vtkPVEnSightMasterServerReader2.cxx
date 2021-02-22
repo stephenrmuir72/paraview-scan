@@ -693,7 +693,7 @@ int vtkPVEnSightMasterServerReader2::GetNumberOfCellArrays()
 const char* vtkPVEnSightMasterServerReader2::GetPointArrayName(int index)
 {
   return this->Internal->RealReaders.size() == 0
-    ? NULL
+    ? nullptr
     : this->Internal->RealReaders[0]->GetPointArrayName(index);
 }
 
@@ -701,7 +701,7 @@ const char* vtkPVEnSightMasterServerReader2::GetPointArrayName(int index)
 const char* vtkPVEnSightMasterServerReader2::GetCellArrayName(int index)
 {
   return this->Internal->RealReaders.size() == 0
-    ? NULL
+    ? nullptr
     : this->Internal->RealReaders[0]->GetCellArrayName(index);
 }
 
@@ -787,6 +787,6 @@ int vtkPVEnSightMasterServerReader2::GetByteOrder()
 const char* vtkPVEnSightMasterServerReader2::GetByteOrderAsString()
 {
   return this->Internal->RealReaders.size() == 0
-    ? NULL
+    ? nullptr
     : this->Internal->RealReaders[0]->GetByteOrderAsString();
 }

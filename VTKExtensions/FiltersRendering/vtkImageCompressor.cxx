@@ -45,7 +45,7 @@ vtkImageCompressor::~vtkImageCompressor()
 {
   this->SetOutput(0);
   this->SetInput(0);
-  this->SetConfiguration(NULL);
+  this->SetConfiguration(nullptr);
 }
 
 //-----------------------------------------------------------------------------
