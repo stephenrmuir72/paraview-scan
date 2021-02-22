@@ -101,7 +101,7 @@ void vtkPVDReader::ReadXMLData()
       bool found = false;
       while (cnt2 < tsLength && !found)
       {
-        double val = strtod(this->GetAttributeValue("timestep", cnt2), NULL);
+        double val = strtod(this->GetAttributeValue("timestep", cnt2), nullptr);
         if (val == steps[cnt])
         {
           found = true;

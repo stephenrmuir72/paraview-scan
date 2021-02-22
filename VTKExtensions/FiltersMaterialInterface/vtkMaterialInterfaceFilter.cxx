@@ -209,7 +209,7 @@ vtkUniformGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
     for (unsigned int dataIdx = 0; dataIdx < numDatasets; ++dataIdx)
     {
       vtkUniformGrid* refGrid = amrds->GetDataSet(l, dataIdx);
-      if (refGrid != NULL)
+      if (refGrid != nullptr)
       {
         return (refGrid);
       }
@@ -217,7 +217,7 @@ vtkUniformGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
   }   // END for all number of levels
 
   // This process has no grids
-  return NULL;
+  return nullptr;
 }
 
 // Construct a list of the selected array names
@@ -1744,7 +1744,7 @@ vtkMTimeType vtkMaterialInterfaceFilter::GetMTime()
   vtkMTimeType mTime = this->Superclass::GetMTime();
   vtkMTimeType time;
 
-  if (this->ClipFunction != NULL)
+  if (this->ClipFunction != nullptr)
   {
     time = this->ClipFunction->GetMTime();
     mTime = (time > mTime ? time : mTime);
@@ -1890,7 +1890,7 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
   this->NumberOfInputBlocks = this->GetNumberOfLocalBlocks(input);
 
   this->InputBlocks = new vtkMaterialInterfaceFilterBlock*[this->NumberOfInputBlocks];
-  // Initialize to NULL.
+  // Initialize to nullptr.
   for (int blockId = 0; blockId < this->NumberOfInputBlocks; ++blockId)
   {
     this->InputBlocks[blockId] = 0;
@@ -2392,7 +2392,7 @@ void vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacing(vtkNonOverlappingAM
   {
     this->SetBlockGhostLevel(blockGhostLayer->GetValue(0));
   }
-  else if (globalBoundsDa == NULL)
+  else if (globalBoundsDa == nullptr)
   {
     // Update ghostLayer if available
     // CAUTION: as no global fields were provided we assume that it is not the
@@ -2402,8 +2402,8 @@ void vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacing(vtkNonOverlappingAM
 
   // if these are not present then the dataset
   // is malformed.
-  if (globalBoundsDa == NULL || standardBoxSizeIa == NULL || minLevelIa == NULL ||
-    minLevelSpacingDa == NULL)
+  if (globalBoundsDa == nullptr || standardBoxSizeIa == nullptr || minLevelIa == nullptr ||
+    minLevelSpacingDa == nullptr)
   {
     // Need to figure out this information
     int nbProcs = this->Controller->GetNumberOfProcesses();
@@ -7105,7 +7105,7 @@ void vtkMaterialInterfaceFilter::BuildLoadingArray(vector<vtkIdType>& loadingArr
 // pointer initialized to null, allocation is internal.
 int vtkMaterialInterfaceFilter::PackLoadingArray(vtkIdType*& buffer)
 {
-  assert("Buffer appears to have been pre-allocated." && buffer == 0);
+  assert("Buffer appears to have been pre-allocated." && buffer == nullptr);
 
   vtkMultiPieceDataSet* resolvedFragments =
     dynamic_cast<vtkMultiPieceDataSet*>(this->ResolvedFragments->GetBlock(this->MaterialId));

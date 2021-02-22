@@ -97,7 +97,7 @@ void vtkReductionFilter::SetPostGatherHelperName(const char* name)
 int vtkReductionFilter::RequestDataObject(
   vtkInformation* reqInfo, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  if (this->PostGatherHelper != NULL)
+  if (this->PostGatherHelper != nullptr)
   {
     vtkInformation* helpersInfo = this->PostGatherHelper->GetOutputPortInformation(0);
 
@@ -194,7 +194,7 @@ vtkDataObject* vtkReductionFilter::PreProcess(vtkDataObject* input)
   }
 
   vtkSmartPointer<vtkDataObject> result;
-  if (this->PreGatherHelper == NULL)
+  if (this->PreGatherHelper == nullptr)
   {
     // allow a passthrough
     result = input;
@@ -215,7 +215,7 @@ vtkDataObject* vtkReductionFilter::PreProcess(vtkDataObject* input)
 
     // If a PostGatherHelper is present, we need to ensure that the result produced
     // by this pre-processing stage is acceptable to the PostGatherHelper.
-    if (this->PostGatherHelper != NULL)
+    if (this->PostGatherHelper != nullptr)
     {
       vtkInformation* info = this->PostGatherHelper->GetInputPortInformation(0);
       if (info)
@@ -399,13 +399,13 @@ void vtkReductionFilter::Reduce(vtkDataObject* input, vtkDataObject* output)
     }
   }
 
-  // the reduction from all ranks may return NULL datasets on certain ranks.
+  // the reduction from all ranks may return nullptr datasets on certain ranks.
   // So, we need to handle receiveData having NULLs.
   assert(static_cast<int>(receiveData.size()) == numProcs);
   if (myId == this->ReductionProcessId ||
     this->ReductionMode == vtkReductionFilter::REDUCE_ALL_TO_ALL)
   {
-    if (this->PassThrough >= 0 && receiveData[this->PassThrough] != NULL)
+    if (this->PassThrough >= 0 && receiveData[this->PassThrough] != nullptr)
     {
       data_sets.push_back(receiveData[this->PassThrough]);
     }
@@ -413,7 +413,7 @@ void vtkReductionFilter::Reduce(vtkDataObject* input, vtkDataObject* output)
     {
       for (int i = 0; i < controller->GetNumberOfProcesses(); ++i)
       {
-        if (receiveData[i] != NULL)
+        if (receiveData[i] != nullptr)
         {
           data_sets.push_back(receiveData[i]);
         }

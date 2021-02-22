@@ -933,20 +933,20 @@ vtkDataArray* vtkSpyPlotUniReader::GetCellFieldData(int block, int field, int* f
 vtkDataArray* vtkSpyPlotUniReader::GetMaterialField(
   const int& block, const int& materialIndex, const char* id)
 {
-  vtkSpyPlotUniReader::Variable* var = NULL;
+  vtkSpyPlotUniReader::Variable* var = nullptr;
   vtkSpyPlotUniReader::DataDump* dp = this->DataDumps + this->CurrentTimeStep;
   for (int v = 0; v < dp->NumVars; ++v)
   {
     var = &dp->Variables[v];
     if (strcmp(var->MaterialField->Id, id) == 0)
     {
-      if (var->Index == materialIndex && var->DataBlocks != NULL)
+      if (var->Index == materialIndex && var->DataBlocks != nullptr)
       {
         return var->DataBlocks[block];
       }
     }
   }
-  return NULL;
+  return nullptr;
 }
 //-----------------------------------------------------------------------------
 vtkDataArray* vtkSpyPlotUniReader::GetMaterialMassField(const int& block, const int& materialIndex)
@@ -1274,7 +1274,7 @@ int vtkSpyPlotUniReader::ReadGroupHeaderInformation(vtkSpyPlotIStream* spis)
     nch.NumberOfDataDumps = this->NumberOfDataDumps + gh.NumberOfDataDumps;
     nch.DumpCycle = new int[nch.NumberOfDataDumps];
     nch.DumpTime = new double[nch.NumberOfDataDumps];
-    nch.DumpDT = NULL;
+    nch.DumpDT = nullptr;
     if (this->FileVersion >= 102)
     {
       nch.DumpDT = new double[nch.NumberOfDataDumps];
