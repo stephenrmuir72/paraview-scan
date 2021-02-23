@@ -53,7 +53,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqArraySelectionWidget.h"
 #include "pqArraySelectorPropertyWidget.h"
 #include "pqComboBoxDomain.h"
-#include "pqCoreUtilities.h"
 #include "pqDialog.h"
 #include "pqFileChooserWidget.h"
 #include "pqLineEdit.h"
@@ -225,7 +224,7 @@ pqStringVectorPropertyWidget::pqStringVectorPropertyWidget(
     if (supportedExtensions.size() > 0)
     {
       vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "using extensions `%s`",
-        pqCoreUtilities::QStringToQBytes(supportedExtensions.join(", ")).data());
+        supportedExtensions.join(", ").toUtf8().data());
       chooser->setExtension(supportedExtensions.join(";;"));
     }
 

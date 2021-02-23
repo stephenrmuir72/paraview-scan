@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqArraySelectionWidget.h"
 
-#include "pqCoreUtilities.h"
 #include "pqHeaderView.h"
 #include "pqSMAdaptor.h"
 
@@ -486,7 +485,7 @@ void pqArraySelectionWidget::propertyChanged(const QString& pname)
   auto amodel = this->realModel();
   assert(amodel);
 
-  QVariant value = this->property(pqCoreUtilities::QStringToQBytes(pname).data());
+  QVariant value = this->property(pname.toUtf8().data());
   if (!value.isValid())
   {
     // dynamic property is being removed, clear it from the model.
@@ -527,7 +526,7 @@ void pqArraySelectionWidget::updateProperty(const QString& pname, const QVariant
   // for scope
   {
     QScopedValueRollback<bool> rollback(this->UpdatingProperty, true);
-    this->setProperty(pqCoreUtilities::QStringToQBytes(pname).data(), value);
+    this->setProperty(pname.toUtf8().data(), value);
   }
   Q_EMIT this->widgetModified();
 }

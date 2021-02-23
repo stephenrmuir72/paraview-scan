@@ -169,9 +169,8 @@ bool pqLiveInsituVisualizationManager::hasExtracts(pqOutputPort* port) const
   }
 
   if (this->Internals->LiveInsituLinkProxy->HasExtract(
-        pqCoreUtilities::QStringToQBytes(port->getSource()->getSMGroup()).data(),
-        pqCoreUtilities::QStringToQBytes(port->getSource()->getSMName()).data(),
-        port->getPortNumber()))
+        port->getSource()->getSMGroup().toUtf8().data(),
+        port->getSource()->getSMName().toUtf8().data(), port->getPortNumber()))
   {
     return true;
   }
@@ -189,9 +188,9 @@ bool pqLiveInsituVisualizationManager::addExtract(pqOutputPort* port)
 
   pqPipelineSource* source = port->getSource();
 
-  vtkSMProxy* proxy = this->Internals->LiveInsituLinkProxy->CreateExtract(
-    pqCoreUtilities::QStringToQBytes(source->getSMGroup()).data(),
-    pqCoreUtilities::QStringToQBytes(source->getSMName()).data(), port->getPortNumber());
+  vtkSMProxy* proxy =
+    this->Internals->LiveInsituLinkProxy->CreateExtract(source->getSMGroup().toUtf8().data(),
+      source->getSMName().toUtf8().data(), port->getPortNumber());
 
   QString name;
   if (source->getNumberOfOutputPorts() > 1)
@@ -204,7 +203,7 @@ bool pqLiveInsituVisualizationManager::addExtract(pqOutputPort* port)
   }
 
   this->Internals->DisplaySession->proxyManager()->RegisterProxy(
-    "sources", pqCoreUtilities::QStringToQBytes(name).data(), proxy);
+    "sources", name.toUtf8().data(), proxy);
 
   pqPipelineSource* pqproxy =
     pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(proxy);

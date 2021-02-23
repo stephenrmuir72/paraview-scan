@@ -286,13 +286,3 @@ QString pqCoreUtilities::number(double value)
   stream << vtkNumberToString()(value);
   return QString::fromStdString(stream.str());
 }
-
-QByteArray pqCoreUtilities::QStringToQBytes(const QString& value)
-{
-  return value.toUtf8();
-}
-
-std::string pqCoreUtilities::QStringToString(const QString& value)
-{
-  return QStringToQBytes(value).toStdString();
-}

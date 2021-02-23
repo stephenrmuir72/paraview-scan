@@ -35,7 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QStyle>
 
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
@@ -75,7 +74,7 @@ void SourceToolbarActions::onAction(QAction* a)
     {
       stack->beginUndoSet(QString("Create %1").arg(source_type));
     }
-    builder->createSource("sources", pqCoreUtilities::QStringToQBytes(source_type).data(), s);
+    builder->createSource("sources", source_type.toUtf8().data(), s);
     if (stack)
     {
       stack->endUndoSet();

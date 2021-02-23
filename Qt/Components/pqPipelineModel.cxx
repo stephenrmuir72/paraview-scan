@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineModel.h"
 
 #include "pqBoxChartView.h"
-#include "pqCoreUtilities.h"
 #include "pqExtractor.h"
 #include "pqLiveInsituManager.h"
 #include "pqLiveInsituVisualizationManager.h"
@@ -870,8 +869,8 @@ QVariant pqPipelineModel::data(const QModelIndex& idx, int role) const
     {
       if (!this->FilterRoleAnnotationKey.isEmpty() && proxy)
       {
-        bool hasAnnotation = proxy->getProxy()->HasAnnotation(
-          pqCoreUtilities::QStringToQBytes(this->FilterRoleAnnotationKey).data());
+        bool hasAnnotation =
+          proxy->getProxy()->HasAnnotation(this->FilterRoleAnnotationKey.toUtf8().data());
         return (this->FilterAnnotationMatching ? hasAnnotation : !hasAnnotation);
       }
       return QVariant(true);

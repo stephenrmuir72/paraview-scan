@@ -172,8 +172,7 @@ public:
       QString helper_key;
       if (pqProxy* pqproxy = pqProxy::findProxyWithHelper(pxy, helper_key))
       {
-        vtkSMProperty* prop =
-          pqproxy->getProxy()->GetProperty(pqCoreUtilities::QStringToQBytes(helper_key).data());
+        vtkSMProperty* prop = pqproxy->getProxy()->GetProperty(helper_key.toUtf8().data());
         if (prop)
         {
           return QString("%1 - %2 - %3").arg(pqproxy->getSMName()).arg(prop->GetXMLLabel()).arg(p);
@@ -644,8 +643,7 @@ void pqAnimationViewWidget::trackSelected(pqAnimationTrack* track)
     ui.script->setPlainText(vtkSMPropertyHelper(cue->getProxy(), "Script").GetAsString());
     if (dialog.exec() == QDialog::Accepted)
     {
-      vtkSMPropertyHelper(cue->getProxy(), "Script")
-        .Set(pqCoreUtilities::QStringToQBytes(ui.script->toPlainText()).data());
+      vtkSMPropertyHelper(cue->getProxy(), "Script").Set(ui.script->toPlainText().toUtf8().data());
       cue->getProxy()->UpdateVTKObjects();
     }
     return;
@@ -942,9 +940,8 @@ void pqAnimationViewWidget::createTrack()
   BEGIN_UNDO_SET("Add Animation Track");
 
   // This will create the cue and initialize it with default keyframes.
-  pqAnimationCue* cue =
-    this->Internal->Scene->createCue(curProxy, pqCoreUtilities::QStringToQBytes(pname).data(),
-      pindex, ren ? "CameraAnimationCue" : "KeyFrameAnimationCue");
+  pqAnimationCue* cue = this->Internal->Scene->createCue(
+    curProxy, pname.toUtf8().data(), pindex, ren ? "CameraAnimationCue" : "KeyFrameAnimationCue");
 
   SM_SCOPED_TRACE(CreateAnimationTrack).arg("cue", cue->getProxy());
 

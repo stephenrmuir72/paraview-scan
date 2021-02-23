@@ -87,8 +87,7 @@ bool pqSourcesMenuReaction::warnOnCreate(
   {
     vtkSMSessionProxyManager* pxm = server->proxyManager();
     vtkSMProxy* prototype =
-      pxm->GetPrototypeProxy(pqCoreUtilities::QStringToQBytes(xmlgroup).data(),
-        pqCoreUtilities::QStringToQBytes(xmlname).data());
+      pxm->GetPrototypeProxy(xmlgroup.toUtf8().data(), xmlname.toUtf8().data());
     if (!prototype)
     {
       // skip the prompt.

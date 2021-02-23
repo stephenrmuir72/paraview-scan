@@ -46,7 +46,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtksys/RegularExpression.hxx"
 
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
@@ -139,8 +138,7 @@ void pqProxy::addHelperProxy(const QString& key, vtkSMProxy* proxy)
       QString("pq_helper_proxies.%1").arg(this->getProxy()->GetGlobalIDAsString());
 
     vtkSMSessionProxyManager* pxm = this->proxyManager();
-    pxm->RegisterProxy(pqCoreUtilities::QStringToQBytes(groupname).data(),
-      pqCoreUtilities::QStringToQBytes(key).data(), proxy);
+    pxm->RegisterProxy(groupname.toUtf8().data(), key.toUtf8().data(), proxy);
   }
 }
 
@@ -161,10 +159,10 @@ void pqProxy::removeHelperProxy(const QString& key, vtkSMProxy* proxy)
     QString groupname =
       QString("pq_helper_proxies.%1").arg(this->getProxy()->GetGlobalIDAsString());
     vtkSMSessionProxyManager* pxm = this->proxyManager();
-    const char* name = pxm->GetProxyName(pqCoreUtilities::QStringToQBytes(groupname).data(), proxy);
+    const char* name = pxm->GetProxyName(groupname.toUtf8().data(), proxy);
     if (name)
     {
-      pxm->UnRegisterProxy(pqCoreUtilities::QStringToQBytes(groupname).data(), name, proxy);
+      pxm->UnRegisterProxy(groupname.toUtf8().data(), name, proxy);
     }
   }
 }
@@ -176,8 +174,7 @@ void pqProxy::updateHelperProxies() const
   vtkSMProxyIterator* iter = vtkSMProxyIterator::New();
   iter->SetModeToOneGroup();
   iter->SetSession(this->getProxy()->GetSession());
-  for (iter->Begin(pqCoreUtilities::QStringToQBytes(groupname).data()); !iter->IsAtEnd();
-       iter->Next())
+  for (iter->Begin(groupname.toUtf8().data()); !iter->IsAtEnd(); iter->Next())
   {
     this->addInternalHelperProxy(QString(iter->GetKey()), iter->GetProxy());
   }
@@ -253,10 +250,10 @@ void pqProxy::rename(const QString& newname)
   {
     SM_SCOPED_TRACE(RenameProxy).arg("proxy", this->getProxy());
     vtkSMSessionProxyManager* pxm = this->proxyManager();
-    pxm->RegisterProxy(pqCoreUtilities::QStringToQBytes(this->getSMGroup()).data(),
-      pqCoreUtilities::QStringToQBytes(newname).data(), this->getProxy());
-    pxm->UnRegisterProxy(pqCoreUtilities::QStringToQBytes(this->getSMGroup()).data(),
-      pqCoreUtilities::QStringToQBytes(this->getSMName()).data(), this->getProxy());
+    pxm->RegisterProxy(
+      this->getSMGroup().toUtf8().data(), newname.toUtf8().data(), this->getProxy());
+    pxm->UnRegisterProxy(
+      this->getSMGroup().toUtf8().data(), this->getSMName().toUtf8().data(), this->getProxy());
     this->SMName = newname;
     this->UserModifiedSMName = true;
   }

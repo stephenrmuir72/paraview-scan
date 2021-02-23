@@ -32,8 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCameraDialog.h"
 #include "ui_pqCameraDialog.h"
 
-#include "pqCoreUtilities.h"
-
 // VTK / ParaView Server Manager includes.
 #include "vtkCamera.h"
 #include "vtkCollection.h"
@@ -744,8 +742,7 @@ bool pqCameraDialog::applyCustomViewpoint(int CustomViewpointIndex, vtkSMRenderV
 
   vtkNew<vtkPVXMLParser> parser;
   parser->InitializeParser();
-  parser->ParseChunk(
-    pqCoreUtilities::QStringToQBytes(config).data(), static_cast<unsigned int>(config.size()));
+  parser->ParseChunk(config.toUtf8().data(), static_cast<unsigned int>(config.size()));
   parser->CleanupParser();
 
   vtkPVXMLElement* xmlStream = parser->GetRootElement();

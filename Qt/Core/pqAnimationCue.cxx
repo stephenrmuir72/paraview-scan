@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QList>
 #include <QtDebug>
 
-#include "pqCoreUtilities.h"
 #include "pqSMAdaptor.h"
 #include "pqServer.h"
 
@@ -86,9 +85,7 @@ pqAnimationCue::~pqAnimationCue() = default;
 void pqAnimationCue::addKeyFrameInternal(vtkSMProxy* keyframe)
 {
   this->proxyManager()->RegisterProxy("animation",
-    pqCoreUtilities::QStringToQBytes(QString("KeyFrame%1").arg(keyframe->GetGlobalIDAsString()))
-      .data(),
-    keyframe);
+    QString("KeyFrame%1").arg(keyframe->GetGlobalIDAsString()).toUtf8().data(), keyframe);
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +113,7 @@ vtkSMProperty* pqAnimationCue::getAnimatedProperty() const
       pqSMAdaptor::getElementProperty(selfProxy->GetProperty("AnimatedPropertyName")).toString();
     if (pname != "")
     {
-      return proxy->GetProperty(pqCoreUtilities::QStringToQBytes(pname).data());
+      return proxy->GetProperty(pname.toUtf8().data());
     }
   }
 
@@ -216,8 +213,7 @@ vtkSMProxy* pqAnimationCue::insertKeyFrame(int index)
   // Get the current keyframes.
   QList<vtkSMProxy*> keyframes = this->getKeyFrames();
 
-  vtkSMProxy* kf = pxm->NewProxy(
-    "animation_keyframes", pqCoreUtilities::QStringToQBytes(this->KeyFrameType).data());
+  vtkSMProxy* kf = pxm->NewProxy("animation_keyframes", this->KeyFrameType.toUtf8().data());
   if (!kf)
   {
     qDebug() << "Could not create new proxy " << this->KeyFrameType;

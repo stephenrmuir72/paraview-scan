@@ -36,7 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCustomFilterDefinitionWizard.h"
 #include "ui_pqCustomFilterDefinitionWizard.h"
 
-#include "pqCoreUtilities.h"
 #include "pqCustomFilterDefinitionModel.h"
 #include "pqCustomFilterManagerModel.h"
 #include "pqFlatTreeView.h"
@@ -214,8 +213,7 @@ void pqCustomFilterDefinitionWizard::createCustomFilter()
         this->Filter->SetLocation(source->getProxy()->GetLocation());
         first = false;
       }
-      this->Filter->AddProxy(
-        pqCoreUtilities::QStringToQBytes(source->getSMName()).data(), source->getProxy());
+      this->Filter->AddProxy(source->getSMName().toUtf8().data(), source->getProxy());
     }
 
     index = this->Model->getNextIndex(index);
@@ -228,11 +226,9 @@ void pqCustomFilterDefinitionWizard::createCustomFilter()
   for (; i < numInputs; i++)
   {
     item = this->Form->InputPorts->topLevelItem(i);
-    this->Filter->ExposeProperty(pqCoreUtilities::QStringToQBytes(item->text(0)).data(),
-      pqCoreUtilities::QStringToQBytes(
-        this->Form->LabelToNamePropertyMap[item->text(0)][item->text(1)])
-        .data(),
-      pqCoreUtilities::QStringToQBytes(item->text(2)).data());
+    this->Filter->ExposeProperty(item->text(0).toUtf8().data(),
+      this->Form->LabelToNamePropertyMap[item->text(0)][item->text(1)].toUtf8().data(),
+      item->text(2).toUtf8().data());
   }
 
   // Set the output proxies.
@@ -243,9 +239,8 @@ void pqCustomFilterDefinitionWizard::createCustomFilter()
     pqOutputPort* port = qobject_cast<pqOutputPort*>(item->data(0, Qt::UserRole).value<QObject*>());
     if (port)
     {
-      this->Filter->ExposeOutputPort(
-        pqCoreUtilities::QStringToQBytes(port->getSource()->getSMName()).data(),
-        port->getPortNumber(), pqCoreUtilities::QStringToQBytes(item->text(1)).data());
+      this->Filter->ExposeOutputPort(port->getSource()->getSMName().toUtf8().data(),
+        port->getPortNumber(), item->text(1).toUtf8().data());
     }
   }
 
@@ -254,11 +249,9 @@ void pqCustomFilterDefinitionWizard::createCustomFilter()
   for (i = 0; i < total; i++)
   {
     item = this->Form->PropertyList->topLevelItem(i);
-    this->Filter->ExposeProperty(pqCoreUtilities::QStringToQBytes(item->text(0)).data(),
-      pqCoreUtilities::QStringToQBytes(
-        this->Form->LabelToNamePropertyMap[item->text(0)][item->text(1)])
-        .data(),
-      pqCoreUtilities::QStringToQBytes(item->text(2)).data());
+    this->Filter->ExposeProperty(item->text(0).toUtf8().data(),
+      this->Form->LabelToNamePropertyMap[item->text(0)][item->text(1)].toUtf8().data(),
+      item->text(2).toUtf8().data());
   }
 
   // Include any internal proxies.
@@ -269,13 +262,13 @@ void pqCustomFilterDefinitionWizard::createCustomFilter()
   vtkSMSessionProxyManager* proxyManager = source->proxyManager();
   if (numInputs > 0)
   {
-    proxyManager->RegisterCustomProxyDefinition("filters",
-      pqCoreUtilities::QStringToQBytes(this->Form->CustomFilterName->text()).data(), root);
+    proxyManager->RegisterCustomProxyDefinition(
+      "filters", this->Form->CustomFilterName->text().toUtf8().data(), root);
   }
   else
   {
-    proxyManager->RegisterCustomProxyDefinition("sources",
-      pqCoreUtilities::QStringToQBytes(this->Form->CustomFilterName->text()).data(), root);
+    proxyManager->RegisterCustomProxyDefinition(
+      "sources", this->Form->CustomFilterName->text().toUtf8().data(), root);
   }
   root->Delete();
 }
@@ -318,7 +311,7 @@ void pqCustomFilterDefinitionWizard::addAutoIncludedProxies()
   {
     QString name = "auto_";
     name += proxy->GetGlobalIDAsString();
-    this->Filter->AddProxy(pqCoreUtilities::QStringToQBytes(name).data(), proxy);
+    this->Filter->AddProxy(name.toUtf8().data(), proxy);
   }
 }
 
@@ -341,10 +334,8 @@ bool pqCustomFilterDefinitionWizard::validateCustomFilterName()
     vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
   if (!this->OverwriteOK)
   {
-    if (proxyManager->GetProxyDefinition(
-          "filters", pqCoreUtilities::QStringToQBytes(filterName).data()) ||
-      proxyManager->GetProxyDefinition(
-        "sources", pqCoreUtilities::QStringToQBytes(filterName).data()))
+    if (proxyManager->GetProxyDefinition("filters", filterName.toUtf8().data()) ||
+      proxyManager->GetProxyDefinition("sources", filterName.toUtf8().data()))
     {
       QMessageBox::warning(this, "Duplicate Name", "This filter name already exists.\n"
                                                    "Please enter a different name.",

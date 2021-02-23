@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqCTHArraySelectionDecorator.h"
 
-#include "pqCoreUtilities.h"
 #include "pqPropertyWidget.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
@@ -72,7 +71,7 @@ void pqCTHArraySelectionDecorator::updateSelection()
 
   foreach (const QString& pname, this->PropertyNames)
   {
-    vtkSMProperty* prop = proxy->GetProperty(pqCoreUtilities::QStringToQBytes(pname).data());
+    vtkSMProperty* prop = proxy->GetProperty(pname.toUtf8().data());
     if (prop && prop != curProperty)
     {
       vtkSMUncheckedPropertyHelper(prop).SetNumberOfElements(0);

@@ -31,8 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqArrayListDomain.h"
 
-#include "pqCoreUtilities.h"
-
 #include "pqSMAdaptor.h"
 #include "vtkCommand.h"
 #include "vtkSMDomain.h"
@@ -98,6 +96,5 @@ void pqArrayListDomain::domainChanged()
   QVariant variantVal;
   variantVal.setValue(newVal);
 
-  this->parent()->setProperty(
-    pqCoreUtilities::QStringToQBytes(this->Internals->QProperty).data(), variantVal);
+  this->parent()->setProperty(this->Internals->QProperty.toUtf8().data(), variantVal);
 }

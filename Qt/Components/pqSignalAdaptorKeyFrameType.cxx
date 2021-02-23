@@ -36,7 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLabel>
 #include <QPointer>
 
-#include "pqCoreUtilities.h"
 #include "pqKeyFrameTypeWidget.h"
 #include "pqPropertyLinks.h"
 #include "vtkPVCompositeKeyFrame.h"
@@ -116,8 +115,7 @@ vtkSMProxy* pqSignalAdaptorKeyFrameType::getKeyFrameProxy() const
 void pqSignalAdaptorKeyFrameType::onTypeChanged()
 {
   QString text = this->currentData().toString();
-  int type =
-    vtkPVCompositeKeyFrame::GetTypeFromString(pqCoreUtilities::QStringToQBytes(text).data());
+  int type = vtkPVCompositeKeyFrame::GetTypeFromString(text.toUtf8().data());
   if (type == vtkPVCompositeKeyFrame::NONE)
   {
     qDebug() << "Unknown type chosen in the combox: " << text;

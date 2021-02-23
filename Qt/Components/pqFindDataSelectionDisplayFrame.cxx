@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
 #include "pqPropertiesPanel.h"
@@ -205,12 +204,10 @@ public:
       : "SelectionPointLabelVisibility";
 
     QString cur_array;
-    if (vtkSMPropertyHelper(repr->getProxy(), pqCoreUtilities::QStringToQBytes(vname).data(), true)
-          .GetAsInt() != 0)
+    if (vtkSMPropertyHelper(repr->getProxy(), vname.toUtf8().data(), true).GetAsInt() != 0)
     {
-      cur_array = vtkSMPropertyHelper(repr->getProxy(),
-                    pqCoreUtilities::QStringToQBytes(pname).data(), /*quiet=*/true)
-                    .GetAsString();
+      cur_array =
+        vtkSMPropertyHelper(repr->getProxy(), pname.toUtf8().data(), /*quiet=*/true).GetAsString();
     }
 
     foreach (QAction* action, menu.actions())
@@ -258,13 +255,13 @@ public:
       // selection
       vtkSMPropertyHelper(selectionProxy, selectionVisibilityName, true).Set(1);
       vtkSMPropertyHelper(selectionProxy, selectionArrayName, true)
-        .Set(pqCoreUtilities::QStringToQBytes(action->data().toString()).data());
+        .Set(action->data().toString().toUtf8().data());
       // interactive selection
       if (iSelectionProxy)
       {
         vtkSMPropertyHelper(iSelectionProxy, iSelectionVisibilityName, true).Set(1);
         vtkSMPropertyHelper(iSelectionProxy, iSelectionArrayName, true)
-          .Set(pqCoreUtilities::QStringToQBytes(action->data().toString()).data());
+          .Set(action->data().toString().toUtf8().data());
       }
     }
     else

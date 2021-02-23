@@ -14,7 +14,6 @@
 
 #include "pqApplicationCore.h"
 #include "pqCoreTestUtility.h"
-#include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqOptions.h"
 #include "pqPipelineAnnotationFilterModel.h"
@@ -148,31 +147,20 @@ void MainPipelineWindow::createPipelineWithAnnotation(pqServer* server)
   vtkSMSourceProxy::SafeDownCast(groupDS->getProxy())->UpdatePipeline();
 
   // Setup annotations:
-  wavelet->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(1)).data(), "-");
-  clip1->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(1)).data(), "-");
-  clip2->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(1)).data(), "-");
+  wavelet->getProxy()->SetAnnotation(this->FilterNames.at(1).toUtf8().data(), "-");
+  clip1->getProxy()->SetAnnotation(this->FilterNames.at(1).toUtf8().data(), "-");
+  clip2->getProxy()->SetAnnotation(this->FilterNames.at(1).toUtf8().data(), "-");
 
-  append->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(2)).data(), "-");
-  groupDS->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(2)).data(), "-");
+  append->getProxy()->SetAnnotation(this->FilterNames.at(2).toUtf8().data(), "-");
+  groupDS->getProxy()->SetAnnotation(this->FilterNames.at(2).toUtf8().data(), "-");
 
-  wavelet->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(3)).data(), "-");
-  clip1->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(3)).data(), "-");
-  clip2->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(3)).data(), "-");
-  append->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(3)).data(), "-");
+  wavelet->getProxy()->SetAnnotation(this->FilterNames.at(3).toUtf8().data(), "-");
+  clip1->getProxy()->SetAnnotation(this->FilterNames.at(3).toUtf8().data(), "-");
+  clip2->getProxy()->SetAnnotation(this->FilterNames.at(3).toUtf8().data(), "-");
+  append->getProxy()->SetAnnotation(this->FilterNames.at(3).toUtf8().data(), "-");
 
-  wavelet->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(4)).data(), "-");
-  cone->getProxy()->SetAnnotation(
-    pqCoreUtilities::QStringToQBytes(this->FilterNames.at(4)).data(), "-");
+  wavelet->getProxy()->SetAnnotation(this->FilterNames.at(4).toUtf8().data(), "-");
+  cone->getProxy()->SetAnnotation(this->FilterNames.at(4).toUtf8().data(), "-");
 
   // Tooltip
   wavelet->getProxy()->SetAnnotation("tooltip", "1+3+4");

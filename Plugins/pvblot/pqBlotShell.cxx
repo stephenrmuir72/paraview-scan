@@ -22,7 +22,6 @@
 #include <vtkPython.h> // python first
 
 #include "pqBlotShell.h"
-#include "pqCoreUtilities.h"
 
 #include "pqConsoleWidget.h"
 #include "pqServer.h"
@@ -136,7 +135,7 @@ void pqBlotShell::executePythonCommand(const QString& command)
 {
   Q_EMIT this->executing(true);
   // this->printMessage(command);
-  this->Interpretor->RunSimpleString(pqCoreUtilities::QStringToQBytes(command).data());
+  this->Interpretor->RunSimpleString(command.toUtf8().data());
   Q_EMIT this->executing(false);
 }
 

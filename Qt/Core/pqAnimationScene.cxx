@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqAnimationCue.h"
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqSMAdaptor.h"
 #include "pqSMProxy.h"
@@ -361,8 +360,8 @@ pqAnimationCue* pqAnimationScene::createCueInternal(
   pqServerManagerModel* smmodel = core->getServerManagerModel();
 
   pqObjectBuilder* builder = core->getObjectBuilder();
-  vtkSMProxy* cueProxy = builder->createProxy(
-    "animation", pqCoreUtilities::QStringToQBytes(cuetype).data(), this->getServer(), "animation");
+  vtkSMProxy* cueProxy =
+    builder->createProxy("animation", cuetype.toUtf8().data(), this->getServer(), "animation");
   pqAnimationCue* cue = smmodel->findItem<pqAnimationCue*>(cueProxy);
   if (!cue)
   {

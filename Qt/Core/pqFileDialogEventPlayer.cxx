@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreTestUtility.h"
 #include "pqQtDeprecated.h"
 
-#include "pqCoreUtilities.h"
 #include "pqEventDispatcher.h"
 #include "pqFileDialog.h"
 
@@ -112,7 +111,7 @@ bool pqFileDialogEventPlayer::playEvent(
   if (Command == "remove")
   {
     // Delete the file.
-    vtksys::SystemTools::RemoveFile(pqCoreUtilities::QStringToString(fileString));
+    vtksys::SystemTools::RemoveFile(fileString.toUtf8().toStdString());
     return true;
   }
   if (Command == "copy")
@@ -141,7 +140,7 @@ bool pqFileDialogEventPlayer::playEvent(
   }
   if (Command == "makeDir")
   {
-    return vtksys::SystemTools::MakeDirectory(pqCoreUtilities::QStringToString(fileString));
+    return vtksys::SystemTools::MakeDirectory(fileString.toUtf8().toStdString());
   }
   if (!this->Superclass::playEvent(Object, Command, Arguments, Error))
   {

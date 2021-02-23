@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqExtractor.h"
 #include "pqInterfaceTracker.h"
 #include "pqOptions.h"
@@ -416,7 +415,7 @@ void pqServerManagerModel::onProxyUnRegistered(
   // If so, we are simply renaming the proxy.
   vtkSmartPointer<vtkStringList> names = vtkSmartPointer<vtkStringList>::New();
   vtkSMSessionProxyManager* pxm = proxy->GetSessionProxyManager();
-  pxm->GetProxyNames(pqCoreUtilities::QStringToQBytes(group).data(), proxy, names);
+  pxm->GetProxyNames(group.toUtf8().data(), proxy, names);
   for (int cc = 0; cc < names->GetLength(); cc++)
   {
     if (name == names->GetString(cc))
@@ -589,7 +588,7 @@ void pqServerManagerModel::updateSettingsFromQSettings(pqServer* server)
       }
       else if (vtkSMStringVectorProperty* svp = vtkSMStringVectorProperty::SafeDownCast(prop))
       {
-        svp->SetElement(0, pqCoreUtilities::QStringToQBytes(value.toString()).data());
+        svp->SetElement(0, value.toString().toUtf8().data());
       }
       else
       {

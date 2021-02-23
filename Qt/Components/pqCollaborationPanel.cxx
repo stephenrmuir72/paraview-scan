@@ -45,7 +45,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
 #include "pqCollaborationManager.h"
-#include "pqCoreUtilities.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqView.h"
@@ -227,7 +226,7 @@ void pqCollaborationPanel::itemChanged(QTableWidgetItem* item)
         QString userName = item->text();
         if (userName != collab->GetUserLabel(id))
         {
-          collab->SetUserLabel(id, pqCoreUtilities::QStringToQBytes(userName).data());
+          collab->SetUserLabel(id, userName.toUtf8().data());
         }
       }
     }

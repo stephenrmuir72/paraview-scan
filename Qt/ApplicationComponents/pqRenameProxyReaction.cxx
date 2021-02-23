@@ -92,15 +92,15 @@ void pqRenameProxyReaction::onTriggered()
     {
       SM_SCOPED_TRACE(CallFunction)
         .arg("RenameView")
-        .arg(pqCoreUtilities::QStringToQBytes(newName).data())
+        .arg(newName.toUtf8().data())
         .arg(proxy->getProxy());
     }
     else
     {
       SM_SCOPED_TRACE(CallFunction)
         .arg("RenameProxy")
-        .arg(pqCoreUtilities::QStringToQBytes(newName).data())
-        .arg(pqCoreUtilities::QStringToQBytes(proxy->getSMGroup()).data())
+        .arg(newName.toUtf8().data())
+        .arg(proxy->getSMGroup().toUtf8().data())
         .arg(proxy->getProxy());
     }
     BEGIN_UNDO_SET(tr("Rename") + " " + group);

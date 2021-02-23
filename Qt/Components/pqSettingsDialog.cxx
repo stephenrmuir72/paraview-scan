@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqProxyWidget.h"
 #include "pqSearchBox.h"
 #include "pqServer.h"
@@ -249,7 +248,7 @@ void pqSettingsDialog::onAccepted()
         smproperty->GetHints()->FindNestedElementByName("SaveInQSettings"))
       {
         QString key = QString("%1.%2").arg(iter->GetKey()).arg(iter2->GetKey());
-        qSettings->saveInQSettings(pqCoreUtilities::QStringToQBytes(key).data(), smproperty);
+        qSettings->saveInQSettings(key.toUtf8().data(), smproperty);
       }
     }
   }

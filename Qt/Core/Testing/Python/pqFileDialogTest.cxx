@@ -18,7 +18,6 @@
 #include "vtkSmartPointer.h"
 
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 #include "pqObjectBuilder.h"
 #include "pqOptions.h"
@@ -55,7 +54,7 @@ static void CreateEmptyFile(const QString& f)
   QFile file(f);
   file.open(QIODevice::WriteOnly);
   QString str = "can delete";
-  file.write(pqCoreUtilities::QStringToQBytes(str).data(), str.size());
+  file.write(str.toUtf8().data(), str.size());
   file.close();
 }
 

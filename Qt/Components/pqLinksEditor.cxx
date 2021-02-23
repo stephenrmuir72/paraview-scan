@@ -57,7 +57,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // pqCore
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqPipelineSource.h"
 #include "pqRenderView.h"
@@ -736,10 +735,10 @@ void pqLinksEditor::updateEnabledState()
     // check property types compatible
     if (this->SelectedProxy1 && this->SelectedProxy2)
     {
-      vtkSMProperty* p1 = this->SelectedProxy1->GetProperty(
-        pqCoreUtilities::QStringToQBytes(this->SelectedProperty1).data());
-      vtkSMProperty* p2 = this->SelectedProxy2->GetProperty(
-        pqCoreUtilities::QStringToQBytes(this->SelectedProperty2).data());
+      vtkSMProperty* p1 =
+        this->SelectedProxy1->GetProperty(this->SelectedProperty1.toUtf8().data());
+      vtkSMProperty* p2 =
+        this->SelectedProxy2->GetProperty(this->SelectedProperty2.toUtf8().data());
       if (!p1 || !p2 || ::propertyType(p1) != ::propertyType(p2))
       {
         enabled = false;

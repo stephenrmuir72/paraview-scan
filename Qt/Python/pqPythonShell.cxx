@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqApplicationCore.h"
 #include "pqConsoleWidget.h"
-#include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 #include "pqPythonShellCompleter.h"
 #include "pqUndoStack.h"
@@ -218,7 +217,7 @@ private:
     {
       this->Parent->prompt();
       this->Parent->printString(line + "\n");
-      this->Interpreter->Push(pqCoreUtilities::QStringToQBytes(line).data());
+      this->Interpreter->Push(line.toUtf8().data());
     }
     this->Parent->prompt();
 
@@ -384,8 +383,7 @@ void pqPythonShell::executeScript(const QString& script)
   command.replace("\r", "\n");
 
   this->Internals->begin();
-  this->Internals->interpreter()->RunStringWithConsoleLocals(
-    pqCoreUtilities::QStringToQBytes(command).data());
+  this->Internals->interpreter()->RunStringWithConsoleLocals(command.toUtf8().data());
   this->Internals->end();
 
   CLEAR_UNDO_STACK();
@@ -404,8 +402,7 @@ void pqPythonShell::pushScript(const QString& script)
   this->Internals->begin();
   foreach (QString line, lines)
   {
-    bool isMultilineStatement =
-      this->Internals->interpreter()->Push(pqCoreUtilities::QStringToQBytes(line).data());
+    bool isMultilineStatement = this->Internals->interpreter()->Push(line.toUtf8().data());
     this->Prompt = isMultilineStatement ? pqPythonShell::PS2() : pqPythonShell::PS1();
   }
   this->Internals->end();
@@ -476,7 +473,7 @@ void pqPythonShell::runScript()
         code.append(file.readAll());
         code.append("\n");
         code.append("del __file__\n");
-        this->executeScript(pqCoreUtilities::QStringToQBytes(code).data());
+        this->executeScript(code.toUtf8().data());
       }
       else
       {

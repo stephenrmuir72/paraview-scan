@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqCoreUtilities.h"
 #include "pqDoubleRangeDialog.h"
 #include "pqEditColorMapReaction.h"
 #include "pqInterfaceTracker.h"
@@ -301,7 +300,7 @@ void pqDefaultContextMenu::colorMenuTriggered(QAction* action)
     vtkSMProxy* oldLutProxy = vtkSMPropertyHelper(reprProxy, "LookupTable", true).GetAsProxy();
 
     vtkSMPVRepresentationProxy::SetScalarColoring(
-      reprProxy, pqCoreUtilities::QStringToQBytes(array.second).data(), array.first);
+      reprProxy, array.second.toUtf8().data(), array.first);
 
     vtkNew<vtkSMTransferFunctionManager> tmgr;
 

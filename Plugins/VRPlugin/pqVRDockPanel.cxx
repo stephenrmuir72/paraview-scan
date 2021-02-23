@@ -322,8 +322,7 @@ void pqVRDockPanel::removeConnection()
 void pqVRDockPanel::addStyle()
 {
   vtkSMProxy* proxy = this->Internals->propertyCombo->getCurrentProxy();
-  QByteArray property =
-    pqCoreUtilities::QStringToQBytes(this->Internals->propertyCombo->getCurrentPropertyName());
+  QByteArray property = this->Internals->propertyCombo->getCurrentPropertyName().toUtf8();
   QString styleString = this->Internals->stylesCombo->currentText();
 
   vtkVRInteractorStyleFactory* styleFactory = vtkVRInteractorStyleFactory::GetInstance();
@@ -336,10 +335,10 @@ void pqVRDockPanel::addStyle()
   }
 
   style->SetControlledProxy(proxy);
-  style->SetControlledPropertyName(property.data());
+  style->SetControlledPropertyName(property.toStdString());
 
   pqVRAddStyleDialog dialog(this);
-  QString name = this->Internals->createName(style);
+  QString name = this->Internals->createName(style.toUtf8());
   dialog.setInteractorStyle(style, name);
   if (!dialog.isConfigurable() || dialog.exec() == QDialog::Accepted)
   {
@@ -506,7 +505,7 @@ void pqVRDockPanel::saveState()
   }
 
   // Avoid temporary QByteArrays in QString --> const char * conversion:
-  QByteArray filename_ba = pqCoreUtilities::QStringToQBytes(filename);
+  QByteArray filename_ba = filename.toUtf8();
   vtksys::ofstream os(filename_ba.constData(), ios::out);
   root->PrintXML(os, vtkIndent());
 }

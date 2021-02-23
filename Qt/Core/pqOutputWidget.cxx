@@ -145,7 +145,7 @@ MessageHandler* MessageHandler::instance()
 
 void MessageHandler::displayMessage(QtMsgType type, const QString& msg)
 {
-  QByteArray localMsg = pqCoreUtilities::QStringToQBytes(msg);
+  QByteArray localMsg = msg.toUtf8();
   vtkOutputWindow* vtkWindow = vtkOutputWindow::GetInstance();
   if (vtkWindow)
   {
@@ -455,7 +455,7 @@ void pqOutputWidget::saveToFile()
   }
 
   QString filename = fileDialog.getSelectedFiles().first();
-  QByteArray filename_ba = pqCoreUtilities::QStringToQBytes(filename);
+  QByteArray filename_ba = filename.toUtf8();
   std::ofstream fileStream;
   fileStream.open(filename_ba.data());
   if (fileStream.is_open())

@@ -75,8 +75,7 @@ pqOMETransferFunctionsPropertyWidget::pqOMETransferFunctionsPropertyWidget(
   for (int idx = 0; idx < 10; ++idx)
   {
     const QString function = QString("Channel_%1").arg(idx + 1);
-    vtkSMPropertyHelper helper(
-      smgroup->GetProperty(pqCoreUtilities::QStringToQBytes(function).data()));
+    vtkSMPropertyHelper helper(smgroup->GetProperty(function.toUtf8().data()));
     if (auto lut = helper.GetAsProxy())
     {
       QWidget* page = new QWidget(this);
@@ -128,18 +127,15 @@ pqOMETransferFunctionsPropertyWidget::pqOMETransferFunctionsPropertyWidget(
       page->hide();
       internals.Pages.push_back(page);
 
-      this->addPropertyLink(this,
-        pqCoreUtilities::QStringToQBytes(QString("RGBPoints;%1").arg(idx)).data(),
+      this->addPropertyLink(this, QString("RGBPoints;%1").arg(idx).toUtf8().data(),
         SIGNAL(xrgbPointsChanged()), lut, lut->GetProperty("RGBPoints"));
 
       auto sof = vtkSMPropertyHelper(lut, "ScalarOpacityFunction").GetAsProxy();
-      this->addPropertyLink(this,
-        pqCoreUtilities::QStringToQBytes(QString("Points;%1").arg(idx)).data(),
+      this->addPropertyLink(this, QString("Points;%1").arg(idx).toUtf8().data(),
         SIGNAL(xvmsPointsChanged()), sof, sof->GetProperty("Points"));
 
       // hookup weight.
-      if (auto weigthProp = smgroup->GetProperty(
-            pqCoreUtilities::QStringToQBytes(QString("%1Weight").arg(function)).data()))
+      if (auto weigthProp = smgroup->GetProperty(QString("%1Weight").arg(function).toUtf8().data()))
       {
         this->addPropertyLink(
           pageUi.Weight, "value", SIGNAL(valueChanged(double)), smproxy, weigthProp);
@@ -209,7 +205,7 @@ void pqOMETransferFunctionsPropertyWidget::channelVisibilitiesChanged()
   internals.Ui.tabWidget->clear();
   for (auto page : internals.Pages)
   {
-    if (values.find(pqCoreUtilities::QStringToString(page->objectName())) != values.end())
+    if (values.find(page->objectName().toUtf8().toStdString()) != values.end())
     {
       internals.Ui.tabWidget->addTab(page, page->objectName());
       page->show();
@@ -241,7 +237,7 @@ void pqOMETransferFunctionsPropertyWidget::stcChanged(pqTransferFunctionWidget* 
 
   QScopedValueRollback<bool> rollback(this->UpdatingProperty, true);
   auto pname = tfWidget->property("SM_PROPERTY").toString();
-  this->setProperty(pqCoreUtilities::QStringToQBytes(pname).data(), values);
+  this->setProperty(pname.toUtf8().data(), values);
   Q_EMIT this->xrgbPointsChanged();
 }
 
@@ -264,7 +260,7 @@ void pqOMETransferFunctionsPropertyWidget::pwfChanged(pqTransferFunctionWidget* 
   }
   QScopedValueRollback<bool> rollback(this->UpdatingProperty, true);
   auto pname = tfWidget->property("SM_PROPERTY").toString();
-  this->setProperty(pqCoreUtilities::QStringToQBytes(pname).data(), values);
+  this->setProperty(pname.toUtf8().data(), values);
   Q_EMIT this->xvmsPointsChanged();
 }
 
@@ -280,14 +276,14 @@ bool pqOMETransferFunctionsPropertyWidget::event(QEvent* evt)
 
     if (parts[0] == "RGBPoints")
     {
-      this->setXrgbPoints(parts[1].toInt(),
-        this->property(pqCoreUtilities::QStringToQBytes(pname).data()).value<QList<QVariant> >());
+      this->setXrgbPoints(
+        parts[1].toInt(), this->property(pname.toUtf8().data()).value<QList<QVariant> >());
     }
     else
     {
       assert(parts[0] == "Points");
-      this->setXvmsPoints(parts[1].toInt(),
-        this->property(pqCoreUtilities::QStringToQBytes(pname).data()).value<QList<QVariant> >());
+      this->setXvmsPoints(
+        parts[1].toInt(), this->property(pname.toUtf8().data()).value<QList<QVariant> >());
     }
   }
 

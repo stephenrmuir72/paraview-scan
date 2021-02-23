@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqAnnotationsModel.h"
-#include "pqCoreUtilities.h"
 #include "pqPropertiesPanel.h"
 #include "vtkCommand.h"
 #include "vtkEventQtSlotConnect.h"
@@ -636,7 +635,7 @@ void pqSeriesEditorPropertyWidget::onPresetChanged(const QString& name)
     int idx = -1;
     if (presetAnnotations->GetLength() > 0)
     {
-      QByteArray nameArray = pqCoreUtilities::QStringToQBytes(currentAnnotations.at(i).toString());
+      QByteArray nameArray = currentAnnotations.at(i).toString().toUtf8();
       const char* seriesName = nameArray.data();
 
       auto seriesStringlist = QStringList(seriesName);

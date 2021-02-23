@@ -32,8 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqComparativeVisPanel.h"
 #include "ui_pqComparativeVisPanel.h"
 
-#include "pqCoreUtilities.h"
-
 // Server Manager Includes.
 #include "vtkEventQtSlotConnect.h"
 #include "vtkPVComparativeAnimationCue.h"
@@ -103,8 +101,7 @@ QString getName(vtkSMProxy* proxy)
   pq_proxy = pqProxy::findProxyWithHelper(proxy, helper_key);
   if (pq_proxy)
   {
-    vtkSMProperty* prop =
-      pq_proxy->getProxy()->GetProperty(pqCoreUtilities::QStringToQBytes(helper_key).data());
+    vtkSMProperty* prop = pq_proxy->getProxy()->GetProperty(helper_key.toUtf8().data());
     if (prop)
     {
       return QString("%1 - %2").arg(pq_proxy->getSMName()).arg(prop->GetXMLLabel());
@@ -365,10 +362,10 @@ void pqComparativeVisPanel::addParameter()
 
   if (realProxy)
   {
-    BEGIN_UNDO_SET(QString("Add parameter %1 : %2")
-                     .arg(pqComparativeVisPanelNS::getName(realProxy))
-                     .arg(pqComparativeVisPanelNS::getName(
-                       realProxy, pqCoreUtilities::QStringToQBytes(pname).data(), pindex)));
+    BEGIN_UNDO_SET(
+      QString("Add parameter %1 : %2")
+        .arg(pqComparativeVisPanelNS::getName(realProxy))
+        .arg(pqComparativeVisPanelNS::getName(realProxy, pname.toUtf8().data(), pindex)));
   }
   else
   {
@@ -376,8 +373,7 @@ void pqComparativeVisPanel::addParameter()
   }
 
   // Add new cue.
-  vtkSMProxy* cueProxy = pqComparativeVisPanelNS::newCue(
-    realProxy, pqCoreUtilities::QStringToQBytes(pname).data(), pindex);
+  vtkSMProxy* cueProxy = pqComparativeVisPanelNS::newCue(realProxy, pname.toUtf8().data(), pindex);
   vtkSMPropertyHelper(this->view()->getProxy(), "Cues").Add(cueProxy);
   cueProxy->Delete();
   this->view()->getProxy()->UpdateVTKObjects();

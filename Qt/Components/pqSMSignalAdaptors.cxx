@@ -49,7 +49,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView Server Manager includes
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqPipelineFilter.h"
 #include "pqPipelineModel.h"
 #include "pqPipelineSource.h"
@@ -69,7 +68,7 @@ QVariant pqSignalAdaptorProxy::proxy() const
   QString str = this->parent()->property(this->PropertyName).toString();
   vtkSMSessionProxyManager* pm =
     vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
-  pqSMProxy p = pm->GetProxy(pqCoreUtilities::QStringToQBytes(str).data());
+  pqSMProxy p = pm->GetProxy(str.toUtf8().data());
   QVariant ret;
   ret.setValue(p);
   return ret;

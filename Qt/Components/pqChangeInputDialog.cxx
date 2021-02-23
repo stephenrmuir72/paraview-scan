@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
 #include "pqPipelineModel.h"
@@ -218,7 +217,7 @@ void pqChangeInputDialog::inputPortToggled(bool checked)
   }
 
   vtkSMInputProperty* inputProp = vtkSMInputProperty::SafeDownCast(
-    this->Internals->Proxy->GetProperty(pqCoreUtilities::QStringToQBytes(input_prop_name).data()));
+    this->Internals->Proxy->GetProperty(input_prop_name.toUtf8().data()));
 
   QModelIndex root = this->Internals->pipelineView->getRootIndex();
   QModelIndex index = this->Internals->PipelineModel->getNextIndex(root, root);

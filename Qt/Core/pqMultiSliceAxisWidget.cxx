@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqMultiSliceAxisWidget.h"
 
 #include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqQVTKWidget.h"
 #include "pqSMAdaptor.h"
@@ -141,7 +140,7 @@ QWidget* pqMultiSliceAxisWidget::getVTKWidget()
 // ----------------------------------------------------------------------------
 void pqMultiSliceAxisWidget::setTitle(const QString& newTitle)
 {
-  this->Internal->SliceItem->GetAxis()->SetTitle(pqCoreUtilities::QStringToString(newTitle));
+  this->Internal->SliceItem->GetAxis()->SetTitle(newTitle.toUtf8().toStdString());
   Q_EMIT this->titleChanged(newTitle);
 }
 

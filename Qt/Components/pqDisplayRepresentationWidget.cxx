@@ -70,8 +70,7 @@ protected:
 
     BEGIN_UNDO_SET("Change representation type");
     vtkSMProxy* reprProxy = this->proxySM();
-    vtkSMRepresentationProxy::SetRepresentationType(
-      reprProxy, pqCoreUtilities::QStringToQBytes(value.toString()).data());
+    vtkSMRepresentationProxy::SetRepresentationType(reprProxy, value.toString().toUtf8().data());
     END_UNDO_SET();
   }
 

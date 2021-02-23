@@ -162,9 +162,6 @@ public:
    */
   static QString number(double value);
 
-  static QByteArray QStringToQBytes(const QString& value);
-  static std::string QStringToString(const QString& value);
-
 private:
   static QWidget* findMainWindow();
   static QPointer<QWidget> MainWidget;

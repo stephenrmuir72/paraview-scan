@@ -31,8 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqColorPaletteSelectorWidget.h"
 
-#include "pqCoreUtilities.h"
-
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyDefinitionManager.h"
@@ -135,8 +133,7 @@ void pqColorPaletteSelectorWidget::loadPalette(int index)
   QString name = this->ComboBox->itemData(index).toString();
 
   vtkSMSessionProxyManager* pxm = smproxy->GetSessionProxyManager();
-  vtkSMProxy* paletteProxy =
-    pxm->GetPrototypeProxy("palettes", pqCoreUtilities::QStringToQBytes(name).data());
+  vtkSMProxy* paletteProxy = pxm->GetPrototypeProxy("palettes", name.toUtf8().data());
   assert(paletteProxy);
 
   smproxy->Copy(paletteProxy);

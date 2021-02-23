@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPython.h"
 
 #include "pqConsoleWidget.h"
-#include "pqCoreUtilities.h"
 
 #include "pqPythonShellCompleter.h"
 
@@ -126,7 +125,7 @@ QStringList pqPythonShellCompleter::getPythonAttributes(const QString& pythonObj
     QStringList tmpNames = pythonObjectName.split('.');
     for (int i = 0; i < tmpNames.size() && object; ++i)
     {
-      QByteArray tmpName = pqCoreUtilities::QStringToQBytes(tmpNames.at(i));
+      QByteArray tmpName = tmpNames.at(i).toUtf8();
       PyObject* prevObj = object;
       if (PyDict_Check(object))
       {

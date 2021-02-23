@@ -187,8 +187,7 @@ void pqPythonManager::executeScript(const QString& filename)
     vtkNew<vtkPythonInteractiveInterpreter> interp;
     interp->AddObserver(vtkCommand::UpdateEvent, &helper, &pqPythonManagerRawInputHelper::rawInput);
     interp->Push("import sys");
-    interp->Push(
-      pqCoreUtilities::QStringToQBytes(QString("__file__ = r'%1'").arg(filename)).data());
+    interp->Push(QString("__file__ = r'%1'").arg(filename).toUtf8().data());
     interp->RunStringWithConsoleLocals(code.data());
     interp->Push("del __file__");
     vtkPythonInterpreter::SetCaptureStdin(prevCapture);

@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
 #include "pqApplicationSettingsReaction.h"
-#include "pqCoreUtilities.h"
 #include "pqUndoStack.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkSMProxy.h"
@@ -127,15 +126,14 @@ void pqLoadPaletteReaction::actionTriggered(QAction* actn)
 
     vtkSMProxy* paletteProxy = pxm->GetProxy("settings", "ColorPalette");
 
-    vtkSMProxy* palettePrototype = pxm->GetPrototypeProxy("palettes",
-      pqCoreUtilities::QStringToQBytes(actn->property("PV_XML_NAME").toString()).data());
+    vtkSMProxy* palettePrototype =
+      pxm->GetPrototypeProxy("palettes", actn->property("PV_XML_NAME").toString().toUtf8().data());
     assert(palettePrototype);
 
     BEGIN_UNDO_SET("Load color palette");
     SM_SCOPED_TRACE(CallFunction)
       .arg("LoadPalette")
-      .arg("paletteName",
-        pqCoreUtilities::QStringToQBytes(actn->property("PV_XML_NAME").toString()).data());
+      .arg("paletteName", actn->property("PV_XML_NAME").toString().toUtf8().data());
     paletteProxy->Copy(palettePrototype);
     paletteProxy->UpdateVTKObjects();
     END_UNDO_SET();
