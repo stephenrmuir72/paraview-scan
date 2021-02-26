@@ -101,10 +101,7 @@ vtkGlyph3DRepresentation::vtkGlyph3DRepresentation()
   this->GlyphMapper->SetInterpolateScalarsBeforeMapping(0);
   this->LODGlyphMapper->SetInterpolateScalarsBeforeMapping(0);
 
-  vtkCompositeDataDisplayAttributes* compositeAttributes =
-    vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper)->GetCompositeDataDisplayAttributes();
-  this->GlyphMapper->SetBlockAttributes(compositeAttributes);
-  this->LODGlyphMapper->SetBlockAttributes(compositeAttributes);
+  this->SetupDefaults();
 }
 
 //----------------------------------------------------------------------------
@@ -115,6 +112,24 @@ vtkGlyph3DRepresentation::~vtkGlyph3DRepresentation()
   this->LODGlyphMapper->Delete();
   this->GlyphActor->Delete();
   this->DummySource->Delete();
+}
+
+//----------------------------------------------------------------------------
+void vtkGlyph3DRepresentation::SetupDefaults()
+{
+  this->Superclass::SetupDefaults();
+
+  if (auto compositeAttributes = vtkCompositePolyDataMapper2::SafeDownCast(this->Mapper)
+                                   ->GetCompositeDataDisplayAttributes())
+  {
+    this->GlyphMapper->SetBlockAttributes(compositeAttributes);
+  }
+
+  if (auto compositeAttributes = vtkCompositePolyDataMapper2::SafeDownCast(this->LODMapper)
+                                   ->GetCompositeDataDisplayAttributes())
+  {
+    this->LODGlyphMapper->SetBlockAttributes(compositeAttributes);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -249,25 +264,22 @@ int vtkGlyph3DRepresentation::ProcessViewRequest(
   else if (request_type == vtkPVView::REQUEST_UPDATE_LOD())
   {
     vtkPVRenderView::SetPieceLOD(
-      inInfo, this, this->GlyphMultiBlockMaker->GetOutputDataObject(0), 1);
+      inInfo, this, this->GlyphMultiBlockMaker->GetOutputDataObject(0), 0, 1);
   }
 
   if (request_type == vtkPVView::REQUEST_RENDER())
   {
-    vtkAlgorithmOutput* producerPort = vtkPVRenderView::GetPieceProducer(inInfo, this, 0);
-    vtkAlgorithmOutput* producerPortLOD = vtkPVRenderView::GetPieceProducerLOD(inInfo, this, 0);
-    vtkAlgorithmOutput* producerGlyphPort = vtkPVRenderView::GetPieceProducer(inInfo, this, 1);
-    vtkAlgorithmOutput* producerGlyphPortLOD =
-      vtkPVRenderView::GetPieceProducerLOD(inInfo, this, 1);
+    auto data = vtkPVView::GetDeliveredPiece(inInfo, this, 0);
+    auto dataLOD = vtkPVView::GetDeliveredPieceLOD(inInfo, this, 0);
+    this->GlyphMapper->SetInputDataObject(0, data);
+    this->LODGlyphMapper->SetInputDataObject(0, dataLOD);
 
-    this->GlyphMapper->SetInputConnection(0, producerPort);
-    this->LODGlyphMapper->SetInputConnection(0, producerPortLOD);
+    auto glyph = vtkPVView::GetDeliveredPiece(inInfo, this, 1);
+    auto glyphLOD = vtkPVView::GetDeliveredPieceLOD(inInfo, this, 1);
 
     // Extract the real glyph source from the MBDS wrapper (see note above
     // vtkGlyphRepresentationMultiBlockMaker)
-    producerGlyphPort->GetProducer()->Update();
-    vtkMultiBlockDataSet* glyphMBDS = vtkMultiBlockDataSet::SafeDownCast(
-      producerGlyphPort->GetProducer()->GetOutputDataObject(producerGlyphPort->GetIndex()));
+    auto glyphMBDS = vtkMultiBlockDataSet::SafeDownCast(glyph);
     if (glyphMBDS && glyphMBDS->GetNumberOfBlocks() == 1)
     {
       vtkDataObject* realGlyph = glyphMBDS->GetBlock(0);
@@ -278,9 +290,7 @@ int vtkGlyph3DRepresentation::ProcessViewRequest(
       this->GlyphMapper->SetInputDataObject(1, nullptr);
     }
 
-    producerGlyphPortLOD->GetProducer()->Update();
-    vtkMultiBlockDataSet* glyphMBDSLOD = vtkMultiBlockDataSet::SafeDownCast(
-      producerGlyphPortLOD->GetProducer()->GetOutputDataObject(producerGlyphPortLOD->GetIndex()));
+    auto glyphMBDSLOD = vtkMultiBlockDataSet::SafeDownCast(glyphLOD);
     if (glyphMBDSLOD && glyphMBDSLOD->GetNumberOfBlocks() == 1)
     {
       vtkDataObject* realGlyphLOD = glyphMBDSLOD->GetBlock(0);
@@ -361,16 +371,8 @@ void vtkGlyph3DRepresentation::UpdateColoringParameters()
 //----------------------------------------------------------------------------
 void vtkGlyph3DRepresentation::ComputeGlyphBounds(double bounds[6])
 {
-  // we're changing the glyph mapper's input connection temporarily.
-  vtkSmartPointer<vtkAlgorithmOutput> port;
-  if (this->GlyphMapper->GetNumberOfInputConnections(0) == 1)
-  {
-    port = this->GlyphMapper->GetInputConnection(0, 0);
-  }
-
   this->GlyphMapper->SetInputConnection(this->MultiBlockMaker->GetOutputPort());
   this->GlyphMapper->GetBounds(bounds);
-  this->GlyphMapper->SetInputConnection(port);
 }
 
 //----------------------------------------------------------------------------
