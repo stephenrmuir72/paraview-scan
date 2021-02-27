@@ -152,23 +152,23 @@ void MessageHandler::displayMessage(QtMsgType type, const QString& msg)
     switch (type)
     {
       case QtDebugMsg:
-        vtkWindow->DisplayDebugText(localMsg.constData());
+        vtkWindow->DisplayDebugText(localMsg.data());
         break;
 
       case QtInfoMsg:
-        vtkWindow->DisplayText(localMsg.constData());
+        vtkWindow->DisplayText(localMsg.data());
         break;
 
       case QtWarningMsg:
-        vtkWindow->DisplayWarningText(localMsg.constData());
+        vtkWindow->DisplayWarningText(localMsg.data());
         break;
 
       case QtCriticalMsg:
-        vtkWindow->DisplayErrorText(localMsg.constData());
+        vtkWindow->DisplayErrorText(localMsg.data());
         break;
 
       case QtFatalMsg:
-        vtkWindow->DisplayErrorText(localMsg.constData());
+        vtkWindow->DisplayErrorText(localMsg.data());
         abort();
         break;
     }

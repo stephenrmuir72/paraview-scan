@@ -787,7 +787,7 @@ void pqQueryClauseWidget::addSelectionQualifiers(vtkSMProxy* selSource)
       this->LastQuery = query;
       if (!query.isEmpty())
       {
-        vtkSMPropertyHelper(selSource, "QueryString").Set(query.toUtf8().constData());
+        vtkSMPropertyHelper(selSource, "QueryString").Set(query.toUtf8().data());
       }
     }
     break;

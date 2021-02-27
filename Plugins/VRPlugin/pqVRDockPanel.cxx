@@ -504,9 +504,7 @@ void pqVRDockPanel::saveState()
     queueHandler->saveStylesConfiguration(root.GetPointer());
   }
 
-  // Avoid temporary QByteArrays in QString --> const char * conversion:
-  QByteArray filename_ba = filename.toUtf8();
-  vtksys::ofstream os(filename_ba.constData(), ios::out);
+  vtksys::ofstream os(filename_ba.toUtf8().data(), ios::out);
   root->PrintXML(os, vtkIndent());
 }
 
