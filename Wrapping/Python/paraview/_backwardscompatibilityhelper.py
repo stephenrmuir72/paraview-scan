@@ -752,16 +752,6 @@ def GetProxy(module, key, **kwargs):
             clip.Invert = 0
             return clip
     if version < 5.6:
-        if key == "Glyph":
-            # In PV 5.6, we replaced the Glyph filter with a new implementation that has a
-            # different set of properties. The previous implementation was renamed to
-            # GlyphLegacy.
-            print("Creating GlyphLegacy")
-            glyph = builtins.getattr(module, "GlyphLegacy")(**kwargs)
-            print(glyph)
-            return glyph
-    if version < 5.6:
-        if key == "Glyph":
             # In PV 5.6, we replaced the Glyph filter with a new implementation that has a
             # different set of properties. The previous implementation was renamed to
             # GlyphLegacy.
@@ -776,6 +766,12 @@ def GetProxy(module, key, **kwargs):
             reader = builtins.getattr(module, key)(**kwargs)
             reader.UseLegacyBlockNamesWithElementTypes = 1
             return reader
+    if version <= 5.9:
+        if key == "PlotOverLine":
+            ## in 5.10, we changed the backend of Plot Over Line
+            ## This restores the previous backend.
+            probeLine = builtins.getattr(module, "PlotOverLineLegacy")(**kwargs)
+            return probeLine
     return builtins.getattr(module, key)(**kwargs)
 
 def lookupTableUpdate(lutName):
