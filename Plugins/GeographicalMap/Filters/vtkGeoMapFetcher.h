@@ -85,8 +85,9 @@ public:
 
   //@{
   /**
-   * Get/Set the dimension of the downloaded map.
-   * Default is 500x500.
+   * Get/Set the bounding box of the downloaded map.
+   * Format is {latMin, latMax, longMin, longMax}
+   * Default is {0,1,0,1}.
    */
   vtkSetVector4Macro(MapBoundingBox, double);
   vtkGetVector4Macro(MapBoundingBox, double);
