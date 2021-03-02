@@ -26,6 +26,7 @@
 #include <curl/curl.h>
 
 #include <cassert>
+#include <cmath>
 #include <sstream>
 
 //-----------------------------------------------------------------------------
@@ -177,8 +178,25 @@ int vtkGeoMapFetcher::RequestData(
         break;
     }
   }
-  url << "&center=" << this->Center[0] << "," << this->Center[1];
-  url << "&zoom=" << this->ZoomLevel;
+
+  int currentZoomLevel = this->ZoomLevel;
+  double currentCenter[2] = { this->Center[0], this->Center[1] };
+  if (this->FetchingMethod == BoundingBox)
+  {
+    // There is a bounding box option in the MapQuest API, however we ignore it as
+    // the Google Map API does not have it. Instead we infere the center and the zoom level
+    // from the BB. This ensure that if we change the provider we still get the exact same image.
+    // The implemented algorithm is the inverse function of getBorder() from
+    // this thread :https://stackoverflow.com/a/12511820/2609654.
+    // Since we round a double to an int the image can be off by a few meters.
+    currentCenter[0] = (this->MapBoundingBox[0] + this->MapBoundingBox[1]) * 0.5;
+    currentCenter[1] = (this->MapBoundingBox[2] + this->MapBoundingBox[3]) * 0.5;
+    currentZoomLevel = static_cast<int>(std::round(
+      std::log2(this->Dimension[1] / (2 * (this->MapBoundingBox[3] - currentCenter[1])))));
+  }
+  url << "&center=" << currentCenter[0] << "," << currentCenter[1];
+  url << "&zoom=" << currentZoomLevel;
+
   url << "&size=" << this->Dimension[0] << (this->Provider == GoogleMap ? "x" : ",")
       << this->Dimension[1];
 
@@ -229,18 +247,18 @@ int vtkGeoMapFetcher::RequestData(
 
   // initialize origin to the center point
   double origin[2];
-  vtkGeoMapFetcher::LatLngToPoint(this->Center[0], this->Center[1], origin[0], origin[1]);
+  vtkGeoMapFetcher::LatLngToPoint(currentCenter[0], currentCenter[1], origin[0], origin[1]);
 
   // shift to corner
-  int scale = (1 << (this->ZoomLevel + (this->Upscale ? 1 : 0)));
+  int scale = (1 << (currentZoomLevel + (this->Upscale ? 1 : 0)));
   origin[0] -= 0.5 * dims[0] / scale;
   origin[1] -= 0.5 * dims[1] / scale;
 
   vtkGeoMapFetcher::PointToLatLng(origin[0], origin[1], origin[0], origin[1]);
 
   // swap lat/lon in order to have lon=X and lat=Y
-  double spacing[2] = { 2.0 * (this->Center[0] - origin[0]) / dims[1],
-    2.0 * (this->Center[1] - origin[1]) / dims[0] };
+  double spacing[2] = { 2.0 * (currentCenter[0] - origin[0]) / dims[1],
+    2.0 * (currentCenter[1] - origin[1]) / dims[0] };
 
   output->SetSpacing(spacing[1], spacing[0], 1.0);
   output->SetOrigin(origin[1], origin[0], 0.0);
