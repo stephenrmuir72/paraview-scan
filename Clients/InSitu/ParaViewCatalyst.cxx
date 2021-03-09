@@ -194,6 +194,9 @@ void catalyst_execute(const conduit_node* params)
     ? root["state/timestep"].to_int64()
     : (root.has_path("state/cycle") ? root["state/cycle"].to_int64() : 0);
   const double time = root.has_path("state/time") ? root["state/time"].to_float64() : 0;
+  const double maximumsimulationtime = root.has_path("state/maximumsimulationtime")
+    ? root["state/maximumsimulationtime"].to_float64()
+    : VTK_DOUBLE_MIN;
 
   vtkVLogScopeF(
     PARAVIEW_LOG_CATALYST_VERBOSITY(), "co-processing for timestep=%d, time=%f", timestep, time);
@@ -222,6 +225,7 @@ void catalyst_execute(const conduit_node* params)
           auto& fields = globalFields[channel_name];
           fields["time"].set(time);
           fields["timestep"].set(timestep);
+          fields["maximumsimulationtime"].set(maximumsimulationtime);
           fields["cycle"].set(timestep);
           fields["channel"].set(channel_name);
 
@@ -246,7 +250,7 @@ void catalyst_execute(const conduit_node* params)
                                                 "No meshes will be processed.");
   }
 
-  vtkInSituInitializationHelper::ExecutePipelines(timestep, time);
+  vtkInSituInitializationHelper::ExecutePipelines(timestep, time, maximumsimulationtime);
 }
 
 //-----------------------------------------------------------------------------

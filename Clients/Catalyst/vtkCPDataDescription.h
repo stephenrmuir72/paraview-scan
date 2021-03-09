@@ -33,12 +33,17 @@ public:
 
   /// Set the time step and current simulation time.
   void SetTimeData(double time, vtkIdType timeStep);
+  void SetTimeData(double time, vtkIdType timeStep, double maximumSimulationTime);
 
   /// Get the current time step that should be set in the adaptor.
   vtkGetMacro(TimeStep, vtkIdType);
 
   /// Get the current time that should be set in the adaptor.
   vtkGetMacro(Time, double);
+
+  /// Set/Get the maximum simulation time that should be set in the adaptor.
+  vtkGetMacro(MaximumSimulationTime, double);
+  // vtkSetMacro(MaximumSimulationTime, double);
 
   /// Specify whether or not to force output of all coprocessing pipelines.
   /// This is meant to be set in the adaptor and used in the coprocessing
@@ -110,6 +115,9 @@ private:
 
   /// The current simulation time.  This should be set in the adaptor.
   double Time;
+
+  /// The maximum simulation time.  This should be set in the adaptor.
+  double MaximumSimulationTime;
 
   /// The current simulation time step.  This should be set in the adaptor.
   vtkIdType TimeStep;

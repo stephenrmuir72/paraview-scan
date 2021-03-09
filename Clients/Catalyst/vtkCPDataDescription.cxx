@@ -42,6 +42,7 @@ vtkStandardNewMacro(vtkCPDataDescription);
 vtkCPDataDescription::vtkCPDataDescription()
 {
   this->Time = 0;
+  this->MaximumSimulationTime = VTK_DOUBLE_MIN;
   this->TimeStep = 0;
   this->IsTimeDataSet = false;
   this->ForceOutput = false;
@@ -61,8 +62,16 @@ vtkCPDataDescription::~vtkCPDataDescription()
 //----------------------------------------------------------------------------
 void vtkCPDataDescription::SetTimeData(double time, vtkIdType timeStep)
 {
+  this->SetTimeData(time, timeStep, VTK_DOUBLE_MIN);
+}
+
+//----------------------------------------------------------------------------
+void vtkCPDataDescription::SetTimeData(
+  double time, vtkIdType timeStep, double maximumSimulationTime)
+{
   this->Time = time;
   this->TimeStep = timeStep;
+  this->MaximumSimulationTime = maximumSimulationTime;
   this->IsTimeDataSet = true;
   this->Modified();
 }
@@ -101,6 +110,7 @@ void vtkCPDataDescription::ResetAll()
   this->ResetInputDescriptions();
   this->ForceOutput = false;
   this->IsTimeDataSet = false;
+  this->MaximumSimulationTime = VTK_DOUBLE_MIN;
 }
 
 //----------------------------------------------------------------------------
@@ -191,6 +201,7 @@ void vtkCPDataDescription::Copy(vtkCPDataDescription* dataDescription)
     return;
   }
   this->Time = dataDescription->GetTime();
+  this->MaximumSimulationTime = dataDescription->GetMaximumSimulationTime();
   this->TimeStep = dataDescription->GetTimeStep();
   this->IsTimeDataSet = dataDescription->IsTimeDataSet;
   this->ForceOutput = dataDescription->GetForceOutput();
@@ -209,6 +220,7 @@ void vtkCPDataDescription::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Time: " << this->Time << "\n";
+  os << indent << "MaximumSimulationTime: " << this->MaximumSimulationTime << "\n";
   os << indent << "TimeStep: " << this->TimeStep << "\n";
   os << indent << "IsTimeDataSet: " << this->IsTimeDataSet << "\n";
   os << indent << "ForceOutput: " << this->ForceOutput << "\n";

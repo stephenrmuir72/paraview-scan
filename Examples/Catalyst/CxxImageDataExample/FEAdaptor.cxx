@@ -133,12 +133,12 @@ void Finalize()
   }
 }
 
-void CoProcess(
-  Grid& grid, Attributes& attributes, double time, unsigned int timeStep, bool lastTimeStep)
+void CoProcess(Grid& grid, Attributes& attributes, double time, unsigned int timeStep,
+  bool lastTimeStep, double maximumSimulationTime)
 {
   vtkNew<vtkCPDataDescription> dataDescription;
   dataDescription->AddInput("input");
-  dataDescription->SetTimeData(time, timeStep);
+  dataDescription->SetTimeData(time, timeStep, maximumSimulationTime);
   if (lastTimeStep == true)
   {
     // assume that we want to all the pipelines to execute if it

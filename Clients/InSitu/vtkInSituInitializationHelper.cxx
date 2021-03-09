@@ -59,6 +59,7 @@ public:
   bool InExecutePipelines = false;
   int TimeStep = 0;
   double Time = 0.0;
+  double MaximumSimulationTime = VTK_DOUBLE_MIN;
 };
 
 int vtkInSituInitializationHelper::WasInitializedOnce;
@@ -285,7 +286,8 @@ void vtkInSituInitializationHelper::MarkProducerModified(vtkSMSourceProxy* produ
 }
 
 //----------------------------------------------------------------------------
-bool vtkInSituInitializationHelper::ExecutePipelines(int timestep, double time)
+bool vtkInSituInitializationHelper::ExecutePipelines(
+  int timestep, double time, double maximumsimulationtime)
 {
   if (vtkInSituInitializationHelper::Internals == nullptr)
   {
@@ -304,6 +306,7 @@ bool vtkInSituInitializationHelper::ExecutePipelines(int timestep, double time)
   internals.InExecutePipelines = true;
   internals.TimeStep = timestep;
   internals.Time = time;
+  internals.MaximumSimulationTime = maximumsimulationtime;
 
   for (auto& item : internals.Pipelines)
   {
@@ -382,6 +385,25 @@ double vtkInSituInitializationHelper::GetTime()
   }
 
   return internals.Time;
+}
+
+//----------------------------------------------------------------------------
+double vtkInSituInitializationHelper::GetMaximumSimulationTime()
+{
+  if (vtkInSituInitializationHelper::Internals == nullptr)
+  {
+    vtkLogF(ERROR, "'GetMaximumSimulationTime' cannot be called before 'Initialize'.");
+    return 0;
+  }
+
+  auto& internals = (*vtkInSituInitializationHelper::Internals);
+  if (!internals.InExecutePipelines)
+  {
+    vtkLogF(ERROR, "'GetMaximumSimulationTime' cannot be called outside 'ExecutePipelines'.");
+    return 0;
+  }
+
+  return internals.MaximumSimulationTime;
 }
 
 //----------------------------------------------------------------------------

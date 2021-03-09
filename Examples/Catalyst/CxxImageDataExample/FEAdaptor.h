@@ -10,8 +10,8 @@ void Initialize(int numScripts, char* scripts[]);
 
 void Finalize();
 
-void CoProcess(
-  Grid& grid, Attributes& attributes, double time, unsigned int timeStep, bool lastTimeStep);
+void CoProcess(Grid& grid, Attributes& attributes, double time, unsigned int timeStep,
+  bool lastTimeStep, double maximumSimulationTime);
 }
 
 #endif

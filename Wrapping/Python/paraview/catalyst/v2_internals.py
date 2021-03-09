@@ -77,6 +77,11 @@ class CatalystV2Information:
         """returns the current simulation cycle or timestep index"""
         return self.helper.GetTimeStep()
 
+    @property
+    def maximumsimulationtime(self):
+        """returns the maximum simulation time if it has been set"""
+        return self.helper.GetMaximumSimulationTime()
+
 def import_and_validate(modulename):
     import importlib
 
@@ -120,8 +125,26 @@ def do_catalyst_execute(module):
         dataDescription = _get_active_data_description()
         if dataDescription:
             info = CatalystV1Information(dataDescription)
+            currentTime = dataDescription.GetTime()
+            maximumSimulationTime = dataDescription.GetMaximumSimulationTime()
         else:
             info = CatalystV2Information()
+            currentTime = info.time
+            maximumSimulationTime = info.maximumsimulationtime
+
+        # maximumSimulationTime has a default of VTK_DOUBLE_MIN if it hasn't
+        # been explicitly set by the adaptor so that the below code won't
+        # be called
+        if maximumSimulationTime > currentTime:
+            from paraview import servermanager
+            if not servermanager.ActiveConnection:
+                raise RuntimeError ("Missing active session")
+            session = servermanager.ActiveConnection.Session
+            controller = servermanager.ParaViewPipelineController()
+            scene = controller.GetAnimationScene(session)
+            scene.AnimationTime = currentTime/maximumSimulationTime
+            scene.UpdateAnimationUsingDataTimeSteps()
+
         module.catalyst_execute(info)
         return True
 

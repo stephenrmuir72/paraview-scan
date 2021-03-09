@@ -123,15 +123,16 @@ public:
   /**
    * Executes pipelines.
    */
-  static bool ExecutePipelines(int timestep, double time);
+  static bool ExecutePipelines(int timestep, double time, double maximumsimulationtime);
 
   //@{
   /**
-   * Provides access to current time and timestep during `ExecutePipelines`
+   * Provides access to current time, timestep and maximumsimulationtime during `ExecutePipelines`
    * call. The value is not valid outside `ExecutePipelines`.
    */
   static int GetTimeStep();
   static double GetTime();
+  static double GetMaximumSimulationTime();
   //@}
 
   /**

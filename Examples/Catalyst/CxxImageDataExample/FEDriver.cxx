@@ -39,7 +39,8 @@ int main(int argc, char* argv[])
     double time = timeStep * 0.1;
     attributes.UpdateFields(time);
 #ifdef USE_CATALYST
-    FEAdaptor::CoProcess(grid, attributes, time, timeStep, timeStep == numberOfTimeSteps - 1);
+    FEAdaptor::CoProcess(grid, attributes, time, timeStep, timeStep == numberOfTimeSteps - 1,
+      (numberOfTimeSteps - 1) * 0.1);
 #endif
   }
 
