@@ -155,6 +155,9 @@ public:
   static bool promptUser(const QString& settingsKey, QMessageBox::Icon icon, const QString& title,
     const QString& message, QMessageBox::StandardButtons buttons, QWidget* parentWdg = nullptr);
 
+  static QMessageBox::Button promptUserGeneric(const QString& title, const QString& message,
+    const QMessageBox::Icon icon, QMessageBox::StandardButtons buttons, QWidget* parentWidget);
+
   /**
    * Converts a double value to a full precision QString.
    * Internally uses `vtkNumberToString` for lossless conversion from double to

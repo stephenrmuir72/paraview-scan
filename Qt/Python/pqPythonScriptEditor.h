@@ -98,6 +98,11 @@ public:
   void open(const QString& filename);
 
   /**
+   * @brief Open the given file into the current tab
+   */
+  void load(const QString& filename);
+
+  /**
    * @brief Updates the trace tab text
    * and creates a new one if it doesn't exists
    */
@@ -124,6 +129,24 @@ public:
    */
   static void updateMacroList();
 
+  static void updateScriptList();
+
+  /**
+   * @brief Link the input QTextEdit to
+   * one of the tab of the editor.
+   * If this objects is already linked within
+   * the editor, switch to that tab otherwise creates
+   * a new one
+   */
+  static void linkTo(QTextEdit* obj);
+
+  static QString getMacrosDir() { return pqCoreUtilities::getParaViewUserDirectory() + "/Macros"; }
+
+  static QString getScriptsDir()
+  {
+    return pqCoreUtilities::getParaViewUserDirectory() + "/Scripts";
+  }
+
 protected:
   /**
    * @brief Override the QMainWindow closeEvent
@@ -137,9 +160,11 @@ private:
 
   void createStatusBar();
 
-  QMenu* fileMenu;
-  QMenu* editMenu;
-  QMenu* helpMenu;
+  QMenu* fileMenu = nullptr;
+  QMenu* editMenu = nullptr;
+
+  using ScriptActionType = pqPythonEditorActions::ScriptAction::Type;
+  EnumArray<ScriptActionType, QMenu*> scriptMenus;
 
   pqPythonTabWidget* TabWidget;
 

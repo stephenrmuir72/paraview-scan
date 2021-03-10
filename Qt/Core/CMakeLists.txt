@@ -61,6 +61,7 @@ set(classes
   pqImageUtil
   pqInteractiveViewLink
   pqInterfaceTracker
+  pqLinkedObjectQTextEdit
   pqLinkViewWidget
   pqLinksModel
   pqLogViewerWidget
@@ -124,6 +125,11 @@ set(classes
   pqXYHistogramChartView
   vtkPVGUIPluginInterface)
 
+set(headers
+  pqLinkedObjectInterface.h
+  pqTextLinker.h
+)
+
 if (NOT VTK_LEGACY_REMOVE)
   list(APPEND classes
     pqDebug)
@@ -181,6 +187,7 @@ source_group("Resources" FILES
 
 vtk_module_add_module(ParaView::pqCore
   CLASSES ${classes}
+  HEADERS ${headers}
   SOURCES ${ui_files}
           ${resource_files})
 vtk_module_link(ParaView::pqCore

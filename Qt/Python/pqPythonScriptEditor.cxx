@@ -52,6 +52,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vtkPythonInterpreter.h>
 
+namespace details
+{
+void FillMenu(QMenu* menu, std::vector<QAction*>& actions)
+{
+  menu->clear();
+  for (auto const& action : actions)
+  {
+    menu->addAction(action);
+  }
+}
+}
+
 //-----------------------------------------------------------------------------
 pqPythonScriptEditor::pqPythonScriptEditor(QWidget* p)
   : QMainWindow(p)
@@ -124,6 +136,12 @@ void pqPythonScriptEditor::open(const QString& filename)
 }
 
 //-----------------------------------------------------------------------------
+void pqPythonScriptEditor::load(const QString& filename)
+{
+  this->TabWidget->loadFile(filename);
+}
+
+//-----------------------------------------------------------------------------
 void pqPythonScriptEditor::setSaveDialogDefaultDirectory(const QString& dir)
 {
   this->TabWidget->getCurrentTextArea()->setDefaultSaveDirectory(dir);
@@ -133,13 +151,14 @@ void pqPythonScriptEditor::setSaveDialogDefaultDirectory(const QString& dir)
 void pqPythonScriptEditor::setPythonManager(pqPythonManager* manager)
 {
   this->pythonManager = manager;
-  this->Actions[pqPythonEditorActions::Action::SaveFileAsMacro].setEnabled(manager != nullptr);
+  this->Actions[pqPythonEditorActions::GeneralActionType::SaveFileAsMacro].setEnabled(
+    manager != nullptr);
 }
 
 //-----------------------------------------------------------------------------
 void pqPythonScriptEditor::createMenus()
 {
-  using Action = pqPythonEditorActions::Action;
+  using Action = pqPythonEditorActions::GeneralActionType;
 
   this->menuBar()->setObjectName("PythonScriptEditorMenuBar");
 
@@ -150,6 +169,7 @@ void pqPythonScriptEditor::createMenus()
   this->fileMenu->addAction(&this->Actions[Action::SaveFile]);
   this->fileMenu->addAction(&this->Actions[Action::SaveFileAs]);
   this->fileMenu->addAction(&this->Actions[Action::SaveFileAsMacro]);
+  this->fileMenu->addAction(&this->Actions[Action::SaveFileAsScript]);
   this->fileMenu->addSeparator();
   this->fileMenu->addAction(&this->Actions[Action::CloseCurrentTab]);
   this->fileMenu->addAction(&this->Actions[Action::Exit]);
@@ -162,6 +182,24 @@ void pqPythonScriptEditor::createMenus()
   this->editMenu->addSeparator();
   this->editMenu->addAction(&this->Actions[Action::Undo]);
   this->editMenu->addAction(&this->Actions[Action::Redo]);
+
+  this->Actions.updateScriptsList();
+  auto menu = menuBar()->addMenu(this->tr("&Scripts"));
+  menu->addAction(&this->Actions[Action::SaveFileAsScript]);
+  menu->addSeparator();
+
+  this->scriptMenus[ScriptActionType::Open] = menu->addMenu(this->tr("Open..."));
+  this->scriptMenus[ScriptActionType::Open]->setStatusTip(
+    this->tr("Open a python script in a new tab"));
+
+  this->scriptMenus[ScriptActionType::Load] = menu->addMenu(this->tr("Use as current script..."));
+  this->scriptMenus[ScriptActionType::Load]->setStatusTip(
+    this->tr("Load a python script in the current opened tab and override its content"));
+
+  this->scriptMenus[ScriptActionType::Delete] = menu->addMenu(this->tr("Delete..."));
+  this->scriptMenus[ScriptActionType::Delete]->setStatusTip(this->tr("Delete the script"));
+
+  this->Actions.FillQMenu(this->scriptMenus);
 }
 
 //-----------------------------------------------------------------------------
@@ -188,6 +226,14 @@ void pqPythonScriptEditor::updateMacroList()
 }
 
 //-----------------------------------------------------------------------------
+void pqPythonScriptEditor::updateScriptList()
+{
+  auto editor = pqPythonScriptEditor::getUniqueInstance();
+  editor->Actions.updateScriptsList();
+  editor->Actions.FillQMenu(editor->scriptMenus);
+}
+
+//-----------------------------------------------------------------------------
 void pqPythonScriptEditor::updateTrace(const QString& str)
 {
   this->TabWidget->updateTrace(str);
@@ -197,4 +243,11 @@ void pqPythonScriptEditor::updateTrace(const QString& str)
 void pqPythonScriptEditor::stopTrace(const QString& str)
 {
   this->TabWidget->stopTrace(str);
+}
+
+//-----------------------------------------------------------------------------
+void pqPythonScriptEditor::linkTo(QTextEdit* obj)
+{
+  auto instance = pqPythonScriptEditor::getUniqueInstance();
+  instance->TabWidget->linkTo(obj);
 }
