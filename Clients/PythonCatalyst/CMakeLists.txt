@@ -37,9 +37,14 @@ set(classes
   vtkCPPythonScriptV2Pipeline
   vtkCPPythonStringPipeline)
 
+set(sources)
+
 set(catalyst_fortran_using_mangling)
 
 if (CMAKE_Fortran_COMPILER_WORKS)
+  list(APPEND sources
+    FortranPythonAdaptorAPI.f90)
+
   include(FortranCInterface)
   FortranCInterface_HEADER(FortranPythonAdaptorAPIMangling.h
     SYMBOLS
@@ -63,6 +68,7 @@ endif ()
 
 vtk_module_add_module(ParaView::PythonCatalyst
   CLASSES ${classes}
+  SOURCES ${sources}
   HEADERS ${headers})
 vtk_module_client_server_exclude()
 
