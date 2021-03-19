@@ -1881,7 +1881,7 @@
         <Documentation>Set the opacity of the text background.</Documentation>
       </DoubleVectorProperty>
 
-      <IntVectorProperty  command="SetRightPadding"
+      <IntVectorProperty  command="SetPaddingRight"
                           default_values="0.0"
                           name="RightPadding"
                           number_of_elements="1">
@@ -1892,7 +1892,7 @@
         <Documentation>Set the padding between the text and the right border in pixels unit.</Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty  command="SetTopPadding"
+      <IntVectorProperty  command="SetPaddingTop"
                           default_values="0.0"
                           name="TopPadding"
                           number_of_elements="1">
