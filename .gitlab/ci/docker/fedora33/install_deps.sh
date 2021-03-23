@@ -37,4 +37,8 @@ dnf install -y --setopt=install_weak_deps=False \
 
 python3 -m pip install wslink
 
+# Plugin dependencies
+dnf install -y --setopt=install_weak_deps=False \
+    gmsh-4.6.0 libcurl-devel
+
 dnf clean all
