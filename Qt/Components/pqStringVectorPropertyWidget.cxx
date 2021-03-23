@@ -392,8 +392,7 @@ pqStringVectorPropertyWidget::pqStringVectorPropertyWidget(
       pushButton->setIcon(this->style()->standardIcon(QStyle::SP_TitleBarMaxButton));
       this->connect(pushButton, &QPushButton::clicked, [textEdit]() {
         pqPythonScriptEditor::linkTo(textEdit);
-        pqPythonScriptEditor::getUniqueInstance()->show();
-        pqPythonScriptEditor::getUniqueInstance()->raise();
+        pqPythonScriptEditor::bringFront();
       });
       hbox->addWidget(pushButton);
       vbox->addWidget(textEdit);

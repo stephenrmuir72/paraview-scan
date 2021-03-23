@@ -338,6 +338,8 @@ void pqPythonEditorActions::connect<pqPythonTabWidget>(
       QList<QStringList> files = dialog.getAllSelectedFiles();
       tWidget->addNewTextArea(files.begin()->first());
     }
+
+    pqPythonScriptEditor::bringFront();
   });
   QObject::connect(&actions[Action::CloseCurrentTab], &QAction::triggered, tWidget,
     &pqPythonTabWidget::closeCurrentTab);

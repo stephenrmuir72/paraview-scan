@@ -61,6 +61,7 @@ set(classes
   pqImageUtil
   pqInteractiveViewLink
   pqInterfaceTracker
+  pqLinkedObjectInterface
   pqLinkedObjectQTextEdit
   pqLinkViewWidget
   pqLinksModel
@@ -113,6 +114,7 @@ set(classes
   pqSpreadSheetViewSelectionModel
   pqSpreadSheetViewWidget
   pqStandardServerManagerModelInterface
+  pqTextLinker
   pqTimeKeeper
   pqTreeLayoutStrategyInterface
   pqUndoStack
@@ -124,11 +126,6 @@ set(classes
   pqXYChartView
   pqXYHistogramChartView
   vtkPVGUIPluginInterface)
-
-set(headers
-  pqLinkedObjectInterface.h
-  pqTextLinker.h
-)
 
 if (NOT VTK_LEGACY_REMOVE)
   list(APPEND classes
@@ -187,7 +184,6 @@ source_group("Resources" FILES
 
 vtk_module_add_module(ParaView::pqCore
   CLASSES ${classes}
-  HEADERS ${headers}
   SOURCES ${ui_files}
           ${resource_files})
 vtk_module_link(ParaView::pqCore

@@ -47,25 +47,22 @@ class pqPythonTabWidget;
 
 /**
  * @class pqPythonScriptEditor
- * @brief Paraview Python Editor widget
- * @details This widget can be used as a embedded Qt python editor
- * inside paraview. It provides functionality to read, write and edit
- * python script and paraview macros within paraview itself. The text editor
- * provides basic functionality such as undo/redo, line numbering and
- * syntax highlighting (through pygments).
+ * This widget can be used as a embedded Qt python editor inside paraview. It provides functionality
+ * to read, write and edit python script and paraview macros within paraview itself. The text editor
+ * provides basic functionality such as undo/redo, line numbering and syntax highlighting (through
+ * pygments).
  *
- * You can either use this widget as a sole editor, or get the paraview
- * static one from \ref GetUniqueInstance (which gives you the editor
- * used for the macro and the scripts).
+ * You can either use this widget as a sole editor, or get the paraview static one from \ref
+ * GetUniqueInstance (which gives you the editor used for the macro and the scripts).
  *
- * Note that \ref GetUniqueInstance is a lazy way of having a unique instance
- * of the editor ready to be used. A better approach would be to actually change
- * the code that uses this class to reflect that peculiar behavior (and not embed
- * it inside the class). Also note that you can freely instantiate as many editor
- * as you want as two instances of this class don't share any common data.
+ * Note that \ref GetUniqueInstance is a lazy way of having a unique instance of the editor ready to
+ * be used. A better approach would be to actually change the code that uses this class to reflect
+ * that peculiar behavior (and not embed it inside the class). Also note that you can freely
+ * instantiate as many editor as you want as two instances of this class don't share any common
+ * data.
  *
- * \note This class handles the main window components. If you are interested only
- * in the text editor itself, please see \ref pqPythonTextArea.
+ * \note This class handles the main window components. If you are interested only in the text
+ * editor itself, please see \ref pqPythonTextArea.
  */
 class PQPYTHON_EXPORT pqPythonScriptEditor : public QMainWindow
 {
@@ -75,47 +72,44 @@ public:
   explicit pqPythonScriptEditor(QWidget* parent = nullptr);
 
   /**
-   * @brief Sets the default save directory for the current buffer
-   * @details Internally, it is only used for the QFileDialog
-   * directory argument when saving or loading a file (ie the
-   * folder from which the QFileDialog is launched).
+   * Sets the default save directory for the current buffer Internally, it is only used for the
+   * QFileDialog directory argument when saving or loading a file (ie the folder from which the
+   * QFileDialog is launched).
    */
   void setSaveDialogDefaultDirectory(const QString& dir);
 
   /**
-   * @brief Sets the \ref pqPythonManager used for the macros
+   * Sets the \ref pqPythonManager used for the macros
    */
   void setPythonManager(pqPythonManager* manager);
 
   /**
-   * @brief Scroll the editor to the bottom of the scroll area
+   * Scroll the editor to the bottom of the scroll area
    */
   void scrollToBottom();
 
   /**
-   * @brief Open a file inside the editor
+   * Open a file inside the editor
    */
   void open(const QString& filename);
 
   /**
-   * @brief Open the given file into the current tab
+   * Open the given file into the current tab
    */
   void load(const QString& filename);
 
   /**
-   * @brief Updates the trace tab text
-   * and creates a new one if it doesn't exists
+   * Updates the trace tab text and creates a new one if it doesn't exists
    */
   void updateTrace(const QString& str);
 
   /**
-   * @brief Wraps up the trace tab
+   * Wraps up the trace tab
    */
   void stopTrace(const QString& str);
 
   /**
-   * @brief Utility function that provides a single instance
-   * of the editor.
+   * Utility function that provides a single instance of the editor.
    */
   static pqPythonScriptEditor* getUniqueInstance()
   {
@@ -124,24 +118,39 @@ public:
   }
 
   /**
-   * @brief Triggers an macro list update
-   * if the PythonManager exists
+   * Triggers an macro list update if the PythonManager exists
    */
   static void updateMacroList();
 
+  /**
+   * Triggers the script list update
+   */
   static void updateScriptList();
 
   /**
-   * @brief Link the input QTextEdit to
-   * one of the tab of the editor.
-   * If this objects is already linked within
-   * the editor, switch to that tab otherwise creates
-   * a new one
+   * Link the input QTextEdit to one of the tab of the editor. If this objects is already linked
+   * within the editor, switch to that tab otherwise creates a new one
    */
   static void linkTo(QTextEdit* obj);
 
+  /**
+   * Opens and bring the editor in front of other windows
+   */
+  static void bringFront()
+  {
+    pqPythonScriptEditor* instance = pqPythonScriptEditor::getUniqueInstance();
+    instance->show();
+    instance->raise();
+  }
+
+  /**
+   * Returns the macro directory
+   */
   static QString getMacrosDir() { return pqCoreUtilities::getParaViewUserDirectory() + "/Macros"; }
 
+  /**
+   * Returns the script directory
+   */
   static QString getScriptsDir()
   {
     return pqCoreUtilities::getParaViewUserDirectory() + "/Scripts";
@@ -149,9 +158,8 @@ public:
 
 protected:
   /**
-   * @brief Override the QMainWindow closeEvent
-   * @details We ask the user wants to save the current
-   * file if it's not already saved
+   * Override the QMainWindow closeEvent We ask the user wants to save the current file if it's not
+   * already saved
    */
   void closeEvent(QCloseEvent* event) override;
 
@@ -171,8 +179,7 @@ private:
   pqPythonEditorActions Actions;
 
   /**
-   * @brief The python manager only used for the
-   * paraview macro system
+   * The python manager only used for the paraview macro system
    */
   pqPythonManager* pythonManager;
 };

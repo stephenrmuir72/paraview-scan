@@ -150,6 +150,8 @@ bool pqPythonFileIO::PythonFile::readFromFile(QString& str) const
   str = in.readAll();
   QApplication::restoreOverrideCursor();
 
+  pqPythonScriptEditor::bringFront();
+
   return true;
 }
 
@@ -291,6 +293,8 @@ bool pqPythonFileIO::saveAs()
     filename.append(".py");
   }
 
+  pqPythonScriptEditor::bringFront();
+
   return this->saveBuffer(filename);
 }
 
@@ -309,6 +313,8 @@ bool pqPythonFileIO::saveAsMacro()
   const QString filename =
     pqFileDialog::getSaveFileName(nullptr, pqPythonScriptEditor::getUniqueInstance(),
       tr("Save As Macro"), userMacroDir, tr("Python script (*.py)"));
+
+  pqPythonScriptEditor::bringFront();
 
   if (this->saveBuffer(filename))
   {
@@ -334,6 +340,8 @@ bool pqPythonFileIO::saveAsScript()
   const QString filename =
     pqFileDialog::getSaveFileName(nullptr, pqPythonScriptEditor::getUniqueInstance(),
       tr("Save As Script"), userScriptDir, tr("Python script (*.py)"));
+
+  pqPythonScriptEditor::bringFront();
 
   if (this->saveBuffer(filename))
   {
