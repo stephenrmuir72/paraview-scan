@@ -24,11 +24,9 @@
     extends: .linux
     image: "kitware/paraview:ci-fedora33-20210423"
 
-.fedora31_icc:
+.rhel8_icc:
     extends: .linux
-    # XXX(icc): See note below about git-lfs. That can be removed once this
-    # image contains git-lfs in it.
-    image: "kitware/paraview:ci-fedora31-icc-20201014"
+    image: "kitware/paraview:ci-rhel8-icc-20210323"
 
     variables:
         CC: icc
@@ -49,13 +47,12 @@
         OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
         MODULES: mpi/openmpi-x86_64
 
-.fedora31_shared_icc_mpi_python:
+.rhel8_shared_icc_mpi_python:
     extends:
-        - .fedora31_icc
-        - .fedora_openmpi_addon
+        - .rhel8_icc
 
     variables:
-        CMAKE_CONFIGURATION: fedora31_shared_icc_mpi_python
+        CMAKE_CONFIGURATION: rhel8_shared_icc_mpi_python
 
 .fedora33_static_mpi_offscreen_osmesa_python:
     extends:
@@ -140,9 +137,6 @@
     - cmake --version
     - ninja --version
     - doxygen --version
-    # XXX(icc): The icc container lacks git-lfs. A rebuild of the container
-    # will be necessary.
-    - '[ "$CC" = "icc" ] && dnf install --setopt=install_weak_deps=False -y git-lfs'
     - "git submodule update --init --recursive || :"
     - git submodule foreach --recursive cmake -P "$PWD/.gitlab/ci/fetch_submodule.cmake"
     - git submodule sync --recursive
