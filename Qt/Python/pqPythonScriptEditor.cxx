@@ -164,6 +164,7 @@ void pqPythonScriptEditor::createMenus()
 
   this->fileMenu = menuBar()->addMenu(tr("&File"));
   this->fileMenu->setObjectName("File");
+  this->fileMenu->setToolTipsVisible(true);
   this->fileMenu->addAction(&this->Actions[Action::NewFile]);
   this->fileMenu->addAction(&this->Actions[Action::OpenFile]);
   this->fileMenu->addAction(&this->Actions[Action::SaveFile]);
@@ -176,6 +177,7 @@ void pqPythonScriptEditor::createMenus()
 
   this->editMenu = menuBar()->addMenu(tr("&Edit"));
   this->editMenu->setObjectName("Edit");
+  this->editMenu->setToolTipsVisible(true);
   this->editMenu->addAction(&this->Actions[Action::Cut]);
   this->editMenu->addAction(&this->Actions[Action::Copy]);
   this->editMenu->addAction(&this->Actions[Action::Paste]);
@@ -185,19 +187,23 @@ void pqPythonScriptEditor::createMenus()
 
   this->Actions.updateScriptsList();
   auto menu = menuBar()->addMenu(this->tr("&Scripts"));
+  menu->setToolTipsVisible(true);
   menu->addAction(&this->Actions[Action::SaveFileAsScript]);
   menu->addSeparator();
 
   this->scriptMenus[ScriptActionType::Open] = menu->addMenu(this->tr("Open..."));
   this->scriptMenus[ScriptActionType::Open]->setStatusTip(
     this->tr("Open a python script in a new tab"));
+  this->scriptMenus[ScriptActionType::Open]->setToolTipsVisible(true);
 
   this->scriptMenus[ScriptActionType::Load] = menu->addMenu(this->tr("Use as current script..."));
   this->scriptMenus[ScriptActionType::Load]->setStatusTip(
     this->tr("Load a python script in the current opened tab and override its content"));
+  this->scriptMenus[ScriptActionType::Load]->setToolTipsVisible(true);
 
   this->scriptMenus[ScriptActionType::Delete] = menu->addMenu(this->tr("Delete..."));
   this->scriptMenus[ScriptActionType::Delete]->setStatusTip(this->tr("Delete the script"));
+  this->scriptMenus[ScriptActionType::Delete]->setToolTipsVisible(true);
 
   this->Actions.FillQMenu(this->scriptMenus);
 }
