@@ -135,8 +135,8 @@ void vtkPVJoystickFly::Fly(vtkRenderer* ren, vtkRenderWindowInteractor* rwi, dou
 
     // Compute angle ralative to viewport.
     // These values will be from -0.5 to 0.5
-    double vx = (size[0] / 2 - lastx) / (double)(size[0]);
-    double vy = (size[1] / 2 - lasty) / (double)(size[0]);
+    double vx = (static_cast<int>(size[0] / 2) - lastx) / (double)(size[0]);
+    double vy = (static_cast<int>(size[1] / 2) - lasty) / (double)(size[0]);
 
     // Convert to world angle by multiplying by view angle.
     // (Speed up rotation for wide angle views).
@@ -172,8 +172,8 @@ void vtkPVJoystickFly::Fly(vtkRenderer* ren, vtkRenderWindowInteractor* rwi, dou
 
     // Now figure out if we should slow down our speed because
     // we are trying to make a sharp turn
-    vx = (double)(size[0] / 2 - lastx) / (double)(size[0]);
-    vy = (double)(size[1] / 2 - lasty) / (double)(size[1]);
+    vx = (static_cast<int>(size[0] / 2) - lastx) / (double)(size[0]);
+    vy = (static_cast<int>(size[1] / 2) - lasty) / (double)(size[1]);
     vx = (vx < 0) ? (-vx) : (vx);
     vy = (vy < 0) ? (-vy) : (vy);
     vx = (vx > vy) ? (vx) : (vy);
