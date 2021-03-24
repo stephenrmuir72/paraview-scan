@@ -111,7 +111,6 @@ readability-*,\
 -readability-non-const-parameter,\
 -readability-qualified-auto,\
 -readability-redundant-declaration,\
--readability-redundant-member-init,\
 -readability-redundant-preprocessor,\
 -readability-redundant-smartptr-get,\
 -readability-redundant-string-cstr,\
