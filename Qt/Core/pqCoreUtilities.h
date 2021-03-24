@@ -156,6 +156,16 @@ public:
     const QString& message, QMessageBox::StandardButtons buttons, QWidget* parentWdg = nullptr);
 
   /**
+   * This show a QMessageBox to the user and returns the clicked button.
+   * NOTE: due to issues with test recording and playback, currently, this
+   * dialog is not prompted (instead always returning true) when
+   * DASHBOARD_TEST_FROM_CTEST environment variable is set. This may change in future.
+   */
+  static QMessageBox::StandardButton promptUserGeneric(QMessageBox::Icon icon,
+    QMessageBox::StandardButtons buttons, const QString& title, const QString& message,
+    QWidget* parent);
+
+  /**
    * Converts a double value to a full precision QString.
    * Internally uses `vtkNumberToString` for lossless conversion from double to
    * string.

@@ -204,12 +204,11 @@ bool pqPythonFileIO::saveOnClose()
 {
   if (this->isDirty())
   {
-    const QMessageBox::StandardButton ret =
-      QMessageBox::warning(nullptr, tr("Script Editor"), tr("The document has been modified.\n"
-                                                            "Do you want to save your changes?"),
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-
-    switch (ret)
+    switch (pqCoreUtilities::promptUserGeneric(QMessageBox::Warning,
+      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, tr("Script Editor"),
+      tr("The document has been modified.\n"
+         "Do you want to save your changes?"),
+      nullptr))
     {
       case QMessageBox::Save:
         if (this->save())

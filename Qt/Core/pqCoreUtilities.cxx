@@ -229,15 +229,24 @@ unsigned long pqCoreUtilities::connect(vtkObject* vtk_object, int vtk_event_id, 
   return eventid;
 }
 
+namespace
+{
+bool IsRunningOnDashboard()
+{
+  return vtksys::SystemTools::GetEnv("DASHBOARD_TEST_FROM_CTEST") != nullptr;
+}
+}
+
 //-----------------------------------------------------------------------------
 bool pqCoreUtilities::promptUser(const QString& settingsKey, QMessageBox::Icon icon,
   const QString& title, const QString& message, QMessageBox::StandardButtons buttons,
   QWidget* parentWdg)
 {
-  if (vtksys::SystemTools::GetEnv("DASHBOARD_TEST_FROM_CTEST") != nullptr)
+  if (::IsRunningOnDashboard())
   {
     return true;
   }
+
   parentWdg = parentWdg ? parentWdg : pqCoreUtilities::mainWidget();
 
   pqSettings* settings = pqApplicationCore::instance()->settings();
@@ -278,6 +287,24 @@ bool pqCoreUtilities::promptUser(const QString& settingsKey, QMessageBox::Icon i
     default:
       return false;
   }
+}
+
+QMessageBox::StandardButton pqCoreUtilities::promptUserGeneric(QMessageBox::Icon icon,
+  QMessageBox::StandardButtons buttons, const QString& title, const QString& message,
+  QWidget* parent)
+{
+  if (::IsRunningOnDashboard())
+  {
+    return QMessageBox::Save;
+  }
+
+  parent = parent ? parent : pqCoreUtilities::mainWidget();
+
+  QMessageBox mbox(icon, title, message, buttons, parent);
+  mbox.setObjectName("CoreUtilitiesPromptUser");
+  mbox.exec();
+
+  return mbox.standardButton(mbox.clickedButton());
 }
 
 //-----------------------------------------------------------------------------
