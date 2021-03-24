@@ -3770,7 +3770,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="29080.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="29080.LODValues">
@@ -4486,7 +4486,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="29260.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="29260.LODValues">
@@ -5202,7 +5202,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="30049.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="30049.LODValues">
@@ -5915,7 +5915,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="28667.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="28667.LODValues">
@@ -6650,7 +6650,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="28874.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="28874.LODValues">

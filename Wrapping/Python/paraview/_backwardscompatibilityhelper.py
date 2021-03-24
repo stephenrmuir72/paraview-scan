@@ -407,6 +407,18 @@ def setattr_fix_value(proxy, pname, value, setter_func):
                     else:
                         raise NotSupportedException("%s is an obsolete value. Use %s instead." % (seed_sources_from[i], seed_sources_to[i]))
 
+    # in 5.10, we changed the Interpolation mode "Gouraud" to "Phong"
+    if pname == "Interpolation" and proxy.SMProxy.IsA("vtkSMRepresentationProxy"):
+        if value == "Gouraud":
+            if paraview.compatibility.GetVersion() <= 5.9:
+                paraview.print_warning(\
+                    "The 'Gouraud' option has been renamed to 'Phong'.  Please use that instead.")
+                setter_func(proxy, "Phong")
+                raise Continue()
+            else:
+                raise NotSupportedException("'Gouraud' is an obsolete value for Interpolation. "\
+                    " Use 'Phong' instead.")
+
     # Always keep this line last
     raise ValueError("'%s' is not a valid value for %s!" % (value, pname))
 

@@ -12199,14 +12199,14 @@
         </Documentation>
       </IntVectorProperty>
       <IntVectorProperty command="SetInterpolation"
-                         default_values="1"
+                         default_values="2"
                          name="Interpolation"
                          number_of_elements="1">
         <EnumerationDomain name="enum">
           <Entry text="Flat"
                  value="0" />
-          <Entry text="Gouraud"
-                 value="1" />
+          <Entry text="Phong"
+                 value="2" />
           <Entry text="PBR"
                  value="3" />
         </EnumerationDomain>
