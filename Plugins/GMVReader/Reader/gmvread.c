@@ -1378,7 +1378,7 @@ int checkfromfile()
       gmv_data.datatype = FROMFILE;
       i = (int)strlen(charptr);
       gmv_data.nchardata1 = i;
-      gmv_data.chardata1 = (char *)malloc(i*sizeof(char));
+      gmv_data.chardata1 = (char *)malloc((i+1)*sizeof(char));
       /*  No need for strncpy here because charptr is by design not too long.  */
       strcpy(gmv_data.chardata1,charptr);
       return 0;
@@ -3691,7 +3691,14 @@ void readunits(FILE* gmvin, int ftype)
          gmvrdmemerr();
          return;
         }
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif      
       strncpy(gmv_data.chardata2, unitname, GMV_MIN(strlen(unitname), 20-1));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif      
       *(gmv_data.chardata2 + GMV_MIN(strlen(unitname), 20-1)) = (char)0;
       return;
      }
@@ -3744,9 +3751,17 @@ void readunits(FILE* gmvin, int ftype)
             ioerrtst(gmvin);
             *(unitname+16) = (char) 0;
            }
+
          strncpy(&fldstr[i*MAXCUSTOMNAMELENGTH], fldname, GMV_MIN(strlen(fldname), MAXCUSTOMNAMELENGTH-1));
          fldstr[i*MAXCUSTOMNAMELENGTH + GMV_MIN(strlen(fldname), MAXCUSTOMNAMELENGTH-1)] = '\0';
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif      
          strncpy(&unitstr[i*MAXCUSTOMNAMELENGTH], unitname, GMV_MIN(strlen(unitname), MAXCUSTOMNAMELENGTH-1));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif      
          unitstr[i*MAXCUSTOMNAMELENGTH + GMV_MIN(strlen(unitname), MAXCUSTOMNAMELENGTH-1)] = '\0';
         }
 
