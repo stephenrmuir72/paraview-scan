@@ -1586,7 +1586,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="9156.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LineWidth" id="9156.LineWidth" number_of_elements="1">

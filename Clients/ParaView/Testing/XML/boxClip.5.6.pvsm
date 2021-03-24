@@ -3135,7 +3135,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="8711.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="InterpolationType" id="8711.InterpolationType" number_of_elements="1">
@@ -3824,7 +3824,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="8983.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LODValues" id="8983.LODValues">

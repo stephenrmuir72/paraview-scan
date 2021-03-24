@@ -858,7 +858,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="30227.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LICIntensity" id="30227.LICIntensity" number_of_elements="1">
@@ -1633,7 +1633,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="30448.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LICIntensity" id="30448.LICIntensity" number_of_elements="1">
@@ -2394,7 +2394,7 @@
         <Element index="0" value="1"/>
         <Domain name="enum" id="30344.Interpolation.enum">
           <Entry value="0" text="Flat"/>
-          <Entry value="1" text="Gouraud"/>
+          <Entry value="1" text="Phong"/>
         </Domain>
       </Property>
       <Property name="LICIntensity" id="30344.LICIntensity" number_of_elements="1">

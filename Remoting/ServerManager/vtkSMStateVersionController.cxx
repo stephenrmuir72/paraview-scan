@@ -862,7 +862,7 @@ struct Process_5_9_to_5_10
     return HandleSpreadsheetRepresentationCompositeDataSetIndex(document) &&
       HandleExtractBlock(document) && HandleRepresentationBlockVisibility(document) &&
       HandleRepresentationBlockColor(document) && HandleRepresentationBlockOpacity(document) &&
-      HandleSelectionQuerySource(document);
+      HandleSelectionQuerySource(document) && RenameGouraudInterpolationMode(document);
   }
 
   static std::string GetSelector(unsigned int cid)
@@ -1092,6 +1092,24 @@ struct Process_5_9_to_5_10
     }
 
     return true;
+  }
+
+  static bool RenameGouraudInterpolationMode(xml_document& document)
+  {
+    // Rename Gouraud to Phong 
+    auto xpath_set = document.select_nodes(
+      "//ServerManagerState/Proxy[@group='internal_representations']/"
+                                           "Property[@name='Interpolation']");
+    for (auto xpath_node : xpath_set)
+    {
+      auto node = xpath_node.node();      
+      auto gouraud_path = node.select_nodes("//Entry[@text='Gouraud']");
+
+      for (auto gouraud_node : gouraud_path)
+      {
+        gouraud_node.node().attribute("text").set_value("Phong");
+      }
+    }
   }
 };
 
