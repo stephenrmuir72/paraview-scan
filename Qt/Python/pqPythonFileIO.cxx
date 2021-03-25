@@ -305,7 +305,7 @@ bool pqPythonFileIO::saveAsMacro()
   const QDir existCheck(userMacroDir);
   if (!existCheck.exists() && !existCheck.mkpath(userMacroDir))
   {
-    QMessageBox::warning(nullptr, QObject::tr("Sorry!"),
+    QMessageBox::warning(nullptr, this->tr("Sorry!"),
       tr(qPrintable(QString("Could not create user Macro directory: %1.").arg(userMacroDir))));
     return false;
   }
@@ -332,7 +332,7 @@ bool pqPythonFileIO::saveAsScript()
   const QDir existCheck(userScriptDir);
   if (!existCheck.exists() && !existCheck.mkpath(userScriptDir))
   {
-    QMessageBox::warning(nullptr, QObject::tr("Sorry!"),
+    QMessageBox::warning(nullptr, this->tr("Sorry!"),
       tr(qPrintable(QString("Could not create user Script directory: %1.").arg(userScriptDir))));
     return false;
   }
