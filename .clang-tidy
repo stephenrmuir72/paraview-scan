@@ -60,7 +60,6 @@ misc-*,\
 -misc-no-recursion,\
 -misc-non-private-member-variables-in-classes,\
 -misc-redundant-expression,\
--misc-throw-by-value-catch-by-reference,\
 -misc-unconventional-assign-operator,\
 -misc-unused-parameters,\
 -misc-unused-using-decls,\
