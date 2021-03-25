@@ -67,19 +67,21 @@ extern const char* vtkStreamLines_gs;
 extern const char* vtkStreamLines_vs;
 
 //----------------------------------------------------------------------------
+// NOLINTNEXTLINE: bugprone-macro-parentheses
 #define RELEASE_VTKGL_OBJECT(_x)                                                                   \
   if (_x)                                                                                          \
   {                                                                                                \
     _x->ReleaseGraphicsResources(renWin);                                                          \
     _x->Delete();                                                                                  \
-    _x = 0;                                                                                        \
+    _x = nullptr;                                                                                  \
   }
+// NOLINTNEXTLINE: bugprone-macro-parentheses
 #define RELEASE_VTKGL_OBJECT2(_x)                                                                  \
   if (_x)                                                                                          \
   {                                                                                                \
     _x->ReleaseGraphicsResources();                                                                \
     _x->Delete();                                                                                  \
-    _x = 0;                                                                                        \
+    _x = nullptr;                                                                                  \
   }
 
 //----------------------------------------------------------------------------
