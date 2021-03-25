@@ -974,7 +974,7 @@ bool vtkSMPVRepresentationProxy::SetRepresentationType(const char* type)
       }
     }
   }
-  catch (int val)
+  catch (const int& val)
   {
     if (val == CALL_SUPERCLASS)
     {
