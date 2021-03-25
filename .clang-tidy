@@ -62,7 +62,6 @@ misc-*,\
 -misc-redundant-expression,\
 -misc-throw-by-value-catch-by-reference,\
 -misc-unconventional-assign-operator,\
--misc-unused-parameters,\
 -misc-unused-using-decls,\
 modernize-*,\
 -modernize-avoid-c-arrays,\
