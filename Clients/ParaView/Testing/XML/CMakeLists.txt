@@ -335,6 +335,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Molecule-BallStick.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Molecule-Custom.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Molecule-Liquorice.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockChartSelectionFrame1A.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockChartSelectionFrame1B.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorSelection-SelectBlock2.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorSelection-SelectElementBlocks.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorSelection-HideBlock1.png}"
@@ -635,6 +637,7 @@ SET (TESTS_WITH_INLINE_COMPARES
   # selection in the MB-inspector right now.
   # (see #20525)
   # MultiBlockInspectorSelection.xml
+  MultiBlockChartSelection.xml
   NestedViews.xml
   NonlinearSubdivisionDisplay.xml
   PartitionedDataSet.xml
