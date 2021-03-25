@@ -94,12 +94,7 @@ struct PQCORE_EXPORT pqLinkedObjectQTextEdit : public pqLinkedObjectInterface
   /**
    * See \ref pqLinkedObjectInterface::blockSignals
    */
-  void blockSignals() override;
-
-  /**
-   * See \ref pqLinkedObjectInterface::enableSignals
-   */
-  void enableSignals() override;
+  QtSignalState blockSignals(QtSignalState block) override;
 
   /**
    * See \ref pqLinkedObjectInterface::setText

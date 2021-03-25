@@ -80,15 +80,20 @@ struct PQCORE_EXPORT pqLinkedObjectInterface
   virtual void unlink() = 0;
 
   /**
-   * This method should disable signals on the linked object. This is used to avoid infinite loop
-   * when copying the text from one object to the other.
+   * Used to trigger on and off an object signal
    */
-  virtual void blockSignals() = 0;
+  enum class QtSignalState : bool
+  {
+    On = true,
+    Off = false
+  };
 
   /**
-   * Reenables the signals on the linked object
+   * This method should either block or unblock all signals from the object. This is used to avoid
+   * infinite loop when copying the text from one object to the other.
+   * @return The old blocking state.
    */
-  virtual void enableSignals() = 0;
+  virtual QtSignalState blockSignals(QtSignalState lock) = 0;
 
   /**
    * Updates the object text. This effectively should override the current content of the widget
