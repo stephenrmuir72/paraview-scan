@@ -2,7 +2,7 @@
 // to the point ids used in vtkPointData
 
 #include "PointMap.h"
-#include <stdio.h>
+#include <cstdio>
 
 // --------------------------------------
 PointMap::PointMap(vtkIdType numPoints)

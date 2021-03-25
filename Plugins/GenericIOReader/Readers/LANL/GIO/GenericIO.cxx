@@ -61,10 +61,10 @@ extern "C" {
 #ifndef LANL_GENERICIO_NO_MPI
 #include <ctime>
 #else
-#include <time.h>
+#include <ctime>
 #endif
 
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -83,7 +83,7 @@ namespace lanl
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h>
-#include <stdio.h>
+#include <cstdio>
 #define S_IRUSR _S_IREAD
 #define S_IWUSR _S_IWRITE
 

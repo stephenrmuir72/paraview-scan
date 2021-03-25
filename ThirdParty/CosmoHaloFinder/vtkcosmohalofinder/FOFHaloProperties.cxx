@@ -47,7 +47,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <iomanip>
 #include <set>
-#include <math.h>
+#include <cmath>
 
 #include "Partition.h"
 #include "FOFHaloProperties.h"

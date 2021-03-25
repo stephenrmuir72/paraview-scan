@@ -1,5 +1,5 @@
 #include "dims.h"
-#include <assert.h>
+#include <cassert>
 
 #define DIMENSION 3
 

@@ -47,8 +47,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <iomanip>
 #include <set>
-#include <math.h>
-#include <assert.h>
+#include <cmath>
+#include <cassert>
 
 #include "Partition.h"
 #include "HaloCenterFinder.h"

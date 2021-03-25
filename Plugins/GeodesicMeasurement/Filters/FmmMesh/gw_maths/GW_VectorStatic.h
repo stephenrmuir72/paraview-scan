@@ -10,7 +10,7 @@
 #define GW_VectorStatic_h
 
 #include "GW_MathsConfig.h"
-#include <string.h>
+#include <cstring>
 // #include "GW_VectorND.h"// here
 
 

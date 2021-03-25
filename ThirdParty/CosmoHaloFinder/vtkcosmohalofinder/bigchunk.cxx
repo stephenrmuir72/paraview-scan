@@ -34,7 +34,7 @@
  */
 
 #include "bigchunk.h"
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef _OPENMP
 #include <omp.h>

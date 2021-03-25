@@ -46,7 +46,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _GIO_PV_OCTREE_H_
 
 #include <list>
-#include <math.h>
+#include <cmath>
 #include <stdint.h>
 #include <vector>
 

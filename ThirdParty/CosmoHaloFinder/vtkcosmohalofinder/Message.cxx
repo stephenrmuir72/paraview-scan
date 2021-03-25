@@ -43,7 +43,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 
 #ifdef USE_SERIAL_COSMO
-#include <string.h>
+#include <cstring>
 #endif
 
 #include <iostream>

@@ -37,19 +37,19 @@ using std::endl;
 /** \name classical ANSI c libraries */
 //-------------------------------------------------------------------------
 //@{
-#include <stdio.h>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 #include <float.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <fcntl.h>
-#include <time.h>
+#include <ctime>
 //#include <malloc.h>
 #include <memory.h>
 //#include <tchar.h>
 #include <fstream>
 #include <iostream>
 //#include <ios>
-#include <stdarg.h>
+#include <cstdarg>
 //#include <conio.h>
 //#include <crtdbg.h>
 //@}

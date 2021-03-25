@@ -49,7 +49,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <vector>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 #include "Partition.h"
 #include "ChainingMesh.h"

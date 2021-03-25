@@ -49,8 +49,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <algorithm>
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include "Partition.h"
 #include "CosmoHaloFinderP.h"

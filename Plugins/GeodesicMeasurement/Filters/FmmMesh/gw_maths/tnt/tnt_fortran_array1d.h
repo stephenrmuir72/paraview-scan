@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <iostream>
 #ifdef TNT_BOUNDS_CHECK
-#include <assert.h>
+#include <cassert>
 #endif
 #include "tnt_array1d.h"
 

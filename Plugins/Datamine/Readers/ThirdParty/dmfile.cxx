@@ -14,10 +14,10 @@
    08-09-18: Fixed row reading to handle char*, Robert Maynard, MIRARCO
 */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "dm.h"
 #include "dmfile.h"

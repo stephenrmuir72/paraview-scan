@@ -7,8 +7,8 @@
 #define _GW_CONFIG_H_
 
 #include "stdafx.h"
-#include <float.h>
-#include <stdio.h>
+#include <cfloat>
+#include <cstdio>
 #include "vtkFmmMeshConfig.h"
 
 namespace GW {
