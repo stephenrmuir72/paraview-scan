@@ -47,7 +47,8 @@ class pqPythonTabWidget;
 
 /**
  * @class pqPythonScriptEditor
- * This widget can be used as a embedded Qt python editor inside paraview. It provides functionality
+ * @details This widget can be used as a embedded Qt python editor inside paraview. It provides
+ * functionality
  * to read, write and edit python script and paraview macros within paraview itself. The text editor
  * provides basic functionality such as undo/redo, line numbering and syntax highlighting (through
  * pygments).
@@ -159,7 +160,7 @@ public:
 protected:
   /**
    * Override the QMainWindow closeEvent We ask the user wants to save the current file if it's not
-   * already saved
+   * already saved.
    */
   void closeEvent(QCloseEvent* event) override;
 

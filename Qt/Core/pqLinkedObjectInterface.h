@@ -41,7 +41,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 
 /**
- * The interface to a linked Qt text widget.
+ * @brief The interface to a linked Qt text widget. Derived classes should implement
+ * the proper behavior for all abstract functions.
  * @details The \ref pqLinkedObjectInterface acts as an interface between two Qt text widgets that
  * needs to be linked: when the associated text is updated the linked one gets updated too.
  */
@@ -68,8 +69,8 @@ struct PQCORE_EXPORT pqLinkedObjectInterface
   virtual std::unique_ptr<pqLinkedObjectInterface> clone() const noexcept = 0;
 
   /**
-   * Link this object to the \ref other. The behavior should be when this object is updated, the
-   * other is updated too.
+   * Link this object to the \ref other. The expected behavior should be that when this object is
+   * updated, the other is too.
    */
   virtual void link(pqLinkedObjectInterface* other) = 0;
 

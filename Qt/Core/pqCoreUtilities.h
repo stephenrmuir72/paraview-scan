@@ -155,6 +155,12 @@ public:
   static bool promptUser(const QString& settingsKey, QMessageBox::Icon icon, const QString& title,
     const QString& message, QMessageBox::StandardButtons buttons, QWidget* parentWdg = nullptr);
 
+  /**
+   * This show a QMessageBox to the user and returns the clicked button.
+   * NOTE: due to issues with test recording and playback, currently, this
+   * dialog is not prompted (instead always returning true) when
+   * DASHBOARD_TEST_FROM_CTEST environment variable is set. This may change in future.
+   */
   static QMessageBox::Button promptUserGeneric(const QString& title, const QString& message,
     const QMessageBox::Icon icon, QMessageBox::StandardButtons buttons, QWidget* parentWidget);
 
