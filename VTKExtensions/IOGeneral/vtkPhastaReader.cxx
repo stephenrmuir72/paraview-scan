@@ -36,6 +36,7 @@ vtkCxxSetObjectMacro(vtkPhastaReader, CachedGrid, vtkUnstructuredGrid);
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 struct vtkPhastaReaderInternal
@@ -63,13 +64,6 @@ struct vtkPhastaReaderInternal
 };
 
 // Begin of copy from phastaIO
-
-#define swap_char(A, B)                                                                            \
-  {                                                                                                \
-    ucTmp = A;                                                                                     \
-    A = B;                                                                                         \
-    B = ucTmp;                                                                                     \
-  }
 
 std::map<int, char*> LastHeaderKey;
 std::vector<FILE*> fileArray;
@@ -312,7 +306,7 @@ void vtkPhastaReader::SwapArrayByteOrder(void* array, int nbytes, int nItems)
   {
     for (j = 0; j < (nbytes / 2); j++)
     {
-      swap_char(ucDst[j], ucDst[(nbytes - 1) - j]);
+      std::swap(ucDst[j], ucDst[(nbytes - 1) - j]);
     }
     ucDst += nbytes;
   }
