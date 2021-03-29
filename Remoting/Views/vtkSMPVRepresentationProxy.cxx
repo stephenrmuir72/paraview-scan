@@ -925,7 +925,7 @@ vtkSMPVRepresentationProxy::GetProminentValuesInformationForColorArray(
 //----------------------------------------------------------------------------
 bool vtkSMPVRepresentationProxy::SetRepresentationType(const char* type)
 {
-  const int CALL_SUPERCLASS = 0;
+#define CALL_SUPERCLASS 0
   try
   {
     if (type == nullptr)
