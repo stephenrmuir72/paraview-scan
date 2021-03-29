@@ -559,7 +559,7 @@ vtkClientServerStream& vtkClientServerStreamOperatorSL(vtkClientServerStream* se
   vtkClientServerStream& vtkClientServerStream::operator<<(type x)                                 \
   {                                                                                                \
     return vtkClientServerStreamOperatorSL(this, x);                                               \
-  }
+  } // NOLINT
 VTK_CLIENT_SERVER_OPERATOR(char)
 VTK_CLIENT_SERVER_OPERATOR(int)
 VTK_CLIENT_SERVER_OPERATOR(short)
@@ -692,7 +692,7 @@ void vtkClientServerStreamGetArgumentCase(
     SourceType* T = 0;                                                                             \
     vtkClientServerStreamGetArgumentCase(T, src, dest, 1, 1, 1);                                   \
   }                                                                                                \
-  break
+  break // NOLINT
 
 int vtkClientServerStreamGetArgument(
   vtkClientServerStream::Types type, const unsigned char* src, vtkTypeInt8* dest)
@@ -1002,7 +1002,7 @@ int vtkClientServerStreamGetArgumentValue(
   int vtkClientServerStream::GetArgument(int message, int argument, type* value) const             \
   {                                                                                                \
     return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);               \
-  }
+  } // NOLINT
 VTK_CSS_GET_ARGUMENT(bool)
 VTK_CSS_GET_ARGUMENT(signed char)
 VTK_CSS_GET_ARGUMENT(char)
@@ -1120,7 +1120,7 @@ int vtkClientServerStreamGetArgumentArray(
     int message, int argument, type* value, vtkTypeUInt32 length) const                            \
   {                                                                                                \
     return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);          \
-  }
+  } // NOLINT
 VTK_CSS_GET_ARGUMENT_ARRAY(signed char)
 VTK_CSS_GET_ARGUMENT_ARRAY(char)
 VTK_CSS_GET_ARGUMENT_ARRAY(int)
