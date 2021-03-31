@@ -555,29 +555,69 @@ vtkClientServerStream& vtkClientServerStreamOperatorSL(vtkClientServerStream* se
   return vtkClientServerStreamInternals::Write(*self, &x, sizeof(x));
 }
 
-#define VTK_CLIENT_SERVER_OPERATOR(type)                                                           \
-  vtkClientServerStream& vtkClientServerStream::operator<<(type x)                                 \
-  {                                                                                                \
-    return vtkClientServerStreamOperatorSL(this, x);                                               \
-  } // NOLINT
-VTK_CLIENT_SERVER_OPERATOR(char)
-VTK_CLIENT_SERVER_OPERATOR(int)
-VTK_CLIENT_SERVER_OPERATOR(short)
-VTK_CLIENT_SERVER_OPERATOR(long)
-VTK_CLIENT_SERVER_OPERATOR(signed char)
-VTK_CLIENT_SERVER_OPERATOR(unsigned char)
-VTK_CLIENT_SERVER_OPERATOR(unsigned int)
-VTK_CLIENT_SERVER_OPERATOR(unsigned short)
-VTK_CLIENT_SERVER_OPERATOR(unsigned long)
-VTK_CLIENT_SERVER_OPERATOR(long long)
-VTK_CLIENT_SERVER_OPERATOR(unsigned long long)
+using CSS = vtkClientServerStream;
+CSS& CSS::operator<<(char x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(int x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(short x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(long x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(signed char x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned char x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned int x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned short x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned long x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(long long x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned long long x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
 #if defined(VTK_TYPE_USE___INT64)
-VTK_CLIENT_SERVER_OPERATOR(__int64)
-VTK_CLIENT_SERVER_OPERATOR(unsigned __int64)
+CSS& CSS::operator<<(__int64 x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(unsigned __int64 x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
 #endif
-VTK_CLIENT_SERVER_OPERATOR(float)
-VTK_CLIENT_SERVER_OPERATOR(double)
-#undef VTK_CLIENT_SERVER_OPERATOR
+CSS& CSS::operator<<(float x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
+CSS& CSS::operator<<(double x)
+{
+  return vtkClientServerStreamOperatorSL(this, x);
+}
 
 //----------------------------------------------------------------------------
 vtkClientServerStream& vtkClientServerStream::operator<<(const char* x)
@@ -621,29 +661,68 @@ vtkClientServerStream::Array vtkClientServerStreamInsertArray(const T* data, int
   return a;
 }
 
-#define VTK_CLIENT_SERVER_INSERT_ARRAY(type)                                                       \
-  vtkClientServerStream::Array vtkClientServerStream::InsertArray(const type* data, int length)    \
-  {                                                                                                \
-    return vtkClientServerStreamInsertArray(data, length);                                         \
-  }
-VTK_CLIENT_SERVER_INSERT_ARRAY(char)
-VTK_CLIENT_SERVER_INSERT_ARRAY(short)
-VTK_CLIENT_SERVER_INSERT_ARRAY(int)
-VTK_CLIENT_SERVER_INSERT_ARRAY(long)
-VTK_CLIENT_SERVER_INSERT_ARRAY(signed char)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned char)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned short)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned int)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned long)
-VTK_CLIENT_SERVER_INSERT_ARRAY(long long)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned long long)
+CSS::Array CSS::InsertArray(const char* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const short* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const int* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const long* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const signed char* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned char* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned short* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned int* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned long* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const long long* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned long long* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
 #if defined(VTK_TYPE_USE___INT64)
-VTK_CLIENT_SERVER_INSERT_ARRAY(__int64)
-VTK_CLIENT_SERVER_INSERT_ARRAY(unsigned __int64)
+CSS::Array CSS::InsertArray(const __int64* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const unsigned __int64* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
 #endif
-VTK_CLIENT_SERVER_INSERT_ARRAY(float)
-VTK_CLIENT_SERVER_INSERT_ARRAY(double)
-#undef VTK_CLIENT_SERVER_INSERT_ARRAY
+CSS::Array CSS::InsertArray(const float* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
+CSS::Array CSS::InsertArray(const double* data, int length)
+{
+  return vtkClientServerStreamInsertArray(data, length);
+}
 
 //----------------------------------------------------------------------------
 // Template to implement each type conversion in the lookup tables below.
@@ -998,30 +1077,72 @@ int vtkClientServerStreamGetArgumentValue(
   return 0;
 }
 
-#define VTK_CSS_GET_ARGUMENT(type)                                                                 \
-  int vtkClientServerStream::GetArgument(int message, int argument, type* value) const             \
-  {                                                                                                \
-    return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);               \
-  } // NOLINT
-VTK_CSS_GET_ARGUMENT(bool)
-VTK_CSS_GET_ARGUMENT(signed char)
-VTK_CSS_GET_ARGUMENT(char)
-VTK_CSS_GET_ARGUMENT(int)
-VTK_CSS_GET_ARGUMENT(short)
-VTK_CSS_GET_ARGUMENT(long)
-VTK_CSS_GET_ARGUMENT(unsigned char)
-VTK_CSS_GET_ARGUMENT(unsigned int)
-VTK_CSS_GET_ARGUMENT(unsigned short)
-VTK_CSS_GET_ARGUMENT(unsigned long)
-VTK_CSS_GET_ARGUMENT(float)
-VTK_CSS_GET_ARGUMENT(double)
-VTK_CSS_GET_ARGUMENT(long long)
-VTK_CSS_GET_ARGUMENT(unsigned long long)
+int CSS::GetArgument(int message, int argument, bool* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, signed char* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, char* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, int* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, short* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, long* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned char* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned int* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned short* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned long* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, float* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, double* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, long long* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned long long* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
 #if defined(VTK_TYPE_USE___INT64)
-VTK_CSS_GET_ARGUMENT(__int64)
-VTK_CSS_GET_ARGUMENT(unsigned __int64)
+int CSS::GetArgument(int message, int argument, __int64* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
+int CSS::GetArgument(int message, int argument, unsigned __int64* value) const
+{
+  return vtkClientServerStreamGetArgumentValue(this, message, argument, value, 1);
+}
 #endif
-#undef VTK_CSS_GET_ARGUMENT
 
 template <typename SourceType, typename DestType>
 int vtkClientServerStreamGetArgumentArrayCase(
@@ -1115,30 +1236,69 @@ int vtkClientServerStreamGetArgumentArray(
   return 0;
 }
 
-#define VTK_CSS_GET_ARGUMENT_ARRAY(type)                                                           \
-  int vtkClientServerStream::GetArgument(                                                          \
-    int message, int argument, type* value, vtkTypeUInt32 length) const                            \
-  {                                                                                                \
-    return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);          \
-  } // NOLINT
-VTK_CSS_GET_ARGUMENT_ARRAY(signed char)
-VTK_CSS_GET_ARGUMENT_ARRAY(char)
-VTK_CSS_GET_ARGUMENT_ARRAY(int)
-VTK_CSS_GET_ARGUMENT_ARRAY(short)
-VTK_CSS_GET_ARGUMENT_ARRAY(long)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned char)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned int)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned short)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned long)
-VTK_CSS_GET_ARGUMENT_ARRAY(float)
-VTK_CSS_GET_ARGUMENT_ARRAY(double)
-VTK_CSS_GET_ARGUMENT_ARRAY(long long)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned long long)
+int CSS::GetArgument(int message, int argument, signed char* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, char* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, int* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, short* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, long* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, unsigned char* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, unsigned int* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, unsigned short* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, unsigned long* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, float* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, double* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, long long* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(
+  int message, int argument, unsigned long long* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
 #if defined(VTK_TYPE_USE___INT64)
-VTK_CSS_GET_ARGUMENT_ARRAY(__int64)
-VTK_CSS_GET_ARGUMENT_ARRAY(unsigned __int64)
+int CSS::GetArgument(int message, int argument, __int64* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
+int CSS::GetArgument(int message, int argument, unsigned __int64* value, vtkTypeUInt32 length) const
+{
+  return vtkClientServerStreamGetArgumentArray(this, message, argument, value, length);
+}
 #endif
-#undef VTK_CSS_GET_ARGUMENT_ARRAY
 
 //----------------------------------------------------------------------------
 int vtkClientServerStream::GetArgument(int message, int argument, const char** value) const
