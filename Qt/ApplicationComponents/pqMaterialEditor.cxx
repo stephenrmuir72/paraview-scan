@@ -60,184 +60,203 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMetaProperty>
 #include <QSet>
 #include <QStandardItemModel>
+#include <QVector2D>
 #include <QVector3D>
 #include <QVector>
 
 #include <sstream>
 
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-class pqMaterialProxyModel : public QAbstractTableModel
+//-----------------------------------------------------------------------------
+pqMaterialProxyModel::pqMaterialProxyModel(QObject* p)
+  : QAbstractTableModel(p)
 {
-public:
-  pqMaterialProxyModel(QObject* p = nullptr)
-    : QAbstractTableModel(p)
+}
+
+//-----------------------------------------------------------------------------
+void pqMaterialProxyModel::reset()
+{
+  this->beginResetModel();
+  this->endResetModel();
+}
+
+//-----------------------------------------------------------------------------
+QVariant pqMaterialProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
-  }
-
-  ~pqMaterialProxyModel() override = default;
-
-  void reset()
-  {
-    this->beginResetModel();
-    this->endResetModel();
-  }
-
-  void setProxy(vtkSMProxy* proxy) { this->Proxy = proxy; }
-
-  Qt::ItemFlags flags(const QModelIndex& idx) const override
-  {
-    return QAbstractTableModel::flags(idx) | Qt::ItemIsEditable;
-  }
-
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
-  {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    switch (section)
     {
-      switch (section)
-      {
-        case 0:
-          return "Name";
-        case 1:
-          return "Value";
-      }
+      case 0:
+        return "Name";
+      case 1:
+        return "Value";
     }
-
-    return QAbstractTableModel::headerData(section, orientation, role);
   }
 
-  int rowCount(const QModelIndex& parent = QModelIndex()) const override
+  return QAbstractTableModel::headerData(section, orientation, role);
+}
+
+//-----------------------------------------------------------------------------
+int pqMaterialProxyModel::rowCount(const QModelIndex& parent) const
+{
+  if (!this->Proxy)
   {
-    if (!this->Proxy)
+    return 0;
+  }
+  return vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetNumberOfElements() / 2;
+}
+
+//-----------------------------------------------------------------------------
+std::string pqMaterialProxyModel::getMaterialAttributeName(const int row) const
+{
+  return vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(row * 2);
+}
+
+//-----------------------------------------------------------------------------
+std::string pqMaterialProxyModel::getMaterialType() const
+{
+  return vtkSMPropertyHelper(this->Proxy, "Type").GetAsString();
+}
+
+//-----------------------------------------------------------------------------
+QVariant pqMaterialProxyModel::data(const QModelIndex& index, int role) const
+{
+  if (index.column() == 0)
+  {
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-      return 0;
+      return QString(this->getMaterialAttributeName(index.row()).c_str());
     }
-    return vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetNumberOfElements() / 2;
-  }
-
-  int columnCount(const QModelIndex& parent = QModelIndex()) const override { return 2; }
-
-  QVariant data(const QModelIndex& index, int role) const override
-  {
-    if (index.column() == 0)
+    if (this->IsSameRole(role, ExtendedItemDataRole::PropertyValue))
     {
-      if (role == Qt::DisplayRole || role == Qt::EditRole)
-      {
+      return QString(this->getMaterialType().c_str());
+    }
+  }
+  if (index.column() == 1 && this->IsSameRole(role, ExtendedItemDataRole::PropertyValue))
+  {
+    std::string attName = this->getMaterialAttributeName(index.row());
+
+    auto& dic = vtkOSPRayMaterialLibrary::GetParametersDictionary();
+    std::string matType = this->getMaterialType();
+    auto attType = dic.at(matType).at(attName);
+
+    switch (attType)
+    {
+      case vtkOSPRayMaterialLibrary::ParameterType::BOOLEAN:
+        return static_cast<bool>(
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsInt(index.row() * 2 + 1));
+      case vtkOSPRayMaterialLibrary::ParameterType::FLOAT:
+        return vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsDouble(index.row() * 2 + 1);
+      case vtkOSPRayMaterialLibrary::ParameterType::NORMALIZED_FLOAT:
+        return vtkMath::ClampValue(
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsDouble(index.row() * 2 + 1), 0.0,
+          1.0);
+      case vtkOSPRayMaterialLibrary::ParameterType::TEXTURE:
         return QString(
-          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2));
-      }
-      if (role == Qt::UserRole + 1)
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
+      case vtkOSPRayMaterialLibrary::ParameterType::VEC2:
       {
-        return QString(vtkSMPropertyHelper(this->Proxy, "Type").GetAsString());
+        std::array<double, 2> data;
+        std::stringstream ss(
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
+        for (double& value : data)
+        {
+          ss >> value;
+        }
+
+        QVector2D vec;
+        vec.setX(data[0]);
+        vec.setY(data[1]);
+        return vec;
       }
-    }
-    if (index.column() == 1 && (role == Qt::UserRole + 1))
-    {
-      QString attName = this->data(this->sibling(index.row(), 0, index), Qt::EditRole).toString();
-
-      auto& dic = vtkOSPRayMaterialLibrary::GetParametersDictionary();
-      std::string matType = vtkSMPropertyHelper(this->Proxy, "Type").GetAsString();
-      auto attType = dic.at(matType).at(attName.toStdString());
-
-      switch (attType)
+      case vtkOSPRayMaterialLibrary::ParameterType::VEC3:
       {
-        case vtkOSPRayMaterialLibrary::ParameterType::BOOLEAN:
-          return static_cast<bool>(
-            vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsInt(index.row() * 2 + 1));
-        case vtkOSPRayMaterialLibrary::ParameterType::FLOAT:
-          return vtkSMPropertyHelper(this->Proxy, "DoubleVariables")
-            .GetAsDouble(index.row() * 2 + 1);
-        case vtkOSPRayMaterialLibrary::ParameterType::NORMALIZED_FLOAT:
-          return vtkMath::ClampValue(
-            vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsDouble(index.row() * 2 + 1),
-            0.0, 1.0);
-        case vtkOSPRayMaterialLibrary::ParameterType::TEXTURE:
-          return QString(
-            vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
-        case vtkOSPRayMaterialLibrary::ParameterType::VEC3:
+        std::array<double, 3> data;
+        std::stringstream ss(
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
+        for (double& value : data)
         {
-          std::array<double, 3> data;
-          std::stringstream ss(
-            vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
-          for (double& value : data)
-          {
-            ss >> value;
-          }
-
-          QVector3D vec;
-          vec.setX(data[0]);
-          vec.setY(data[1]);
-          vec.setZ(data[2]);
-          return vec;
+          ss >> value;
         }
-        case vtkOSPRayMaterialLibrary::ParameterType::COLOR_RGB:
-        {
-          std::array<double, 3> data;
-          std::stringstream ss(
-            vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
-          for (double& value : data)
-          {
-            ss >> value;
-          }
 
-          QColor col;
-          col.setRedF(vtkMath::ClampValue(data[0], 0.0, 1.0));
-          col.setGreenF(vtkMath::ClampValue(data[1], 0.0, 1.0));
-          col.setBlueF(vtkMath::ClampValue(data[2], 0.0, 1.0));
-          return col;
-        }
-        default:
-          break;
+        QVector3D vec;
+        vec.setX(data[0]);
+        vec.setY(data[1]);
+        vec.setZ(data[2]);
+        return vec;
       }
+      case vtkOSPRayMaterialLibrary::ParameterType::COLOR_RGB:
+      {
+        std::array<double, 3> data;
+        std::stringstream ss(
+          vtkSMPropertyHelper(this->Proxy, "DoubleVariables").GetAsString(index.row() * 2 + 1));
+        for (double& value : data)
+        {
+          ss >> value;
+        }
+
+        QColor col;
+        col.setRedF(vtkMath::ClampValue(data[0], 0.0, 1.0));
+        col.setGreenF(vtkMath::ClampValue(data[1], 0.0, 1.0));
+        col.setBlueF(vtkMath::ClampValue(data[2], 0.0, 1.0));
+        return col;
+      }
+      default:
+        break;
     }
-    return QString();
   }
+  return QString();
+}
 
-  bool setData(const QModelIndex& index, const QVariant& variant, int role) override
+//-----------------------------------------------------------------------------
+bool pqMaterialProxyModel::setData(const QModelIndex& index, const QVariant& variant, int role)
+{
+  if (index.column() == 0 && role == Qt::EditRole)
   {
-    if (index.column() == 0 && role == Qt::EditRole)
-    {
-      vtkSMPropertyHelper(this->Proxy, "DoubleVariables")
-        .Set(index.row() * 2, variant.toString().toLocal8Bit().data());
-      this->Proxy->UpdateVTKObjects();
+    vtkSMPropertyHelper(this->Proxy, "DoubleVariables")
+      .Set(index.row() * 2, variant.toString().toLocal8Bit().data());
+    this->Proxy->UpdateVTKObjects();
 
-      QModelIndex sibling = index.sibling(index.row(), 1); // emit for value too
-      emit this->dataChanged(index, sibling);
-      return true;
-    }
-    if (index.column() == 1 && role == Qt::UserRole + 1)
-    {
-      std::stringstream ss;
-      switch (static_cast<QMetaType::Type>(variant.type()))
-      {
-        case QMetaType::QVector3D:
-        {
-          QVector3D vec = variant.value<QVector3D>();
-          ss << vec.x() << " " << vec.y() << " " << vec.z();
-        }
-        break;
-        case QMetaType::QColor:
-        {
-          QColor col = variant.value<QColor>();
-          ss << col.redF() << " " << col.greenF() << " " << col.blueF();
-        }
-        break;
-        default:
-          ss << variant.toString().toStdString();
-      }
-      vtkSMPropertyHelper(this->Proxy, "DoubleVariables")
-        .Set(index.row() * 2 + 1, ss.str().c_str());
-
-      this->Proxy->UpdateVTKObjects();
-
-      emit this->dataChanged(index, index);
-      return true;
-    }
-    return QAbstractTableModel::setData(index, variant, role);
+    QModelIndex sibling = index.sibling(index.row(), 1); // emit for value too
+    emit this->dataChanged(index, sibling);
+    return true;
   }
+  if (index.column() == 1 && this->IsSameRole(role, ExtendedItemDataRole::PropertyValue))
+  {
+    std::stringstream ss;
+    switch (static_cast<QMetaType::Type>(variant.type()))
+    {
+      case QMetaType::QVector2D:
+      {
+        QVector2D vec = variant.value<QVector2D>();
+        ss << vec.x() << " " << vec.y();
+      }
+      break;
+      case QMetaType::QVector3D:
+      {
+        QVector3D vec = variant.value<QVector3D>();
+        ss << vec.x() << " " << vec.y() << " " << vec.z();
+      }
+      break;
+      case QMetaType::QColor:
+      {
+        QColor col = variant.value<QColor>();
+        ss << col.redF() << " " << col.greenF() << " " << col.blueF();
+      }
+      break;
+      default:
+        ss << variant.toString().toStdString();
+    }
+    vtkSMPropertyHelper(this->Proxy, "DoubleVariables").Set(index.row() * 2 + 1, ss.str().c_str());
 
-private:
-  vtkSMProxy* Proxy = nullptr;
-};
+    this->Proxy->UpdateVTKObjects();
+
+    emit this->dataChanged(index, index);
+    return true;
+  }
+  return QAbstractTableModel::setData(index, variant, role);
+}
 #endif
 
 class vtkSMProxyManagerRegisterObserver : public vtkCommand
@@ -346,6 +365,12 @@ pqMaterialEditor::~pqMaterialEditor()
 }
 
 //-----------------------------------------------------------------------------
+QString pqMaterialEditor::currentMaterialName()
+{
+  return this->Internals->Ui.SelectMaterial->currentText();
+}
+
+//-----------------------------------------------------------------------------
 vtkOSPRayMaterialLibrary* pqMaterialEditor::materialLibrary()
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
@@ -409,7 +434,9 @@ void pqMaterialEditor::addMaterial()
     pqServer* server = pqActiveObjects::instance().activeServer();
     vtkSMProxy* mp = builder->createProxy("materials", "Material", server, "materials");
 
-    vtkSMPropertyHelper(mp, "Name").Set(dialog->name().toLocal8Bit().data());
+    const std::string matName = this->generateValidMaterialName(dialog->name().toStdString());
+
+    vtkSMPropertyHelper(mp, "Name").Set(matName.c_str());
     vtkSMPropertyHelper(mp, "Type").Set(dialog->type().toLocal8Bit().data());
     mp->UpdateVTKObjects();
 
@@ -418,8 +445,29 @@ void pqMaterialEditor::addMaterial()
     mlp->UpdateVTKObjects();
 
     this->updateMaterialList();
-    this->Internals->Ui.SelectMaterial->setCurrentText(dialog->name());
+    this->Internals->Ui.SelectMaterial->setCurrentText(QString(matName.c_str()));
   });
+}
+
+//-----------------------------------------------------------------------------
+std::string pqMaterialEditor::generateValidMaterialName(const std::string& name)
+{
+  vtkOSPRayMaterialLibrary* ml = this->materialLibrary();
+  const auto& names = ml->GetMaterialNames();
+  std::string res = name;
+
+  auto findName = names.find(name);
+  if (findName != names.end())
+  {
+    int counter = 0;
+    do
+    {
+      res = std::string(name).append("_").append(std::to_string(++counter));
+      findName = names.find(res);
+    } while (findName != names.end());
+  }
+
+  return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -429,7 +477,7 @@ void pqMaterialEditor::removeMaterial()
 
   if (ml)
   {
-    vtkSMProxy* mp = this->materialProxy(this->Internals->Ui.SelectMaterial->currentText());
+    vtkSMProxy* mp = this->materialProxy(this->currentMaterialName());
 
     if (mp)
     {
@@ -454,23 +502,21 @@ std::vector<std::string> pqMaterialEditor::availableParameters()
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkOSPRayMaterialLibrary* ml = this->materialLibrary();
 
-  if (ml)
+  const QString& currentText = this->currentMaterialName();
+  if (ml && !currentText.isEmpty())
   {
-    auto matName = this->Internals->Ui.SelectMaterial->currentText().toStdString();
+    auto matName = currentText.toStdString();
     auto matType = ml->LookupImplName(matName);
     auto usedVariable = ml->GetDoubleShaderVariableList(matName);
     auto usedTexture = ml->GetTextureList(matName);
 
     auto& allParams = vtkOSPRayMaterialLibrary::GetParametersDictionary().at(matType);
+    // Filter all available parameters so only the relevant ones are left
     for (auto& p : allParams)
     {
-      // @todo : remove, not texture yet
-      if (p.second == vtkOSPRayMaterialLibrary::ParameterType::FLOAT_DATA)
-      {
-        continue;
-      }
-
-      if (std::find(usedVariable.begin(), usedVariable.end(), p.first) == usedVariable.end() &&
+      if (p.second != vtkOSPRayMaterialLibrary::ParameterType::FLOAT_DATA &&
+        p.first.find(".transform") == std::string::npos &&
+        std::find(usedVariable.begin(), usedVariable.end(), p.first) == usedVariable.end() &&
         std::find(usedTexture.begin(), usedTexture.end(), p.first) == usedTexture.end())
       {
         availableList.push_back(p.first);
@@ -516,6 +562,9 @@ void pqMaterialEditor::addNewProperty(vtkSMProxy* proxy, const QString& prop)
     case vtkOSPRayMaterialLibrary::ParameterType::NORMALIZED_FLOAT:
       vtkSMPropertyHelper(proxy, "DoubleVariables").Set(nbElem + 1, "1");
       break;
+    case vtkOSPRayMaterialLibrary::ParameterType::VEC2:
+      vtkSMPropertyHelper(proxy, "DoubleVariables").Set(nbElem + 1, "0 0");
+      break;
     case vtkOSPRayMaterialLibrary::ParameterType::VEC3:
       vtkSMPropertyHelper(proxy, "DoubleVariables").Set(nbElem + 1, "0 0 0");
       break;
@@ -529,7 +578,8 @@ void pqMaterialEditor::addNewProperty(vtkSMProxy* proxy, const QString& prop)
       vtkSMPropertyHelper(proxy, "DoubleVariables").Set(nbElem + 1, "");
       break;
     default:
-      cout << "ERROR in addNewProperty" << endl;
+      vtkGenericWarningMacro("Material property " << prop.toStdString() << " has unsupported type");
+      break;
   }
 
   this->Internals->AttributesModel.reset();
@@ -540,12 +590,12 @@ void pqMaterialEditor::addNewProperty(vtkSMProxy* proxy, const QString& prop)
 void pqMaterialEditor::addProperty()
 {
   auto params = this->availableParameters();
-  if (params.size() > 0)
+  if (!params.empty())
   {
-    QString matName = this->Internals->Ui.SelectMaterial->currentText();
+    QString matName = this->currentMaterialName();
     QString matType = this->Internals->Ui.SelectMaterial->currentData().toString();
 
-    vtkSMProxy* mp = this->materialProxy(this->Internals->Ui.SelectMaterial->currentText());
+    vtkSMProxy* mp = this->materialProxy(matName);
 
     this->addNewProperty(mp, QString::fromStdString(params[0]));
 
@@ -557,6 +607,7 @@ void pqMaterialEditor::addProperty()
 //-----------------------------------------------------------------------------
 void pqMaterialEditor::removeProperties(vtkSMProxy* proxy, const QSet<QString>& variables)
 {
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   unsigned int nbElem = vtkSMPropertyHelper(proxy, "DoubleVariables").GetNumberOfElements();
   unsigned int newNbElem = 0;
   for (unsigned int i = 0; i < nbElem; i += 2)
@@ -564,23 +615,23 @@ void pqMaterialEditor::removeProperties(vtkSMProxy* proxy, const QSet<QString>& 
     const char* varName = vtkSMPropertyHelper(proxy, "DoubleVariables").GetAsString(i);
     if (!variables.contains(varName))
     {
+      const char* value = vtkSMPropertyHelper(proxy, "DoubleVariables").GetAsString(i + 1);
       vtkSMPropertyHelper(proxy, "DoubleVariables").Set(newNbElem, varName);
-      vtkSMPropertyHelper(proxy, "DoubleVariables")
-        .Set(newNbElem + 1, vtkSMPropertyHelper(proxy, "DoubleVariables").GetAsString());
+      vtkSMPropertyHelper(proxy, "DoubleVariables").Set(newNbElem + 1, value);
 
       newNbElem += 2;
     }
   }
   vtkSMPropertyHelper(proxy, "DoubleVariables").SetNumberOfElements(newNbElem);
 
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-  this->Internals->AttributesModel.reset();
+  proxy->UpdateVTKObjects();
 #endif
 }
 
 //-----------------------------------------------------------------------------
 void pqMaterialEditor::removeProperty()
 {
+  // Tache 8.1.? : RemoveProperty reset all properties
   vtkOSPRayMaterialLibrary* ml = this->materialLibrary();
 
   if (ml)
@@ -596,13 +647,10 @@ void pqMaterialEditor::removeProperty()
         selectedVariables.insert(index.sibling(index.row(), 0).data(Qt::EditRole).toString());
       }
 
-      QString matName = this->Internals->Ui.SelectMaterial->currentText();
+      QString matName = this->currentMaterialName();
       vtkSMProxy* mp = this->materialProxy(matName);
 
       this->removeProperties(mp, selectedVariables);
-
-      mp->UpdateVTKObjects();
-
       this->updateCurrentMaterial(matName);
     }
   }
@@ -615,8 +663,12 @@ void pqMaterialEditor::removeAllProperties()
 
   if (ml)
   {
-    QString matName = this->Internals->Ui.SelectMaterial->currentText();
+    QString matName = this->currentMaterialName();
     vtkSMProxy* mp = this->materialProxy(matName);
+    if (!mp)
+    {
+      return;
+    }
     vtkSMPropertyHelper(mp, "DoubleVariables").RemoveAllValues();
 
     mp->UpdateVTKObjects();
@@ -629,7 +681,7 @@ void pqMaterialEditor::removeAllProperties()
 void pqMaterialEditor::propertyChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
   // update material and render
-  QString matName = this->Internals->Ui.SelectMaterial->currentText();
+  QString matName = this->currentMaterialName();
 
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (!server)
@@ -716,5 +768,6 @@ void pqMaterialEditor::updateCurrentMaterial(const QString& label)
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   this->Internals->AttributesModel.setProxy(proxy);
   this->Internals->AttributesModel.reset();
+  this->propertyChanged(QModelIndex(), QModelIndex());
 #endif
 }

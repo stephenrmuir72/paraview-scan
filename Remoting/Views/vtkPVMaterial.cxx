@@ -17,6 +17,8 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 
+#include "vtkTexture.h"
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
 #include "vtkOSPRayMaterialLibrary.h"
 #endif
@@ -55,7 +57,6 @@ const std::string& vtkPVMaterial::GetType()
 //-----------------------------------------------------------------------------
 void vtkPVMaterial::AddVariable(const char* paramName, const char* value)
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkOSPRayMaterialLibrary* lib = vtkOSPRayMaterialLibrary::SafeDownCast(this->Library);
   if (lib)
   {
@@ -64,9 +65,10 @@ void vtkPVMaterial::AddVariable(const char* paramName, const char* value)
 
     if (paramType == vtkOSPRayMaterialLibrary::ParameterType::TEXTURE)
     {
-      // get texture pointer
-      vtkTexture* texture = nullptr;
-      lib->AddTexture(this->Name, paramName, texture);
+      // Our CurrentTexture hold the current texture selected in the
+      // corresponding pqTextureSelectorPropertyWidget
+      // created in pqMaterialAttributesDelegate
+      lib->AddTexture(this->Name, paramName, this->CurrentTexture);
     }
     else
     {
@@ -82,16 +84,11 @@ void vtkPVMaterial::AddVariable(const char* paramName, const char* value)
 
     this->Modified();
   }
-#else
-  (void)paramName;
-  (void)value;
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void vtkPVMaterial::RemoveAllVariables()
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkOSPRayMaterialLibrary* lib = vtkOSPRayMaterialLibrary::SafeDownCast(this->Library);
   if (lib)
   {
@@ -99,7 +96,6 @@ void vtkPVMaterial::RemoveAllVariables()
     lib->RemoveAllTextures(this->Name);
     this->Modified();
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
