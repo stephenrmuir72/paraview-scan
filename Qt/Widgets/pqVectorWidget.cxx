@@ -29,45 +29,35 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-#ifndef pqVector3DWidget_h
-#define pqVector3DWidget_h
+#include "pqVectorWidget.h"
 
-#include "pqWidgetsModule.h"
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
 
-#include <QVector3D>
-#include <QWidget>
-
-/**
-* pqVector3DWidget is a widget that can be used to edit a 3D vector.
-*/
-class PQWIDGETS_EXPORT pqVector3DWidget : public QWidget
+//-----------------------------------------------------------------------------
+pqVectorWidget::pqVectorWidget(const QVariant& value, QWidget* parent)
+  : QWidget(parent)
 {
-  Q_OBJECT
-  Q_PROPERTY(QVector3D value READ value USER true);
+  this->Vector = value;
+}
 
-public:
-  pqVector3DWidget(const QVector3D& value, QWidget* parent = 0);
-  ~pqVector3DWidget() override = default;
+//-----------------------------------------------------------------------------
+void pqVectorWidget::CreateUI(unsigned int nbElem)
+{
+  this->setAutoFillBackground(true);
 
-  /**
-   * Get the value directly in vector form.
-   */
-  const QVector3D& value() const;
+  QHBoxLayout* layout = new QHBoxLayout(this);
+  layout->setContentsMargins(1, 1, 1, 1);
+  layout->setSpacing(1);
+  this->setLayout(layout);
 
-signals:
-  /**
-   * Signal emitted when any composante value changed.
-   */
-  void valueChanged(const QVector3D&);
+  for (unsigned int s = 0; s < nbElem; ++s)
+  {
+    QDoubleSpinBox* valEdit = new QDoubleSpinBox(this);
+    valEdit->setValue(this->getValue(s));
+    layout->addWidget(valEdit);
 
-public slots:
-  void setValue(int index, float value);
-
-protected:
-  QVector3D Vector;
-
-private:
-  Q_DISABLE_COPY(pqVector3DWidget);
-};
-
-#endif
+    QObject::connect(valEdit, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+      [=](double val) { this->setValue(s, val); });
+  }
+}

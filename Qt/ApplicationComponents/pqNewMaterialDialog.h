@@ -43,7 +43,7 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqNewMaterialDialog : public pqDialog
   typedef pqDialog Superclass;
 
 public:
-  pqNewMaterialDialog(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+  pqNewMaterialDialog(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
   ~pqNewMaterialDialog() override;
 
   void setMaterialLibrary(vtkOSPRayMaterialLibrary* lib);

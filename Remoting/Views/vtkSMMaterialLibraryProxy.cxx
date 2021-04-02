@@ -23,18 +23,18 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyInternals.h"
 #include "vtkSMSession.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
+
+#include "vtkSMParaViewPipelineController.h"
+
+#include <numeric>
 
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
 #include "vtkOSPRayMaterialLibrary.h"
 #endif
 
 vtkStandardNewMacro(vtkSMMaterialLibraryProxy);
-//-----------------------------------------------------------------------------
-vtkSMMaterialLibraryProxy::vtkSMMaterialLibraryProxy() = default;
-
-//-----------------------------------------------------------------------------
-vtkSMMaterialLibraryProxy::~vtkSMMaterialLibraryProxy() = default;
 
 //-----------------------------------------------------------------------------
 void vtkSMMaterialLibraryProxy::LoadMaterials(const char* filename)
@@ -63,7 +63,6 @@ void vtkSMMaterialLibraryProxy::LoadDefaultMaterials()
 #endif
 }
 
-//-----------------------------------------------------------------------------
 void vtkSMMaterialLibraryProxy::Synchronize()
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
@@ -73,7 +72,6 @@ void vtkSMMaterialLibraryProxy::Synchronize()
     // avoid serialization in serial since uneccessary and can be slow
     builtinMode = true;
   }
-
   if (!builtinMode)
   {
     vtkClientServerStream stream;
@@ -106,7 +104,8 @@ void vtkSMMaterialLibraryProxy::Synchronize()
   for (auto& matName : matNames)
   {
     std::string type = ml->LookupImplName(matName);
-    vtkSMProxy* matProxy = pxm->NewProxy("materials", "Material");
+    vtkSmartPointer<vtkSMProxy> matProxy;
+    matProxy.TakeReference(pxm->NewProxy("materials", "Material"));
 
     vtkSMPropertyHelper(matProxy, "Name").Set(matName.c_str());
     vtkSMPropertyHelper(matProxy, "Type").Set(type.c_str());
@@ -115,7 +114,12 @@ void vtkSMMaterialLibraryProxy::Synchronize()
     matProxy->UpdateVTKObjects();
 
     auto varList = ml->GetDoubleShaderVariableList(matName);
-    vtkSMPropertyHelper(matProxy, "DoubleVariables").SetNumberOfElements(varList.size() * 4);
+    auto texList = ml->GetTextureList(matName);
+
+    // This property is in rendering.xml
+    // under the Material proxy
+    vtkSMPropertyHelper(matProxy, "DoubleVariables")
+      .SetNumberOfElements((varList.size() + texList.size()) * 2);
 
     vtkSMPropertyHelper(this, "Materials").Add(matProxy);
 
@@ -124,25 +128,50 @@ void vtkSMMaterialLibraryProxy::Synchronize()
     pxm->RegisterProxy("materials", matProxy);
 
     int currentIndex = 0;
+    // Add all the double variables
     for (auto& varName : varList)
     {
       vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, varName.c_str());
 
       auto varValue = ml->GetDoubleShaderVariable(matName, varName);
-      varValue.resize(3, 0.0);
 
-      for (double comp : varValue)
-      {
-        vtkSMPropertyHelper(matProxy, "DoubleVariables")
-          .Set(currentIndex++, vtkVariant(comp).ToString());
-      }
+      std::string str =
+        std::accumulate(varValue.begin() + 1, varValue.end(), std::to_string(varValue[0]),
+          [](const std::string& a, double b) { return a + ' ' + std::to_string(b); });
+
+      vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, str.c_str());
+    }
+    // Add all the texture
+    for (auto& varName : texList)
+    {
+      vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, varName.c_str());
+
+      // vtkTexture* texture = ml->GetTexture(matName, varName);
+      // Todo get the name of the texture / load it
+
+      // We need to get the filename to register the proxy
+      // std::string filename = "/home/lfxpaul/dev/materials/textures/brushed.jpg";
+
+      // //vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+      // vtkSMProxy* texture = pxm->NewProxy("textures", "ImageTexture");
+
+      // pxm->RegisterProxy("textures", texture);
+
+      // vtkSMPropertyHelper(texture, "FileName").Set(filename.c_str());
+
+      // vtkNew<vtkSMParaViewPipelineController> controller;
+      // controller->RegisterTextureProxy(texture, filename.c_str());
+
+      // Could we register / create proxy ImageTexture here ?
+
+      // vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, filename.c_str());
+      vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, "None");
     }
 
     matProxy->UpdateVTKObjects();
   }
 
   this->UpdateVTKObjects();
-
 #endif
 }
 
@@ -151,16 +180,3 @@ void vtkSMMaterialLibraryProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
-
-//-----------------------------------------------------------------------------
-// void vtkSMMaterialLibraryProxy::UpdateVTKObjects()
-// {
-//   vtkSMProxyInternals::PropertyInfoMap::iterator it =
-//     this->Internals->Properties.find("LoadMaterials");
-//   if (it->second.ModifiedFlag)
-//   {
-//     const char* filename = vtkSMPropertyHelper(this, "LoadMaterials").GetAsString();
-//     this->LoadMaterials(filename);
-//   }
-//   this->Superclass::UpdateVTKObjects();
-// }

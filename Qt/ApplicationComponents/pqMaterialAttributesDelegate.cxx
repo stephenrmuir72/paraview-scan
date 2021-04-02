@@ -38,12 +38,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqMaterialEditor.h"
 #include "pqServer.h"
 #include "pqTextureSelectorPropertyWidget.h"
-#include "pqVector3DWidget.h"
+#include "pqVectorWidget.h"
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QMetaProperty>
 #include <QPainter>
+#include <QVector2D>
 #include <QVector3D>
 
 #include <vtkSMPropertyHelper.h>
@@ -69,12 +70,17 @@ void pqMaterialAttributesDelegate::paint(
   if (index.column() == 1)
   {
     QString attrName = index.sibling(index.row(), 0).data(Qt::EditRole).toString();
-    QString matType = index.sibling(index.row(), 0).data(Qt::UserRole + 1).toString();
+    QString matType =
+      index.sibling(index.row(), 0)
+        .data(static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue))
+        .toString();
 
     auto& dic = vtkOSPRayMaterialLibrary::GetParametersDictionary();
+
     auto paramType = dic.at(matType.toStdString()).at(attrName.toStdString());
 
-    QVariant variant = index.data(Qt::UserRole + 1);
+    QVariant variant =
+      index.data(static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue));
 
     switch (paramType)
     {
@@ -107,6 +113,12 @@ void pqMaterialAttributesDelegate::paint(
       case vtkOSPRayMaterialLibrary::ParameterType::BOOLEAN:
         modOption.text = variant.value<bool>() ? "true" : "false";
         break;
+      case vtkOSPRayMaterialLibrary::ParameterType::VEC2:
+      {
+        QVector2D vec = variant.value<QVector2D>();
+        modOption.text = QString("[%1, %2]").arg(vec.x()).arg(vec.y());
+      }
+      break;
       case vtkOSPRayMaterialLibrary::ParameterType::VEC3:
       {
         QVector3D vec = variant.value<QVector3D>();
@@ -178,12 +190,15 @@ QWidget* pqMaterialAttributesDelegate::createEditor(
   {
     QModelIndex sibling = index.sibling(index.row(), 0);
     QString attrName = sibling.data(Qt::EditRole).toString();
-    QString matType = sibling.data(Qt::UserRole + 1).toString();
+    QString matType =
+      sibling.data(static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue))
+        .toString();
 
     auto& dic = vtkOSPRayMaterialLibrary::GetParametersDictionary();
     auto paramType = dic.at(matType.toStdString()).at(attrName.toStdString());
 
-    QVariant variant = index.data(Qt::UserRole + 1);
+    QVariant variant =
+      index.data(static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue));
 
     switch (paramType)
     {
@@ -229,6 +244,11 @@ QWidget* pqMaterialAttributesDelegate::createEditor(
         checkbox->setCheckState(variant.value<bool>() ? Qt::Checked : Qt::Unchecked);
         return checkbox;
       }
+      case vtkOSPRayMaterialLibrary::ParameterType::VEC2:
+      {
+        pqVector2DWidget* widget = new pqVector2DWidget(variant.value<QVector2D>(), parent);
+        return widget;
+      }
       case vtkOSPRayMaterialLibrary::ParameterType::VEC3:
       {
         pqVector3DWidget* widget = new pqVector3DWidget(variant.value<QVector3D>(), parent);
@@ -239,17 +259,27 @@ QWidget* pqMaterialAttributesDelegate::createEditor(
       case vtkOSPRayMaterialLibrary::ParameterType::TEXTURE:
       {
         pqServer* server = pqActiveObjects::instance().activeServer();
-        vtkSMProxy* proxy =
-          server->proxyManager()->FindProxy("materiallibrary", "materials", "MaterialLibrary");
 
-        // dummy texture is used to set the default value of the combobox
-        vtkSMProxy* textureProxy =
-          server->proxyManager()->GetProxy(variant.toString().toLocal8Bit().data());
-        vtkSMPropertyHelper(proxy, "DummyTexture").Set(textureProxy);
+        // Let's find the vtkPVMaterial proxy that corresponds to the current material
+        pqMaterialEditor* matEditor = qobject_cast<pqMaterialEditor*>(this->parent());
+        if (matEditor)
+        {
+          vtkSMProxy* matProxy = matEditor->materialProxy(matEditor->currentMaterialName());
 
-        pqTextureSelectorPropertyWidget* widget =
-          new pqTextureSelectorPropertyWidget(proxy, proxy->GetProperty("DummyTexture"), parent);
-        return widget;
+          // now link its current texture to the texture selector
+          vtkSMProxy* textureProxy =
+            server->proxyManager()->GetProxy(variant.toString().toLocal8Bit().data());
+
+          // CurrentTexture will hold the selected texture from the TextureSelector
+          vtkSMPropertyHelper(matProxy, "CurrentTexture").Set(textureProxy);
+
+          pqTextureSelectorPropertyWidget* widget = new pqTextureSelectorPropertyWidget(
+            matProxy, matProxy->GetProperty("CurrentTexture"), parent);
+          return widget;
+        }
+
+        // Else return nullptr
+        return nullptr;
       }
     }
   }
@@ -278,7 +308,9 @@ void pqMaterialAttributesDelegate::setModelData(
   {
     QModelIndex sibling = index.sibling(index.row(), 0);
     QString attrName = sibling.data(Qt::EditRole).toString();
-    QString matType = sibling.data(Qt::UserRole + 1).toString();
+    QString matType =
+      sibling.data(static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue))
+        .toString();
 
     auto& dic = vtkOSPRayMaterialLibrary::GetParametersDictionary();
     auto paramType = dic.at(matType.toStdString()).at(attrName.toStdString());
@@ -287,7 +319,9 @@ void pqMaterialAttributesDelegate::setModelData(
     {
       newValue = newValue.toDouble() * 0.01;
     }
-    model->setData(index, newValue, Qt::UserRole + 1);
+
+    model->setData(
+      index, newValue, static_cast<int>(pqMaterialProxyModel::ExtendedItemDataRole::PropertyValue));
   }
 #endif
 }

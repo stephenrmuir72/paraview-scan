@@ -22,14 +22,16 @@
 #ifndef vtkPVMaterial_h
 #define vtkPVMaterial_h
 
-#include "vtkPVClientServerCoreRenderingModule.h" //needed for exports
+#include "vtkRemotingViewsModule.h" //needed for exports
 
 #include "vtkObject.h"
 
 #include <initializer_list>
 #include <string>
 
-class VTKPVCLIENTSERVERCORERENDERING_EXPORT vtkPVMaterial : public vtkObject
+class vtkTexture;
+
+class VTKREMOTINGVIEWS_EXPORT vtkPVMaterial : public vtkObject
 {
 public:
   static vtkPVMaterial* New();
@@ -45,6 +47,7 @@ public:
   void RemoveAllVariables();
 
   void SetLibrary(vtkObject* lib);
+  void SetTexture(vtkTexture* tex) { this->CurrentTexture = tex; }
 
 protected:
   vtkPVMaterial() = default;
@@ -53,6 +56,7 @@ protected:
   std::string Name;
   std::string Type;
   vtkObject* Library = nullptr;
+  vtkTexture* CurrentTexture = nullptr;
 
 private:
   vtkPVMaterial(const vtkPVMaterial&) = delete;
