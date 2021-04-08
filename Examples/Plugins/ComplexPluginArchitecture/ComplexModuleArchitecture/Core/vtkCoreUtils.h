@@ -37,5 +37,8 @@ public:
   static float RadiansFromDegrees(float degrees);
   static double RadiansFromDegrees(double degrees);
   //@}
+
+  vtkCoreUtils(const vtkCoreUtils&) = delete;
+  void operator=(const vtkCoreUtils&) = delete;
 };
 #endif
