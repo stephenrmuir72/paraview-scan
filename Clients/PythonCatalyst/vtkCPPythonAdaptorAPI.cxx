@@ -36,3 +36,9 @@ void vtkCPPythonAdaptorAPI::CoProcessorInitialize(const char* pythonFileName)
     pipeline->FastDelete();
   }
 }
+
+//-----------------------------------------------------------------------------
+void vtkCPPythonAdaptorAPI::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}

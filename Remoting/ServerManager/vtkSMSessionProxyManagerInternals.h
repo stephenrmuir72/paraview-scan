@@ -44,6 +44,7 @@ class vtkSMProxyManagerProxyInfo : public vtkObjectBase
 {
 public:
   vtkBaseTypeMacro(vtkSMProxyManagerProxyInfo, vtkObjectBase);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   vtkSmartPointer<vtkSMProxy> Proxy;
   unsigned long ModifiedObserverTag;
@@ -93,6 +94,12 @@ private:
     }
   }
 };
+
+//----------------------------------------------------------------------------
+void vtkSMProxyManagerProxyInfo::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}
 
 //-----------------------------------------------------------------------------
 class vtkSMProxyManagerProxyListType
