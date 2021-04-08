@@ -45,22 +45,22 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef vtkGenIOReader_h
 #define vtkGenIOReader_h
 
-#include "vtkCellArray.h"
-#include "vtkDataArraySelection.h"
-#include "vtkGenericIOReaderModule.h"
-#include "vtkPoints.h"
-#include "vtkSmartPointer.h"
+#include "vtkCellArray.h"             // for vtkCellArray
+#include "vtkGenericIOReaderModule.h" // for export macro
+#include "vtkPoints.h"                // for vtkPoints
+#include "vtkSmartPointer.h"          // for vtkSmartPointer
 #include "vtkUnstructuredGridAlgorithm.h"
 
-#include "utils/gioData.h"
-#include "utils/log.h"
+#include "utils/gioData.h" // genio header
+#include "utils/log.h"     // genio header
 
-#include <mutex>
-#include <sstream>
-#include <string>
-#include <vector>
+#include <mutex>   // for std::mutex
+#include <sstream> // for std::stringstream
+#include <string>  // for std::string
+#include <vector>  // for std::vector
 
 class vtkDataArray;
+class vtkDataArraySelection;
 class vtkMultiProcessController;
 
 namespace lanl
