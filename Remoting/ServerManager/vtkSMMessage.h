@@ -36,6 +36,7 @@
 #include "vtk_protobuf.h"
 
 // include last
+#include "vtkRemotingServerManagerModule.h" // needed for exports
 #include "vtkPVMessage.pb.h"
 
 #if __GNUC__
