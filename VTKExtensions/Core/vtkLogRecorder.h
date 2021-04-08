@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef vtkLogRecorder_h
 #define vtkLogRecorder_h
 
-#include "vtkLogger.h"
 #include "vtkObject.h"
 #include "vtkPVVTKExtensionsCoreModule.h" // needed for export
 

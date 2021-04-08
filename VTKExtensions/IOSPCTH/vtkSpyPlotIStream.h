@@ -25,8 +25,7 @@ PURPOSE.  See the above copyright notice for more information.
 #ifndef vtkSpyPlotIStream_h
 #define vtkSpyPlotIStream_h
 #include "vtkPVVTKExtensionsIOSPCTHModule.h" //needed for exports
-#include "vtkSystemIncludes.h"
-#include "vtkType.h"
+#include "vtkType.h"                         // for vtkTypeInt64
 
 class VTKPVVTKEXTENSIONSIOSPCTH_EXPORT vtkSpyPlotIStream
 {
