@@ -33,9 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef vtkPVLogInformation_h
 #define vtkPVLogInformation_h
 
-#include "vtkClientServerStream.h"
 #include "vtkPVInformation.h"
 #include "vtkRemotingCoreModule.h" // needed for exports
+
+class vtkClientServerStream;
 
 /**
  * @class vtkPVLogInformation
