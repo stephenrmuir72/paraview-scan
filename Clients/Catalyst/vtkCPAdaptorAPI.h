@@ -55,6 +55,9 @@ public:
   /// provides access to the vtkCPProcessor instance.
   static vtkCPProcessor* GetCoProcessor() { return vtkCPAdaptorAPI::CoProcessor; }
 
+  vtkCPAdaptorAPI(const vtkCPAdaptorAPI&) = delete;
+  void operator=(const vtkCPAdaptorAPI&) = delete;
+
 protected:
   static vtkCPDataDescription* CoProcessorData;
   static vtkCPProcessor* CoProcessor;
