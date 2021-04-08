@@ -40,10 +40,9 @@
 #define DEBUG 0
 #define MAX_VARS 100
 
-#include "vtkCDIReaderModule.h"
-#include "vtkDataArraySelection.h"
-#include "vtkIntArray.h"
-#include "vtkSmartPointer.h"
+#include "vtkCDIReaderModule.h" // for export macro
+#include "vtkIntArray.h"        // for ivars
+#include "vtkSmartPointer.h"    // for ivars
 #include "vtkUnstructuredGridAlgorithm.h"
 
 #ifdef PARAVIEW_USE_MPI
@@ -51,6 +50,7 @@ class vtkMultiProcessController;
 #endif
 
 class vtkCallbackCommand;
+class vtkDataArraySelection;
 class vtkDoubleArray;
 class vtkStringArray;
 

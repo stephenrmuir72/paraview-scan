@@ -29,7 +29,6 @@ PURPOSE.  See the above copyright notice for more information.
 #define vtkSpyPlotBlock_h
 
 #include "vtkPVVTKExtensionsIOSPCTHModule.h" //needed for exports
-#include "vtkSystemIncludes.h"
 
 class vtkCellData;
 class vtkDoubleArray;
