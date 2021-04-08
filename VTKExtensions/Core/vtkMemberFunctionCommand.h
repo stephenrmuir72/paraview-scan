@@ -79,7 +79,7 @@ class vtkMemberFunctionCommand : public vtkCommand
   typedef vtkMemberFunctionCommand<ClassT> ThisT;
 
 public:
-  typedef vtkCommand Superclass;
+  vtkTypeMacro(vtkMemberFunctionCommand, vtkCommand);
 
   const char* GetClassNameInternal() const override { return "vtkMemberFunctionCommand"; }
 
@@ -87,7 +87,10 @@ public:
 
   static ThisT* New() { return new ThisT(); }
 
-  void PrintSelf(ostream& os, vtkIndent indent) override { vtkCommand::PrintSelf(os, indent); }
+  void PrintSelf(ostream& os, vtkIndent indent) override
+  {
+    this->Superclass::PrintSelf(os, indent);
+  }
 
   //@{
   /**
