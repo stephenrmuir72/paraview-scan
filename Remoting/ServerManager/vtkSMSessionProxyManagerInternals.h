@@ -52,6 +52,9 @@ public:
     return ret;
   }
 
+  vtkSMProxyManagerProxyInfo(const vtkSMProxyManagerProxyInfo&) = delete;
+  void operator=(const vtkSMProxyManagerProxyInfo&) = delete;
+
 private:
   vtkSMProxyManagerProxyInfo()
   {
