@@ -42,5 +42,11 @@ public:
   static float DegreesFromRadians(float radians);
   static double DegreesFromRadians(double radians);
   //@}
+
+  vtkSharedUtils(const vtkSharedUtils&) = delete;
+  void operator=(const vtkSharedUtils&) = delete;
+protected:
+  vtkSharedUtils();
+  ~vtkSharedUtils();
 };
 #endif
