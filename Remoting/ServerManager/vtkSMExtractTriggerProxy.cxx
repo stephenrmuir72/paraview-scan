@@ -115,13 +115,13 @@ bool vtkSMExtractTriggerProxy::IsActivated(vtkSMExtractsController* controller)
 
     if (this->LastTimeValue != VTK_DOUBLE_MIN)
     {
-      this->TimeStepLengths.push_front(timevalue - this->LastTimeValue);
+      this->TimeStepLengths.push(timevalue - this->LastTimeValue);
       // keep the number of time step lengths to a small number
       // since we only want to compare to the recent time step
       // lengths. 10 seems reasonable.
       if (this->TimeStepLengths.size() > 10)
       {
-        this->TimeStepLengths.pop_back();
+        this->TimeStepLengths.pop();
       }
     }
     this->LastTimeValue = timevalue;

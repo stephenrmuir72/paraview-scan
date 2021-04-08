@@ -27,7 +27,7 @@
 
 #include "vtkSMProxy.h"
 
-#include <list>
+#include <queue> // for std::queue
 
 class vtkSMExtractsController;
 
@@ -57,7 +57,7 @@ private:
    * output at this time step or not, based on whether or not we think
    * we're closest to the next instance we should output.
    */
-  std::list<double> TimeStepLengths;
+  std::queue<double> TimeStepLengths;
   double LastTimeValue;
   double LastOutputTimeValue;
 };
