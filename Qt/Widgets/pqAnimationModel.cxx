@@ -489,7 +489,7 @@ void pqAnimationModel::drawForeground(QPainter* painter, const QRectF&)
 QRectF pqAnimationModel::drawTimeLabel(double time, const QRectF& row, QPainter* painter,
   const QFontMetrics& metrics, QList<const QRectF*> const& priorities)
 {
-  QString timeLabString = QString::number(time, this->TimeNotation.toLatin1(), this->TimePrecision);
+  QString timeLabString = QString::number(time, this->TimeNotation.toUtf8(), this->TimePrecision);
   double timeLabSize = metrics.horizontalAdvance(timeLabString);
   double currentTimePos = this->positionFromTime(time);
   double halfLabWidth = timeLabSize / 2.0;
