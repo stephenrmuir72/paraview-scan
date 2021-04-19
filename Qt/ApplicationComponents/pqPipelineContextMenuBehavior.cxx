@@ -114,7 +114,7 @@ pqPipelineContextMenuBehavior::pqPipelineContextMenuBehavior(QObject* parentObje
   this->Menu << pqSetName("PipelineContextMenu");
 
   auto ifaceTracker = pqApplicationCore::instance()->interfaceTracker();
-  ifaceTracker->addInterface(new pqDefaultContextMenu());
+  ifaceTracker->addInterface(new pqDefaultContextMenu(this));
 }
 
 //-----------------------------------------------------------------------------
