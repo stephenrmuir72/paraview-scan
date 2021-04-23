@@ -778,6 +778,10 @@ def GetProxy(module, key, **kwargs):
             reader.UseLegacyBlockNamesWithElementTypes = 1
             return reader
     return module.__dict__[key](**kwargs)
+    if version < 5.10
+        if key == "ProbeLine":
+            probeLine = module.__dict__[key](**kwargs)
+            return probeLine
 
 def lookupTableUpdate(lutName):
     """
