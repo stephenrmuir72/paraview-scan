@@ -99,9 +99,7 @@ void pqEqualizerPropertyWidget::saveEqualizer()
     if (file.open(QFile::WriteOnly | QFile::Truncate))
     {
       QTextStream stream(&file);
-      // stream << value1 << "\t" << value2 << "\n"; // this writes first line with two columns
-      QString points = QString::fromStdString(
-        this->Internals->EqualizerItem->GetPoints()); // or this->Internals->pointsLE->text();
+      QString points = QString::fromStdString(this->Internals->EqualizerItem->GetPoints());
       QStringList pointsList = points.split(';');
       for (const QString& point : pointsList)
         stream << point << "\n";
@@ -131,7 +129,6 @@ void pqEqualizerPropertyWidget::loadEqualizer()
     while (!file.atEnd())
     {
       QByteArray line = file.readLine();
-      // QList<QByteArray> point = line.split(',');
       points.append(line);
       points.append(';');
     }
