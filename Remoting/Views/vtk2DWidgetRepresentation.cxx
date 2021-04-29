@@ -25,8 +25,7 @@
 vtkStandardNewMacro(vtk2DWidgetRepresentation);
 
 vtk2DWidgetRepresentation::vtk2DWidgetRepresentation()
-  : vtkDataRepresentation()
-  , ContextItem(nullptr)
+  : ContextItem(nullptr)
   , Enabled(false)
   , View(nullptr)
   , ObserverTag(0)
@@ -73,7 +72,7 @@ bool vtk2DWidgetRepresentation::AddToView(vtkView* view)
   return false;
 }
 
-bool vtk2DWidgetRepresentation::RemoveFromView(vtkView* view)
+bool vtk2DWidgetRepresentation::RemoveFromView(vtkView*)
 {
   return true;
 }

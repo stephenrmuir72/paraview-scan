@@ -19,9 +19,8 @@
 
 /**
  * @class vtkPVXYChartViewInteractive
- * @brief The vtkPVXYChartViewInteractive class
- *
- *
+ * @brief The vtkPVXYChartViewInteractive repeats the functionality of vtkPVXYChartView and allows
+ * you to add interactive 2D widgets.
  */
 
 class VTKREMOTINGVIEWS_EXPORT vtkPVXYChartViewInteractive : public vtkPVXYChartView
@@ -32,8 +31,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
-  vtkPVXYChartViewInteractive();
-  ~vtkPVXYChartViewInteractive() override;
+  vtkPVXYChartViewInteractive() = default;
+  ~vtkPVXYChartViewInteractive() override = default;
 
 private:
   vtkPVXYChartViewInteractive(const vtkPVXYChartViewInteractive&) = delete;
