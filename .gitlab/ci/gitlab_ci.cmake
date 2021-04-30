@@ -44,13 +44,8 @@ endif()
 
 set(CTEST_BUILD_NAME "$ENV{CI_PROJECT_NAME}-${build_name_prefix}[$ENV{CMAKE_CONFIGURATION}]")
 
-# Default to Release builds.
-if (NOT "$ENV{CMAKE_BUILD_TYPE}" STREQUAL "")
-  set(CTEST_BUILD_CONFIGURATION "$ENV{CMAKE_BUILD_TYPE}")
-endif ()
-if (NOT CTEST_BUILD_CONFIGURATION)
-  set(CTEST_BUILD_CONFIGURATION "Release")
-endif ()
+# Default to RelWithDebInfo builds.
+set(CTEST_BUILD_CONFIGURATION "RelWithDebInfo")
 
 # Default to using Ninja.
 if (NOT "$ENV{CMAKE_GENERATOR}" STREQUAL "")

@@ -64,6 +64,7 @@
 
     variables:
         CMAKE_CONFIGURATION: fedora33_static_mpi_offscreen_osmesa_python
+        CMAKE_BUILD_TYPE: RelWithDebInfo
 
 .fedora33_shared_mpi_core:
     extends:
