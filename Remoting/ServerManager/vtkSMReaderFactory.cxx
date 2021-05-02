@@ -30,6 +30,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringList.h"
+#include "vtkLogger.h"
 
 #include <algorithm>
 #include <cassert>
@@ -224,6 +225,7 @@ std::set<std::pair<std::string, std::string> > vtkSMReaderFactory::vtkInternals:
 bool vtkSMReaderFactory::vtkInternals::vtkValue::ExtensionTest(
   const std::vector<std::string>& extensions) const
 {
+  vtkLogScopeF(TRACE, "ExtensionTest");
   for (auto& hint : this->FileEntryHints)
   {
     for (auto& hint_ext : hint.Extensions)
@@ -232,17 +234,20 @@ bool vtkSMReaderFactory::vtkInternals::vtkValue::ExtensionTest(
       {
         if (ext == hint_ext)
         {
+          vtkLogF(TRACE, "ext match %s == %s", ext.c_str(), hint_ext.c_str());
           return true;
         }
       }
     }
   }
+  vtkLogF(TRACE, "failed");
   return false;
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMReaderFactory::vtkInternals::vtkValue::FilenameRegExTest(const char* filename) const
 {
+  vtkLogScopeF(TRACE, "FilenameRegExTest");
   for (auto& hint : this->FileEntryHints)
   {
     for (auto& hint_regex : hint.FilenameRegExs)
@@ -250,10 +255,12 @@ bool vtkSMReaderFactory::vtkInternals::vtkValue::FilenameRegExTest(const char* f
       vtksys::RegularExpressionMatch match;
       if (hint_regex.find(filename, match))
       {
+        vtkLogF(TRACE, "reg-ex match!");
         return true;
       }
     }
   }
+  vtkLogF(TRACE, "failed");
   return false;
 }
 
@@ -269,11 +276,14 @@ bool vtkSMReaderFactory::vtkInternals::vtkValue::CanReadFile(const char* filenam
     return false;
   }
 
+  vtkLogScopeF(TRACE, "vtkValue::CanReadFile(%s) using %s", filename, prototype->GetXMLName());
+
   this->FillInformation(session);
 
   if (std::none_of(this->FileEntryHints.begin(), this->FileEntryHints.end(),
         [is_dir](const FileEntryHint& hint) -> bool { return hint.IsDirectory == is_dir; }))
   {
+    vtkLogF(TRACE, "directory check failed.");
     return false;
   }
 
@@ -292,6 +302,8 @@ bool vtkSMReaderFactory::vtkInternals::vtkValue::CanReadFile(const char* filenam
   // proxy->UpdateVTKObjects();
   bool canRead = vtkSMReaderFactory::CanReadFile(filename, proxy);
   proxy->Delete();
+
+  vtkLogF(TRACE, "test for 'CanReadFile' on reader == %d", (canRead? 1 : 0));
   return canRead;
 }
 
