@@ -66,10 +66,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -81,7 +84,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -135,10 +138,13 @@
         <Documentation>This property lists which columns to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -150,7 +156,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -226,10 +232,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -241,7 +250,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -316,10 +325,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -331,7 +343,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -407,10 +419,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -422,7 +437,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -498,10 +513,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -513,7 +531,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -585,10 +603,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -600,7 +621,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -672,10 +693,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -687,7 +711,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -742,10 +766,13 @@
                             name="PointArrayInfo">
         <ArraySelectionInformationHelper attribute_name="Point" />
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -757,7 +784,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -830,10 +857,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -845,7 +875,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -917,10 +947,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -932,7 +965,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1005,10 +1038,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1020,7 +1056,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1043,10 +1079,13 @@
         <Documentation>This property specifies the file name for the VTK
         hierarchical box data reader.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1058,7 +1097,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1088,10 +1127,13 @@
           method.  Set this to 0 to imply no limit. Default is 0.
         </Documentation>
       </IntVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1103,7 +1145,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1128,10 +1170,13 @@
         <Documentation>This property specifies the file name for the
         Hyper Tree grid reader.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1143,7 +1188,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1197,10 +1242,13 @@
         <Documentation>This property specifies the file name for the
         partitioned VTK XML htg reader.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1212,7 +1260,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1290,10 +1338,13 @@
                  value="1" />
         </EnumerationDomain>
       </IntVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1305,7 +1356,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1382,10 +1433,13 @@
                  value="1" />
         </EnumerationDomain>
       </IntVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1397,7 +1451,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to
@@ -1462,10 +1516,13 @@
         <Documentation>This property lists which point-centered arrays to
         read.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -1477,7 +1534,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays to

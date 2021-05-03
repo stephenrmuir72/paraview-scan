@@ -93,10 +93,13 @@
         .pio file and are presented for selection. Only selected variables are
         loaded for a time step.</Documentation>
       </StringVectorProperty>
-      <StringVectorProperty name="TimeArrayInfo"
+      <StringVectorProperty name="TimeArrayListInfo"
         command="GetTimeDataStringArray"
         information_only="1"
         si_class="vtkSIDataArrayProperty" />
+      <StringVectorProperty name="TimeArrayInfo"
+        command="GetActiveTimeDataArrayName"
+        information_only="1" />
       <StringVectorProperty command="SetActiveTimeDataArrayName"
                             element_types="str"
                             information_property="TimeArrayInfo"
@@ -108,7 +111,7 @@
                           none_string="None" >
           <RequiredProperties>
             <Property function="ArrayList"
-                      name="TimeArrayInfo" />
+                      name="TimeArrayListInfo" />
           </RequiredProperties>
         </StringListDomain>
         <Documentation>This property sets which field data to use as time arrays
