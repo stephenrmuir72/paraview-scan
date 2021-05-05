@@ -283,14 +283,20 @@ void pqCommandLineOptionsBehavior::playTests()
 
   if (options->GetExitAppWhenTestsDone())
   {
+    std::cerr << "XXXXXX getting test master" << std::endl;
     if (options->GetTestMaster())
     {
+      std::cerr << "XXXXXX waiting for test master" << std::endl;
       pqCollaborationEventPlayer::wait(1000);
+      std::cerr << "XXXXXX waited for test master" << std::endl;
     }
+    std::cerr << "XXXXXX did test master check" << std::endl;
 
     // Make sure that the pqApplicationCore::prepareForQuit() method
     // get called
+    std::cerr << "XXXXXX closing all windows" << std::endl;
     QApplication::closeAllWindows();
+    std::cerr << "XXXXXX closed all windows" << std::endl;
 
     QApplication::instance()->exit(success ? 0 : 1);
   }
