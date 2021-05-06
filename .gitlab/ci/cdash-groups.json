@@ -13,11 +13,6 @@
         {
             "group": "master",
             "site": "gitlab-ci",
-            "buildname": "[fedora33_shared_mpi_python_qt]"
-        },
-        {
-            "group": "master",
-            "site": "gitlab-ci",
             "buildname": "[fedora33_shared_mpi_python_qt_tidy]"
         },
         {

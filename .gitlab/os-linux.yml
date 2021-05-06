@@ -81,14 +81,14 @@
     variables:
         CMAKE_CONFIGURATION: fedora33_shared_mpi_python_core
 
-.fedora33_shared_debug_mpi_python_qt:
-    extends:
-        - .fedora33
-        - .fedora_mpich_addon
+# .fedora33_shared_debug_mpi_python_qt:
+#     extends:
+#         - .fedora33
+#         - .fedora_mpich_addon
 
-    variables:
-        CMAKE_CONFIGURATION: fedora33_shared_mpi_python_qt
-        CMAKE_BUILD_TYPE: Debug
+#     variables:
+#         CMAKE_CONFIGURATION: fedora33_shared_mpi_python_qt
+#         CMAKE_BUILD_TYPE: Debug
 
 .fedora33_tidy:
     extends:
