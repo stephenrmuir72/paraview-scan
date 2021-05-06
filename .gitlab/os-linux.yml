@@ -174,7 +174,8 @@
 
     script:
         - *before_script_linux
-        - sccache --start-server
+        # Allow the server to already be running.
+        - "sccache --start-server || :"
         - sccache --show-stats
         - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
         - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake &> $GIT_CLONE_PATH/compile_output.log
