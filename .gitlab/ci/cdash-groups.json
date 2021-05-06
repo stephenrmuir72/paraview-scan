@@ -18,6 +18,11 @@
         {
             "group": "master",
             "site": "gitlab-ci",
+            "buildname": "[linux_vall_shared_mpi_python_qt]"
+        },
+        {
+            "group": "master",
+            "site": "gitlab-ci",
             "buildname": "[macos_python_qt]"
         },
         {

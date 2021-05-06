@@ -99,6 +99,14 @@
         CMAKE_CONFIGURATION: fedora33_shared_mpi_python_qt_tidy
         CTEST_NO_WARNINGS_ALLOWED: 1
 
+.vall_shared_debug_mpi_python_qt:
+    extends:
+        - .linux
+
+    variables:
+        CMAKE_CONFIGURATION: linux_vall_shared_mpi_python_qt
+        CMAKE_BUILD_TYPE: Debug
+
 .linux_builder_tags:
     tags:
         - build
@@ -128,6 +136,15 @@
         - linux
         - linux-3.17
         - x11
+
+.vall_tags:
+    tags:
+        - build
+        - linux
+        - linux-3.17
+        - paraview
+        - shell
+        - vall # This machine is set up for ParaView specifically.
 
 ## Linux-specific scripts
 
