@@ -133,19 +133,20 @@ bool pqFlatTreeViewEventPlayer::playEvent(
       Qt::MouseButton button = static_cast<Qt::MouseButton>(args[0].toInt());
       Qt::MouseButtons buttons = static_cast<Qt::MouseButton>(args[1].toInt());
       Qt::KeyboardModifiers keym = static_cast<Qt::KeyboardModifier>(args[2].toInt());
-      int x = args[3].toInt();
-      int y = args[4].toInt();
-      QPoint pt;
+      /* int x = args[3].toInt(); */
+      /* int y = args[4].toInt(); */
+      /* QPoint pt; */
       QModelIndex idx = GetIndex(object, args[5]);
-      QRect r;
-      object->getVisibleRect(idx, r);
-      pt = r.topLeft() + QPoint(x, y);
-      QEvent::Type type = QEvent::MouseButtonPress;
-      type = Command == "mouseMove" ? QEvent::MouseMove : type;
-      type = Command == "mouseRelease" ? QEvent::MouseButtonRelease : type;
-      type = Command == "mouseDblClick" ? QEvent::MouseButtonDblClick : type;
-      QMouseEvent e(type, pt, button, buttons, keym);
-      qApp->notify(object->viewport(), &e);
+      object->setCurrentIndex(idx);
+      /* QRect r; */
+      /* object->getVisibleRect(idx, r); */
+      /* pt = r.topLeft() + QPoint(x, y); */
+      /* QEvent::Type type = QEvent::MouseButtonPress; */
+      /* type = Command == "mouseMove" ? QEvent::MouseMove : type; */
+      /* type = Command == "mouseRelease" ? QEvent::MouseButtonRelease : type; */
+      /* type = Command == "mouseDblClick" ? QEvent::MouseButtonDblClick : type; */
+      /* QMouseEvent e(type, pt, button, buttons, keym); */
+      /* qApp->notify(object->viewport(), &e); */
       pqEventDispatcher::processEventsAndWait(1);
       return true;
     }
