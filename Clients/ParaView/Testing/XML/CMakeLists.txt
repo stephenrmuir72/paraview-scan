@@ -111,6 +111,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/multicomb_0.vts}"
   "DATA{${paraview_test_data_directory_input}/Data/multicomb_1.vts}"
   "DATA{${paraview_test_data_directory_input}/Data/multicomb_2.vts}"
+  "DATA{${paraview_test_data_directory_input}/Data/nanowireTB23K298.xyz}"
   "DATA{${paraview_test_data_directory_input}/Data/non_convex_polygon.vtu}"
   "DATA{${paraview_test_data_directory_input}/Data/office.binary.vtk}"
   "DATA{${paraview_test_data_directory_input}/Data/OMF/test_file.omf}"
@@ -1053,6 +1054,7 @@ list(APPEND TESTS_WITH_BASELINES
   VTPSeriesFile.xml
   #  XYBarChart.xml
   RandomAttributes.xml
+  ReadMolecularDataXYZ.xml
   YoungsMaterialInterface.xml
 )
 
