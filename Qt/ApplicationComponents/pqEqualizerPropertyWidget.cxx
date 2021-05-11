@@ -87,7 +87,6 @@ void pqEqualizerPropertyWidget::onEndInteraction()
 
 void pqEqualizerPropertyWidget::saveEqualizer()
 {
-  // pqServer* server = pqActiveObjects::instance().activeServer();
   pqFileDialog dialog(
     nullptr, pqCoreUtilities::mainWidget(), tr("Save Equalizer:"), QString(), "CSV (*.csv)");
   dialog.setFileMode(pqFileDialog::AnyFile);
@@ -110,7 +109,6 @@ void pqEqualizerPropertyWidget::saveEqualizer()
 
 void pqEqualizerPropertyWidget::loadEqualizer()
 {
-  // pqServer* server = pqActiveObjects::instance().activeServer();
   pqFileDialog dialog(
     nullptr, pqCoreUtilities::mainWidget(), tr("Load Equalizer:"), QString(), "CSV (*.csv)");
   dialog.setFileMode(pqFileDialog::ExistingFile);
@@ -145,10 +143,14 @@ void pqEqualizerPropertyWidget::loadEqualizer()
 void pqEqualizerPropertyWidget::resetEqualizer()
 {
   if (!this->Internals->pointsLE)
+  {
     return;
+  }
 
   if (!this->Internals->EqualizerItem)
+  {
     return;
+  }
 
   vtkSMIntVectorProperty* sapmlingFreqProp =
     vtkSMIntVectorProperty::SafeDownCast(this->proxy()->GetProperty("SamplingFrequency"));
@@ -164,11 +166,12 @@ void pqEqualizerPropertyWidget::resetEqualizer()
 
 void pqEqualizerPropertyWidget::Init(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup)
 {
-  std::cout << "pqEqualizerPropertyWidget::Init" << std::endl;
   vtkSMSourceProxy* input = vtkSMSourceProxy::SafeDownCast(
     vtkSMUncheckedPropertyHelper(this->proxy(), "Input").GetAsProxy(0));
   if (!input)
+  {
     return;
+  }
 
   vtkSMNew2DWidgetRepresentationProxy* wdgProxy = this->widgetProxy();
 
@@ -204,10 +207,14 @@ void pqEqualizerPropertyWidget::Init(vtkSMProxy* proxy, vtkSMPropertyGroup* smgr
 
   vtkPVDataSetAttributesInformation* fdi = input->GetDataInformation(0)->GetRowDataInformation();
   if (!fdi)
+  {
     return;
+  }
   vtkPVArrayInformation* array_info = fdi->GetArrayInformation(0);
   if (!array_info)
+  {
     return;
+  }
 
   if (vtkSMProperty* p1 = smgroup->GetProperty("EqualizerPointsFunc"))
   {
@@ -236,7 +243,9 @@ void pqEqualizerPropertyWidget::Init(vtkSMProxy* proxy, vtkSMPropertyGroup* smgr
     points = init_points.toStdString();
   }
   else
+  {
     this->Internals->pointsLE->setText(QString::fromStdString(points));
+  }
 
   vtkSMProxy* contextProxy = wdgProxy->GetContextItemProxy();
   this->Internals->EqualizerItem =

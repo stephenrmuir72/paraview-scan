@@ -83,12 +83,12 @@ pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_
   aProxy.TakeReference(pxm->NewProxy(widget_smgroup, widget_smname));
   vtkSMNew2DWidgetRepresentationProxy* wdgProxy =
     vtkSMNew2DWidgetRepresentationProxy::SafeDownCast(aProxy);
-  if (aProxy == NULL)
+  if (aProxy == nullptr)
   {
     qCritical("Failed to create proxy for 2D Widget. Aborting for debugging purposes.");
     abort();
   }
-  if (wdgProxy == NULL)
+  if (wdgProxy == nullptr)
   {
     qCritical() << "Proxy (" << widget_smgroup << ", " << widget_smname
                 << ") must be a "
@@ -130,7 +130,7 @@ pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_
   }
   else
   {
-    this->setDataSource(NULL);
+    this->setDataSource(nullptr);
   }
 
   // This ensures that when the user changes the Qt widget, we re-render to show
@@ -154,7 +154,7 @@ pqInteractiveProperty2DWidget::~pqInteractiveProperty2DWidget()
   }
 
   // ensures that the widget proxy is removed from the active view, if any.
-  this->setView(NULL);
+  this->setView(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -166,9 +166,9 @@ vtkSMNew2DWidgetRepresentationProxy* pqInteractiveProperty2DWidget::widgetProxy(
 //-----------------------------------------------------------------------------
 void pqInteractiveProperty2DWidget::setView(pqView* pqview)
 {
-  if (pqview != NULL && pqview->getServer()->session() != this->widgetProxy()->GetSession())
+  if (pqview != nullptr && pqview->getServer()->session() != this->widgetProxy()->GetSession())
   {
-    pqview = NULL;
+    pqview = nullptr;
   }
 
   pqView* rview = qobject_cast<pqContextView*>(pqview);
@@ -238,7 +238,6 @@ void pqInteractiveProperty2DWidget::updateWidgetVisibility()
   vtkSMProxy* wdgProxy = this->widgetProxy();
   assert(wdgProxy);
 
-  // vtkSMPropertyHelper(wdgProxy, "Visibility", true).Set(visible);
   vtkSMPropertyHelper(wdgProxy, "Enabled", true).Set(enabled);
   wdgProxy->UpdateVTKObjects();
   this->render();
@@ -318,11 +317,11 @@ void pqInteractiveProperty2DWidget::handleUserEvent(
   assert(eventid == vtkCommand::UserEvent);
 
   const char* message = reinterpret_cast<const char*>(calldata);
-  if (message != NULL && strcmp("HideWidget", message) == 0)
+  if (message != nullptr && strcmp("HideWidget", message) == 0)
   {
     this->setWidgetVisible(false);
   }
-  else if (message != NULL && strcmp("ShowWidget", message) == 0)
+  else if (message != nullptr && strcmp("ShowWidget", message) == 0)
   {
     this->setWidgetVisible(true);
   }

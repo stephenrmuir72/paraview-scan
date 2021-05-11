@@ -4132,11 +4132,9 @@ Every Nth Point.
     <SourceProxy class="vtkEqualizerFilter"
                  name="EqualizerFilter"
                  label="Equalizer Filter">
-      <Documentation long_help="Long help."
-                     short_help="Short help.">
-           Multiline documentation.
-           Next line.
-           Next line.
+      <Documentation long_help="Filter for signal modification.">
+        The Equalizer Filter implements an algorithm that selectively corrects
+        the signal amplitude depending on the frequency characteristics.
       </Documentation>
       <InputProperty name="Input"
                      command="SetInputConnection">

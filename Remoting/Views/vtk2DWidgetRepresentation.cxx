@@ -80,7 +80,9 @@ bool vtk2DWidgetRepresentation::RemoveFromView(vtkView*)
 void vtk2DWidgetRepresentation::OnContextItemModified()
 {
   if (this->View != nullptr)
+  {
     this->View->Update();
+  }
 }
 
 void vtk2DWidgetRepresentation::PrintSelf(std::ostream& os, vtkIndent indent)
