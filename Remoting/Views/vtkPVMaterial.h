@@ -25,6 +25,7 @@
 #include "vtkRemotingViewsModule.h" //needed for exports
 
 #include "vtkObject.h"
+#include "vtkSetGet.h"
 
 #include <initializer_list>
 #include <string>
@@ -35,11 +36,11 @@ public:
   static vtkPVMaterial* New();
   vtkTypeMacro(vtkPVMaterial, vtkObject);
 
-  void SetName(const std::string& name);
-  const std::string& GetName();
+  vtkSetMacro(Name, std::string);
+  vtkGetMacro(Name, std::string);
 
-  void SetType(const std::string& type);
-  const std::string& GetType();
+  vtkSetMacro(Type, std::string);
+  vtkGetMacro(Type, std::string);
 
   void AddVariable(const char* paramName, const char* value);
   void RemoveAllVariables();

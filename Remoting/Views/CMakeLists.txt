@@ -193,7 +193,7 @@ set(headers
   vtkStreamingPriorityQueue.h)
 set(sources)
 
-if (PARAVIEW_ENABLE_RAYTRACING AND VTK_ENABLE_OSPRAY)
+if (PARAVIEW_USE_MATERIALEDITOR)
   list(APPEND classes
     vtkPVMaterial)
 endif ()

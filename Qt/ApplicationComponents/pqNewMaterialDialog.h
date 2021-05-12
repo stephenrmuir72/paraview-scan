@@ -37,6 +37,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class vtkOSPRayMaterialLibrary;
 
+/**
+ * @brief pqNewMaterialDialog is a dialog window that is used to create a new
+ * material in the material editor widget.
+ */
 class PQAPPLICATIONCOMPONENTS_EXPORT pqNewMaterialDialog : public pqDialog
 {
   Q_OBJECT
