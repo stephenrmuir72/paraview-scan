@@ -63,14 +63,17 @@
         # Build and activate the venv
         - python3 -m venv build/ci-venv
         - . ./build/ci-venv/bin/activate
-        - pip install -qq -r .gitlab/ci/requirements-phase1.txt
-        - pip install -qq -r .gitlab/ci/requirements-phase2.txt
+        - pip install -r .gitlab/ci/requirements-phase1.txt
+        - pip install -r .gitlab/ci/requirements-phase2.txt
+        - pip list
+        # - pip install -qq -r .gitlab/ci/requirements-phase1.txt
+        # - pip install -qq -r .gitlab/ci/requirements-phase2.txt
         # Allow the server to already be running.
-        - "sccache --start-server || :"
-        - sccache --show-stats
-        - ctest -VV -S .gitlab/ci/ctest_configure.cmake
-        - ctest -VV -S .gitlab/ci/ctest_build.cmake
-        - sccache --show-stats
+        # - "sccache --start-server || :"
+        # - sccache --show-stats
+        # - ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        # - ctest -VV -S .gitlab/ci/ctest_build.cmake
+        # - sccache --show-stats
 
     interruptible: true
 
@@ -82,6 +85,7 @@
         # Reuse the venv from the build step (avoids version changes between
         # build and testing).
         - . ./build/ci-venv/bin/activate
-        - ctest --output-on-failure -V -S .gitlab/ci/ctest_test.cmake
+        - pip list
+        # - ctest --output-on-failure -V -S .gitlab/ci/ctest_test.cmake
     interruptible: true
     timeout: 2 hours
