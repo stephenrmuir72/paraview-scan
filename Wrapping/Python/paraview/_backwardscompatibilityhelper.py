@@ -776,7 +776,7 @@ def GetProxy(module, key, **kwargs):
             reader = builtins.getattr(module, key)(**kwargs)
             reader.UseLegacyBlockNamesWithElementTypes = 1
             return reader
-    if version < 5.10
+    if version < 5.10:
         if key == "ProbeLine":
             ## in 5.10, we changed the backend of Plot Over Line
             ## This restores the previous backend.
