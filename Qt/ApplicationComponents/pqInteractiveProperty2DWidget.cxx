@@ -219,11 +219,6 @@ void pqInteractiveProperty2DWidget::setWidgetVisible(bool val)
   pqInternals& internals = (*this->Internals);
   if (internals.WidgetVisibility != val)
   {
-    SM_SCOPED_TRACE(CallFunction)
-      .arg(val ? "Show3DWidgets" : "Hide3DWidgets")
-      .arg("proxy", this->proxy())
-      .arg("comment", "toggle 3D widget visibility (only when running from the GUI)");
-
     internals.WidgetVisibility = val;
     this->updateWidgetVisibility();
     Q_EMIT this->widgetVisibilityToggled(val);

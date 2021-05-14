@@ -74,6 +74,17 @@ bool vtk2DWidgetRepresentation::AddToView(vtkView* view)
 
 bool vtk2DWidgetRepresentation::RemoveFromView(vtkView*)
 {
+  // TODO: see for details
+  // https://gitlab.kitware.com/paraview/paraview/-/merge_requests/3546#note_955876
+  //    vtkPVXYChartViewInteractive* pvview = vtkPVXYChartViewInteractive::SafeDownCast(view);
+  //    if (pvview)
+  //    {
+  //      this->View = pvview;
+  //      vtkContextScene* scene = this->View->GetContextView()->GetScene();
+  //      scene->RemoveItem(this->ContextItem);
+  //      return true;
+  //    }
+  //    return false;
   return true;
 }
 
