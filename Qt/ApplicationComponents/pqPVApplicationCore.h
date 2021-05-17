@@ -56,7 +56,8 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqPVApplicationCore : public pqApplicationC
   typedef pqApplicationCore Superclass;
 
 public:
-  pqPVApplicationCore(int& argc, char** argv, pqOptions* options = 0);
+  pqPVApplicationCore(int& argc, char** argv, pqOptions* options);
+  pqPVApplicationCore(int& argc, char** argv, vtkCLIOptions* options = nullptr);
   ~pqPVApplicationCore() override;
 
   /**

@@ -42,12 +42,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "@_paraview_client_MAIN_WINDOW_INCLUDE@"
 
-#include "pqOptions.h"
 #include "pqPVApplicationCore.h"
 #include "pqPluginManager.h"
 #include "pqQtDeprecated.h"
 #include "pqSettings.h"
 #include "vtkPVConfig.h"
+#include "vtkSmartPointer.h"
+#include "vtkCLIOptions.h"
+#include "vtkRemotingCoreConfiguration.h"
+#include "vtkSMProxyManager.h"
 #include "vtkPVLogger.h"
 #include "vtkPVPluginLoader.h"
 #include "vtkPVPluginTracker.h"
@@ -82,22 +85,31 @@ pq@_paraview_client_NAME@Initializer::~pq@_paraview_client_NAME@Initializer()
 //-----------------------------------------------------------------------------
 pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initializer::Initialize(int argc, char* argv[])
 {
+  vtkNew<vtkCLIOptions> options;
+
+
   vtkVLogStartScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "init-core", "initialize pqPVApplicationCore");
-  this->PVApp = new pqPVApplicationCore (argc, argv);
+  this->PVApp = new pqPVApplicationCore (argc, argv, options);
   vtkLogEndScope("init-core");
 
   // Attach custom event filter
   QApplication::instance()->installEventFilter(this->PVApp);
 
-  if (this->PVApp->getOptions()->GetUnknownArgument() ||
-      this->PVApp->getOptions()->GetErrorMessage())
+  switch (options->GetLastParseStatusFlag())
   {
-    return ExitFailure;
+    case vtkCLIOptions::Fail:
+      vtkLogF(ERROR, "%s", options->GetLastErrorMessage().c_str());
+      return ExitFailure;
+
+    case vtkCLIOptions::HelpRequested:
+      cout << options->GetHelp().c_str() << endl;
+      return ExitSuccess;
   }
 
-  if (this->PVApp->getOptions()->GetHelpSelected() ||
-      this->PVApp->getOptions()->GetTellVersion())
+  auto coreConfig = vtkRemotingCoreConfiguration::GetInstance();
+  if (coreConfig->GetTellVersion())
   {
+    cout << vtkSMProxyManager::GetParaViewSourceVersion() << endl;
     return ExitSuccess;
   }
 
@@ -107,7 +119,7 @@ pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initialize
 
 #if _paraview_client_SPLASH_IMAGE
   pqSettings *settings = this->PVApp->settings();
-  if (!this->PVApp->getOptions()->GetDisableRegistry() &&
+  if (!coreConfig->GetDisableRegistry() &&
     settings->value("GeneralSettings.ShowSplashScreen", true).toBool())
   {
     // Create and show the splash screen as the main window is being created.

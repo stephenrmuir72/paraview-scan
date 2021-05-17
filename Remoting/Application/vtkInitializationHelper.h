@@ -28,7 +28,9 @@
 #include "vtkObject.h"
 #include "vtkRemotingApplicationModule.h" // needed for exports
 #include <string>                         // needed for std::string
+
 class vtkPVOptions;
+class vtkCLIOptions;
 
 class VTKREMOTINGAPPLICATION_EXPORT vtkInitializationHelper : public vtkObject
 {
@@ -60,6 +62,20 @@ public:
    * command line options.
    */
   static void Initialize(int argc, char** argv, int type, vtkPVOptions* options);
+
+  enum StatusFlag
+  {
+    Fail,
+    Success,
+    VersionRequested,
+    HelpRequested,
+  };
+
+  /**
+   * Initializes ParaView engine.
+   */
+  static StatusFlag Initialize(int& argc, char**& argv, int processType,
+    vtkCLIOptions* options = nullptr, bool enableStandardArgs = true);
 
   /**
    * Finalizes the server manager. Do not use the server manager

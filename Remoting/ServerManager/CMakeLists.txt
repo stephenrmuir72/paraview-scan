@@ -31,9 +31,11 @@
 set(classes
   vtkLoadStateOptions
   vtkRemoteWriterHelper
+  vtkRemotingServerManagerConfiguration
   vtkPVCatalystChannelInformation
   vtkPVCatalystSessionCore
   vtkPVFilePathEncodingHelper
+  vtkPVMultiClientsInformation
   vtkPVProxyDefinitionIterator
   vtkPVSessionBase
   vtkPVSessionCore

@@ -26,10 +26,10 @@
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVInformation.h"
-#include "vtkPVOptions.h"
 #include "vtkPVSession.h"
 #include "vtkPVSessionCoreInterpreterHelper.h"
 #include "vtkProcessModule.h"
+#include "vtkProcessModuleConfiguration.h"
 #include "vtkReservedRemoteObjectIds.h"
 #include "vtkSIProxy.h"
 #include "vtkSIProxyDefinitionManager.h"
@@ -89,15 +89,6 @@ public:
   vtkInternals()
   {
     this->DisableErrorMacro = false;
-    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-    if (pm)
-    {
-      if (vtkPVOptions* options = pm->GetOptions())
-      {
-        this->DisableErrorMacro =
-          (options->GetMultiClientMode() && !options->IsMultiClientModeDebug());
-      }
-    }
   }
   ~vtkInternals()
   {
@@ -283,21 +274,16 @@ vtkPVSessionCore::vtkPVSessionCore()
 
   this->LogStream = nullptr;
   // Initialize logging, if enabled.
+  auto config = vtkProcessModuleConfiguration::GetInstance();
+  const auto& fname = config->GetCSLogFileName();
+  if (!fname.empty())
+  {
+    this->LogStream = new vtksys::ofstream(fname.c_str());
+    LOG("Log for rank=" << this->ParallelController->GetLocalProcessId());
+  }
+
   if (vtkProcessModule::GetProcessModule())
   {
-    vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
-    if (options->GetLogFileName())
-    {
-      std::ostringstream filename;
-      filename << options->GetLogFileName();
-      if (this->ParallelController->GetNumberOfProcesses() > 1)
-      {
-        filename << this->ParallelController->GetLocalProcessId();
-      }
-      this->LogStream = new vtksys::ofstream(filename.str().c_str());
-      LOG("Log for " << options->GetArgv0() << " (" << this->ParallelController->GetLocalProcessId()
-                     << ")");
-    }
     this->SymmetricMPIMode = vtkProcessModule::GetProcessModule()->GetSymmetricMPIMode();
   }
 

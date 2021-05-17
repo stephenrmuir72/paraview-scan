@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqCoreModule.h"
 #include "vtkPVConfig.h" // for PARAVIEW_USE_QTHELP
+#include "vtkSmartPointer.h" // for vtkSmartPointer
 #include <QObject>
 #include <QPointer>
 
@@ -62,6 +63,7 @@ class QStringList;
 class vtkPVXMLElement;
 class vtkSMProxyLocator;
 class vtkSMStateLoader;
+class vtkCLIOptions;
 
 /**
 * This class is the crux of the ParaView application. It creates
@@ -89,12 +91,14 @@ public:
   * otherwise a new instance of pqOptions with standard ParaView command line
   * options will be created.
   */
-  pqApplicationCore(int& argc, char** argv, pqOptions* options = 0, QObject* parent = 0);
+  pqApplicationCore(int& argc, char** argv, pqOptions* options, QObject* parent = nullptr);
+  pqApplicationCore(
+    int& argc, char** argv, vtkCLIOptions* options = nullptr, QObject* parent = nullptr);
 
   /**
   * Provides access to the command line options object.
   */
-  pqOptions* getOptions() const { return this->Options; }
+  pqOptions* getOptions() const;
 
   /**
   * Get the Object Builder. Object Buider must be used
@@ -390,7 +394,7 @@ private Q_SLOTS:
 protected:
   bool LoadingState;
 
-  pqOptions* Options;
+  vtkSmartPointer<pqOptions> Options;
   pqLinksModel* LinksModel;
   pqObjectBuilder* ObjectBuilder;
   pqInterfaceTracker* InterfaceTracker;

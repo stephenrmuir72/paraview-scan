@@ -40,7 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreUtilities.h"
 #include "pqItemViewSearchWidget.h"
 #include "pqLoadDataReaction.h"
-#include "pqOptions.h"
 #include "pqPresetGroupsManager.h"
 #include "pqPropertiesPanel.h"
 #include "pqQuickLaunchDialog.h"
@@ -64,6 +63,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //-----------------------------------------------------------------------------
 pqPVApplicationCore::pqPVApplicationCore(int& argc, char** argv, pqOptions* options)
+  : pqPVApplicationCore(argc, argv)
+{
+}
+
+//-----------------------------------------------------------------------------
+pqPVApplicationCore::pqPVApplicationCore(int& argc, char** argv, vtkCLIOptions* options)
   : Superclass(argc, argv, options)
 {
   // Initialize pqComponents resources.
@@ -231,9 +236,10 @@ bool pqPVApplicationCore::eventFilter(QObject* obj, QEvent* event_)
       }
       else
       {
-        // If the application has not yet started, treat it as a --data argument
-        // to be processed after the application starts.
-        this->Options->SetParaViewDataName(files[0].toUtf8().data());
+        // FIXME: TODO: FIXME
+        //  // If the application has not yet started, treat it as a --data argument
+        //  // to be processed after the application starts.
+        //  this->Options->SetParaViewDataName(files[0].toUtf8().data());
       }
     }
     return false;

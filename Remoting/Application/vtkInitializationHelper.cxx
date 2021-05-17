@@ -14,16 +14,21 @@ PURPOSE.  See the above copyright notice for more information.
 =========================================================================*/
 #include "vtkInitializationHelper.h"
 
+#include "vtkCLIOptions.h"
 #include "vtkClientServerInterpreter.h"
 #include "vtkClientServerInterpreterInitializer.h"
 #include "vtkNew.h"
 #include "vtkOutputWindow.h"
 #include "vtkPVConfig.h"
 #include "vtkPVInitializer.h"
+#include "vtkPVLogger.h"
 #include "vtkPVOptions.h"
 #include "vtkPVPluginLoader.h"
 #include "vtkPVSession.h"
 #include "vtkProcessModule.h"
+#include "vtkProcessModuleConfiguration.h"
+#include "vtkRemotingCoreConfiguration.h"
+#include "vtkRemotingServerManagerConfiguration.h"
 #include "vtkSMMessage.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxyManager.h"
@@ -153,14 +158,15 @@ void vtkInitializationHelper::Initialize(const char* executable, int type, vtkPV
 
   std::vector<char*> argv;
   argv.push_back(vtksys::SystemTools::DuplicateString(executable));
-  if (newoptions->GetForceNoMPIInitOnClient())
-  {
-    argv.push_back(vtksys::SystemTools::DuplicateString("--no-mpi"));
-  }
-  if (newoptions->GetForceMPIInitOnClient())
-  {
-    argv.push_back(vtksys::SystemTools::DuplicateString("--mpi"));
-  }
+  // FIXME:
+  // if (newoptions->GetForceNoMPIInitOnClient())
+  // {
+  //   argv.push_back(vtksys::SystemTools::DuplicateString("--no-mpi"));
+  // }
+  // if (newoptions->GetForceMPIInitOnClient())
+  // {
+  //   argv.push_back(vtksys::SystemTools::DuplicateString("--mpi"));
+  // }
 
   argv.push_back(nullptr);
   vtkInitializationHelper::Initialize(
@@ -170,6 +176,93 @@ void vtkInitializationHelper::Initialize(const char* executable, int type, vtkPV
   {
     delete[] tofree;
   }
+}
+
+//----------------------------------------------------------------------------
+vtkInitializationHelper::StatusFlag vtkInitializationHelper::Initialize(
+  int& argc, char**& argv, int type, vtkCLIOptions* options, bool addStandardArgs)
+{
+  if (vtkProcessModule::GetProcessModule())
+  {
+    vtkLogF(ERROR, "Process already initialize! `Initialize` should only be called once.");
+    return StatusFlag::Fail;
+  }
+
+  vtkNew<vtkCLIOptions> tmpoptions;
+  options = options ? options : tmpoptions;
+
+  const auto processType = static_cast<vtkProcessModule::ProcessTypes>(type);
+
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  vtkProcessModule::Initialize(processType, argc, argv);
+
+  // Populate options (unless told otherwise).
+  auto coreConfig = vtkRemotingCoreConfiguration::GetInstance();
+  if (addStandardArgs)
+  {
+    auto pmConfig = vtkProcessModuleConfiguration::GetInstance();
+    auto smConfig = vtkRemotingServerManagerConfiguration::GetInstance();
+    pmConfig->PopulateOptions(options, processType);
+    coreConfig->PopulateOptions(options, processType);
+    smConfig->PopulateOptions(options, processType);
+  }
+
+  const auto status = options->Parse(argc, argv);
+  if (status == vtkCLIOptions::StatusFlag::Fail)
+  {
+    // report error.
+    return StatusFlag::Fail;
+  }
+
+  // this has to happen after process module is initialized and options have
+  // been set.
+  paraview_initialize();
+
+  // Make sure the ProxyManager get created...
+  vtkSMProxyManager::GetProxyManager();
+
+  // Now load any plugins located in the PV_PLUGIN_PATH environment variable.
+  // These are always loaded (not merely located).
+  vtkNew<vtkPVPluginLoader> loader;
+  loader->LoadPluginsFromPluginSearchPath();
+  loader->LoadPluginsFromPluginConfigFile();
+
+  vtkInitializationHelper::SaveUserSettingsFileDuringFinalization = false;
+  // Load settings files on client-processes.
+  if (!coreConfig->GetDisableRegistry() && type != vtkProcessModule::PROCESS_SERVER &&
+    type != vtkProcessModule::PROCESS_DATA_SERVER &&
+    type != vtkProcessModule::PROCESS_RENDER_SERVER)
+  {
+    vtkInitializationHelper::LoadSettings();
+  }
+
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  settings->AddCollectionFromString("{ \"standard_presets\": { "
+                                    "\"vtkBlockColors\": \"KAAMS\", "
+                                    "\"AtomicNumbers\": \"BlueObeliskElements\" "
+                                    "} }",
+    0.0);
+
+  // until we replace PARAVIEW_SMTESTDRIVER with something cleaner, we have
+  // to print this greeting out when the process is launched from
+  // smTestDriver
+  if (vtksys::SystemTools::HasEnv("PARAVIEW_SMTESTDRIVER"))
+  {
+    cout << "Process started" << endl;
+  }
+
+  if (status == vtkCLIOptions::StatusFlag::HelpRequested)
+  {
+    return StatusFlag::HelpRequested;
+  }
+  else if (coreConfig->GetTellVersion())
+  {
+    return StatusFlag::VersionRequested;
+  }
+  return StatusFlag::Success;
 }
 
 //----------------------------------------------------------------------------
@@ -339,10 +432,7 @@ void vtkInitializationHelper::LoadSettings()
   }
 
   // Load site-level settings
-  vtkPVOptions* options = vtkProcessModule::GetProcessModule()->GetOptions();
-  const char* app_dir_p = options->GetApplicationPath();
-  std::string app_dir = app_dir_p ? app_dir_p : "";
-  app_dir = vtksys::SystemTools::GetProgramPath(app_dir);
+  const auto& app_dir = vtkProcessModule::GetProcessModule()->GetSelfDir();
 
   // If the application path ends with lib/paraview-X.X, shared
   // forwarding of the executable was used. Remove that part of the
