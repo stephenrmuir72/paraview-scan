@@ -1054,7 +1054,6 @@ list(APPEND TESTS_WITH_BASELINES
   VTPSeriesFile.xml
   #  XYBarChart.xml
   RandomAttributes.xml
-  ReadMolecularDataXYZ.xml
   YoungsMaterialInterface.xml
 )
 
@@ -1097,6 +1096,15 @@ if(NOT APPLE)
     BackgroundLights.xml
     )
 endif()
+
+# The vtkXYZMoleculeReader is not support LF file on windows
+# See: https://gitlab.kitware.com/vtk/vtk/-/issues/18213 
+if(NOT WIN32)
+  list(APPEND TESTS_WITH_BASELINES
+    ReadMolecularDataXYZ.xml
+    )
+endif()
+
 
 list(APPEND TESTS_WITH_BASELINES
   # This test makes use of "Point Gaussian" representation, only available with OpenGL2
