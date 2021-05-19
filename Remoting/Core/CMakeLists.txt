@@ -101,7 +101,7 @@ else ()
     "/prefix/${_vtk_build_RUNTIME_DESTINATION}"
     "/prefix/${_vtk_build_LIBRARY_DESTINATION}")
 endif ()
-set_property(SOURCE vtkPVPluginTracker.cxx APPEND
+set_property(SOURCE vtkPVPluginLoader.cxx vtkPVPluginTracker.cxx APPEND
   PROPERTY
     COMPILE_DEFINITIONS
       "BUILD_SHARED_LIBS=$<BOOL:${BUILD_SHARED_LIBS}>"

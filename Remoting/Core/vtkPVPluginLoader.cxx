@@ -261,24 +261,32 @@ vtkPVPluginLoader::vtkPVPluginLoader()
 #endif
 
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkPVOptions* opt = pm ? pm->GetOptions() : nullptr;
-  if (opt)
+  if (pm)
   {
-    std::string appDir = vtkProcessModule::GetProcessModule()->GetSelfDir();
+    std::vector<std::string> prefixes = {
+      std::string(PARAVIEW_RELATIVE_LIBPATH "/" PARAVIEW_SUBDIR "/"),
+
+// .app bundles
+#if defined(__APPLE__)
+      std::string("../Plugins/"),
+#endif
+      std::string()
+    };
+
+    std::string appDir = pm->GetSelfDir();
     if (!appDir.empty())
     {
-      appDir += "/plugins";
-      if (!paths.empty())
+      for (const auto& prefix : prefixes)
       {
-        paths += ENV_PATH_SEP;
+        std::string pluginDir = appDir + '/' + prefix;
+        if (!paths.empty())
+        {
+          paths += ENV_PATH_SEP;
+        }
+        paths += pluginDir;
+        vtkVLogF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "pluginDir: %s", pluginDir.c_str());
       }
-      paths += appDir;
-      vtkVLogF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "appDir: %s", appDir.c_str());
     }
-
-    // pqPluginManager::pluginPaths() used to automatically load plugins a host
-    // of locations. We no longer support that. It becomes less useful since we
-    // now list plugins in the plugin manager dialog.
   }
 
   this->SetSearchPaths(paths.c_str());
