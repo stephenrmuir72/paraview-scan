@@ -7,6 +7,9 @@ set(PARAVIEW_BUILD_EXAMPLES ON CACHE BOOL "")
 set(VTK_DEBUG_LEAKS ON CACHE BOOL "")
 set(VTK_USE_LARGE_DATA ON CACHE BOOL "")
 
+# For sequential for now.
+set(VTK_SMP_IMPLEMENTATION_TYPE "Sequential" CACHE STRING "")
+
 # The install trees on CI machines need help since dependencies are not in a
 # default location.
 set(PARAVIEW_RELOCATABLE_INSTALL ON CACHE BOOL "")
