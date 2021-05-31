@@ -15,62 +15,28 @@
 #include "pqInteractiveProperty2DWidget.h"
 
 #include "pqApplicationCore.h"
-#include "pqContextView.h"
-#include "pqCoreUtilities.h"
 #include "pqLiveInsituVisualizationManager.h"
-#include "pqPropertyLinks.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
-#include "vtkCommand.h"
-#include "vtkNew.h"
-#include "vtkPVDataInformation.h"
-#include "vtkSMNew2DWidgetRepresentationProxy.h"
-#include "vtkSMParaViewPipelineController.h"
-#include "vtkSMPropertyGroup.h"
+#include "pqView.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMSourceProxy.h"
 #include "vtkSMTrace.h"
-#include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
-#include "vtkWeakPointer.h"
+
+#include <QtDebug>
 
 #include <cassert>
-
-class pqInteractiveProperty2DWidget::pqInternals
-{
-public:
-  vtkSmartPointer<vtkSMNew2DWidgetRepresentationProxy> WidgetProxy;
-  vtkWeakPointer<vtkSMProxy> DataSource;
-  vtkSmartPointer<vtkSMPropertyGroup> SMGroup;
-  bool WidgetVisibility;
-  unsigned long UserEventObserverId;
-
-  pqInternals()
-    : WidgetVisibility(false)
-    , UserEventObserverId(0)
-  {
-  }
-};
 
 //-----------------------------------------------------------------------------
 pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_smgroup,
   const char* widget_smname, vtkSMProxy* smproxy, vtkSMPropertyGroup* smgroup,
   QWidget* parentObject)
-  : Superclass(smproxy, parentObject)
-  , Internals(new pqInteractiveProperty2DWidget::pqInternals())
+  : Superclass(widget_smgroup, widget_smname, smproxy, smgroup, parentObject)
 {
-  assert(widget_smgroup);
-  assert(widget_smname);
-  assert(smproxy);
-  assert(smgroup);
-
   BEGIN_UNDO_EXCLUDE();
-
-  pqInternals& internals = (*this->Internals);
-  internals.SMGroup = smgroup;
-
   pqServer* server =
     pqApplicationCore::instance()->getServerManagerModel()->findServer(smproxy->GetSession());
 
@@ -78,6 +44,7 @@ pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_
   // proxies on the "display-session".
   server = pqLiveInsituVisualizationManager::displaySession(server);
 
+  // Initalize the widget.
   vtkSMSessionProxyManager* pxm = server->proxyManager();
   vtkSmartPointer<vtkSMProxy> aProxy;
   aProxy.TakeReference(pxm->NewProxy(widget_smgroup, widget_smname));
@@ -94,9 +61,9 @@ pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_
                 << ") must be a "
                    "vtkSMNew2DWidgetRepresentationProxy instance. It however is a '"
                 << aProxy->GetClassName() << "'. Aborting for debugging purposes.";
-    abort();
   }
   assert(wdgProxy);
+  this->WidgetProxy = wdgProxy;
 
   internals.WidgetProxy = wdgProxy;
 
@@ -139,20 +106,12 @@ pqInteractiveProperty2DWidget::pqInteractiveProperty2DWidget(const char* widget_
 
   END_UNDO_EXCLUDE();
 
-  internals.UserEventObserverId = smproxy->AddObserver(
-    vtkCommand::UserEvent, this, &pqInteractiveProperty2DWidget::handleUserEvent);
+  this->setupUserObserver(smproxy);
 }
 
 //-----------------------------------------------------------------------------
 pqInteractiveProperty2DWidget::~pqInteractiveProperty2DWidget()
 {
-  pqInternals& internals = (*this->Internals);
-  if (internals.UserEventObserverId > 0 && this->proxy())
-  {
-    this->proxy()->RemoveObserver(internals.UserEventObserverId);
-    internals.UserEventObserverId = 0;
-  }
-
   // ensures that the widget proxy is removed from the active view, if any.
   this->setView(nullptr);
 }
@@ -173,51 +132,20 @@ void pqInteractiveProperty2DWidget::setView(pqView* pqview)
 
   pqView* rview = qobject_cast<pqContextView*>(pqview);
   pqView* oldview = this->view();
-  if (oldview == rview)
+  if (oldview != nullptr)
   {
-    return;
-  }
-
-  if (oldview)
-  {
-    vtkSMPropertyHelper(oldview->getProxy(), "HiddenRepresentations").Remove(this->widgetProxy());
+    vtkSMPropertyHelper(oldview->getProxy(), "HiddenRepresentations").Remove(this->WidgetProxy);
     oldview->getProxy()->UpdateVTKObjects();
+
+    this->pqPropertyWidget::setView(nullptr);
+    this->updateWidgetVisibility();
   }
-  this->Superclass::setView(rview);
-  if (rview)
-  {
-    vtkSMPropertyHelper(rview->getProxy(), "HiddenRepresentations").Add(this->widgetProxy());
-    rview->getProxy()->UpdateVTKObjects();
-  }
-  this->updateWidgetVisibility();
-}
-
-//-----------------------------------------------------------------------------
-void pqInteractiveProperty2DWidget::select()
-{
-  this->Superclass::select();
-  this->placeWidget();
-  this->updateWidgetVisibility();
-}
-
-//-----------------------------------------------------------------------------
-void pqInteractiveProperty2DWidget::deselect()
-{
-  this->Superclass::deselect();
-  this->updateWidgetVisibility();
-}
-
-//-----------------------------------------------------------------------------
-bool pqInteractiveProperty2DWidget::isWidgetVisible() const
-{
-  return this->Internals->WidgetVisibility;
 }
 
 //-----------------------------------------------------------------------------
 void pqInteractiveProperty2DWidget::setWidgetVisible(bool val)
 {
-  pqInternals& internals = (*this->Internals);
-  if (internals.WidgetVisibility != val)
+  if (this->WidgetVisibility != val)
   {
     internals.WidgetVisibility = val;
     this->updateWidgetVisibility();
@@ -230,7 +158,7 @@ void pqInteractiveProperty2DWidget::updateWidgetVisibility()
 {
   bool visible = this->isWidgetVisible() && this->view();
   bool enabled = this->isSelected() && this->isWidgetVisible() && this->view();
-  vtkSMProxy* wdgProxy = this->widgetProxy();
+  vtkSMProxy* wdgProxy = this->WidgetProxy;
   assert(wdgProxy);
 
   vtkSMPropertyHelper(wdgProxy, "Enabled", true).Set(enabled);
