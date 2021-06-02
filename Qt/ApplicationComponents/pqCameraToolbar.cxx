@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqCameraReaction.h"
+#include "pqDataRepresentation.h"
 #include "pqRenderViewSelectionReaction.h"
 
 //-----------------------------------------------------------------------------
@@ -74,6 +75,31 @@ void pqCameraToolbar::updateEnabledState()
 {
   pqView* view = pqActiveObjects::instance().activeView();
   pqPipelineSource* source = pqActiveObjects::instance().activeSource();
-  this->ZoomToDataAction->setEnabled(source && view);
-  this->ZoomClosestToDataAction->setEnabled(source && view);
+  pqDataRepresentation* repr = pqActiveObjects::instance().activeRepresentation();
+
+  bool isVisible = repr ? repr->isVisible() : false;
+
+  if (this->VisibilityChangedConnection)
+  {
+    // Make sure we have only one visibility changed qt connection
+    QObject::disconnect(this->VisibilityChangedConnection);
+  }
+
+  if (view && source)
+  {
+    this->VisibilityChangedConnection =
+      QObject::connect(source, SIGNAL(visibilityChanged(pqPipelineSource*, pqDataRepresentation*)),
+        this, SLOT(updateVisibleEnabledState(pqPipelineSource*, pqDataRepresentation*)));
+  }
+
+  this->ZoomToDataAction->setEnabled(source && view && isVisible);
+  this->ZoomClosestToDataAction->setEnabled(source && view && isVisible);
+}
+
+//-----------------------------------------------------------------------------
+void pqCameraToolbar::updateVisibleEnabledState(
+  pqPipelineSource* source, pqDataRepresentation* repr)
+{
+  this->ZoomToDataAction->setEnabled(source && repr->isVisible());
+  this->ZoomClosestToDataAction->setEnabled(source && repr->isVisible());
 }

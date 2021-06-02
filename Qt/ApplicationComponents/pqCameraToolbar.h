@@ -35,6 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationComponentsModule.h"
 #include <QToolBar>
 
+class pqPipelineSource;
+class pqDataRepresentation;
+
 /**
 * pqCameraToolbar is the toolbar that has icons for resetting camera
 * orientations as well as zoom-to-data and zoom-to-box.
@@ -58,12 +61,18 @@ public:
 
 private Q_SLOTS:
   void updateEnabledState();
+  void updateVisibleEnabledState(pqPipelineSource* source, pqDataRepresentation* repr);
 
 private:
   Q_DISABLE_COPY(pqCameraToolbar)
   void constructor();
   QAction* ZoomToDataAction;
   QAction* ZoomClosestToDataAction;
+
+  // Currently bound connection to an active source, used to
+  // disable ZoomToData actions if the current representation
+  // is not visible
+  QMetaObject::Connection VisibilityChangedConnection;
 };
 
 #endif
