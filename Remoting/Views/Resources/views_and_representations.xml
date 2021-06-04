@@ -4877,6 +4877,7 @@
             <Property name="ScalarOpacityUnitDistance"
                       panel_visibility="advanced" />
             <Property name="ScalarOpacityFunction" />
+            <Property name="TransferFunction2D" />
             <Property name="UseSeparateOpacityArray"
                       panel_visibility="advanced" />
             <Property name="OpacityArrayName"
@@ -5622,6 +5623,12 @@
                      name="ScalarOpacityFunction">
         <ProxyGroupDomain name="groups">
           <Group name="piecewise_functions" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
+      <ProxyProperty command="SetTransferFunction2D"
+                     name="TransferFunction2D" >
+        <ProxyGroupDomain name="groups">
+          <Group name="transfer_2d_functions" />
         </ProxyGroupDomain>
       </ProxyProperty>
       <IntVectorProperty command="SetRequestedRenderMode"
