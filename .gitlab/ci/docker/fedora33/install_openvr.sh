@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 readonly version="1.16.8"
 readonly tarball="v$version.tar.gz"

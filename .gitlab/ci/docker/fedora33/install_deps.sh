@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 # Install extra dependencies for ParaView
 dnf install -y --setopt=install_weak_deps=False \
     bzip2 patch doxygen git-core git-lfs

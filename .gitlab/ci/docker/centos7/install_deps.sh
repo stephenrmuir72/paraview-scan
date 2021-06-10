@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 # Install extra dependencies for ParaView
 yum install -y \
    bzip2 patch \
