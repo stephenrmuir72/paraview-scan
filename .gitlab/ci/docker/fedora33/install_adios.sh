@@ -31,12 +31,12 @@ adios_build () {
         -DADIOS2_USE_Python=OFF \
         -DADIOS2_USE_Fortran=OFF \
         -DADIOS2_USE_SST=OFF \
-        -DADIOS2_USE_BZip2=OFF \
+        -DADIOS2_USE_BZip2=ON \
         -DADIOS2_USE_ZFP=OFF \
         -DADIOS2_USE_SZ=OFF \
         -DADIOS2_USE_MGARD=OFF \
-        -DADIOS2_USE_PNG=OFF \
-        -DADIOS2_USE_Blosc=OFF \
+        -DADIOS2_USE_PNG=ON \
+        -DADIOS2_USE_Blosc=ON \
         -DADIOS2_USE_Endian_Reverse=OFF \
         -DADIOS2_USE_IME=OFF \
         "$@"
