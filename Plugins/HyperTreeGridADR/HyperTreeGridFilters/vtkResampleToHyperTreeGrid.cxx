@@ -66,6 +66,7 @@ vtkStandardNewMacro(vtkResampleToHyperTreeGrid);
 //----------------------------------------------------------------------------
 vtkResampleToHyperTreeGrid::vtkResampleToHyperTreeGrid()
 {
+  std::cout << "Constructing" << std::endl;
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
 
@@ -168,6 +169,7 @@ int vtkResampleToHyperTreeGrid::RequestInformation(
 int vtkResampleToHyperTreeGrid::RequestData(
   vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  std::cout << "vtkResampleToHyperTreeGrid::RequestData" << std::endl;
   this->UpdateProgress(0.0);
 
   // Get input and output data.
@@ -407,6 +409,7 @@ vtkSmartPointer<vtkDataSet> vtkResampleToHyperTreeGrid::BroadcastHyperTreeOwners
     localBounds[2] = -localBounds[2];
     localBounds[4] = -localBounds[4];
   }
+  std::cout << "AllReduce A" << std::endl;
   this->Controller->AllReduce(localBounds, this->Bounds, 6, vtkCommunicator::MAX_OP);
   this->Bounds[0] = -this->Bounds[0];
   this->Bounds[2] = -this->Bounds[2];
@@ -433,6 +436,7 @@ vtkSmartPointer<vtkDataSet> vtkResampleToHyperTreeGrid::BroadcastHyperTreeOwners
       (dim[2] - 1) * (dim[1] - 1) * (dim[0] - 1) *
         ((pt[0] - this->Bounds[0]) / (this->Bounds[1] - this->Bounds[0]))]);
   }
+  std::cout << "AllReduce B" << std::endl;
   this->Controller->AllReduce(localNumberOfPointsPerTree.data(), maxNumberOfPointsPerTree.data(),
     numberOfTrees, vtkCommunicator::MAX_OP);
 
@@ -449,6 +453,7 @@ vtkSmartPointer<vtkDataSet> vtkResampleToHyperTreeGrid::BroadcastHyperTreeOwners
     }
   }
 
+  std::cout << "AllReduce C" << std::endl;
   this->Controller->AllReduce(localProcessDistributionGrid.data(), processDistributionGrid.data(),
     numberOfTrees, vtkCommunicator::MAX_OP);
 
@@ -498,6 +503,7 @@ vtkSmartPointer<vtkDataSet> vtkResampleToHyperTreeGrid::BroadcastHyperTreeOwners
 
   std::vector<int> gids;
   assigner.local_gids(processId, gids);
+  std::cout << "Filter" << std::endl;
 
   // Using the shared knowledge of who owns who, we can use vtkRedistributeData
   // so each hyper tree is own by no more than one process.
