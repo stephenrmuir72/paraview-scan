@@ -37,8 +37,8 @@ class vtkSMPropertyGroup;
  * Subclasses are free to determine which interactive widget to create and how
  * to setup the UI for it.
  *
- * pqInteractiveProperty2DWidget same as pqInteractivePropertyWidget but use
- * vtkSMNew2DWidgetRepresentationProxy instead vtkSMNewWidgetRepresentationProxy
+ * pqInteractiveProperty2DWidget is basically the same as pqInteractivePropertyWidget
+ * but use vtkSMNew2DWidgetRepresentationProxy instead vtkSMNewWidgetRepresentationProxy
  */
 class PQAPPLICATIONCOMPONENTS_EXPORT pqInteractiveProperty2DWidget
   : public pqInteractivePropertyWidgetAbstract
@@ -53,7 +53,7 @@ public:
   ~pqInteractiveProperty2DWidget() override;
 
   /**
-   * Returns the proxy for the interactive widget.
+   * Returns the proxy for the interactive 2D widget.
    */
   vtkSMNew2DWidgetRepresentationProxy* widgetProxy() const { return this->WidgetProxy; };
 
@@ -163,7 +163,10 @@ private Q_SLOTS:
   /**
    * Get the internal instance of the widget proxy.
    */
-  vtkSMNewWidgetRepresentationProxyAbstract* _widgetProxy() final { return this->WidgetProxy; };
+  vtkSMNewWidgetRepresentationProxyAbstract* internalWidgetProxy() final
+  {
+    return this->WidgetProxy;
+  };
 
 private:
   Q_DISABLE_COPY(pqInteractiveProperty2DWidget)
