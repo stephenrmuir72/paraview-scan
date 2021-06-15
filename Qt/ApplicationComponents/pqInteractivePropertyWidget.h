@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkBoundingBox.h"
 #include <QScopedPointer>
 
+class pqRepresentation;
 class vtkObject;
 class vtkSMNewWidgetRepresentationProxy;
 class vtkSMPropertyGroup;
@@ -58,6 +59,8 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqInteractivePropertyWidget : public pqProp
   Q_OBJECT
   typedef pqPropertyWidget Superclass;
   Q_PROPERTY(pqSMProxy dataSource READ dataSource WRITE setDataSource);
+  Q_PROPERTY(int sourceVisibility READ sourceVisibility WRITE setSourceVisibility);
+  Q_PROPERTY(int parentVisibility READ parentVisibility WRITE setParentVisibility);
 
 public:
   pqInteractivePropertyWidget(const char* widget_smgroup, const char* widget_smname,
@@ -94,11 +97,23 @@ public:
   vtkSMProxy* dataSource() const;
 
   /**
+  * Returns the representation of the current filter visibility.
+  */
+  int sourceVisibility() const;
+
+  /**
+  * Returns the representation of the parent filter visibility.
+  */
+  int parentVisibility() const;
+
+  //@{
+  /**
   * In these methods, we show/hide the widget since the interactive widget is not
   * supposed to be visible except when the panel is "active" or "selected".
   */
   void select() override;
   void deselect() override;
+  //@}
 
   /**
   * Returns bounds from the dataSource, if possible. May return invalid bounds
@@ -136,6 +151,18 @@ public Q_SLOTS:
   */
   void setDataSource(vtkSMProxy* dataSource);
 
+  /**
+   * Triggered when the visibility of the representation of the current filter
+   * has changed.
+   */
+  void setSourceVisibility(int vis);
+
+  /**
+   * Triggered when the visibility of the representation of the parent filter
+   * has changed.
+   */
+  void setParentVisibility(int vis);
+
 protected Q_SLOTS:
   /**
   * Places the interactive widget using current data source information.
@@ -159,6 +186,7 @@ Q_SIGNALS:
   */
   void widgetVisibilityUpdated(bool);
 
+  //@{
   /**
   * Signals fired when the interactive widget proxy fires the corresponding
   * events.
@@ -166,6 +194,7 @@ Q_SIGNALS:
   void startInteraction();
   void interaction();
   void endInteraction();
+  //@}
 
   void dummySignal();
 
@@ -173,9 +202,16 @@ private Q_SLOTS:
   /**
   * This method is called to update the state of Visibility and Enabled
   * properties on the widget based on the state of isWidgetVisible() and
-  * isSelected().
+  * isSelected(). Also verify that in pre_apply state the parent filter is
+  * visible, and after the first apply that the filter itself is visible.
   */
   void updateWidgetVisibility();
+
+  /**
+   * Slot to catch the representation for the parent filter representation
+   * and the current filter representation.
+   */
+  void onRepresentationAdded(pqRepresentation* representation);
 
 protected:
   bool VisibleState = true;
@@ -183,11 +219,25 @@ protected:
 private:
   void handleUserEvent(vtkObject*, unsigned long, void*);
 
+  /**
+   * Try to find the representation of the filter that the widget is attached to
+   * and its parent. If it finds it, links their "Visibility" property to trigger
+   * a render on the current view.
+   */
+  void setupCurrentDataRepresentation();
+
 private:
   Q_DISABLE_COPY(pqInteractivePropertyWidget)
 
   class pqInternals;
   QScopedPointer<pqInternals> Internals;
+
+  /**
+   * Custom class to track the representation and its visibility for a specific
+   * ParaView pipeline element. Made friend for triggering protected signals.
+   */
+  struct SourceTracker;
+  friend struct SourceTracker;
 };
 
 #endif
