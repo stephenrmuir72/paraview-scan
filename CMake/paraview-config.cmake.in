@@ -5,8 +5,10 @@ This file is used by CMake when finding ParaView.
 
 The following variables are provided by this module:
 
-  * `ParaView_VERSION`: The version of ParaView found.
+  * `ParaView_VERSION`: The full version of ParaView found.
   * `ParaView_PREFIX_PATH`: Install prefix for ParaView.
+  * `PARAVIEW_VERSION_MAJOR`: The major version of ParaView found.
+  * `PARAVIEW_VERSION_MINOR`: The minor version of ParaView found.
   * `PARAVIEW_USE_QT`: If ParaView's Qt GUI is available.
   * `PARAVIEW_USE_MPI`: If ParaView is built with MPI support.
   * `PARAVIEW_USE_PYTHON`: If ParaView is built with Python support.
@@ -63,6 +65,8 @@ find_package(catalyst REQUIRED QUIET
     PATHS "${CMAKE_CURRENT_LIST_DIR}/catalyst"
     NO_DEFAULT_PATH)
 
+set(PARAVIEW_VERSION_MAJOR "@PARAVIEW_VERSION_MAJOR@")
+set(PARAVIEW_VERSION_MINOR "@PARAVIEW_VERSION_MINOR@")
 set(PARAVIEW_USE_QT "@PARAVIEW_USE_QT@")
 set(PARAVIEW_USE_MPI "@PARAVIEW_USE_MPI@")
 set(PARAVIEW_USE_PYTHON "@PARAVIEW_USE_PYTHON@")
