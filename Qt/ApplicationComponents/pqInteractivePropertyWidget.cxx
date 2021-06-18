@@ -146,6 +146,24 @@ public:
   }
 };
 
+void PrintProxy(vtkSMProxy* p, const char* name)
+{
+  std::cout << name << " is: ";
+
+  if (p)
+  {
+    std::cout << "(XML):" << p->GetXMLName() << " (VTK):" << p->GetVTKClassName() << " (Log):";
+    if (p->GetLogName())
+    {
+      std::cout << p->GetLogName();
+    }
+  }
+  else
+    std::cout << "nullptr";
+
+  std::cout << std::endl;
+}
+
 //-----------------------------------------------------------------------------
 pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgroup,
   const char* widget_smname, vtkSMProxy* smproxy, vtkSMPropertyGroup* smgroup,
@@ -168,11 +186,24 @@ pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgr
   // - this->proxy() : property the widget is linked to
   // - internals.Source.Proxy : the actual filter (ie Transform)
   // - internals.Parent.Proxy : the parent filter (ie Sphere)
-  internals.Source.Proxy = this->proxy()->GetConsumerProxy(0);
+
+  if (this->proxy()->GetNumberOfConsumers() > 0)
+  {
+    internals.Source.Proxy = this->proxy()->GetConsumerProxy(0);
+  }
+  else
+  {
+    internals.Source.Proxy = this->proxy();
+  }
+
   if (this->proxy()->GetNumberOfProducers() > 0)
   {
     internals.Parent.Proxy = this->proxy()->GetProducerProxy(0);
   }
+
+  PrintProxy(this->proxy(), "Proxy");
+  PrintProxy(internals.Source.Proxy, "Source");
+  PrintProxy(internals.Parent.Proxy, "Parent");
 
   pqServer* server =
     pqApplicationCore::instance()->getServerManagerModel()->findServer(smproxy->GetSession());
@@ -270,7 +301,16 @@ pqInteractivePropertyWidget::~pqInteractivePropertyWidget()
   }
 
   // ensures that the widget proxy is removed from the active view, if any.
-  this->setView(nullptr);
+  pqView* view = this->view();
+  if (view)
+  {
+    QObject::disconnect(view, &pqView::representationAdded, this,
+      &pqInteractivePropertyWidget::onRepresentationAdded);
+
+    vtkSMPropertyHelper(view->getProxy(), "HiddenRepresentations").Remove(this->widgetProxy());
+    view->getProxy()->UpdateVTKObjects();
+  }
+  this->Superclass::setView(nullptr);
 }
 
 //-----------------------------------------------------------------------------
