@@ -1100,14 +1100,33 @@ struct Process_5_9_to_5_10
   {
     bool warn = false;
 
-    pugi::xpath_node_set glyph_elements =
+    pugi::xpath_node_set xpath_set =
       document.select_nodes("//ServerManagerState/Proxy[@group='filters' and @type='ProbeLine']");
-    for (pugi::xpath_node_set::const_iterator iter = glyph_elements.begin();
-         iter != glyph_elements.end(); ++iter)
+    for (auto& element : xpath_set)
     {
-      iter->node().attribute("type").set_value("ProbeLineLegacy");
-      warn = true;
+      if (element.node().attribute("type").value() != std::string("ProbeLine"))
+      {
+        continue;
+      }
+
+      bool downgrade = true;
+
+      for (auto property = element.node().child("Property"); property;
+           property = property.next_sibling("Property"))
+      {
+        if (property.attribute("name").value() == std::string("Point1"))
+        {
+          downgrade = false;
+        }
+      }
+
+      if (downgrade)
+      {
+        element.node().attribute("type").set_value("ProbeLineLegacy");
+        warn = true;
+      }
     }
+
     if (warn)
     {
       vtkGenericWarningMacro(
