@@ -6,6 +6,20 @@ if (WIN32 AND extra_dll_paths)
     "$ENV{PATH};${extra_dll_paths}")
 endif ()
 
+if (extra_python_paths)
+  set(sep "")
+  if (NOT "$ENV{PYTHONPATH}" STREQUAL "")
+    if (WIN32)
+      set(sep ";")
+    else ()
+      set(sep ":")
+    endif ()
+  endif ()
+
+  set(ENV{PYTHONPATH}
+    "$ENV{PYTHONPATH}${sep}${extra_python_paths}")
+endif ()
+
 execute_process(
   COMMAND
     ${test_command}

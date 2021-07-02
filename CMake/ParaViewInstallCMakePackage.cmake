@@ -79,6 +79,7 @@ set(paraview_cmake_module_files
 
   # Testing
   ParaViewTesting.cmake
+  ParaViewTestingEnvLauncher.cmake
 
   # Client Server
   vtkModuleWrapClientServer.cmake)
