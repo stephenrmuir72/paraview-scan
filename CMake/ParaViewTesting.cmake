@@ -35,7 +35,7 @@ function (_paraview_add_tests function)
   cmake_parse_arguments(_paraview_add_tests
     "FORCE_SERIAL;FORCE_LOCK"
     "LOAD_PLUGIN;PLUGIN_PATH;CLIENT;TEST_DIRECTORY;TEST_DATA_TARGET;PREFIX;SUFFIX;_ENABLE_SUFFIX;_DISABLE_SUFFIX;BASELINE_DIR;DATA_DIRECTORY;NUMPROCS"
-    "_COMMAND_PATTERN;LOAD_PLUGINS;PLUGIN_PATHS;TEST_SCRIPTS;TEST_NAME;ENVIRONMENT;ARGS;CLIENT_ARGS;ADDITIONAL_DLL_PATHS"
+    "_COMMAND_PATTERN;LOAD_PLUGINS;PLUGIN_PATHS;TEST_SCRIPTS;TEST_NAME;ENVIRONMENT;ARGS;CLIENT_ARGS;ADDITIONAL_DLL_PATHS;ADDITIONAL_PYTHON_PATHS"
     ${ARGN})
 
   if (_paraview_add_tests_UNPARSED_ARGUMENTS)
@@ -218,14 +218,16 @@ function (_paraview_add_tests function)
       "${_paraview_add_tests_script_args}")
 
     set(test_command
-      ParaView::smTestDriver
+      "$<TARGET_FILE:ParaView::smTestDriver>"
       --enable-bt
       ${_paraview_add_tests_script_args})
+    string(REPLACE ";" "\\\;" test_command "${test_command}")
     set(testArgs
         NAME    "${_paraview_add_tests_PREFIX}.${_paraview_add_tests_name}"
         COMMAND "${CMAKE_COMMAND}"
                 "-Dtest_command=${test_command}"
                 "-Dextra_dll_paths=${_paraview_add_tests_ADDITIONAL_DLL_PATHS}"
+                "-Dextra_python_paths=${_paraview_add_tests_ADDITIONAL_PYTHON_PATHS}"
                 -P "${_ParaViewTesting_cmake_dir}/ParaViewTestingEnvLauncher.cmake")
     if (DEFINED "${_paraview_add_tests_name}_USES_DIRECT_DATA")
       add_test(${testArgs})
