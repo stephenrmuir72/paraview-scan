@@ -1,3 +1,5 @@
+set(_ParaViewTesting_cmake_dir "${CMAKE_CURRENT_LIST_DIR}")
+
 function (paraview_add_test_python)
   set(_vtk_testing_python_exe "$<TARGET_FILE:ParaView::pvpython>")
   set(_vtk_test_python_args --dr ${paraview_python_args})
@@ -79,6 +81,15 @@ function (_paraview_add_tests function)
     message(FATAL_ERROR
       "Either `TEST_SCRIPTS` or `TEST_NAME` must be specified.")
   endif()
+
+  if (NOT _ParaViewTesting_cmake_dir)
+    set(_ParaViewTesting_cmake_dir "${CMAKE_CURRENT_FUNCTION_LIST_DIR}")
+    if (NOT _ParaViewTesting_cmake_dir)
+      message(FATAL_ERROR
+        "Unable to determine the directory for ParaViewTesting helper files. "
+        "Is `find_package(ParaView)` called at the right scope?")
+    endif ()
+  endif ()
 
   set(_paraview_add_tests_args
     ${_paraview_add_tests_ARGS})
@@ -206,11 +217,15 @@ function (_paraview_add_tests function)
       _paraview_add_tests_script_args
       "${_paraview_add_tests_script_args}")
 
+    set(test_command
+      ParaView::smTestDriver
+      --enable-bt
+      ${_paraview_add_tests_script_args})
     set(testArgs
         NAME    "${_paraview_add_tests_PREFIX}.${_paraview_add_tests_name}"
-        COMMAND ParaView::smTestDriver
-                --enable-bt
-                ${_paraview_add_tests_script_args})
+        COMMAND "${CMAKE_COMMAND}"
+                "-Dtest_command=${test_command}"
+                -P "${_ParaViewTesting_cmake_dir}/ParaViewTestingEnvLauncher.cmake")
     if (DEFINED "${_paraview_add_tests_name}_USES_DIRECT_DATA")
       add_test(${testArgs})
     else()
