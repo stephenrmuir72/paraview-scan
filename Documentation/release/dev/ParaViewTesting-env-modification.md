@@ -2,7 +2,8 @@
 
 The `ParaViewTesting` module APIs which execute a ParaView client now support
 the `ADDITIONAL_DLL_PATHS` to add directories to `PATH` on Windows when
-executing the test. The following APIs support this new argument:
+executing the test and `ADDITIONAL_PYTHON_PATHS` to add to `PYTHONPATH` on any
+platform. The following APIs support these new arguments:
 
   - `paraview_add_client_tests`
   - `paraview_add_client_server_tests`
