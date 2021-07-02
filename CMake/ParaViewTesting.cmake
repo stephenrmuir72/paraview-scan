@@ -35,7 +35,7 @@ function (_paraview_add_tests function)
   cmake_parse_arguments(_paraview_add_tests
     "FORCE_SERIAL;FORCE_LOCK"
     "LOAD_PLUGIN;PLUGIN_PATH;CLIENT;TEST_DIRECTORY;TEST_DATA_TARGET;PREFIX;SUFFIX;_ENABLE_SUFFIX;_DISABLE_SUFFIX;BASELINE_DIR;DATA_DIRECTORY;NUMPROCS"
-    "_COMMAND_PATTERN;LOAD_PLUGINS;PLUGIN_PATHS;TEST_SCRIPTS;TEST_NAME;ENVIRONMENT;ARGS;CLIENT_ARGS"
+    "_COMMAND_PATTERN;LOAD_PLUGINS;PLUGIN_PATHS;TEST_SCRIPTS;TEST_NAME;ENVIRONMENT;ARGS;CLIENT_ARGS;ADDITIONAL_DLL_PATHS"
     ${ARGN})
 
   if (_paraview_add_tests_UNPARSED_ARGUMENTS)
@@ -225,6 +225,7 @@ function (_paraview_add_tests function)
         NAME    "${_paraview_add_tests_PREFIX}.${_paraview_add_tests_name}"
         COMMAND "${CMAKE_COMMAND}"
                 "-Dtest_command=${test_command}"
+                "-Dextra_dll_paths=${_paraview_add_tests_ADDITIONAL_DLL_PATHS}"
                 -P "${_ParaViewTesting_cmake_dir}/ParaViewTestingEnvLauncher.cmake")
     if (DEFINED "${_paraview_add_tests_name}_USES_DIRECT_DATA")
       add_test(${testArgs})
