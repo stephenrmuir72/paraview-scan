@@ -25,8 +25,10 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkSignedCharArray.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTemporalInterpolatedVelocityField.h"
+#include "vtkUnsignedCharArray.h"
 
 using namespace vtkParticleTracerBaseNamespace;
 
@@ -146,8 +148,23 @@ void vtkInSituPParticlePathFilter::AssignSeedsToProcessors(double t, vtkDataSet*
     if (this->UseArrays)
     {
       vtkPointData* pd = source->GetPointData();
-      vtkCharArray* sourceId = vtkCharArray::SafeDownCast(pd->GetArray("ParticleSourceId"));
-      info.SourceID = sourceId->GetValue(i);
+      auto psi = pd->GetArray("ParticleSourceId");
+      if (vtkCharArray* sourceId = vtkCharArray::SafeDownCast(pd->GetArray("ParticleSourceId")))
+      {
+        info.SourceID = sourceId->GetValue(i);
+      }
+      else if (vtkSignedCharArray* sourceId = vtkSignedCharArray::SafeDownCast(pd->GetArray("ParticleSourceId")))
+      {
+        info.SourceID = sourceId->GetValue(i);
+      }
+      else if (vtkUnsignedCharArray* sourceId = vtkUnsignedCharArray::SafeDownCast(pd->GetArray("ParticleSourceId")))
+      {
+        info.SourceID = sourceId->GetValue(i);
+      }
+      else
+      {
+        // ???
+      }
       vtkIntArray* injectedPointId = vtkIntArray::SafeDownCast(pd->GetArray("InjectedPointId"));
       info.InjectedPointId = injectedPointId->GetValue(i);
       vtkIntArray* injectedStepId = vtkIntArray::SafeDownCast(pd->GetArray("InjectionStepId"));
