@@ -26,10 +26,7 @@ else ()
       MPI::MPI_C)
 endif ()
 
-if (TARGET ParaView::pvbatch AND BUILD_TESTING AND
-    # The static build ends up triggering a crash. See paraview/paraview#20834
-    # for details.
-    BUILD_SHARED_LIBS)
+if (TARGET ParaView::pvbatch AND BUILD_TESTING)
   add_test(NAME CxxParticlePathExampleTest
     COMMAND ${CMAKE_COMMAND}
     -DCOPROCESSING_TEST_DRIVER:FILEPATH=$<TARGET_FILE:CxxParticlePathExample>
