@@ -86,8 +86,8 @@
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkGhostCellsGenerator"
-                 label="Universal Ghost Cells Generator"
-                 name="UniversalGhostCellsGenerator">
+                 label="Ghost Cells Generator"
+                 name="GhostCellsGenerator">
       <Documentation short_help="Generate ghosts.">
         Generate ghost cells and ghost points in a composite data set. Ghosts are exchanged
         between blocks / partitions of same type. Currently, only vtkImageData, vtkRectilinearGrid
@@ -107,9 +107,19 @@
       </InputProperty>
       <IntVectorProperty command="SetNumberOfGhostLayers"
                          default_values="1"
-                         name="Number Of Ghost Layers"
+                         name="MinimumNumberOfGhosts"
                          number_of_elements="1"
                          panel_visibility="default">
+      </IntVectorProperty>
+      <IntVectorProperty command="SetBuildIfRequired"
+                         default_values="0"
+                         name="BuildIfRequired"
+                         number_of_elements="1"
+      <Documentation>If set to true, then the number of ghosts computed disregard
+        Number Of Ghost Layers and instead use the required number of ghosts asked by the pipeline.
+      </Documentation>
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
       </IntVectorProperty>
       <!-- End CompositeDataSetGhostCellsGenerator -->
     </SourceProxy>
