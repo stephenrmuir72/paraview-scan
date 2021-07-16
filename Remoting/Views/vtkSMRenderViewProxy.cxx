@@ -514,6 +514,8 @@ const char* vtkSMRenderViewProxy::GetRepresentationType(vtkSMSourceProxy* produc
   return nullptr;
 }
 
+#include "vtkPVCompositeRepresentation.h"
+
 //----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::ZoomTo(vtkSMProxy* representation, bool closest)
 {
@@ -531,6 +533,27 @@ void vtkSMRenderViewProxy::ZoomTo(vtkSMProxy* representation, bool closest)
   if (!vtkMath::AreBoundsInitialized(bounds))
   {
     return;
+  }
+
+  if (info->IsCompositeDataSet() && representation->GetProperty("VisibleDataBounds") &&
+    representation->GetProperty("NumberOfVisibleBlocks"))
+  {
+    representation->UpdatePropertyInformation(representation->GetProperty("NumberOfVisibleBlocks"));
+    auto numberOfVisibleBlocks =
+      vtkSMPropertyHelper(representation, "NumberOfVisibleBlocks").GetAsInt();
+
+    // if (numberOfVisibleBlocks == 0)
+    // {
+    //   // Should not pass here as the button should be disabled
+    //   vtkErrorMacro("Button should be disabled as no blocks are visible.");
+    //   return;
+    // }
+
+    representation->UpdatePropertyInformation(representation->GetProperty("VisibleDataBounds"));
+    auto visibleDataBounds =
+      vtkSMPropertyHelper(representation, "VisibleDataBounds").GetDoubleArray();
+
+    std::copy(std::begin(visibleDataBounds), std::end(visibleDataBounds), std::begin(bounds));
   }
 
   if (representation->GetProperty("Position") && representation->GetProperty("Orientation") &&
@@ -573,6 +596,7 @@ void vtkSMRenderViewProxy::ZoomTo(vtkSMProxy* representation, bool closest)
       transform->Delete();
     }
   }
+
   this->ResetCamera(bounds, closest);
 }
 

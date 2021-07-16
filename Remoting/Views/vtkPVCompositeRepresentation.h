@@ -140,8 +140,6 @@ protected:
 
   bool SelectionVisibility;
 
-  double VisibleDataBounds[6];
-
 private:
   vtkPVCompositeRepresentation(const vtkPVCompositeRepresentation&) = delete;
   void operator=(const vtkPVCompositeRepresentation&) = delete;

@@ -166,8 +166,10 @@ void pqMultiBlockInspectorWidget::pqInternals::update()
   if (pqInternals::hasAppearanceProperties(repr))
   {
     this->HelperProxyWidget = new pqProxyWidget(repr->getProxy(), { "multiblock_inspector" }, {});
-    QObject::connect(this->HelperProxyWidget, &pqProxyWidget::changeFinished,
-      [repr]() { repr->renderViewEventually(); });
+    QObject::connect(this->HelperProxyWidget, &pqProxyWidget::changeFinished, [repr]() {
+      Q_EMIT pqActiveObjects::instance().representationChanged(repr);
+      repr->renderViewEventually();
+    });
   }
   else
   {

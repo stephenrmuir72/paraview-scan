@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCameraReaction.h"
 #include "pqDataRepresentation.h"
 #include "pqRenderViewSelectionReaction.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 
 //-----------------------------------------------------------------------------
 void pqCameraToolbar::constructor()
@@ -64,10 +66,49 @@ void pqCameraToolbar::constructor()
   this->ZoomClosestToDataAction = ui.actionZoomClosestToData;
   this->ZoomClosestToDataAction->setEnabled(pqActiveObjects::instance().activeSource() != nullptr);
 
-  QObject::connect(
-    &pqActiveObjects::instance(), SIGNAL(viewChanged(pqView*)), this, SLOT(updateEnabledState()));
-  QObject::connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource*)), this,
-    SLOT(updateEnabledState()));
+  QObject::connect(&pqActiveObjects::instance(), &pqActiveObjects::sourceChanged, this,
+    &pqCameraToolbar::onSourceChanged);
+  QObject::connect(&pqActiveObjects::instance(), &pqActiveObjects::viewChanged, this,
+    &pqCameraToolbar::updateEnabledState);
+  QObject::connect(&pqActiveObjects::instance(),
+    QOverload<pqDataRepresentation*>::of(&pqActiveObjects::representationChanged), this,
+    &pqCameraToolbar::onRepresentationChanged);
+}
+
+//-----------------------------------------------------------------------------
+void pqCameraToolbar::onSourceChanged(pqPipelineSource* source)
+{
+  if (this->SourceVisibilityChangedConnection)
+  {
+    // Make sure we have only one visibility changed qt connection
+    QObject::disconnect(this->SourceVisibilityChangedConnection);
+  }
+
+  if (source)
+  {
+    this->SourceVisibilityChangedConnection = QObject::connect(
+      source, &pqPipelineSource::visibilityChanged, this, &pqCameraToolbar::updateEnabledState);
+
+    this->updateEnabledState();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqCameraToolbar::onRepresentationChanged(pqDataRepresentation* repr)
+{
+  if (this->RepresentationDataUpdatedConnection)
+  {
+    // Make sure we have only one visibility changed qt connection
+    QObject::disconnect(this->RepresentationDataUpdatedConnection);
+  }
+
+  if (repr)
+  {
+    this->RepresentationDataUpdatedConnection = QObject::connect(
+      repr, &pqDataRepresentation::dataUpdated, this, &pqCameraToolbar::updateEnabledState);
+
+    this->updateEnabledState();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -77,29 +118,29 @@ void pqCameraToolbar::updateEnabledState()
   pqPipelineSource* source = pqActiveObjects::instance().activeSource();
   pqDataRepresentation* repr = pqActiveObjects::instance().activeRepresentation();
 
-  bool isVisible = repr ? repr->isVisible() : false;
-
-  if (this->VisibilityChangedConnection)
-  {
-    // Make sure we have only one visibility changed qt connection
-    QObject::disconnect(this->VisibilityChangedConnection);
-  }
-
-  if (view && source)
-  {
-    this->VisibilityChangedConnection =
-      QObject::connect(source, SIGNAL(visibilityChanged(pqPipelineSource*, pqDataRepresentation*)),
-        this, SLOT(updateVisibleEnabledState(pqPipelineSource*, pqDataRepresentation*)));
-  }
-
+  bool isVisible = this->isRepresentationVisible(repr);
   this->ZoomToDataAction->setEnabled(source && view && isVisible);
   this->ZoomClosestToDataAction->setEnabled(source && view && isVisible);
 }
 
 //-----------------------------------------------------------------------------
-void pqCameraToolbar::updateVisibleEnabledState(
-  pqPipelineSource* source, pqDataRepresentation* repr)
+bool pqCameraToolbar::isRepresentationVisible(pqDataRepresentation* repr)
 {
-  this->ZoomToDataAction->setEnabled(source && repr->isVisible());
-  this->ZoomClosestToDataAction->setEnabled(source && repr->isVisible());
+  bool isVisible = false;
+
+  if (repr != nullptr)
+  {
+    isVisible = repr->isVisible();
+
+    auto smRepr = repr->getProxy();
+    if (smRepr && smRepr->GetProperty("NumberOfVisibleBlocks"))
+    {
+      smRepr->UpdatePropertyInformation(smRepr->GetProperty("NumberOfVisibleBlocks"));
+      int numberOfVisibleBlocks = vtkSMPropertyHelper(smRepr, "NumberOfVisibleBlocks").GetAsInt();
+
+      isVisible = isVisible && (numberOfVisibleBlocks != 0);
+    }
+  }
+
+  return isVisible;
 }
