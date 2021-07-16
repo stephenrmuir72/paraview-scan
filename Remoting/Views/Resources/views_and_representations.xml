@@ -4078,6 +4078,22 @@
         <Documentation>Set the visibility for this
         representation.</Documentation>
       </IntVectorProperty>
+      <DoubleVectorProperty command="GetVisibleDataBounds"
+                            default_values="0 1 0 1 0 1"
+                            information_only="1"
+                            name="VisibleDataBounds"
+                            number_of_elements="6">
+        <SimpleDoubleInformationHelper />
+        <Documentation>Get the visible data bounds that consider the visibility of the blocks if data is composite.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="GetNumberOfVisibleBlocks"
+                            default_values="0"
+                            information_only="1"
+                            name="NumberOfVisibleBlocks"
+                            number_of_elements="1">
+        <SimpleIntInformationHelper />
+        <Documentation>Get the number of visible blocks in the composite data.</Documentation>
+      </IntVectorProperty>
       <IntVectorProperty command="SetForceUseCache"
                          default_values="0"
                          is_internal="1"

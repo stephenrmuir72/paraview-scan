@@ -1575,6 +1575,37 @@ void vtkGeometryRepresentation::ComputeVisibleDataBounds()
 }
 
 //----------------------------------------------------------------------------
+int vtkGeometryRepresentation::GetNumberOfVisibleBlocks()
+{
+  if (this->GetPipelineDataTime() == 0)
+  {
+    return 0;
+  }
+
+  int numVisible = 0;
+
+  vtkDataObject* dataObject = this->MultiBlockMaker->GetOutputDataObject(0);
+
+  if (dataObject == nullptr)
+  {
+    return 0;
+  }
+
+  vtkNew<vtkCompositeDataDisplayAttributes> cdAttributes;
+  this->PopulateBlockAttributes(cdAttributes, dataObject);
+
+  cdAttributes->VisitVisibilities([&numVisible](vtkDataObject*, bool visible) {
+    if (visible)
+    {
+      ++numVisible;
+    }
+    return false; // do not terminate loop early.
+  });
+
+  return numVisible;
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetUseShaderReplacements(bool useShaderRepl)
 {
   if (this->UseShaderReplacements != useShaderRepl)

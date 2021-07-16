@@ -106,6 +106,16 @@ public:
    */
   unsigned int Initialize(unsigned int minIdAvailable, unsigned int maxIdAvailable) override;
 
+  /**
+   * Call GetVisibleDataBounds on the active representation if it is a GeometryRepresentation.
+   */
+  double* GetVisibleDataBounds() VTK_SIZEHINT(6);
+
+  /**
+   * Call GetnumberOfVisibleBlocks on the active representation if it is a GeometryRepresentation.
+   */
+  int GetNumberOfVisibleBlocks();
+
 protected:
   vtkPVCompositeRepresentation();
   ~vtkPVCompositeRepresentation() override;
@@ -129,6 +139,8 @@ protected:
   vtkPolarAxesRepresentation* PolarAxesRepresentation;
 
   bool SelectionVisibility;
+
+  double VisibleDataBounds[6];
 
 private:
   vtkPVCompositeRepresentation(const vtkPVCompositeRepresentation&) = delete;

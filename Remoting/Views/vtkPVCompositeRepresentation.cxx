@@ -15,6 +15,7 @@
 #include "vtkPVCompositeRepresentation.h"
 
 #include "vtkGarbageCollector.h"
+#include "vtkGeometryRepresentation.h"
 #include "vtkInformation.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVGridAxes3DRepresentation.h"
@@ -259,4 +260,32 @@ unsigned int vtkPVCompositeRepresentation::Initialize(
     minId = this->PolarAxesRepresentation->Initialize(minId, maxIdAvailable);
   }
   return this->Superclass::Initialize(minId, maxIdAvailable);
+}
+
+//----------------------------------------------------------------------------
+double* vtkPVCompositeRepresentation::GetVisibleDataBounds()
+{
+  auto activeRepr = this->GetActiveRepresentation();
+  auto geomRepr = vtkGeometryRepresentation::SafeDownCast(activeRepr);
+
+  if (!geomRepr)
+  {
+    return nullptr;
+  }
+
+  return geomRepr->GetVisibleDataBounds();
+}
+
+//----------------------------------------------------------------------------
+int vtkPVCompositeRepresentation::GetNumberOfVisibleBlocks()
+{
+  auto activeRepr = this->GetActiveRepresentation();
+  auto geomRepr = vtkGeometryRepresentation::SafeDownCast(activeRepr);
+
+  if (!geomRepr)
+  {
+    return 0;
+  }
+
+  return geomRepr->GetNumberOfVisibleBlocks();
 }

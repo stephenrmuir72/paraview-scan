@@ -317,6 +317,21 @@ public:
   static bool GetBounds(
     vtkDataObject* dataObject, double bounds[6], vtkCompositeDataDisplayAttributes* cdAttributes);
 
+  /**
+   * Computes and returns the bounds of the visible data based on the block visibilities in the
+   * composite data attributes of the mapper.
+   */
+  double* GetVisibleDataBounds() VTK_SIZEHINT(6)
+  {
+    this->ComputeVisibleDataBounds();
+    return this->VisibleDataBounds;
+  }
+
+  /**
+   * Convenience method to get the number of visible blocks in a composite dataset.
+   */
+  int GetNumberOfVisibleBlocks();
+
   //@{
   /**
    * For OSPRay controls sizing of implicit spheres (points) and
