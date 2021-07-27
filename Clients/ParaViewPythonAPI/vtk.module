@@ -1,0 +1,12 @@
+NAME
+  ParaView::ParaViewPythonAPI
+LIBRARY_NAME
+  vtkPVPythonAPI
+KIT
+  ParaView::ClientKit
+GROUPS
+  PARAVIEW_CORE
+DEPENDS
+  ParaView::PythonInitializer
+  ParaView::RemotingApplication
+  ParaView::RemotingCore

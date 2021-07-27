@@ -181,3 +181,7 @@ print_debug_info = logger.debug
 print_debug = logger.debug
 print_info = logger.info
 log = logger.log
+
+# Run init script
+from .modules.vtkPVPythonAPI import vtkPVPythonAPI
+vtkPVPythonAPI.InitializeParaViewPython()

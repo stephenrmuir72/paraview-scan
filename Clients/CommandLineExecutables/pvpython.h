@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   ParaView
-Module:    pvpython.cxx
+Module:    pvpython.h
 
 Copyright (c) Kitware, Inc.
 All rights reserved.
@@ -22,7 +22,7 @@ void vtkPVInitializePythonModules();
 #include "vtkInitializationHelper.h"
 #include "vtkLogger.h"
 #include "vtkMultiProcessController.h"
-#include "vtkPVPluginTracker.h"
+#include "vtkOutputWindow.h"
 #include "vtkProcessModule.h"
 #include "vtkProcessModuleConfiguration.h"
 #include "vtkPythonInterpreter.h"
@@ -32,8 +32,6 @@ void vtkPVInitializePythonModules();
 
 #include <vector>
 #include <vtksys/SystemTools.hxx>
-
-#include "ParaView_paraview_plugins.h"
 
 namespace ParaViewPython
 {
@@ -80,9 +78,19 @@ void ProcessArgsForPython(
 //---------------------------------------------------------------------------
 int Run(int processType, int argc, char* argv[])
 {
-  // Setup options
-  vtkInitializationHelper::SetApplicationName("ParaView");
+  /*
+   * The main function for pvbatch and pvpython
+   */
 
+  // Setup the output window to be vtkOutputWindow, rather than platform
+  // specific one. This avoids creating vtkWin32OutputWindow on Windows, for
+  // example, which puts all Python errors in a window rather than the terminal
+  // as one would expect.
+  auto opwindow = vtkOutputWindow::New();
+  vtkOutputWindow::SetInstance(opwindow);
+  opwindow->Delete();
+
+  // Process options using vtkInitializationHelper
   auto options = vtk::TakeSmartPointer(vtkCLIOptions::New());
   const auto status = vtkInitializationHelper::Initialize(argc, argv, processType, options);
   if (!status)
@@ -101,11 +109,6 @@ int Run(int processType, int argc, char* argv[])
   // register callback to initialize modules statically. The callback is
   // empty when BUILD_SHARED_LIBS is ON.
   vtkPVInitializePythonModules();
-
-  // register static plugins
-  ParaView_paraview_plugins_initialize();
-
-  vtkPVPluginTracker::GetInstance()->LoadPluginConfigurationXMLs("paraview");
 
   int ret_val = 0;
   if (pm->GetSymmetricMPIMode() == false && pm->GetPartitionId() > 0)
