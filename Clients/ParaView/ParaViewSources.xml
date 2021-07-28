@@ -23,6 +23,7 @@
   </Category>
   <Category name="GeometricShapes" menu_label="&amp;Geometric Shapes" preserve_order="1"
     show_in_toolbar="0">
+    <Proxy group="sources" name="BoxPedestalSource" />
     <Proxy group="sources" name="CubeSource" />
     <Proxy group="sources" name="ConeSource" />
     <Proxy group="sources" name="CylinderPedestalSource" />
@@ -49,6 +50,7 @@
   <Proxy group="sources" name="AMRGaussianPulseSource" />
   <Proxy group="sources" name="ArrowSource" />
   <Proxy group="sources" name="Axes" icon=":/pqWidgets/Icons/pqAxes.png"/>
+  <Proxy group="sources" name="BoxPedestalSource" />
   <Proxy group="sources" name="ConeSource" />
   <Proxy group="sources" name="CubeSource" />
   <Proxy group="sources" name="CylinderSource" />

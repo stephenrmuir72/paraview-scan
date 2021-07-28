@@ -394,6 +394,71 @@
       <!-- End Box -->
     </SourceProxy>
 
+     <!-- ==================================================================== -->
+    <SourceProxy class="vtkCubeSource"
+                 label="Box Pedestal"
+                 name="BoxPedestalSource">
+      <Documentation long_help="Create a box with specified X, Y, and Z lengths."
+                     short_help="3D box with specified X, Y, and Z lengths">The
+                     Box Pedestal source can be used to add a box to the 3D scene. Its placement
+                     and size defaults to be below the bounds of all data with
+                     XLength equal to twice the bounding box size in X, ZLength
+                     equal to twice the bounding box size in Z,
+                     and the height equal to one quarter the bounding box length in Y.
+                     The output of the Box Pedestal source is polygonal data
+                     containing both normals and texture coordinates. The
+                     output of the Box Pedestal source is polygonal data containing both
+                     normals and texture coordinates.</Documentation>
+      <DoubleVectorProperty animateable="1"
+                            command="SetXLength"
+                            default_values="1.0"
+                            name="XLength"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the length of the box in the X
+        direction.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetYLength"
+                            default_values="1.0"
+                            name="YLength"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the length of the box in the Y
+        direction.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetZLength"
+                            default_values="1.0"
+                            name="ZLength"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the length of the box in the Z
+        direction.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetCenter"
+                            default_values="0.0 0.0 0.0"
+                            name="Center"
+                            number_of_elements="3"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain name="range" />
+        <Documentation>This property specifies the center of the
+        box.</Documentation>
+      </DoubleVectorProperty>
+      <!-- End Box -->
+    </SourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCylinderSource"
                  label="Cylinder"
