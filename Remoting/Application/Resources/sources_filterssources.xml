@@ -461,6 +461,69 @@
     </SourceProxy>
 
     <!-- ==================================================================== -->
+    <SourceProxy class="vtkCylinderSource"
+                 label="Cylinder Pedestal"
+                 name="CylinderPedestalSource">
+      <Documentation long_help="Create a 3D cylinder of a given radius and height."
+                     short_help="3D cylinder of a given radius and height">The
+                     Pedestal source can be used to add a polygonal cylinder to
+                     the 3D scene to represent a pedestal. Its placement
+                     and size defaults to be below the bounds of all data with the
+                     radius equal to the largest of the bounding box sizes in X and Z
+                     and the height equal to one quarter the bounding box length in Y.
+                     The output of the Cylinder Pedestal source is polygonal data
+                     containing both normals and texture coordinates.</Documentation>
+      <IntVectorProperty command="SetResolution"
+                         default_values="16"
+                         name="Resolution"
+                         number_of_elements="1"
+                         panel_visibility="default">
+        <IntRangeDomain max="512"
+                        min="2"
+                        name="range" />
+        <Documentation>This property indicates the number of divisions around
+        the pedestal. The higher this number, the closer the polygonal
+        approximation will come to representing a cylinder, and the more
+        polygons it will contain.</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetHeight"
+                            default_values="1.0"
+                            name="Height"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the height of the cylinder
+        (along the y axis).</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetRadius"
+                            default_values="0.5"
+                            name="Radius"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the radius of the
+        cylinder.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetCenter"
+                            default_values="0.0 0.0 0.0"
+                            name="Center"
+                            number_of_elements="3"
+                            panel_visibility="default">
+        <PedestalDomain name="bounds"/>
+        <DoubleRangeDomain name="range" />
+        <Documentation>This property specifies the coordinate value at the
+        center of the pedestal.</Documentation>
+      </DoubleVectorProperty>
+      <!-- End Pedestal -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
     <SourceProxy class="vtkDiskSource"
                  label="Disk"
                  name="DiskSource">

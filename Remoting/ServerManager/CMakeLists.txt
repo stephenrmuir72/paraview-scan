@@ -126,6 +126,7 @@ set(classes
   vtkSMOrderedPropertyIterator
   vtkSMOutputPort
   vtkSMParaViewPipelineController
+  vtkSMPedestalDomain
   vtkSMPipelineState
   vtkSMPluginLoaderProxy
   vtkSMPluginManager

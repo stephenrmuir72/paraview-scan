@@ -25,6 +25,7 @@
     show_in_toolbar="0">
     <Proxy group="sources" name="CubeSource" />
     <Proxy group="sources" name="ConeSource" />
+    <Proxy group="sources" name="CylinderPedestalSource" />
     <Proxy group="sources" name="CylinderSource" />
     <Proxy group="sources" name="DiskSource" />
     <Proxy group="sources" name="EllipseSource" />
@@ -64,6 +65,7 @@
   <Proxy group="sources" name="LogoSource" />
   <Proxy group="sources" name="OutlineSource" />
   <Proxy group="sources" name="PartitionedDataSetCollectionSource" />
+  <Proxy group="sources" name="CylinderPedestalSource" />
   <Proxy group="sources" name="PlaneSource" />
   <Proxy group="sources" name="PointSource" />
   <Proxy group="sources" name="PolyLineSource" />
