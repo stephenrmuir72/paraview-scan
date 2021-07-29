@@ -171,6 +171,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid9.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid10.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BatchAxesGrid.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BoxPedestal.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BoxWidget-Transform.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BoxWidget-ClipDefault.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BoxWidget-ClipCheckUseReferenceBounds.png}"
@@ -235,6 +236,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CustomViewpoints.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CustomViewpoints_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CustomViewpoints_B.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CylinderPedestal.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/DataAxesGrid2X.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/DataAxesGrid-Custom.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/DataAxesGrid-CustomWithReset.png}"
@@ -701,7 +703,9 @@ if(NOT APPLE)
 endif()
 
 SET(TESTS_WITH_BASELINES
+  BoxPedestal.xml
   ContourRange.xml
+  CylinderPedestal.xml
   DataAxesGrid.xml
   MergeVectorComponents.xml
   MoleculeScalarBar.xml
