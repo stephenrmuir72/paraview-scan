@@ -104,6 +104,7 @@ paraview_add_test_python(
 set(PVBATCH_TESTS
   BatchAxesGrid.py
   FontSize.py # BUG #19816
+  LoadDistributedPlugin.py # BUG #20451
   PLYWriter.py
   VolumeCellSelection.py
   SaveDataWithArraySelection.py,NO_VALID
