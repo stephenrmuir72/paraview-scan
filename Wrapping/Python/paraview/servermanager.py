@@ -2367,7 +2367,8 @@ def LoadPlugin(filename,  remote=True, connection=None):
     ActiveConnection), loads a plugin. It then updates the sources,
     filters and rendering modules.
 
-    remote=True has no effect when the connection is not remote.
+    remote=True has no effect when the connection is not remote unless
+    using pvbatch.
     """
 
     if not connection:
@@ -2376,7 +2377,10 @@ def LoadPlugin(filename,  remote=True, connection=None):
         raise RuntimeError ("Cannot load a plugin without a connection.")
     plm = vtkSMProxyManager.GetProxyManager().GetPluginManager()
 
-    if remote and connection.IsRemote():
+    pm = vtkProcessModule.GetProcessModule()
+    batch = pm.GetProcessTypeAsInt() == pm.PROCESS_BATCH
+
+    if remote and (connection.IsRemote() or batch):
         status = plm.LoadRemotePlugin(filename, connection.Session)
     else:
         status = plm.LoadLocalPlugin(filename)

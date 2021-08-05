@@ -2193,14 +2193,17 @@ def LoadDistributedPlugin(pluginname, remote=True, ns=None):
     shared library for the plugin to load. Raises a RuntimeError if the plugin
     was not found.
 
-    Note, `remote=True` has no effect when running in batch mode (or Catalyst)
-    or when the active connection is not a client-server connection.
+    Note, `remote=True` when the active connection is not a client-server connection
+    unless using pvbatch.
     """
     if not servermanager.ActiveConnection:
         raise RuntimeError ("Cannot load a plugin without a session.")
 
+    pm = servermanager.vtkProcessModule.GetProcessModule()
+    batch = pm.GetProcessTypeAsInt() == pm.PROCESS_BATCH
+
     conn = servermanager.ActiveConnection
-    do_remote = remote and conn.IsRemote()
+    do_remote = remote and (conn.IsRemote() or batch)
 
     plm = servermanager.vtkSMProxyManager.GetProxyManager().GetPluginManager()
     if do_remote:
