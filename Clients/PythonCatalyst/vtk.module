@@ -17,6 +17,7 @@ PRIVATE_DEPENDS
   ParaView::VTKExtensionsCore
   VTK::ParallelCore
   VTK::WrappingPythonCore
+  VTK::IOCore
 OPTIONAL_DEPENDS
   ParaView::RemotingLive
 TEST_DEPENDS

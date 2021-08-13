@@ -14,6 +14,7 @@
   =========================================================================*/
 #include "vtkCPPythonScriptPipeline.h"
 
+#include "vtkBase64Utilities.h"
 #include "vtkCPDataDescription.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
@@ -84,7 +85,7 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   this->SetPythonScriptName(moduleName.c_str());
 
   // only process 0 reads the actual script and then broadcasts it out
-  char* scriptText = nullptr;
+  std::unique_ptr<char[]> scriptText;
   // we need to add the script path to PYTHONPATH
   char* scriptPath = nullptr;
 
@@ -114,8 +115,8 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
     memcpy(scriptPath, fileNamePath.c_str(), sizeof(char) * scriptSizes[0]);
 
     scriptSizes[1] = static_cast<int>(desiredString.size() + 1);
-    scriptText = new char[scriptSizes[1]];
-    memcpy(scriptText, desiredString.c_str(), sizeof(char) * scriptSizes[1]);
+    scriptText.reset(new char[scriptSizes[1]]);
+    memcpy(scriptText.get(), desiredString.c_str(), sizeof(char) * scriptSizes[1]);
   }
 
   controller->Broadcast(scriptSizes, 2, 0);
@@ -123,13 +124,22 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   if (rank != 0)
   {
     scriptPath = new char[scriptSizes[0]];
-    scriptText = new char[scriptSizes[1]];
+    scriptText.reset(new char[scriptSizes[1]]);
   }
 
   controller->Broadcast(scriptPath, scriptSizes[0], 0);
-  controller->Broadcast(scriptText, scriptSizes[1], 0);
+  controller->Broadcast(scriptText.get(), scriptSizes[1], 0);
 
   vtkPythonInterpreter::PrependPythonPath(scriptPath);
+
+  std::unique_ptr<char[]> scriptB64{ new char[(scriptSizes[1] * 3) / 2] };
+  // This is actually OK as standard guarantees that all char types
+  // have the same storage and alignment requirements, and use all the
+  // bits.
+  auto cast = [](std::unique_ptr<char[]>& p) { return reinterpret_cast<unsigned char*>(p.get()); };
+  // -1 on the length to avoid the null terminator
+  auto encoded_len =
+    vtkBase64Utilities::Encode(cast(scriptText), scriptSizes[1] - 1, cast(scriptB64), 1);
 
   // The code below creates a module from the scriptText string.
   // This requires the manual creation of a module object like this:
@@ -139,7 +149,8 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   // _foo.__file__ = 'foo.pyc'
   // import sys
   // sys.module['foo'] = _foo
-  // _source= scriptText
+  // import base64
+  // _source = base64.b64decode(scriptB64)
   // _code = compile(_source, 'foo.py', 'exec')
   // exec _code in _foo.__dict__
   // del _source
@@ -154,10 +165,10 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   loadPythonModules << "import sys" << std::endl;
   loadPythonModules << "sys.dont_write_bytecode = True" << std::endl;
   loadPythonModules << "sys.modules['" << moduleName << "'] = _" << moduleName << std::endl;
-
-  loadPythonModules << "_source = \"\"\"" << std::endl;
-  loadPythonModules << scriptText;
-  loadPythonModules << "\"\"\"" << std::endl;
+  loadPythonModules << "import base64" << std::endl;
+  loadPythonModules << "_source = base64.b64decode(\"\"\"";
+  loadPythonModules.write(scriptB64.get(), encoded_len);
+  loadPythonModules << "\"\"\")" << std::endl;
 
   loadPythonModules << "_code = compile(_source, \"" << fileNameName << ".py\", \"exec\")"
                     << std::endl;
@@ -169,7 +180,6 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   loadPythonModules << "from paraview.modules import vtkPVCatalyst" << std::endl;
 
   delete[] scriptPath;
-  delete[] scriptText;
 
   vtkPythonInterpreter::RunSimpleString(loadPythonModules.str().c_str());
   return 1;
