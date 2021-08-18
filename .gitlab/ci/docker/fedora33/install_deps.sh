@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 # Install extra dependencies for ParaView
 dnf install -y --setopt=install_weak_deps=False \
     bzip2 patch doxygen git-core git-lfs
@@ -33,7 +35,7 @@ dnf install -y --setopt=install_weak_deps=False \
     hdf5-devel hdf5-mpich-devel hdf5-openmpi-devel hdf5-devel netcdf-devel \
     netcdf-mpich-devel netcdf-openmpi-devel libogg-devel libtheora-devel \
     jsoncpp-devel gl2ps-devel protobuf-devel boost-devel gdal-devel PDAL-devel \
-    cgnslib-devel
+    cgnslib-devel blosc-devel
 
 # Python dependencies
 dnf install -y --setopt=install_weak_deps=False \

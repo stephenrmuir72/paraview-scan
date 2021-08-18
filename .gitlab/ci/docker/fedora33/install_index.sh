@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 readonly version="5.9.20210503"
 readonly tarball="nvidia-index-libs-${version}-linux.tar.bz2"
