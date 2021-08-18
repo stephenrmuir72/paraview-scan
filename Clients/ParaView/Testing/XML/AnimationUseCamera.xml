@@ -6,7 +6,7 @@
   <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menu_View" />
   <pqevent object="pqClientMainWindow/menubar/menu_View" command="activate" arguments="Animation View" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/CreateDeleteWidget/ProxyCombo" command="activated" arguments="Camera" />
-  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/CreateDeleteWidget/PropertyCombo" command="activated" arguments="Interpolate camera locations (spline)" />
+  <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/CreateDeleteWidget/PropertyCombo" command="activated" arguments="Interpolate camera locations" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/1QHeaderView0" command="mousePress" arguments="1,1,0,0,0,2" />
   <pqevent object="pqClientMainWindow/animationViewDock/animationView/pqAnimationWidget/1QHeaderView0" command="mouseRelease" arguments="1,0,0,0,0,2" />
   <pqevent object="pqClientMainWindow/cameraToolbar/actionRotate90degCW" command="activate" arguments="" />

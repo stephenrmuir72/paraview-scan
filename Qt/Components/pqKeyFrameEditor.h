@@ -88,6 +88,7 @@ private Q_SLOTS:
   void updateCurrentCamera(QStandardItem* item);
   void updateCurrentCameraWithSelected();
   void createOrbitalKeyFrame();
+  void updateSplineMode();
 
 private:
   class pqInternal;

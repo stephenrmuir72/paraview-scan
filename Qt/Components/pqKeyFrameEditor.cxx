@@ -421,6 +421,7 @@ pqKeyFrameEditor::pqKeyFrameEditor(
     SLOT(useCurrentCameraForSelected()));
   connect(this->Internal->Ui.pbApplyToCamera, SIGNAL(clicked(bool)), this,
     SLOT(updateCurrentCameraWithSelected()));
+  connect(this->Internal->Ui.pbUseSpline, SIGNAL(clicked(bool)), this, SLOT(updateSplineMode()));
 
   connect(this->Internal->Ui.tableView->selectionModel(),
     SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(updateButtons()));
@@ -817,5 +818,15 @@ void pqKeyFrameEditor::createOrbitalKeyFrame()
   camItem->CamWidget.initializeUsingKeyFrame(kf);
 
   this->Internal->Cue->triggerKeyFramesModified();
+  this->Internal->Cue->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void pqKeyFrameEditor::updateSplineMode()
+{
+  assert(this->Internal->cameraCue());
+  bool useSpline = this->Internal->Ui.pbUseSpline->isChecked();
+  pqSMAdaptor::setElementProperty(
+    this->Internal->Cue->getProxy()->GetProperty("Interpolation"), useSpline ? 1 : 0);
   this->Internal->Cue->getProxy()->UpdateVTKObjects();
 }
