@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class pqAnimationCue;
 class pqAnimationScene;
+class QStandardItem;
 
 /**
  * editor for editing animation key frames
@@ -76,8 +77,14 @@ private Q_SLOTS:
   void newKeyFrame();
   void deleteKeyFrame();
   void deleteAllKeyFrames();
-  void useCurrentCamera(QObject*);
-  void updateCurrentCamera(QObject*);
+
+  /**
+   * Specific to Camera Cues.
+   */
+  void useCurrentCamera(QStandardItem* item);
+  void useCurrentCameraForSelected();
+  void updateCurrentCamera(QStandardItem* item);
+  void updateCurrentCameraWithSelected();
 
 private:
   class pqInternal;
