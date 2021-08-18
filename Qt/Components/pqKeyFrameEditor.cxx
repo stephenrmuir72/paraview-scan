@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 
+#include <vtkCamera.h>
 #include <vtkSMRenderViewProxy.h>
 
 #include "pqActiveObjects.h"
@@ -52,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationCore.h"
 #include "pqCameraKeyFrameWidget.h"
 #include "pqKeyFrameTypeWidget.h"
+#include "pqOrbitCreatorDialog.h"
 #include "pqPropertyLinks.h"
 #include "pqRenderView.h"
 #include "pqSMAdaptor.h"
@@ -268,10 +270,15 @@ public:
     return t * span + this->TimeRange.first;
   }
 
-  QList<QStandardItem*> newRow(int row)
+  QList<QStandardItem*> newRow(int row, bool lastItem = false)
   {
     QList<QStandardItem*> items;
     items.append(this->newTimeItem(row));
+    if (this->cameraPathCue() && lastItem)
+    {
+      return items;
+    }
+
     if (this->cameraCue())
     {
       items.append(this->newCameraItem(row));
@@ -327,9 +334,7 @@ public:
       [=]() { this->Editor->useCurrentCamera(item); });
     // default to current view
     this->Editor->useCurrentCamera(item);
-    item->CamWidget.setUsePathBasedMode(
-      pqSMAdaptor::getEnumerationProperty(this->Cue->getProxy()->GetProperty("Mode")) ==
-      "Path-based");
+    item->CamWidget.setUsePathBasedMode(this->cameraPathCue());
     return item;
   }
   QStandardItem* newValueItem(int row)
@@ -354,6 +359,7 @@ public:
     item->setData(value, Qt::DisplayRole);
     return item;
   }
+
   bool cameraCue()
   {
     if (QString("CameraAnimationCue") == this->Cue->getProxy()->GetXMLName())
@@ -361,6 +367,13 @@ public:
       return true;
     }
     return false;
+  }
+
+  bool cameraPathCue()
+  {
+    return this->cameraCue() &&
+      (pqSMAdaptor::getEnumerationProperty(this->Cue->getProxy()->GetProperty("Mode")) ==
+        "Path-based");
   }
 };
 
@@ -402,10 +415,15 @@ pqKeyFrameEditor::pqKeyFrameEditor(
   connect(this->Internal->Ui.pbNew, SIGNAL(clicked(bool)), this, SLOT(newKeyFrame()));
   connect(this->Internal->Ui.pbDelete, SIGNAL(clicked(bool)), this, SLOT(deleteKeyFrame()));
   connect(this->Internal->Ui.pbDeleteAll, SIGNAL(clicked(bool)), this, SLOT(deleteAllKeyFrames()));
+  connect(
+    this->Internal->Ui.pbCreateOrbit, SIGNAL(clicked(bool)), this, SLOT(createOrbitalKeyFrame()));
   connect(this->Internal->Ui.pbUseCurrentCamera, SIGNAL(clicked(bool)), this,
     SLOT(useCurrentCameraForSelected()));
   connect(this->Internal->Ui.pbApplyToCamera, SIGNAL(clicked(bool)), this,
     SLOT(updateCurrentCameraWithSelected()));
+
+  connect(this->Internal->Ui.tableView->selectionModel(),
+    SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(updateButtons()));
 
   if (label != QString())
   {
@@ -418,18 +436,7 @@ pqKeyFrameEditor::pqKeyFrameEditor(
 
   this->readKeyFrameData();
 
-  this->Internal->Ui.pbUseCurrentCamera->hide();
-  this->Internal->Ui.pbApplyToCamera->hide();
-  if (this->Internal->cameraCue())
-  {
-    bool pathBased = pqSMAdaptor::getEnumerationProperty(
-                       this->Internal->Cue->getProxy()->GetProperty("Mode")) == "Path-based";
-    if (!pathBased)
-    {
-      this->Internal->Ui.pbUseCurrentCamera->show();
-      this->Internal->Ui.pbApplyToCamera->show();
-    }
-  }
+  this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -495,8 +502,7 @@ void pqKeyFrameEditor::readKeyFrameData()
 
     if (camera)
     {
-      bool path_based = pqSMAdaptor::getEnumerationProperty(
-                          this->Internal->Cue->getProxy()->GetProperty("Mode")) == "Path-based";
+      bool path_based = this->Internal->cameraPathCue();
       if ((i < numberKeyFrames - 1) || !path_based)
       {
         pqCameraKeyFrameItem* item = new pqCameraKeyFrameItem();
@@ -646,8 +652,10 @@ void pqKeyFrameEditor::newKeyFrame()
   // add one more
   if (count == 0)
   {
-    this->Internal->Model.insertRow(1, this->Internal->newRow(1));
+    this->Internal->Model.insertRow(1, this->Internal->newRow(row, true));
   }
+
+  this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -664,6 +672,8 @@ void pqKeyFrameEditor::deleteKeyFrame()
     QStandardItem* item = this->Internal->Model.takeItem(0, 1);
     delete item;
   }
+
+  this->updateButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -671,6 +681,32 @@ void pqKeyFrameEditor::deleteAllKeyFrames()
 {
   // remove all rows
   this->Internal->Model.removeRows(0, this->Internal->Model.rowCount());
+
+  this->updateButtons();
+}
+
+//-----------------------------------------------------------------------------
+void pqKeyFrameEditor::updateButtons()
+{
+  bool pathBased = this->Internal->cameraPathCue();
+
+  // path mode
+  this->Internal->Ui.pbCreateOrbit->setVisible(this->Internal->cameraCue() && pathBased);
+  // cameras mode
+  this->Internal->Ui.pbUseCurrentCamera->setVisible(this->Internal->cameraCue() && !pathBased);
+  this->Internal->Ui.pbApplyToCamera->setVisible(this->Internal->cameraCue() && !pathBased);
+  this->Internal->Ui.pbUseSpline->setVisible(this->Internal->cameraCue() && !pathBased);
+
+  QModelIndex index = this->Internal->Ui.tableView->selectionModel()->currentIndex();
+  this->Internal->Ui.pbCreateOrbit->setEnabled(
+    index.isValid() && index.row() < this->Internal->Ui.tableView->model()->rowCount() - 1);
+  this->Internal->Ui.pbUseCurrentCamera->setEnabled(index.isValid());
+  this->Internal->Ui.pbApplyToCamera->setEnabled(index.isValid());
+
+  int useSpline =
+    pqSMAdaptor::getElementProperty(this->Internal->Cue->getProxy()->GetProperty("Interpolation"))
+      .toInt();
+  this->Internal->Ui.pbUseSpline->setChecked(useSpline == 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -694,6 +730,10 @@ void pqKeyFrameEditor::useCurrentCamera(QStandardItem* item)
 void pqKeyFrameEditor::useCurrentCameraForSelected()
 {
   QModelIndex index = this->Internal->Ui.tableView->selectionModel()->currentIndex();
+  if (!index.isValid())
+  {
+    return;
+  }
 
   const QStandardItemModel* model = qobject_cast<const QStandardItemModel*>(index.model());
   QStandardItem* item = model->item(index.row(), 1);
@@ -722,9 +762,60 @@ void pqKeyFrameEditor::updateCurrentCamera(QStandardItem* item)
 void pqKeyFrameEditor::updateCurrentCameraWithSelected()
 {
   QModelIndex index = this->Internal->Ui.tableView->selectionModel()->currentIndex();
+  if (!index.isValid())
+  {
+    return;
+  }
 
   const QStandardItemModel* model = qobject_cast<const QStandardItemModel*>(index.model());
   QStandardItem* item = model->item(index.row(), 1);
 
   this->updateCurrentCamera(item);
+}
+
+//-----------------------------------------------------------------------------
+void pqKeyFrameEditor::createOrbitalKeyFrame()
+{
+  assert(this->Internal->cameraCue());
+  QModelIndex index = this->Internal->Ui.tableView->selectionModel()->currentIndex();
+  if (!index.isValid())
+  {
+    return;
+  }
+
+  const QStandardItemModel* model = qobject_cast<const QStandardItemModel*>(index.model());
+  QStandardItem* item = model->item(index.row(), 1);
+  pqCameraKeyFrameItem* camItem = dynamic_cast<pqCameraKeyFrameItem*>(item);
+  if (!camItem)
+  {
+    qWarning("Selected row is not a camera item. Cannot create orbit.");
+    return;
+  }
+
+  pqOrbitCreatorDialog creator(this);
+
+  vtkSMProxy* pxy = this->Internal->Cue->getAnimatedProxy();
+  vtkSMRenderViewProxy* ren = vtkSMRenderViewProxy::SafeDownCast(pxy);
+  if (ren)
+  {
+    creator.setNormal(ren->GetActiveCamera()->GetViewUp());
+    creator.setOrigin(ren->GetActiveCamera()->GetPosition());
+    if (creator.exec() != QDialog::Accepted)
+    {
+      return;
+    }
+  }
+
+  vtkSMProxy* kf = this->Internal->Cue->getKeyFrame(index.row());
+  pqSMAdaptor::setMultipleElementProperty(
+    kf->GetProperty("PositionPathPoints"), creator.orbitPoints(7));
+  pqSMAdaptor::setMultipleElementProperty(kf->GetProperty("FocalPathPoints"), creator.center());
+  pqSMAdaptor::setElementProperty(kf->GetProperty("ClosedPositionPath"), 1);
+
+  kf->UpdateVTKObjects();
+
+  camItem->CamWidget.initializeUsingKeyFrame(kf);
+
+  this->Internal->Cue->triggerKeyFramesModified();
+  this->Internal->Cue->getProxy()->UpdateVTKObjects();
 }

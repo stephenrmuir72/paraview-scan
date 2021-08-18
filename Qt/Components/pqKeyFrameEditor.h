@@ -78,6 +78,8 @@ private Q_SLOTS:
   void deleteKeyFrame();
   void deleteAllKeyFrames();
 
+  void updateButtons();
+
   /**
    * Specific to Camera Cues.
    */
@@ -85,6 +87,7 @@ private Q_SLOTS:
   void useCurrentCameraForSelected();
   void updateCurrentCamera(QStandardItem* item);
   void updateCurrentCameraWithSelected();
+  void createOrbitalKeyFrame();
 
 private:
   class pqInternal;
