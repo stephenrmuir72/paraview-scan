@@ -131,18 +131,19 @@ public:
   * that may be specified in the startup.
   * This is the full command to be executed on the client,
   * which includes xterm, ssh...
+  * This also recovers processWait and delay attributes.
   */
-  QString command(double& timeout, double& delay) const;
+  QString command(double& processWait, double& delay) const;
 
   /**
   * If startupType() == COMMAND, then this method can be used to obtain
   * the command for the startup, on the remote server,
   * contained in the exec attributes.
   * Note that this does not include any information options etc.
-  * that may be specified in the startup. This also
-  * recovers timeout and delay attributes.
+  * that may be specified in the startup.
+  * This also recovers processWait and delay attributes.
   */
-  QString execCommand(double& timeout, double& delay) const;
+  QString execCommand(double& processWait, double& delay) const;
 
   /**
   * changes the startup type to manual.
@@ -152,7 +153,7 @@ public:
   /**
   * changes the startup type to command.
   */
-  void setStartupToCommand(double timeout, double delay, const QString& command);
+  void setStartupToCommand(double processWait, double delay, const QString& command);
 
   /**
   * serialize to a string.
