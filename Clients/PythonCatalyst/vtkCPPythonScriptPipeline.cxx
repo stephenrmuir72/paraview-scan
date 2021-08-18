@@ -87,7 +87,7 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   // only process 0 reads the actual script and then broadcasts it out
   std::unique_ptr<char[]> scriptText;
   // we need to add the script path to PYTHONPATH
-  char* scriptPath = nullptr;
+  std::unique_ptr<char[]> scriptPath;
 
   int rank = controller->GetLocalProcessId();
   int scriptSizes[2] = { 0, 0 };
@@ -111,8 +111,8 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
       fileNamePath = ".";
     }
     scriptSizes[0] = static_cast<int>(fileNamePath.size() + 1);
-    scriptPath = new char[scriptSizes[0]];
-    memcpy(scriptPath, fileNamePath.c_str(), sizeof(char) * scriptSizes[0]);
+    scriptPath.reset(new char[scriptSizes[0]]);
+    memcpy(scriptPath.get(), fileNamePath.c_str(), sizeof(char) * scriptSizes[0]);
 
     scriptSizes[1] = static_cast<int>(desiredString.size() + 1);
     scriptText.reset(new char[scriptSizes[1]]);
@@ -123,14 +123,14 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
 
   if (rank != 0)
   {
-    scriptPath = new char[scriptSizes[0]];
+    scriptPath.reset(new char[scriptSizes[0]]);
     scriptText.reset(new char[scriptSizes[1]]);
   }
 
-  controller->Broadcast(scriptPath, scriptSizes[0], 0);
+  controller->Broadcast(scriptPath.get(), scriptSizes[0], 0);
   controller->Broadcast(scriptText.get(), scriptSizes[1], 0);
 
-  vtkPythonInterpreter::PrependPythonPath(scriptPath);
+  vtkPythonInterpreter::PrependPythonPath(scriptPath.get());
 
   std::unique_ptr<char[]> scriptB64{ new char[(scriptSizes[1] * 3) / 2] };
   // This is actually OK as standard guarantees that all char types
@@ -178,8 +178,6 @@ int vtkCPPythonScriptPipeline::Initialize(const char* fileName)
   loadPythonModules << moduleName << " = ";
   loadPythonModules << "__import__('" << fileNameName << "')" << std::endl;
   loadPythonModules << "from paraview.modules import vtkPVCatalyst" << std::endl;
-
-  delete[] scriptPath;
 
   vtkPythonInterpreter::RunSimpleString(loadPythonModules.str().c_str());
   return 1;
