@@ -87,7 +87,8 @@ vtkCPCxxHelper* vtkCPCxxHelper::New()
 
   vtkCPCxxHelper::Instance = instance;
 
-  if (auto pm = vtkProcessModule::GetProcessModule())
+  auto pm = vtkProcessModule::GetProcessModule();
+  if (pm)
   {
     vtkCPCxxHelper::ParaViewExternallyInitialized = true;
   }
@@ -120,7 +121,7 @@ vtkCPCxxHelper* vtkCPCxxHelper::New()
   }
 
   // Create session, if none exists.
-  auto pm = vtkProcessModule::GetProcessModule();
+  pm = vtkProcessModule::GetProcessModule();
   assert(pm != nullptr);
 
   // register static plugins
