@@ -2529,18 +2529,8 @@ Every Nth Point.
                                    exclude="1"
                                    mode="visibility"/>
         </Hints>
-        <ProxyGroupDomain name="groups">
-          <Group name="implicit_functions" />
-        </ProxyGroupDomain>
         <ProxyListDomain name="proxy_list">
-          <Proxy group="implicit_functions"
-                 name="Plane" />
-          <Proxy group="implicit_functions"
-                 name="Box" />
-          <Proxy group="implicit_functions"
-                 name="Sphere" />
-          <Proxy group="implicit_functions"
-                 name="Cylinder" />
+          <Group name="slice_implicit_functions"/>
         </ProxyListDomain>
         <Documentation>This property sets the parameters of the slice
         function.</Documentation>
@@ -2553,14 +2543,8 @@ Every Nth Point.
                                    name="vtkHyperTreeGrid"
                                    mode="visibility"/>
         </Hints>
-        <ProxyGroupDomain name="groups">
-          <Group name="implicit_functions" />
-        </ProxyGroupDomain>
         <ProxyListDomain name="proxy_list">
-          <Proxy group="implicit_functions"
-                 name="Plane" />
-          <Proxy group="implicit_functions"
-                 name="Axis Aligned Plane" />
+          <Group name="slice_htg_implicit_functions"/>
         </ProxyListDomain>
         <Documentation>This property sets the parameters of the slice
         function.</Documentation>

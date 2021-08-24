@@ -518,7 +518,22 @@
         </ProxyList>
       </Hints>
     </Proxy>
-
-    <!-- ================================================================== -->
+  </ProxyGroup>
+  <!-- ================================================================== -->
+  <ProxyGroup name="slice_implicit_functions">
+    <Proxy group="implicit_functions"
+           name="Plane" />
+    <Proxy group="implicit_functions"
+           name="Box" />
+    <Proxy group="implicit_functions"
+           name="Sphere" />
+    <Proxy group="implicit_functions"
+           name="Cylinder" />
+  </ProxyGroup>
+  <ProxyGroup name="slice_htg_implicit_functions">
+    <Proxy group="implicit_functions"
+           name="Plane" />
+    <Proxy group="implicit_functions"
+           name="Axis Aligned Plane" />
   </ProxyGroup>
 </ServerManagerConfiguration>
