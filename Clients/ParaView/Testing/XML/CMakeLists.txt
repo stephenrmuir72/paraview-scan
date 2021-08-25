@@ -1373,6 +1373,22 @@ if (EXISTS "${smooth_flash}")
   endforeach()
 endif()
 
+# Add server connection tests
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}/configuredServer.pvsc.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/configuredServer.pvsc" @ONLY)
+
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}/ServerConnectConfigured.xml.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/ServerConnectConfigured.xml" @ONLY)
+
+list(APPEND TESTS_WITHOUT_BASELINES
+  ${CMAKE_CURRENT_BINARY_DIR}/ServerConnectConfigured.xml)
+set(ServerConnectConfigured_DISABLE_CS TRUE)
+set(ServerConnectConfigured_DISABLE_CRS TRUE)
+# The server connection tests should not be run in parallel to avoid port collision
+set(ServerConnectConfigured_FORCE_SERIAL TRUE)
+
 option(PARAVIEW_SSH_SERVERS_TESTING
     "Add SSH Servers testing"
     OFF)
