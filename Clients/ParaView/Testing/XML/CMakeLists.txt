@@ -616,6 +616,7 @@ SET (TESTS_WITHOUT_BASELINES
   ReloadCGNSFile.xml
   SearchBox.xml
   ServerConnectDialog.xml
+  ServerConnectTimeout.xml
   SpreadSheetFieldData.xml
   SpreadSheetSelectedCellConnectivity.xml
   StringInLineChartView.xml
@@ -1734,6 +1735,9 @@ set (glTFReaderMultipleScenes_DISABLE_CS TRUE)
 set (glTFReaderMultipleScenes_DISABLE_CRS TRUE)
 set (glTFReaderMultipleAnimations_DISABLE_CS TRUE)
 set (glTFReaderMultipleAnimations_DISABLE_CRS TRUE)
+
+# some tests output errors, disable error fail in that case
+set (ServerConnectTimeout_SMTESTING_ALLOW_ERRORS TRUE)
 
 set(TESTS_WITH_MULTI_SERVERS_3
   TestMultiServer3.xml
