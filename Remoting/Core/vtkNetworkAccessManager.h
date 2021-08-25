@@ -105,6 +105,14 @@ public:
    */
   virtual bool GetWrongConnectID() = 0;
 
+  /**
+   * Possible result of connection when creating a new connection
+   * CONNECTION_SUCCESS: Connection was sucessfull
+   * CONNECTION_TIMEOUT: After spending a specified amount of time, no connection was initiated
+   * CONNECTION_ABORT: User aborted the connection before it was successful or timed out
+   * CONNECTION_HANDSHAKE_ERROR: Connection was iniated but the handshake failed
+   * CONNECTION_FAILURE: Unspecified connection error
+   */
   enum ConnectionResult
   {
     CONNECTION_SUCCESS = 0,
