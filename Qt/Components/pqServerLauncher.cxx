@@ -789,13 +789,12 @@ bool pqServerLauncher::processCommand(
   QObject::connect(process, SIGNAL(readyReadStandardError()), this, SLOT(readStandardError()));
   QObject::connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(readStandardOutput()));
 
-// QProcess::staert(QString) has been deprecated in Qt 5.15
+// QProcess::start(QString) has been deprecated in Qt 5.15
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   process->start(command);
 #else
   QStringList splitCommand = QProcess::splitCommand(command);
-  QString program = splitCommand[0];
-  splitCommand.removeFirst();
+  QString program = splitCommand.takeAt(0);
   process->start(program, splitCommand);
 #endif
 
