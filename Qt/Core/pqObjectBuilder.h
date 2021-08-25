@@ -75,20 +75,30 @@ public:
   pqObjectBuilder(QObject* parent = 0);
   ~pqObjectBuilder() override;
 
+  //@{
   /**
-  * Create a server connection give a server resource.
-  * By default, this method does not create a new connection if one already
-  * exists. Also it disconnects from any existing server connection before
-  * connecting to a new one. This behavior can be changed by setting
-  * MultipleConnectionsSupport to true. In that case
-  * this will always try to connect the server using the details specified in
-  * the resource irrespective if the server is already connected or any other
-  * server connections exists and will wait for timeout seconds for direct connection.
-  * 0 means no retry, -1 means infinite retries.
-  * Calling this method while waiting for a previous server connection to be
-  * established raises errors.
-  */
-  pqServer* createServer(const pqServerResource& resource, int connectionTimeout = 60);
+   * Create a server connection give a server resource.
+   * By default, this method does not create a new connection if one already
+   * exists. Also it disconnects from any existing server connection before
+   * connecting to a new one. This behavior can be changed by setting
+   * MultipleConnectionsSupport to true. In that case
+   * this will always try to connect the server using the details specified in
+   * the resource irrespective if the server is already connected or any other
+   * server connections exists and will wait for timeout seconds for direct connection.
+   * 0 means no retry, -1 means infinite retries.
+   * Calling this method while waiting for a previous server connection to be
+   * established raises errors.
+   * The result arg provide information about the failure or sucess of the connection,
+   * see vtkNetworkAccessManager::ConnectionResult for possible values.
+   */
+  pqServer* createServer(const pqServerResource& resource, int connectionTimeout = 60)
+  {
+    unsigned int result;
+    return this->createServer(resource, connectionTimeout, result);
+  }
+  pqServer* createServer(
+    const pqServerResource& resource, int connectionTimeout, unsigned int& result);
+  //@}
 
   /**
   * Destroy a server connection
