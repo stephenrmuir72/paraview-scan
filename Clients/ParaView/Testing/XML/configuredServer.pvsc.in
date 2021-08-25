@@ -1,0 +1,7 @@
+<Servers>
+  <Server name="SimpleServer" configuration="" resource="cs://localhost:11111" timeout="1">
+    <CommandStartup>
+      <Command exec="@ParaView_BINARY_DIR@/bin/pvserver" process_wait="1" delay="1"/>
+    </CommandStartup>
+  </Server>
+</Servers>
