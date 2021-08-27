@@ -43,8 +43,10 @@ class vtkMultiProcessController;
 
 class VTKPVVTKEXTENSIONSCOSMOTOOLS_EXPORT vtkPANLHaloFinder : public vtkUnstructuredGridAlgorithm
 {
-  vtkTypeMacro(vtkPANLHaloFinder, vtkUnstructuredGridAlgorithm) public
-    : static vtkPANLHaloFinder* New();
+  vtkTypeMacro(vtkPANLHaloFinder, vtkUnstructuredGridAlgorithm);
+
+public:
+  static vtkPANLHaloFinder* New();
   void PrintSelf(ostream& os, vtkIndent indent);
 
   //@{

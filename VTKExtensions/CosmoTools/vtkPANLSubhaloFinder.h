@@ -44,8 +44,10 @@ class vtkIdList;
 
 class VTKPVVTKEXTENSIONSCOSMOTOOLS_EXPORT vtkPANLSubhaloFinder : public vtkPassInputTypeAlgorithm
 {
-  vtkTypeMacro(vtkPANLSubhaloFinder, vtkPassInputTypeAlgorithm) public
-    : static vtkPANLSubhaloFinder* New();
+  vtkTypeMacro(vtkPANLSubhaloFinder, vtkPassInputTypeAlgorithm);
+
+public:
+  static vtkPANLSubhaloFinder* New();
   void PrintSelf(ostream& os, vtkIndent indent);
 
   enum
