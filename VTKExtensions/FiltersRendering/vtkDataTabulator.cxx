@@ -214,10 +214,9 @@ int vtkDataTabulator::RequestData(
         if (niter == nameMap.end())
         {
           // if a name doesn't exist, let's create one.
-          std::string name = amrIter
-            ? "level=" + std::to_string(amrIter->GetCurrentLevel()) + " index=" +
-              std::to_string(amrIter->GetCurrentIndex())
-            : "unnamed_" + std::to_string(iter->GetCurrentFlatIndex());
+          std::string name = amrIter ? "level=" + std::to_string(amrIter->GetCurrentLevel()) +
+              " index=" + std::to_string(amrIter->GetCurrentIndex())
+                                     : "unnamed_" + std::to_string(iter->GetCurrentFlatIndex());
           metaData->Set(vtkCompositeDataSet::NAME(), name.c_str());
         }
         else

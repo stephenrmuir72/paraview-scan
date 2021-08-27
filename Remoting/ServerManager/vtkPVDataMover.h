@@ -106,7 +106,7 @@ private:
   bool GatherOnAllRanks = false;
 
   std::vector<int> SourceRanks;
-  std::map<int, vtkSmartPointer<vtkDataObject> > DataSets;
+  std::map<int, vtkSmartPointer<vtkDataObject>> DataSets;
 };
 
 #endif

@@ -329,8 +329,8 @@ void pqNodeEditorNode::paint(QPainter* painter, const QStyleOptionGraphicsItem*,
   }
 
   painter->setPen(pen);
-  painter->fillPath(path, this->backgroundStyle == BackgroundStyle::DIRTY
-      ? pqNodeEditorUtils::CONSTS::COLOR_SWEET_GREEN
-      : palette.window().color());
+  painter->fillPath(path,
+    this->backgroundStyle == BackgroundStyle::DIRTY ? pqNodeEditorUtils::CONSTS::COLOR_SWEET_GREEN
+                                                    : palette.window().color());
   painter->drawPath(path);
 }

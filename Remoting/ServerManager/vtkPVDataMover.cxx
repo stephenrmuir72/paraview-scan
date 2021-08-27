@@ -29,7 +29,7 @@
 namespace
 {
 
-std::vector<vtkSmartPointer<vtkDataObject> > CollectDataSets(
+std::vector<vtkSmartPointer<vtkDataObject>> CollectDataSets(
   vtkPVDataMover* self, vtkMultiProcessController* controller)
 {
   auto algo = self->GetProducer();
@@ -54,7 +54,7 @@ std::vector<vtkSmartPointer<vtkDataObject> > CollectDataSets(
     return { localData };
   }
 
-  std::vector<vtkSmartPointer<vtkDataObject> > result;
+  std::vector<vtkSmartPointer<vtkDataObject>> result;
   if (self->GetGatherOnAllRanks() && vtkProcessModule::GetSymmetricMPIMode())
   {
     controller->AllGather(localData, result);
@@ -189,7 +189,7 @@ bool vtkPVDataMover::Execute()
     {
       std::vector<int> ranks(numDataSets);
       std::transform(this->DataSets.begin(), this->DataSets.end(), ranks.begin(),
-        [](const std::pair<int, vtkSmartPointer<vtkDataObject> >& pair) { return pair.first; });
+        [](const std::pair<int, vtkSmartPointer<vtkDataObject>>& pair) { return pair.first; });
       cController->Send(&ranks[0], numDataSets, 1, 78112);
       for (const auto& pair : this->DataSets)
       {

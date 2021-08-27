@@ -17,7 +17,7 @@
  *
  * vtkSMSession is the default ParaView session. This class can be used as the
  * session for non-client-server configurations eg. builtin mode or batch.
-*/
+ */
 
 #ifndef vtkSMSession_h
 #define vtkSMSession_h
@@ -153,7 +153,9 @@ public:
   /**
    * Sends the message to all but the active client-session.
    */
-  void NotifyOtherClients(const vtkSMMessage*) override { /* nothing to do. */}
+  void NotifyOtherClients(const vtkSMMessage*) override
+  { /* nothing to do. */
+  }
 
   //---------------------------------------------------------------------------
   // API for Collaboration management
@@ -201,7 +203,7 @@ public:
    */
   static vtkIdType ReverseConnectToRemote(int port)
   {
-    return vtkSMSession::ReverseConnectToRemote(port, (bool (*)())nullptr);
+    return vtkSMSession::ReverseConnectToRemote(port, (bool (*)()) nullptr);
   }
   static vtkIdType ReverseConnectToRemote(int port, bool (*callback)());
 

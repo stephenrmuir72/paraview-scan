@@ -281,7 +281,7 @@ int pqNodeEditorWidget::attachServerManagerListeners()
   // edge removed
   this->connect(smm,
     static_cast<void (pqServerManagerModel::*)(pqPipelineSource*, pqPipelineSource*, int)>(
-                  &pqServerManagerModel::connectionRemoved),
+      &pqServerManagerModel::connectionRemoved),
     this, [this](pqPipelineSource* /*source*/, pqPipelineSource* consumer, int /*oPort*/) {
       return this->updatePipelineEdges(consumer);
     });
@@ -289,7 +289,7 @@ int pqNodeEditorWidget::attachServerManagerListeners()
   // edge creation
   this->connect(smm,
     static_cast<void (pqServerManagerModel::*)(pqPipelineSource*, pqPipelineSource*, int)>(
-                  &pqServerManagerModel::connectionAdded),
+      &pqServerManagerModel::connectionAdded),
     this, [this](pqPipelineSource* /*source*/, pqPipelineSource* consumer, int /*oPort*/) {
       return this->updatePipelineEdges(consumer);
     });
@@ -424,9 +424,9 @@ pqNodeEditorNode* pqNodeEditorWidget::createNode(pqProxy* proxy)
   auto* proxyAsView = dynamic_cast<pqView*>(proxy);
   auto* proxyAsSource = dynamic_cast<pqPipelineSource*>(proxy);
 
-  auto* node = proxyAsView ? new pqNodeEditorNode(this->scene, proxyAsView) : proxyAsSource
-      ? new pqNodeEditorNode(this->scene, proxyAsSource)
-      : nullptr;
+  auto* node = proxyAsView
+    ? new pqNodeEditorNode(this->scene, proxyAsView)
+    : proxyAsSource ? new pqNodeEditorNode(this->scene, proxyAsSource) : nullptr;
 
   if (!node)
   {
@@ -594,9 +594,8 @@ int pqNodeEditorWidget::createNodeForView(pqView* proxy)
 
   // update representation link
   QObject::connect(proxy, &pqView::representationVisibilityChanged, node,
-    [=](pqRepresentation* /*rep*/, bool /*visible*/) {
-      return this->updateVisibilityEdges(proxy);
-    });
+    [=](
+      pqRepresentation* /*rep*/, bool /*visible*/) { return this->updateVisibilityEdges(proxy); });
 
   // update proxy selection
   node->getLabel()->installEventFilter(

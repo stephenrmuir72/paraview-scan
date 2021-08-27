@@ -1061,5 +1061,5 @@ bool vtkSMPVRepresentationProxy::GetVolumeIndependentRanges()
   vtkSMProperty* uoaProperty = this->GetProperty("UseSeparateOpacityArray");
   return (vtkSMPropertyHelper(msProperty).GetAsInt() != 0 &&
     (vtkSMPropertyHelper(mcmProperty).GetAsInt() != 0 ||
-            vtkSMPropertyHelper(uoaProperty).GetAsInt() != 0));
+      vtkSMPropertyHelper(uoaProperty).GetAsInt() != 0));
 }
