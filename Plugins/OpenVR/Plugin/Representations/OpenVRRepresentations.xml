@@ -135,7 +135,7 @@
               <PropertyWidgetDecorator type="GenericDecorator"
                 mode="visibility"
                 property="Representation"
-                value="Skybox" />
+                value="Skybox View" />
             </Hints>
           </PropertyGroup>
         </ExposedProperties>
