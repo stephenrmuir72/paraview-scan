@@ -5462,6 +5462,11 @@
           If this property is on, the Opacity Array will be used to determine the
           point gaussian sprites.
         </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="ShowWidgetDecorator">
+            <Property name="UseTransfer2D" function="boolean_invert" />
+          </PropertyWidgetDecorator>
+        </Hints>
       </IntVectorProperty>
       <StringVectorProperty name="OpacityArrayName"
                             command="SelectOpacityArray"
@@ -5481,6 +5486,9 @@
         <Hints>
           <PropertyWidgetDecorator type="ShowWidgetDecorator">
             <Property name="UseSeparateOpacityArray" function="boolean" />
+          </PropertyWidgetDecorator>
+          <PropertyWidgetDecorator type="ShowWidgetDecorator">
+            <Property name="UseTransfer2D" function="boolean_invert" />
           </PropertyWidgetDecorator>
         </Hints>
       </StringVectorProperty>
@@ -5503,6 +5511,9 @@
         <Hints>
           <PropertyWidgetDecorator type="ShowWidgetDecorator">
             <Property name="UseSeparateOpacityArray" function="boolean" />
+          </PropertyWidgetDecorator>
+          <PropertyWidgetDecorator type="ShowWidgetDecorator">
+            <Property name="UseTransfer2D" function="boolean_invert" />
           </PropertyWidgetDecorator>
         </Hints>
       </IntVectorProperty>
