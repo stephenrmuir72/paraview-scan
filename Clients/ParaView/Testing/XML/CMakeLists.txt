@@ -1525,7 +1525,8 @@ set (ShaderReplacements_FORCE_SERIAL TRUE)
 set (CustomViewpoints_FORCE_SERIAL TRUE)
 set (ExodusModeShapes_FORCE_SERIAL TRUE)
 set (LoadSaveStateAnimation_FORCE_SERIAL TRUE)
-set(BlockContextMenu_FORCE_SERIAL TRUE) # requires context menu
+set (BlockContextMenu_FORCE_SERIAL TRUE) # requires context menu
+set (ServerConnectTimeout_FORCE_SERIAL TRUE)
 
 # We don't support volume rendering of image data in data server & render server mode
 set(AdaptiveResampleToImage_DISABLE_CRS TRUE)
