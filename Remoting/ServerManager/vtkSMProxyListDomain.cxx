@@ -383,6 +383,7 @@ int vtkSMProxyListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
     {
       // Recover group name
       const char* name = proxyElement->GetAttribute("name");
+      const char* defaultProxyName = proxyElement->GetAttribute("default");
 
       if (name)
       {
@@ -397,10 +398,17 @@ int vtkSMProxyListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
         }
         else
         {
+          unsigned int index = 0;
           vtkPVProxyDefinitionIterator* iter = pxdm->NewSingleGroupIterator(name);
           for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
           {
-            this->AddProxy(name, iter->GetProxyName());
+            const char* proxyName = iter->GetProxyName();
+            this->AddProxy(name, proxyName);
+            if (strcmp(proxyName, defaultProxyName))
+            {
+              this->SetDefaultIndex(index);
+            }
+            index++;
           }
           iter->Delete();
         }
