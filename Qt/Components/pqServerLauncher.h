@@ -81,11 +81,24 @@ public:
     const pqServerConfiguration& configuration, QObject* parent = nullptr);
 
   /**
+   * Enum class used to set if the connection dialog
+   * should be shown on connection.
+   */
+  enum class ShowConnectionDialog
+  {
+    Yes,
+    No
+  };
+
+  /**
   * This method will launch the server process based on the configuration and
-  * connect to the server. Returns true if the connection was successful,
+  * connect to the server.
+  * Set showConnectionDialog to ShowConnectionDialog::No to not show the modal
+  * connection dialog when connecting.
+  * Returns true if the connection was successful,
   * otherwise returns false.
   */
-  bool connectToServer();
+  bool connectToServer(ShowConnectionDialog showConnectionDialog = ShowConnectionDialog::Yes);
 
   /**
   * on successful call to connectToServer() this method can be used to obtain
@@ -119,7 +132,8 @@ protected:
   bool processCommand(QString command, double processWait, double delay,
     const QProcessEnvironment* options = nullptr);
 
-  virtual bool connectToPrelaunchedServer();
+  virtual bool connectToPrelaunchedServer(
+    ShowConnectionDialog showConnectionDialog = ShowConnectionDialog::Yes);
 
   bool isReverseConnection() const;
 
