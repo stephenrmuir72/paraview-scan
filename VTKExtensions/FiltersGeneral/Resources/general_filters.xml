@@ -2530,15 +2530,7 @@ Every Nth Point.
                                    mode="visibility"/>
         </Hints>
         <ProxyListDomain name="proxy_list">
-          <Group name="slice_implicit_functions"/>
-          <Hints>
-            <ProxyOrder>
-              <Proxy name="Plane"/>
-              <Proxy name="Box"/>
-              <Proxy name="Sphere"/>
-              <Proxy name="Cylinder"/>
-            </ProxyOrder>
-          </Hints>
+          <Group name="slice_implicit_functions" default="Plane"/>
         </ProxyListDomain>
         <Documentation>This property sets the parameters of the slice
         function.</Documentation>
@@ -2552,11 +2544,7 @@ Every Nth Point.
                                    mode="visibility"/>
         </Hints>
         <ProxyListDomain name="proxy_list">
-          <Group name="slice_htg_implicit_functions"/>
-            <ProxyOrder>
-              <Proxy name="Plane"/>
-              <Proxy name="Axis Aligned Plane"/>
-            </ProxyOrder>
+          <Group name="slice_htg_implicit_functions" default="Plane"/>
         </ProxyListDomain>
         <Documentation>This property sets the parameters of the slice
         function.</Documentation>
