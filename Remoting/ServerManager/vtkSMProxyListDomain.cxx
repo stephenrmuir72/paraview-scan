@@ -404,7 +404,7 @@ int vtkSMProxyListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
           {
             const char* proxyName = iter->GetProxyName();
             this->AddProxy(name, proxyName);
-            if (strcmp(proxyName, defaultProxyName))
+            if (defaultProxyName && (strcmp(proxyName, defaultProxyName) == 0))
             {
               this->SetDefaultIndex(index);
             }
