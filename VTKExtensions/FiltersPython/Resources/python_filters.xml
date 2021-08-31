@@ -209,6 +209,8 @@ annotation text.
         potentially available variables [inputs, points, t_value, t_steps,
         t_range, t_index, FieldData, PointData, CellData]
         (i.e.: "Momentum: (%f, %f, %f)" % (XMOM[t_index,0], YMOM[t_index,0], ZMOM[t_index,0]) )
+        Additional potentially available variables using the fmt format are {timevalue}, {timerange},
+        {timesteps} and {timeindex}.
         </Documentation>
       </StringVectorProperty>
       <StringVectorProperty command="GetComputedAnnotationValue"
