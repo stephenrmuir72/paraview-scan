@@ -54,12 +54,6 @@ std::string vtkPVStringFormatter::Format(const std::string& formattableString)
 {
   std::string result;
 
-  // check for empty stack
-  if (vtkPVStringFormatter::ScopeStack.empty())
-  {
-    return result;
-  }
-
   // format string
   try
   {
