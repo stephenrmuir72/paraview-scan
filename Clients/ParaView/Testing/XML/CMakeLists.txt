@@ -740,6 +740,7 @@ SET (TESTS_WITH_INLINE_COMPARES
   ReloadAMReXGrid.xml
   ReloadExodusFile.xml
   RemoteRendering.xml
+  RenameArrays.xml
   RenderNan.xml
   ResetToVisibleRange.xml
   Ruler.xml
