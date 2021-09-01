@@ -69,6 +69,44 @@ public:
     return this->Superclass::headerData(section, orientation, role);
   }
 
+  //-----------------------------------------------------------------------------
+  QVariant data(const QModelIndex& idx, int role) const override
+  {
+    if (role == Qt::DecorationRole && idx.column() == pqAnnotationsModel::VALUE)
+    {
+      if (this->IconType == "point")
+      {
+        return QIcon(":/pqWidgets/Icons/pqNodalData.svg");
+      }
+      else if (this->IconType == "cell")
+      {
+        return QIcon(":/pqWidgets/Icons/pqCellCenterData.svg");
+      }
+      else if (this->IconType == "field")
+      {
+        return QIcon(":/pqWidgets/Icons/pqGlobalData.svg");
+      }
+      else if (this->IconType == "vertex")
+      {
+        return QIcon(":/pqWidgets/Icons/pqNodalData.svg");
+      }
+      else if (this->IconType == "edge")
+      {
+        return QIcon(":/pqWidgets/Icons/pqEdgeCenterData.svg");
+      }
+      else if (this->IconType == "face")
+      {
+        return QIcon(":/pqWidgets/Icons/pqFaceCenterData.svg");
+      }
+      else if (this->IconType == "row")
+      {
+        return QIcon(":/pqWidgets/Icons/pqSpreadsheet.svg");
+      }
+    }
+
+    return this->Superclass::data(idx, role);
+  }
+
   Qt::ItemFlags flags(const QModelIndex& idx) const override
   {
     auto value = this->Superclass::flags(idx);
@@ -81,6 +119,7 @@ public:
   }
 
   QString ArrayLabel = tr("Array Name");
+  QString IconType = "";
   pqArrayListWidget* ParentWidget = nullptr;
 };
 
@@ -136,6 +175,12 @@ bool pqArrayListWidget::event(QEvent* evt)
 void pqArrayListWidget::setHeaderLabel(const QString& label)
 {
   this->Model->ArrayLabel = label;
+}
+
+//-----------------------------------------------------------------------------
+void pqArrayListWidget::setIconType(const QString& icon_type)
+{
+  this->Model->IconType = icon_type;
 }
 
 //-----------------------------------------------------------------------------
