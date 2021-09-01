@@ -17,25 +17,27 @@
 #include "vtkPythonCalculator.h"
 
 #include "vtkCellData.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataArray.h"
 #include "vtkDataObject.h"
-#include "vtkDataObjectTypes.h"
 #include "vtkDataSet.h"
+#include "vtkGraph.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMolecule.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVOptions.h"
+#include "vtkPVStringFormatter.h"
 #include "vtkPointData.h"
-#include "vtkProcessModule.h"
 #include "vtkPythonInterpreter.h"
 #include "vtkPythonUtil.h"
 #include "vtkSmartPyObject.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkTable.h"
 
 #include <algorithm>
 #include <map>
-#include <sstream>
 #include <string>
-#include <vtksys/SystemTools.hxx>
 
 namespace
 {
@@ -68,6 +70,175 @@ vtkPythonCalculator::~vtkPythonCalculator()
 {
   this->SetExpression(nullptr);
   this->SetArrayName(nullptr);
+}
+
+//----------------------------------------------------------------------------
+int vtkPythonCalculator::RequestData(vtkInformation* vtkNotUsed(request),
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  // get the info objects
+  vtkInformation* inInfo = nullptr;
+  if (inputVector[0]->GetNumberOfInformationObjects() > 0)
+  {
+    inInfo = inputVector[0]->GetInformationObject(0);
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  double dataTime = 0;
+  bool dataTimeValid = false;
+  std::vector<double> timeSteps;
+  int timeIndex = 0;
+
+  // get the input and output
+  if (inInfo)
+  {
+    if (inInfo->Has(vtkDataObject::DATA_TIME_STEP()))
+    {
+      dataTimeValid = true;
+      dataTime = inInfo->Get(vtkDataObject::DATA_TIME_STEP());
+    }
+
+    if (inInfo->Has(vtkStreamingDemandDrivenPipeline::TIME_STEPS()))
+    {
+      int numberOfTimeSteps = inInfo->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+      double* tempTimeSteps = inInfo->Get(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+
+      timeSteps.insert(timeSteps.begin(), tempTimeSteps, tempTimeSteps + numberOfTimeSteps);
+    }
+
+    timeIndex = 0;
+    if (dataTimeValid && !timeSteps.empty())
+    {
+      for (int i = 0; i < timeSteps.size(); ++i)
+      {
+        if (timeSteps[i] == dataTime)
+        {
+          timeIndex = i;
+        }
+      }
+    }
+
+    vtkDataObject* objInput = inInfo->Get(vtkDataObject::DATA_OBJECT());
+    if (vtkDataSet::SafeDownCast(objInput))
+    {
+      vtkDataSet* dsInput = vtkDataSet::SafeDownCast(objInput);
+      vtkDataSet* dsOutput = vtkDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      // First, copy the input to the output as a starting point
+      if (dsInput && dsOutput && dsInput->GetDataObjectType() == dsOutput->GetDataObjectType())
+      {
+        if (this->CopyArrays)
+        {
+          dsOutput->ShallowCopy(dsInput);
+        }
+        else
+        {
+          dsOutput->CopyStructure(dsInput);
+        }
+      }
+    }
+    if (vtkGraph::SafeDownCast(objInput))
+    {
+      vtkGraph* graphInput = vtkGraph::SafeDownCast(objInput);
+      vtkGraph* graphOutput = vtkGraph::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      // First, copy the input to the output as a starting point
+      if (graphInput && graphOutput &&
+        graphInput->GetDataObjectType() == graphOutput->GetDataObjectType())
+      {
+        if (this->CopyArrays)
+        {
+          graphOutput->ShallowCopy(graphInput);
+        }
+        else
+        {
+          graphOutput->CopyStructure(graphInput);
+        }
+      }
+    }
+    if (vtkMolecule::SafeDownCast(objInput))
+    {
+      vtkMolecule* molInput = vtkMolecule::SafeDownCast(objInput);
+      vtkMolecule* molOutput =
+        vtkMolecule::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      // First, copy the input to the output as a starting point
+      if (molInput && molOutput && molInput->GetDataObjectType() == molOutput->GetDataObjectType())
+      {
+        if (this->CopyArrays)
+        {
+          molOutput->ShallowCopy(molInput);
+        }
+        else
+        {
+          molOutput->CopyStructure(molInput);
+        }
+      }
+    }
+    if (vtkTable::SafeDownCast(objInput))
+    {
+      vtkTable* tableInput = vtkTable::SafeDownCast(objInput);
+      vtkTable* tableOutput = vtkTable::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      // First, copy the input to the output as a starting point
+      if (tableInput && tableOutput &&
+        tableInput->GetDataObjectType() == tableOutput->GetDataObjectType())
+      {
+        if (this->CopyArrays)
+        {
+          tableOutput->ShallowCopy(tableInput);
+        }
+      }
+    }
+    if (vtkCompositeDataSet::SafeDownCast(objInput))
+    {
+      vtkCompositeDataSet* cdsInput = vtkCompositeDataSet::SafeDownCast(objInput);
+      vtkCompositeDataSet* cdsOutput =
+        vtkCompositeDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      // First, copy the input to the output as a starting point
+      if (cdsInput && cdsOutput && cdsInput->GetDataObjectType() == cdsOutput->GetDataObjectType())
+      {
+        cdsOutput->CopyStructure(cdsInput);
+        vtkCompositeDataIterator* iter = cdsInput->NewIterator();
+        for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+        {
+          vtkDataObject* iblock = iter->GetCurrentDataObject();
+          vtkDataObject* oblock = iblock->NewInstance();
+          if (iblock)
+          {
+            if (this->CopyArrays)
+            {
+              oblock->ShallowCopy(iblock);
+            }
+            else
+            {
+              vtkDataSet* iblockDS = vtkDataSet::SafeDownCast(iblock);
+              vtkDataSet* oblockDS = vtkDataSet::SafeDownCast(oblock);
+              if (iblockDS && oblockDS)
+              {
+                oblockDS->CopyStructure(iblockDS);
+              }
+            }
+          }
+          cdsOutput->SetDataSet(iter, oblock);
+          oblock->Delete();
+        }
+        iter->Delete();
+      }
+    }
+  }
+
+  vtkDebugMacro(<< "Executing programmable filter");
+
+  // define annotate scope
+  PV_STRING_FORMATTER_NAMED_SCOPE(
+    "CALCULATOR", fmt::arg("timevalue", dataTime), fmt::arg("timeindex", timeIndex));
+
+  this->SetExpression(vtkPVStringFormatter::Format(this->Expression).c_str());
+
+  // Now invoke the procedure, if specified.
+  if (this->ExecuteMethod != nullptr)
+  {
+    (*this->ExecuteMethod)(this->ExecuteMethodArg);
+  }
+
+  return 1;
 }
 
 //----------------------------------------------------------------------------
