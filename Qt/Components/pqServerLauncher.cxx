@@ -810,8 +810,7 @@ bool pqServerLauncher::processCommand(
   // wait for process to start.
   // waitForStarted() may block until the process starts. That is generally a short
   // span of time, hence we don't worry about it too much.
-  if (process->waitForStarted(processWait > 0. ? static_cast<int>(processWait * 1000.) : -1) ==
-    false)
+  if (!process->waitForStarted(processWait > 0. ? static_cast<int>(processWait * 1000.) : -1))
   {
     qCritical() << "Command launch timed out.";
     process->kill();
