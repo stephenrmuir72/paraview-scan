@@ -67,11 +67,12 @@ QString getPVSCSourcesFromSettings()
 {
   pqSettings* settings = pqApplicationCore::instance()->settings();
   return settings
-    ->value("PVSC_SOURCES", QString("# Enter list of URLs to obtain server configurations from.\n"
-                                    "# Syntax:\n"
-                                    "#    pvsc <url> <userfriendly-name>\n\n"
-                                    "# Official Kitware Server Configurations\n"
-                                    "pvsc http://www.paraview.org/files/pvsc Kitware Inc.\n"))
+    ->value(
+      "PVSC_SOURCES", QObject::tr("# Enter list of URLs to obtain server configurations from.\n"
+                                  "# Syntax:\n"
+                                  "#    pvsc <url> <userfriendly-name>\n\n"
+                                  "# Official Kitware Server Configurations\n"
+                                  "pvsc http://www.paraview.org/files/pvsc Kitware Inc.\n"))
     .toString();
 }
 
@@ -636,7 +637,7 @@ void pqServerConnectDialog::deleteServer()
 
   const pqServerConfiguration& config = this->Internals->Configurations[original_index];
   if (QMessageBox::question(this, "Delete Server Configuration",
-        QString("Are you sure you want to delete \"%1\"?").arg(config.name()),
+        QObject::tr("Are you sure you want to delete \"%1\"?").arg(config.name()),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
   {
     pqApplicationCore::instance()->serverConfigurations().removeConfiguration(config.name());
@@ -652,7 +653,8 @@ void pqServerConnectDialog::saveServers()
   QString filters;
   filters += "ParaView server configuration file (*.pvsc)";
 
-  pqFileDialog dialog(nullptr, this, tr("Save Server Configuration File"), QString(), filters);
+  pqFileDialog dialog(
+    nullptr, this, QObject::tr("Save Server Configuration File"), QString(), filters);
   dialog.setObjectName("SaveServerConfigurationDialog");
   dialog.setFileMode(pqFileDialog::AnyFile);
   if (dialog.exec() == QDialog::Accepted)
@@ -669,7 +671,8 @@ void pqServerConnectDialog::loadServers()
   filters += "ParaView server configuration file (*.pvsc)";
   filters += ";;All files (*)";
 
-  pqFileDialog dialog(nullptr, this, tr("Load Server Configuration File"), QString(), filters);
+  pqFileDialog dialog(
+    nullptr, this, QObject::tr("Load Server Configuration File"), QString(), filters);
   dialog.setObjectName("LoadServerConfigurationDialog");
   dialog.setFileMode(pqFileDialog::ExistingFile);
   if (dialog.exec() == QDialog::Accepted)
