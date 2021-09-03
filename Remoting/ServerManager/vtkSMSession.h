@@ -184,7 +184,7 @@ public:
    * This overload is used to create a built-in session.
    * The callback should return true, if the connection should continue trying to connect,
    * else return false to abort.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provides information about the failure or sucess of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
    */
   static vtkIdType ConnectToSelf(int timeout = 60)
@@ -205,7 +205,7 @@ public:
    * This overload is used to create a client-server session on client.
    * The callback should return true, if the connection should continue trying to connect,
    * else return false to abort.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provides information about the failure or sucess of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
    */
   static vtkIdType ConnectToRemote(const char* hostname, int port, int timeout = 60)
@@ -224,7 +224,7 @@ public:
    * called periodically while this call is blocked.
    * The callback should return true, if the connection should continue waiting,
    * else return false to abort the wait.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provides information about the failure or sucess of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
    */
   static vtkIdType ReverseConnectToRemote(int port)
@@ -249,7 +249,7 @@ public:
    * This overload is used to create a client-dataserver-renderserver session on client.
    * The callback should return true, if the connection should continue trying to connect,
    * else return false to abort.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provides information about the failure or sucess of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
    */
   static vtkIdType ConnectToRemote(
@@ -269,7 +269,7 @@ public:
    * called periodically while this call is blocked.
    * The callback should return true, if the connection should continue waiting,
    * else return false to abort the wait.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provides information about the failure or sucess of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
    */
   static vtkIdType ReverseConnectToRemote(int dsport, int rsport)

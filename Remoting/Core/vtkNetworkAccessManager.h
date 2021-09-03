@@ -37,10 +37,10 @@ public:
 
   /**
    * Possible result of connection when creating a new connection
-   * CONNECTION_SUCCESS: Connection was sucessfull
+   * CONNECTION_SUCCESS: Connection was successful
    * CONNECTION_TIMEOUT: After spending a specified amount of time, no connection was initiated
    * CONNECTION_ABORT: User aborted the connection before it was successful or timed out
-   * CONNECTION_HANDSHAKE_ERROR: Connection was iniated but the handshake failed
+   * CONNECTION_HANDSHAKE_ERROR: Connection was initiated but the handshake failed
    * CONNECTION_FAILURE: Unspecified connection error
    */
   enum class ConnectionResult
@@ -58,7 +58,7 @@ public:
    * This call may block until the connection can be established. To keep
    * user-interfaces responsive, one can listen to the vtkCommand::ProgressEvent
    * fired periodically by this class while waiting.
-   * The result arg provide information about the failure or sucess of the connection,
+   * The result arg provide information about the failure or success of the connection,
    * see vtkNetworkAccessManager::ConnectionResult for possible values.
 
    * vtkNetworkAccessManager can  be waiting for atmost one connection at a

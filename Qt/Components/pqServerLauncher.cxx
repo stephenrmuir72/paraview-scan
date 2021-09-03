@@ -656,7 +656,7 @@ bool pqServerLauncher::connectToPrelaunchedServer(ShowConnectionDialog showConne
 
   } while (result == vtkNetworkAccessManager::ConnectionResult::CONNECTION_TIMEOUT &&
     QMessageBox::question(pqCoreUtilities::mainWidget(), QString("Connection Failed"),
-      QString("Unable to connect sucessfully. Try again for %1 seconds ?")
+      QString("Unable to connect successfully. Try again for %1 seconds ?")
         .arg(this->Internals->Configuration.connectionTimeout())) == QMessageBox::Yes);
 
   return this->Internals->Server != nullptr;
