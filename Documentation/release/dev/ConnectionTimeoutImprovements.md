@@ -1,8 +1,8 @@
 ## Timeout Connection Improvements
 
-* Deprecration of current attribute `timeout` on the XML for the **server command** and replacing it with `process_wait`
+* Deprecrated attribute `timeout` on the XML for the **server command** and replaced it with `process_wait`
 
-This parameter let you set how long the client will wait for the "exec" content to be run in a process, in seconds.
+This parameter lets you set how long the client will wait for the "exec" content to be run in a process, in seconds.
 
 It was previously:
 ```
@@ -24,7 +24,7 @@ It should now be:
 
 * Adding a new `timeout` attribute on the XML of the **server** and connect it to the timeout spinbox in the UI
 
-This new parameter let you control how long will the client try to connect to the server, in seconds.
+This new parameter lets you control how long will the client try to connect to the server, in seconds.
 You can now write:
 ```
   <Server name="SimpleServer" configuration="" resource="cs://localhost:11111" timeout="15">
