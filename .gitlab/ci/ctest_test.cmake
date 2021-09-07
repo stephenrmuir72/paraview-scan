@@ -39,7 +39,6 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "fedora")
     # https://gitlab.kitware.com/vtk/vtk/-/issues/18098
     "\\.BoxWidget$"
     "\\.BlockLinkedSelection$"
-    "\\.CheckSelectedBlocks$"
     "\\.CTHAMRClip$"
     "\\.CTHAMRContour$"
     "\\.MultiSliceWavelet$"
@@ -54,27 +53,10 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "fedora")
     # "Structure does not match. You must use CopyStructure before calling this
     # method."
     # https://gitlab.kitware.com/paraview/paraview/-/issues/20692
-    "\\.VisItBridgeLAMMPSDump$"
-    "\\.VisItBridgeLAMMPSDump2$"
-
-    # These have failed on buildbot before. Not sure what the cause is.
-    "\\.TestPythonView$"
-
-    # X races
-    # https://gitlab.kitware.com/paraview/paraview/-/issues/20697
-    "\\.ComparativeViewOverlay"
-
-    # UI tests that fail without messages or baselines.
-    "\\.BagPlotMatrixView$"
-    "\\.BagPlots$"
-    "\\.BagPlotsSelection$"
-    "\\.FunctionalBagPlots$"
-    "\\.GMVReaderBasicRead$"
-    "\\.LagrangianParticleTracker$"
-    "\\.LagrangianParticleTrackerReseeding$"
-    "\\.Slice$"
-    "\\.TraceMultiViews$"
-    "\\.TruchasReaderWithVisItBridge$"
+    "pvcs\\.VisItBridgeLAMMPSDump2$"
+    "pvcs\\.VisItBridgeLAMMPSDump2$"
+    "pvcrs\\.VisItBridgeLAMMPSDump$"
+    "pvcrs\\.VisItBridgeLAMMPSDump$"
 
     # Some X sync issue causing the images to be capture with
     # incorrect size, ignore for now.
