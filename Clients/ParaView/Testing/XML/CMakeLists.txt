@@ -1934,15 +1934,3 @@ if(NOT WIN32) # On windows, QtTesting is not able to press the connection dialog
     FORCE_SERIAL
     TEST_SCRIPTS ServerConnectTimeout.xml)
 endif()
-
-configure_file (
-  "${CMAKE_CURRENT_SOURCE_DIR}/configuredServer.pvsc.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/configuredServer.pvsc" @ONLY)
-
-configure_file (
-  "${CMAKE_CURRENT_SOURCE_DIR}/ServerConnectConfigured.xml.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ServerConnectConfigured.xml" @ONLY)
-
-paraview_add_client_tests(
-  FORCE_SERIAL
-  TEST_SCRIPTS ${CMAKE_CURRENT_BINARY_DIR}/ServerConnectConfigured.xml)
