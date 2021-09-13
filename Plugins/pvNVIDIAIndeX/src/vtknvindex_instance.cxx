@@ -132,6 +132,23 @@ std::string get_interface_address(const std::string interface_name, bool ipv6 = 
 const std::string vtknvindex_instance::s_config_filename = "nvindex_config.xml";
 
 //-------------------------------------------------------------------------------------------------
+static int nifty_counter = 0;
+static vtknvindex_instance* the_instance = nullptr;
+vtknvindex_instance_cleanup::vtknvindex_instance_cleanup()
+{
+  ++nifty_counter;
+}
+
+vtknvindex_instance_cleanup::~vtknvindex_instance_cleanup()
+{
+  if (--nifty_counter == 0)
+  {
+    delete the_instance;
+    the_instance = nullptr;
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
 vtknvindex_instance::vtknvindex_instance()
   : m_is_index_rank(false)
   , m_is_index_viewer(false)
@@ -219,8 +236,11 @@ mi::Sint32 vtknvindex_instance::get_cur_local_rank_id() const
 //-------------------------------------------------------------------------------------------------
 vtknvindex_instance* vtknvindex_instance::get()
 {
-  static vtknvindex_instance instance; // Meyers' singleton
-  return &instance;
+  if (the_instance == nullptr)
+  {
+    the_instance = new vtknvindex_instance();
+  }
+  return the_instance;
 }
 
 //-------------------------------------------------------------------------------------------------

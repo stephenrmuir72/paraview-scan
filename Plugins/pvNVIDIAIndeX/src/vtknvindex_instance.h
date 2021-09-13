@@ -144,4 +144,13 @@ private:
   static const std::string s_config_filename;
 };
 
+// Schwarz counter implementation for cleaning up
+// singleton
+static class vtknvindex_instance_cleanup
+{
+public:
+  vtknvindex_instance_cleanup();
+  ~vtknvindex_instance_cleanup();
+
+} vtknvindex_instance_cleanup_instance;
 #endif // vtknvindex_instance_h
