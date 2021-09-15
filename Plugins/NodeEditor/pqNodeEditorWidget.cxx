@@ -116,9 +116,9 @@ int pqNodeEditorWidget::apply()
 
   for (auto it : nodes)
   {
-    if (auto view = dynamic_cast<pqView*>(it.second->getProxy()))
+    if (auto pview = dynamic_cast<pqView*>(it.second->getProxy()))
     {
-      view->render();
+      pview->render();
     }
   }
 
@@ -729,14 +729,12 @@ int pqNodeEditorWidget::setInput(pqPipelineSource* consumer, int idx, bool clear
 
     for (auto item : selection)
     {
-      auto itemAsSource = dynamic_cast<pqPipelineSource*>(item);
-      auto itemAsPort = dynamic_cast<pqOutputPort*>(item);
-      if (itemAsPort)
+      if (auto itemAsPort = dynamic_cast<pqOutputPort*>(item))
       {
         inputPtrs.push_back(itemAsPort->getSource()->getProxy());
         inputPorts.push_back(itemAsPort->getPortNumber());
       }
-      else if (itemAsSource)
+      else if (auto itemAsSource = dynamic_cast<pqPipelineSource*>(item))
       {
         inputPtrs.push_back(itemAsSource->getProxy());
         inputPorts.push_back(0);
@@ -744,7 +742,7 @@ int pqNodeEditorWidget::setInput(pqPipelineSource* consumer, int idx, bool clear
     }
 
     // if no ports are selected do nothing
-    if (inputPorts.size() < 1)
+    if (inputPorts.empty())
     {
       return 1;
     }
