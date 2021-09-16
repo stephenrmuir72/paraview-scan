@@ -180,10 +180,8 @@ int vtkPVContourFilter::RequestData(
   }
 
   // See if we can delegate to the faster vtkContour3DLinearGrid for this dataset and settings
-  // Note: vtkContour3DLinearGrid does not support the ComputeScalars option.
-  bool useLinear3DContour = this->ComputeScalars == 0 &&
+  bool useLinear3DContour =
     vtkContour3DLinearGrid::CanFullyProcessDataObject(inDataObj, array->GetName());
-
   if (useLinear3DContour)
   {
     vtkNew<vtkContour3DLinearGrid> linear3DContour;
@@ -195,6 +193,7 @@ int vtkPVContourFilter::RequestData(
     linear3DContour->SetMergePoints(this->GetLocator() != nullptr);
     linear3DContour->SetInterpolateAttributes(true);
     linear3DContour->SetComputeNormals(this->GetComputeNormals());
+    linear3DContour->SetComputeScalars(this->GetComputeScalars());
     linear3DContour->SetOutputPointsPrecision(this->GetOutputPointsPrecision());
     linear3DContour->SetUseScalarTree(this->GetUseScalarTree());
     linear3DContour->SetScalarTree(this->GetScalarTree());
