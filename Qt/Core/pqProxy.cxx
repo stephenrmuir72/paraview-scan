@@ -91,11 +91,11 @@ pqProxy::pqProxy(const QString& group, const QString& name, vtkSMProxy* proxy, p
   , Server(server)
   , SMName(name)
   , SMGroup(group)
+  , Internal(new pqProxyInternal)
+  , Modified(pqProxy::UNINITIALIZED)
+  , UserModifiedSMName(false)
 {
-  this->Internal = new pqProxyInternal;
   this->Internal->Proxy = proxy;
-  this->Modified = pqProxy::UNMODIFIED;
-  this->UserModifiedSMName = false;
 }
 
 //-----------------------------------------------------------------------------

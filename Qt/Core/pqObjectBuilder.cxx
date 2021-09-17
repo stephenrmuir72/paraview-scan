@@ -114,7 +114,6 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
 
   pqPipelineSource* source =
     pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(proxy);
-  source->setModifiedState(pqProxy::UNINITIALIZED);
 
   // Manage Modified state in Undo/Redo only if not a collaborative server
   if (!server->session()->IsMultiClients())
