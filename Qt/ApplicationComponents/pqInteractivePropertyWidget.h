@@ -83,22 +83,33 @@ public:
    * Returns the interactive widget's visibility. Note that the widget may
    * still not be visible in the view if the pqPropertyWidget is not
    * selected. An interactive widget may be visible in the view when
-   * this->isWidgetVisible() and this->isSelected() both return true and the view
-   * is of the right type.
+   * this->isWidgetVisible(), this->isisPanelVisible() and this->isSelected()
+   * all return true and the view is of the right type.
    */
-  bool isWidgetVisible() const;
+  bool isWidgetVisible() const { return this->WidgetVisibility; }
+
+  /**
+   * Returns the panel widget's visibility. Note that the widget may
+   * still not be visible in the view if the pqPropertyWidget is not
+   * selected. An interactive widget may be visible in the view when
+   * this->isWidgetVisible(), this->isPanelVisible() and this->isSelected()
+   * all return true and the view is of the right type.
+   */
+  bool isPanelVisible() const { return this->PanelVisibility; }
 
   /**
    * Returns the data source.
    */
   vtkSMProxy* dataSource() const;
 
+  //@{
   /**
    * In these methods, we show/hide the widget since the interactive widget is not
    * supposed to be visible except when the panel is "active" or "selected".
    */
   void select() override;
   void deselect() override;
+  //@}
 
   /**
    * Returns bounds from the dataSource, if possible. May return invalid bounds
@@ -121,7 +132,7 @@ public:
    */
   void showEvent(QShowEvent*) override;
 
-public Q_SLOTS:
+public slots:
   /**
    * Toggle the interactive widget's visibility. This, along with
    * pqPropertyWidget's selected state controls whether the widget proxy is
@@ -136,7 +147,7 @@ public Q_SLOTS:
    */
   void setDataSource(vtkSMProxy* dataSource);
 
-protected Q_SLOTS:
+protected slots:
   /**
    * Places the interactive widget using current data source information.
    */
@@ -147,7 +158,9 @@ protected Q_SLOTS:
    */
   void render();
 
-Q_SIGNALS:
+  void setPanelVisible(bool val);
+
+signals:
   /**
    * Fired whenever setWidgetVisible() changes the widget's visibility.
    */
@@ -159,6 +172,7 @@ Q_SIGNALS:
    */
   void widgetVisibilityUpdated(bool);
 
+  //@{
   /**
    * Signals fired when the interactive widget proxy fires the corresponding
    * events.
@@ -166,19 +180,18 @@ Q_SIGNALS:
   void startInteraction();
   void interaction();
   void endInteraction();
+  //@}
 
   void dummySignal();
 
-private Q_SLOTS:
+private slots:
   /**
    * This method is called to update the state of Visibility and Enabled
-   * properties on the widget based on the state of isWidgetVisible() and
-   * isSelected().
+   * properties on the widget based on the state of isWidgetVisible(),
+   * isSelected() and isPanelVisible(). Also verify that after the first
+   * apply the filter itself is visible.
    */
   void updateWidgetVisibility();
-
-protected:
-  bool VisibleState = true;
 
 private:
   void handleUserEvent(vtkObject*, unsigned long, void*);
@@ -188,6 +201,14 @@ private:
 
   class pqInternals;
   QScopedPointer<pqInternals> Internals;
+  bool WidgetVisibility = false;
+  bool PanelVisibility = false;
+
+  /**
+   * Custom class to track the representation and its visibility for a specific
+   * ParaView pipeline element.
+   */
+  struct SourceTracker;
 };
 
 #endif

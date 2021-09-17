@@ -33,12 +33,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
+#include "pqDataRepresentation.h"
 #include "pqLiveInsituVisualizationManager.h"
+#include "pqPipelineFilter.h"
+#include "pqPipelineSource.h"
 #include "pqPropertyLinks.h"
 #include "pqRenderViewBase.h"
+#include "pqRepresentation.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
+
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkPVDataInformation.h"
@@ -56,19 +61,157 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 
+//-----------------------------------------------------------------------------
+namespace details
+{
+/**
+ * When the widget is a subproxy the pqInteractivePropertyWidget::proxy member
+ * does not return the proxy of the actual filter in the pipeline. This function
+ * tries to get it by getting the very first consumer.
+ */
+vtkSMSourceProxy* GetTrueSourceInPipeline(vtkSMProxy* current)
+{
+  vtkSMProxy* res = nullptr;
+  if (current != nullptr)
+  {
+    res = current;
+    vtkSMProxy* parent = current;
+    if (current->GetNumberOfConsumers())
+    {
+      parent = current->GetConsumerProxy(0);
+    }
+
+    while (parent != res && parent->GetNumberOfConsumers())
+    {
+      res = parent;
+      parent = res->GetConsumerProxy(0);
+    }
+  }
+
+  return vtkSMSourceProxy::SafeDownCast(res);
+}
+}
+
+//-----------------------------------------------------------------------------
+struct pqInteractivePropertyWidget::SourceTracker
+{
+  bool IsVisible = false;
+  pqPipelineSource* Proxy = nullptr;
+  QMetaObject::Connection RepresentationObserver;
+
+  // Try to find the representation of our current Proxy in the view. If found
+  // we link its visibility property to trigger an update of the widget visibility.
+  // If not found we wait for the representation to be created. Once it is we can
+  // link its visibility property.
+  void RegisterRepresentationPromise(pqInteractivePropertyWidget* self, pqView* view)
+  {
+    if (this->Proxy)
+    {
+      pqDataRepresentation* representation = this->Proxy->getRepresentation(view);
+      if (representation)
+      {
+        this->IsVisible = representation->isVisible();
+        QObject::connect(representation, &pqDataRepresentation::visibilityChanged,
+          [this, self, representation](bool vis) {
+            if (representation->getView())
+            {
+              this->IsVisible = vis;
+              self->updateWidgetVisibility();
+            }
+          });
+      }
+      else
+      {
+        this->IsVisible = false;
+
+        this->RepresentationObserver = QObject::connect(
+          view, &pqView::representationAdded, [this, self, view](pqRepresentation* repr) {
+            if (auto* dataRepr = qobject_cast<pqDataRepresentation*>(repr))
+            {
+              if (dataRepr->getInput() == this->Proxy)
+              {
+                QObject::connect(dataRepr, &pqDataRepresentation::visibilityChanged,
+                  [this, self, dataRepr](bool vis) {
+                    if (dataRepr->getView())
+                    {
+                      this->IsVisible = vis;
+                      self->updateWidgetVisibility();
+                    }
+                  });
+                QObject::disconnect(this->RepresentationObserver);
+                this->IsVisible = dataRepr->isVisible();
+                self->updateWidgetVisibility();
+              }
+            }
+          });
+      }
+    }
+  }
+
+  // Reset Representation to nullptr and remove the associated events
+  void UnregisterRepresentation()
+  {
+    this->IsVisible = false;
+    QObject::disconnect(this->RepresentationObserver);
+  }
+};
+
+//-----------------------------------------------------------------------------
 class pqInteractivePropertyWidget::pqInternals
 {
 public:
   vtkSmartPointer<vtkSMNewWidgetRepresentationProxy> WidgetProxy;
   vtkWeakPointer<vtkSMProxy> DataSource;
-  vtkSmartPointer<vtkSMPropertyGroup> SMGroup;
-  bool WidgetVisibility;
-  unsigned long UserEventObserverId;
 
-  pqInternals()
-    : WidgetVisibility(false)
-    , UserEventObserverId(0)
+  // Representation tracker for the filter the widget is attached to.
+  SourceTracker Source;
+  // When false, HasSourceBeenApplied indicate that the filter the widget
+  // is attached to has not been applied yet.
+  bool HasSourceBeenApplied = false;
+  // Connection to destroy once we have detected the source has been applied
+  QMetaObject::Connection ModifiedStateObserver;
+
+  vtkSmartPointer<vtkSMPropertyGroup> SMGroup;
+  unsigned long UserEventObserverId = 0;
+
+  pqInternals(pqInteractivePropertyWidget* self, vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup)
+    : DataSource(proxy)
+    , SMGroup(smgroup)
   {
+    auto* smm = pqApplicationCore::instance()->getServerManagerModel();
+    auto* source = details::GetTrueSourceInPipeline(proxy);
+    if (source == nullptr)
+    {
+      return;
+    }
+
+    if ((this->Source.Proxy = smm->findItem<pqPipelineSource*>(source)))
+    {
+      this->HasSourceBeenApplied =
+        this->Source.Proxy->modifiedState() != pqProxy::ModifiedState::UNINITIALIZED;
+      if (!this->HasSourceBeenApplied)
+      {
+        this->ModifiedStateObserver = QObject::connect(this->Source.Proxy,
+          &pqPipelineSource::modifiedStateChanged, [this, self](pqServerManagerModelItem*) {
+            if (this->Source.Proxy->modifiedState() == pqProxy::UNMODIFIED)
+            {
+              this->HasSourceBeenApplied = true;
+              QObject::disconnect(this->ModifiedStateObserver);
+
+              // By default first apply always make the object visible but no signal is fired so let
+              // set it by hand
+              this->Source.IsVisible = true;
+              self->updateWidgetVisibility();
+            }
+          });
+      }
+    }
+  }
+
+  ~pqInternals()
+  {
+    QObject::disconnect(this->ModifiedStateObserver);
+    this->Source.UnregisterRepresentation();
   }
 };
 
@@ -77,7 +220,7 @@ pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgr
   const char* widget_smname, vtkSMProxy* smproxy, vtkSMPropertyGroup* smgroup,
   QWidget* parentObject)
   : Superclass(smproxy, parentObject)
-  , Internals(new pqInteractivePropertyWidget::pqInternals())
+  , Internals(new pqInteractivePropertyWidget::pqInternals(this, smproxy, smgroup))
 {
   assert(widget_smgroup);
   assert(widget_smname);
@@ -85,9 +228,6 @@ pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgr
   assert(smgroup);
 
   BEGIN_UNDO_EXCLUDE();
-
-  pqInternals& internals = (*this->Internals);
-  internals.SMGroup = smgroup;
 
   pqServer* server =
     pqApplicationCore::instance()->getServerManagerModel()->findServer(smproxy->GetSession());
@@ -116,7 +256,7 @@ pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgr
   }
   assert(wdgProxy);
 
-  internals.WidgetProxy = wdgProxy;
+  this->Internals->WidgetProxy = wdgProxy;
 
   vtkNew<vtkSMParaViewPipelineController> controller;
   controller->InitializeProxy(wdgProxy);
@@ -157,18 +297,17 @@ pqInteractivePropertyWidget::pqInteractivePropertyWidget(const char* widget_smgr
 
   END_UNDO_EXCLUDE();
 
-  internals.UserEventObserverId = smproxy->AddObserver(
+  this->Internals->UserEventObserverId = smproxy->AddObserver(
     vtkCommand::UserEvent, this, &pqInteractivePropertyWidget::handleUserEvent);
 }
 
 //-----------------------------------------------------------------------------
 pqInteractivePropertyWidget::~pqInteractivePropertyWidget()
 {
-  pqInternals& internals = (*this->Internals);
-  if (internals.UserEventObserverId > 0 && this->proxy())
+  if (this->Internals->UserEventObserverId > 0 && this->proxy())
   {
-    this->proxy()->RemoveObserver(internals.UserEventObserverId);
-    internals.UserEventObserverId = 0;
+    this->proxy()->RemoveObserver(this->Internals->UserEventObserverId);
+    this->Internals->UserEventObserverId = 0;
   }
 
   // ensures that the widget proxy is removed from the active view, if any.
@@ -206,10 +345,14 @@ void pqInteractivePropertyWidget::setView(pqView* pqview)
   {
     vtkSMPropertyHelper(oldview->getProxy(), "HiddenRepresentations").Remove(this->widgetProxy());
     oldview->getProxy()->UpdateVTKObjects();
+
+    this->Internals->Source.UnregisterRepresentation();
   }
   this->Superclass::setView(rview);
   if (rview)
   {
+    this->Internals->Source.RegisterRepresentationPromise(this, rview);
+
     vtkSMPropertyHelper(rview->getProxy(), "HiddenRepresentations").Add(this->widgetProxy());
     rview->getProxy()->UpdateVTKObjects();
   }
@@ -232,23 +375,16 @@ void pqInteractivePropertyWidget::deselect()
 }
 
 //-----------------------------------------------------------------------------
-bool pqInteractivePropertyWidget::isWidgetVisible() const
-{
-  return this->Internals->WidgetVisibility;
-}
-
-//-----------------------------------------------------------------------------
 void pqInteractivePropertyWidget::setWidgetVisible(bool val)
 {
-  pqInternals& internals = (*this->Internals);
-  if (internals.WidgetVisibility != val)
+  if (this->WidgetVisibility != val)
   {
     SM_SCOPED_TRACE(CallFunction)
       .arg(val ? "Show3DWidgets" : "Hide3DWidgets")
       .arg("proxy", this->proxy())
       .arg("comment", "toggle 3D widget visibility (only when running from the GUI)");
 
-    internals.WidgetVisibility = val;
+    this->WidgetVisibility = val;
     this->updateWidgetVisibility();
     Q_EMIT this->widgetVisibilityToggled(val);
   }
@@ -257,7 +393,11 @@ void pqInteractivePropertyWidget::setWidgetVisible(bool val)
 //-----------------------------------------------------------------------------
 void pqInteractivePropertyWidget::updateWidgetVisibility()
 {
-  bool visible = this->isSelected() && this->isWidgetVisible() && this->view();
+  bool dataVis = this->Internals->HasSourceBeenApplied
+    ? (this->Internals->Source.Proxy == nullptr) || this->Internals->Source.IsVisible
+    : true;
+  bool visible = this->isSelected() && this->isWidgetVisible() && this->isPanelVisible() &&
+    this->view() && dataVis;
   vtkSMProxy* wdgProxy = this->widgetProxy();
   assert(wdgProxy);
 
@@ -336,14 +476,23 @@ void pqInteractivePropertyWidget::handleUserEvent(
 }
 
 //-----------------------------------------------------------------------------
+void pqInteractivePropertyWidget::setPanelVisible(bool val)
+{
+  if (this->PanelVisibility != val)
+  {
+    this->PanelVisibility = val;
+    this->updateWidgetVisibility();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqInteractivePropertyWidget::hideEvent(QHideEvent*)
 {
-  this->VisibleState = vtkSMPropertyHelper(this->widgetProxy(), "Visibility").GetAsInt() != 0;
-  this->setWidgetVisible(false);
+  this->setPanelVisible(false);
 }
 
 //-----------------------------------------------------------------------------
 void pqInteractivePropertyWidget::showEvent(QShowEvent*)
 {
-  this->setWidgetVisible(this->VisibleState);
+  this->setPanelVisible(true);
 }
