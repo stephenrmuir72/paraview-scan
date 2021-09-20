@@ -152,18 +152,6 @@ taylor their behaviour based on whether the Python environment is embedded
 within an application or not."""
 fromGUI = False
 
-#------------------------------------------------------------------------------
-# this little trick is for static builds of ParaView. In such builds, if
-# the user imports this Python package in a non-statically linked Python
-# interpreter i.e. not of the of the ParaView-python executables, then we import the
-# static components importer module.
-try:
-    from .modules import vtkRemotingCore
-except ImportError:
-    import _paraview_modules_static
-#------------------------------------------------------------------------------
-
-
 def _create_logger(name="paraview"):
     import logging
     logger = logging.getLogger(name)

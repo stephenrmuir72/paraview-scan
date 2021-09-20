@@ -47,7 +47,6 @@ set(python_files
   paraview/detail/catalyst_export.py
   paraview/live.py
   paraview/lookuptable.py
-  paraview/modules/__init__.py
   paraview/numeric.py
   paraview/numpy_support.py
   paraview/pv-vtk-all.py
@@ -93,6 +92,22 @@ foreach (python_file IN LISTS python_files)
   list(APPEND python_copied_modules
     "${output_python_file}")
 endforeach ()
+
+# generate paraview/modules/__init__.py
+# this has logic to import the static modules, if needed
+set(CMAKE_CONFIGURABLE_FILE_CONTENT
+  "# generated content; do not modify")
+set(modules_init_file
+  "${CMAKE_BINARY_DIR}/${PARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX}/paraview/modules/__init__.py")
+if (NOT BUILD_SHARED_LIBS)
+  set(CMAKE_CONFIGURABLE_FILE_CONTENT
+    "${CMAKE_CONFIGURABLE_FILE_CONTENT}\nimport _paraview_modules_static\n")
+endif()
+configure_file("${CMAKE_ROOT}/Modules/CMakeConfigurableFile.in"
+  "${modules_init_file}")
+list(APPEND python_copied_modules
+  "${modules_init_file}")
+unset(CMAKE_CONFIGURABLE_FILE_CONTENT)
 
 set(_paraview_python_zip)
 if (NOT BUILD_SHARED_LIBS)
