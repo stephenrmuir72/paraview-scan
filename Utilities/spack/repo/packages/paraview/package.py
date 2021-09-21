@@ -309,6 +309,7 @@ class Paraview(CMakePackage, CudaPackage):
                 '-DPARAVIEW_ENABLE_EXAMPLES:BOOL=%s' % variant_bool(
                     '+examples'),
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_cgns=OFF',
+                '-DVTK_MODULE_USE_EXTERNAL_VTK_exprtk=OFF', # unpackaged
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_glew=OFF',
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_gl2ps=OFF',
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_libharu=OFF',
