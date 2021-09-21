@@ -158,6 +158,8 @@ class Paraview(CMakePackage, CudaPackage):
     depends_on('double-conversion')
     depends_on('expat')
     depends_on('eigen@3:')
+    # Needs https://github.com/fmtlib/fmt/pull/2432 to be released
+    # depends_on('fmt', when='@5.10:')
     depends_on('freetype')
     # depends_on('hdf5+mpi', when='+mpi')
     # depends_on('hdf5~mpi', when='~mpi')
@@ -350,6 +352,7 @@ class Paraview(CMakePackage, CudaPackage):
                     '+examples'),
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_cgns=OFF',
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_exprtk=OFF', # unpackaged
+                '-DVTK_MODULE_USE_EXTERNAL_VTK_fmt=OFF', # see `depends_on('fmt') above
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_glew=OFF',
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_gl2ps=OFF',
                 '-DVTK_MODULE_USE_EXTERNAL_VTK_libharu=OFF',
