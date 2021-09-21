@@ -116,6 +116,7 @@ set(classes
   vtkPVSelectionInformation
   vtkPVStreamingPiecesInformation
   vtkPVSynchronizedRenderer
+  vtkPVTransferFunction2D
   vtkPVTransferFunction2DBox
   vtkPVView
   vtkPVXYChartView
