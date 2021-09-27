@@ -18,6 +18,7 @@
 #include "vtkObjectFactory.h"
 
 #include "vtkTexture.h"
+#include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
 #include <vtkSMSessionProxyManager.h>
@@ -56,7 +57,13 @@ void vtkPVMaterial::AddVariable(const char* paramName, const char* value)
         if (texture)
         {
           texture->Update();
-          lib->AddTexture(this->Name, paramName, texture, value);
+
+          // Get the filename to add it to be able to store it when writing the
+          // material library
+          const std::string filename = vtkSMPropertyHelper(textureProxy, "FileName").GetAsString();
+
+          // Store the texture in the material library with its name and filename
+          lib->AddTexture(this->Name, paramName, texture, value, filename);
         }
         else
         {

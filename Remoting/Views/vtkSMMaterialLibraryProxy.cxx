@@ -188,14 +188,20 @@ void vtkSMMaterialLibraryProxy::CreateProxies()
       texture->UpdateVTKObjects();
       texture->UpdatePipeline();
 
-      // Get the name of the texture from the ospray material library
+      // Get the name and filename (if any) of the texture from the ospray material library
       std::string osprayTextureName = ml->GetTextureName(matName, varName);
+      std::string filename = ml->GetTextureFilename(matName, varName);
 
       // Generate an unique name
       std::string proxyName = pxm->GetUniqueProxyName("textures", osprayTextureName.c_str(), false);
+      // Store the filename into the proxy property to be available when writing the lib to ospray
+      // material library
+      vtkSMPropertyHelper(texture->GetProperty("FileName")).Set(filename.c_str());
 
       // Now, register the proxy and update the vtkPVMaterial object
+      // To be available in the combobox
       pxm->RegisterProxy("textures", proxyName.c_str(), texture);
+
       vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, varName.c_str());
       vtkSMPropertyHelper(matProxy, "DoubleVariables").Set(currentIndex++, proxyName.c_str());
     }

@@ -29,6 +29,7 @@
 #include "vtkRemotingViewsModule.h" //needed for exports
 
 #include "vtkObject.h"
+#include <string> //for std::string
 
 class vtkPVMaterial;
 class vtkTexture;
@@ -68,6 +69,7 @@ public:
    * Defer to contained MaterialLibrary
    */
   const char* WriteBuffer();
+  void WriteFile(const std::string& filename);
   /**
    * Defer to contained MaterialLibrary
    */
