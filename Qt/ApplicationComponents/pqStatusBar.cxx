@@ -31,13 +31,91 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqStatusBar.h"
 
+#include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqCoreUtilities.h"
 #include "pqProgressManager.h"
 #include "pqProgressWidget.h"
+#include "vtkPVMemoryUseInformation.h"
+#include "vtkPVSystemConfigInformation.h"
+#include "vtkSMSession.h"
 
+#include <QProgressBar>
 #include <QToolButton>
 
 #include <iostream>
+
+namespace
+{
+//-----------------------------------------------------------------------------
+void updateMemoryBar(QProgressBar* progressBar)
+{
+  auto session = pqActiveObjects::instance().activeServer()->session();
+  if (session == nullptr)
+  {
+    return;
+  }
+
+  auto infos = vtkPVMemoryUseInformation::New();
+  session->GatherInformation(vtkPVSession::SERVERS, infos, 0);
+  auto configs = vtkPVSystemConfigInformation::New();
+  session->GatherInformation(vtkPVSession::SERVERS, configs, 0);
+
+  assert(infos->GetSize() == configs->GetSize());
+
+  struct HostData
+  {
+    long long HostMemoryUse = 0;
+    long long HostMemoryAvailable = 0;
+    std::string HostName = "undefined";
+  };
+
+  auto worstFraction = -1.0;
+  HostData worstServer;
+
+  for (size_t rank = 0; rank < infos->GetSize(); ++rank)
+  {
+    long long const hostMemoryUse = infos->GetHostMemoryUse(rank);
+    long long const hostMemoryAvailable = configs->GetHostMemoryAvailable(rank);
+    if (hostMemoryAvailable <= 0)
+    {
+      continue;
+    }
+    double const fraction = static_cast<double>(hostMemoryUse) / hostMemoryAvailable;
+    if (fraction > worstFraction)
+    {
+      worstServer.HostMemoryUse = hostMemoryUse;
+      worstServer.HostMemoryAvailable = hostMemoryAvailable;
+      worstServer.HostName = configs->GetHostName(rank);
+      worstFraction = fraction;
+    }
+  }
+
+  progressBar->setMinimum(0);
+  progressBar->setMaximum(worstServer.HostMemoryAvailable);
+  progressBar->setValue(worstServer.HostMemoryUse);
+  progressBar->setFormat(
+    QString{ "%1: %2/%3 %4%" }
+      .arg(QString::fromStdString(worstServer.HostName))
+      .arg(pqCoreUtilities::formatMemoryFromKiBValue(worstServer.HostMemoryUse, 1))
+      .arg(pqCoreUtilities::formatMemoryFromKiBValue(worstServer.HostMemoryAvailable, 1))
+      .arg(worstFraction * 100.0, 0, 'f', 1));
+  auto palette = progressBar->palette();
+  if (worstFraction > 0.9)
+  {
+    pqCoreUtilities::setPaletteHighlightToCritical(palette);
+  }
+  else if (worstFraction > 0.75)
+  {
+    pqCoreUtilities::setPaletteHighlightToWarning(palette);
+  }
+  else
+  {
+    pqCoreUtilities::setPaletteHighlightToOk(palette);
+  }
+  progressBar->setPalette(palette);
+}
+}
 
 //-----------------------------------------------------------------------------
 pqStatusBar::pqStatusBar(QWidget* parentObject)
@@ -61,8 +139,18 @@ pqStatusBar::pqStatusBar(QWidget* parentObject)
 
   QObject::connect(progress_bar, SIGNAL(abortPressed()), progress_manager, SLOT(triggerAbort()));
 
+  auto memory_progress_bar = new QProgressBar(this);
+  memory_progress_bar->setAlignment(Qt::AlignCenter);
+  QTimer* timer = new QTimer(this);
+
+  connect(timer, &QTimer::timeout, [=] { ::updateMemoryBar(memory_progress_bar); });
+  timer->start(1000);
+
   // Final ui setup
-  this->addPermanentWidget(progress_bar);
+  // Use a widget as a spacer that takes a third of all the available space
+  this->addPermanentWidget(new QWidget(this), 3);
+  this->addPermanentWidget(progress_bar, 4);
+  this->addPermanentWidget(memory_progress_bar, 2);
 }
 
 //-----------------------------------------------------------------------------
