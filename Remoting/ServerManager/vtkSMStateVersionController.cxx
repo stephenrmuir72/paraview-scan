@@ -35,7 +35,13 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <vtk_fmt.h>
 #include <vtk_pugixml.h>
+
+// clang-format off
+#include VTK_FMT(fmt/core.h)
+#include VTK_FMT(fmt/ranges.h)
+// clang-format on
 
 using namespace pugi;
 using namespace std;
@@ -1474,6 +1480,110 @@ struct Process_5_9_to_5_10
   }
 };
 
+//===========================================================================
+struct Process_5_10_to_5_11
+{
+  bool operator()(xml_document& document) { return ConvertProbeLine(document); }
+
+  static bool ConvertProbeLine(xml_document& document)
+  {
+    // Changes:
+    // - Properties "Point1" has been replaced by "'Source'.Point2"
+    // - Properties "Point2" has been replaced by "'Source'.Point1"
+    pugi::xpath_node_set xpath_set =
+      document.select_nodes("//ServerManagerState/Proxy[@group='filters' and @type='ProbeLine']");
+    if (xpath_set.empty())
+    {
+      return true;
+    }
+
+    // Find points P1 and P2 coordinates
+    double p1[3];
+    double p2[3];
+    bool found[2] = { false, false };
+    vtkpugixml::xpath_node filterProxyPath = xpath_set.first();
+    for (const auto& property : filterProxyPath.node().children("Property"))
+    {
+      if (strcmp(property.attribute("name").as_string(), "Point1") == 0)
+      {
+        for (auto& coord : property.children("Element"))
+        {
+          const unsigned int idx = coord.attribute("index").as_uint();
+          p1[idx] = coord.attribute("value").as_double();
+        }
+        found[0] = true;
+        if (found[1])
+        {
+          break;
+        }
+      }
+
+      if (strcmp(property.attribute("name").as_string(), "Point2") == 0)
+      {
+        for (auto& coord : property.children("Element"))
+        {
+          const unsigned int idx = coord.attribute("index").as_uint();
+          p2[idx] = coord.attribute("value").as_double();
+        }
+        found[1] = true;
+        if (found[0])
+        {
+          break;
+        }
+      }
+    }
+
+    // If we didn't find both points, exit unsuccessfully
+    if (!(found[0] && found[1]))
+    {
+      return false;
+    }
+
+    // Create an id for the newly generated source
+    UniqueIdGenerator generator(document);
+    const vtkTypeUInt32 sourceId = generator.GetNextUniqueId();
+    const unsigned int filterId = filterProxyPath.node().attribute("id").as_uint();
+
+    // Connect line source to the ProbeLine filter
+    const std::string sourceSubProxy =
+      fmt::format("<Property name=\"Source\" id=\"{0}.Source\" number_of_elements=\"1\">\n"
+                  "  <Proxy value=\"{1}\" output_port=\"0\"/>\n"
+                  "  <Domain name=\"groups\" id=\"{0}.Source.groups\"/>\n"
+                  "  <Domain name=\"proxy_list\" id=\"{0}.Source.proxy_list\">\n"
+                  "    <Proxy value=\"{1}\"/>\n"
+                  "  </Domain>\n"
+                  "</Property>\n",
+        filterId, sourceId);
+    filterProxyPath.node().append_buffer(sourceSubProxy.c_str(), sourceSubProxy.size());
+
+    // Create the actual source proxy
+    const std::string sourceProxyDefinition = fmt::format(
+      "<Proxy group=\"internal_sources\" type=\"SimpleLineSource\" id=\"{0}\" servers=\"1\">\n"
+      "  <Property name=\"Point1\" id=\"{0}.Point1\" number_of_elements=\"3\">\n"
+      "    <Element index=\"0\" value=\"{1}\"/>\n"
+      "    <Element index=\"1\" value=\"{2}\"/>\n"
+      "    <Element index=\"2\" value=\"{3}\"/>\n"
+      "    <Domain name=\"range\" id=\"{0}.Point1.range\"/>\n"
+      "  </Property>\n"
+      "  <Property name=\"Point2\" id=\"{0}.Point2\" number_of_elements=\"3\">\n"
+      "    <Element index=\"0\" value=\"{4}\"/>\n"
+      "    <Element index=\"1\" value=\"{5}\"/>\n"
+      "    <Element index=\"2\" value=\"{6}\"/>\n"
+      "    <Domain name=\"range\" id=\"{0}.Point2.range\"/>\n"
+      "  </Property>\n"
+      "  <Property name=\"Resolution\" id=\"{0}.Resolution\" number_of_elements=\"1\">\n"
+      "    <Element index=\"0\" value=\"1\"/>\n"
+      "    <Domain name=\"range\" id=\"{0}.Resolution.range\"/>\n"
+      "  </Property>\n"
+      "</Proxy>\n",
+      sourceId, p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
+    pugi::xml_node smState = document.root().child("ServerManagerState");
+    smState.append_buffer(sourceProxyDefinition.c_str(), sourceProxyDefinition.size());
+
+    return true;
+  }
+};
+
 } // end of namespace
 
 vtkStandardNewMacro(vtkSMStateVersionController);
@@ -1586,6 +1696,13 @@ bool vtkSMStateVersionController::Process(vtkPVXMLElement* parent, vtkSMSession*
     Process_5_9_to_5_10 converter;
     status = converter(document);
     version = vtkSMVersion(5, 10, 0);
+  }
+
+  if (status && (version < vtkSMVersion(5, 11, 0)))
+  {
+    Process_5_10_to_5_11 converter;
+    status = converter(document);
+    version = vtkSMVersion(5, 11, 0);
   }
 
   if (status)

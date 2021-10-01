@@ -94,8 +94,8 @@ SaveScreenshot(tempdir + "/SaveScreenshotSurface.png", magnification=2)
 
 SetActiveView(lineChartView1)
 p = PlotOverLine()
-p.Point1 = [-10.0, -10.0, -10.0]
-p.Point2 = [10.0, 10.0, 10.0]
+p.Source.Point1 = [-10.0, -10.0, -10.0]
+p.Source.Point2 = [10.0, 10.0, 10.0]
 p.Resolution = 10
 Show()
 Render()

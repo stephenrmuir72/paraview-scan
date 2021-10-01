@@ -123,62 +123,6 @@
       </DoubleVectorProperty>
       <!-- End ProbeLineLegacy -->
     </SourceProxy>
-    <SourceProxy class="vtkLineSource"
-                 label="Line"
-                 name="SimpleLineSource">
-      <Documentation>Proxy to have an interactive widget controlling a line source
-      with a resolution of 1. Used for the PlotLine proxy.</Documentation>
-      <DoubleVectorProperty animateable="1"
-                            command="SetPoint1"
-                            default_values="0.0 0.0 0.0"
-                            name="Point1"
-                            number_of_elements="3"
-                            panel_visibility="default">
-        <BoundsDomain default_mode="min"
-                      mode="normal"
-                      name="range">
-          <RequiredProperties>
-            <Property function="Input"
-                      name="DummyInput" />
-          </RequiredProperties>
-        </BoundsDomain>
-      </DoubleVectorProperty>
-      <DoubleVectorProperty animateable="1"
-                            command="SetPoint2"
-                            default_values="0.0 0.0 0.0"
-                            name="Point2"
-                            number_of_elements="3"
-                            panel_visibility="default">
-        <BoundsDomain default_mode="max"
-                      mode="normal"
-                      name="range">
-          <RequiredProperties>
-            <Property function="Input"
-                      name="DummyInput" />
-          </RequiredProperties>
-        </BoundsDomain>
-      </DoubleVectorProperty>
-      <IntVectorProperty command="SetResolution"
-                         default_values="1"
-                         name="Resolution"
-                         number_of_elements="1"
-                         panel_visibility="never">
-        <IntRangeDomain min="1"
-                        name="range" />
-      </IntVectorProperty>
-      <InputProperty is_internal="1" name="DummyInput" />
-      <PropertyGroup label="Line Parameters" panel_widget="InteractiveLine">
-          <!-- Necessary to have the interactive widget rendered -->
-          <Property function="Point1WorldPosition" name="Point1" />
-          <Property function="Point2WorldPosition" name="Point2" />
-          <Property function="Input" name="DummyInput" />
-      </PropertyGroup>
-      <Hints>
-        <ProxyList>
-          <Link name="DummyInput" with_property="Input" />
-        </ProxyList>
-      </Hints>
-    </SourceProxy>
     <Proxy name="ProbeLineGenericProxy">
       <InputProperty command="SetInputConnection"
                      name="Input">
@@ -296,7 +240,70 @@
         <Documentation>Set the tolerance to use for
         vtkDataSet::FindCell</Documentation>
       </DoubleVectorProperty>
+      <Hints>
+        <Visibility replace_input="0" />
+        <View type="XYChartView" also_show_in_current_view="1" />
+        <Plotable />
+      </Hints>
     </Proxy>
+  </ProxyGroup>
+  <ProxyGroup name="internal_sources">
+    <SourceProxy class="vtkLineSource"
+                 label="Line"
+                 name="SimpleLineSource">
+      <Documentation>Proxy to have an interactive widget controlling a line source
+      with a resolution of 1. Used for the PlotLine proxy.</Documentation>
+      <DoubleVectorProperty animateable="1"
+                            command="SetPoint1"
+                            default_values="0.0 0.0 0.0"
+                            name="Point1"
+                            number_of_elements="3"
+                            panel_visibility="default">
+        <BoundsDomain default_mode="min"
+                      mode="normal"
+                      name="range">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="DummyInput" />
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetPoint2"
+                            default_values="0.0 0.0 0.0"
+                            name="Point2"
+                            number_of_elements="3"
+                            panel_visibility="default">
+        <BoundsDomain default_mode="max"
+                      mode="normal"
+                      name="range">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="DummyInput" />
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetResolution"
+                         default_values="1"
+                         name="Resolution"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <IntRangeDomain min="1"
+                        name="range" />
+      </IntVectorProperty>
+      <InputProperty is_internal="1" name="DummyInput" />
+      <PropertyGroup label="Line Parameters" panel_widget="InteractiveLine">
+          <!-- Necessary to have the interactive widget rendered -->
+          <Property function="Point1WorldPosition" name="Point1" />
+          <Property function="Point2WorldPosition" name="Point2" />
+          <Property function="Input" name="DummyInput" />
+      </PropertyGroup>
+      <Hints>
+        <ProxyList>
+          <Link name="DummyInput" with_property="Input" />
+        </ProxyList>
+      </Hints>
+    </SourceProxy>
   </ProxyGroup>
   <ProxyGroup name="filters">
     <!-- ==================================================================== -->
@@ -427,6 +434,7 @@
       </Hints>
       <!-- End ProbePoint -->
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <CompoundSourceProxy label="Plot Over Line Legacy"
                          name="ProbeLineLegacy">
@@ -483,11 +491,12 @@
                   proxy="AppendArcLength1" />
       <!-- End ProbeLineLegacy -->
     </CompoundSourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkProbeLineFilter"
                  base_proxygroup="internal_filters"
                  base_proxyname="ProbeLineGenericProxy"
-                 label="Plot Over Custom Lines"
+                 label="Plot Over Lines From Custom Source"
                  name="ProbeCustomLines">
       <Documentation>The Plot Over Custom Lines filter samples the data set attributes
       of the input data set at the points along multiple lines given by the source
@@ -500,7 +509,7 @@
       per probed cells, and "Sample Uniformally" samples uniformally along the input
       line.</Documentation>
       <InputProperty command="SetSourceConnection"
-                     name="ProbedLines">
+                     name="Source">
         <ProxyGroupDomain name="groups">
           <Group name="sources" />
           <Group name="filters" />
@@ -513,20 +522,19 @@
         the probing lines locations.</Documentation>
       </InputProperty>
       <IntVectorProperty command="SetAggregateAsPolyData"
-                         default_values="1"
+                         default_values="0"
                          name="AggregateAsPolyData"
                          number_of_elements="1"
                          panel_visibility="never">
         <Documentation>
-          Force ouput to be a multiblock when plotting over custom line(s).
+          If false then each result from an input line to probe results in a block in a
+          vtkMultiBlockDataSet. If true then each block is aggregated as a cell in a
+          single dataset and the output type of the filter becomes a vtkPolyData. Should
+          always be false for this filter.
         </Documentation>
       </IntVectorProperty>
-      <Hints>
-        <Visibility replace_input="0" />
-        <View type="XYChartView" also_show_in_current_view="1" />
-        <Plotable />
-      </Hints>
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkProbeLineFilter"
                  base_proxygroup="internal_filters"
@@ -543,16 +551,21 @@
       Segment Centers" provides one sample per probed cells, and "Sample Uniformally"
       samples uniformally along the input line.</Documentation>
       <InputProperty command="SetSourceConnection"
-                     label="Probe Type"
+                     label="Source"
                      name="Source"
                      panel_visibility="default">
         <ProxyGroupDomain name="groups">
           <Group name="sources" />
         </ProxyGroupDomain>
         <ProxyListDomain name="proxy_list">
-          <Proxy group="internal_filters"
+          <Proxy group="internal_sources"
                  name="SimpleLineSource" />
+          <Proxy group="sources"
+                 name="PolyLineSource" />
         </ProxyListDomain>
+        <Documentation>
+          The line input used to set P1 and P2 in the case of a single line.
+        </Documentation>
       </InputProperty>
       <IntVectorProperty command="SetAggregateAsPolyData"
                          default_values="1"
@@ -560,15 +573,14 @@
                          number_of_elements="1"
                          panel_visibility="never">
         <Documentation>
-          Force ouput to be a polydata when plotting over a single line.
+          If false then each result from an input line to probe results in a block in a
+          vtkMultiBlockDataSet. If true then each block is aggregated as a cell in a
+          single dataset and the output type of the filter becomes a vtkPolyData. Should
+          always be true for this filter.
         </Documentation>
       </IntVectorProperty>
-      <Hints>
-        <Visibility replace_input="0" />
-        <View type="XYChartView" also_show_in_current_view="1" />
-        <Plotable />
-      </Hints>
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPProbeFilter"
                  label="Legacy Resample With Dataset"

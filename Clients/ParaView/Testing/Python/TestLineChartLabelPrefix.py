@@ -8,8 +8,8 @@ r = Show(p)
 r.SeriesLabelPrefix = "plot1_"
 
 p2 = PlotOverLine(Input=wavelet)
-p2.Point1 = [0.0, -10.0, 0.0]
-p2.Point2 = [0.0, 10.0, 0.0]
+p2.Source.Point1 = [0.0, -10.0, 0.0]
+p2.Source.Point2 = [0.0, 10.0, 0.0]
 r2 =Show(p2)
 r2.SeriesLabelPrefix = "plot2_"
 
