@@ -427,6 +427,7 @@
       </Hints>
       <!-- End ProbePoint -->
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <CompoundSourceProxy label="Plot Over Line Legacy"
                          name="ProbeLineLegacy">
@@ -483,6 +484,7 @@
                   proxy="AppendArcLength1" />
       <!-- End ProbeLineLegacy -->
     </CompoundSourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkProbeLineFilter"
                  base_proxygroup="internal_filters"
@@ -500,7 +502,7 @@
       per probed cells, and "Sample Uniformally" samples uniformally along the input
       line.</Documentation>
       <InputProperty command="SetSourceConnection"
-                     name="ProbedLines">
+                     name="Source">
         <ProxyGroupDomain name="groups">
           <Group name="sources" />
           <Group name="filters" />
@@ -527,6 +529,7 @@
         <Plotable />
       </Hints>
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkProbeLineFilter"
                  base_proxygroup="internal_filters"
@@ -543,7 +546,7 @@
       Segment Centers" provides one sample per probed cells, and "Sample Uniformally"
       samples uniformally along the input line.</Documentation>
       <InputProperty command="SetSourceConnection"
-                     label="Probe Type"
+                     label="Source"
                      name="Source"
                      panel_visibility="default">
         <ProxyGroupDomain name="groups">
@@ -553,6 +556,9 @@
           <Proxy group="internal_filters"
                  name="SimpleLineSource" />
         </ProxyListDomain>
+        <Documentation>
+          The line input used to set P1 and P2 in the case of a single line.
+        </Documentation>
       </InputProperty>
       <IntVectorProperty command="SetAggregateAsPolyData"
                          default_values="1"
@@ -569,6 +575,7 @@
         <Plotable />
       </Hints>
     </SourceProxy>
+
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPProbeFilter"
                  label="Legacy Resample With Dataset"
