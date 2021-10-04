@@ -53,6 +53,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/NE2_ps_bath.png}"
   "DATA{${paraview_test_data_directory_input}/Data/OMETIFF/multi-channel-time-series.ome.tif}"
   "DATA{${paraview_test_data_directory_input}/Data/OverridePropertyPlugin.xml}"
+  "DATA{${paraview_test_data_directory_input}/Data/PlotOverLine510Legacy.pvsm}"
   "DATA{${paraview_test_data_directory_input}/Data/PlotOverLineLegacy.pvsm}"
   "DATA{${paraview_test_data_directory_input}/Data/PNGReadersPlugin.xml}"
   "DATA{${paraview_test_data_directory_input}/Data/PropertyLink.pvsm}"
@@ -627,6 +628,7 @@ SET (TESTS_WITHOUT_BASELINES
   OpenHelp.xml
   OverrideProperty.xml
   PartialArrayInLineChart.xml
+  PlotOverLine510Legacy.xml
   PlotOverLineLegacy.xml
   PointCellDataConversion.xml
   ReloadCGNSFile.xml
