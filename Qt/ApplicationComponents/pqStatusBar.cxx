@@ -56,9 +56,9 @@ void updateMemoryBar(QProgressBar* progressBar)
     return;
   }
 
-  auto infos = vtkPVMemoryUseInformation::New();
+  vtkNew<vtkPVMemoryUseInformation> infos;
   session->GatherInformation(vtkPVSession::SERVERS, infos, 0);
-  auto configs = vtkPVSystemConfigInformation::New();
+  vtkNew<vtkPVSystemConfigInformation> configs;
   session->GatherInformation(vtkPVSession::SERVERS, configs, 0);
 
   assert(infos->GetSize() == configs->GetSize());
