@@ -50,8 +50,13 @@ namespace
 //-----------------------------------------------------------------------------
 void updateMemoryBar(QProgressBar* progressBar)
 {
-  auto session = pqActiveObjects::instance().activeServer()->session();
-  if (session == nullptr)
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  if (!server)
+  {
+    return;
+  }
+  auto session = server->session();
+  if (!session)
   {
     return;
   }
