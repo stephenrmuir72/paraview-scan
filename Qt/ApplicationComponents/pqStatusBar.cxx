@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSession.h"
 
 #include <QProgressBar>
+#include <QStyleFactory>
 #include <QToolButton>
 
 #include <iostream>
@@ -146,6 +147,19 @@ pqStatusBar::pqStatusBar(QWidget* parentObject)
 
   auto memory_progress_bar = new QProgressBar(this);
   memory_progress_bar->setAlignment(Qt::AlignCenter);
+
+  // Force to fusion or cleanlooks style
+  // to make sure that the formatted text is displayed
+  QStyle* style = QStyleFactory::create("fusion");
+  if (!style)
+  {
+    style = QStyleFactory::create("cleanlooks");
+  }
+  if (style)
+  {
+    memory_progress_bar->setStyle(style);
+  }
+
   QTimer* timer = new QTimer(this);
 
   connect(timer, &QTimer::timeout, [=] { ::updateMemoryBar(memory_progress_bar); });
