@@ -169,7 +169,7 @@ pqStatusBar::pqStatusBar(QWidget* parentObject)
   // Use a widget as a spacer that takes a third of all the available space
   this->addPermanentWidget(new QWidget(this), 3);
   this->addPermanentWidget(progress_bar, 4);
-  this->addPermanentWidget(memory_progress_bar, 2);
+ // this->addPermanentWidget(memory_progress_bar, 2);
 }
 
 //-----------------------------------------------------------------------------
