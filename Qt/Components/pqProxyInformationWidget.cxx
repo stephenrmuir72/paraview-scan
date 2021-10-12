@@ -48,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkCommand.h"
 #include "vtkDataAssembly.h"
 #include "vtkDataAssemblyUtilities.h"
+#include "vtkDataSetAttributes.h"
 #include "vtkMath.h"
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
@@ -61,6 +62,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSourceProxy.h"
 #include "vtkSmartPointer.h"
 #include <vtksys/SystemTools.hxx>
+
+#include <tuple>
 
 // ParaView components includes
 
@@ -155,7 +158,25 @@ private:
     QIcon(":/pqWidgets/Icons/pqSpreadsheet.svg"),
   };
 
-  std::vector<std::pair<int, vtkSmartPointer<vtkPVArrayInformation>>> ArrayInformations;
+  static_assert(vtkDataSetAttributes::NUM_ATTRIBUTES == 11,
+    "AttributeTypes list has been changed in VTK. Please update the name list in pqArrayModels"
+    " and this static_assert to reflect the new list.");
+
+  QString DataSetAttributesNames[vtkDataSetAttributes::NUM_ATTRIBUTES] = {
+    QString("Attribute type: Scalars"), QString("Attribute type: Vectors"),
+    QString("Attribute type: Normals"), QString("Attribute type: TCoords"),
+    QString("Attribute type: Tensors"), QString("Attribute type: Global Ids"),
+    QString("Attribute type: Pedigree Ids"), QString("Attribute type: Edge Flag"),
+    QString("Attribute type: Tangents"), QString("Attribute type: Rational Weights"),
+    QString("Attribute type: Higher Order Degrees")
+  };
+
+  QString DataSetAttributesNameNone = QString("Attribute type: None");
+
+  // elements have the structure [association, array index, array info]
+  std::vector<std::tuple<int, int, vtkSmartPointer<vtkPVArrayInformation>>> ArrayInformations;
+  vtkSmartPointer<vtkPVDataSetAttributesInformation>
+    AttributeInformations[vtkDataObject::NUMBER_OF_ASSOCIATIONS];
   vtkSmartPointer<vtkPVDataInformation> DataInformation;
 };
 
@@ -168,10 +189,15 @@ void pqArraysModel::setDataInformation(vtkPVDataInformation* dinfo)
   {
     if (auto dsa = dinfo->GetAttributeInformation(cc))
     {
+      this->AttributeInformations[cc] = dsa;
       for (int kk = 0, max = dsa->GetNumberOfArrays(); kk < max; ++kk)
       {
-        this->ArrayInformations.emplace_back(cc, dsa->GetArrayInformation(kk));
+        this->ArrayInformations.emplace_back(cc, kk, dsa->GetArrayInformation(kk));
       }
+    }
+    else
+    {
+      this->AttributeInformations[cc] = nullptr;
     }
   }
   this->endResetModel();
@@ -181,9 +207,10 @@ QVariant pqArraysModel::data(const QModelIndex& indx, int role) const
 {
   const int r = indx.row();
   const int c = indx.column();
-  auto& pair = this->ArrayInformations.at(r);
-  auto fieldAssociation = pair.first;
-  auto ainfo = pair.second;
+  auto& tuple = this->ArrayInformations.at(r);
+  int fieldAssociation = std::get<0>(tuple);
+  int arrayIndex = std::get<1>(tuple);
+  auto ainfo = std::get<2>(tuple);
 
   if (role == Qt::DecorationRole && c == 0)
   {
@@ -193,7 +220,18 @@ QVariant pqArraysModel::data(const QModelIndex& indx, int role) const
   {
     return ainfo->GetIsPartial() ? QBrush(Qt::darkBlue) : QBrush(Qt::darkGreen);
   }
-  else if (role != Qt::DisplayRole && role != Qt::ToolTipRole && role != Qt::EditRole)
+  else if (role == Qt::ToolTipRole)
+  {
+    vtkPVDataSetAttributesInformation* dsa = this->AttributeInformations[fieldAssociation];
+    int attributeType = dsa ? dsa->IsArrayAnAttribute(arrayIndex) : -1;
+
+    if (attributeType != -1)
+    {
+      return this->DataSetAttributesNames[attributeType];
+    }
+    return this->DataSetAttributesNameNone;
+  }
+  else if (role != Qt::DisplayRole && role != Qt::EditRole)
   {
     return QVariant();
   }
