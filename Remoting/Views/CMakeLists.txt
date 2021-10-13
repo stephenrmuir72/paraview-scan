@@ -168,6 +168,7 @@ set(classes
   vtkSMSpreadSheetRepresentationProxy
   vtkSMSpreadSheetViewProxy
   vtkSMTextWidgetRepresentationProxy
+  vtkSMTransferFunction2DProxy
   vtkSMTransferFunctionManager
   vtkSMTransferFunctionPresets
   vtkSMTransferFunctionProxy
