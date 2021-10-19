@@ -52,6 +52,7 @@ import paraview, re, os, os.path, types, sys
 # vtk modules.
 from paraview import vtk
 from paraview import _backwardscompatibilityhelper as _bc
+from paraview import util
 
 from paraview.modules.vtkPVVTKExtensionsCore import *
 from paraview.modules.vtkRemotingCore import *
@@ -493,6 +494,20 @@ class Proxy(object):
         else:
             paraview.print_debug_info("Setting '%s' as '%s'", name, value)
             try:
+                # If self is a source and the property is FileNames
+                # Then we want to glob each input file name.
+                # See #19454
+                if (name == "FileNames" and self.GetXMLGroup() == "sources"
+                        and self.GetProperty("FileNames").GetRepeatable()):
+                    fileList = []
+                    fileNames = value
+                    if type(fileNames) != list and type(fileNames) != tuple:
+                        fileNames = [fileNames]
+                    if len(fileNames) != 1:
+                        value = []
+                        for item in fileNames:
+                            path, fileName = os.path.split(item)
+                            value.extend(paraview.util.Glob(fileName, path))
                 setter(self, value)
             except ValueError:
                 # Let the backwards compatibility helper try to handle this
