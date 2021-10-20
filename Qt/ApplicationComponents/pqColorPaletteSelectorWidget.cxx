@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqColorPaletteSelectorWidget.h"
 
+#include "vtkLogger.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyDefinitionManager.h"
@@ -42,6 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include <cassert>
+#include <string>
+#include <vector>
 
 //-----------------------------------------------------------------------------
 pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
@@ -57,16 +60,43 @@ pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
   vtkSMSessionProxyManager* pxm = smproxy->GetSessionProxyManager();
   vtkSMProxyDefinitionManager* pdmgr = pxm->GetProxyDefinitionManager();
 
+  QComboBox* cbbox = new QComboBox(this);
+  cbbox->setObjectName("ComboBox");
+
+  // Palette ordering / ban list can be found in issue #20707
+  std::vector<std::string> mainPalettes = { "BlueGrayBackground", "WarmGrayBackground",
+    "NeutralGrayBackground", "LightGrayBackground", "WhiteBackground", "BlackBackground",
+    "GradientBackground" };
+
+  for (const std::string& str : mainPalettes)
+  {
+    if (vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", str.c_str()))
+    {
+      cbbox->addItem(prototype->GetXMLLabel(), str.c_str());
+    }
+    else
+    {
+      vtkLog(WARNING, "Missing palette: " << str.c_str());
+    }
+  }
+
+  // We don't want those palettes, so we mark them as already added.
+  mainPalettes.emplace_back("DefaultBackground");
+  mainPalettes.emplace_back("PrintBackground");
+
   assert(pdmgr);
   vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
   iter.TakeReference(pdmgr->NewSingleGroupIterator("palettes"));
 
-  QComboBox* cbbox = new QComboBox(this);
-  cbbox->setObjectName("ComboBox");
+  // If there were any other available palettes, we append them in alphabetical order.
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
     vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", iter->GetProxyName());
-    cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());
+    if (std::find(mainPalettes.cbegin(), mainPalettes.cend(), iter->GetProxyName()) ==
+      mainPalettes.cend())
+    {
+      cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());
+    }
   }
 
   if (cbbox->count() > 0)
