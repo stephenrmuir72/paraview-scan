@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqColorPaletteSelectorWidget.h"
 
+#include "vtkLogger.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyDefinitionManager.h"
@@ -42,6 +43,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include <cassert>
+
+#define PQ_LOAD_PALETTE_DETAIL_MACRO(name)                                                         \
+  if (vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", name))                            \
+  {                                                                                                \
+    cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());                             \
+    mainPalettes.insert(std::string(name));                                                        \
+  }                                                                                                \
+  else                                                                                             \
+  {                                                                                                \
+    vtkLog(WARNING, "Missing palette: " << name);                                                  \
+  }
 
 //-----------------------------------------------------------------------------
 pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
@@ -57,16 +69,38 @@ pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
   vtkSMSessionProxyManager* pxm = smproxy->GetSessionProxyManager();
   vtkSMProxyDefinitionManager* pdmgr = pxm->GetProxyDefinitionManager();
 
+  QComboBox* cbbox = new QComboBox(this);
+  cbbox->setObjectName("ComboBox");
+
+  // We want a certain ordering for the palettes in the combo box (see issue #20707), so
+  // we save which ones were already added in this std::set
+  std::set<std::string> mainPalettes;
+
+  // We do not want to display Default (Blue Gray) and Print (White) twice,
+  // so we add them to the list of inserted palettes without actually adding them to the combo box.
+  mainPalettes.insert("DefaultBackground");
+  mainPalettes.insert("PrintBackground");
+
+  PQ_LOAD_PALETTE_DETAIL_MACRO("BlueGrayBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("WarmGrayBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("NeutralGrayBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("LightGrayBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("WhiteBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("BlackBackground");
+  PQ_LOAD_PALETTE_DETAIL_MACRO("GradientBackground");
+
   assert(pdmgr);
   vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
   iter.TakeReference(pdmgr->NewSingleGroupIterator("palettes"));
 
-  QComboBox* cbbox = new QComboBox(this);
-  cbbox->setObjectName("ComboBox");
+  // If there were any other available palettes, we append them in alphabetical order.
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
     vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", iter->GetProxyName());
-    cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());
+    if (!mainPalettes.count(std::string(prototype->GetXMLName())))
+    {
+      cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());
+    }
   }
 
   if (cbbox->count() > 0)
@@ -96,6 +130,8 @@ pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
     this->connect(cbbox, SIGNAL(currentIndexChanged(int)), SLOT(loadPalette(int)));
   }
 }
+
+#undef PQ_LOAD_PALETTE_DETAIL_MACRO
 
 //-----------------------------------------------------------------------------
 pqColorPaletteSelectorWidget::~pqColorPaletteSelectorWidget() = default;
