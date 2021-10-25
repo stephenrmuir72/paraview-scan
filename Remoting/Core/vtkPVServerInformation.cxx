@@ -68,6 +68,7 @@ vtkPVServerInformation::vtkPVServerInformation()
   this->RootOnly = 1;
   this->RemoteRendering = 1;
   this->Timeout = 0;
+  this->TimeoutCommand = "";
 #if VTK_MODULE_ENABLE_ParaView_icet
   this->UseIceT = 1;
 #else
@@ -114,6 +115,7 @@ void vtkPVServerInformation::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "OGVSupport: " << this->OGVSupport << endl;
   os << indent << "AVISupport: " << this->AVISupport << endl;
   os << indent << "Timeout: " << this->Timeout << endl;
+  os << indent << "TimeoutCommand: " << this->TimeoutCommand << endl;
   os << indent << "NumberOfProcesses: " << this->NumberOfProcesses << endl;
   os << indent << "MPIInitialized: " << this->MPIInitialized << endl;
   os << indent << "MultiClientsEnable: " << this->MultiClientsEnable << endl;
@@ -137,6 +139,7 @@ void vtkPVServerInformation::DeepCopy(vtkPVServerInformation* info)
   this->RemoteRendering = info->GetRemoteRendering();
   this->UseIceT = info->GetUseIceT();
   this->Timeout = info->GetTimeout();
+  this->TimeoutCommand = info->GetTimeoutCommand();
   this->NumberOfProcesses = info->NumberOfProcesses;
   this->MPIInitialized = info->MPIInitialized;
   this->NVPipeSupport = info->NVPipeSupport;
@@ -159,6 +162,7 @@ void vtkPVServerInformation::CopyFromObject(vtkObject* vtkNotUsed(obj))
 
   auto config = vtkRemotingCoreConfiguration::GetInstance();
   this->Timeout = config->GetTimeout();
+  this->TimeoutCommand = config->GetTimeoutCommand();
   this->IsInCave = config->GetIsInCave();
   this->IsInTileDisplay = config->GetIsInTileDisplay();
   this->MultiClientsEnable = config->GetMultiClientMode();
@@ -198,6 +202,8 @@ void vtkPVServerInformation::AddInformation(vtkPVInformation* info)
     {
       this->Timeout = serverInfo->GetTimeout();
     }
+
+    this->TimeoutCommand = serverInfo->GetTimeoutCommand();
 
     this->IsInTileDisplay |= serverInfo->GetIsInTileDisplay();
     this->IsInTileDisplay |= serverInfo->GetIsInCave();
@@ -240,6 +246,7 @@ void vtkPVServerInformation::CopyToStream(vtkClientServerStream* css)
   *css << vtkClientServerStream::Reply;
   *css << this->RemoteRendering;
   *css << this->Timeout;
+  *css << this->TimeoutCommand;
   *css << this->UseIceT;
   *css << this->OGVSupport;
   *css << this->AVISupport;
@@ -270,6 +277,11 @@ void vtkPVServerInformation::CopyFromStream(const vtkClientServerStream* css)
   if (!css->GetArgument(0, idx++, &this->Timeout))
   {
     vtkErrorMacro("Error parsing Timeout from message.");
+    return;
+  }
+  if (!css->GetArgument(0, idx++, &this->TimeoutCommand))
+  {
+    vtkErrorMacro("Error parsing TimeoutCommand from message.");
     return;
   }
   if (!css->GetArgument(0, idx++, &this->UseIceT))
