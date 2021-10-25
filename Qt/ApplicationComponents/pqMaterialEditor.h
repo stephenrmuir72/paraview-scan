@@ -109,11 +109,18 @@ protected:
    */
   std::string generateValidMaterialName(const std::string& name);
 
+  /**
+   * Overriden to warn user when material editor is not usable.
+   */
+  void showEvent(QShowEvent* event) override;
+
 private:
   Q_DISABLE_COPY(pqMaterialEditor)
   class pqInternals;
   pqInternals* Internals;
   friend class pqInternals;
+
+  bool HasWarnedUser = true;
 };
 
 #endif
