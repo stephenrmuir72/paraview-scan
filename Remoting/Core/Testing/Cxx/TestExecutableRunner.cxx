@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   ParaView
-Module:    TestCommandLineProcess.cxx
+Module:    TestExecutableRunner.cxx
 
 Copyright (c) Kitware, Inc.
 All rights reserved.
@@ -25,9 +25,9 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include <string>
 
-int TestCommandLineProcess(int argc, char* argv[])
+int TestExecutableRunner(int argc, char* argv[])
 {
-  vtkInitializationHelper::SetApplicationName("TestCommandLineProcess");
+  vtkInitializationHelper::SetApplicationName("TestExecutableRunner");
   vtkInitializationHelper::SetOrganizationName("Humanity");
   vtkInitializationHelper::Initialize(argv[0], vtkProcessModule::PROCESS_CLIENT);
 
@@ -44,10 +44,10 @@ int TestCommandLineProcess(int argc, char* argv[])
   // Setup a proxy to a command line process
   vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy("misc", "CommandLineProcess"));
+  proxy.TakeReference(pxm->NewProxy("misc", "ExecutableRunner"));
   if (!proxy)
   {
-    vtkGenericWarningMacro("Failed to create proxy: `misc,CommandLineProcess`. Aborting !!!");
+    vtkGenericWarningMacro("Failed to create proxy: `misc,ExecutableRunner`. Aborting !!!");
     abort();
   }
 

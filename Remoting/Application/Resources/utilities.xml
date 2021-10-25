@@ -673,8 +673,8 @@
       <!-- End of TimerLog -->
     </Proxy>
 
-    <Proxy class="vtkCommandLineProcess"
-           name="CommandLineProcess"
+    <Proxy class="vtkExecutableRunner"
+           name="ExecutableRunner"
            processes="client|dataserver|renderserver">
       <Documentation>Execute a process on server side.</Documentation>
       <Property command="Execute"
@@ -698,7 +698,7 @@
                         information_only="1">
         <Documentation>Get the error output of the command.</Documentation>
       </StringVectorProperty>
-      <!-- End of CommandLineProcess -->
+      <!-- End of ExecutableRunner -->
     </Proxy>
 
     <!-- ================================================================= -->
