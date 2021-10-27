@@ -68,7 +68,6 @@ vtkPVServerInformation::vtkPVServerInformation()
   this->RootOnly = 1;
   this->RemoteRendering = 1;
   this->Timeout = 0;
-  this->TimeoutCommand = "";
 #if VTK_MODULE_ENABLE_ParaView_icet
   this->UseIceT = 1;
 #else
