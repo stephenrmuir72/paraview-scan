@@ -79,6 +79,9 @@ public:
   // remaining time in minutes
   int RemainingLifeTime{ -1 };
 
+  // Server side timeout command
+  std::string TimeoutCommand;
+
   vtkNew<vtkEventQtSlotConnect> VTKConnect;
   vtkWeakPointer<vtkSMCollaborationManager> CollaborationCommunicator;
 };
@@ -97,30 +100,29 @@ pqServer::pqServer(vtkIdType connectionID, QObject* _parent)
 
   vtkPVServerInformation* serverInfo = this->getServerInformation();
 
-  std::string timeoutCommand = "";
-  int timeout = -1;
-
   if (this->isRemote() && serverInfo)
   {
-    timeoutCommand = serverInfo->GetTimeoutCommand();
-    if (serverInfo->GetTimeout() > 0)
-    {
-      timeout = serverInfo->GetTimeout();
-    }
+    this->Internals->TimeoutCommand = serverInfo->GetTimeoutCommand();
+    this->Internals->RemainingLifeTime = serverInfo->GetTimeout();
   }
 
-  if (timeoutCommand != "") // Use specified command for updating timeout
+  if (!this->Internals->TimeoutCommand.empty()) // Setup server side command proxy
   {
-    this->setRemainingLifeTimeWithCommand(timeoutCommand);
-    QObject::connect(&this->Internals->ServerLifeTimeTimer, &QTimer::timeout, this,
-      &pqServer::updateRemainingLifeTimeWithCommand);
+    vtkSMSessionProxyManager* pxm = proxyManager();
+    this->ExecutableRunnerProxy.TakeReference(pxm->NewProxy("misc", "ExecutableRunner"));
+    vtkSMPropertyHelper(this->ExecutableRunnerProxy, "Command")
+      .Set(this->Internals->TimeoutCommand.c_str());
+    vtkSMPropertyHelper(this->ExecutableRunnerProxy, "Timeout").Set(0.3);
+    this->ExecutableRunnerProxy->UpdateVTKObjects();
   }
-  else // Update timeout locally
-  {
-    this->setRemainingLifeTime(timeout);
-    QObject::connect(&this->Internals->ServerLifeTimeTimer, &QTimer::timeout, this,
-      &pqServer::updateRemainingLifeTime);
-  }
+
+  this->updateRemainingLifeTime(); // First update
+
+  QObject::connect(&this->Internals->ServerLifeTimeTimer, &QTimer::timeout, this,
+    &pqServer::updateRemainingLifeTime);
+
+  this->Internals->ServerLifeTimeTimer.setInterval(60000);
+  this->Internals->ServerLifeTimeTimer.start();
 
   QObject::connect(&this->Internals->HeartbeatTimer, SIGNAL(timeout()), this, SLOT(heartBeat()));
 
@@ -190,38 +192,11 @@ void pqServer::setMonitorServerNotifications(bool val)
 //-----------------------------------------------------------------------------
 void pqServer::setRemainingLifeTime(int value)
 {
-  auto& internals = (*this->Internals);
-  if (internals.RemainingLifeTime != value)
+  if (this->Internals->RemainingLifeTime != value)
   {
-    internals.RemainingLifeTime = value;
-    if (value > 0 && internals.ServerLifeTimeTimer.isActive() == false)
-    {
-      internals.ServerLifeTimeTimer.start(60000); // trigger signal every minute
-    }
-    else if (value <= 0)
-    {
-      internals.ServerLifeTimeTimer.stop();
-    }
-    // since RemainingLifeTime is used it labelling the server, fire nameChanged
-    // so pipeline browser can accurately indicate it.
+    this->Internals->RemainingLifeTime = value;
     Q_EMIT this->nameChanged(this);
   }
-}
-
-//-----------------------------------------------------------------------------
-void pqServer::setRemainingLifeTimeWithCommand(const std::string& timeoutCommand)
-{
-  // Setup the proxy used to execute given command on the server
-  vtkSMSessionProxyManager* pxm = proxyManager();
-  this->ExecutableRunnerProxy.TakeReference(pxm->NewProxy("misc", "ExecutableRunner"));
-  vtkSMPropertyHelper(this->ExecutableRunnerProxy->GetProperty("Command"))
-    .Set(timeoutCommand.c_str());
-  this->ExecutableRunnerProxy->UpdateVTKObjects();
-
-  // Start timer (trigger signal every minute)
-  this->Internals->ServerLifeTimeTimer.start(60000);
-
-  this->updateRemainingLifeTimeWithCommand();
 }
 
 //-----------------------------------------------------------------------------
@@ -367,9 +342,37 @@ void pqServer::heartBeat()
 //-----------------------------------------------------------------------------
 void pqServer::updateRemainingLifeTime()
 {
-  if (this->isRemote() && this->Internals->RemainingLifeTime > 0)
+  if (this->isRemote())
   {
-    this->Internals->RemainingLifeTime--;
+    if (!this->Internals->TimeoutCommand.empty()) // Update with command
+    {
+      // Launch timeout command & retrieve the result
+      this->ExecutableRunnerProxy->InvokeCommand("Execute");
+      this->ExecutableRunnerProxy->UpdatePropertyInformation();
+      auto* returnProp = this->ExecutableRunnerProxy->GetProperty("ReturnValue");
+      int returnValue = vtkSMPropertyHelper(returnProp).GetAsInt();
+
+      if (returnValue == 0)
+      {
+        auto* outProp = this->ExecutableRunnerProxy->GetProperty("StdOut");
+        this->Internals->RemainingLifeTime = vtkSMPropertyHelper(outProp).GetAsInt();
+      }
+      else if (returnValue > 0)
+      {
+        auto* errProp = this->ExecutableRunnerProxy->GetProperty("StdErr");
+        vtkGenericWarningMacro("Error when executing the server side timeout command : "
+          << vtkSMPropertyHelper(errProp).GetAsString());
+      }
+      else
+      {
+        vtkGenericWarningMacro("Unable to run the server side timeout command.");
+      }
+    }
+    else if (this->Internals->RemainingLifeTime > 0) // Local update
+    {
+      this->Internals->RemainingLifeTime--;
+    }
+    // Time warnings
     if (this->Internals->RemainingLifeTime == 5)
     {
       Q_EMIT fiveMinuteTimeoutWarning();
@@ -378,43 +381,6 @@ void pqServer::updateRemainingLifeTime()
     {
       Q_EMIT finalTimeoutWarning();
     }
-
-    Q_EMIT this->nameChanged(this);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void pqServer::updateRemainingLifeTimeWithCommand()
-{
-  if (this->isRemote())
-  {
-    // Launch timeout command & retrieve the result
-    ExecutableRunnerProxy->InvokeCommand("Execute");
-    auto* returnProp = ExecutableRunnerProxy->GetProperty("ReturnValue");
-    ExecutableRunnerProxy->UpdatePropertyInformation(returnProp);
-    int returnValue = vtkSMPropertyHelper(returnProp).GetAsInt();
-    int timeout = this->Internals->RemainingLifeTime;
-
-    if (returnValue != -1)
-    {
-      if (timeout == 1)
-      {
-        Q_EMIT finalTimeoutWarning();
-      }
-      else if (timeout < 5 && timeout > 0)
-      {
-        Q_EMIT fiveMinuteTimeoutWarning();
-      }
-      auto* outProp = ExecutableRunnerProxy->GetProperty("StdOut");
-      ExecutableRunnerProxy->UpdatePropertyInformation(outProp);
-      this->Internals->RemainingLifeTime = vtkSMPropertyHelper(outProp).GetAsInt();
-    }
-    else
-    {
-      this->Internals->RemainingLifeTime = -1;
-    }
-
-    // Update info for pipeline browser
     Q_EMIT this->nameChanged(this);
   }
 }
