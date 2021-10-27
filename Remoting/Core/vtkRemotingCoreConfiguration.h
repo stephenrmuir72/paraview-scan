@@ -315,7 +315,7 @@ private:
   std::string ServerURL;
   std::string ServerResourceName;
   int Timeout = 0;
-  std::string TimeoutCommand = "";
+  std::string TimeoutCommand;
   bool UseStereoRendering = false;
   int StereoType = 0;
   double EyeSeparation = 0.06;

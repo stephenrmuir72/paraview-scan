@@ -169,13 +169,6 @@ public:
    */
   void setRemainingLifeTime(int value);
 
-  /**
-   * Set the server side command called each
-   * time and call it once to set the initial
-   * timeout value
-   */
-  void setRemainingLifeTimeWithCommand(const std::string& timeoutCommand);
-
 Q_SIGNALS:
   /**
    * Fired when the name of the proxy is changed.
@@ -252,14 +245,9 @@ protected Q_SLOTS:
   void heartBeat();
 
   /**
-   * Called to update the server life time (client side).
+   * Called to update the server life time.
    */
   void updateRemainingLifeTime();
-
-  /**
-   * Called to update the server life time (by running server side command).
-   */
-  void updateRemainingLifeTimeWithCommand();
 
   /**
    * Called when idle to look for server notification for collaboration purpose

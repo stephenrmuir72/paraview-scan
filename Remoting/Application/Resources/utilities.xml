@@ -705,8 +705,10 @@
       </StringVectorProperty>
       <IntVectorProperty command="GetReturnValue"
                         name="ReturnValue"
+                        number_of_elements="1"
+                        default_values="-1"
                         information_only="1">
-        <Documentation>Get the return value the command.</Documentation>
+        <Documentation>Get the return value of the command.</Documentation>
       </IntVectorProperty>
       <!-- End of ExecutableRunner -->
     </Proxy>
