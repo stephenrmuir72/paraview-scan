@@ -365,7 +365,7 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
       ->default_val(0);
 
     groupConnection->add_option("--timeout-command", this->TimeoutCommand,
-      "Timeout command allowing server to regularly recheck remaining time available.");
+      "Timeout command allowing server to regularly check remaining time available.");
   }
   else if (ptype == vtkProcessModule::PROCESS_CLIENT)
   {
