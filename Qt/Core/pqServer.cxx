@@ -114,9 +114,8 @@ pqServer::pqServer(vtkIdType connectionID, QObject* _parent)
       .Set(this->Internals->TimeoutCommand.c_str());
     vtkSMPropertyHelper(this->ExecutableRunnerProxy, "Timeout").Set(0.3);
     this->ExecutableRunnerProxy->UpdateVTKObjects();
+    this->updateRemainingLifeTime();
   }
-
-  this->updateRemainingLifeTime(); // First update
 
   QObject::connect(&this->Internals->ServerLifeTimeTimer, &QTimer::timeout, this,
     &pqServer::updateRemainingLifeTime);
@@ -372,6 +371,7 @@ void pqServer::updateRemainingLifeTime()
     {
       this->Internals->RemainingLifeTime--;
     }
+
     // Time warnings
     if (this->Internals->RemainingLifeTime == 5)
     {
