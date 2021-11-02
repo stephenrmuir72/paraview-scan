@@ -100,6 +100,18 @@ public:
   vtkSetMacro(FastFileTypeDetection, int);
   //@}
 
+  ///@{
+  /**
+   * Merges file sequences when found. A file sequence could be [foo1.png, foo2.png, foo6.png].
+   * When turned on, the series of files is merged and our sequence example is named foo..png
+   * and original files are discarded from the listing.
+   * By default, this flag is set to true.
+   */
+  vtkGetMacro(MergeFileSequences, bool);
+  vtkSetMacro(MergeFileSequences, bool);
+  vtkBooleanMacro(MergeFileSequences, bool);
+  ///@}
+
   //@{
   /**
    * Returns the platform specific path separator.
@@ -136,6 +148,7 @@ protected:
   int DirectoryListing;
   int SpecialDirectories;
   int FastFileTypeDetection;
+  bool MergeFileSequences;
 
   bool ReadDetailedFileInformation;
   char* PathSeparator;
