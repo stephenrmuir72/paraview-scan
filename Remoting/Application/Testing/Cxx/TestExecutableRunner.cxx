@@ -25,7 +25,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include <string>
 
-int TestExecutableRunner(int argc, char* argv[])
+int TestExecutableRunner(int, char* argv[])
 {
   vtkInitializationHelper::SetApplicationName("TestExecutableRunner");
   vtkInitializationHelper::SetOrganizationName("Humanity");
@@ -52,7 +52,11 @@ int TestExecutableRunner(int argc, char* argv[])
   }
 
   // Call a command line process
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+  vtkSMPropertyHelper(proxy->GetProperty("Command")).Set("cmd.exe /c echo Hello World");
+#else
   vtkSMPropertyHelper(proxy->GetProperty("Command")).Set("echo Hello World");
+#endif
   proxy->UpdateVTKObjects();
   proxy->InvokeCommand("Execute");
   auto* outProp = proxy->GetProperty("StdOut");
