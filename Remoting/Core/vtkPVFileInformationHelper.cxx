@@ -31,6 +31,7 @@ vtkPVFileInformationHelper::vtkPVFileInformationHelper()
   , DirectoryListing(0)
   , SpecialDirectories(0)
   , FastFileTypeDetection(1)
+  , MergeFileSequences(true)
   , ReadDetailedFileInformation(false)
   , PathSeparator(nullptr)
 {
