@@ -137,6 +137,18 @@ public:
   vtkGetMacro(Hidden, bool);
   //@}
 
+  ///@{
+  /**
+   * Merges file sequences when found. A file sequence could be [foo1.png, foo2.png, foo6.png].
+   * When turned on, the series of files is merged and our sequence example is named foo..png
+   * and original files are discarded from the listing.
+   * By default, this flag is set to true.
+   */
+  vtkGetMacro(MergeFileSequences, bool);
+  vtkSetMacro(MergeFileSequences, bool);
+  vtkBooleanMacro(MergeFileSequences, bool);
+  ///@}
+
   //@{
   /**
    * Get the Contents for this directory.
@@ -198,6 +210,7 @@ protected:
   void SetHiddenFlag();
   int FastFileTypeDetection;
   bool ReadDetailedFileInformation;
+  bool MergeFileSequences;
 
 private:
   vtkPVFileInformation(const vtkPVFileInformation&) = delete;
