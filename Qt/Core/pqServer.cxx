@@ -108,6 +108,9 @@ pqServer::pqServer(vtkIdType connectionID, QObject* _parent)
 
   if (!this->Internals->TimeoutCommand.empty()) // Setup server side command proxy
   {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+    this->Internals->TimeoutCommand.insert(0, "cmd.exe /c ");
+#endif
     vtkSMSessionProxyManager* pxm = proxyManager();
     this->ExecutableRunnerProxy.TakeReference(pxm->NewProxy("misc", "ExecutableRunner"));
     vtkSMPropertyHelper(this->ExecutableRunnerProxy, "Command")
