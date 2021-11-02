@@ -348,19 +348,17 @@ void pqServer::updateRemainingLifeTime()
       // Launch timeout command & retrieve the result
       this->ExecutableRunnerProxy->InvokeCommand("Execute");
       this->ExecutableRunnerProxy->UpdatePropertyInformation();
-      auto* returnProp = this->ExecutableRunnerProxy->GetProperty("ReturnValue");
-      int returnValue = vtkSMPropertyHelper(returnProp).GetAsInt();
+      int returnValue = vtkSMPropertyHelper(this->ExecutableRunnerProxy, "ReturnValue").GetAsInt();
 
       if (returnValue == 0)
       {
-        auto* outProp = this->ExecutableRunnerProxy->GetProperty("StdOut");
-        this->Internals->RemainingLifeTime = vtkSMPropertyHelper(outProp).GetAsInt();
+        this->Internals->RemainingLifeTime =
+          vtkSMPropertyHelper(this->ExecutableRunnerProxy, "StdOut").GetAsInt();
       }
       else if (returnValue > 0)
       {
-        auto* errProp = this->ExecutableRunnerProxy->GetProperty("StdErr");
         vtkGenericWarningMacro("Error when executing the server side timeout command : "
-          << vtkSMPropertyHelper(errProp).GetAsString());
+          << vtkSMPropertyHelper(this->ExecutableRunnerProxy, "StdErr").GetAsString());
       }
       else
       {
