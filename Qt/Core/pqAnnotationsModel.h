@@ -107,8 +107,9 @@ public:
   //@{
   /**
    * Set/Get the value-annotation pairs.
+   * Emit dataChanged signal, until quiet is true.
    */
-  void setAnnotations(const std::vector<std::pair<QString, QString>>& newAnnotations);
+  void setAnnotations(const std::vector<std::pair<QString, QString>>& newAnnotations, bool quiet=false);
   std::vector<std::pair<QString, QString>> annotations() const;
   //@}
 
