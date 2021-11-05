@@ -103,13 +103,6 @@ public:
   vtkGetMacro(Timeout, int);
   //@}
 
-  //@{
-  /**
-   * Get the timeout command used by the server to retrieve remaining time.
-   */
-  const std::string& GetTimeoutCommand() const { return this->TimeoutCommand; }
-  //@}
-
   /**
    * When in tile display mode, returns the tile dimensions.
    */
@@ -174,7 +167,6 @@ protected:
   bool NVPipeSupport;
   int RemoteRendering;
   int Timeout;
-  std::string TimeoutCommand;
   int UseIceT;
   int MultiClientsEnable;
   int ClientId;

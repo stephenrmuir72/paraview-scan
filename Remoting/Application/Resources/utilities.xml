@@ -673,19 +673,14 @@
       <!-- End of TimerLog -->
     </Proxy>
 
-    <Proxy class="vtkExecutableRunner"
-           name="ExecutableRunner"
+    <Proxy class="vtkCommandLineProcess"
+           name="CommandLineProcess"
            processes="client|dataserver|renderserver">
       <Documentation>Execute a process on server side.</Documentation>
       <Property command="Execute"
                 name="Execute">
-        <Documentation>Execute the given command on the master server process. Also reset the output strings.</Documentation>
+        <Documentation>Resets the log on all processes.</Documentation>
       </Property>
-      <DoubleVectorProperty command="SetTimeout"
-                        default_values="5.0"
-                        name="Timeout">
-        <Documentation>Set the internal timeout of the runner.</Documentation>
-      </DoubleVectorProperty>
       <StringVectorProperty command="SetCommand"
                         default_values=""
                         name="Command">
@@ -703,14 +698,7 @@
                         information_only="1">
         <Documentation>Get the error output of the command.</Documentation>
       </StringVectorProperty>
-      <IntVectorProperty command="GetReturnValue"
-                        name="ReturnValue"
-                        number_of_elements="1"
-                        default_values="-1"
-                        information_only="1">
-        <Documentation>Get the return value of the command.</Documentation>
-      </IntVectorProperty>
-      <!-- End of ExecutableRunner -->
+      <!-- End of CommandLineProcess -->
     </Proxy>
 
     <!-- ================================================================= -->

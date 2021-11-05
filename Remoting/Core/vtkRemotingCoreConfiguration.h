@@ -125,12 +125,6 @@ public:
   vtkGetMacro(Timeout, int);
 
   /**
-   * Get the timeout command, called regularly on server side and giving
-   * remaining time available for server access.
-   */
-  const std::string& GetTimeoutCommand() const { return this->TimeoutCommand; }
-
-  /**
    * On client processes, this returns the server connection url to use to
    * connect to the server process(es) on startup, if any.
    *
@@ -315,7 +309,6 @@ private:
   std::string ServerURL;
   std::string ServerResourceName;
   int Timeout = 0;
-  std::string TimeoutCommand;
   bool UseStereoRendering = false;
   int StereoType = 0;
   double EyeSeparation = 0.06;

@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   ParaView
-Module:    TestExecutableRunner.cxx
+Module:    TestCommandLineProcess.cxx
 
 Copyright (c) Kitware, Inc.
 All rights reserved.
@@ -25,9 +25,9 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include <string>
 
-int TestExecutableRunner(int, char* argv[])
+int TestCommandLineProcess(int argc, char* argv[])
 {
-  vtkInitializationHelper::SetApplicationName("TestExecutableRunner");
+  vtkInitializationHelper::SetApplicationName("TestCommandLineProcess");
   vtkInitializationHelper::SetOrganizationName("Humanity");
   vtkInitializationHelper::Initialize(argv[0], vtkProcessModule::PROCESS_CLIENT);
 
@@ -44,19 +44,15 @@ int TestExecutableRunner(int, char* argv[])
   // Setup a proxy to a command line process
   vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
   vtkSmartPointer<vtkSMProxy> proxy;
-  proxy.TakeReference(pxm->NewProxy("misc", "ExecutableRunner"));
+  proxy.TakeReference(pxm->NewProxy("misc", "CommandLineProcess"));
   if (!proxy)
   {
-    vtkGenericWarningMacro("Failed to create proxy: `misc,ExecutableRunner`. Aborting !!!");
+    vtkGenericWarningMacro("Failed to create proxy: `misc,CommandLineProcess`. Aborting !!!");
     abort();
   }
 
   // Call a command line process
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-  vtkSMPropertyHelper(proxy->GetProperty("Command")).Set("cmd.exe /c echo Hello World");
-#else
   vtkSMPropertyHelper(proxy->GetProperty("Command")).Set("echo Hello World");
-#endif
   proxy->UpdateVTKObjects();
   proxy->InvokeCommand("Execute");
   auto* outProp = proxy->GetProperty("StdOut");
