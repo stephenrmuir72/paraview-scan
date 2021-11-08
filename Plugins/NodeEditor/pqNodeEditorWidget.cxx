@@ -571,7 +571,7 @@ int pqNodeEditorWidget::createNodeForSource(pqPipelineSource* proxy)
   // left click + ctrl : set all incoming selected ports as input
   if (auto proxyAsFilter = dynamic_cast<pqPipelineFilter*>(proxy))
   {
-    for (size_t idx = 0; idx < node->getInputPorts().size(); idx++)
+    for (int idx = 0; idx < static_cast<int>(node->getInputPorts().size()); idx++)
     {
       auto* label = node->getInputPorts()[idx]->getLabel();
       label->setMousePressEventCallback(
