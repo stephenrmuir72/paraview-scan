@@ -144,6 +144,7 @@ ctest_test(APPEND
   PARALLEL_LEVEL "${nproc}"
   TEST_LOAD "${nproc}"
   RETURN_VALUE test_result
+  INCLUDE "ServerConnectConfigured"
   EXCLUDE "${test_exclusions}"
   OUTPUT_JUNIT "${CTEST_BINARY_DIRECTORY}/junit.xml"
   REPEAT UNTIL_PASS:3)
