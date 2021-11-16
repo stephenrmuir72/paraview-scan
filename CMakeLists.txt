@@ -679,9 +679,16 @@ list(LENGTH paraview_modules paraview_modules_len)
 list(LENGTH paraview_client_modules paraview_client_modules_len)
 message(STATUS "Enabled modules: VTK(${vtk_modules_len}), ParaView(${paraview_modules_len} + ${paraview_client_modules_len})")
 
+set(paraview_autoload_plugins
+  SurfaceLIC)
+
 set(autoload_plugins)
 foreach (paraview_plugin IN LISTS paraview_plugins)
-  option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
+  if (${paraview_plugin} IN_LIST paraview_autoload_plugins)
+    option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" ON)
+  else ()
+    option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
+  endif ()
   mark_as_advanced("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}")
 
   if (PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin})
