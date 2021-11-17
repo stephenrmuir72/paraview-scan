@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * pqImplicitPlanePropertyWidget is a custom property widget that uses
  * "ImplicitPlaneWidgetRepresentation" to help users interactively set the origin
  * and normal for a plane. To use this widget for a property group
- * (vtkSMPropertyGroup), use "InteractivePlane" as the "panel_widget" in the
+ * (vtkSMPropertyGroup), use "InteractivePlane2" as the "panel_widget" in the
  * XML configuration for the proxy. The property group should have properties for
  * following functions:
  * \li \c Origin: a 3-tuple vtkSMDoubleVectorProperty that will be linked to the
