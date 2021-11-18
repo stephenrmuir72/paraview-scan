@@ -2286,6 +2286,14 @@ def LoadDistributedPlugin(pluginname, remote=True, ns=None):
     Note, `remote=True` has no effect when running in batch mode (or Catalyst)
     or when the active connection is not a client-server connection.
     """
+    version = paraview.simple.GetParaViewVersion()
+    print("version ", version)
+    if version > (5, 10):
+        if pluginname == "SurfaceLIC":
+            warnings.warn("SurfaceLIC is now directly available without need to load a plugin",
+                    DeprecationWarning)
+            return
+
     if not servermanager.ActiveConnection:
         raise RuntimeError ("Cannot load a plugin without a session.")
 
