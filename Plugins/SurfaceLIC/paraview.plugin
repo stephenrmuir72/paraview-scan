@@ -1,9 +1,4 @@
 NAME
   SurfaceLIC
 DESCRIPTION
-  Add Surface-LIC vector visualization support
-REQUIRES_MODULES
-  ParaView::RemotingViews
-  VTK::CommonCore
-  VTK::RenderingCore
-  VTK::RenderingLICOpenGL2
+  No longer necessary; built into ParaView
