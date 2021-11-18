@@ -1974,7 +1974,6 @@ foreach(test_name IN LISTS texture_buffer_exceeding_hardware_tests)
 endforeach()
 
 # Server Connection specific tests
-
 if(NOT WIN32) # On windows, QtTesting is not able to press the connection dialog buttons
   paraview_add_client_tests(
     SMTESTING_ALLOW_ERRORS
