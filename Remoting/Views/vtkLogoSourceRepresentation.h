@@ -61,6 +61,14 @@ public:
   vtkGetMacro(Opacity, double);
   //@}
 
+  //@{
+  /**
+   * Set the display location of the logo
+   */
+  vtkSetMacro(SendToBackground, bool);
+  vtkGetMacro(SendToBackground, bool);
+  //@}
+
   /**
    * vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
    * typically called by the vtkView to request meta-data from the
@@ -101,6 +109,7 @@ protected:
   vtkNew<vtkImageData> ImageCache;
   vtk3DWidgetRepresentation* LogoWidgetRepresentation = nullptr;
   double Opacity = 1.0;
+  bool SendToBackground = false;
 
 private:
   vtkLogoSourceRepresentation(const vtkLogoSourceRepresentation&) = delete;
