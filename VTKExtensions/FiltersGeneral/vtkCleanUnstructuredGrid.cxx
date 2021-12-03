@@ -18,11 +18,11 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkCellData.h"
 #include "vtkCollection.h"
 #include "vtkDataSet.h"
+#include "vtkIncrementalOctreePointLocator.h"
 #include "vtkIncrementalPointLocator.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
-#include "vtkMergePoints.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPointSet.h"
@@ -207,7 +207,7 @@ void vtkCleanUnstructuredGrid::CreateDefaultLocator(vtkDataSet* input)
   {
     if (tol == 0.0)
     {
-      this->Locator = vtkMergePoints::New();
+      this->Locator = vtkIncrementalOctreePointLocator::New();
       this->Locator->Register(this);
       this->Locator->Delete();
     }
