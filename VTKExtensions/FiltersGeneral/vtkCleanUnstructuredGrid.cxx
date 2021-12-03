@@ -25,6 +25,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkIntArray.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkPointLocator.h"
 #include "vtkPointSet.h"
 #include "vtkPoints.h"
 #include "vtkRectilinearGrid.h"
