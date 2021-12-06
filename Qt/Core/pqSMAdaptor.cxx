@@ -146,6 +146,7 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
     vtkSMProxyGroupDomain* proxyGroupDomain = nullptr;
     vtkSMFileListDomain* fileListDomain = nullptr;
     vtkSMStringListDomain* stringListDomain = nullptr;
+    vtkSMArrayListDomain* arrayListDomain = nullptr;
     vtkSMCompositeTreeDomain* compositeTreeDomain = nullptr;
     vtkSMChartSeriesSelectionDomain* chartSeriesSelectionDomain = nullptr;
 
@@ -172,6 +173,10 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
       {
         stringListDomain = vtkSMStringListDomain::SafeDownCast(iter->GetDomain());
       }
+      if (!arrayListDomain)
+      {
+        arrayListDomain = vtkSMArrayListDomain::SafeDownCast(iter->GetDomain());
+      }
       if (!compositeTreeDomain)
       {
         compositeTreeDomain = vtkSMCompositeTreeDomain::SafeDownCast(iter->GetDomain());
@@ -193,6 +198,11 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
       type = pqSMAdaptor::COMPOSITE_TREE;
     }
     else if (chartSeriesSelectionDomain)
+    {
+      type = pqSMAdaptor::MULTIPLE_ELEMENTS;
+    }
+    else if (VectorProperty && VectorProperty->GetNumberOfElementsPerCommand() > 1 &&
+      arrayListDomain)
     {
       type = pqSMAdaptor::MULTIPLE_ELEMENTS;
     }
