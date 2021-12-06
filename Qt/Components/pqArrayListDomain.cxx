@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMDomain.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxy.h"
+#include "vtkSMStringVectorProperty.h"
 
 #include <QWidget>
 #include <QtDebug>
@@ -91,10 +92,41 @@ pqArrayListDomain::~pqArrayListDomain()
 void pqArrayListDomain::domainChanged()
 {
   // reset the widget's value using the domain.
-  QList<QList<QVariant>> newVal =
-    pqSMAdaptor::getSelectionProperty(this->Internals->SMProperty, pqSMAdaptor::UNCHECKED);
   QVariant variantVal;
-  variantVal.setValue(newVal);
+  vtkSMStringVectorProperty* prop =
+    vtkSMStringVectorProperty::SafeDownCast(this->Internals->SMProperty);
+
+  unsigned int nbPerCommand = prop->GetNumberOfElementsPerCommand();
+
+  if (prop && nbPerCommand > 1 &&
+    prop->GetElementType(1) == vtkSMStringVectorProperty::STRING)
+  {
+    QList<QVariant> domainList =
+      pqSMAdaptor::getSelectionPropertyDomain(this->Internals->SMProperty);
+
+    QList<QVariant> propList =
+      pqSMAdaptor::getMultipleElementProperty(this->Internals->SMProperty);
+
+    QList<QVariant> newPropList;
+    for (const QVariant& domainVal : domainList)
+    {
+      int stringPos = propList.indexOf(domainVal);
+      // set prop value if still in domain. Init new elements with domain values.
+      for (unsigned int i = 0; i < nbPerCommand; i++)
+      {
+        newPropList.append(stringPos > -1 ? propList[stringPos + i] : domainVal);
+      }
+    }
+
+    variantVal.setValue(newPropList);
+  }
+  else
+  {
+    QList<QList<QVariant>> newPropList =
+      pqSMAdaptor::getSelectionProperty(this->Internals->SMProperty, pqSMAdaptor::UNCHECKED);
+
+    variantVal.setValue(newPropList);
+  }
 
   this->parent()->setProperty(this->Internals->QProperty.toUtf8().data(), variantVal);
 }
