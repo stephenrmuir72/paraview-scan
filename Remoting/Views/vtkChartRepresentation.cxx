@@ -176,7 +176,7 @@ int vtkChartRepresentation::RequestData(
     // Prune input dataset to only process blocks on interest.
     // If input is not a multiblock dataset, we make it one so the rest of the
     // pipeline is simple.
-    if (data->IsA("vtkMultiBlockDataSet"))
+    if (data->IsA("vtkCompositeDataSet"))
     {
       vtkNew<vtkExtractBlock> extractBlock;
       extractBlock->SetInputData(data);
@@ -195,6 +195,13 @@ int vtkChartRepresentation::RequestData(
       mbdata->SetNumberOfBlocks(1);
       mbdata->SetBlock(0, data);
       data = mbdata.GetPointer();
+    }
+
+    vtkNew<vtkMultiBlockDataSet> tmp;
+    if (!data->IsA("vtkMultiBlockDataSet"))
+    {
+      tmp->ShallowCopy(data);
+      data = tmp.GetPointer();
     }
 
     // data must be a multiblock dataset, no matter what

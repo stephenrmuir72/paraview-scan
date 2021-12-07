@@ -137,7 +137,7 @@ vtkPVDataInformation* vtkSMOutputPort::GetSubsetDataInformation(
 vtkPVDataInformation* vtkSMOutputPort::GetSubsetDataInformation(unsigned int compositeIndex)
 {
   auto dinfo = this->GetDataInformation();
-  if (dinfo->DataSetTypeIsA(VTK_MULTIBLOCK_DATA_SET))
+  if (dinfo->DataSetTypeIsA(VTK_DATA_OBJECT_TREE))
   {
     if (compositeIndex == 0)
     {
