@@ -1042,6 +1042,7 @@ list(APPEND TESTS_WITH_BASELINES
   # ParallelCoordinatesView.xml see paraview/paraview#20679
   PlotDataOverTime-NonDistributed.xml
   PlotEdges2.xml
+  PlotEdges3.xml
   # PlotEdges.xml see paraview/paraview#20659
   PlotGlobalVariablesOverTime.xml
   PlotOverTimeAutoApply.xml

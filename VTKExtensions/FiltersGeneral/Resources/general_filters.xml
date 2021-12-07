@@ -270,6 +270,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkPolyData" />
+          <DataType value="vtkDataObjectTree" />
         </DataTypeDomain>
         <Documentation>This property specifies the input to the Plot Edges
         filter.</Documentation>

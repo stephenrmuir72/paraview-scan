@@ -14,34 +14,38 @@
   =========================================================================*/
 #include "vtkPlotEdges.h"
 
+#include "vtkAppendCompositeDataLeaves.h"
+#include "vtkAppendPolyData.h"
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkCleanPolyData.h"
 #include "vtkCollection.h"
 #include "vtkCollectionIterator.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
+#include "vtkDataObjectTreeRange.h"
 #include "vtkDoubleArray.h"
 #include "vtkIdList.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMath.h"
 #include "vtkMergePoints.h"
-#include "vtkMultiBlockDataSet.h"
+#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
+#include "vtkPartitionedDataSet.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkPoints.h"
 #include "vtkPolyData.h"
-#include "vtkSmartPointer.h"
-#include "vtkType.h"
-
-#include "vtkAppendCompositeDataLeaves.h"
-#include "vtkAppendPolyData.h"
-#include "vtkMultiProcessController.h"
+#include "vtkRange.h"
 #include "vtkReductionFilter.h"
+#include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkType.h"
 
 #define MY_MAX(x, y) ((x) < (y) ? (y) : (x))
 
+//============================================================================
 class vtkPlotEdges::Segment : public vtkObject
 {
   vtkTypeMacro(Segment, vtkObject);
@@ -93,6 +97,7 @@ private:
   void operator=(const Segment&) = delete;
 };
 
+//============================================================================
 class vtkPlotEdges::Node : public vtkObject
 {
   vtkTypeMacro(Node, vtkObject);
@@ -124,6 +129,7 @@ private:
 
 vtkStandardNewMacro(vtkPlotEdges::Segment);
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::Segment::Segment()
 {
   this->PolyData = nullptr;
@@ -145,6 +151,7 @@ vtkPlotEdges::Segment::Segment()
   this->EndDirection[2] = 0.;
 }
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::Segment::~Segment()
 {
   if (this->PolyData)
@@ -155,6 +162,7 @@ vtkPlotEdges::Segment::~Segment()
   this->ArcLengths->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::Segment::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -171,6 +179,7 @@ void vtkPlotEdges::Segment::PrintSelf(ostream& os, vtkIndent indent)
      << endl;
 }
 
+//----------------------------------------------------------------------------
 double vtkPlotEdges::Segment::GetLength() const
 {
   // return m_Length;
@@ -181,18 +190,21 @@ double vtkPlotEdges::Segment::GetLength() const
   return 0.;
 }
 
+//----------------------------------------------------------------------------
 double* vtkPlotEdges::Segment::GetStartPoint(double* point) const
 {
   const_cast<vtkPolyData*>(this->PolyData)->GetPoint(this->StartId, point);
   return point;
 }
 
+//----------------------------------------------------------------------------
 double* vtkPlotEdges::Segment::GetEndPoint(double* point) const
 {
   const_cast<vtkPolyData*>(this->PolyData)->GetPoint(this->EndId, point);
   return point;
 }
 
+//----------------------------------------------------------------------------
 const double* vtkPlotEdges::Segment::GetStartDirection() const
 {
   if (this->StartDirection[0] == 0. && this->StartDirection[1] == 0. &&
@@ -204,6 +216,7 @@ const double* vtkPlotEdges::Segment::GetStartDirection() const
   return this->StartDirection;
 }
 
+//----------------------------------------------------------------------------
 const double* vtkPlotEdges::Segment::GetEndDirection() const
 {
   if (this->EndDirection[0] == 0. && this->EndDirection[1] == 0. && this->EndDirection[2] == 0.)
@@ -214,6 +227,7 @@ const double* vtkPlotEdges::Segment::GetEndDirection() const
   return this->EndDirection;
 }
 
+//----------------------------------------------------------------------------
 double* vtkPlotEdges::Segment::GetDirection(vtkIdType pointId, double* direction) const
 {
   if (pointId == this->StartId)
@@ -233,6 +247,7 @@ double* vtkPlotEdges::Segment::GetDirection(vtkIdType pointId, double* direction
   return direction;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::Segment::ComputeDirection(
   vtkIdType pointIndex, bool increment, double* direction) const
 {
@@ -310,6 +325,7 @@ void vtkPlotEdges::Segment::ComputeDirection(
   // cerr<< "DIR: direction:" << direction[0] << "," << direction[1] << "," << direction[2] << endl;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::Segment::AddPoint(vtkIdType vtkNotUsed(cellId), vtkIdType pointId)
 {
   if (this->StartId == -1)
@@ -362,6 +378,7 @@ void vtkPlotEdges::Segment::AddPoint(vtkIdType vtkNotUsed(cellId), vtkIdType poi
   */
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::Segment::InsertSegment(vtkIdType pos, Segment* segment)
 {
   if (segment->PolyData != this->PolyData)
@@ -454,6 +471,7 @@ void vtkPlotEdges::Segment::InsertSegment(vtkIdType pos, Segment* segment)
 
 vtkStandardNewMacro(vtkPlotEdges::Node);
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::Node::Node()
 {
   this->PolyData = nullptr;
@@ -461,6 +479,7 @@ vtkPlotEdges::Node::Node()
   this->Segments = vtkCollection::New();
 }
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::Node::~Node()
 {
   if (this->PolyData)
@@ -470,11 +489,13 @@ vtkPlotEdges::Node::~Node()
   this->Segments->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::Node::AddSegment(Segment* segment)
 {
   this->Segments->AddItem(segment);
 }
 
+//----------------------------------------------------------------------------
 double vtkPlotEdges::Node::ComputeConnectionScore(Segment* segment1, Segment* segment2)
 {
   if (segment1 == segment2)
@@ -534,6 +555,7 @@ double vtkPlotEdges::Node::ComputeConnectionScore(Segment* segment1, Segment* se
 
 vtkStandardNewMacro(vtkPlotEdges);
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::vtkPlotEdges()
 {
   this->SetNumberOfOutputPorts(1);
@@ -541,80 +563,96 @@ vtkPlotEdges::vtkPlotEdges()
 
 vtkPlotEdges::~vtkPlotEdges() = default;
 
+//----------------------------------------------------------------------------
 int vtkPlotEdges::FillInputPortInformation(int port, vtkInformation* info)
 {
   if (port == 0)
   {
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSet");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataObjectTree");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
     return 1;
   }
   return 0;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlotEdges::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  // get the info objects
-  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
+  vtkDataObject* outputDO = vtkDataObject::GetData(outputVector, 0);
 
-  // get the input and output
-  vtkMultiBlockDataSet* output = vtkMultiBlockDataSet::GetData(outInfo);
+  bool error = false;
 
-  // The filter accepts vtkPolyData or vtkMultiBlockDataSet as input.
-  // The vtkPolyData is trivial
-  vtkPolyData* inputPolyData = vtkPolyData::GetData(inInfo);
-  if (inputPolyData)
+  std::vector<vtkDataObject*> inputPDSs, outputPDSs;
+
+  if (auto inputPDSC = vtkPartitionedDataSetCollection::SafeDownCast(inputDO))
   {
-    this->Process(inputPolyData, output);
-    return 1;
-  }
+    auto outputPDSC = vtkPartitionedDataSetCollection::SafeDownCast(outputDO);
+    outputPDSC->CopyStructure(inputPDSC);
 
-  // the input multiblock is iterated through and process each vtkPolyData
-  // leaf separately
-  vtkMultiBlockDataSet* inputMultiBlock = vtkMultiBlockDataSet::GetData(inInfo);
-  if (inputMultiBlock)
-  {
-    // pass the structure to the output. This has to be done on all processes
-    // even though actual data is only produce on  the root node.
-    output->CopyStructure(inputMultiBlock);
-
-    // iterate over the input multiblock to search for the vtkPolyData leaves
-    vtkCompositeDataIterator* it = inputMultiBlock->NewIterator();
-
-    for (it->InitTraversal(); !it->IsDoneWithTraversal(); it->GoToNextItem())
+    for (unsigned int pdsId = 0; pdsId < inputPDSC->GetNumberOfPartitionedDataSets(); ++pdsId)
     {
-      inputPolyData = vtkPolyData::SafeDownCast(it->GetCurrentDataObject());
-      if (inputPolyData == nullptr)
-      {
-        // this is bad!!! this is assuming that all processes have non-nullptr
-        // nodes at the same location, which is true with exodus, but nothing
-        // else. Pending BUG #11197.
-        continue;
-      }
-
-      // A multiblock leaf must be created to be added into the output
-      // multiblock. Since the structure on all processes MUST match up, we
-      // update the output structure on all processes.
-      vtkMultiBlockDataSet* outputMultiBlock = vtkMultiBlockDataSet::New();
-      output->SetDataSet(it, outputMultiBlock);
-      outputMultiBlock->FastDelete();
-
-      this->Process(inputPolyData, outputMultiBlock);
+      inputPDSs.emplace_back(inputPDSC->GetPartitionedDataSet(pdsId));
+      outputPDSs.emplace_back(outputPDSC->GetPartitionedDataSet(pdsId));
     }
-    it->Delete();
-    return 1;
+  }
+  else
+  {
+    inputPDSs.emplace_back(inputDO);
+    outputPDSs.emplace_back(outputDO);
   }
 
-  auto inputDO = vtkDataObject::GetData(inInfo);
-  vtkErrorMacro("Input data type of '" << inputDO->GetClassName() << "' is not supported yet.");
-  return 0;
+  for (int partitionId = 0; partitionId < static_cast<int>(inputPDSs.size()); ++partitionId)
+  {
+    vtkDataObject* inputPartition = inputPDSs[partitionId];
+    vtkDataObject* outputPartition = outputPDSs[partitionId];
+
+    if (auto outputCDS = vtkDataObjectTree::SafeDownCast(outputPartition))
+    {
+      if (auto inputCDS = vtkDataObjectTree::SafeDownCast(inputPartition))
+      {
+        using Opts = vtk::DataObjectTreeOptions;
+        outputCDS->CopyStructure(inputCDS);
+        auto outputs = vtk::Range(outputCDS, Opts::VisitOnlyLeaves | Opts::TraverseSubTree);
+        auto inputs = vtk::Range(inputCDS, Opts::VisitOnlyLeaves | Opts::TraverseSubTree);
+        for (auto inIt = inputs.begin(), outIt = outputs.begin(); inIt != inputs.end();
+             ++inIt, ++outIt)
+        {
+          if (auto inPD = vtkPolyData::SafeDownCast(*inIt))
+          {
+            *outIt = vtkSmartPointer<vtkDataObject>::Take(inPD->NewInstance());
+            auto outPD = vtkPolyData::SafeDownCast(*outIt);
+            this->Process(inPD, outPD);
+          }
+          else
+          {
+            *outIt = nullptr;
+          }
+        }
+      }
+      else
+      {
+        error = true;
+      }
+    }
+    else if (auto inPD = vtkPolyData::SafeDownCast(inputPartition))
+    {
+      auto outPD = vtkPolyData::SafeDownCast(outputPartition);
+      this->Process(inPD, outPD);
+    }
+    else
+    {
+      vtkErrorMacro("Input data type of '" << inputDO->GetClassName() << "' is not supported yet.");
+      error = true;
+    }
+  }
+
+  return error ? 0 : 1;
 }
 
-void vtkPlotEdges::Process(vtkPolyData* input, vtkMultiBlockDataSet* outputMultiBlock)
+//----------------------------------------------------------------------------
+void vtkPlotEdges::Process(vtkPolyData* input, vtkPolyData* outputPD)
 {
   vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
   ReducePolyData(input, inputPolyData);
@@ -623,27 +661,18 @@ void vtkPlotEdges::Process(vtkPolyData* input, vtkMultiBlockDataSet* outputMulti
 
   if (controller->GetLocalProcessId() > 0)
   {
-    int number_of_blocks = 0;
-    controller->Broadcast(&number_of_blocks, 1, 0);
-    // to ensure structure matches on all processes.
-    outputMultiBlock->SetNumberOfBlocks(number_of_blocks);
     return;
   }
 
-  vtkCollection* segments = vtkCollection::New();
-  vtkCollection* nodes = vtkCollection::New();
+  vtkNew<vtkCollection> segments;
+  vtkNew<vtkCollection> nodes;
 
   this->ExtractSegments(inputPolyData, segments, nodes);
   this->ConnectSegmentsWithNodes(segments, nodes);
-  this->SaveToMultiBlockDataSet(segments, outputMultiBlock);
-
-  segments->Delete();
-  nodes->Delete();
-
-  int number_of_blocks = outputMultiBlock->GetNumberOfBlocks();
-  controller->Broadcast(&number_of_blocks, 1, 0);
+  this->Save(segments, outputPD);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::ReducePolyData(vtkPolyData* polyData, vtkPolyData* output)
 {
   // Gather all the data from the different processors to run the
@@ -668,11 +697,13 @@ void vtkPlotEdges::ReducePolyData(vtkPolyData* polyData, vtkPolyData* output)
   output->RemoveGhostCells();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::ExtractSegments(
   vtkPolyData* input, vtkCollection* segments, vtkCollection* nodes)
 {
@@ -757,6 +788,7 @@ void vtkPlotEdges::ExtractSegments(
   visitedCells = nullptr;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::ExtractSegmentsFromExtremity(vtkPolyData* polyData, vtkCollection* segments,
   vtkCollection* nodes, char* visitedCells, vtkIdType cellId, vtkIdType pointId, Node* node)
 {
@@ -896,6 +928,7 @@ void vtkPlotEdges::ExtractSegmentsFromExtremity(vtkPolyData* polyData, vtkCollec
   // cerr << "End" << __FUNCTION__ << endl;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::ConnectSegmentsWithNodes(vtkCollection* segments, vtkCollection* nodes)
 {
   Node* node = nullptr;
@@ -989,6 +1022,7 @@ void vtkPlotEdges::ConnectSegmentsWithNodes(vtkCollection* segments, vtkCollecti
   nodeIt->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::MergeSegments(
   vtkCollection* segments, vtkCollection* nodes, Node* node, Segment* segmentA, Segment* segmentB)
 {
@@ -1037,6 +1071,7 @@ void vtkPlotEdges::MergeSegments(
   segments->RemoveItem(segmentB);
 }
 
+//----------------------------------------------------------------------------
 vtkPlotEdges::Node* vtkPlotEdges::GetNodeAtPoint(vtkCollection* nodes, vtkIdType pointId)
 {
   vtkCollectionIterator* it = nodes->NewIterator();
@@ -1054,19 +1089,24 @@ vtkPlotEdges::Node* vtkPlotEdges::GetNodeAtPoint(vtkCollection* nodes, vtkIdType
   return res;
 }
 
-void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBlockDataSet* output)
+//----------------------------------------------------------------------------
+void vtkPlotEdges::Save(vtkCollection* segments, vtkPolyData* output)
 {
+  if (!segments->GetNumberOfItems())
+  {
+    return;
+  }
   // copy into dataset
   //
   segments->InitTraversal();
   Segment* segment = nullptr;
+  vtkNew<vtkAppendPolyData> appender;
   for (segment = Segment::SafeDownCast(segments->GetNextItemAsObject()); segment;
        segment = Segment::SafeDownCast(segments->GetNextItemAsObject()))
   {
     vtkPolyData* polyData = const_cast<vtkPolyData*>(segment->GetPolyData());
 
     vtkSmartPointer<vtkPolyData> pd = vtkSmartPointer<vtkPolyData>::New();
-    output->SetBlock(output->GetNumberOfBlocks(), pd);
 
     vtkSmartPointer<vtkCellArray> ca = vtkSmartPointer<vtkCellArray>::New();
 
@@ -1116,6 +1156,8 @@ void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBloc
     }
     pd->GetPointData()->AddArray(arcLength);
 
+    appender->AddInputData(pd);
+
     /*
       cerr << "Add PolyLine of " <<
       segment->GetPointIdList()->GetNumberOfIds() << " points" << endl;
@@ -1134,8 +1176,12 @@ void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBloc
       cerr << endl;
     */
   }
+
+  appender->Update();
+  output->ShallowCopy(appender->GetOutputDataObject(0));
 }
 
+//----------------------------------------------------------------------------
 void vtkPlotEdges::PrintSegments(vtkCollection* segments)
 {
   vtkSmartPointer<vtkCollectionIterator> it = segments->NewIterator();
