@@ -20,17 +20,16 @@
 #ifndef vtkPlotEdges_h
 #define vtkPlotEdges_h
 
-#include "vtkMultiBlockDataSetAlgorithm.h"
 #include "vtkPVVTKExtensionsFiltersGeneralModule.h" //needed for exports
+#include "vtkPassInputTypeAlgorithm.h"
 
 class vtkPolyData;
 class vtkCollection;
-class vtkMultiBlockDataSet;
 
-class VTKPVVTKEXTENSIONSFILTERSGENERAL_EXPORT vtkPlotEdges : public vtkMultiBlockDataSetAlgorithm
+class VTKPVVTKEXTENSIONSFILTERSGENERAL_EXPORT vtkPlotEdges : public vtkPassInputTypeAlgorithm
 {
 public:
-  vtkTypeMacro(vtkPlotEdges, vtkMultiBlockDataSetAlgorithm);
+  vtkTypeMacro(vtkPlotEdges, vtkPassInputTypeAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkPlotEdges* New();
@@ -46,14 +45,14 @@ protected:
   // Usual data generation method
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
-  void Process(vtkPolyData* input, vtkMultiBlockDataSet* output);
+  void Process(vtkPolyData* input, vtkPolyData* output);
   static void ReducePolyData(vtkPolyData* polyData, vtkPolyData* output);
 
   void ExtractSegments(vtkPolyData* polyData, vtkCollection* segments, vtkCollection* nodes);
   static void ExtractSegmentsFromExtremity(vtkPolyData* polyData, vtkCollection* segments,
     vtkCollection* nodes, char* visitedCells, vtkIdType cellId, vtkIdType pointId, Node* node);
   static void ConnectSegmentsWithNodes(vtkCollection* segments, vtkCollection* nodes);
-  static void SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBlockDataSet* output);
+  static void Save(vtkCollection* segments, vtkPolyData* output);
   static void MergeSegments(vtkCollection* segments, vtkCollection* nodes, Node* node,
     Segment* segmentA, Segment* segmentB);
   static vtkPlotEdges::Node* GetNodeAtPoint(vtkCollection* nodes, vtkIdType pointId);

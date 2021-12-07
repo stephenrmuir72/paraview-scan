@@ -14,23 +14,28 @@
   =========================================================================*/
 #include "vtkPlotEdges.h"
 
+#include "vtkAppendPolyData.h"
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkCleanPolyData.h"
 #include "vtkCollection.h"
 #include "vtkCollectionIterator.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
+#include "vtkDataObjectTreeRange.h"
 #include "vtkDoubleArray.h"
 #include "vtkIdList.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMath.h"
 #include "vtkMergePoints.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
+#include "vtkPartitionedDataSet.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkPoints.h"
 #include "vtkPolyData.h"
+#include "vtkRange.h"
 #include "vtkSmartPointer.h"
 #include "vtkType.h"
 
@@ -545,10 +550,8 @@ int vtkPlotEdges::FillInputPortInformation(int port, vtkInformation* info)
 {
   if (port == 0)
   {
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSet");
-    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
     return 1;
   }
   return 0;
@@ -557,64 +560,79 @@ int vtkPlotEdges::FillInputPortInformation(int port, vtkInformation* info)
 int vtkPlotEdges::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  // get the info objects
-  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
+  vtkDataObject* outputDO = vtkDataObject::GetData(outputVector, 0);
 
-  // get the input and output
-  vtkMultiBlockDataSet* output = vtkMultiBlockDataSet::GetData(outInfo);
+  bool error = false;
 
-  // The filter accepts vtkPolyData or vtkMultiBlockDataSet as input.
-  // The vtkPolyData is trivial
-  vtkPolyData* inputPolyData = vtkPolyData::GetData(inInfo);
-  if (inputPolyData)
+  std::vector<vtkDataObject*> inputPDSs, outputPDSs;
+
+  if (auto inputPDSC = vtkPartitionedDataSetCollection::SafeDownCast(inputDO))
   {
-    this->Process(inputPolyData, output);
-    return 1;
-  }
+    auto outputPDSC = vtkPartitionedDataSetCollection::SafeDownCast(outputDO);
+    outputPDSC->CopyStructure(inputPDSC);
 
-  // the input multiblock is iterated through and process each vtkPolyData
-  // leaf separately
-  vtkMultiBlockDataSet* inputMultiBlock = vtkMultiBlockDataSet::GetData(inInfo);
-  if (inputMultiBlock)
-  {
-    // pass the structure to the output. This has to be done on all processes
-    // even though actual data is only produce on  the root node.
-    output->CopyStructure(inputMultiBlock);
-
-    // iterate over the input multiblock to search for the vtkPolyData leaves
-    vtkCompositeDataIterator* it = inputMultiBlock->NewIterator();
-
-    for (it->InitTraversal(); !it->IsDoneWithTraversal(); it->GoToNextItem())
+    for (unsigned int pdsId = 0; pdsId < inputPDSC->GetNumberOfPartitionedDataSets(); ++pdsId)
     {
-      inputPolyData = vtkPolyData::SafeDownCast(it->GetCurrentDataObject());
-      if (inputPolyData == nullptr)
-      {
-        // this is bad!!! this is assuming that all processes have non-nullptr
-        // nodes at the same location, which is true with exodus, but nothing
-        // else. Pending BUG #11197.
-        continue;
-      }
-
-      // A multiblock leaf must be created to be added into the output
-      // multiblock. Since the structure on all processes MUST match up, we
-      // update the output structure on all processes.
-      vtkMultiBlockDataSet* outputMultiBlock = vtkMultiBlockDataSet::New();
-      output->SetDataSet(it, outputMultiBlock);
-      outputMultiBlock->FastDelete();
-
-      this->Process(inputPolyData, outputMultiBlock);
+      inputPDSs.emplace_back(inputPDSC->GetPartitionedDataSet(pdsId));
+      outputPDSs.emplace_back(outputPDSC->GetPartitionedDataSet(pdsId));
     }
-    it->Delete();
-    return 1;
+  }
+  else
+  {
+    inputPDSs.emplace_back(inputDO);
+    outputPDSs.emplace_back(outputDO);
   }
 
-  auto inputDO = vtkDataObject::GetData(inInfo);
-  vtkErrorMacro("Input data type of '" << inputDO->GetClassName() << "' is not supported yet.");
-  return 0;
+  for (int partitionId = 0; partitionId < static_cast<int>(inputPDSs.size()); ++partitionId)
+  {
+    vtkDataObject* inputPartition = inputPDSs[partitionId];
+    vtkDataObject* outputPartition = outputPDSs[partitionId];
+
+    if (auto outputCDS = vtkDataObjectTree::SafeDownCast(outputPartition))
+    {
+      if (auto inputCDS = vtkDataObjectTree::SafeDownCast(inputPartition))
+      {
+        using Opts = vtk::DataObjectTreeOptions;
+        outputCDS->CopyStructure(inputCDS);
+        auto outputs = vtk::Range(outputCDS, Opts::VisitOnlyLeaves | Opts::TraverseSubTree);
+        auto inputs = vtk::Range(inputCDS, Opts::VisitOnlyLeaves | Opts::TraverseSubTree);
+        for (auto inIt = inputs.begin(), outIt = outputs.begin(); inIt != inputs.end();
+             ++inIt, ++outIt)
+        {
+          if (auto inPD = vtkPolyData::SafeDownCast(*inIt))
+          {
+            *outIt = vtkSmartPointer<vtkDataObject>::Take(inPD->NewInstance());
+            auto outPD = vtkPolyData::SafeDownCast(*outIt);
+            this->Process(inPD, outPD);
+          }
+          else
+          {
+            *outIt = nullptr;
+          }
+        }
+      }
+      else
+      {
+        error = true;
+      }
+    }
+    else if (auto inPD = vtkPolyData::SafeDownCast(inputPartition))
+    {
+      auto outPD = vtkPolyData::SafeDownCast(outputPartition);
+      this->Process(inPD, outPD);
+    }
+    else
+    {
+      vtkErrorMacro("Input data type of '" << inputDO->GetClassName() << "' is not supported yet.");
+      error = true;
+    }
+  }
+
+  return error ? 0 : 1;
 }
 
-void vtkPlotEdges::Process(vtkPolyData* input, vtkMultiBlockDataSet* outputMultiBlock)
+void vtkPlotEdges::Process(vtkPolyData* input, vtkPolyData* outputPD)
 {
   vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
   ReducePolyData(input, inputPolyData);
@@ -623,25 +641,15 @@ void vtkPlotEdges::Process(vtkPolyData* input, vtkMultiBlockDataSet* outputMulti
 
   if (controller->GetLocalProcessId() > 0)
   {
-    int number_of_blocks = 0;
-    controller->Broadcast(&number_of_blocks, 1, 0);
-    // to ensure structure matches on all processes.
-    outputMultiBlock->SetNumberOfBlocks(number_of_blocks);
     return;
   }
 
-  vtkCollection* segments = vtkCollection::New();
-  vtkCollection* nodes = vtkCollection::New();
+  vtkNew<vtkCollection> segments;
+  vtkNew<vtkCollection> nodes;
 
   this->ExtractSegments(inputPolyData, segments, nodes);
   this->ConnectSegmentsWithNodes(segments, nodes);
-  this->SaveToMultiBlockDataSet(segments, outputMultiBlock);
-
-  segments->Delete();
-  nodes->Delete();
-
-  int number_of_blocks = outputMultiBlock->GetNumberOfBlocks();
-  controller->Broadcast(&number_of_blocks, 1, 0);
+  this->Save(segments, outputPD);
 }
 
 void vtkPlotEdges::ReducePolyData(vtkPolyData* polyData, vtkPolyData* output)
@@ -1054,19 +1062,19 @@ vtkPlotEdges::Node* vtkPlotEdges::GetNodeAtPoint(vtkCollection* nodes, vtkIdType
   return res;
 }
 
-void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBlockDataSet* output)
+void vtkPlotEdges::Save(vtkCollection* segments, vtkPolyData* output)
 {
   // copy into dataset
   //
   segments->InitTraversal();
   Segment* segment = nullptr;
+  vtkNew<vtkAppendPolyData> appender;
   for (segment = Segment::SafeDownCast(segments->GetNextItemAsObject()); segment;
        segment = Segment::SafeDownCast(segments->GetNextItemAsObject()))
   {
     vtkPolyData* polyData = const_cast<vtkPolyData*>(segment->GetPolyData());
 
     vtkSmartPointer<vtkPolyData> pd = vtkSmartPointer<vtkPolyData>::New();
-    output->SetBlock(output->GetNumberOfBlocks(), pd);
 
     vtkSmartPointer<vtkCellArray> ca = vtkSmartPointer<vtkCellArray>::New();
 
@@ -1116,6 +1124,8 @@ void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBloc
     }
     pd->GetPointData()->AddArray(arcLength);
 
+    appender->AddInputData(pd);
+
     /*
       cerr << "Add PolyLine of " <<
       segment->GetPointIdList()->GetNumberOfIds() << " points" << endl;
@@ -1134,6 +1144,9 @@ void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBloc
       cerr << endl;
     */
   }
+
+  appender->Update();
+  output->ShallowCopy(appender->GetOutputDataObject(0));
 }
 
 void vtkPlotEdges::PrintSegments(vtkCollection* segments)
