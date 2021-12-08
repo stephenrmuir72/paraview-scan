@@ -33,7 +33,7 @@
 
 #include <QPainter>
 
-#include <limits>
+#include <cmath>
 #include <sstream>
 
 #if NodeEditor_ENABLE_GRAPHVIZ
