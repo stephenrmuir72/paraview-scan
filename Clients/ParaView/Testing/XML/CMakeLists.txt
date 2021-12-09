@@ -2002,8 +2002,8 @@ paraview_add_client_tests(
 # Create standard tests
 # Actually, tests without comparison are treated as inline comparison tests.
 #]==]
-list(APPEND TESTS_WITHOUT_BASELINES
-  ${TESTS_WITH_INLINE_COMPARES})
+list(APPEND TESTS_WITH_INLINE_COMPARES
+  ${TESTS_WITHOUT_BASELINES})
 
 # ResampleToHyperTreeGrid only works in client mode
 paraview_add_client_tests(
@@ -2011,7 +2011,7 @@ paraview_add_client_tests(
 )
 
 paraview_add_client_tests(
-  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
+  TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
 )
 
 paraview_add_client_tests(
