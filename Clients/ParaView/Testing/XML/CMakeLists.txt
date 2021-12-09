@@ -1802,8 +1802,8 @@ set(TESTS_WITH_MULTI_SERVERS_3
   TestMultiServer3.xml
 )
 
-list(APPEND TESTS_WITHOUT_BASELINES
-  ${TESTS_WITH_INLINE_COMPARES})
+list(APPEND TESTS_WITH_INLINE_COMPARES
+  ${TESTS_WITHOUT_BASELINES})
 
 # ResampleToHyperTreeGrid only works in client mode
 paraview_add_client_tests(
@@ -1811,7 +1811,7 @@ paraview_add_client_tests(
 )
 
 paraview_add_client_tests(
-  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
+  TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
 )
 
 paraview_add_client_tests(
