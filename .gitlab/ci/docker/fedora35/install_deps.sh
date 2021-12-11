@@ -1,5 +1,9 @@
 #!/bin/sh
 
+dnf install -y --setopt=install_weak_deps=False \
+  glx-utils mesa-dri-drivers mesa-libGL* libxcrypt-compat.x86_64 libxkbcommon \
+  libxkbcommon-x11
+
 # Install extra dependencies for ParaView
 dnf install -y --setopt=install_weak_deps=False \
     bzip2 patch doxygen git-core git-lfs
