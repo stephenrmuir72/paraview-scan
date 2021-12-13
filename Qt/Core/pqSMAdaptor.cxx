@@ -386,6 +386,33 @@ QList<pqSMProxy> pqSMAdaptor::getProxyPropertyDomain(vtkSMProperty* Property)
   }
   return proxydomain;
 }
+QList<QVariant> pqSMAdaptor::getStringListProperty(vtkSMProperty* Property, PropertyValueType Type)
+{
+  QList<QVariant> newPropList;
+
+  vtkSMStringVectorProperty* stringProp = vtkSMStringVectorProperty::SafeDownCast(Property);
+
+  if (!stringProp)
+  {
+    return newPropList;
+  }
+
+  QList<QVariant> domainList = pqSMAdaptor::getSelectionPropertyDomain(stringProp);
+
+  QList<QVariant> propList = pqSMAdaptor::getMultipleElementProperty(stringProp, Type);
+
+  for (const QVariant& domainVal : domainList)
+  {
+    int stringPos = propList.indexOf(domainVal);
+    // set prop value if still in domain. Init new elements with domain values.
+    for (int i = 0; i < stringProp->GetNumberOfElementsPerCommand(); i++)
+    {
+      newPropList.append(stringPos > -1 ? propList[stringPos + i] : domainVal);
+    }
+  }
+
+  return newPropList;
+}
 
 QList<QList<QVariant>> pqSMAdaptor::getSelectionProperty(
   vtkSMProperty* Property, PropertyValueType Type)

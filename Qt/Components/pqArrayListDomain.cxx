@@ -100,21 +100,7 @@ void pqArrayListDomain::domainChanged()
 
   if (prop && nbPerCommand > 1 && prop->GetElementType(1) == vtkSMStringVectorProperty::STRING)
   {
-    QList<QVariant> domainList =
-      pqSMAdaptor::getSelectionPropertyDomain(this->Internals->SMProperty);
-
-    QList<QVariant> propList = pqSMAdaptor::getMultipleElementProperty(this->Internals->SMProperty);
-
-    QList<QVariant> newPropList;
-    for (const QVariant& domainVal : domainList)
-    {
-      int stringPos = propList.indexOf(domainVal);
-      // set prop value if still in domain. Init new elements with domain values.
-      for (unsigned int i = 0; i < nbPerCommand; i++)
-      {
-        newPropList.append(stringPos > -1 ? propList[stringPos + i] : domainVal);
-      }
-    }
+    QList<QVariant> newPropList = pqSMAdaptor::getStringListProperty(this->Internals->SMProperty);
 
     variantVal.setValue(newPropList);
   }
