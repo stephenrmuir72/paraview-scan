@@ -1,3 +1,38 @@
+#[==[.md
+# ParaView XML Tests
+ParaView uses XML files to test the GUI, based on QtTesting.
+
+## Adding a test
+### Standard tests
+Add your test filename to one of the following list:
+* `TESTS_WITH_BASELINES`: tests ending with image comparison.
+* `TESTS_WITH_INLINE_COMPARES`: tests with image comparison inside. 
+* `TESTS_WITHOUT_BASELINES`: tests without any image comparison. 
+
+Tests are then added with the paraview CMake API. See `paraview_add_client_tests`, `paraview_add_client_server_tests`
+`paraview_add_client_server_tests`.
+
+### Optional dependencies
+If your test requires an optional dependency, check for the corresponding `if` or create it.
+
+### Options
+Options can be set by setting CMake variables:
+* `set(<testname> DISABLE_C TRUE)`: disable the test in client only mode
+* `set(<testname> DISABLE_CS TRUE)`: disable the test in client-server mode
+* `set(<testname> DISABLE_CRS TRUE)`: disable the test in client-render-server mode
+see ParaViewTesting.cmake for more.
+* `set(<testname>_THRESHOLD <value>)`: change the default threshold for image comparison to fail.
+
+## Adding data
+If your test require data, either dataset to load or images for inline comparison,
+add the data path to `ExternalData_Expand_Arguments(` method.
+
+## Adding custom tests
+Some more custom tests can be added, refer to the ParaView CMake doc.
+
+#]==]
+
+
 # TODO: Split these up and put them in the conditional which actually requires
 # the data.
 ExternalData_Expand_Arguments(ParaViewData _
@@ -630,58 +665,279 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomToData_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ZoomToData_B.png}")
 
-SET (TESTS_WITHOUT_BASELINES
-  AboutDialog.xml
-  ArrayBoundsScaleDomain.xml
-  CustomOutputFormat.xml
-  DefaultReadersSetting.xml
-  DelimitedTextReader.xml
-  DynamicFieldDataDomain.xml
-  ExportFilteredColumnsSpreadsheet.xml
-  ExportSpreadsheetFormatting.xml
-  ExtractParticlesOverTime.xml
-  FavoritesFilters.xml
-  FindWidget.xml
-  GradientBackwardsCompatibility.xml
-  ImportCustomPresets.xml
-  InformationPanel.xml
-  LogViewer.xml
-  MergeTime.xml
-  ModifyGUIWindowTitle.xml
-  OpacityWidgetRange.xml
-  OpenHelp.xml
-  OverrideProperty.xml
-  PartialArrayInLineChart.xml
-  PlotOverLineLegacy.xml
-  PointCellDataConversion.xml
-  ReloadCGNSFile.xml
-  SearchBox.xml
-  ServerConnectDialog.xml
-  SpreadSheetFieldData.xml
-  SpreadSheetSelectedCellConnectivity.xml
-  StringInLineChartView.xml
-  TableHistogram.xml
-  TestAnimationStride.xml
-  TestCompositePropertyWidgetDecorator.xml
-  TestFileListPropertyWidget.xml
-  TextSource.xml
-  ThresholdBackwardsCompatibility.xml
-  ThresholdTable.xml
+#[==[.md
+  # Standard tests
+#]==]
+SET(TESTS_WITH_BASELINES
+  #  XYBarChart.xml
+  # Disabled due to #20508 ChangeGlyphRepVisibility.xml
+  # MultiBlockAttributes1.xml
+  # ParallelCoordinatesView.xml see paraview/paraview#20679
+  # PlotEdges.xml see paraview/paraview#20659
+  # disabling overlay test for now. It has issues with Time 0. ComparativeOverlay.xml
+  3DWidgetInCustomFilter.xml
+  4AxesContextView.xml
+  AMRArraySelection.xml
+  AMRCutPlane.xml
+  AMReXParticlesReader.xml
+  AccentuatedFilename.xml
+  AdaptiveResampleToImage.xml
+  AddActiveValuesFromVisibleObjects.xml
+  AngularPeriodicFilter.xml
+  AnimatePipelineTime.xml
+  AnimationSetTimeCursor.xml
+  AnimationUseCamera.xml
+  AnisotropyPBR.xml
+  Annotations.xml
+  BackgroundColorCheck.xml
+  BlockOpacities.xml
+  CGNSIOSSReader.xml
+  CTHAMRBaseline.xml
+  CTHAMRClip.xml
+  CTHAMRContour.xml
+  CTHAMRDualClip.xml
+  CTHAMRMaterialInterfaceFilter.xml
+  CTHDerivedDensity2DClyinder.xml
+  CalcParens.xml
+  Calculator.xml
+  CalculatorInput.xml
+  CategoricalAutomaticAnnotations.xml
+  CategoricalColors.xml
+  CategoricalOpacities.xml
+  CategoriesWithNaN.xml
+  ChangingTimestepsInStateFiles.xml
+  ChartAxisRangeAndLabels.xml
+  CheckableHeader.xml
+  ClearCoatPBR.xml
+  Clip.xml
+  ColorByCellDataStringArray.xml
+  ColorEditorControls.xml
+  ColorEditorVolumeControls.xml
+  ColorLegendBackground.xml
+  ColorLegendMinMaxLabels.xml
+  ColorOpacityEditorFreehandDrawing.xml
+  ColorOpacityEditorRangeHandles.xml
+  ColorOpacityTableEditing.xml
+  ComparativeViewOverlay.xml
+  ComparativeVisPanel.xml
+  CompositeGlyphTree.xml
+  CompositeSurfaceSelection.xml
+  ComputeConnectedSurfaceProperties.xml
+  ContourCellData.xml
+  ContourRange.xml
+  ConvertToMolecule.xml
+  CopyPasteProperties.xml
+  CrinkleClip.xml
+  CustomFilter.xml
+  CustomSourceProbe.xml
+  CustomTCoords.xml
+  CustomViewpoints.xml
+  DataAxesGrid.xml
+  DataOutlines.xml
+  DisableResetDisplayEmptyViews.xml
+  DualSphereAnimation.xml
+  EdgeTintPBR.xml
+  EnSight.xml
+  EnSightTensorInversion.xml
+  EnSightTensorInversionBin.xml
+  ExTimeseries.xml
+  ExTimeseries2.xml
+  ExodusGlobalDataWithRestarts.xml
+  ExodusSingleTimeStep.xml
+  ExpandSelection.xml
+  ExportLinePlotToCSV.xml
+  ExportLinePlotToTSV.xml
+  ExportSceneSpreadSheetView2.xml
+  ExportX3dPOVVRML.xml
+  ExtractComponentFilter.xml
+  ExtractLevel.xml
+  ExtractTimeSteps.xml
+  EyeDomeLighting.xml
+  FFTOverTime.xml
+  FeatureEdges.xml
+  FieldDataBlocks.xml
+  Flagpole.xml
+  Flow.xml
+  Flow2.xml
+  FollowHiddenData.xml
+  ForceTime.xml
+  Fractal2D.xml
+  Glyph3DCullingAndLOD.xml
+  Glyph3DRepresentation.xml
+  GlyphUseCellCenters.xml
+  GlyphWithEmptyCells.xml
+  H5PartReader.xml
+  HideAll.xml
+  HorizontalColorLegendTitle.xml
+  IgnoreLogAxisWarning.xml
+  ImageDataToUniformGrid.xml
+  ImageVolumeRendering.xml
+  InteractiveSelection.xml
+  InteractiveViewLinkOffscreen.xml
+  InteractiveViewLinkOnscreen.xml
+  InteractiveViewLinkState.xml
+  LightWidget.xml
+  LinearCellExtrusion.xml
+  LinesAsTubes.xml
+  LinkRepresentationProperties.xml
+  LoadPartiallyUpdatedStateFiles.xml
+  LoadSaveStateAnimation.xml
+  LoadSaveStateVolume.xml
+  LoadState.xml
+  LoadStateChooseDirectory.xml
+  LoadStateChooseFiles.xml
+  LoadStateTextSourceRepresentation.xml
+  LoadStateUseExisting.xml
+  ManyTypesXMLWriterReader.xml
+  MergePiecesOnly.xml
+  MergePointBlocks.xml
+  MergeVectorComponents.xml
+  MoleculeBonds.xml
+  MoleculeScalarBar.xml
+  MoleculeToLines.xml
+  MultiBlockInspector.xml
+  MultiBlockSingleBlock.xml
+  MultiBlockVolumeRendering.xml
+  MultiSliceMultiBlock.xml
+  MultiSliceWavelet.xml
+  NonConvexPolygon.xml
+  NormalGlyphs.xml
+  NumberOfComponentsDomain.xml
+  OMETIFFChannelCalculator.xml
+  OpenSaveData.xml
+  OrderedGroupDatasets.xml
+  OrthographicView.xml
+  OutOfRangeColors.xml
+  PBRSpheres.xml
+  PassArrays.xml
+  PerlinNoise.xml
+  PlotDataOverTime-NonDistributed.xml
+  PlotEdges2.xml
+  PlotGlobalVariablesOverTime.xml
+  PlotMatrixViewArraySelection.xml
+  PlotOverTimeAutoApply.xml
+  PointChartView.xml
+  PointGaussianMultiBlockDataSet.xml
+  PointGaussianNoScaleTransferFunction.xml
+  PointGaussianScaleOpacityArray.xml
+  PointInterpolator.xml
+  PointVolumeInterpolator.xml
+  PolarAxes.xml
+  PolyLineAndSplineSources.xml
+  PolygonCellSelection.xml
+  PolygonPointSelection.xml
+  PropertyConversion.xml
+  PropertyConversion1.xml
+  PropertyConversion2.xml
+  PropertyConversion3.xml
+  PropertyConversion4.xml
+  PropertyLink.xml
+  QuadraticGhostCells.xml
+  RandomAttributes.xml
+  ReadPIOWithHTG.xml
+  ReadXMLPolyDataFileSeries.xml
+  RectilinearVolumeRendering.xml
+  RedistributeDataSetFilter.xml
+  RepresentationSelector.xml
+  ResampleToLine.xml
+  ResampleWithDataset.xml
+  RescaleToTemporal.xml
+  ReverseLegend.xml
+  ReverseSense.xml
+  RotateAroundOriginTransform.xml
+  RotateCamera90.xml
+  RotationalExtrusionFilter.xml
+  SPTimeseries.xml
+  SSAO.xml
+  SaveCSV.xml
+  SaveColorMap.xml
+  SaveMultiBlockCSV.xml
+  SaveOBJ.xml
+  SaveTSV.xml
+  SaveTXT.xml
+  ScrollAreaNativeWidget.xml
+  SelectedProxyPanelVisibility.xml
+  SelectionBlocks.xml
+  SelectionByArray.xml
+  SelectionLinkBasic.xml
+  SelectionLinkConverted.xml
+  SelectionLinkHistogram.xml
+  SelectionLinkInitial.xml
+  SelectionLinkMultiple.xml
+  SelectionLinkReaction.xml
+  SelectionLinkReactionNonConverted.xml
+  SelectionLinkRemove.xml
+  SelectionModifiersBlocks.xml
+  SelectionModifiersCells.xml
+  SelectionModifiersPoints.xml
+  SeparatedColorMap.xml
+  SeparatedColorMapOpacity.xml
+  SeriesPreset.xml
+  SeriesPresetRegexp.xml
+  SetCustomBasicPresets.xml
+  ShaderReplacements.xml
+  ShowAll.xml
+  SimpleInteraction.xml
+  SliceAlongPolyline.xml
+  SliceAlongSpline.xml
+  SliceWithPlane.xml
+  SliceWithPlaneMultiBlock.xml
+  SolidColorSource.xml
+  SortLineChartData.xml
+  SpherePointSource.xml
+  SphereSlice.xml
+  SpreadSheet1.xml
+  SpreadSheet2.xml
+  SpreadSheet3.xml
+  SpyPlotHistoryReader.xml
+  StepColorSpace.xml
+  StockColors.xml
+  StreamTracerSurface.xml
+  StreamTracerUpdates.xml
+  TabbedViews.xml
+  TemporalInterpolator.xml
+  TemporalShiftScale.xml
+  TensorGlyph.xml
+  Tessellate.xml
+  TestGroupDataFromTimeSeries.xml
+  TestHiddenLineRemoval.xml
+  TestOpacityRendering.xml
+  TestSelectionOnMultipiece.xml
+  Text2D.xml
+  TextBillboard3D.xml
+  TextureUsages.xml
+  TimeInspector.xml
+  TimeStepProgressBar.xml
+  ToneMapping.xml
+  UndoRedo.xml
+  UndoRedo1.xml
+  UndoRedo2.xml
+  UndoRedo3.xml
+  UndoRedo5.xml
+  UndoRedo6.xml
+  UndoRedo7.xml
+  UndoRedo8.xml
+  UniformInverseTransformSamplingGlyph.xml
+  UnstructuredOutline.xml
+  VTPSeriesFile.xml
+  VariableSelector.xml
+  VariableSelector1.xml
+  VectorComponentHistogram.xml
+  ViewSettingsDialog.xml
+  VolumeCrop.xml
+  VolumeIsosurfaceBlendMode.xml
+  VolumeRenderingWithContour.xml
+  VolumeReprTwoIndepComp.xml
+  VolumeSliceBlendMode.xml
+  YoungsMaterialInterface.xml
+  ZoomToData.xml
+  glTFReaderAnimatedMorphing.xml
+  glTFReaderMultipleAnimations.xml
+  glTFReaderMultipleScenes.xml
+  glTFReaderToggleDeformation.xml
+  glTFReaderTriangle.xml
+  # SaveAnimationGeometry.xml
 )
-
-if (PARAVIEW_PLUGIN_ENABLE_EULATestPlugin)
-  list(APPEND TESTS_WITHOUT_BASELINES
-    PluginEULA.xml)
-endif ()
-
-if (PARAVIEW_USE_PYTHON)
-  list(APPEND TESTS_WITHOUT_BASELINES
-    TestPythonConsole.xml
-    #TestPopOutWidget.xml
-    MultipleNumberOfComponents.xml
-    SpreadSheetNullArrayName.xml # needs programmable filter
-  )
-endif()
 
 SET (TESTS_WITH_INLINE_COMPARES
   AxesGrid.xml
@@ -762,32 +1018,174 @@ SET (TESTS_WITH_INLINE_COMPARES
   ZoomClosest.xml
 )
 
+SET (TESTS_WITHOUT_BASELINES
+  AboutDialog.xml
+  ArrayBoundsScaleDomain.xml
+  CustomOutputFormat.xml
+  DefaultReadersSetting.xml
+  DelimitedTextReader.xml
+  DynamicFieldDataDomain.xml
+  ExportFilteredColumnsSpreadsheet.xml
+  ExportSpreadsheetFormatting.xml
+  ExtractParticlesOverTime.xml
+  FavoritesFilters.xml
+  FindWidget.xml
+  GradientBackwardsCompatibility.xml
+  ImportCustomPresets.xml
+  InformationPanel.xml
+  LogViewer.xml
+  MergeTime.xml
+  ModifyGUIWindowTitle.xml
+  OpacityWidgetRange.xml
+  OpenHelp.xml
+  OverrideProperty.xml
+  PartialArrayInLineChart.xml
+  PlotOverLineLegacy.xml
+  PointCellDataConversion.xml
+  ReloadCGNSFile.xml
+  SearchBox.xml
+  ServerConnectDialog.xml
+  SpreadSheetFieldData.xml
+  SpreadSheetSelectedCellConnectivity.xml
+  StringInLineChartView.xml
+  TableHistogram.xml
+  TestAnimationStride.xml
+  TestCompositePropertyWidgetDecorator.xml
+  TestFileListPropertyWidget.xml
+  TextSource.xml
+  ThresholdBackwardsCompatibility.xml
+  ThresholdTable.xml
+)
+
+#[==[.md
+  # Tests options
+#]==]
 # Image data delivery to render server not supported.
 set(SeparateOpacityArray_DISABLE_CRS TRUE)
 
-if(NOT APPLE)
-  # Workaround to avoid testing failures on high-res Retina displays on Macs
-  list(APPEND TESTS_WITH_INLINE_COMPARES
-    ColorLegendScaledScreenshot.xml
+#[==[.md
+  # Tests with optional dependencies
+#]==]
+if (PARAVIEW_PLUGIN_ENABLE_EULATestPlugin)
+  list(APPEND TESTS_WITHOUT_BASELINES
+    PluginEULA.xml)
+endif ()
+
+if (PARAVIEW_USE_PYTHON)
+  list(APPEND TESTS_WITHOUT_BASELINES
+    #TestPopOutWidget.xml
+    MultipleNumberOfComponents.xml
+    ProgrammableSourcePythonEditorLink.xml
+    PythonCalculator.xml
+    PythonEditorTab.xml
+    SpreadSheetNullArrayName.xml # needs programmable filter
+    TestPythonConsole.xml
+    TraceIntegrateVariables.xml
   )
+
+  list(APPEND TESTS_WITH_BASELINES
+    ColorByComponentNames.xml # needs programmable filter
+    LiveProgrammableSource.xml
+    PythonShellRunScript.xml
+    SaveLoadStatePython.xml
+    TraceExodus.xml
+    TraceExportAndSaveData.xml
+    TraceSaveGeometry.xml
+    # TraceStatisticsFilter.xml (see paraview/paraview#20661)
+    TraceSupplementalProxiesFully.xml
+    TraceTimeControls.xml
+    TraceWithoutRenderingComponents.xml
+  )
+  list(APPEND TESTS_WITH_INLINE_COMPARES
+    RestoreArrayDefaultTransferFunction.xml
+    RestoreDefaultTransferFunction.xml
+    SelectCellsTrace.xml
+    SelectionLinkScripting.xml
+    SelectPointsTrace.xml
+    SplitViewTrace.xml
+    TestTableFFT.xml
+    TraceMultiViews.xml
+  )
+
+  set(SelectCellsTrace_DISABLE_CRS TRUE)
+  set(SelectPointsTrace_DISABLE_CRS TRUE)
+
+  # Check that matplotlib is available
+  include(FindPythonModules)
+  find_python_module(matplotlib matplotlib_found)
+  if (matplotlib_found)
+    list(APPEND TESTS_WITH_BASELINES TestPythonView.xml)
+    list(APPEND TESTS_WITH_INLINE_COMPARES MathTextColumn.xml)
+  endif()
+
+  find_python_module(numpy numpy_found)
+  if (numpy_found)
+    list(APPEND TESTS_WITH_BASELINES
+      ContextViewSelectionTrace.xml
+      ExodusModeShapes.xml
+      FindDataNameSanitization.xml
+      FindDataNonDistributedData.xml
+      FindDataPartialArrays.xml
+      FindDataSelectLocationMultiblock.xml # find data needs python/numpy
+      FindDataSelectLocation.xml # find data needs python/numpy
+      FindDataSelectors.xml
+      FindDataTime.xml
+      ForceTimeDiamond.xml
+      FreezeQueryMultiblock.xml
+      IndexedLookupInitialization.xml # needs Python Calculator/numpy
+      ProgrammableAnnotation.xml
+      SpreadSheetSelectionTrace.xml
+      StructuredGridCellBlanking.xml
+      VolumeNoMapScalars.xml # needs programmable filter + numpy
+      )
+
+    list(APPEND TESTS_WITHOUT_BASELINES
+      PythonCalculatorOnTable.xml
+      )
+
+    list(APPEND TESTS_WITH_INLINE_COMPARES
+      FindDataTrace.xml
+      FindDataQueries.xml)
+
+    set(SpreadSheetSelectionTrace_DISABLE_CS TRUE)
+    set(SpreadSheetSelectionTrace_DISABLE_CRS TRUE)
+
+    # PythonAlgorithm plugin tests.
+    configure_file(
+      "PythonAlgorithmPlugin.xml.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/PythonAlgorithmPlugin.xml" @ONLY)
+    configure_file(
+      "PythonAlgorithmReadersAndWriters.xml.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/PythonAlgorithmReadersAndWriters.xml" @ONLY)
+
+    set(pyalgo_plugin_tests
+      PythonAlgorithmPlugin
+      PythonAlgorithmReadersAndWriters)
+    foreach(tname IN LISTS pyalgo_plugin_tests)
+      list(APPEND TESTS_WITH_BASELINES
+        ${CMAKE_CURRENT_BINARY_DIR}/${tname}.xml)
+
+      # we need to extend testing infrastructure to better support
+      # loading plugins in client-server. At that point, we can test these as well.
+      set(${tname}_DISABLE_CS TRUE)
+      set(${tname}_DISABLE_CRS TRUE)
+    endforeach()
+  endif()
 endif()
 
-SET(TESTS_WITH_BASELINES
-  ContourRange.xml
-  DataAxesGrid.xml
-  MergeVectorComponents.xml
-  MoleculeScalarBar.xml
-  PassArrays.xml
-  PerlinNoise.xml
-  ResampleToLine.xml
-  ReverseSense.xml
-  SelectionByArray.xml
-  SeriesPreset.xml
-  SeriesPresetRegexp.xml
-  TestHiddenLineRemoval.xml
-  TestOpacityRendering.xml
-  ZoomToData.xml
-)
+if(NOT APPLE)
+  list(APPEND TESTS_WITH_INLINE_COMPARES
+    # Workaround to avoid testing failures on high-res Retina displays on Macs
+    ColorLegendScaledScreenshot.xml
+    # hits OSX bug with FileDialog so exclude test on APPLE
+    HistogramSelection.xml
+  )
+
+  list(APPEND TESTS_WITH_BASELINES
+    # The color dialog is different on MacOS X which makes this test fail.
+    BackgroundLights.xml
+    )
+endif()
 
 if(PARAVIEW_ENABLE_VISITBRIDGE)
   list(APPEND TESTS_WITH_BASELINES
@@ -833,55 +1231,6 @@ if(PARAVIEW_ENABLE_OPENTURNS)
     PlotMatrixViewDensityMaps.xml)
 endif()
 
-# hits OSX bug with FileDialog so exclude test on APPLE
-if (NOT APPLE)
-  list (APPEND TESTS_WITH_INLINE_COMPARES
-    HistogramSelection.xml)
-endif()
-
-# TODO: Port to the new API.
-macro(ADD_CATALYST_LIVE_TEST test_name duration command_line_connect_command)
-  # These tests are too complex to run in parallel.
-  set (CATALYST_SIMULATION CatalystWaveletDriver.py)
-  set (INSITU_SCRIPT CatalystWaveletCoprocessing)
-
-  set ("${test_name}_FORCE_SERIAL" TRUE)
-  add_pv_test("pv" "_DISABLE_C"
-    COMMAND
-    --script-ignore-output-errors --script $<TARGET_FILE:ParaView::pvbatch> --sym
-    ${CMAKE_CURRENT_SOURCE_DIR}/${CATALYST_SIMULATION}
-    ${INSITU_SCRIPT} "${duration}"
-
-    --client ${CLIENT_EXECUTABLE}
-    --enable-bt
-    ${command_line_connect_command}
-    --dr
-    --test-directory=${PARAVIEW_TEST_DIR}
-    BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-    TEST_SCRIPTS ${test_name}.xml
-    EXTRA_LABELS "catalyst")
-
-  add_pv_test(pvcs "_DISABLE_CS"
-    COMMAND
-    --script-np 5 --script-ignore-output-errors
-    --script $<TARGET_FILE:ParaView::pvbatch> --sym
-    ${CMAKE_CURRENT_SOURCE_DIR}/${CATALYST_SIMULATION}
-    ${INSITU_SCRIPT} "${duration}"
-
-    --server $<TARGET_FILE:ParaView::pvserver>
-    --enable-bt
-
-    --client ${CLIENT_EXECUTABLE}
-    --enable-bt
-    ${command_line_connect_command}
-    --dr
-    --test-directory=${PARAVIEW_TEST_DIR}
-    BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-    TEST_SCRIPTS ${test_name}.xml
-    EXTRA_LABELS "catalyst")
-
-endmacro(ADD_CATALYST_LIVE_TEST)
-
 if (PARAVIEW_ENABLE_XDMF2 AND NOT PARAVIEW_ENABLE_XDMF3)
   # Xdmf2 is optional.
   # And when both Xdmf2 and Xdmf3 are enabled, the SelectReader dialog
@@ -899,263 +1248,16 @@ if (PARAVIEW_ENABLE_XDMF2 AND NOT PARAVIEW_ENABLE_XDMF3)
     XdmfGridAttributes.xml
     ZLibXDMF.xml
     )
+
+  # These Xdmf tests have wireframes, hence the increased thresholds.
+  SET (XdmfReadImageData_THRESHOLD 20)
+  SET (XdmfReadImageDataCollection_THRESHOLD 20)
+  SET (XdmfReadRectilinearGrid_THRESHOLD 20)
+  SET (XdmfReadRectilinearGridCollection_THRESHOLD 20)
+  SET (XdmfReadStructuredGrid_THRESHOLD 20)
+  SET (XdmfReadStructuredGridCollection_THRESHOLD 20)
 endif()
 
-list(APPEND TESTS_WITH_BASELINES
-  4AxesContextView.xml
-  AccentuatedFilename.xml
-  AdaptiveResampleToImage.xml
-  AMRArraySelection.xml
-  AMRCutPlane.xml
-  AMReXParticlesReader.xml
-  AnimationUseCamera.xml
-  AnimationSetTimeCursor.xml
-  AnisotropyPBR.xml
-  Annotations.xml
-  ClearCoatPBR.xml
-  ConvertToMolecule.xml
-  ContourCellData.xml
-  CopyPasteProperties.xml
-  CustomTCoords.xml
-  CTHAMRBaseline.xml
-  CTHAMRClip.xml
-  CTHAMRContour.xml
-  CTHAMRDualClip.xml
-  CTHAMRMaterialInterfaceFilter.xml
-  CTHDerivedDensity2DClyinder.xml
-  AddActiveValuesFromVisibleObjects.xml
-  AnimatePipelineTime.xml
-  AngularPeriodicFilter.xml
-  3DWidgetInCustomFilter.xml
-  BlockOpacities.xml
-  CalcParens.xml
-  Calculator.xml
-  CalculatorInput.xml
-  CategoriesWithNaN.xml
-  CGNSIOSSReader.xml
-  # Disabled due to #20508
-  # ChangeGlyphRepVisibility.xml
-  ChangingTimestepsInStateFiles.xml
-  ChartAxisRangeAndLabels.xml
-  CheckableHeader.xml
-  Clip.xml
-  CrinkleClip.xml
-  ColorEditorControls.xml
-  ColorEditorVolumeControls.xml
-  ColorLegendMinMaxLabels.xml
-  ColorLegendBackground.xml
-  ColorOpacityTableEditing.xml
-  ColorOpacityEditorFreehandDrawing.xml
-  ColorOpacityEditorRangeHandles.xml
-  CategoricalAutomaticAnnotations.xml
-  CategoricalColors.xml
-  CategoricalOpacities.xml
-  ColorByCellDataStringArray.xml
-  ComparativeVisPanel.xml
-  ComparativeViewOverlay.xml
-  # disabling overlay test for now. It has issues with Time 0.
-  #  ComparativeOverlay.xml
-  CompositeSurfaceSelection.xml
-  ComputeConnectedSurfaceProperties.xml
-  CustomFilter.xml
-  CustomSourceProbe.xml
-  CustomViewpoints.xml
-  DataOutlines.xml
-  DisableResetDisplayEmptyViews.xml
-  DualSphereAnimation.xml
-  EdgeTintPBR.xml
-  EnSight.xml
-  EnSightTensorInversion.xml
-  EnSightTensorInversionBin.xml
-  ExodusGlobalDataWithRestarts.xml
-  ExodusSingleTimeStep.xml
-  ExpandSelection.xml
-  ExportLinePlotToCSV.xml
-  ExportLinePlotToTSV.xml
-  ExportSceneSpreadSheetView2.xml
-  ExportX3dPOVVRML.xml
-  ExTimeseries.xml
-  ExTimeseries2.xml
-  ExtractComponentFilter.xml
-  ExtractLevel.xml
-  ExtractTimeSteps.xml
-  EyeDomeLighting.xml
-  FeatureEdges.xml
-  FFTOverTime.xml
-  FieldDataBlocks.xml
-  Flagpole.xml
-  Flow.xml
-  Flow2.xml
-  FollowHiddenData.xml
-  ForceTime.xml
-  Fractal2D.xml
-  glTFReaderAnimatedMorphing.xml
-  glTFReaderMultipleAnimations.xml
-  glTFReaderMultipleScenes.xml
-  glTFReaderTriangle.xml
-  glTFReaderToggleDeformation.xml
-  Glyph3DCullingAndLOD.xml
-  Glyph3DRepresentation.xml
-  GlyphUseCellCenters.xml
-  GlyphWithEmptyCells.xml
-  H5PartReader.xml
-  HideAll.xml
-  HorizontalColorLegendTitle.xml
-  IgnoreLogAxisWarning.xml
-  ImageDataToUniformGrid.xml
-  ImageVolumeRendering.xml
-  InteractiveSelection.xml
-  InteractiveViewLinkOffscreen.xml
-  InteractiveViewLinkOnscreen.xml
-  InteractiveViewLinkState.xml
-  LightWidget.xml
-  LinearCellExtrusion.xml
-  LinesAsTubes.xml
-  LinkRepresentationProperties.xml
-  LoadPartiallyUpdatedStateFiles.xml
-  LoadSaveStateAnimation.xml
-  LoadState.xml
-  LoadStateChooseDirectory.xml
-  LoadStateChooseFiles.xml
-  LoadStateTextSourceRepresentation.xml
-  LoadStateUseExisting.xml
-  LoadSaveStateVolume.xml
-  ManyTypesXMLWriterReader.xml
-  MergePointBlocks.xml
-  MergePiecesOnly.xml
-  MoleculeBonds.xml
-  MoleculeToLines.xml
-  # MultiBlockAttributes1.xml
-  MultiBlockInspector.xml
-  MultiBlockSingleBlock.xml
-  MultiBlockVolumeRendering.xml
-  MultiSliceMultiBlock.xml
-  MultiSliceWavelet.xml
-  NormalGlyphs.xml
-  NumberOfComponentsDomain.xml
-  NonConvexPolygon.xml
-  OMETIFFChannelCalculator.xml
-  OpenSaveData.xml
-  OrderedGroupDatasets.xml
-  OrthographicView.xml
-  OutOfRangeColors.xml
-  PBRSpheres.xml
-  # ParallelCoordinatesView.xml see paraview/paraview#20679
-  PlotDataOverTime-NonDistributed.xml
-  PlotEdges2.xml
-  # PlotEdges.xml see paraview/paraview#20659
-  PlotGlobalVariablesOverTime.xml
-  PlotOverTimeAutoApply.xml
-  PolygonCellSelection.xml
-  PolygonPointSelection.xml
-  PointChartView.xml
-  PointGaussianMultiBlockDataSet.xml
-  PointGaussianNoScaleTransferFunction.xml
-  PointGaussianScaleOpacityArray.xml
-  PointInterpolator.xml
-  PointVolumeInterpolator.xml
-  PolarAxes.xml
-  PolyLineAndSplineSources.xml
-  PropertyConversion.xml
-  PropertyConversion1.xml
-  PropertyConversion2.xml
-  PropertyConversion3.xml
-  PropertyConversion4.xml
-  PropertyLink.xml
-  QuadraticGhostCells.xml
-  ReadPIOWithHTG.xml
-  ReadXMLPolyDataFileSeries.xml
-  RectilinearVolumeRendering.xml
-  RedistributeDataSetFilter.xml
-  RepresentationSelector.xml
-  ResampleWithDataset.xml
-  RescaleToTemporal.xml
-  ReverseLegend.xml
-  RotateAroundOriginTransform.xml
-  RotateCamera90.xml
-  RotationalExtrusionFilter.xml
-#  SaveAnimationGeometry.xml
-  SaveColorMap.xml
-  SaveCSV.xml
-  SaveMultiBlockCSV.xml
-  SaveOBJ.xml
-  SaveTSV.xml
-  SaveTXT.xml
-  SelectedProxyPanelVisibility.xml
-  SelectionBlocks.xml
-  SelectionModifiersCells.xml
-  SelectionModifiersPoints.xml
-  SelectionModifiersBlocks.xml
-  SetCustomBasicPresets.xml
-  ShaderReplacements.xml
-  ShowAll.xml
-  SimpleInteraction.xml
-  SliceAlongPolyline.xml
-  SliceAlongSpline.xml
-  SolidColorSource.xml
-  SphereSlice.xml
-  SpherePointSource.xml
-  SpreadSheet1.xml
-  SpreadSheet2.xml
-  SpreadSheet3.xml
-  SPTimeseries.xml
-  SpyPlotHistoryReader.xml
-  SelectionLinkBasic.xml
-  SelectionLinkConverted.xml
-  SelectionLinkHistogram.xml
-  SelectionLinkInitial.xml
-  SelectionLinkMultiple.xml
-  SelectionLinkRemove.xml
-  SelectionLinkReaction.xml
-  SelectionLinkReactionNonConverted.xml
-  SeparatedColorMap.xml
-  SeparatedColorMapOpacity.xml
-  SliceWithPlane.xml
-  SliceWithPlaneMultiBlock.xml
-  SortLineChartData.xml
-  ScrollAreaNativeWidget.xml
-  SSAO.xml
-  StepColorSpace.xml
-  StockColors.xml
-  StreamTracerSurface.xml
-  StreamTracerUpdates.xml
-  TabbedViews.xml
-  TensorGlyph.xml
-  TemporalInterpolator.xml
-  TemporalShiftScale.xml
-  TestGroupDataFromTimeSeries.xml
-  TestSelectionOnMultipiece.xml
-  TimeInspector.xml
-  TimeStepProgressBar.xml
-  Tessellate.xml
-  Text2D.xml
-  TextBillboard3D.xml
-  TextureUsages.xml
-  ToneMapping.xml
-  UndoRedo.xml
-  UndoRedo1.xml
-  UndoRedo2.xml
-  UndoRedo3.xml
-  UndoRedo5.xml
-  UndoRedo6.xml
-  UndoRedo7.xml
-  UndoRedo8.xml
-  UnstructuredOutline.xml
-  UniformInverseTransformSamplingGlyph.xml
-  VectorComponentHistogram.xml
-  VolumeCrop.xml
-  VolumeIsosurfaceBlendMode.xml
-  VolumeRenderingWithContour.xml
-  VolumeReprTwoIndepComp.xml
-  VolumeSliceBlendMode.xml
-  VariableSelector.xml
-  VariableSelector1.xml
-  ViewSettingsDialog.xml
-  VTPSeriesFile.xml
-  #  XYBarChart.xml
-  RandomAttributes.xml
-  YoungsMaterialInterface.xml
-)
 
 if (TARGET VTK::IOParallelLSDyna)
   list(APPEND TESTS_WITH_BASELINES
@@ -1190,23 +1292,6 @@ if(VTK_USE_LARGE_DATA)
     )
 endif()
 
-# The color dialog is different on MacOS X which makes this test fail.
-if(NOT APPLE)
-  list(APPEND TESTS_WITH_BASELINES
-    BackgroundLights.xml
-    )
-endif()
-
-list(APPEND TESTS_WITH_BASELINES
-  # This test makes use of "Point Gaussian" representation, only available with OpenGL2
-  BackgroundColorCheck.xml
-
-  # PlotMatrixView is bugging in OpenGL1
-  PlotMatrixViewArraySelection.xml
-
-  # Composite Glyph Trees are only implemented in OpenGL2
-  CompositeGlyphTree.xml
-  )
 
 if (PARAVIEW_USE_MPI)
   list(APPEND TESTS_WITH_BASELINES
@@ -1300,152 +1385,66 @@ if (PARAVIEW_USE_MPI)
   set(PointInterpolator_DISABLE_CRS TRUE)
   set(PointInterpolator_DISABLE_CS TRUE)
   set(PointVolumeInterpolator_DISABLE_CS TRUE)
+
+  # Histogram filter produces different results when running in parallel, so
+  # disable it.
+  SET (SpreadSheet1_DISABLE_CS TRUE)
+  SET (SpreadSheet1_DISABLE_CRS TRUE)
+
+  # Disabled since the 1 column in spreadsheet view ends up being "Process ID"
+  # which messes up the sorting in this test. Need to extend the testing framework
+  # or fix spreadsheet view for these to work properly.
+  SET (SpreadSheet3_DISABLE_CS TRUE)
+  SET (SpreadSheet3_DISABLE_CRS TRUE)
+
+  # The hierchical fractal source is a temporary testing source and it does not
+  # create the dataset correctly in parallel. Since it's a testing source, I am
+  # just going to disable the test in parallel. We can fix the source when
+  # needed.
+  SET (RectilinearFractal_DISABLE_CS TRUE)
+  SET (RectilinearFractal_DISABLE_CRS TRUE)
+
+  # Selections end up highlighting different set of ID based points in parallel.
+  # Hence disable them.
+  set (LineChartSelection_DISABLE_CS TRUE)
+  set (LineChartSelection_DISABLE_CRS TRUE)
+
+  # For the same reasons
+  set (MultiBlockChartSelection_DISABLE_CS TRUE)
+  set (MultiBlockChartSelection_DISABLE_CRS TRUE)
+
+  # Selection link may highlight incorrect ID in parallel,
+  # hence disable them.
+  set(SelectionLinkBasic_DISABLE_CS TRUE)
+  set(SelectionLinkInitial_DISABLE_CS TRUE)
+  set(SelectionLinkMultiple_DISABLE_CS TRUE)
+  set(SelectionLinkRemove_DISABLE_CS TRUE)
+  set(SelectionLinkReaction_DISABLE_CS TRUE)
+  set(SelectionLinkScripting_DISABLE_CS TRUE)
+
+  if (PARAVIEW_USE_PYTHON)
+    set (TraceStatisticsFilter_DISABLE_CS TRUE)
+    set (TraceStatisticsFilter_DISABLE_CRS TRUE)
+  endif()
+
+  # Many types has a MPI version and Sequential version
+  set(ManyTypesXMLWriterReader_DISABLE_CS TRUE)
+  set(ManyTypesXMLWriterReader_DISABLE_CRS TRUE)
+  set(ManyTypesXMLWriterReaderMPI_DISABLE_C TRUE)
+
+  # CGNS BC patches not supported in parallel
+  set(ReadCGNSBCDataset_DISABLE_CS TRUE)
+  set(ReadCGNSBCDataset_DISABLE_CRS TRUE)
 endif()
 
-if(PARAVIEW_USE_PYTHON)
-  list(APPEND TESTS_WITH_BASELINES
-    ColorByComponentNames.xml # needs programmable filter
-    LiveProgrammableSource.xml
-    PythonShellRunScript.xml
-    SaveLoadStatePython.xml
-    TraceExodus.xml
-    TraceExportAndSaveData.xml
-    TraceSaveGeometry.xml
-    # TraceStatisticsFilter.xml (see paraview/paraview#20661)
-    TraceSupplementalProxiesFully.xml
-    TraceTimeControls.xml
-    TraceWithoutRenderingComponents.xml
-  )
+# Add tests for OSPRay material editor
+if (paraview_use_materialeditor)
   list(APPEND TESTS_WITH_INLINE_COMPARES
-    RestoreArrayDefaultTransferFunction.xml
-    RestoreDefaultTransferFunction.xml
-    SelectCellsTrace.xml
-    SelectionLinkScripting.xml
-    SelectPointsTrace.xml
-    SplitViewTrace.xml
-    TestTableFFT.xml
-    TraceMultiViews.xml
+    MaterialEditorCreateMaterials.xml
+    MaterialEditorLoadMaterials.xml
+    MaterialEditorSaveMaterials.xml
   )
-  set(SelectCellsTrace_DISABLE_CRS TRUE)
-  set(SelectPointsTrace_DISABLE_CRS TRUE)
-
-  list(APPEND TESTS_WITHOUT_BASELINES
-    PythonCalculator.xml
-    PythonEditorTab.xml
-    ProgrammableSourcePythonEditorLink.xml
-    TraceIntegrateVariables.xml
-  )
-
-  # Check that matplotlib is available
-  include(FindPythonModules)
-  find_python_module(matplotlib matplotlib_found)
-  if (matplotlib_found)
-    list(APPEND TESTS_WITH_BASELINES TestPythonView.xml)
-    list(APPEND TESTS_WITH_INLINE_COMPARES MathTextColumn.xml)
-  endif()
-
-  find_python_module(numpy numpy_found)
-  if (numpy_found)
-    list(APPEND TESTS_WITH_BASELINES
-      ContextViewSelectionTrace.xml
-      ExodusModeShapes.xml
-      FindDataNameSanitization.xml
-      FindDataNonDistributedData.xml
-      FindDataPartialArrays.xml
-      FindDataSelectLocationMultiblock.xml # find data needs python/numpy
-      FindDataSelectLocation.xml # find data needs python/numpy
-      FindDataSelectors.xml
-      FindDataTime.xml
-      ForceTimeDiamond.xml
-      FreezeQueryMultiblock.xml
-      IndexedLookupInitialization.xml # needs Python Calculator/numpy
-      ProgrammableAnnotation.xml
-      SpreadSheetSelectionTrace.xml
-      StructuredGridCellBlanking.xml
-      VolumeNoMapScalars.xml # needs programmable filter + numpy
-      )
-
-    list(APPEND TESTS_WITHOUT_BASELINES
-      PythonCalculatorOnTable.xml
-      )
-
-    set(SpreadSheetSelectionTrace_DISABLE_CS TRUE)
-    set(SpreadSheetSelectionTrace_DISABLE_CRS TRUE)
-
-    list(APPEND TESTS_WITH_INLINE_COMPARES
-      FindDataTrace.xml
-      FindDataQueries.xml)
-
-    # PythonAlgorithm plugin tests.
-    configure_file(
-      "PythonAlgorithmPlugin.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/PythonAlgorithmPlugin.xml" @ONLY)
-    configure_file(
-      "PythonAlgorithmReadersAndWriters.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/PythonAlgorithmReadersAndWriters.xml" @ONLY)
-
-    set(pyalgo_plugin_tests
-      PythonAlgorithmPlugin
-      PythonAlgorithmReadersAndWriters)
-    foreach(tname IN LISTS pyalgo_plugin_tests)
-      list(APPEND TESTS_WITH_BASELINES
-        ${CMAKE_CURRENT_BINARY_DIR}/${tname}.xml)
-
-      # we need to extend testing infrastructure to better support
-      # loading plugins in client-server. At that point, we can test these as well.
-      set(${tname}_DISABLE_CS TRUE)
-      set(${tname}_DISABLE_CRS TRUE)
-    endforeach()
-  endif()
-endif()
-
-#------------------------------------------------------------------------------
-# Add streaming tests.
-# We need to locate smooth.flash since it's not included in the default testing
-# datasets.
-find_file(smooth_flash NAMES smooth.flash
-          DOC "Path to smooth.flash data file."
-          NO_DEFAULT_PATH)
-mark_as_advanced(smooth_flash)
-if (EXISTS "${smooth_flash}")
-  # we configure the file since we need to point to smooth_flash.
-  configure_file("AMRStreaming.xml.in"
-                 "${CMAKE_CURRENT_BINARY_DIR}/AMRStreaming.xml" @ONLY)
-  configure_file("AMRVolumeRendering.xml.in"
-                 "${CMAKE_CURRENT_BINARY_DIR}/AMRVolumeRendering.xml" @ONLY)
-
-  set (streaming_tests
-    ${CMAKE_CURRENT_BINARY_DIR}/AMRStreaming.xml)
-
-  # AMRVolumeRendering is a non-streaming test.
-  list(APPEND TESTS_WITH_BASELINES
-    ${CMAKE_CURRENT_BINARY_DIR}/AMRVolumeRendering.xml)
-
-  foreach (tname ${streaming_tests})
-    add_pv_test("pv" "_DISABLE_C"
-      COMMAND --client ${CLIENT_EXECUTABLE}
-              --enable-bt
-              --dr
-              --enable-streaming
-              --test-directory=${PARAVIEW_TEST_DIR}
-
-      BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-      TEST_SCRIPTS ${tname})
-
-    add_pv_test(pvcs "_DISABLE_CS"
-      COMMAND
-         --server $<TARGET_FILE:ParaView::pvserver>
-         --enable-bt
-         --enable-streaming
-         --client ${CLIENT_EXECUTABLE}
-         --enable-bt
-         --dr
-         --enable-streaming
-         --test-directory=${PARAVIEW_TEST_DIR}
-      BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-      TEST_SCRIPTS ${tname})
-  endforeach()
-endif()
+endif ()
 
 option(PARAVIEW_SSH_SERVERS_TESTING
     "Add SSH Servers testing"
@@ -1504,14 +1503,6 @@ endif(PARAVIEW_SSH_SERVERS_TESTING)
 
 #------------------------------------------------------------------------------
 
-# Add tests for OSPRay material editor
-if (paraview_use_materialeditor)
-  list(APPEND TESTS_WITH_INLINE_COMPARES
-    MaterialEditorCreateMaterials.xml
-    MaterialEditorLoadMaterials.xml
-    MaterialEditorSaveMaterials.xml
-  )
-endif ()
 
 # Probe picking does not work in render server mode
 
@@ -1650,58 +1641,6 @@ set (VolumeNoMapScalars_THRESHOLD 50)
 set (MultiBlockVolumeRendering_DISABLE_CRS TRUE)
 set (ColorOpacityEditorFreehandDrawing_DISABLE_CRS TRUE)
 
-# Histogram filter produces different results when running in parallel, so
-# disable it.
-IF (PARAVIEW_USE_MPI)
-  SET (SpreadSheet1_DISABLE_CS TRUE)
-  SET (SpreadSheet1_DISABLE_CRS TRUE)
-
-  # Disabled since the 1 column in spreadsheet view ends up being "Process ID"
-  # which messes up the sorting in this test. Need to extend the testing framework
-  # or fix spreadsheet view for these to work properly.
-  SET (SpreadSheet3_DISABLE_CS TRUE)
-  SET (SpreadSheet3_DISABLE_CRS TRUE)
-
-  # The hierchical fractal source is a temporary testing source and it does not
-  # create the dataset correctly in parallel. Since it's a testing source, I am
-  # just going to disable the test in parallel. We can fix the source when
-  # needed.
-  SET (RectilinearFractal_DISABLE_CS TRUE)
-  SET (RectilinearFractal_DISABLE_CRS TRUE)
-
-  # Selections end up highlighting different set of ID based points in parallel.
-  # Hence disable them.
-  set (LineChartSelection_DISABLE_CS TRUE)
-  set (LineChartSelection_DISABLE_CRS TRUE)
-
-  # For the same reasons
-  set (MultiBlockChartSelection_DISABLE_CS TRUE)
-  set (MultiBlockChartSelection_DISABLE_CRS TRUE)
-
-  # Selection link may highlight incorrect ID in parallel,
-  # hence disable them.
-  set(SelectionLinkBasic_DISABLE_CS TRUE)
-  set(SelectionLinkInitial_DISABLE_CS TRUE)
-  set(SelectionLinkMultiple_DISABLE_CS TRUE)
-  set(SelectionLinkRemove_DISABLE_CS TRUE)
-  set(SelectionLinkReaction_DISABLE_CS TRUE)
-  set(SelectionLinkScripting_DISABLE_CS TRUE)
-
-  if (PARAVIEW_USE_PYTHON)
-    set (TraceStatisticsFilter_DISABLE_CS TRUE)
-    set (TraceStatisticsFilter_DISABLE_CRS TRUE)
-  endif()
-
-  # Many types has a MPI version and Sequential version
-  set(ManyTypesXMLWriterReader_DISABLE_CS TRUE)
-  set(ManyTypesXMLWriterReader_DISABLE_CRS TRUE)
-  set(ManyTypesXMLWriterReaderMPI_DISABLE_C TRUE)
-
-  # CGNS BC patches not supported in parallel
-  set(ReadCGNSBCDataset_DISABLE_CS TRUE)
-  set(ReadCGNSBCDataset_DISABLE_CRS TRUE)
-ENDIF ()
-
 # Composite Surface Selection is currently broken in everything but builtin
 SET (CompositeSurfaceSelection_DISABLE_CS TRUE)
 SET (CompositeSurfaceSelection_DISABLE_CRS TRUE)
@@ -1714,13 +1653,6 @@ SET (Clip_DISABLE_CRS TRUE)
 set (ImageVolumeRendering_DISABLE_CRS TRUE)
 set (RectilinearVolumeRendering_DISABLE_CRS TRUE)
 
-# These Xdmf tests have wireframes, hence the increased thresholds.
-SET (XdmfReadImageData_THRESHOLD 20)
-SET (XdmfReadRectilinearGrid_THRESHOLD 20)
-SET (XdmfReadRectilinearGridCollection_THRESHOLD 20)
-SET (XdmfReadStructuredGrid_THRESHOLD 20)
-SET (XdmfReadStructuredGridCollection_THRESHOLD 20)
-SET (XdmfReadImageDataCollection_THRESHOLD 20)
 
 # This test renders points and they are offsetted a bit differently on
 # different platforms so just increase the threshold
@@ -1802,42 +1734,101 @@ set(TESTS_WITH_MULTI_SERVERS_3
   TestMultiServer3.xml
 )
 
-list(APPEND TESTS_WITHOUT_BASELINES
-  ${TESTS_WITH_INLINE_COMPARES})
+#[==[.md
+# Custom tests
+#]==]
 
-# ResampleToHyperTreeGrid only works in client mode
-paraview_add_client_tests(
-  TEST_SCRIPTS ResampleToHyperTreeGrid.xml
-)
+# TODO: Port to the new API.
+macro(ADD_CATALYST_LIVE_TEST test_name duration command_line_connect_command)
+  # These tests are too complex to run in parallel.
+  set (CATALYST_SIMULATION CatalystWaveletDriver.py)
+  set (INSITU_SCRIPT CatalystWaveletCoprocessing)
 
-paraview_add_client_tests(
-  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
-)
+  set ("${test_name}_FORCE_SERIAL" TRUE)
+  add_pv_test("pv" "_DISABLE_C"
+    COMMAND
+    --script-ignore-output-errors --script $<TARGET_FILE:ParaView::pvbatch> --sym
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CATALYST_SIMULATION}
+    ${INSITU_SCRIPT} "${duration}"
 
-paraview_add_client_tests(
-  BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-  TEST_SCRIPTS ${TESTS_WITH_BASELINES}
-)
-
-paraview_add_client_server_tests(
-  BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-  TEST_SCRIPTS ${TESTS_WITH_BASELINES}
-)
-
-paraview_add_client_server_tests(
-  TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
-)
-
-if (PARAVIEW_CLIENT_RENDER_SERVER_TESTS)
-  paraview_add_client_server_render_tests(
+    --client ${CLIENT_EXECUTABLE}
+    --enable-bt
+    ${command_line_connect_command}
+    --dr
+    --test-directory=${PARAVIEW_TEST_DIR}
     BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
-    TEST_SCRIPTS ${TESTS_WITH_BASELINES}
-  )
+    TEST_SCRIPTS ${test_name}.xml
+    EXTRA_LABELS "catalyst")
 
-  paraview_add_client_server_render_tests(
-    TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
-  )
-endif ()
+  add_pv_test(pvcs "_DISABLE_CS"
+    COMMAND
+    --script-np 5 --script-ignore-output-errors
+    --script $<TARGET_FILE:ParaView::pvbatch> --sym
+    ${CMAKE_CURRENT_SOURCE_DIR}/${CATALYST_SIMULATION}
+    ${INSITU_SCRIPT} "${duration}"
+
+    --server $<TARGET_FILE:ParaView::pvserver>
+    --enable-bt
+
+    --client ${CLIENT_EXECUTABLE}
+    --enable-bt
+    ${command_line_connect_command}
+    --dr
+    --test-directory=${PARAVIEW_TEST_DIR}
+    BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+    TEST_SCRIPTS ${test_name}.xml
+    EXTRA_LABELS "catalyst")
+
+endmacro(ADD_CATALYST_LIVE_TEST)
+
+#------------------------------------------------------------------------------
+# Add streaming tests.
+# We need to locate smooth.flash since it's not included in the default testing
+# datasets.
+find_file(smooth_flash NAMES smooth.flash
+          DOC "Path to smooth.flash data file."
+          NO_DEFAULT_PATH)
+mark_as_advanced(smooth_flash)
+if (EXISTS "${smooth_flash}")
+  # we configure the file since we need to point to smooth_flash.
+  configure_file("AMRStreaming.xml.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/AMRStreaming.xml" @ONLY)
+  configure_file("AMRVolumeRendering.xml.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/AMRVolumeRendering.xml" @ONLY)
+
+  set (streaming_tests
+    ${CMAKE_CURRENT_BINARY_DIR}/AMRStreaming.xml)
+
+  # AMRVolumeRendering is a non-streaming test.
+  list(APPEND TESTS_WITH_BASELINES
+    ${CMAKE_CURRENT_BINARY_DIR}/AMRVolumeRendering.xml)
+
+  foreach (tname ${streaming_tests})
+    add_pv_test("pv" "_DISABLE_C"
+      COMMAND --client ${CLIENT_EXECUTABLE}
+              --enable-bt
+              --dr
+              --enable-streaming
+              --test-directory=${PARAVIEW_TEST_DIR}
+
+      BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+      TEST_SCRIPTS ${tname})
+
+    add_pv_test(pvcs "_DISABLE_CS"
+      COMMAND
+         --server $<TARGET_FILE:ParaView::pvserver>
+         --enable-bt
+         --enable-streaming
+         --client ${CLIENT_EXECUTABLE}
+         --enable-bt
+         --dr
+         --enable-streaming
+         --test-directory=${PARAVIEW_TEST_DIR}
+      BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+      TEST_SCRIPTS ${tname})
+  endforeach()
+endif()
+
 
 # TODO: remote rendering tests and reverse connect tests.
 
@@ -2006,3 +1997,44 @@ configure_file (
 paraview_add_client_tests(
   FORCE_SERIAL
   TEST_SCRIPTS ${CMAKE_CURRENT_BINARY_DIR}/ServerConnectConfigured.xml)
+
+#[==[.md
+# Create standard tests
+# Actually, tests without comparison are treated as inline comparison tests.
+#]==]
+list(APPEND TESTS_WITHOUT_BASELINES
+  ${TESTS_WITH_INLINE_COMPARES})
+
+# ResampleToHyperTreeGrid only works in client mode
+paraview_add_client_tests(
+  TEST_SCRIPTS ResampleToHyperTreeGrid.xml
+)
+
+paraview_add_client_tests(
+  TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
+)
+
+paraview_add_client_tests(
+  BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+  TEST_SCRIPTS ${TESTS_WITH_BASELINES}
+)
+
+paraview_add_client_server_tests(
+  BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+  TEST_SCRIPTS ${TESTS_WITH_BASELINES}
+)
+
+paraview_add_client_server_tests(
+  TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
+)
+
+if (PARAVIEW_CLIENT_RENDER_SERVER_TESTS)
+  paraview_add_client_server_render_tests(
+    BASELINE_DIR ${PARAVIEW_TEST_BASELINE_DIR}
+    TEST_SCRIPTS ${TESTS_WITH_BASELINES}
+  )
+
+  paraview_add_client_server_render_tests(
+    TEST_SCRIPTS ${TESTS_WITH_INLINE_COMPARES}
+  )
+endif ()
