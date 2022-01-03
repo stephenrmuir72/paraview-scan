@@ -1,0 +1,5 @@
+NAME
+  ParaView::rxcpp
+LIBRARY_NAME
+  vtkrxcpp
+THIRD_PARTY
