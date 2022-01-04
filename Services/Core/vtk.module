@@ -1,0 +1,19 @@
+NAME
+  ParaView::ServicesCore
+LIBRARY_NAME
+  vtkServicesCore
+DESCRIPTION
+  Services framework
+IMPLEMENTABLE
+DEPENDS
+  ParaView::rxcpp
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::IOLegacy
+  VTK::nlohmannjson
+  VTK::ParallelCore
+TEST_DEPENDS
+  ParaView::ServicesThallium
+  VTK::TestingCore
+PRIVATE_DEPENDS
+  VTK::fmt
