@@ -92,6 +92,10 @@ set_property(CACHE BUILD_TESTING
   PROPERTY
     TYPE INTERNAL)
 
+set(VTK_IGNORE_CMAKE_CXX11_CHECKS ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_EXTENSIONS False)
 include(vtkCompilerChecks)
 include(vtkCompilerPlatformFlags)
 include(vtkCompilerExtraFlags)
