@@ -658,26 +658,6 @@ if (TARGET ParaView::vtkcatalyst)
   endforeach ()
 endif ()
 
-vtk_module_build(
-  MODULES             ${paraview_client_modules}
-  KITS                ${paraview_client_kits}
-  PACKAGE             ParaViewClients
-  INSTALL_EXPORT      ParaViewClients
-  INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
-  CMAKE_DESTINATION   "${paraview_cmake_destination}"
-  LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
-  HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
-  LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
-  VERSION             "${PARAVIEW_VERSION}"
-  SOVERSION           "1"
-  TEST_DATA_TARGET    ParaViewData
-  BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
-  USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
-  TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
-  TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
-  TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}")
-
 include(vtkModuleJson)
 vtk_module_json(
   MODULES ${vtk_modules}
@@ -685,9 +665,32 @@ vtk_module_json(
 vtk_module_json(
   MODULES ${paraview_modules}
   OUTPUT "paraview-modules.json")
-vtk_module_json(
-  MODULES ${paraview_client_modules}
-  OUTPUT "paraview-client-modules.json")
+
+if (paraview_client_modules)
+  vtk_module_build(
+    MODULES             ${paraview_client_modules}
+    KITS                ${paraview_client_kits}
+    PACKAGE             ParaViewClients
+    INSTALL_EXPORT      ParaViewClients
+    INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
+    CMAKE_DESTINATION   "${paraview_cmake_destination}"
+    LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
+    HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
+    LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
+    VERSION             "${PARAVIEW_VERSION}"
+    SOVERSION           "1"
+    TEST_DATA_TARGET    ParaViewData
+    BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
+    USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
+    TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
+    TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
+    TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}")
+
+  vtk_module_json(
+    MODULES ${paraview_client_modules}
+    OUTPUT "paraview-client-modules.json")
+endif()
 
 list(LENGTH vtk_modules vtk_modules_len)
 list(LENGTH paraview_modules paraview_modules_len)
@@ -814,7 +817,9 @@ if (PARAVIEW_ENABLE_WEB)
     @ONLY)
 endif ()
 
-add_subdirectory(Clients)
+if (PARAVIEW_BUILD_CORE)
+  add_subdirectory(Clients)
+endif()
 
 if (PARAVIEW_USE_PYTHON)
   add_subdirectory(Wrapping/Python)
