@@ -28,15 +28,28 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
+# TODO: ASYNC
+# Perhaps this module can be merged with Remoting/ServerManager.
+# I can't think of any reason why this should be separate. At that point,
+# Services/Core can move to Remoting/Core and Services/Thallium can become
+# Remoting/Thallium
 set(classes
+  vtkObjectStore
+  vtkProcessModule
+  vtkProcessModuleConfiguration
+  vtkProxyDefinitionManager
+  vtkRemoteObjectProvider
+  vtkServerSession
+  vtkSession
+)
+
+set(old_classes
   vtkCompositeMultiProcessController
   vtkDisplayConfiguration
   vtkMPIMToNSocketConnection
   vtkMPIMToNSocketConnectionPortInformation
   vtkNetworkAccessManager
   vtkPResourceFileLocator
-  vtkProcessModule
-  vtkProcessModuleConfiguration
   vtkPVAlgorithmPortsInformation
   vtkPVArrayInformation
   vtkPVClassNameInformation
@@ -54,8 +67,6 @@ set(classes
   vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation
-  vtkPVOptions
-  vtkPVOptionsXMLParser
   vtkPVPlugin
   vtkPVPluginLoader
   vtkPVPluginsInformation
@@ -66,19 +77,15 @@ set(classes
   vtkPVPythonPluginInterface
   vtkPVServerInformation
   vtkPVServerManagerPluginInterface
-  vtkPVSession
   vtkPVSystemConfigInformation
   vtkPVSystemInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
   vtkRemotingCoreConfiguration
-  vtkSession
-  vtkSessionIterator
   vtkTCPNetworkAccessManager)
 
 set(sources)
-set(private_headers
-  vtkProcessModuleInternals.h)
+set(private_headers)
 
 set(headers
   vtkParaViewDeprecation.h

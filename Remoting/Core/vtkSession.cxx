@@ -14,31 +14,29 @@
 =========================================================================*/
 #include "vtkSession.h"
 
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
+#include "vtkProxyDefinitionManager.h"
+
+class vtkSession::vtkInternals
+{
+public:
+  vtkNew<vtkProxyDefinitionManager> ProxyDefinitionManager;
+};
 
 //----------------------------------------------------------------------------
-vtkSession::vtkSession() = default;
+vtkSession::vtkSession()
+  : Internals(new vtkSession::vtkInternals())
+{
+}
 
 //----------------------------------------------------------------------------
 vtkSession::~vtkSession() = default;
 
 //----------------------------------------------------------------------------
-void vtkSession::Activate()
+vtkProxyDefinitionManager* vtkSession::GetProxyDefinitionManager() const
 {
-  if (vtkProcessModule* pm = vtkProcessModule::GetProcessModule())
-  {
-    pm->PushActiveSession(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSession::DeActivate()
-{
-  if (vtkProcessModule* pm = vtkProcessModule::GetProcessModule())
-  {
-    pm->PopActiveSession(this);
-  }
+  return this->Internals->ProxyDefinitionManager;
 }
 
 //----------------------------------------------------------------------------

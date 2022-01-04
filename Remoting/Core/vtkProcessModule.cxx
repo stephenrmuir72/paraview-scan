@@ -17,7 +17,6 @@
 #define PARAVIEW_DEPRECATION_LEVEL 0
 
 #include "vtkProcessModule.h"
-#include "vtkProcessModuleInternals.h"
 
 #include "vtkCLIOptions.h"
 #include "vtkCommand.h"
@@ -25,21 +24,20 @@
 #include "vtkDummyController.h"
 #include "vtkFloatingPointExceptions.h"
 #include "vtkInformation.h"
-#include "vtkLegacy.h"
 #include "vtkLogger.h"
 #include "vtkMultiThreader.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOutputWindow.h"
 #include "vtkPSystemTools.h"
-#include "vtkPVOptions.h"
 #include "vtkPolyData.h"
 #include "vtkProcessModuleConfiguration.h"
-#include "vtkSessionIterator.h"
+#include "vtkRemotingCoreUtilities.h"
+#include "vtkServicesEngine.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkTCPNetworkAccessManager.h"
 #include "vtkUnstructuredGrid.h"
 
+#include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
 
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
@@ -57,9 +55,15 @@
 #include <csignal>
 #endif
 
-// this include is needed to ensure that vtkPVPluginLoader singleton doesn't get
-// destroyed before the process module singleton is cleaned up.
-#include "vtkPVPluginLoader.h"
+// clang-format off
+#include <vtk_fmt.h> // needed for `fmt`
+#include VTK_FMT(fmt/core.h)
+// clang-format on
+
+/// FIXME: ASYNC
+/// // this include is needed to ensure that vtkPVPluginLoader singleton doesn't get
+/// // destroyed before the process module singleton is cleaned up.
+/// #include "vtkPVPluginLoader.h"
 
 #include <cassert>
 #include <clocale> // needed for setlocale()
@@ -68,6 +72,18 @@
 
 namespace
 {
+
+static std::string GetCSUrl(const std::string& url)
+{
+  vtksys::RegularExpression regEx("^[^:]+://(.*)$");
+  if (!regEx.find(url))
+  {
+    vtkLogF(INFO, "URL in unrecognized form ('%s'). Using default.", url.c_str());
+    abort();
+  }
+
+  return fmt::format("cs://{}", regEx.match(1));
+}
 
 // This is used to avoid creating vtkWin32OutputWindow on ParaView executables.
 // vtkWin32OutputWindow is not a useful window for any of the ParaView commandline
@@ -100,12 +116,6 @@ static void UpdateThreadName(
       break;
     case vtkProcessModule::PROCESS_SERVER:
       vtkLogger::SetThreadName("pvserver" + tname_suffix);
-      break;
-    case vtkProcessModule::PROCESS_DATA_SERVER:
-      vtkLogger::SetThreadName("pvdatserver" + tname_suffix);
-      break;
-    case vtkProcessModule::PROCESS_RENDER_SERVER:
-      vtkLogger::SetThreadName("pvrenderserver" + tname_suffix);
       break;
     case vtkProcessModule::PROCESS_BATCH:
       vtkLogger::SetThreadName("pvbatch" + tname_suffix);
@@ -146,7 +156,47 @@ void HandleDisplay(int& argc, char**& argv)
 }
 }
 
-//----------------------------------------------------------------------------
+//============================================================================
+class vtkProcessModule::vtkInternals
+{
+  vtkSmartPointer<vtkMultiProcessController> GlobalController;
+
+public:
+  const std::thread::id OwnerTID{ std::this_thread::get_id() };
+  vtkSmartPointer<vtkServicesEngine> Engine;
+  std::string ProgramPath;
+  std::string SelfDir;
+  int Rank{ 0 };
+  int NumberOfRanks{ 1 };
+  std::atomic<bool> ReportInterpreterErrors{ true };
+  int ExitCode{ EXIT_SUCCESS };
+  bool ExitCodeSet{ false };
+
+  vtkInternals() = default;
+  ~vtkInternals()
+  {
+    if (this->Engine)
+    {
+      this->Engine->Finalize();
+    }
+
+    if (this->GlobalController)
+    {
+      this->GlobalController->Finalize(/*finalizedExternally*/ 1);
+    }
+  }
+
+  void SetGlobalController(vtkMultiProcessController* controller)
+  {
+    this->GlobalController = controller;
+    this->Rank = controller->GetLocalProcessId();
+    this->NumberOfRanks = controller->GetNumberOfProcesses();
+  }
+
+  vtkMultiProcessController* GetGlobalController() const { return this->GlobalController; }
+};
+
+//============================================================================
 // * STATICS
 vtkProcessModule::ProcessTypes vtkProcessModule::ProcessType = vtkProcessModule::PROCESS_INVALID;
 
@@ -154,18 +204,19 @@ bool vtkProcessModule::FinalizeMPI = false;
 bool vtkProcessModule::FinalizePython = false;
 
 vtkSmartPointer<vtkProcessModule> vtkProcessModule::Singleton;
-vtkSmartPointer<vtkMultiProcessController> vtkProcessModule::GlobalController;
 
 int vtkProcessModule::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = 1;
 int vtkProcessModule::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = 0;
 
 //----------------------------------------------------------------------------
-bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
+bool vtkProcessModule::Initialize(
+  ProcessTypes type, int& argc, char**& argv, rxcpp::observe_on_one_worker scheduler)
 {
   setlocale(LC_NUMERIC, "C");
 
   vtkProcessModule::ProcessType = type;
-  vtkProcessModule::GlobalController = vtkSmartPointer<vtkDummyController>::New();
+  vtkSmartPointer<vtkMultiProcessController> globalController =
+    vtkSmartPointer<vtkDummyController>::New();
 
   // This needs special handling. Generally, `vtkProcessModule::Initialize` is
   // called first and then all arguments are processed. This is required since
@@ -217,12 +268,8 @@ bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
     // by changing the CWD back to the original one after MPI_Init.
     std::string cwd = vtksys::SystemTools::GetCurrentWorkingDirectory();
 
-    // This is here to avoid false leak messages from vtkDebugLeaks when
-    // using mpich. It appears that the root process which spawns all the
-    // main processes waits in MPI_Init() and calls exit() when
-    // the others are done, causing apparent memory leaks for any objects
-    // created before MPI_Init().
-    MPI_Init(&argc, &argv);
+    int provided_threading;
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided_threading);
 
     // restore CWD to what it was before the MPI initialization.
     vtksys::SystemTools::ChangeDirectory(cwd);
@@ -232,20 +279,25 @@ bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
 
   if (use_mpi || mpi_already_initialized)
   {
+    int provided_threading;
+    MPI_Query_thread(&provided_threading);
+    if (provided_threading != MPI_THREAD_MULTIPLE)
+    {
+      throw std::runtime_error("MPI_THREAD_MULTIPLE not supported!");
+    }
+
     if (vtkMPIController* controller =
           vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController()))
     {
-      vtkProcessModule::GlobalController = controller;
+      globalController = controller;
     }
     else
     {
-      vtkProcessModule::GlobalController = vtkSmartPointer<vtkMPIController>::New();
-      vtkProcessModule::GlobalController->Initialize(&argc, &argv, /*initializedExternally*/ 1);
+      globalController = vtkSmartPointer<vtkMPIController>::New();
+      globalController->Initialize(&argc, &argv, /*initializedExternally*/ 1);
     }
-    // Get number of ranks in this process group
-    int numRanks = vtkProcessModule::GlobalController->GetNumberOfProcesses();
     // Ensure that the user cannot run a client with more than one rank.
-    if (type == PROCESS_CLIENT && numRanks > 1)
+    if (type == PROCESS_CLIENT && globalController->GetNumberOfProcesses() > 1)
     {
       throw std::runtime_error("Client process should be run with one process!");
     }
@@ -254,11 +306,13 @@ bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
   static_cast<void>(argc); // unused warning when MPI is off
   static_cast<void>(argv); // unused warning when MPI is off
 #endif
-  vtkProcessModule::GlobalController->BroadcastTriggerRMIOn();
-  vtkMultiProcessController::SetGlobalController(vtkProcessModule::GlobalController);
+  globalController->BroadcastTriggerRMIOn();
+  vtkMultiProcessController::SetGlobalController(globalController);
+
+  const int rank = globalController->GetLocalProcessId();
 
   // Setup logging
-  UpdateThreadName(type, vtkProcessModule::GlobalController);
+  UpdateThreadName(type, globalController);
   if (config->GetLogStdErrVerbosity() != vtkLogger::VERBOSITY_INVALID)
   {
     vtkLogger::SetStderrVerbosity(
@@ -333,9 +387,25 @@ bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
 #endif
 
   // Create the process module.
-  vtkProcessModule::Singleton = vtkSmartPointer<vtkProcessModule>::New();
+  vtkProcessModule::Singleton = vtk::TakeSmartPointer(vtkProcessModule::New());
+  vtkProcessModule::Singleton->Internals->SetGlobalController(globalController);
   vtkProcessModule::Singleton->DetermineExecutablePath(argc, argv);
   vtkProcessModule::Singleton->InitializePythonEnvironment();
+
+  // Setup services engine.
+  auto engine = vtk::TakeSmartPointer(vtkServicesEngine::New());
+  // TODO: should we pass a duplicated controller here?
+  engine->SetController(globalController);
+  engine->Initialize("tcp://", scheduler);
+  vtkProcessModule::Singleton->Internals->Engine = engine;
+
+  // unset global controller; we don't want VTK filters to use this controller,
+  // instead it should use service specific controller.
+  vtkMultiProcessController::SetGlobalController(nullptr);
+  if (rank == 0 && type == vtkProcessModule::PROCESS_SERVER)
+  {
+    cout << "Accepting connection(s): " << ::GetCSUrl(engine->GetUrl()) << endl;
+  }
   return true;
 }
 
@@ -353,22 +423,11 @@ bool vtkProcessModule::Finalize()
 
   if (vtkProcessModule::Singleton)
   {
-    // Make sure no session are kept inside ProcessModule so SessionProxyManager
-    // could cleanup their Proxies before the ProcessModule get deleted.
-    vtkProcessModule::Singleton->Internals->Sessions.clear();
-
     vtkProcessModule::Singleton->InvokeEvent(vtkCommand::ExitEvent);
   }
 
   // destroy the process-module.
   vtkProcessModule::Singleton = nullptr;
-
-  // We don't really need to call SetGlobalController(nullptr) since
-  // it's really stored with a weak pointer.  We set it to nullptr anyways
-  // in case it gets changed later to reference counting the pointer
-  vtkMultiProcessController::SetGlobalController(nullptr);
-  vtkProcessModule::GlobalController->Finalize(/*finalizedExternally*/ 1);
-  vtkProcessModule::GlobalController = nullptr;
 
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
   if (vtkProcessModule::FinalizeMPI)
@@ -391,49 +450,9 @@ vtkProcessModule::ProcessTypes vtkProcessModule::GetProcessType()
 }
 
 //----------------------------------------------------------------------------
-void vtkProcessModule::UpdateProcessType(ProcessTypes newType, bool dontKnowWhatImDoing /*=true*/)
-{
-  if (dontKnowWhatImDoing)
-  {
-    vtkWarningMacro(
-      "UpdateProcessType from " << vtkProcessModule::ProcessType << " to " << newType);
-  }
-  vtkProcessModule::ProcessType = newType;
-}
-
-//----------------------------------------------------------------------------
 vtkProcessModule* vtkProcessModule::GetProcessModule()
 {
   return vtkProcessModule::Singleton.GetPointer();
-}
-
-//----------------------------------------------------------------------------
-// * vtkProcessModule non-static methods
-vtkStandardNewMacro(vtkProcessModule);
-vtkCxxSetObjectMacro(vtkProcessModule, NetworkAccessManager, vtkNetworkAccessManager);
-
-vtkCxxSetObjectMacro(vtkProcessModule, Options, vtkPVOptions);
-
-//----------------------------------------------------------------------------
-vtkProcessModule::vtkProcessModule()
-{
-  this->NetworkAccessManager = vtkTCPNetworkAccessManager::New();
-  this->Internals = new vtkProcessModuleInternals();
-  this->MaxSessionId = 0;
-  this->ReportInterpreterErrors = true;
-  this->MultipleSessionsSupport = false; // Set MULTI-SERVER to false as DEFAULT
-  this->EventCallDataSessionId = 0;
-  this->Options = nullptr;
-}
-
-//----------------------------------------------------------------------------
-vtkProcessModule::~vtkProcessModule()
-{
-  this->SetNetworkAccessManager(nullptr);
-  this->SetOptions(nullptr);
-
-  delete this->Internals;
-  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -443,155 +462,101 @@ bool vtkProcessModule::GetSymmetricMPIMode()
 }
 
 //----------------------------------------------------------------------------
-vtkIdType vtkProcessModule::RegisterSession(vtkSession* session)
+void vtkProcessModule::SetDefaultMinimumGhostLevelsToRequestForStructuredPipelines(int val)
 {
-  assert(session != nullptr);
-  this->MaxSessionId++;
-  this->Internals->Sessions[this->MaxSessionId] = session;
-  this->EventCallDataSessionId = this->MaxSessionId;
-  this->InvokeEvent(vtkCommand::ConnectionCreatedEvent, &this->MaxSessionId);
-  this->EventCallDataSessionId = 0;
-  return this->MaxSessionId;
+  vtkProcessModule::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = val;
 }
 
 //----------------------------------------------------------------------------
-bool vtkProcessModule::UnRegisterSession(vtkIdType sessionID)
+int vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
 {
-  vtkProcessModuleInternals::MapOfSessions::iterator iter =
-    this->Internals->Sessions.find(sessionID);
-  if (iter != this->Internals->Sessions.end())
+  return vtkProcessModule::DefaultMinimumGhostLevelsToRequestForStructuredPipelines;
+}
+
+//----------------------------------------------------------------------------
+void vtkProcessModule::SetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines(int val)
+{
+  vtkProcessModule::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = val;
+}
+
+//----------------------------------------------------------------------------
+int vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines()
+{
+  return vtkProcessModule::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines;
+}
+
+//----------------------------------------------------------------------------
+int vtkProcessModule::GetNumberOfGhostLevelsToRequest(vtkInformation* info)
+{
+  auto* pm = vtkProcessModule::GetProcessModule();
+  if (pm == nullptr || pm->GetNumberOfRanks() <= 1)
   {
-    this->EventCallDataSessionId = sessionID;
-    this->InvokeEvent(vtkCommand::ConnectionClosedEvent, &sessionID);
-    this->EventCallDataSessionId = 0;
-    this->Internals->Sessions.erase(iter);
-    return true;
+    return 0;
   }
 
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool vtkProcessModule::UnRegisterSession(vtkSession* session)
-{
-  vtkProcessModuleInternals::MapOfSessions::iterator iter;
-  for (iter = this->Internals->Sessions.begin(); iter != this->Internals->Sessions.end(); ++iter)
+  vtkDataSet* ds = vtkDataSet::GetData(info);
+  if (ds || vtkCompositeDataSet::GetData(info) != nullptr)
   {
-    if (iter->second == session)
-    {
-      vtkIdType sessionID = iter->first;
-      this->EventCallDataSessionId = sessionID;
-      this->InvokeEvent(vtkCommand::ConnectionClosedEvent, &sessionID);
-      this->EventCallDataSessionId = 0;
-      this->Internals->Sessions.erase(iter);
-      return true;
-    }
+    // Check if this is structured-pipeline, this includes unstructured pipelines
+    // downstream from structured source e.g. Wavelet - > Clip.
+    // To do that, we use a trick. If WHOLE_EXTENT() key us present, it must have
+    // started as a structured dataset.
+    // The is one exception to this for ExplicitStructuredGrid data, their
+    // behavior is both structured and unstructured but regarding ghost cells
+    // they have the behavior of an unstructured dataset.
+    const bool is_structured = (info->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()) != 0) &&
+      (!ds || (ds && !ds->IsA("vtkExplicitStructuredGrid")));
+    return is_structured
+      ? vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
+      : vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines();
   }
-  vtkErrorMacro("Session has not been registered. Cannot unregister : " << session);
-  return false;
-}
-
-//----------------------------------------------------------------------------
-vtkSession* vtkProcessModule::GetSession(vtkIdType sessionID)
-{
-  vtkProcessModuleInternals::MapOfSessions::iterator iter =
-    this->Internals->Sessions.find(sessionID);
-  if (iter != this->Internals->Sessions.end())
+  else
   {
-    return iter->second.GetPointer();
+    // the pipeline is for a non-dataset/composite-dataset filter. don't bother
+    // asking for ghost levels.
+    return 0;
   }
+}
 
-  return nullptr;
+//============================================================================
+// * vtkProcessModule non-static methods
+vtkStandardNewMacro(vtkProcessModule);
+//----------------------------------------------------------------------------
+vtkProcessModule::vtkProcessModule()
+  : Internals(new vtkProcessModule::vtkInternals())
+{
 }
 
 //----------------------------------------------------------------------------
-vtkIdType vtkProcessModule::GetSessionID(vtkSession* session)
+vtkProcessModule::~vtkProcessModule() = default;
+
+//----------------------------------------------------------------------------
+vtkMultiProcessController* vtkProcessModule::GetGlobalController() const
 {
-  vtkProcessModuleInternals::MapOfSessions::iterator iter;
-  for (iter = this->Internals->Sessions.begin(); iter != this->Internals->Sessions.end(); ++iter)
-  {
-    if (iter->second == session)
-    {
-      return iter->first;
-    }
-  }
-  return 0;
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  return internals.GetGlobalController();
 }
 
 //----------------------------------------------------------------------------
-vtkSessionIterator* vtkProcessModule::NewSessionIterator()
+int vtkProcessModule::GetNumberOfRanks() const
 {
-  vtkSessionIterator* iter = vtkSessionIterator::New();
-  return iter;
+  const auto& internals = (*this->Internals);
+  return internals.NumberOfRanks;
 }
 
 //----------------------------------------------------------------------------
-vtkMultiProcessController* vtkProcessModule::GetGlobalController()
+int vtkProcessModule::GetRank() const
 {
-  return vtkMultiProcessController::GetGlobalController();
+  const auto& internals = (*this->Internals);
+  return internals.Rank;
 }
 
 //----------------------------------------------------------------------------
-int vtkProcessModule::GetNumberOfLocalPartitions()
+bool vtkProcessModule::IsMPIInitialized() const
 {
-  return this->GetGlobalController() ? this->GetGlobalController()->GetNumberOfProcesses() : 1;
-}
-
-//----------------------------------------------------------------------------
-int vtkProcessModule::GetPartitionId()
-{
-  return this->GetGlobalController() ? this->GetGlobalController()->GetLocalProcessId() : 0;
-}
-
-//----------------------------------------------------------------------------
-bool vtkProcessModule::IsMPIInitialized()
-{
-  return (this->GetGlobalController() && this->GetGlobalController()->IsA("vtkMPIController") != 0);
-}
-
-//----------------------------------------------------------------------------
-void vtkProcessModule::PushActiveSession(vtkSession* session)
-{
-  assert(session != nullptr);
-
-  this->Internals->ActiveSessionStack.push_back(session);
-}
-
-//----------------------------------------------------------------------------
-void vtkProcessModule::PopActiveSession(vtkSession* session)
-{
-  assert(session != nullptr);
-
-  if (this->Internals->ActiveSessionStack.back() != session)
-  {
-    vtkErrorMacro("Mismatch in active-session stack. Aborting for debugging.");
-    abort();
-  }
-  this->Internals->ActiveSessionStack.pop_back();
-}
-
-//----------------------------------------------------------------------------
-vtkSession* vtkProcessModule::GetActiveSession()
-{
-  if (this->Internals->ActiveSessionStack.empty())
-  {
-    return nullptr;
-  }
-  return this->Internals->ActiveSessionStack.back();
-}
-
-//----------------------------------------------------------------------------
-vtkSession* vtkProcessModule::GetSession()
-{
-  vtkSession* activeSession = this->GetActiveSession();
-  if (activeSession)
-  {
-    return activeSession;
-  }
-
-  vtkProcessModuleInternals::MapOfSessions::iterator iter;
-  iter = this->Internals->Sessions.begin();
-  return (iter != this->Internals->Sessions.end() ? iter->second.GetPointer() : nullptr);
+  const auto& internals = (*this->Internals);
+  return (internals.GetGlobalController()->IsA("vtkMPIController") != 0);
 }
 
 //----------------------------------------------------------------------------
@@ -599,29 +564,23 @@ void vtkProcessModule::DetermineExecutablePath(int argc, char* argv[])
 {
   assert(argc >= 1);
 
+  auto& internals = (*this->Internals);
   if (argc > 0)
   {
     std::string errMsg;
-    if (!vtkPSystemTools::FindProgramPath(argv[0], this->ProgramPath, errMsg))
+    if (!vtkPSystemTools::FindProgramPath(argv[0], internals.ProgramPath, errMsg))
     {
       // if FindProgramPath fails. We really don't have much of an alternative
       // here. Python module importing is going to fail.
-      this->ProgramPath = vtkPSystemTools::CollapseFullPath(argv[0]);
+      internals.ProgramPath = vtkPSystemTools::CollapseFullPath(argv[0]);
     }
-    this->SelfDir = vtksys::SystemTools::GetFilenamePath(this->ProgramPath);
+    internals.SelfDir = vtksys::SystemTools::GetFilenamePath(internals.ProgramPath);
   }
   else
   {
-    this->SelfDir = vtkPSystemTools::GetCurrentWorkingDirectory(/*collapse=*/true);
-    this->ProgramPath = this->SelfDir + "/unknown_exe";
+    internals.SelfDir = vtkPSystemTools::GetCurrentWorkingDirectory(/*collapse=*/true);
+    internals.ProgramPath = internals.SelfDir + "/unknown_exe";
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkProcessModule::SetExecutablePath(const std::string& path)
-{
-  this->ProgramPath = vtkPSystemTools::CollapseFullPath(path);
-  this->SelfDir = vtksys::SystemTools::GetFilenamePath(this->ProgramPath);
 }
 
 //----------------------------------------------------------------------------
@@ -679,84 +638,138 @@ bool vtkProcessModule::InitializePythonEnvironment()
 }
 
 //----------------------------------------------------------------------------
+bool vtkProcessModule::GetReportInterpreterErrors() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ReportInterpreterErrors;
+}
+
+//----------------------------------------------------------------------------
+void vtkProcessModule::SetReportInterpreterErrors(bool state)
+{
+  auto& internals = (*this->Internals);
+  internals.ReportInterpreterErrors = state;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkProcessModule::GetProgramPath() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ProgramPath;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkProcessModule::GetSelfDir() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.SelfDir;
+}
+
+//----------------------------------------------------------------------------
 void vtkProcessModule::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "NetworkAccessManager: " << endl;
-  this->NetworkAccessManager->PrintSelf(os, indent.GetNextIndent());
+}
 
-  if (this->Options)
+//----------------------------------------------------------------------------
+vtkServicesEngine* vtkProcessModule::GetServicesEngine() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Engine;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkMultiProcessController> vtkProcessModule::NewController() const
+{
+  auto* worldController = this->GetGlobalController();
+  if (vtkDummyController::SafeDownCast(worldController))
   {
-    os << indent << "Options: " << endl;
-    this->Options->PrintSelf(os, indent.GetNextIndent());
+    auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
+    controller->Initialize(nullptr, nullptr);
+    return controller;
+  }
+
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  auto* worldComm = vtkMPICommunicator::SafeDownCast(worldController->GetCommunicator());
+  auto* mpiHandle = worldComm->GetMPIComm()->GetHandle();
+
+  MPI_Comm clone;
+  MPI_Comm_dup(*mpiHandle, &clone);
+
+  vtkMPICommunicatorOpaqueComm opaqueComm(&clone);
+  vtkNew<vtkMPICommunicator> cloneComm;
+  cloneComm->InitializeExternal(&opaqueComm);
+
+  vtkNew<vtkMPIController> controller;
+  controller->SetCommunicator(cloneComm);
+  // ensure we use broadcast/collectives for RMI rather than p2p messaging.
+  controller->BroadcastTriggerRMIOn();
+
+  return controller.GetPointer();
+#else
+  auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
+  controller->Initialize(nullptr, nullptr);
+  return controller;
+#endif
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::Exit(int exitCode)
+{
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  internals.ExitCodeSet = true;
+  internals.ExitCode = exitCode;
+}
+
+//-----------------------------------------------------------------------------
+int vtkProcessModule::GetExitCode() const
+{
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  return internals.ExitCodeSet ? internals.ExitCode : EXIT_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkProcessModule::WaitForExit(const rxcpp::schedulers::run_loop& rlp, int ms) const
+{
+  return this->WaitForExit(rlp, std::chrono::milliseconds(ms));
+}
+
+//-----------------------------------------------------------------------------
+bool vtkProcessModule::WaitForExit(
+  const rxcpp::schedulers::run_loop& rlp, const std::chrono::milliseconds& duration) const
+{
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+
+  auto* controller = this->GetGlobalController();
+  if (internals.Rank > 0)
+  {
+    controller->ProcessRMIs();
   }
   else
   {
-    os << indent << "Options: "
-       << "(null)" << endl;
+    auto start = std::chrono::system_clock::now();
+    while (!internals.ExitCodeSet)
+    {
+      while (!rlp.empty() && rlp.peek().when < rlp.now())
+      {
+        rlp.dispatch();
+        start = std::chrono::system_clock::now();
+      }
+      if (duration.count() != 0 && (std::chrono::system_clock::now() - start) >= duration)
+      {
+        // timed out!
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (internals.NumberOfRanks > 1)
+    {
+      controller->TriggerBreakRMIs();
+    }
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkProcessModule::SetDefaultMinimumGhostLevelsToRequestForStructuredPipelines(int val)
-{
-  vtkProcessModule::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = val;
-}
-
-//----------------------------------------------------------------------------
-int vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
-{
-  return vtkProcessModule::DefaultMinimumGhostLevelsToRequestForStructuredPipelines;
-}
-
-//----------------------------------------------------------------------------
-void vtkProcessModule::SetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines(int val)
-{
-  vtkProcessModule::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = val;
-}
-
-//----------------------------------------------------------------------------
-int vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines()
-{
-  return vtkProcessModule::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines;
-}
-
-//----------------------------------------------------------------------------
-int vtkProcessModule::GetNumberOfGhostLevelsToRequest(vtkInformation* info)
-{
-  vtkMultiProcessController* controller = vtkMultiProcessController::GetGlobalController();
-  if (controller == nullptr || controller->GetNumberOfProcesses() <= 1)
-  {
-    return 0;
-  }
-
-  vtkDataSet* ds = vtkDataSet::GetData(info);
-  if (ds || vtkCompositeDataSet::GetData(info) != nullptr)
-  {
-    // Check if this is structured-pipeline, this includes unstructured pipelines
-    // downstream from structured source e.g. Wavelet - > Clip.
-    // To do that, we use a trick. If WHOLE_EXTENT() key us present, it must have
-    // started as a structured dataset.
-    // The is one exception to this for ExplicitStructuredGrid data, their
-    // behavior is both structured and unstructured but regarding ghost cells
-    // they have the behavior of an unstructured dataset.
-    const bool is_structured = (info->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()) != 0) &&
-      (!ds || (ds && !ds->IsA("vtkExplicitStructuredGrid")));
-    return is_structured
-      ? vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
-      : vtkProcessModule::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines();
-  }
-  else
-  {
-    // the pipeline is for a non-dataset/composite-dataset filter. don't bother
-    // asking for ghost levels.
-    return 0;
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkPVOptions* vtkProcessModule::GetOptions()
-{
-  VTK_LEGACY_BODY(vtkProcessModule::GetOptions, "ParaView 5.10");
-  return this->Options;
+  controller->Barrier();
+  return internals.ExitCodeSet;
 }
