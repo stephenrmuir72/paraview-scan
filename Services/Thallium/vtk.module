@@ -1,0 +1,15 @@
+NAME
+  ParaView::ServicesThallium
+LIBRARY_NAME
+  vtkServicesThallium
+IMPLEMENTS
+  ParaView::ServicesCore
+DESCRIPTION
+  ServiceCore implementation using Thallium
+DEPENDS
+  ParaView::ServicesCore
+PRIVATE_DEPENDS
+  VTK::fmt
+TEST_DEPENDS
+  VTK::FiltersSources
+  VTK::TestingCore

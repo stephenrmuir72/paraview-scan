@@ -92,6 +92,10 @@ set_property(CACHE BUILD_TESTING
   PROPERTY
     TYPE INTERNAL)
 
+set(VTK_IGNORE_CMAKE_CXX11_CHECKS ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_EXTENSIONS False)
 include(vtkCompilerChecks)
 include(vtkCompilerPlatformFlags)
 include(vtkCompilerExtraFlags)
@@ -314,10 +318,11 @@ vtk_module_scan(
 set(paraview_source_directories
   "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
   "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Services"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
   "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
   "${CMAKE_CURRENT_SOURCE_DIR}/Web"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
   "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
 vtk_module_find_modules(paraview_module_files ${paraview_source_directories})
 vtk_module_find_kits(paraview_kit_files ${paraview_source_directories})
