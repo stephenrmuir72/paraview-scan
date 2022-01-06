@@ -34,13 +34,37 @@
 # Services/Core can move to Remoting/Core and Services/Thallium can become
 # Remoting/Thallium
 set(classes
+  vtkBuiltinSession
+  vtkClientSession
+  vtkInformationProvider
   vtkObjectStore
+  vtkObjectWrapper
   vtkProcessModule
   vtkProcessModuleConfiguration
   vtkProxyDefinitionManager
+  vtkPVInformation
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
+  vtkSMDomain
+  vtkSMDoubleRangeDomain
+  vtkSMDoubleVectorProperty
+  vtkSMIdTypeVectorProperty
+  vtkSMInputProperty
+  vtkSMInstantiator
+  vtkSMIntRangeDomain
+  vtkSMIntVectorProperty
+  vtkSMOutputPort
+  vtkSMProperty
+  vtkSMProxy
+  vtkSMProxyManager
+  vtkSMProxyProperty
+  vtkSMStringVectorProperty
+  vtkStringUtilities
+)
+set(template_classes
+  vtkSMPropertyTemplate
+  vtkSMRangeDomainTemplate
 )
 
 set(old_classes
@@ -64,7 +88,6 @@ set(old_classes
   vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
   vtkPVFileInformationHelper
-  vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation
   vtkPVPlugin
@@ -173,10 +196,23 @@ endif ()
 
 vtk_module_add_module(ParaView::RemotingCore
   CLASSES ${classes}
+  TEMPLATE_CLASSES  ${template_classes}
   SOURCES ${sources}
   HEADERS ${headers}
   NOWRAP_HEADERS ${nowrap_headers}
   PRIVATE_HEADERS ${private_headers})
+
+# we don't want to wrap this module for CS.
+vtk_module_client_server_exclude()
+
+# link with compiled proxy definitions
+vtk_module_link(ParaView::RemotingCore
+  PRIVATE
+    paraview_server_manager)
+
+paraview_add_server_manager_xmls(
+  MODULE VTK::FiltersSources
+  XMLS   XML/VTK_FiltersSources.xml)
 
 # for vtkPVFileInformation
 if (WIN32)

@@ -11,26 +11,24 @@ DEPENDS
   ParaView::rxcpp
   ParaView::ServicesCore
   ParaView::VTKExtensionsCore
-  VTK::CommonCore
-  VTK::CommonMisc
   VTK::ParallelCore
+  VTK::pugixml
 PRIVATE_DEPENDS
+  ParaView::RemotingReflection
   ParaView::ServicesThallium
   VTK::cli11
-  VTK::CommonDataModel
-  VTK::CommonExecutionModel
-  VTK::CommonSystem
-  VTK::FiltersExtraction
   VTK::fmt
-  VTK::IOLegacy # for vtkGraphReader/vtkGraphWriter
-  VTK::pugixml
   VTK::vtksys
 OPTIONAL_DEPENDS
   ParaView::nvpipe
-  VTK::IOFFMPEG
   VTK::ParallelMPI
   VTK::PythonInterpreter
   VTK::WrappingPythonCore
+
+  # These dependencies ensure that proper appropriate proxy definitions
+  # are enabled when corresponding modules are enabled.
+  VTK::FiltersSources
+
 TEST_DEPENDS
   VTK::FiltersSources
   VTK::TestingCore

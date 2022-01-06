@@ -13,20 +13,25 @@
 
 =========================================================================*/
 /**
- * @class   vtkPVInformation
- * @brief   Superclass for information objects.
+ * @class vtkPVInformation
+ * @brief Superclass for information objects.
  *
- * Subclasses of this class are used to get information from the server.
+ * Information objects are one of the mechanisms provided by the ParaView
+ * ServerManager to collect information (or meta-data) from services. This
+ * abstract class defines the API. Subclasses add support to collect different
+ * kinds of information.
  */
 
 #ifndef vtkPVInformation_h
 #define vtkPVInformation_h
 
+#include "vtkJson.h" // for vtkJson
 #include "vtkObject.h"
 #include "vtkRemotingCoreModule.h" //needed for exports
 
-class vtkClientServerStream;
-class vtkMultiProcessStream;
+#include <memory> // for std::unique_ptr
+
+class vtkMultiProcessController;
 
 class VTKREMOTINGCORE_EXPORT vtkPVInformation : public vtkObject
 {
@@ -34,51 +39,48 @@ public:
   vtkTypeMacro(vtkPVInformation, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
   /**
-   * Transfer information about a single object into this object.
+   * Get/Set the controller to use to reduce information in a distributed
+   * environment.
    */
-  virtual void CopyFromObject(vtkObject*);
+  void SetController(vtkMultiProcessController* controller);
+  vtkMultiProcessController* GetController() const;
+  ///@}
+
+  ///@{
+  /**
+   * Save/load state of the information object. This is not the meta-data
+   * gather, but the options that dictate how the meta-data is gather,
+   * if any.
+   */
+  virtual vtkJson SaveState() const;
+  virtual bool LoadState(const vtkJson& state);
+  ///@}
 
   /**
-   * Merge another information object.
+   * Gather information from the target.
    */
-  virtual void AddInformation(vtkPVInformation*);
+  virtual bool GatherInformation(vtkObject* target) = 0;
 
-  //@{
+  ///@{
   /**
-   * Manage a serialized version of the information.
+   * Save/load information / meta-data gathered.
    */
-  virtual void CopyToStream(vtkClientServerStream*) = 0;
-  virtual void CopyFromStream(const vtkClientServerStream*);
-  //@}
-
-  //@{
-  /**
-   * Serialize/Deserialize the parameters that control how/what information is
-   * gathered. This are different from the ivars that constitute the gathered
-   * information itself. For example, PortNumber on vtkPVDataInformation
-   * controls what output port the data-information is gathered from.
-   */
-  virtual void CopyParametersToStream(vtkMultiProcessStream&){};
-  virtual void CopyParametersFromStream(vtkMultiProcessStream&){};
-  //@}
-
-  //@{
-  /**
-   * Set/get whether to gather information only from the root.
-   */
-  vtkGetMacro(RootOnly, int);
-  //@}
+  virtual bool LoadInformation(const vtkJson& json) = 0;
+  virtual vtkJson SaveInformation() const = 0;
+  ///@}
 
 protected:
   vtkPVInformation();
   ~vtkPVInformation() override;
 
-  int RootOnly;
-  vtkSetMacro(RootOnly, int);
-
+private:
   vtkPVInformation(const vtkPVInformation&) = delete;
   void operator=(const vtkPVInformation&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

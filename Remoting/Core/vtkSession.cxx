@@ -18,6 +18,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkProxyDefinitionManager.h"
 
+// TODO: this will need some cleanup
+#include "paraview_server_manager.h"
+
 class vtkSession::vtkInternals
 {
 public:
@@ -28,6 +31,16 @@ public:
 vtkSession::vtkSession()
   : Internals(new vtkSession::vtkInternals())
 {
+  const auto& internals = (*this->Internals);
+
+  // TODO: load this only for vtkServerSession and for client session, sync them
+  // with the server session during handshake.
+  std::vector<std::string> xmls;
+  paraview_server_manager_initialize(xmls);
+  for (const auto& xml : xmls)
+  {
+    internals.ProxyDefinitionManager->LoadConfigurationXML(xml.c_str());
+  }
 }
 
 //----------------------------------------------------------------------------

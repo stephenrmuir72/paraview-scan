@@ -61,7 +61,7 @@ public:
    */
   void Print() const;
   void Print(std::ostream& ostream, int spaces) const;
-  std::string ToString() const;
+  std::string ToString(int spaces = 2) const;
 
   template <typename Ar>
   void save(Ar& archive) const

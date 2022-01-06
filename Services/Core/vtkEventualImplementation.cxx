@@ -32,7 +32,7 @@ vtkEventualImplementation::~vtkEventualImplementation()
 rxcpp::observable<vtkJson> vtkEventualImplementation::GetObservable() const
 {
   return this->ValueBehavior.get_observable()
-    .filter([](const vtkJson& value) { return value.is_null(); })
+    .filter([](const vtkJson& value) { return !value.is_null(); })
     .take(1);
 }
 

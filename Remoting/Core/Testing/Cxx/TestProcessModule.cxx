@@ -12,6 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+#include "vtkBuiltinSession.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
 #include "vtkProcessModule.h"
@@ -47,6 +48,11 @@ int TestProcessModule(int argc, char* argv[])
     // Setup server session. This will start the services necessary for
     // ParaView server.
     vtkNew<vtkServerSession> session;
+    pm->WaitForExit(runLoop, std::chrono::seconds(5));
+  }
+  else if (type == vtkProcessModule::PROCESS_CLIENT)
+  {
+    vtkNew<vtkBuiltinSession> session;
     pm->WaitForExit(runLoop, std::chrono::seconds(5));
   }
   pm = nullptr;

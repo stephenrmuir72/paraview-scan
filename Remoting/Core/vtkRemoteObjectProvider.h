@@ -21,10 +21,12 @@
 #ifndef vtkRemoteObjectProvider_h
 #define vtkRemoteObjectProvider_h
 
+#include "vtkPacket.h" // for vtkPacket
 #include "vtkProvider.h"
 #include "vtkRemotingCoreModule.h"
 
 class vtkObjectStore;
+class vtkMultiProcessController;
 class vtkProxyDefinitionManager;
 
 class VTKREMOTINGCORE_EXPORT vtkRemoteObjectProvider : public vtkProvider
@@ -39,7 +41,16 @@ public:
    * Get/Set the object store to use.
    */
   void SetObjectStore(vtkObjectStore* store);
-  vtkObjectStore* GetObjectStore() const;
+  vtkSmartPointer<vtkObjectStore> GetObjectStore() const;
+  ///@}
+
+  ///@{
+  /**
+   * Get/Set the controller to use to reduce information in a distributed
+   * environment.
+   */
+  void SetController(vtkMultiProcessController* controller);
+  vtkMultiProcessController* GetController() const;
   ///@}
 
   ///@{
@@ -50,9 +61,17 @@ public:
   vtkProxyDefinitionManager* GetProxyDefinitionManager() const;
   ///@}
 
+  ///@{
+  /**
+   * These methods can be used to construct a message to send to provider.
+   */
+  static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkJson& json);
+  static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
+  ///@}
+
 protected:
   vtkRemoteObjectProvider();
-  ~vtkRemoteObjectProvider();
+  ~vtkRemoteObjectProvider() override;
 
   void InitializeInternal(vtkService* service) override;
 

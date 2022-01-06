@@ -37,6 +37,8 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredGrid.h"
 
+#include "paraview_reflection.h"
+
 #include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
 
@@ -385,6 +387,9 @@ bool vtkProcessModule::Initialize(
   // eventually provide some type of recovery.
   signal(SIGPIPE, SIG_IGN);
 #endif
+
+  // Setup reflection.
+  paraview_reflection_initialize();
 
   // Create the process module.
   vtkProcessModule::Singleton = vtk::TakeSmartPointer(vtkProcessModule::New());

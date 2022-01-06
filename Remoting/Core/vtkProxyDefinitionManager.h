@@ -27,7 +27,6 @@
 #include "vtkRemotingCoreModule.h" // for exports
 
 #include <memory> // for std::unique_ptr
-
 class vtkPVXMLElement;
 
 class VTKREMOTINGCORE_EXPORT vtkProxyDefinitionManager : public vtkObject

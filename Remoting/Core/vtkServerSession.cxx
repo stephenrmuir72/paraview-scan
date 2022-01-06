@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkServerSession.h"
 
+#include "vtkInformationProvider.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
@@ -28,6 +29,7 @@ struct ServiceInfo
   vtkSmartPointer<vtkMultiProcessController> Controller;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
   vtkSmartPointer<vtkRemoteObjectProvider> RemoteObjectProvider;
+  vtkSmartPointer<vtkInformationProvider> InformationProvider;
 };
 
 class vtkServerSession::vtkInternals
@@ -55,6 +57,10 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.RemoteObjectProvider->SetObjectStore(info.ObjectStore);
   info.RemoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
   info.RemoteObjectProvider->Initialize(info.Service);
+
+  info.InformationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
+  info.InformationProvider->SetObjectStore(info.ObjectStore);
+  info.InformationProvider->SetController(info.Controller);
 
   this->Services.emplace(name, info);
 

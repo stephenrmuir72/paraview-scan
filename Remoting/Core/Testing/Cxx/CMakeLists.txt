@@ -4,6 +4,7 @@ vtk_add_test_cxx(vtkRemotingCoreCxxTests tests
   # TestPVArrayInformation.cxx
   # TestSpecialDirectories.cxx
   TestProcessModule.cxx
+  TestRemoteObjectProvider.cxx
   )
 
 vtk_add_test_cxx(vtkRemotingCoreCxxTests tests
