@@ -40,6 +40,13 @@ spack-centos7:build:
         - .linux_builder_tags
         - .run_scheduled
 
+spack-macos:build:
+    extends:
+        - .macos
+        - .spack_build_linux
+        - .macos_builder_tags
+        - .run_scheduled
+
 ## Linux
 
 fedora33-static-mpi-offscreen-osmesa-python:build:
