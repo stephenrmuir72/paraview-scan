@@ -185,21 +185,19 @@
         FORCE_UNSAFE_CONFIGURE: 1
 
         spack: "$CI_BUILDS_DIR/spack/bin/spack -C $CI_PROJECT_DIR/build/spack"
-        paraview_spec: "paraview+osmesa^mesa~glx^mpich"
+
+        # Install @master, so Spack fetches from master automatically. This is
+        # suitable when running the pipeline scheduled on the master branch.
+        paraview_spec: "paraview@master+osmesa^mesa~glx^mpich"
 
     before_script:
         - .gitlab/ci/sccache.sh
         - .gitlab/ci/cmake.sh
         - export PATH=$PWD/.gitlab:$PWD/.gitlab/cmake/bin:$PATH
         - cmake --version
-        - "git submodule update --init --recursive || :"
-        - git submodule foreach --recursive cmake -P "$PWD/.gitlab/ci/fetch_submodule.cmake"
-        - git submodule sync --recursive
-        - git submodule update --init --recursive
         - sccache --start-server
         - sccache --show-stats
         - .gitlab/ci/spack.sh
-        - $LAUNCHER $spack repo add $PWD/Utilities/spack/repo
         - $LAUNCHER $spack compiler find
         - $LAUNCHER $spack compiler info gcc@7.3.1
     script:

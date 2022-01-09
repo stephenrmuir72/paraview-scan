@@ -558,13 +558,6 @@ Please refer to [Spack documentation][spack-docs] for ways of customizing the in
 including choosing the version and/or variant to build. Based on the version chosen,
 spack will download appropriate ParaView source and build it.
 
-To make it easier to build ParaView using spack from an existing source checkout, we have included
-relevant spack `package.yaml` files within the ParaView codebase itself. This
-also makes it easier to keep the spack package up-to-date with any changes to
-the ParaView buildsystem. With every release (and as frequently as required), we
-will push the changes to the ParaView paraview.yaml file upstream to the
-official spack repository.
-
 To build your existing source checkout of ParaView using Spack, here are the
 steps:
 
@@ -572,18 +565,11 @@ steps:
 # assuming you've installed spack as documented in spack docs
 # and activate the spack environment appropriately
 
-# add custom paraview/package.yaml
-> spack repo add $PARAVIEW_SOURCE_DIR/Utilities/spack/repo
-
-# use info to confirm that the paraview package is available
-# only one version should be available
-> spack info paraview
-
 # install similar to any other spack package
 # e.g. following command installs osmesa-capable ParaView
 # with mpich
 
-> spack install paraview+osmesa^mesa~glx^mpich
+> spack dev-build -d path/to/paraview/ paraview@master+osmesa^mesa~glx^mpich
 ```
 
 [cmake-download]: https://cmake.org/download
