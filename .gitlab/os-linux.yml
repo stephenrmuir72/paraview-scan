@@ -188,7 +188,7 @@
 
         # Install @master, so Spack fetches from master automatically. This is
         # suitable when running the pipeline scheduled on the master branch.
-        paraview_spec: "paraview@master+osmesa^mesa~glx^mpich"
+        paraview_spec: "paraview@master+python3+hdf5+osmesa^mesa~glx^mpich"
 
     before_script:
         - .gitlab/ci/sccache.sh
