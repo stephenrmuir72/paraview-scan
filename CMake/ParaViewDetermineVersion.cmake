@@ -86,17 +86,21 @@ function(extract_version_components version_string var_prefix)
     set(patch_extra ${CMAKE_MATCH_5})
     set(branch "")
     if (patch_extra)
+      message("XXXXXX: git patch extra: ${patch_extra}")
       execute_process(
         COMMAND ${git_command} name-rev HEAD
         WORKING_DIRECTORY ${source_dir}
         RESULT_VARIABLE result
         OUTPUT_VARIABLE output
-        ERROR_QUIET
+        ERROR_VARIABLE error
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_STRIP_TRAILING_WHITESPACE)
       if (result EQUAL 0)
         # The branch name.
+        message("XXXXXX: branch name: ${output}")
         set(branch "${output}")
+      else ()
+        message("XXXXXX: Failed to get branch name: ${error}")
       endif()
     endif ()
 
