@@ -1,0 +1,16 @@
+NAME
+  ParaView::RemotingReflection
+LIBRARY_NAME
+  vtkRemotingReflection
+GROUPS
+  PARAVIEW_CORE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  # temporary dependencies for manually wrapped classes.
+  VTK::FiltersSources
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_LABELS
+  ParaView
