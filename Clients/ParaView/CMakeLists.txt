@@ -24,6 +24,7 @@ set(paraview_title "ParaView ${paraview_version}")
 if (PARAVIEW_BRANCH)
   set(paraview_title "ParaView ${paraview_version} (${PARAVIEW_BRANCH})")
 endif ()
+message(FATAL_ERROR "XXXXXX: ParaView title: -->${paraview_title}<--")
 
 set(CMAKE_AUTOMOC 1)
 set(CMAKE_AUTOUIC 1)
