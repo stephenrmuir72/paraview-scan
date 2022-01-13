@@ -177,6 +177,23 @@ rxcpp::observe_on_one_worker vtkClientSession::GetCoordination() const
 }
 
 //----------------------------------------------------------------------------
+vtkServiceEndpoint* vtkClientSession::GetEndpoint(ServiceTypes type) const
+{
+  const auto& internals = (*this->Internals);
+  switch (type)
+  {
+    case DATA_SERVER:
+      return internals.DSEndpoint;
+
+    case RENDER_SERVER:
+      return internals.RSEndpoint;
+
+    default:
+      return nullptr;
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkClientSession::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

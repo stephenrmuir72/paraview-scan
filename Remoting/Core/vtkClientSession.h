@@ -32,8 +32,9 @@
 #include VTK_REMOTING_RXCPP(rx.hpp)
 // clang-format on
 
-class vtkSMProxyManager;
 class vtkPacket;
+class vtkServiceEndpoint;
+class vtkSMProxyManager;
 
 class VTKREMOTINGCORE_EXPORT vtkClientSession : public vtkSession
 {
@@ -77,6 +78,11 @@ public:
    * on the applications main thread.
    */
   rxcpp::observe_on_one_worker GetCoordination() const;
+
+  /**
+   * Returns the end point for a specific type.
+   */
+  vtkServiceEndpoint* GetEndpoint(ServiceTypes type) const;
 
 protected:
   vtkClientSession();
