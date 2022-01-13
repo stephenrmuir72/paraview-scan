@@ -47,6 +47,8 @@ class vtkObjectWrapper::vtkInternals
 public:
   vtkTypeUInt32 GlobalID{ 0 };
   std::string VTKClassName;
+  int Rank{ 0 };
+  int NumberOfRanks{ 1 };
   vtkSmartPointer<vtkObject> VTKObject;
   std::map<std::string, PropertyInformation> Properties;
 };
@@ -102,17 +104,10 @@ bool vtkObjectWrapper::Initialize(
     // is not supported by the VTKObject. Passing the controller is crucial to
     // ensure that the VTK object uses the service-specific distributed controller,
     // if it needs one.
-    vtkReflection::Set(
-      internals.VTKObject, "SetController", std::vector<vtkObject*>{ provider->GetController() });
-
-    if (auto* algorithm = vtkAlgorithm::SafeDownCast(internals.VTKObject))
-    {
-      // TODO: ASYNC: add observer for vtkCommand::FinalEndEvent (see
-      // async/paraview#2) and publish a message indicating the algorithm was
-      // updated. vtkClientSession (or perhaps vtkSMProxyManager)
-      // can then use that message to notify the vtkSMProxy which can do
-      // whatever it wants to do update data informations, for example.
-    }
+    auto* controller = provider->GetController();
+    vtkReflection::Set(internals.VTKObject, "SetController", std::vector<vtkObject*>{ controller });
+    internals.Rank = controller->GetLocalProcessId();
+    internals.NumberOfRanks = controller->GetNumberOfProcesses();
   }
 
   return true;
@@ -197,7 +192,6 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
 vtkJson vtkObjectWrapper::UpdateInformation() const
 {
   auto& internals = (*this->Internals);
-
   auto* object = this->GetVTKObject();
   if (auto* algorithm = vtkAlgorithm::SafeDownCast(object))
   {
@@ -208,6 +202,20 @@ vtkJson vtkObjectWrapper::UpdateInformation() const
   // TODO: ASYNC
   // scan all information properties and return their state.
   return vtkJson{ { "status", true } };
+}
+
+//----------------------------------------------------------------------------
+bool vtkObjectWrapper::UpdatePipeline(double time) const
+{
+  auto& internals = (*this->Internals);
+  auto* object = this->GetVTKObject();
+  if (auto* algorithm = vtkAlgorithm::SafeDownCast(object))
+  {
+    vtkLogF(INFO, "Calling vtkAlgorithm::UpdatePipeline(%f)", time);
+    return algorithm->UpdateTimeStep(time, internals.Rank, internals.NumberOfRanks);
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------

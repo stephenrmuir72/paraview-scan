@@ -66,6 +66,11 @@ public:
   vtkJson UpdateInformation() const;
 
   /**
+   * Update pipeline.
+   */
+  bool UpdatePipeline(double time) const;
+
+  /**
    * Returns the VTK object this wrapper is wrapping.
    *
    * This is created in `ReadXMLAttributes` and hence will not be valid before

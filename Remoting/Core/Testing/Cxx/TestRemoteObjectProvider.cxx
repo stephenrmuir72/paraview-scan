@@ -16,8 +16,10 @@
 #include "vtkLogger.h"
 #include "vtkNew.h"
 #include "vtkProcessModule.h"
+#include "vtkSMPropertyTemplate.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
+// #include "vtkSMPropertyHelper.h"
 
 int TestRemoteObjectProvider(int argc, char* argv[])
 {
@@ -31,9 +33,18 @@ int TestRemoteObjectProvider(int argc, char* argv[])
 
   auto* pxm = session->GetProxyManager();
   auto proxy = pxm->NewProxy("sources", "SphereSource");
+  vtkSMPropertyTemplate<int>::SafeDownCast(proxy->GetProperty("PhiResolution"))
+    ->SetElements({ 800 });
+  vtkSMPropertyTemplate<int>::SafeDownCast(proxy->GetProperty("ThetaResolution"))
+    ->SetElements({ 800 });
+  // vtkSMPropertyHelper::SetElements<int>(proxy, "PhiResolution", 800);
+  // vtkSMPropertyHelper::SetElements<int>(proxy, "ThetaResolution", 800);
   proxy->UpdateVTKObjects();
   proxy->UpdateInformation().subscribe(
     [](bool changed) { vtkLogF(INFO, "proxy properties have been updated (%d)", changed); });
+  pm->WaitForExit(runLoop, std::chrono::seconds(1));
+
+  proxy->UpdatePipeline(0.0);
 
   pm->WaitForExit(runLoop, std::chrono::seconds(5));
   proxy = nullptr;
