@@ -13,11 +13,12 @@
 
 =========================================================================*/
 /**
- * @class   vtkSession
+ * @class vtkSession
+ * @brief abstract base class for all sessions.
  *
- * vtkSession defines a session i.e. a conversation, if you will. It can be
- * between different processes or same process. What types of conversations are
- * possible i.e what protocols are supported, is defined by the subclasses.
+ * vtkSession acts as an abstract base class for all sessions in ParaView. A
+ * session is a collection of services and/or endpoints that perform specific
+ * duties in the application.
  */
 
 #ifndef vtkSession_h
@@ -26,6 +27,10 @@
 #include "vtkObject.h"
 #include "vtkRemotingCoreModule.h" //needed for exports
 
+#include <memory> // for std::unique_ptr
+
+class vtkProxyDefinitionManager;
+
 class VTKREMOTINGCORE_EXPORT vtkSession : public vtkObject
 {
 public:
@@ -33,34 +38,20 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Returns true is this session is active/alive/valid.
+   * Provides access to the session's proxy definition manager.
    */
-  virtual bool GetIsAlive() = 0;
+  vtkProxyDefinitionManager* GetProxyDefinitionManager() const;
 
 protected:
   vtkSession();
   ~vtkSession() override;
 
-  // Needed when TileDisplay are retrieved
-  friend class vtkSMRenderViewProxy;
-
-  /**
-   * Subclasses must call this to mark the session active. This sets the active
-   * session pointer held by the vtkProcessModule, making it easier for filters
-   * etc. that need information about the active session to access it.
-   */
-  virtual void Activate();
-
-  /**
-   * Subclasses must call this to mark the session inactive. This sets the active
-   * session pointer held by the vtkProcessModule, making it easier for filters
-   * etc. that need information about the active session to access it.
-   */
-  virtual void DeActivate();
-
 private:
   vtkSession(const vtkSession&) = delete;
   void operator=(const vtkSession&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

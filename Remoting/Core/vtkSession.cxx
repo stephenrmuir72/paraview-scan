@@ -14,31 +14,42 @@
 =========================================================================*/
 #include "vtkSession.h"
 
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
+#include "vtkProxyDefinitionManager.h"
+
+// TODO: this will need some cleanup
+#include "paraview_server_manager.h"
+
+class vtkSession::vtkInternals
+{
+public:
+  vtkNew<vtkProxyDefinitionManager> ProxyDefinitionManager;
+};
 
 //----------------------------------------------------------------------------
-vtkSession::vtkSession() = default;
+vtkSession::vtkSession()
+  : Internals(new vtkSession::vtkInternals())
+{
+  const auto& internals = (*this->Internals);
+
+  // TODO: load this only for vtkServerSession and for client session, sync them
+  // with the server session during handshake.
+  std::vector<std::string> xmls;
+  paraview_server_manager_initialize(xmls);
+  for (const auto& xml : xmls)
+  {
+    internals.ProxyDefinitionManager->LoadConfigurationXML(xml.c_str());
+  }
+}
 
 //----------------------------------------------------------------------------
 vtkSession::~vtkSession() = default;
 
 //----------------------------------------------------------------------------
-void vtkSession::Activate()
+vtkProxyDefinitionManager* vtkSession::GetProxyDefinitionManager() const
 {
-  if (vtkProcessModule* pm = vtkProcessModule::GetProcessModule())
-  {
-    pm->PushActiveSession(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSession::DeActivate()
-{
-  if (vtkProcessModule* pm = vtkProcessModule::GetProcessModule())
-  {
-    pm->PopActiveSession(this);
-  }
+  return this->Internals->ProxyDefinitionManager;
 }
 
 //----------------------------------------------------------------------------

@@ -1,0 +1,231 @@
+/*=========================================================================
+
+  Program:   ParaView
+  Module:    vtkObjectWrapper.cxx
+
+  Copyright (c) Kitware, Inc.
+  All rights reserved.
+  See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
+
+=========================================================================*/
+#include "vtkObjectWrapper.h"
+
+#include "vtkAlgorithm.h"
+#include "vtkAlgorithmOutput.h"
+#include "vtkLogger.h"
+#include "vtkMultiProcessController.h"
+#include "vtkObjectFactory.h"
+#include "vtkObjectStore.h"
+#include "vtkProxyDefinitionManager.h"
+#include "vtkReflection.h"
+#include "vtkRemoteObjectProvider.h"
+#include "vtkSMProperty.h" // for vtkSMProperty::PropertyTypes
+#include "vtkSmartPointer.h"
+#include "vtkStringUtilities.h"
+
+// clang-format off
+#include <vtk_fmt.h> // needed for `fmt`
+#include VTK_FMT(fmt/core.h)
+// clang-format on
+
+#include <algorithm>
+
+// lightweight property information
+struct PropertyInformation
+{
+  std::string Method;
+  int Type;
+  bool InformationOnly{ false };
+};
+
+class vtkObjectWrapper::vtkInternals
+{
+public:
+  vtkTypeUInt32 GlobalID{ 0 };
+  std::string VTKClassName;
+  vtkSmartPointer<vtkObject> VTKObject;
+  std::map<std::string, PropertyInformation> Properties;
+};
+
+vtkStandardNewMacro(vtkObjectWrapper);
+//----------------------------------------------------------------------------
+vtkObjectWrapper::vtkObjectWrapper()
+  : Internals(new vtkObjectWrapper::vtkInternals())
+{
+}
+
+//----------------------------------------------------------------------------
+vtkObjectWrapper::~vtkObjectWrapper() = default;
+
+//----------------------------------------------------------------------------
+bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
+{
+  auto& internals = (*this->Internals);
+  internals.VTKClassName = node.attribute("class").as_string();
+
+  // process properties.
+  for (auto child : node.children())
+  {
+    if (vtkStringUtilities::EndsWith(child.name(), "Property"))
+    {
+      PropertyInformation info;
+      info.Type = vtkSMProperty::GetPropertyType(fmt::format("vtkSM{}", child.name()));
+      assert(info.Type != vtkSMProperty::INVALID);
+      info.Method = child.attribute("command").as_string();
+      info.InformationOnly = child.attribute("information_only").as_bool(false);
+      internals.Properties.emplace(child.attribute("name").as_string(), std::move(info));
+    }
+  }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkObjectWrapper::Initialize(
+  vtkTypeUInt32 gid, const vtkJson& state, vtkRemoteObjectProvider* provider)
+{
+  auto& internals = (*this->Internals);
+  internals.GlobalID = gid;
+  if (!internals.VTKClassName.empty())
+  {
+    internals.VTKObject = vtkReflection::CreateInstance(internals.VTKClassName);
+    if (!internals.VTKObject)
+    {
+      vtkLogF(ERROR, "Failed to create class '%s'", internals.VTKClassName.c_str());
+      return false;
+    }
+
+    // Pass controller to the VTK object; this is a no-op of the "SetController"
+    // is not supported by the VTKObject. Passing the controller is crucial to
+    // ensure that the VTK object uses the service-specific distributed controller,
+    // if it needs one.
+    vtkReflection::Set(
+      internals.VTKObject, "SetController", std::vector<vtkObject*>{ provider->GetController() });
+
+    if (auto* algorithm = vtkAlgorithm::SafeDownCast(internals.VTKObject))
+    {
+      // TODO: ASYNC: add observer for vtkCommand::FinalEndEvent (see
+      // async/paraview#2) and publish a message indicating the algorithm was
+      // updated. vtkClientSession (or perhaps vtkSMProxyManager)
+      // can then use that message to notify the vtkSMProxy which can do
+      // whatever it wants to do update data informations, for example.
+    }
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider* provider)
+{
+  auto& internals = (*this->Internals);
+  for (auto& el : state.at("properties").items())
+  {
+    const auto& key = el.key();
+    const auto& value = el.value();
+    assert(internals.Properties.find(key) != internals.Properties.end());
+    const auto& pinfo = internals.Properties.at(key);
+    switch (pinfo.Type)
+    {
+      case vtkSMProperty::INT:
+      {
+        auto values = value.at("elements").get<std::vector<int>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      case vtkSMProperty::DOUBLE:
+      {
+        auto values = value.at("elements").get<std::vector<double>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      case vtkSMProperty::ID_TYPE:
+      {
+        auto values = value.at("elements").get<std::vector<vtkIdType>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      case vtkSMProperty::STRING:
+      {
+        auto values = value.at("elements").get<std::vector<std::string>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      case vtkSMProperty::PROXY:
+      {
+        auto objectStore = provider->GetObjectStore();
+        auto gids = value.at("elements").get<std::vector<vtkTypeUInt32>>();
+        // convert gids to vtkobjects
+        std::vector<vtkObject*> values;
+        values.reserve(gids.size());
+        std::transform(gids.begin(), gids.end(), std::back_inserter(values),
+          [&objectStore](vtkTypeUInt32 gid) { return objectStore->FindObject(gid); });
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      case vtkSMProperty::INPUT:
+      {
+        auto objectStore = provider->GetObjectStore();
+        std::vector<vtkAlgorithmOutput*> values;
+        for (const auto& json : value.at("elements"))
+        {
+          auto producer = objectStore->FindObject(json.at("producer").get<vtkTypeUInt32>());
+          if (auto* algorithm = vtkAlgorithm::SafeDownCast(producer))
+          {
+            values.push_back(algorithm->GetOutputPort(json.at("index").get<int>()));
+          }
+        }
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
+
+      default:
+        abort();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkJson vtkObjectWrapper::UpdateInformation() const
+{
+  auto& internals = (*this->Internals);
+
+  auto* object = this->GetVTKObject();
+  if (auto* algorithm = vtkAlgorithm::SafeDownCast(object))
+  {
+    vtkLogF(INFO, "Calling vtkAlgorithm::UpdateInformation");
+    algorithm->UpdateInformation();
+  }
+
+  // TODO: ASYNC
+  // scan all information properties and return their state.
+  return vtkJson{ { "status", true } };
+}
+
+//----------------------------------------------------------------------------
+vtkTypeUInt32 vtkObjectWrapper::GetGlobalID() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.GlobalID;
+}
+
+//----------------------------------------------------------------------------
+vtkObject* vtkObjectWrapper::GetVTKObject() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.VTKObject;
+}
+
+//----------------------------------------------------------------------------
+void vtkObjectWrapper::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}

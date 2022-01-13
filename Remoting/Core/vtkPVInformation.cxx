@@ -14,10 +14,19 @@
 =========================================================================*/
 #include "vtkPVInformation.h"
 
+#include "vtkMultiProcessController.h"
+#include "vtkSmartPointer.h"
+
+class vtkPVInformation::vtkInternals
+{
+public:
+  vtkSmartPointer<vtkMultiProcessController> Controller;
+};
+
 //----------------------------------------------------------------------------
 vtkPVInformation::vtkPVInformation()
+  : Internals(new vtkPVInformation::vtkInternals())
 {
-  this->RootOnly = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -27,23 +36,30 @@ vtkPVInformation::~vtkPVInformation() = default;
 void vtkPVInformation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "RootOnly: " << this->RootOnly << endl;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVInformation::CopyFromObject(vtkObject*)
+void vtkPVInformation::SetController(vtkMultiProcessController* controller)
 {
-  vtkErrorMacro("CopyFromObject not implemented.");
+  auto& internals = (*this->Internals);
+  internals.Controller = controller;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVInformation::AddInformation(vtkPVInformation*)
+vtkMultiProcessController* vtkPVInformation::GetController() const
 {
-  vtkErrorMacro("AddInformation not implemented.");
+  const auto& internals = (*this->Internals);
+  return internals.Controller;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVInformation::CopyFromStream(const vtkClientServerStream*)
+vtkJson vtkPVInformation::SaveState() const
 {
-  vtkErrorMacro("CopyFromStream not implemented.");
+  return vtkJson();
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVInformation::LoadState(const vtkJson& /*state*/)
+{
+  return true;
 }

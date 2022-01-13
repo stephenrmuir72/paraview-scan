@@ -60,11 +60,9 @@ void vtkPacket::Print(std::ostream& ostream, int spaces) const
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPacket::ToString() const
+std::string vtkPacket::ToString(int spaces) const
 {
-  std::ostringstream str;
-  this->Print(str, 2);
-  return str.str();
+  return this->JSON->dump(spaces);
 }
 
 //----------------------------------------------------------------------------

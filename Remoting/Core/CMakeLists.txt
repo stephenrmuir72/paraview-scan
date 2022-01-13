@@ -28,15 +28,52 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
+# TODO: ASYNC
+# Perhaps this module can be merged with Remoting/ServerManager.
+# I can't think of any reason why this should be separate. At that point,
+# Services/Core can move to Remoting/Core and Services/Thallium can become
+# Remoting/Thallium
 set(classes
+  vtkBuiltinSession
+  vtkClientSession
+  vtkInformationProvider
+  vtkObjectStore
+  vtkObjectWrapper
+  vtkProcessModule
+  vtkProcessModuleConfiguration
+  vtkProxyDefinitionManager
+  vtkPVInformation
+  vtkRemoteObjectProvider
+  vtkServerSession
+  vtkSession
+  vtkSMDomain
+  vtkSMDoubleRangeDomain
+  vtkSMDoubleVectorProperty
+  vtkSMIdTypeVectorProperty
+  vtkSMInputProperty
+  vtkSMInstantiator
+  vtkSMIntRangeDomain
+  vtkSMIntVectorProperty
+  vtkSMOutputPort
+  vtkSMProperty
+  vtkSMProxy
+  vtkSMProxyManager
+  vtkSMProxyProperty
+  vtkSMStringVectorProperty
+  vtkStringUtilities
+)
+set(template_classes
+  vtkSMPropertyTemplate
+  vtkSMRangeDomainTemplate
+)
+
+set(old_classes
   vtkCompositeMultiProcessController
   vtkDisplayConfiguration
   vtkMPIMToNSocketConnection
   vtkMPIMToNSocketConnectionPortInformation
   vtkNetworkAccessManager
   vtkPResourceFileLocator
-  vtkProcessModule
-  vtkProcessModuleConfiguration
   vtkPVAlgorithmPortsInformation
   vtkPVArrayInformation
   vtkPVClassNameInformation
@@ -51,11 +88,8 @@ set(classes
   vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
   vtkPVFileInformationHelper
-  vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation
-  vtkPVOptions
-  vtkPVOptionsXMLParser
   vtkPVPlugin
   vtkPVPluginLoader
   vtkPVPluginsInformation
@@ -66,19 +100,15 @@ set(classes
   vtkPVPythonPluginInterface
   vtkPVServerInformation
   vtkPVServerManagerPluginInterface
-  vtkPVSession
   vtkPVSystemConfigInformation
   vtkPVSystemInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
   vtkRemotingCoreConfiguration
-  vtkSession
-  vtkSessionIterator
   vtkTCPNetworkAccessManager)
 
 set(sources)
-set(private_headers
-  vtkProcessModuleInternals.h)
+set(private_headers)
 
 set(headers
   vtkParaViewDeprecation.h
@@ -166,10 +196,23 @@ endif ()
 
 vtk_module_add_module(ParaView::RemotingCore
   CLASSES ${classes}
+  TEMPLATE_CLASSES  ${template_classes}
   SOURCES ${sources}
   HEADERS ${headers}
   NOWRAP_HEADERS ${nowrap_headers}
   PRIVATE_HEADERS ${private_headers})
+
+# we don't want to wrap this module for CS.
+vtk_module_client_server_exclude()
+
+# link with compiled proxy definitions
+vtk_module_link(ParaView::RemotingCore
+  PRIVATE
+    paraview_server_manager)
+
+paraview_add_server_manager_xmls(
+  MODULE VTK::FiltersSources
+  XMLS   XML/VTK_FiltersSources.xml)
 
 # for vtkPVFileInformation
 if (WIN32)

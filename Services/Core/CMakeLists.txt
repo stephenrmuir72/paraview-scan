@@ -9,6 +9,9 @@ set(classes
   vtkChannelSubscription
 )
 
+set(nowrap_classes
+  vtkReactiveCommand)
+
 set(headers
   vtkEventual.h
   vtkJson.h
@@ -18,6 +21,7 @@ set(templates
   vtkServicesEngine.txx)
 
 vtk_module_add_module(ParaView::ServicesCore
-  CLASSES     ${classes}
-  HEADERS     ${headers}
-  TEMPLATES   ${templates})
+  CLASSES         ${classes}
+  NOWRAP_CLASSES  ${nowrap_classes}
+  HEADERS         ${headers}
+  TEMPLATES       ${templates})
