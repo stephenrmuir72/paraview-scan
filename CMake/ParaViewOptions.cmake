@@ -343,7 +343,7 @@ paraview_require_module(
             ParaView::ServerManagerViews
             ParaView::ServicesCore
             ParaView::ServicesThallium
-            VTK::WrappingTools
+            ParaView::WrapRemoting
   )
 
 
