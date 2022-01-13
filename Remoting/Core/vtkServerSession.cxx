@@ -56,6 +56,7 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.RemoteObjectProvider = vtk::TakeSmartPointer(vtkRemoteObjectProvider::New());
   info.RemoteObjectProvider->SetObjectStore(info.ObjectStore);
   info.RemoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
+  info.RemoteObjectProvider->SetController(info.Controller);
   info.RemoteObjectProvider->Initialize(info.Service);
 
   info.InformationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
