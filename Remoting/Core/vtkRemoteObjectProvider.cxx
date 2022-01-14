@@ -25,6 +25,8 @@
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 
+#include <sstream>
+
 class vtkRemoteObjectProvider::vtkInternals
 {
 public:

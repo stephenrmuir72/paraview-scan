@@ -83,7 +83,7 @@ public:
   {
     if (this->Internals)
     {
-      const auto var = this->Internals->Wait();
+      const vtkJson var = this->Internals->Wait();
       return var.get<T>();
     }
     return T{};

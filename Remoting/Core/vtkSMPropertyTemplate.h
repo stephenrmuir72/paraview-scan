@@ -92,7 +92,7 @@ public:
   ///@{
   // Overridden from superclass.
   size_t GetNumberOfElements() const override { return this->Elements.size(); }
-  size_t GetNumberOfUncheckedElements() const
+  size_t GetNumberOfUncheckedElements() const override
   {
     return this->UncheckedElementsValid ? this->UncheckedElements.size() : this->Elements.size();
   }
