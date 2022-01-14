@@ -24,6 +24,8 @@
 #include "vtkSMInstantiator.h"
 #include "vtkSMProxy.h"
 
+#include <sstream>
+
 // clang-format off
 #include <vtk_fmt.h> // needed for `fmt`
 #include VTK_FMT(fmt/core.h)
