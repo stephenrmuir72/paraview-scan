@@ -16,6 +16,7 @@
 
 #include "vtkLogger.h"
 #include "vtkMultiProcessController.h"
+#include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkObjectWrapper.h"
@@ -55,9 +56,12 @@ vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& r
   auto object = vtkSMInstantiator::CreateInstance(infoClassName);
   auto* info = vtkPVInformation::SafeDownCast(object);
 
-  // pass the service's controller for any distributed collection the
-  // information object has to do.
-  info->SetController(this->Controller);
+  const auto rank = this->Controller->GetLocalProcessId();
+  const auto numRanks = this->Controller->GetNumberOfProcesses();
+  if (info->GetRootOnly() && rank > 0)
+  {
+    return {};
+  }
 
   // initialize the information object.
   info->LoadState(request.at("state"));
@@ -66,8 +70,40 @@ vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& r
   auto target = this->ObjectStore->FindObject(request.at("target_gid").get<vtkTypeUInt32>());
   auto* targetWrapper = vtkObjectWrapper::SafeDownCast(target);
   info->GatherInformation(targetWrapper ? targetWrapper->GetVTKObject() : nullptr);
+  auto state = info->SaveInformation();
+  if (numRanks > 1)
+  {
+    vtkMultiProcessStream stream;
+    if (rank > 0)
+    {
+      auto bson = vtkJson::to_bson(state);
+      stream << static_cast<unsigned int>(bson.size());
+      stream.Push(
+        reinterpret_cast<unsigned char*>(&bson[0]), static_cast<unsigned int>(bson.size()));
+    }
 
-  return info->SaveInformation();
+    std::vector<vtkMultiProcessStream> streams;
+    this->Controller->Gather(stream, streams, 0);
+    if (rank == 0)
+    {
+      streams.erase(streams.begin());
+      for (auto& mpStream : streams)
+      {
+        unsigned int size;
+        mpStream >> size;
+
+        std::vector<uint8_t> bson(size);
+        unsigned char* ptr = reinterpret_cast<unsigned char*>(&bson[0]);
+        mpStream.Pop(ptr, size);
+
+        auto clone = vtk::TakeSmartPointer(info->NewInstance());
+        clone->LoadState(vtkJson::from_bson(bson));
+        info->AddInformation(clone);
+      }
+      state = info->SaveInformation();
+    }
+  }
+  return state;
 }
 
 //============================================================================
