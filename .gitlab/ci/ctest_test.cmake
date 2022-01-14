@@ -143,7 +143,12 @@ if ("$ENV{CC}" STREQUAL "icc")
     "^ParaViewExample-Catalyst2/CxxImageDataExample$"
 
     # Known-bad https://gitlab.kitware.com/paraview/paraview/-/issues/20108
-    "^ParaViewExample-Catalyst$")
+    "^ParaViewExample-Catalyst$"
+
+    # Shared memory limitations.
+    "^ParaView::RemotingServerManagerPython-TestGlobbing$"
+    "^SurfaceLIC-OfficeContour-Batch$"
+    )
 endif ()
 
 string(REPLACE ";" "|" test_exclusions "${test_exclusions}")
