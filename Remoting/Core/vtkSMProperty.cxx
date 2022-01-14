@@ -46,6 +46,7 @@ public:
   size_t NumberOfComponents{ 1 };
 
   std::vector<vtkSmartPointer<vtkSMDomain>> Domains;
+  std::vector<vtkWeakPointer<vtkSMDomain>> DependentDomains;
 };
 
 vtkStandardNewMacro(vtkSMProperty);
@@ -350,6 +351,34 @@ bool vtkSMProperty::ResetToDomainDefaults(bool useUnchecked)
     }
   }
   return false;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProperty::AddDependentDomain(vtkSMDomain* domain)
+{
+  auto& internals = (*this->Internals);
+  internals.DependentDomains.push_back(domain);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProperty::UncheckedPropertyModified()
+{
+  this->UpdateDependentDomains();
+  this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProperty::UpdateDependentDomains() const
+{
+  vtkLogF(INFO, "UpdateDependentDomains");
+  const auto& internals = (*this->Internals);
+  for (auto& domain : internals.DependentDomains)
+  {
+    if (domain)
+    {
+      domain->Update();
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

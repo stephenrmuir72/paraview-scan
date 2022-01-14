@@ -15,7 +15,6 @@
 #include "vtkPVArrayInformation.h"
 
 #include "vtkAbstractArray.h"
-#include "vtkClientServerStream.h"
 #include "vtkDataArray.h"
 #include "vtkGenericAttribute.h"
 #include "vtkInformation.h"
@@ -354,116 +353,69 @@ void vtkPVArrayInformation::CopyFromGenericAttribute(vtkGenericAttribute* array)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVArrayInformation::CopyToStream(vtkClientServerStream* css) const
+vtkJson vtkPVArrayInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply;
+  vtkJson json;
 
   // Array name, data type, and number of components.
-  *css << this->Name;
-  *css << this->DataType;
-  *css << this->NumberOfTuples;
-  *css << this->IsPartial;
-  *css << static_cast<int>(this->Components.size());
+  VTK_JSON_SAVE_MEMBER(json, Name);
+  VTK_JSON_SAVE_MEMBER(json, DataType);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfTuples);
+  VTK_JSON_SAVE_MEMBER(json, IsPartial);
 
+  vtkJson components = vtkJson::array();
   // components
   for (auto& info : this->Components)
   {
-    *css << vtkClientServerStream::InsertArray(info.Range.GetData(), 2)
-         << vtkClientServerStream::InsertArray(info.FiniteRange.GetData(), 2) << info.Name
-         << info.DefaultName;
+    vtkJson item;
+    item["Range"] = vtkJson{ info.Range[0], info.Range[1] };
+    item["FiniteRange"] = vtkJson{ info.FiniteRange[0], info.FiniteRange[1] };
+    item["Name"] = info.Name;
+    item["DefaultName"] = info.DefaultName;
+    components.push_back(item);
   }
+  json["Components"] = components;
 
   // string values.
-  *css << static_cast<int>(this->StringValues.size());
-  for (const auto& val : this->StringValues)
-  {
-    *css << val;
-  }
+  VTK_JSON_SAVE_MEMBER(json, StringValues);
 
   // information keys.
-  *css << static_cast<int>(this->InformationKeys.size());
-  for (auto& pair : this->InformationKeys)
-  {
-    *css << pair.first << pair.second;
-  }
+  VTK_JSON_SAVE_MEMBER(json, InformationKeys);
 
-  *css << vtkClientServerStream::End;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVArrayInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVArrayInformation::LoadInformation(const vtkJson& json)
 {
   assert(this->Components.size() == 0); // sanity check.
 
-  // argument counter;
-  int argument = 0;
-  if (!css->GetArgument(0, argument++, &this->Name) ||
-    !css->GetArgument(0, argument++, &this->DataType) ||
-    !css->GetArgument(0, argument++, &this->NumberOfTuples) ||
-    !css->GetArgument(0, argument++, &this->IsPartial))
-  {
-    vtkErrorMacro("Error parsing message.");
-    return false;
-  }
+  // Array name, data type, and number of components.
+  VTK_JSON_LOAD_MEMBER(json, Name);
+  VTK_JSON_LOAD_MEMBER(json, DataType);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfTuples);
+  VTK_JSON_LOAD_MEMBER(json, IsPartial);
 
   // components
-  int count;
-  if (!css->GetArgument(0, argument++, &count))
-  {
-    vtkErrorMacro("Error parsing message.");
-    return false;
-  }
+  auto components = json.at("Components");
+  std::transform(components.begin(), components.end(), std::back_inserter(this->Components),
+    [](const vtkJson& item) {
+      ComponentInfo info;
+      info.Range[0] = item.at("Range")[0].get<double>();
+      info.Range[1] = item.at("Range")[1].get<double>();
+      info.FiniteRange[0] = item.at("FiniteRange")[0].get<double>();
+      info.FiniteRange[1] = item.at("FiniteRange")[1].get<double>();
+      info.Name = item.at("Name").get<std::string>();
+      info.DefaultName = item.at("DefaultName").get<std::string>();
+      return info;
+    });
 
-  this->Components.resize(count);
-  for (auto& info : this->Components)
-  {
-    if (!css->GetArgument(0, argument++, info.Range.GetData(), 2) ||
-      !css->GetArgument(0, argument++, info.FiniteRange.GetData(), 2) ||
-      !css->GetArgument(0, argument++, &info.Name) ||
-      !css->GetArgument(0, argument++, &info.DefaultName))
-    {
-      vtkErrorMacro("Error parsing message.");
-      return false;
-    }
-  }
+  // string values.
+  VTK_JSON_LOAD_MEMBER(json, StringValues);
 
-  // string values
-  if (!css->GetArgument(0, argument++, &count))
-  {
-    vtkErrorMacro("Error parsing message.");
-    return false;
-  }
+  // information keys.
+  VTK_JSON_LOAD_MEMBER(json, InformationKeys);
 
-  this->StringValues.resize(count);
-  for (auto& value : this->StringValues)
-  {
-    if (!css->GetArgument(0, argument++, &value))
-    {
-      vtkErrorMacro("Error parsing message.");
-      return false;
-    }
-  }
-
-  // information keys
-  if (!css->GetArgument(0, argument++, &count))
-  {
-    vtkErrorMacro("Error parsing message.");
-    return false;
-  }
-
-  for (int cc = 0; cc < count; ++cc)
-  {
-    std::pair<std::string, std::string> pair;
-    if (!css->GetArgument(0, argument++, &pair.first) ||
-      !css->GetArgument(0, argument++, &pair.second))
-    {
-      vtkErrorMacro("Error parsing message.");
-      return false;
-    }
-
-    this->InformationKeys.insert(pair);
-  }
   return true;
 }
 

@@ -664,7 +664,7 @@ void vtkSMProxy::MarkPipelineUpdated()
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
   for (auto& port : internals.OutputPorts)
   {
-    // port->InvalidateDataInformation();
+    port->PipelineUpdated();
   }
 
   // Notify the world that this algorithm has re-executed.

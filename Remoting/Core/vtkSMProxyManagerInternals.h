@@ -26,6 +26,7 @@
 #include "vtkLogger.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreModule.h"
+#include "vtkRemotingCoreUtilities.h"
 #include "vtkSMProxy.h"
 #include "vtkServiceEndpoint.h"
 #include "vtkSmartPointer.h"
@@ -41,18 +42,33 @@ public:
   vtkWeakPointer<vtkClientSession> Session;
   vtkTypeUInt32 NextGlobalID{ 100 };
 
+  // A collection of vtkChannelSubscription.
   std::vector<vtkSmartPointer<vtkChannelSubscription>> Subscriptions;
 
+  // All created proxies. This map is used to lookup all crated proxies using
+  // their ids.
   std::map<vtkTypeUInt32, vtkWeakPointer<vtkSMProxy>> Proxies;
 
+  // Registered proxies.
   std::multimap<std::pair<std::string, std::string>, vtkSmartPointer<vtkSMProxy>> RegisteredProxies;
 
+  // Prototype proxies.
   std::map<std::pair<std::string, std::string>, vtkSmartPointer<vtkSMProxy>> Prototypes;
+
   static auto GetKey(const std::string& group, const std::string& name)
   {
     return std::make_pair(group, name);
   }
 
+  vtkInternals(vtkClientSession* session, vtkSMProxyManager* self)
+    : Self(self)
+  {
+    this->Session = session;
+    this->Subscribe(session->GetEndpoint(vtkClientSession::DATA_SERVER));
+    this->Subscribe(session->GetEndpoint(vtkClientSession::RENDER_SERVER));
+  }
+
+private:
   void Subscribe(vtkServiceEndpoint* endpoint)
   {
     auto subscription = endpoint->Subscribe(vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE());
@@ -63,14 +79,14 @@ public:
     this->Subscriptions.push_back(subscription);
   }
 
-private:
   /**
    * This is called whenever a service notifies us that an algorithm
    * has updated. The service buffers these notifications and sends
    * a list of gids for all algorithms that were updated.
    */
-  void ProxiesUpdated(const std::vector<vtkTypeUInt32>& gids) const
+  void ProxiesUpdated(const std::vector<vtkTypeUInt32>& gids)
   {
+    vtkRemotingCoreUtilities::EnsureThread(this->OwnerTID);
     for (auto id : gids)
     {
       auto iter = this->Proxies.find(id);

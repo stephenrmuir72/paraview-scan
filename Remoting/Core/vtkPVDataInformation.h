@@ -98,21 +98,29 @@ public:
   void SetSubsetAssemblyNameToHierarchy();
   //@}
 
+  ///@{
+  /**
+   * Get/Set whether the data information is potentially obsolete.
+   */
+  vtkSetMacro(IsObsolete, bool);
+  vtkGetMacro(IsObsolete, bool);
+  ///@}
+
   /**
    * Populate vtkPVDataInformation using `object`. The object can be a
    * `vtkDataObject`, `vtkAlgorithm` or `vtkAlgorithmOutput`.
    */
-  void CopyFromObject(vtkObject* object) override;
+  bool GatherInformation(vtkObject* target) override;
 
   //@{
   /**
    * vtkPVInformation API implementation.
    */
-  void AddInformation(vtkPVInformation* info) override;
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  void CopyParametersToStream(vtkMultiProcessStream&) override;
-  void CopyParametersFromStream(vtkMultiProcessStream&) override;
+  vtkJson SaveState() const override;
+  bool LoadState(const vtkJson& state) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  void AddInformation(vtkPVInformation* oinfo) override;
   //@}
 
   /**
@@ -469,30 +477,6 @@ public:
    */
   unsigned int ComputeCompositeIndexForAMR(unsigned int level, unsigned int index) const;
 
-  //@{
-  /**
-   * Deprecated in ParaView 5.10
-   */
-  PARAVIEW_DEPRECATED_IN_5_10_0("Replaced by `vtkPVDataInformation::GetNumberOfCells()` instead")
-  vtkTypeUInt64 GetPolygonCount();
-  PARAVIEW_DEPRECATED_IN_5_10_0("Removed")
-  void* GetCompositeDataInformation();
-  PARAVIEW_DEPRECATED_IN_5_10_0("Removed")
-  vtkPVDataInformation* GetDataInformationForCompositeIndex(int);
-  PARAVIEW_DEPRECATED_IN_5_10_0("Removed")
-  unsigned int GetNumberOfBlockLeafs(bool skipEmpty);
-  PARAVIEW_DEPRECATED_IN_5_10_0("Removed")
-  vtkPVDataInformation* GetDataInformationForCompositeIndex(int*);
-  PARAVIEW_DEPRECATED_IN_5_10_0("Replaced by `vtkPVDataInformation::GetTimeRange()` instead")
-  double* GetTimeSpan();
-  PARAVIEW_DEPRECATED_IN_5_10_0("Replaced by `vtkPVDataInformation::GetTimeRange()` instead")
-  void GetTimeSpan(double&, double&);
-  PARAVIEW_DEPRECATED_IN_5_10_0("Replaced by `vtkPVDataInformation::GetTimeRange()` instead")
-  void GetTimeSpan(double[2]);
-  PARAVIEW_DEPRECATED_IN_5_10_0("Removed")
-  static void RegisterHelper(const char*, const char*);
-  //@}
-
 protected:
   vtkPVDataInformation();
   ~vtkPVDataInformation() override;
@@ -519,6 +503,7 @@ private:
   int Rank = -1;
   char* SubsetSelector = nullptr;
   char* SubsetAssemblyName = nullptr;
+  bool IsObsolete = true;
 
   int DataSetType = -1;
   int CompositeDataSetType = -1;

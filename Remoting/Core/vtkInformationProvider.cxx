@@ -153,10 +153,17 @@ vtkPacket vtkInformationProvider::GatherInformation(
   vtkPVInformation* information, vtkTypeUInt32 targetGID)
 {
   vtkJson json = vtkJson::object();
+  json["type"] = "vtk-information-collect";
   json["class"] = information->GetClassName();
   json["target_gid"] = targetGID;
   json["state"] = information->SaveState();
   return { json };
+}
+
+//----------------------------------------------------------------------------
+bool vtkInformationProvider::ParseResponse(const vtkPacket& packet, vtkPVInformation* information)
+{
+  return information->LoadInformation(packet.GetJSON());
 }
 
 //----------------------------------------------------------------------------

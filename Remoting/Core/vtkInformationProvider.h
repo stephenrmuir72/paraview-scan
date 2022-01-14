@@ -53,6 +53,7 @@ public:
   ///@}
 
   static vtkPacket GatherInformation(vtkPVInformation* information, vtkTypeUInt32 targetGID);
+  static bool ParseResponse(const vtkPacket& packet, vtkPVInformation* information);
 
 protected:
   vtkInformationProvider();

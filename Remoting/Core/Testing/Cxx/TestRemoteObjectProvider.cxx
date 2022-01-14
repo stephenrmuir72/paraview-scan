@@ -15,7 +15,9 @@
 #include "vtkBuiltinSession.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
+#include "vtkPVDataInformation.h"
 #include "vtkProcessModule.h"
+#include "vtkSMOutputPort.h"
 #include "vtkSMPropertyTemplate.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
@@ -45,8 +47,8 @@ int TestRemoteObjectProvider(int argc, char* argv[])
   pm->WaitForExit(runLoop, std::chrono::seconds(1));
 
   proxy->UpdatePipeline(0.0);
-
   pm->WaitForExit(runLoop, std::chrono::seconds(5));
+
   proxy = nullptr;
   pm = nullptr;
   vtkProcessModule::Finalize();

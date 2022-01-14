@@ -62,6 +62,7 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.InformationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
   info.InformationProvider->SetObjectStore(info.ObjectStore);
   info.InformationProvider->SetController(info.Controller);
+  info.InformationProvider->Initialize(info.Service);
 
   this->Services.emplace(name, info);
 

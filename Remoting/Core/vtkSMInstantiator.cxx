@@ -17,6 +17,7 @@
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectWrapper.h"
+#include "vtkPVDataInformation.h"
 #include "vtkSMDoubleRangeDomain.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIdTypeVectorProperty.h"
@@ -91,6 +92,11 @@ vtkSmartPointer<vtkObject> vtkSMInstantiator::CreateInstance(const std::string& 
   {
     return vtk::TakeSmartPointer(vtkSMIntRangeDomain::New());
   }
+  else if (className == "vtkPVDataInformation")
+  {
+    return vtk::TakeSmartPointer(vtkPVDataInformation::New());
+  }
+
   vtkLogF(ERROR, "Unknown class type: %s", className.c_str());
   return nullptr;
 }

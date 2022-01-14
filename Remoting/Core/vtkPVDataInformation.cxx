@@ -176,24 +176,25 @@ vtkPVDataInformation::~vtkPVDataInformation()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataInformation::CopyParametersToStream(vtkMultiProcessStream& str)
+vtkJson vtkPVDataInformation::SaveState() const
 {
-  str << 828792 << this->PortNumber << std::string(this->SubsetSelector ? SubsetSelector : "")
-      << std::string(this->SubsetAssemblyName ? this->SubsetAssemblyName : "");
+  vtkJson json;
+  json["port_number"] = this->PortNumber;
+  json["subset_selector"] = std::string(this->SubsetSelector ? this->SubsetSelector : "");
+  json["subset_assembly_name"] =
+    std::string(this->SubsetAssemblyName ? this->SubsetAssemblyName : "");
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataInformation::CopyParametersFromStream(vtkMultiProcessStream& str)
+bool vtkPVDataInformation::LoadState(const vtkJson& json)
 {
-  int magic_number;
-  std::string path, name;
-  str >> magic_number >> this->PortNumber >> path >> name;
-  if (magic_number != 828792)
-  {
-    vtkErrorMacro("Magic number mismatch.");
-  }
+  this->PortNumber = json.at("port_number").get<int>();
+  const auto path = json.at("subset_selector").get<std::string>();
+  const auto name = json.at("subset_assembly_name").get<std::string>();
   this->SetSubsetSelector(path.empty() ? nullptr : path.c_str());
   this->SetSubsetAssemblyName(name.empty() ? nullptr : name.c_str());
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -336,20 +337,19 @@ void vtkPVDataInformation::Initialize()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataInformation::CopyFromObject(vtkObject* object)
+bool vtkPVDataInformation::GatherInformation(vtkObject* object)
 {
   this->Initialize();
-
   if (object == nullptr)
   {
-    return;
+    return false;
   }
 
   auto pm = vtkProcessModule::GetProcessModule();
-  if (this->Rank != -1 && this->Rank != pm->GetPartitionId())
+  if (this->Rank != -1 && this->Rank != pm->GetRank())
   {
     // nothing to do.
-    return;
+    return false;
   }
 
   vtkDataObject* dobj = vtkDataObject::SafeDownCast(object);
@@ -366,7 +366,7 @@ void vtkPVDataInformation::CopyFromObject(vtkObject* object)
       if (strcmp(algOutput->GetProducer()->GetClassName(), "vtkPVNullSource") == 0)
       {
         // Don't gather any data information from the hypothetical null source.
-        return;
+        return false;
       }
 
       if (algOutput->GetProducer()->IsA("vtkPVPostFilter"))
@@ -384,12 +384,12 @@ void vtkPVDataInformation::CopyFromObject(vtkObject* object)
       if (strcmp(algo->GetClassName(), "vtkPVNullSource") == 0)
       {
         // Don't gather any data information from the hypothetical null source.
-        return;
+        return false;
       }
       pipelineInfo = algo->GetExecutive()->GetOutputInformation(this->PortNumber);
       if (!pipelineInfo || vtkDataObject::GetData(pipelineInfo) == nullptr)
       {
-        return;
+        return false;
       }
       dobj = algo->GetOutputDataObject(this->PortNumber);
     }
@@ -399,7 +399,7 @@ void vtkPVDataInformation::CopyFromObject(vtkObject* object)
   {
     vtkErrorMacro("Could not cast object to a known data set: " << (object ? object->GetClassName()
                                                                            : "(null)"));
-    return;
+    return false;
   }
 
   vtkSmartPointer<vtkDataObject> subset;
@@ -487,6 +487,7 @@ void vtkPVDataInformation::CopyFromObject(vtkObject* object)
     this->Time = dinfo->Get(vtkDataObject::DATA_TIME_STEP());
     this->HasTime = true;
   }
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -990,147 +991,85 @@ bool vtkPVDataInformation::IsAttributeValid(int fieldAssociation) const
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVDataInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply;
-  *css << this->DataSetType << this->CompositeDataSetType << this->FirstLeafCompositeIndex
-       << this->NumberOfTrees << this->NumberOfLeaves << this->NumberOfAMRLevels
-       << this->NumberOfDataSets << this->MemorySize
-       << vtkClientServerStream::InsertArray(this->Bounds, 6)
-       << vtkClientServerStream::InsertArray(this->Extent, 6) << this->HasTime << this->Time
-       << vtkClientServerStream::InsertArray(this->TimeRange, 2) << this->TimeLabel
-       << this->NumberOfTimeSteps
-       << vtkClientServerStream::InsertArray(
-            this->NumberOfElements, vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES);
+  vtkJson json;
+  VTK_JSON_SAVE_MEMBER(json, DataSetType);
+  VTK_JSON_SAVE_MEMBER(json, CompositeDataSetType);
+  VTK_JSON_SAVE_MEMBER(json, FirstLeafCompositeIndex);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfTrees);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfLeaves);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfAMRLevels);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfDataSets);
+  VTK_JSON_SAVE_MEMBER(json, MemorySize);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, Bounds);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, Extent);
+  VTK_JSON_SAVE_MEMBER(json, HasTime);
+  VTK_JSON_SAVE_MEMBER(json, Time);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, TimeRange);
+  VTK_JSON_SAVE_MEMBER(json, TimeLabel);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfTimeSteps);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, NumberOfElements)
+  VTK_JSON_SAVE_MEMBER(json, UniqueBlockTypes);
+  VTK_JSON_SAVE_MEMBER(json, AMRNumberOfDataSets);
 
-  *css << static_cast<int>(this->UniqueBlockTypes.size());
-  if (!this->UniqueBlockTypes.empty())
-  {
-    *css << vtkClientServerStream::InsertArray(
-      &this->UniqueBlockTypes.front(), static_cast<int>(this->UniqueBlockTypes.size()));
-  }
-
-  vtkClientServerStream temp;
-  this->PointArrayInformation->CopyToStream(&temp);
-  *css << temp;
-
+  json["PointArrayInformation"] = this->PointArrayInformation->SaveInformation();
   for (int cc = 0; cc < vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES; ++cc)
   {
-    temp.Reset();
-    this->AttributeInformations[cc]->CopyToStream(&temp);
-    *css << temp;
+    json["AttributeInformation" + std::to_string(cc)] =
+      this->AttributeInformations[cc]->SaveInformation();
   }
 
   if (this->CompositeDataSetType != -1)
   {
-    *css << this->DataAssembly->SerializeToXML(vtkIndent());
-    *css << this->Hierarchy->SerializeToXML(vtkIndent());
+    json["DataAssembly"] = this->DataAssembly->SerializeToXML(vtkIndent());
+    json["Hierarchy"] = this->Hierarchy->SerializeToXML(vtkIndent());
   }
-
-  if (!this->AMRNumberOfDataSets.empty())
-  {
-    *css << vtkClientServerStream::InsertArray(
-      &this->AMRNumberOfDataSets.front(), static_cast<int>(this->AMRNumberOfDataSets.size()));
-  }
-  else
-  {
-    assert(this->NumberOfAMRLevels == 0);
-  }
-  *css << vtkClientServerStream::End;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVDataInformation::LoadInformation(const vtkJson& json)
 {
-  // argument counter.
-  int argument = 0;
+  VTK_JSON_LOAD_MEMBER(json, DataSetType);
+  VTK_JSON_LOAD_MEMBER(json, CompositeDataSetType);
+  VTK_JSON_LOAD_MEMBER(json, FirstLeafCompositeIndex);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfTrees);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfLeaves);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfAMRLevels);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfDataSets);
+  VTK_JSON_LOAD_MEMBER(json, MemorySize);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, Bounds);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, Extent);
+  VTK_JSON_LOAD_MEMBER(json, HasTime);
+  VTK_JSON_LOAD_MEMBER(json, Time);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, TimeRange);
+  VTK_JSON_LOAD_MEMBER(json, TimeLabel);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfTimeSteps);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, NumberOfElements)
+  VTK_JSON_LOAD_MEMBER(json, UniqueBlockTypes);
+  VTK_JSON_LOAD_MEMBER(json, AMRNumberOfDataSets);
 
-  if (!css->GetArgument(0, argument++, &this->DataSetType) ||
-    !css->GetArgument(0, argument++, &this->CompositeDataSetType) ||
-    !css->GetArgument(0, argument++, &this->FirstLeafCompositeIndex) ||
-    !css->GetArgument(0, argument++, &this->NumberOfTrees) ||
-    !css->GetArgument(0, argument++, &this->NumberOfLeaves) ||
-    !css->GetArgument(0, argument++, &this->NumberOfAMRLevels) ||
-    !css->GetArgument(0, argument++, &this->NumberOfDataSets) ||
-    !css->GetArgument(0, argument++, &this->MemorySize) ||
-    !css->GetArgument(0, argument++, this->Bounds, 6) ||
-    !css->GetArgument(0, argument++, this->Extent, 6) ||
-    !css->GetArgument(0, argument++, &this->HasTime) ||
-    !css->GetArgument(0, argument++, &this->Time) ||
-    !css->GetArgument(0, argument++, this->TimeRange, 2) ||
-    !css->GetArgument(0, argument++, &this->TimeLabel) ||
-    !css->GetArgument(0, argument++, &this->NumberOfTimeSteps) ||
-    !css->GetArgument(
-      0, argument++, this->NumberOfElements, vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream.");
-    return;
-  }
-
-  // read UniqueBlockTypes.
-  int uniqueBlockTypesLength;
-  if (!css->GetArgument(0, argument++, &uniqueBlockTypesLength))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream.");
-    return;
-  }
-  this->UniqueBlockTypes.resize(uniqueBlockTypesLength);
-  if (uniqueBlockTypesLength > 0 &&
-    !css->GetArgument(0, argument++, &this->UniqueBlockTypes[0], uniqueBlockTypesLength))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream.");
-    return;
-  }
-
-  vtkClientServerStream temp;
-  if (!css->GetArgument(0, argument++, &temp))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream.");
-    return;
-  }
-  this->PointArrayInformation->CopyFromStream(&temp);
+  this->PointArrayInformation->LoadInformation(json.at("PointArrayInformation"));
 
   for (int cc = 0; cc < vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES; ++cc)
   {
-    temp.Reset();
-    if (!css->GetArgument(0, argument++, &temp))
-    {
-      this->Initialize();
-      vtkErrorMacro("Error parsing stream.");
-      return;
-    }
-    this->AttributeInformations[cc]->CopyFromStream(&temp);
+    this->AttributeInformations[cc]->LoadInformation(
+      json["AttributeInformation" + std::to_string(cc)]);
   }
 
   if (this->CompositeDataSetType != -1)
   {
-    std::string hierarchy, assembly;
-    if (!css->GetArgument(0, argument++, &assembly) ||
-      !this->DataAssembly->InitializeFromXML(assembly.c_str()) ||
-      !css->GetArgument(0, argument++, &hierarchy) ||
+    const std::string assembly = json.at("DataAssembly").get<std::string>();
+    const std::string hierarchy = json.at("Hierarchy").get<std::string>();
+    if (!this->DataAssembly->InitializeFromXML(assembly.c_str()) ||
       !this->Hierarchy->InitializeFromXML(hierarchy.c_str()))
     {
-      this->Initialize();
       vtkErrorMacro("Error parsing stream.");
-      return;
+      return false;
     }
   }
-
-  // read AMRNumberOfDataSets.
-  this->AMRNumberOfDataSets.resize(this->NumberOfAMRLevels);
-  if (this->NumberOfAMRLevels > 0 &&
-    !css->GetArgument(
-      0, argument++, &this->AMRNumberOfDataSets[0], static_cast<int>(this->NumberOfAMRLevels)))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream.");
-    return;
-  }
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -1350,62 +1289,4 @@ unsigned int vtkPVDataInformation::ComputeCompositeIndexForAMR(
   }
 
   return (compositeIndex + index);
-}
-
-//============================================================================
-vtkTypeUInt64 vtkPVDataInformation::GetPolygonCount()
-{
-  VTK_LEGACY_REPLACED_BODY(
-    vtkPVDataInformation::GetPolygonCount, "ParaView 5.10", vtkPVDataInformation::GetNumberOfCells);
-  return this->GetNumberOfCells();
-}
-
-void* vtkPVDataInformation::GetCompositeDataInformation()
-{
-  VTK_LEGACY_BODY(vtkPVDataInformation::GetCompositeDataInformation, "ParaView 5.10");
-  return nullptr;
-}
-
-vtkPVDataInformation* vtkPVDataInformation::GetDataInformationForCompositeIndex(int)
-{
-  VTK_LEGACY_BODY(vtkPVDataInformation::GetDataInformationForCompositeIndex, "ParaView 5.10");
-  return nullptr;
-}
-
-unsigned int vtkPVDataInformation::GetNumberOfBlockLeafs(bool)
-{
-  VTK_LEGACY_BODY(vtkPVDataInformation::GetNumberOfBlockLeafs, "ParaView 5.10");
-  return 0;
-}
-
-vtkPVDataInformation* vtkPVDataInformation::GetDataInformationForCompositeIndex(int*)
-{
-  VTK_LEGACY_BODY(vtkPVDataInformation::GetDataInformationForCompositeIndex, "ParaView 5.10");
-  return nullptr;
-}
-
-double* vtkPVDataInformation::GetTimeSpan()
-{
-  VTK_LEGACY_REPLACED_BODY(
-    vtkPVDataInformation::GetTimeSpan, "ParaView 5.10", vtkPVDataInformation::GetTimeRange);
-  return this->GetTimeRange();
-}
-
-void vtkPVDataInformation::GetTimeSpan(double& x, double& y)
-{
-  VTK_LEGACY_REPLACED_BODY(
-    vtkPVDataInformation::GetTimeSpan, "ParaView 5.10", vtkPVDataInformation::GetTimeRange);
-  this->GetTimeRange(x, y);
-}
-
-void vtkPVDataInformation::GetTimeSpan(double val[2])
-{
-  VTK_LEGACY_REPLACED_BODY(
-    vtkPVDataInformation::GetTimeSpan, "ParaView 5.10", vtkPVDataInformation::GetTimeRange);
-  this->GetTimeRange(val);
-}
-
-void vtkPVDataInformation::RegisterHelper(const char*, const char*)
-{
-  VTK_LEGACY_BODY(vtkPVDataInformation::RegisterHelper, "ParaView 5.10");
 }

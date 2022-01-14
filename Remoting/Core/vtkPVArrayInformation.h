@@ -24,6 +24,7 @@
 #ifndef vtkPVArrayInformation_h
 #define vtkPVArrayInformation_h
 
+#include "vtkJson.h" // for vtkJson
 #include "vtkObject.h"
 #include "vtkRemotingCoreModule.h" //needed for exports
 #include "vtkTuple.h"              // for vtkTuple
@@ -33,7 +34,6 @@
 #include <vector> // for std::vector
 
 class vtkAbstractArray;
-class vtkClientServerStream;
 class vtkGenericAttribute;
 
 class VTKREMOTINGCORE_EXPORT vtkPVArrayInformation : public vtkObject
@@ -145,8 +145,14 @@ public:
 
   void CopyFromArray(vtkAbstractArray* array);
   void CopyFromGenericAttribute(vtkGenericAttribute* array);
-  void CopyToStream(vtkClientServerStream*) const;
-  bool CopyFromStream(const vtkClientServerStream*);
+
+  ///@{
+  /*
+   * Serialization API.
+   */
+  vtkJson SaveInformation() const;
+  bool LoadInformation(const vtkJson& json);
+  ///@}
 
 protected:
   vtkPVArrayInformation();

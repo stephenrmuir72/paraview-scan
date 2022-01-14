@@ -33,7 +33,6 @@
 vtkStandardNewMacro(vtkSMProxyManager);
 //----------------------------------------------------------------------------
 vtkSMProxyManager::vtkSMProxyManager()
-  : Internals(new vtkSMProxyManager::vtkInternals())
 {
 }
 
@@ -43,11 +42,7 @@ vtkSMProxyManager::~vtkSMProxyManager() = default;
 //----------------------------------------------------------------------------
 void vtkSMProxyManager::SetSession(vtkClientSession* session)
 {
-  auto& internals = (*this->Internals);
-  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  internals.Session = session;
-  internals.Subscribe(session->GetEndpoint(vtkClientSession::DATA_SERVER));
-  internals.Subscribe(session->GetEndpoint(vtkClientSession::RENDER_SERVER));
+  this->Internals.reset(new vtkInternals(session, this));
 }
 
 //----------------------------------------------------------------------------

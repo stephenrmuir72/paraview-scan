@@ -36,6 +36,11 @@ public:
 
   int GetElementType() const override { return vtkSMProperty::INPUT; }
 
+  /**
+   * Overridden to add observers for inputs.
+   */
+  void Modified() override;
+
 protected:
   vtkSMInputProperty();
   ~vtkSMInputProperty();
@@ -48,6 +53,13 @@ protected:
 private:
   vtkSMInputProperty(const vtkSMInputProperty&) = delete;
   void operator=(const vtkSMInputProperty&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
+
+  class vtkObserver;
+  friend class vtkObserver;
+  void InputDataInformationUpdated();
 };
 
 #endif
