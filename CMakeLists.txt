@@ -87,6 +87,7 @@ include(ParaViewClient)
 include(ParaViewPlugin)
 include(ParaViewPluginDebugging)
 include(vtkModuleWrapClientServer)
+include(vtkModuleWrapRemoting)
 include(CTest)
 set_property(CACHE BUILD_TESTING
   PROPERTY
@@ -732,6 +733,15 @@ set(CMAKE_INSTALL_RPATH
 #            ${vtk_modules}
 #  TARGET    paraview_client_server
 #  INSTALL_EXPORT ParaView)
+
+vtk_module_wrap_remoting(
+  MODULES   
+            VTK::FiltersSources
+            #${paraview_client_modules}
+            #${paraview_modules}
+            #${vtk_modules}
+  TARGET    paraview_reflection
+  INSTALL_EXPORT ParaView)
 
 paraview_server_manager_process(
   MODULES   ${paraview_modules}
