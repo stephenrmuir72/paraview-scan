@@ -26,10 +26,10 @@
 #ifndef vtkPVDataSetAttributesInformation_h
 #define vtkPVDataSetAttributesInformation_h
 
+#include "vtkJson.h" // needed for vtkJson
 #include "vtkObject.h"
-#include "vtkRemotingCoreModule.h" //needed for exports
+#include "vtkRemotingCoreModule.h" // needed for exports
 
-class vtkClientServerStream;
 class vtkDataObject;
 class vtkPVArrayInformation;
 
@@ -101,8 +101,8 @@ protected:
   /**
    * Manage a serialized version of the information.
    */
-  void CopyToStream(vtkClientServerStream*);
-  void CopyFromStream(const vtkClientServerStream*);
+  vtkJson SaveInformation() const;
+  bool LoadInformation(const vtkJson& json);
   //@}
 
   /**

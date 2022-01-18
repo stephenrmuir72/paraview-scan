@@ -61,6 +61,9 @@ set(classes
   vtkSMProxyProperty
   vtkSMStringVectorProperty
   vtkStringUtilities
+  vtkPVArrayInformation
+  vtkPVDataSetAttributesInformation
+  vtkPVDataInformation
 )
 set(template_classes
   vtkSMPropertyTemplate
@@ -75,11 +78,8 @@ set(old_classes
   vtkNetworkAccessManager
   vtkPResourceFileLocator
   vtkPVAlgorithmPortsInformation
-  vtkPVArrayInformation
   vtkPVClassNameInformation
   vtkPVDataAssemblyInformation
-  vtkPVDataInformation
-  vtkPVDataSetAttributesInformation
   vtkPVDataSizeInformation
   vtkPVDisableStackTraceSignalHandler
   vtkPVDynamicInitializerPluginInterface

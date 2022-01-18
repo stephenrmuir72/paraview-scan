@@ -67,8 +67,13 @@ public:
    */
   static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkJson& json);
   static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
+  static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
   ///@}
 
+  ///@{
+  static const std::string CHANNEL_NOTIFY_UPDATE() { return "notify::update"; }
+  static std::vector<vtkTypeUInt32> ParseNotifyUpdate(const vtkPacket& packet);
+  ///@}
 protected:
   vtkRemoteObjectProvider();
   ~vtkRemoteObjectProvider() override;

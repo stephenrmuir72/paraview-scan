@@ -14,7 +14,40 @@
 =========================================================================*/
 /**
  * @class vtkSMProxy
- * @brief
+ * @brief a proxy for a remote vtkObject (or subclass)
+ *
+ * vtkSMProxy is one of the core building blocks of ParaView. It enables
+ * creation, deletion and manipulation of a VTK-object on services connected to
+ * to by a `vtkClientSession`.
+ *
+ * In VTK, one typically creates data processing pipelines using sources, filters,
+ * and other algorithms. We collectively refer to all such objects as VTK-objects.
+ * In ParaView, proxies help create such data processing and rendering pipelines
+ * on remote and/or concurrent services.
+ *
+ * @section CreatingAProxy Creating a proxy
+ *
+ * To create a proxy, one must use the vtkSMProxyManager. Each vtkClientSession
+ * sets up a vtkSMProxyManager during initialization. The ProxyManager
+ * configures itself will all proxy types available on the connected services
+ * when the connection is established.
+ *
+ * To create a proxy, use `vtkSMProxyManager::NewProxy`.
+ *
+ * @code{cpp}
+ *
+ * vtkSMProxyManager* pxm = ...
+ * vtkSmartPointer<vtkSMProxy> proxy = pxm->NewProxy("<group>", "<name>");
+ *
+ * @endcode
+ *
+ * All proxy definitions are identified by name and grouped under a named proxy group.
+ * The group name helps avoid name conflicts and also classify definitions for
+ * applications.
+ *
+ * During creation the proxy is assigned a unique id called `GlobalID`. This id
+ * is unique for the specific client session. Thus proxies on two different
+ * sessions may have conflicting global ids.
  *
  */
 
@@ -95,8 +128,21 @@ public:
   /**
    * Fetch properties. The observable will return true if the any properties
    * were changed otherwise returns false.
+   *
+   * This method intentionally returns an observable instead of a vtkEventual.
+   * If this returned an vtkEventual, the calling code could call
+   * `Wait` which can cause a deadlock since `UpdateInformation` enqueue code
+   * that needs to execute on the main thread
    */
   rxcpp::observable<bool> UpdateInformation();
+
+  /**
+   * Request a pipeline update. Only makes sense to call this on proxies for
+   * `vtkAlgorithm` subclasses. On all others, this has will have no effect.
+   *
+   * The observable returns true when the update completes successfully.
+   */
+  rxcpp::observable<bool> UpdatePipeline(double time);
 
   /**
    * Returns the number of output ports, if any. A proxy may have one or more
@@ -163,6 +209,13 @@ private:
   void SetGlobalID(vtkTypeUInt32 gid);
   void SetGroup(const std::string& group);
   void SetName(const std::string& name);
+
+  /**
+   * This method is called by vtkSMProxyManager when the service notify the
+   * client that the VTK object has executed consequently indicating that
+   * things like data-information may no longer be valid.
+   */
+  void MarkPipelineUpdated();
   ///@}
 
   class vtkInternals;

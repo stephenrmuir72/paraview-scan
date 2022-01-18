@@ -21,6 +21,7 @@ class vtkPVInformation::vtkInternals
 {
 public:
   vtkSmartPointer<vtkMultiProcessController> Controller;
+  bool RootOnly{ false };
 };
 
 //----------------------------------------------------------------------------
@@ -39,17 +40,17 @@ void vtkPVInformation::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVInformation::SetController(vtkMultiProcessController* controller)
+void vtkPVInformation::SetRootOnly(bool rootOnly)
 {
   auto& internals = (*this->Internals);
-  internals.Controller = controller;
+  internals.RootOnly = rootOnly;
 }
 
 //----------------------------------------------------------------------------
-vtkMultiProcessController* vtkPVInformation::GetController() const
+bool vtkPVInformation::GetRootOnly() const
 {
   const auto& internals = (*this->Internals);
-  return internals.Controller;
+  return internals.RootOnly;
 }
 
 //----------------------------------------------------------------------------

@@ -105,8 +105,9 @@ private:
   void operator=(const vtkSMProxyManager&) = delete;
 
   void HandleProxyEvent(vtkObject* sender, unsigned long eventId, void* callData);
-
+  void MarkPipelineUpdated(vtkSMProxy* proxy);
   class vtkInternals;
+  friend class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
 };
 

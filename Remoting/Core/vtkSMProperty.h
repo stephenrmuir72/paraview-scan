@@ -328,6 +328,12 @@ protected:
   vtkSMProperty();
   ~vtkSMProperty() override;
 
+  /**
+   * Same as `Modified`, except to be called when unchecked values of the
+   * property are changed.
+   */
+  virtual void UncheckedPropertyModified();
+
   ///@{
   friend class vtkSMProxy;
   void SetParentProxy(vtkSMProxy* proxy);
@@ -340,6 +346,16 @@ protected:
   virtual vtkJson SaveState(bool verbose) const;
   virtual bool LoadState(const vtkJson& json, vtkSMStateContext* context);
   ///@}
+
+  ///@{
+  friend class vtkSMDomain;
+  void AddDependentDomain(vtkSMDomain* domain);
+  ///@}
+
+  /**
+   * Updates all domains that depend on this property.
+   */
+  void UpdateDependentDomains() const;
 
 private:
   vtkSMProperty(const vtkSMProperty&) = delete;

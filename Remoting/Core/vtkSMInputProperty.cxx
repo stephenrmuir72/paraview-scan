@@ -14,14 +14,78 @@
 =========================================================================*/
 #include "vtkSMInputProperty.h"
 
+#include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
+#include "vtkWeakPointer.h"
+
+namespace
+{
+class vtkObserverHelper
+{
+  vtkWeakPointer<vtkSMOutputPort> Port;
+  unsigned long ObserverId;
+
+public:
+  vtkObserverHelper(vtkSMOutputPort* port, vtkCommand* observer)
+  {
+    this->ObserverId = port ? port->AddObserver(vtkCommand::UpdateInformationEvent, observer) : 0;
+  }
+  ~vtkObserverHelper()
+  {
+    if (this->Port && this->ObserverId != 0)
+    {
+      this->Port->RemoveObserver(this->ObserverId);
+    }
+  }
+};
+
+} // end of namespace
+
+class vtkSMInputProperty::vtkObserver : public vtkCommand
+{
+public:
+  vtkTypeMacro(vtkObserver, vtkCommand);
+  static vtkSMInputProperty::vtkObserver* New() { return new vtkSMInputProperty::vtkObserver; }
+
+  void Execute(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid),
+    void* vtkNotUsed(calldata)) override
+  {
+    if (this->Property)
+    {
+      this->Property->InputDataInformationUpdated();
+    }
+  }
+  vtkSMInputProperty* Property{ nullptr };
+};
+
+class vtkSMInputProperty::vtkInternals
+{
+  vtkNew<vtkSMInputProperty::vtkObserver> Observer;
+  std::vector<vtkObserverHelper> Helpers;
+
+public:
+  vtkInternals(vtkSMInputProperty* property) { this->Observer->Property = property; }
+
+  ~vtkInternals() { this->Observer->Property = nullptr; }
+
+  void UpdateObservers(const std::vector<vtkSmartPointer<vtkSMOutputPort>>& inputs)
+  {
+    std::vector<vtkObserverHelper> helpers;
+    std::transform(inputs.begin(), inputs.end(), std::back_inserter(helpers),
+      [this](vtkSMOutputPort* port) { return vtkObserverHelper(port, this->Observer); });
+    this->Helpers = std::move(helpers);
+  }
+};
 
 vtkStandardNewMacro(vtkSMInputProperty);
 //----------------------------------------------------------------------------
-vtkSMInputProperty::vtkSMInputProperty() = default;
+vtkSMInputProperty::vtkSMInputProperty()
+  : Internals(new vtkSMInputProperty::vtkInternals(this))
+{
+}
 
 //----------------------------------------------------------------------------
 vtkSMInputProperty::~vtkSMInputProperty() = default;
@@ -49,6 +113,20 @@ vtkSmartPointer<vtkSMOutputPort> vtkSMInputProperty::ToValue(
   auto producer = pxm ? pxm->FindProxy(json.at("producer").get<vtkTypeUInt32>()) : nullptr;
   auto index = producer ? json.at("index").get<int>() : 0;
   return producer ? producer->GetOutputPort(index) : nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMInputProperty::Modified()
+{
+  auto& internals = (*this->Internals);
+  internals.UpdateObservers(this->GetElements());
+  this->Superclass::Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMInputProperty::InputDataInformationUpdated()
+{
+  this->UpdateDependentDomains();
 }
 
 //----------------------------------------------------------------------------

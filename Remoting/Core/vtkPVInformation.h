@@ -31,22 +31,11 @@
 
 #include <memory> // for std::unique_ptr
 
-class vtkMultiProcessController;
-
 class VTKREMOTINGCORE_EXPORT vtkPVInformation : public vtkObject
 {
 public:
   vtkTypeMacro(vtkPVInformation, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  ///@{
-  /**
-   * Get/Set the controller to use to reduce information in a distributed
-   * environment.
-   */
-  void SetController(vtkMultiProcessController* controller);
-  vtkMultiProcessController* GetController() const;
-  ///@}
 
   ///@{
   /**
@@ -63,6 +52,11 @@ public:
    */
   virtual bool GatherInformation(vtkObject* target) = 0;
 
+  /**
+   * Used to merge information between ranks in a distributed configuration.
+   */
+  virtual void AddInformation(vtkPVInformation* other) = 0;
+
   ///@{
   /**
    * Save/load information / meta-data gathered.
@@ -71,9 +65,18 @@ public:
   virtual vtkJson SaveInformation() const = 0;
   ///@}
 
+  ///@{
+  /**
+   * Returns true if this information should only be collected from the
+   * root node in a distributed configuration.
+   */
+  bool GetRootOnly() const;
+  ///@}
 protected:
   vtkPVInformation();
   ~vtkPVInformation() override;
+
+  void SetRootOnly(bool);
 
 private:
   vtkPVInformation(const vtkPVInformation&) = delete;

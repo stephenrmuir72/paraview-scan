@@ -12,7 +12,6 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkCommand.h"
 #include "vtkLogger.h"
 #include "vtkJson.h"
 
@@ -53,7 +52,7 @@ bool vtkSMPropertyTemplate<ValueTypeT>::SetElements(const std::vector<ValueTypeT
 
   if (uncheckedValuesChanged || valuesChanged)
   {
-    this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+    this->UncheckedPropertyModified();
   }
   return valuesChanged;
 }
@@ -79,7 +78,7 @@ bool vtkSMPropertyTemplate<ValueTypeT>::AppendElements(const std::vector<ValueTy
   std::copy(elements.begin(), elements.end(), std::back_inserter(this->Elements));
   this->ElementsValid = true;
   this->Modified();
-  this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+  this->UncheckedPropertyModified();
   return true;
 }
 
@@ -92,7 +91,7 @@ bool vtkSMPropertyTemplate<ValueTypeT>::SetUncheckedElements(const std::vector<V
   {
     this->UncheckedElements = elements;
     this->UncheckedElementsValid = true;
-    this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+    this->UncheckedPropertyModified();
   }
   return valuesChanged;
 }
@@ -114,7 +113,7 @@ bool vtkSMPropertyTemplate<ValueTypeT>::AppendUncheckedElements(const std::vecto
   this->UncheckedElements.reserve(this->UncheckedElements.size() + elements.size());
   std::copy(elements.begin(), elements.end(), std::back_inserter(this->UncheckedElements));
   this->UncheckedElementsValid = true;
-  this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+  this->UncheckedPropertyModified();
   return true;
 }
 
@@ -125,7 +124,7 @@ void vtkSMPropertyTemplate<ValueTypeT>::ClearUncheckedElements()
   if (this->UncheckedElementsValid)
   {
     this->UncheckedElements.clear();
-    this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+    this->UncheckedPropertyModified();
   }
 }
 
@@ -158,7 +157,7 @@ void vtkSMPropertyTemplate<ValueTypeT>::Copy(const vtkSMProperty* source)
   }
   if (modified || uncheckedModified)
   {
-    this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
+    this->UncheckedPropertyModified();
   }
 }
 

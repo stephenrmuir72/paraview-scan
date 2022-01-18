@@ -14,7 +14,6 @@
 =========================================================================*/
 #include "vtkPVDataSetAttributesInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkDataArray.h"
 #include "vtkDataObject.h"
 #include "vtkDataSetAttributes.h"
@@ -353,74 +352,49 @@ vtkPVArrayInformation* vtkPVDataSetAttributesInformation::GetArrayInformation(
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataSetAttributesInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVDataSetAttributesInformation::SaveInformation() const
 {
-  const auto& internals = (*this->Internals);
+  const auto& impl = (*this->Internals);
 
-  css->Reset();
-  *css << vtkClientServerStream::Reply;
+  vtkJson json;
 
   // Number of arrays.
-  *css << internals.ValuesPopulated << static_cast<int>(internals.ArrayInformation.size());
+  VTK_JSON_SAVE_MEMBER(json, impl.ValuesPopulated);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, impl.AttributesInformation);
 
   // Serialize each array's information.
-  for (auto& pair : internals.ArrayInformation)
+  vtkJson arrays = vtkJson::object();
+  for (const auto& pair : impl.ArrayInformation)
   {
-    vtkClientServerStream temp;
-    pair.second->CopyToStream(&temp);
-    *css << temp;
+    arrays[pair.first] = pair.second->SaveInformation();
   }
+  json["arrays"] = arrays;
 
-  for (int cc = 0; cc < vtkDataSetAttributes::NUM_ATTRIBUTES; ++cc)
-  {
-    *css << internals.AttributesInformation[cc];
-  }
-  *css << vtkClientServerStream::End;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataSetAttributesInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVDataSetAttributesInformation::LoadInformation(const vtkJson& json)
 {
-  auto& internals = (*this->Internals);
-  assert(internals.ValuesPopulated == false);
+  auto& impl = (*this->Internals);
+  assert(impl.ValuesPopulated == false);
 
-  // argument counter.
-  int argument = 0;
-  int num_arrays = 0;
-  if (!css->GetArgument(0, argument++, &internals.ValuesPopulated) ||
-    !css->GetArgument(0, argument++, &num_arrays))
-  {
-    this->Initialize();
-    vtkErrorMacro("Error parsing stream");
-    return;
-  }
+  VTK_JSON_LOAD_MEMBER(json, impl.ValuesPopulated);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, impl.AttributesInformation);
 
-  for (int cc = 0; cc < num_arrays; ++cc)
+  for (auto el : json.at("arrays").items())
   {
-    vtkClientServerStream temp;
-    if (!css->GetArgument(0, argument++, &temp))
+    auto ainfo = vtk::TakeSmartPointer(vtkPVArrayInformation::New());
+    if (ainfo->LoadInformation(el.value()))
     {
-      this->Initialize();
-      vtkErrorMacro("Error parsing stream");
-      return;
+      impl.ArrayInformation[el.key()] = ainfo;
     }
-    auto ainfo = vtkPVArrayInformation::New();
-    if (!ainfo->CopyFromStream(&temp))
+    else
     {
-      this->Initialize();
-      vtkErrorMacro("Error parsing stream");
-      return;
-    }
-    internals.ArrayInformation[ainfo->GetName()].TakeReference(ainfo);
-  }
-
-  for (int cc = 0; cc < vtkDataSetAttributes::NUM_ATTRIBUTES; ++cc)
-  {
-    if (!css->GetArgument(0, argument++, &internals.AttributesInformation[cc]))
-    {
-      this->Initialize();
-      vtkErrorMacro("Error parsing stream");
-      return;
+      vtkErrorMacro("Failed to load array information.");
+      return false;
     }
   }
+
+  return true;
 }

@@ -15,6 +15,7 @@
 #include "vtkSMProxyManager.h"
 #include "vtkSMProxyManagerInternals.h"
 
+#include "vtkChannelSubscription.h"
 #include "vtkCommand.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
@@ -34,7 +35,6 @@
 vtkStandardNewMacro(vtkSMProxyManager);
 //----------------------------------------------------------------------------
 vtkSMProxyManager::vtkSMProxyManager()
-  : Internals(new vtkSMProxyManager::vtkInternals())
 {
 }
 
@@ -44,10 +44,7 @@ vtkSMProxyManager::~vtkSMProxyManager() = default;
 //----------------------------------------------------------------------------
 void vtkSMProxyManager::SetSession(vtkClientSession* session)
 {
-  auto& internals = (*this->Internals);
-  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-
-  internals.Session = session;
+  this->Internals.reset(new vtkInternals(session, this));
 }
 
 //----------------------------------------------------------------------------
@@ -279,6 +276,12 @@ std::string vtkSMProxyManager::GetUniqueProxyName(
 void vtkSMProxyManager::HandleProxyEvent(vtkObject* sender, unsigned long eventId, void* callData)
 {
   // TODO: ASYNC
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProxyManager::MarkPipelineUpdated(vtkSMProxy* proxy)
+{
+  proxy->MarkPipelineUpdated();
 }
 
 //----------------------------------------------------------------------------

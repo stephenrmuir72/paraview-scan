@@ -17,6 +17,7 @@ PRIVATE_DEPENDS
   ParaView::RemotingReflection
   ParaView::ServicesThallium
   VTK::cli11
+  VTK::FiltersExtraction
   VTK::fmt
   VTK::vtksys
 OPTIONAL_DEPENDS

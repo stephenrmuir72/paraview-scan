@@ -27,6 +27,7 @@
 #include <memory> // for std::unique_ptr
 
 class vtkSMProxy;
+class vtkPVDataInformation;
 
 class VTKREMOTINGCORE_EXPORT vtkSMOutputPort : public vtkObject
 {
@@ -48,6 +49,12 @@ public:
    */
   int GetIndex() const;
   ///@}
+
+  /**
+   * Returns data information for the data on this port.
+   * This simply returns the currently available data information.
+   */
+  vtkPVDataInformation* GetDataInformation() const;
 
   ///@{
   /**
@@ -71,6 +78,7 @@ protected:
   friend class vtkSMProxy;
   void SetProducer(vtkSMProxy* producer);
   void SetIndex(int index);
+  void PipelineUpdated();
   ///@}
 
 private:

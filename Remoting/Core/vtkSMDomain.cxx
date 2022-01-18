@@ -115,12 +115,10 @@ bool vtkSMDomain::ReadXMLAttributes(const pugi::xml_node& node)
     }
   }
 
-  // Update the domain if any of the properties have their unchecked values
-  // modified. This could be setup to use the session event loop to sqaush
-  // multiple invocation --- something to look into in the future.
   for (auto& aProperty : propertiesSet)
   {
-    aProperty->AddObserver(vtkCommand::UncheckedPropertyModifiedEvent, this, &vtkSMDomain::Update);
+    // Register the domain as a dependent domain of the property.
+    aProperty->AddDependentDomain(this);
   }
 
   return true;
