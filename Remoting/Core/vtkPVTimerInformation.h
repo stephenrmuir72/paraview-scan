@@ -32,68 +32,42 @@ public:
   vtkTypeMacro(vtkPVTimerInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  //@{
+  ///@{
   /**
    * Get/Set the threshold to use to gather the timer log information. This must
    * be set before calling GatherInformation().
    */
-  vtkSetMacro(LogThreshold, double);
-  vtkGetMacro(LogThreshold, double);
-  //@}
+  void SetLogThreshold(double threshold);
+  double GetLogThreshold() const;
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Access to the logs.
    */
-  int GetNumberOfLogs();
-  char* GetLog(int proc);
-  //@}
+  size_t GetNumberOfLogs() const;
+  const std::string& GetLog(size_t proc) const;
+  ///@}
 
-  //@{
-  /**
-   * Transfer information about a single object into
-   * this object.
-   */
-  void CopyFromObject(vtkObject* data) override;
-  virtual void CopyFromMessage(unsigned char* msg);
-  //@}
-
-  /**
-   * Merge another information object.
-   */
-  void AddInformation(vtkPVInformation* info) override;
-
-  //@{
-  /**
-   * Serialize objects to/from a stream object.
-   */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream* css) override;
-  //@}
-
-  //@{
-  /**
-   * Serialize/Deserialize the parameters that control how/what information is
-   * gathered. This are different from the ivars that constitute the gathered
-   * information itself.
-   */
-  void CopyParametersToStream(vtkMultiProcessStream&) override;
-  void CopyParametersFromStream(vtkMultiProcessStream&) override;
+  ///@{
+  vtkJson SaveState() const override;
+  bool LoadState(const vtkJson& state) override;
+  bool GatherInformation(vtkObject* target) override;
+  void AddInformation(vtkPVInformation* other) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
 protected:
   vtkPVTimerInformation();
   ~vtkPVTimerInformation() override;
-  //@}
 
-  void Reallocate(int num);
-  void InsertLog(int id, const char* log);
-
-  double LogThreshold;
-  int NumberOfLogs;
-  char** Logs;
-
+private:
   vtkPVTimerInformation(const vtkPVTimerInformation&) = delete;
   void operator=(const vtkPVTimerInformation&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif
