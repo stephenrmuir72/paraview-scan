@@ -36,14 +36,20 @@
 set(classes
   vtkBuiltinSession
   vtkClientSession
+  vtkDisplayConfiguration
   vtkInformationProvider
   vtkObjectStore
   vtkObjectWrapper
   vtkProcessModule
   vtkProcessModuleConfiguration
   vtkProxyDefinitionManager
+  vtkPVArrayInformation
+  vtkPVDataInformation
+  vtkPVDataSetAttributesInformation
   vtkPVInformation
+  vtkPVTemporalDataInformation
   vtkRemoteObjectProvider
+  vtkRemotingCoreConfiguration
   vtkServerSession
   vtkSession
   vtkSMDomain
@@ -61,9 +67,6 @@ set(classes
   vtkSMProxyProperty
   vtkSMStringVectorProperty
   vtkStringUtilities
-  vtkPVArrayInformation
-  vtkPVDataSetAttributesInformation
-  vtkPVDataInformation
 )
 set(template_classes
   vtkSMPropertyTemplate
@@ -71,7 +74,6 @@ set(template_classes
 )
 
 set(old_classes
-  vtkDisplayConfiguration
   vtkPResourceFileLocator
   vtkPVDataAssemblyInformation
   vtkPVDataSizeInformation
@@ -96,10 +98,8 @@ set(old_classes
   vtkPVServerManagerPluginInterface
   vtkPVSystemConfigInformation
   vtkPVSystemInformation
-  vtkPVTemporalDataInformation
   vtkPVTimerInformation
-  vtkRemotingCoreConfiguration)
-
+)
 set(sources)
 set(private_headers)
 

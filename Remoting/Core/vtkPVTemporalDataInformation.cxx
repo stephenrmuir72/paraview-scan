@@ -32,7 +32,7 @@ vtkPVTemporalDataInformation::vtkPVTemporalDataInformation() = default;
 vtkPVTemporalDataInformation::~vtkPVTemporalDataInformation() = default;
 
 //----------------------------------------------------------------------------
-void vtkPVTemporalDataInformation::CopyFromObject(vtkObject* object)
+bool vtkPVTemporalDataInformation::GatherInformation(vtkObject* object)
 {
   vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(object);
   vtkAlgorithmOutput* port = vtkAlgorithmOutput::SafeDownCast(object);
@@ -45,18 +45,22 @@ void vtkPVTemporalDataInformation::CopyFromObject(vtkObject* object)
   {
     vtkErrorMacro("vtkPVTemporalDataInformation needs a vtkAlgorithm or "
                   " a vtkAlgorithmOutput.");
-    return;
+    return false;
   }
 
   port->GetProducer()->Update();
   vtkDataObject* dobj = port->GetProducer()->GetOutputDataObject(port->GetIndex());
 
   // Collect current information.
-  this->Superclass::CopyFromObject(port);
+  if (!this->Superclass::GatherInformation(port))
+  {
+    return false;
+  }
+
   if (!this->GetHasTime() || this->GetTimeRange()[0] == this->GetTimeRange()[1])
   {
     // nothing temporal about this data! Nothing to do.
-    return;
+    return true;
   }
 
   // We are not assured that this data has time. We currently only handle
@@ -87,7 +91,7 @@ void vtkPVTemporalDataInformation::CopyFromObject(vtkObject* object)
   if (!sddp)
   {
     vtkErrorMacro("This class expects vtkStreamingDemandDrivenPipeline.");
-    return;
+    return false;
   }
 
   double current_time = this->GetTime();
@@ -104,9 +108,13 @@ void vtkPVTemporalDataInformation::CopyFromObject(vtkObject* object)
     dobj = port->GetProducer()->GetOutputDataObject(port->GetIndex());
 
     vtkNew<vtkPVDataInformation> dinfo;
-    dinfo->CopyFromObject(dobj);
-    this->AddInformation(dinfo);
+    if (dinfo->GatherInformation(dobj))
+    {
+      this->AddInformation(dinfo);
+    }
   }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------

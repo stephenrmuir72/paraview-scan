@@ -41,7 +41,7 @@ public:
    * Transfer information about a single object into this object.
    * This expects the \c object to be a vtkAlgorithmOutput.
    */
-  void CopyFromObject(vtkObject* object) override;
+  bool GatherInformation(vtkObject* target) override;
 
 protected:
   vtkPVTemporalDataInformation();

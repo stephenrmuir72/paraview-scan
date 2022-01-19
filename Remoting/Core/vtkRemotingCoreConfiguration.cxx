@@ -316,8 +316,7 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
     "Override the hostname to be used to connect to this process. "
     "By default, the hostname is determined using appropriate system calls.");
 
-  if (ptype == vtkProcessModule::PROCESS_SERVER || ptype == vtkProcessModule::PROCESS_DATA_SERVER ||
-    ptype == vtkProcessModule::PROCESS_RENDER_SERVER)
+  if (ptype == vtkProcessModule::PROCESS_SERVER)
   {
     groupConnection->add_option("--client-host", this->ClientHostName,
       "Hostname to use to connect to the ParaView client when using reverse-connection mode. "
@@ -338,15 +337,6 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
         port = 11111;
         break;
 
-      case vtkProcessModule::PROCESS_DATA_SERVER:
-        argnames = "-p,--dsp,--data-server-port";
-        port = 11111;
-        break;
-
-      case vtkProcessModule::PROCESS_RENDER_SERVER:
-        argnames = "-p,--rsp,--render-server-port";
-        port = 22221;
-        break;
       default:
         abort();
     }
@@ -390,14 +380,7 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
 bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
   vtkCLIOptions* options, vtkProcessModule::ProcessTypes ptype)
 {
-  const bool isRenderingProcess = (ptype != vtkProcessModule::PROCESS_DATA_SERVER);
-  if (!isRenderingProcess)
-  {
-    return true;
-  }
-
-  const bool isServer =
-    (ptype == vtkProcessModule::PROCESS_RENDER_SERVER || ptype == vtkProcessModule::PROCESS_SERVER);
+  const bool isServer = (ptype == vtkProcessModule::PROCESS_SERVER);
 
   auto app = options->GetCLI11App();
   auto group = app->add_option_group("Rendering", "Rendering specific options");
@@ -476,7 +459,7 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
       "Size of the gap in pixels between displays in the vertical direction.");
   }
 
-  if (ptype == vtkProcessModule::PROCESS_SERVER || ptype == vtkProcessModule::PROCESS_RENDER_SERVER)
+  if (ptype == vtkProcessModule::PROCESS_SERVER)
   {
     auto caveGroup = app->add_option_group("CAVE", "CAVE specific options");
     caveGroup
@@ -513,10 +496,7 @@ bool vtkRemotingCoreConfiguration::PopulateMiscellaneousOptions(
     "A collection of miscellaneous options that are largely experimental "
     "or infrequently used.");
 
-  const bool isDataServer =
-    ptype == vtkProcessModule::PROCESS_DATA_SERVER || ptype == vtkProcessModule::PROCESS_SERVER;
-
-  if (isDataServer)
+  if (ptype == vtkProcessModule::PROCESS_SERVER)
   {
     CLI::deprecate_option(group->add_flag("--multi-clients", this->MultiClientMode,
       "Enable the server in a collaborative mode where multiple clients can "
