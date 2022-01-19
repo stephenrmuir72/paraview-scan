@@ -214,6 +214,10 @@ paraview_add_server_manager_xmls(
   MODULE VTK::FiltersSources
   XMLS   XML/VTK_FiltersSources.xml)
 
+paraview_add_server_manager_xmls(
+  MODULE VTK::FiltersGeneral
+  XMLS   XML/VTK_FiltersGeneral.xml)
+
 # for vtkPVFileInformation
 if (WIN32)
   vtk_module_link(ParaView::RemotingCore

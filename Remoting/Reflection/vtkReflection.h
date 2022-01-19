@@ -21,7 +21,8 @@
 #ifndef vtkReflection_h
 #define vtkReflection_h
 
-#include "vtkLogger.h" // for vtkLogger
+#include "vtkAlgorithmOutput.h" // for vtkAlgorithmOutput
+#include "vtkLogger.h"          // for vtkLogger
 #include "vtkObject.h"
 #include "vtkRemotingReflectionModule.h" // for exports
 #include "vtkSmartPointer.h"             // for vtkSmartPointer
@@ -129,6 +130,16 @@ inline int variant_cast<int>(const vtkVariant& variant)
     throw std::runtime_error("invalid cast");
   }
   return result;
+}
+
+template <>
+inline vtkAlgorithmOutput* variant_cast<vtkAlgorithmOutput*>(const vtkVariant& variant)
+{
+  if (!variant.IsVTKObject())
+  {
+    throw std::runtime_error("invalid cast");
+  }
+  return vtkAlgorithmOutput::SafeDownCast(variant.ToVTKObject());
 }
 }
 

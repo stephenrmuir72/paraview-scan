@@ -42,11 +42,18 @@ int TestRemoteObjectProvider(int argc, char* argv[])
   // vtkSMPropertyHelper::SetElements<int>(proxy, "PhiResolution", 800);
   // vtkSMPropertyHelper::SetElements<int>(proxy, "ThetaResolution", 800);
   proxy->UpdateVTKObjects();
+
+  auto shrink = pxm->NewProxy("filters", "ShrinkFilter");
+  vtkSMPropertyTemplate<vtkSmartPointer<vtkSMOutputPort>>::SafeDownCast(
+    shrink->GetProperty("Input"))
+    ->SetElements({ proxy->GetOutputPort(0) });
+  shrink->UpdateVTKObjects();
+
   proxy->UpdateInformation().subscribe(
     [](bool changed) { vtkLogF(INFO, "proxy properties have been updated (%d)", changed); });
   pm->WaitForExit(runLoop, std::chrono::seconds(1));
 
-  proxy->UpdatePipeline(0.0);
+  shrink->UpdatePipeline(0.0);
   pm->WaitForExit(runLoop, std::chrono::seconds(5));
 
   proxy = nullptr;

@@ -29,9 +29,11 @@ OPTIONAL_DEPENDS
   # These dependencies ensure that proper appropriate proxy definitions
   # are enabled when corresponding modules are enabled.
   VTK::FiltersSources
+  VTK::FiltersGeneral
 
 TEST_DEPENDS
   VTK::FiltersSources
+  VTK::FiltersGeneral
   VTK::TestingCore
 TEST_LABELS
   ParaView
