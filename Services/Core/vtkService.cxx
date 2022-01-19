@@ -136,22 +136,18 @@ vtkServicesEngine* vtkService::GetEngine() const
 void vtkService::RMIDispatch(
   void* localArg, void* remoteArg, int remoteArgLength, int remoteProcessId)
 {
-  // FIXME: UDA
   // TODO: avoid repeated deserialization for each service.
-  // vtkService* self = reinterpret_cast<vtkService*>(localArg);
-  // const uint8_t* buffer = reinterpret_cast<uint8_t*>(remoteArg);
-  // nlohmann::json json = nlohmann::json::from_cbor(buffer, buffer + remoteArgLength);
-  // if (json.at("__vtk_service_id__") == self->GetName())
-  // {
-  //   json.erase("__vtk_service_id__");
-  //   vtkPacket::VariantMapT variantMap;
-  //   from_json(json, variantMap);
+  vtkService* self = reinterpret_cast<vtkService*>(localArg);
+  const uint8_t* buffer = reinterpret_cast<uint8_t*>(remoteArg);
+  nlohmann::json json = nlohmann::json::from_cbor(buffer, buffer + remoteArgLength);
+  if (json.at("__vtk_service_id__") == self->GetName())
+  {
+    json.erase("__vtk_service_id__");
 
-  //   // TODO: dispatch on RPC pool for consistency across MPI ranks.
-  //   self->Dispatch(
-  //     vtkServiceReceiver(self, vtkPacket(std::move(variantMap)),
-  //     vtkEventual<vtkPacket>::Empty()));
-  // }
+    // TODO: dispatch on RPC pool for consistency across MPI ranks.
+    self->Dispatch(
+      vtkServiceReceiver(self, vtkPacket(std::move(json)), vtkEventual<vtkJson>::Empty()));
+  }
 }
 
 //----------------------------------------------------------------------------

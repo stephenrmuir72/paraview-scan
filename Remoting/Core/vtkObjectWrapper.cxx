@@ -160,8 +160,12 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
         // convert gids to vtkobjects
         std::vector<vtkObject*> values;
         values.reserve(gids.size());
-        std::transform(gids.begin(), gids.end(), std::back_inserter(values),
-          [&objectStore](vtkTypeUInt32 gid) { return objectStore->FindObject(gid); });
+        std::transform(
+          gids.begin(), gids.end(), std::back_inserter(values), [&objectStore](vtkTypeUInt32 gid) {
+            auto smartPtr = objectStore->FindObject(gid);
+            auto* wrapper = vtkObjectWrapper::SafeDownCast(smartPtr);
+            return (wrapper ? wrapper->GetVTKObject() : nullptr);
+          });
         vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
       }
       break;
@@ -173,7 +177,9 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
         for (const auto& json : value.at("elements"))
         {
           auto producer = objectStore->FindObject(json.at("producer").get<vtkTypeUInt32>());
-          if (auto* algorithm = vtkAlgorithm::SafeDownCast(producer))
+          auto* wrapper = vtkObjectWrapper::SafeDownCast(producer);
+          if (auto* algorithm =
+                wrapper ? vtkAlgorithm::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
           {
             values.push_back(algorithm->GetOutputPort(json.at("index").get<int>()));
           }

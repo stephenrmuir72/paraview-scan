@@ -10,6 +10,7 @@ DEPENDS
 PRIVATE_DEPENDS
   # temporary dependencies for manually wrapped classes.
   VTK::FiltersSources
+  VTK::FiltersGeneral
 TEST_DEPENDS
   VTK::TestingCore
 TEST_LABELS
