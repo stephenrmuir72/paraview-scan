@@ -103,7 +103,7 @@ vtkSmartPointer<vtkObject> vtkReflection::CreateInstance(const std::string& name
   auto& instance = vtkReflectionSingleton::GetInstance();
   std::lock_guard<std::mutex> lk(instance.NewCallbacksMutex);
   auto iter = instance.NewCallbacks.find(name);
-  return iter != instance.NewCallbacks.end() ? iter->second() : nullptr;
+  return iter != instance.NewCallbacks.end() ? vtk::TakeSmartPointer(iter->second()) : nullptr;
 }
 
 //----------------------------------------------------------------------------
