@@ -339,9 +339,9 @@ paraview_require_module(
   CONDITION PARAVIEW_BUILD_ASYNC
   MODULES   ParaView::ServicesCore
             ParaView::ServicesThallium
-            ParaView::RemotingCore
-            ParaView::WrapClientServer
+            ParaView::ServerManagerCore
             ParaView::ProcessXML
+            VTK::WrappingTools
   )
 
 
