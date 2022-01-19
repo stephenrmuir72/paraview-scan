@@ -31,7 +31,7 @@ int TestRemoteObjectProvider(int argc, char* argv[])
   auto* pm = vtkProcessModule::GetProcessModule();
 
   // start the server session. this will start the services.
-  vtkNew<vtkBuiltinSession> session;
+  auto session = vtk::TakeSmartPointer(vtkBuiltinSession::New());
 
   auto* pxm = session->GetProxyManager();
   auto proxy = pxm->NewProxy("sources", "SphereSource");
@@ -58,6 +58,8 @@ int TestRemoteObjectProvider(int argc, char* argv[])
 
   proxy = nullptr;
   pm = nullptr;
+  session = nullptr;
+
   vtkProcessModule::Finalize();
   return EXIT_SUCCESS;
 }
