@@ -130,6 +130,7 @@ int vtkHyperTreeGridRepresentation::ProcessViewRequest(
     this->SetVisibility(true);
     auto data = vtkPVView::GetDeliveredPiece(inInfo, this);
     this->Mapper->SetInputDataObject(data);
+    this->Mapper->SetUseAdaptiveDecimation(this->AdaptiveDecimation);
 
     // This is called just before the vtk-level render. In this pass, we simply
     // pick the correct rendering mode and rendering parameters.
@@ -264,7 +265,6 @@ void vtkHyperTreeGridRepresentation::UpdateColoringParameters()
       this->Mapper->SetScalarVisibility(1);
       this->Mapper->SelectColorArray(colorArrayName);
       this->Mapper->SetUseLookupTableScalarRange(1);
-      this->Mapper->SetUseAdaptiveDecimation(this->AdaptiveDecimation);
       switch (fieldAssociation)
       {
         case vtkDataObject::FIELD_ASSOCIATION_NONE:
