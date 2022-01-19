@@ -78,9 +78,7 @@ set(old_classes
   vtkPResourceFileLocator
   vtkPVDataAssemblyInformation
   vtkPVDataSizeInformation
-  vtkPVDisableStackTraceSignalHandler
   vtkPVDynamicInitializerPluginInterface
-  vtkPVEnableStackTraceSignalHandler
   vtkPVEnvironmentInformation
   vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
