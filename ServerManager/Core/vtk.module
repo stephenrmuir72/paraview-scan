@@ -5,7 +5,7 @@ LIBRARY_NAME
 GROUPS
   PARAVIEW_CORE
 KIT
-  ParaView::CoreKit
+  ParaView::ServerManagerKit
 DEPENDS
   ParaView::rxcpp
   ParaView::ServicesCore
