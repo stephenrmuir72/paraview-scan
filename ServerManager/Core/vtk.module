@@ -1,0 +1,39 @@
+NAME
+  ParaView::ServerManagerCore
+LIBRARY_NAME
+  vtkServerManagerCore
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::rxcpp
+  ParaView::ServicesCore
+  ParaView::VTKExtensionsCore
+  VTK::ParallelCore
+  VTK::pugixml
+PRIVATE_DEPENDS
+  ParaView::ServerManagerReflection
+  ParaView::ServicesThallium
+  VTK::cli11
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::fmt
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  ParaView::nvpipe
+  VTK::ParallelMPI
+  VTK::PythonInterpreter
+  VTK::WrappingPythonCore
+
+  # These dependencies ensure that proper appropriate proxy definitions
+  # are enabled when corresponding modules are enabled.
+  VTK::FiltersSources
+  VTK::FiltersGeneral
+
+TEST_DEPENDS
+  VTK::FiltersSources
+  VTK::FiltersGeneral
+  VTK::TestingCore
+TEST_LABELS
+  ParaView
