@@ -48,6 +48,7 @@ set(classes
   vtkPVDataSetAttributesInformation
   vtkPVInformation
   vtkPVTemporalDataInformation
+  vtkPVTimerInformation
   vtkRemoteObjectProvider
   vtkRemotingCoreConfiguration
   vtkServerSession
@@ -98,7 +99,6 @@ set(old_classes
   vtkPVServerManagerPluginInterface
   vtkPVSystemConfigInformation
   vtkPVSystemInformation
-  vtkPVTimerInformation
 )
 set(sources)
 set(private_headers)

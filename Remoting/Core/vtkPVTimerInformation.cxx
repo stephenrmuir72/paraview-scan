@@ -22,251 +22,134 @@
 #include "vtkTimerLog.h"
 
 #include <sstream>
+#include <string>
 
-//----------------------------------------------------------------------------
+class vtkPVTimerInformation::vtkInternals
+{
+public:
+  double LogThreshold{ 0 };
+  std::vector<std::string> Logs;
+};
+
 vtkStandardNewMacro(vtkPVTimerInformation);
-
 //----------------------------------------------------------------------------
 vtkPVTimerInformation::vtkPVTimerInformation()
+  : Internals(new vtkPVTimerInformation::vtkInternals())
 {
-  this->NumberOfLogs = 0;
-  this->Logs = nullptr;
-  this->LogThreshold = 0;
 }
 
 //----------------------------------------------------------------------------
-vtkPVTimerInformation::~vtkPVTimerInformation()
+vtkPVTimerInformation::~vtkPVTimerInformation() = default;
+
+//----------------------------------------------------------------------------
+void vtkPVTimerInformation::SetLogThreshold(double threshold)
 {
-  int idx;
-
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
-  {
-    if (this->Logs && this->Logs[idx])
-    {
-      delete[] this->Logs[idx];
-      this->Logs[idx] = nullptr;
-    }
-  }
-
-  if (this->Logs)
-  {
-    delete[] this->Logs;
-    this->Logs = nullptr;
-  }
-  this->NumberOfLogs = 0;
+  auto& internals = (*this->Internals);
+  internals.LogThreshold = threshold;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVTimerInformation::CopyParametersToStream(vtkMultiProcessStream& str)
+double vtkPVTimerInformation::GetLogThreshold() const
 {
-  str << 828793 << this->LogThreshold;
+  const auto& internals = (*this->Internals);
+  return internals.LogThreshold;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVTimerInformation::CopyParametersFromStream(vtkMultiProcessStream& str)
+vtkJson vtkPVTimerInformation::SaveState() const
 {
-  int magic_number;
-  str >> magic_number >> this->LogThreshold;
-  if (magic_number != 828793)
-  {
-    vtkErrorMacro("Magic number mismatch.");
-  }
+  const auto& internals = (*this->Internals);
+
+  vtkJson json;
+  json["threshold"] = internals.LogThreshold;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVTimerInformation::InsertLog(int id, const char* log)
+bool vtkPVTimerInformation::LoadState(const vtkJson& state)
 {
-  if (id >= this->NumberOfLogs)
+  auto iter = state.find("threshold");
+  if (iter != state.end())
   {
-    this->Reallocate(id + 1);
+    auto& internals = (*this->Internals);
+    internals.LogThreshold = iter.value().get<double>();
+    return true;
   }
-  if (this->Logs[id])
-  {
-    delete[] this->Logs[id];
-    this->Logs[id] = nullptr;
-  }
-  size_t len = strlen(log);
-  char* str = new char[len + 1];
-  strcpy(str, log);
-  this->Logs[id] = str;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVTimerInformation::Reallocate(int num)
-{
-  int idx;
-  char** newLogs;
-
-  if (num == this->NumberOfLogs)
-  {
-    return;
-  }
-
-  if (num < this->NumberOfLogs)
-  {
-    vtkWarningMacro("Trying to shrink logs from " << this->NumberOfLogs << " to " << num);
-    return;
-  }
-
-  newLogs = new char*[num];
-  for (idx = 0; idx < num; ++idx)
-  {
-    newLogs[idx] = nullptr;
-  }
-
-  // Copy existing logs.
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
-  {
-    newLogs[idx] = this->Logs[idx];
-    this->Logs[idx] = nullptr;
-  }
-
-  delete[] this->Logs;
-
-  this->Logs = newLogs;
-  this->NumberOfLogs = num;
+  return false;
 }
 
 //----------------------------------------------------------------------------
 // This ignores the object, and gets the log from the timer.
-void vtkPVTimerInformation::CopyFromObject(vtkObject*)
+bool vtkPVTimerInformation::GatherInformation(vtkObject*)
 {
-  int length;
-  float threshold = this->LogThreshold;
-
-  length = vtkTimerLog::GetNumberOfEvents() * 40;
+  const int length = vtkTimerLog::GetNumberOfEvents() * 40;
   if (length > 0)
   {
+    auto& internals = (*this->Internals);
+
     std::ostringstream fptr;
-    //*fptr << "Hello world !!!\n ()";
-    vtkTimerLog::DumpLogWithIndents(&fptr, threshold);
-    fptr << ends;
-    this->InsertLog(0, fptr.str().c_str());
+    vtkTimerLog::DumpLogWithIndents(&fptr, static_cast<float>(internals.LogThreshold));
+    internals.Logs.emplace_back(fptr.str());
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkPVTimerInformation::CopyFromMessage(unsigned char* msg)
-{
-  int endianMarker;
-  int num, idx;
-
-  memcpy((unsigned char*)&endianMarker, msg, sizeof(int));
-  if (endianMarker != 1)
-  {
-    // Mismatch endian between client and server.
-    vtkByteSwap::SwapVoidRange((void*)msg, 2, sizeof(int));
-    memcpy((unsigned char*)&endianMarker, msg, sizeof(int));
-    if (endianMarker != 1)
-    {
-      vtkErrorMacro("Could not decode information.");
-      return;
-    }
-  }
-  msg += sizeof(int);
-  memcpy((unsigned char*)&num, msg, sizeof(int));
-  msg += sizeof(int);
-
-  // now get the logs.
-  for (idx = 0; idx < num; ++idx)
-  {
-    char* log;
-    size_t length = strlen((const char*)msg);
-    log = new char[length + 1];
-    memcpy(log, msg, length + 1);
-    this->InsertLog(idx, log);
-    log = nullptr;
-    msg += length + 1;
-  }
+  return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVTimerInformation::AddInformation(vtkPVInformation* info)
 {
-  int oldNum;
-  int num, idx;
-  vtkPVTimerInformation* pdInfo;
-  char* log;
-  char* copyLog;
-
-  pdInfo = vtkPVTimerInformation::SafeDownCast(info);
-
-  oldNum = this->NumberOfLogs;
-  num = pdInfo->GetNumberOfLogs();
-  if (num <= 0)
+  auto* other = vtkPVTimerInformation::SafeDownCast(info);
+  if (!other)
   {
     return;
   }
 
-  for (idx = 0; idx < num; ++idx)
-  {
-    log = pdInfo->GetLog(idx);
-    if (log)
-    {
-      size_t length = strlen(log);
-      copyLog = new char[length + 1];
-      memcpy(copyLog, log, length + 1);
-      this->InsertLog((idx + oldNum), copyLog);
-      copyLog = nullptr;
-    }
-  }
+  auto& internals = (*this->Internals);
+  const auto& ointernals = (*other->Internals);
+  internals.Logs.reserve(internals.Logs.size() + ointernals.Logs.size());
+  std::copy(ointernals.Logs.begin(), ointernals.Logs.end(), std::back_inserter(internals.Logs));
 }
 
 //----------------------------------------------------------------------------
-void vtkPVTimerInformation::CopyToStream(vtkClientServerStream* css)
+bool vtkPVTimerInformation::LoadInformation(const vtkJson& json)
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply << this->NumberOfLogs;
-  int idx;
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
+  auto& internals = (*this->Internals);
+  auto iter = json.find("logs");
+  if (iter != json.end())
   {
-    *css << (const char*)this->Logs[idx];
+    internals.Logs = iter.value().get<std::vector<std::string>>();
+    return true;
   }
-  *css << vtkClientServerStream::End;
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVTimerInformation::CopyFromStream(const vtkClientServerStream* css)
+vtkJson vtkPVTimerInformation::SaveInformation() const
 {
-  int idx;
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
-  {
-    delete[] this->Logs[idx];
-  }
-
-  int numLogs;
-  if (!css->GetArgument(0, 0, &numLogs))
-  {
-    vtkErrorMacro("Error NumberOfLogs from message.");
-    return;
-  }
-  this->Reallocate(numLogs);
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
-  {
-    char* log;
-    if (!css->GetArgument(0, idx + 1, &log))
-    {
-      vtkErrorMacro("Error parsing LOD geometry memory size from message.");
-      return;
-    }
-    this->Logs[idx] = strcpy(new char[strlen(log) + 1], log);
-  }
+  const auto& internals = (*this->Internals);
+  vtkJson json;
+  json["logs"] = internals.Logs;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-int vtkPVTimerInformation::GetNumberOfLogs()
+size_t vtkPVTimerInformation::GetNumberOfLogs() const
 {
-  return this->NumberOfLogs;
+  const auto& internals = (*this->Internals);
+  return internals.Logs.size();
 }
 
 //----------------------------------------------------------------------------
-char* vtkPVTimerInformation::GetLog(int idx)
+const std::string& vtkPVTimerInformation::GetLog(size_t index) const
 {
-  if (idx < 0 || idx >= this->NumberOfLogs)
+  const auto& internals = (*this->Internals);
+  if (index < internals.Logs.size())
   {
-    return nullptr;
+    return internals.Logs.at(index);
   }
-  return this->Logs[idx];
+
+  static std::string tmp;
+  return tmp;
 }
 
 //----------------------------------------------------------------------------
@@ -274,18 +157,14 @@ void vtkPVTimerInformation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "NumberOfLogs: " << this->NumberOfLogs << endl;
-  int idx;
-  for (idx = 0; idx < this->NumberOfLogs; ++idx)
+  const auto& internals = (*this->Internals);
+  os << indent << "LogThreshold: " << internals.LogThreshold << endl;
+  os << indent << "NumberOfLogs: " << this->GetNumberOfLogs() << endl;
+
+  size_t index = 0;
+  for (const auto& log : internals.Logs)
   {
-    os << indent << "Log " << idx << ": \n";
-    if (this->Logs[idx])
-    {
-      os << this->Logs[idx] << endl;
-    }
-    else
-    {
-      os << "NULL\n";
-    }
+    os << indent << "Log " << index++ << ": \n";
+    os << log << endl;
   }
 }
