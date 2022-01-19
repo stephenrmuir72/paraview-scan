@@ -71,14 +71,8 @@ set(template_classes
 )
 
 set(old_classes
-  vtkCompositeMultiProcessController
   vtkDisplayConfiguration
-  vtkMPIMToNSocketConnection
-  vtkMPIMToNSocketConnectionPortInformation
-  vtkNetworkAccessManager
   vtkPResourceFileLocator
-  vtkPVAlgorithmPortsInformation
-  vtkPVClassNameInformation
   vtkPVDataAssemblyInformation
   vtkPVDataSizeInformation
   vtkPVDisableStackTraceSignalHandler
@@ -104,8 +98,7 @@ set(old_classes
   vtkPVSystemInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
-  vtkRemotingCoreConfiguration
-  vtkTCPNetworkAccessManager)
+  vtkRemotingCoreConfiguration)
 
 set(sources)
 set(private_headers)
@@ -182,17 +175,6 @@ configure_file(
   @ONLY)
 list(APPEND headers
   "${CMAKE_CURRENT_BINARY_DIR}/vtkPVVersion.h")
-
-if (NOT PARAVIEW_BUILD_LEGACY_REMOVE)
-  # Based on state of VTK modules, set up some variables that paraview needs to
-  # compile optional code.
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vtkPVConfig.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/vtkPVConfig.h"
-    @ONLY)
-  list(APPEND nowrap_headers
-    "${CMAKE_CURRENT_BINARY_DIR}/vtkPVConfig.h")
-endif ()
 
 vtk_module_add_module(ParaView::RemotingCore
   CLASSES ${classes}
