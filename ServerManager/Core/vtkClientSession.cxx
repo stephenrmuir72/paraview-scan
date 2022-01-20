@@ -37,7 +37,7 @@ public:
    */
   void InitializeSession(vtkClientSession* self);
 
-  std::vector<vtkServiceEndpoint*> GetEndpoints(vtkTypeUInt32 destination) const
+  std::vector<vtkServiceEndpoint*> GetEndpoints(int destination) const
   {
     std::vector<vtkServiceEndpoint*> endpoints;
     if ((destination & vtkClientSession::DATA_SERVER) != 0)
@@ -191,6 +191,13 @@ vtkServiceEndpoint* vtkClientSession::GetEndpoint(ServiceTypes type) const
     default:
       return nullptr;
   }
+}
+
+//----------------------------------------------------------------------------
+std::vector<vtkServiceEndpoint*> vtkClientSession::GetEndpoints(int type) const
+{
+  const auto& internals = (*this->Internals);
+  return internals.GetEndpoints(type);
 }
 
 //----------------------------------------------------------------------------

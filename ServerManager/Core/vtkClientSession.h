@@ -84,6 +84,11 @@ public:
    */
   vtkServiceEndpoint* GetEndpoint(ServiceTypes type) const;
 
+  /**
+   * Returns the end point for a specific type.
+   */
+  std::vector<vtkServiceEndpoint*> GetEndpoints(int type) const;
+
 protected:
   vtkClientSession();
   ~vtkClientSession() override;
