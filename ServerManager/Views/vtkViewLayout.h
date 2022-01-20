@@ -37,9 +37,9 @@
 #include "vtkCommand.h" // for vtkCommand
 #include "vtkNew.h"     // for vtkNew
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkVector.h"              // for vtkVector2i
-#include <memory>                   // for std::unique_ptr
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkVector.h"                   // for vtkVector2i
+#include <memory>                        // for std::unique_ptr
 
 class vtkPVView;
 class vtkRenderWindow;
@@ -47,7 +47,7 @@ class vtkViewLayoutProp;
 class vtkViewport;
 class vtkPVComparativeView;
 
-class VTKREMOTINGVIEWS_EXPORT vtkViewLayout : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkViewLayout : public vtkObject
 {
 public:
   static vtkViewLayout* New();

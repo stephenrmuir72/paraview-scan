@@ -29,11 +29,11 @@
 #define vtkPVProcessWindow_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 class vtkRenderWindow;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVProcessWindow : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVProcessWindow : public vtkObject
 {
 public:
   vtkTypeMacro(vtkPVProcessWindow, vtkObject);
@@ -68,7 +68,7 @@ private:
 
 // Implementation of Schwartz counter idiom to ensure that the
 // singleton vtkRenderWindow is cleaned up correctly during finalization.
-static class VTKREMOTINGVIEWS_EXPORT vtkPVProcessWindowSingletonCleaner
+static class VTKSERVERMANAGERVIEWS_EXPORT vtkPVProcessWindowSingletonCleaner
 {
 public:
   vtkPVProcessWindowSingletonCleaner();

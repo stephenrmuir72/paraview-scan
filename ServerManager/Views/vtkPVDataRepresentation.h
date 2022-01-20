@@ -26,13 +26,13 @@
 
 #include "vtkCommand.h" // needed for vtkCommand
 #include "vtkDataRepresentation.h"
-#include "vtkRemotingViewsModule.h" // needed for exports
-#include "vtkWeakPointer.h"         // needed for vtkWeakPointer
-#include <string>                   // needed for string
+#include "vtkServerManagerViewsModule.h" // needed for exports
+#include "vtkWeakPointer.h"              // needed for vtkWeakPointer
+#include <string>                        // needed for string
 
 class vtkInformationRequestKey;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDataRepresentation : public vtkDataRepresentation
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVDataRepresentation : public vtkDataRepresentation
 {
 public:
   vtkTypeMacro(vtkPVDataRepresentation, vtkDataRepresentation);

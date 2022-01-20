@@ -14,14 +14,13 @@
 =========================================================================*/
 #include "vtkPVRenderingCapabilitiesInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
-#include "vtksys/SystemTools.hxx"
 
 #include <cassert>
+#include <vtksys/SystemTools.hxx>
 
 // needed for VTK_OPENGL_HAS_OSMESA, VTK_OPENGL_HAS_EGL, VTK_USE_COCOA, VTK_USE_X.
 #include "vtkRenderingOpenGLConfigure.h"
@@ -166,9 +165,10 @@ vtkSmartPointer<vtkRenderWindow> vtkPVRenderingCapabilitiesInformation::NewOffsc
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderingCapabilitiesInformation::CopyFromObject(vtkObject*)
+bool vtkPVRenderingCapabilitiesInformation::GatherInformation(vtkObject*)
 {
   this->Capabilities = vtkPVRenderingCapabilitiesInformation::GetLocalCapabilities();
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -182,16 +182,18 @@ void vtkPVRenderingCapabilitiesInformation::AddInformation(vtkPVInformation* oth
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderingCapabilitiesInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVRenderingCapabilitiesInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply << this->Capabilities << vtkClientServerStream::End;
+  vtkJson json;
+  json["capabilities"] = this->Capabilities;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderingCapabilitiesInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVRenderingCapabilitiesInformation::LoadInformation(const vtkJson& json)
 {
-  css->GetArgument(0, 0, &this->Capabilities);
+  this->Capabilities = json.at("capabilities").get<vtkTypeUInt32>();
+  return true;
 }
 
 //----------------------------------------------------------------------------

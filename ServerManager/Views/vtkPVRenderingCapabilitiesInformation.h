@@ -22,13 +22,13 @@
 #define vtkPVRenderingCapabilitiesInformation_h
 
 #include "vtkPVInformation.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkSmartPointer.h"        // for vtkSmartPointer
-#include <string>                   // for std::string
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkSmartPointer.h"             // for vtkSmartPointer
+#include <string>                        // for std::string
 
 class vtkRenderWindow;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVRenderingCapabilitiesInformation : public vtkPVInformation
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVRenderingCapabilitiesInformation : public vtkPVInformation
 {
 public:
   static vtkPVRenderingCapabilitiesInformation* New();
@@ -110,12 +110,12 @@ public:
    */
   static vtkSmartPointer<vtkRenderWindow> NewOffscreenRenderWindow();
 
-  //@}
-  void CopyFromObject(vtkObject*) override;
-  void AddInformation(vtkPVInformation*) override;
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-
+  ///@{
+  bool GatherInformation(vtkObject* target) override;
+  void AddInformation(vtkPVInformation* other) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 protected:
   vtkPVRenderingCapabilitiesInformation();
   ~vtkPVRenderingCapabilitiesInformation() override;

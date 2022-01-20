@@ -30,10 +30,10 @@
 #define vtkPVDataDeliveryManager_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkSmartPointer.h"        // needed for iVar.
-#include "vtkTuple.h"               // needed for vtkTuple.
-#include "vtkWeakPointer.h"         // needed for iVar.
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkSmartPointer.h"             // needed for iVar.
+#include "vtkTuple.h"                    // needed for vtkTuple.
+#include "vtkWeakPointer.h"              // needed for iVar.
 
 class vtkAlgorithmOutput;
 class vtkDataObject;
@@ -44,7 +44,7 @@ class vtkPVView;
 
 #include <vector> // for std::vector
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDataDeliveryManager : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVDataDeliveryManager : public vtkObject
 {
 public:
   vtkTypeMacro(vtkPVDataDeliveryManager, vtkObject);
