@@ -26,245 +26,315 @@
 #include "vtkPVDataRepresentationPipeline.h"
 #include "vtkPVTrivialProducer.h"
 #include "vtkPVView.h"
+#include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
+#include "vtkWeakPointer.h"
 
 #include <cassert>
 #include <map>
 
+class vtkPVDataRepresentation::vtkInternals
+{
+public:
+  vtkTypeUInt32 GlobalID{ 0 };
+  vtkWeakPointer<vtkPVView> View;
+  vtkSmartPointer<vtkMultiProcessController> Controller;
+
+  bool Initialized{ false };
+  bool InitializedForDataProcessing{ false };
+
+  int NumberOfRenderingPorts{ 1 };
+  bool Visibility{ true };
+  double UpdateTime{ 0.0 };
+  bool HasTemporalPipeline{ false };
+  vtkTimeStamp PipelineDataTime;
+  std::string LogName;
+
+  vtkNew<vtkInformationVector> InformationVector;
+};
+
+using vtkSDDP = vtkStreamingDemandDrivenPipeline;
+
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::vtkPVDataRepresentation()
+  : Internals(new vtkPVDataRepresentation::vtkInternals())
 {
-  this->Visibility = true;
-  vtkExecutive* exec = this->CreateDefaultExecutive();
-  this->SetExecutive(exec);
-  exec->Delete();
+  // ensure that representations have no outputs.
+  this->SetNumberOfOutputPorts(0);
 
-  this->UpdateTimeValid = false;
-  this->UpdateTime = 0.0;
-
-  this->ForceUseCache = false;
-  this->ForcedCacheKey = 0.0;
-  this->CacheKey = 0.0;
-
-  this->UniqueIdentifier = 0;
-
-  this->HasTemporalPipeline = false;
+  // setup default executive
+  auto executive = vtkPVDataRepresentationPipeline::New();
+  this->SetExecutive(executive);
+  executive->FastDelete();
 }
 
 //----------------------------------------------------------------------------
 vtkPVDataRepresentation::~vtkPVDataRepresentation() = default;
 
 //----------------------------------------------------------------------------
-void vtkPVDataRepresentation::SetInputConnection(int port, vtkAlgorithmOutput* input)
+void vtkPVDataRepresentation::SetGlobalID(vtkTypeUInt32 gid)
 {
-  this->Superclass::SetInputConnection(port, input);
-  this->MarkModified();
+  auto& internals = (*this->Internals);
+  internals.GlobalID = gid;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataRepresentation::AddInputConnection(int port, vtkAlgorithmOutput* input)
+vtkTypeUInt32 vtkPVDataRepresentation::GetGlobalID() const
 {
-  this->Superclass::AddInputConnection(port, input);
-  this->MarkModified();
+  const auto& internals = (*this->Internals);
+  return internals.GlobalID;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::SetController(vtkMultiProcessController* controller)
+{
+  auto& internals = (*this->Internals);
+  internals.Controller = controller;
+}
+
+//----------------------------------------------------------------------------
+vtkMultiProcessController* vtkPVDataRepresentation::GetController() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Controller;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVDataRepresentation::GetNumberOfRenderingPorts() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.NumberOfRenderingPorts;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::SetNumberOfRenderingPorts(int ports)
+{
+  auto& internals = (*this->Internals);
+  internals.NumberOfRenderingPorts = ports;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::SetVisibility(bool value)
+{
+  auto& internals = (*this->Internals);
+  internals.Visibility = true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::GetVisibility() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Visibility;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVDataRepresentation::SetUpdateTime(double time)
 {
-  if (!this->UpdateTimeValid || (this->UpdateTimeValid && (this->UpdateTime != time)))
+  auto& internals = (*this->Internals);
+  if (internals.UpdateTime != time)
   {
-    this->UpdateTime = time;
-    this->UpdateTimeValid = true;
-
-    // Call MarkModified() only when the timestep has indeed changed.
-    if (this->HasTemporalPipeline && !this->GetNeedsUpdate())
+    internals.UpdateTime = time;
+    if (internals.HasTemporalPipeline)
     {
-      // UpdateTimeChangedEvent is fired to let the proxy know that the pipeline
-      // will be executed due to time change. This helps the proxy layer updated
-      // state up the pipeline to note the potential re-execution of the
-      // upstream pipeline, which otherwise it has no clue since the pipeline
-      // isn't being executed due to explicit property modification.
-      this->InvokeEvent(vtkPVDataRepresentation::UpdateTimeChangedEvent);
-      this->MarkModified();
+      // This flag indicates if the representation is for a temporal pipeline. If
+      // true, then calling `SetUpdateTime` will result in calling
+      // `this->Modified()` i.e. will cause the representation to update on
+      // subsequent update request. Otherwise, the subsequent update request will be
+      // a no-op (unless the representation ended up calling Modified due to
+      // other changes i.e. change in input pipeline).
+      this->Modified();
     }
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataRepresentation::ResetUpdateTime()
+double vtkPVDataRepresentation::GetUpdateTime() const
 {
-  if (this->UpdateTimeValid)
+  const auto& internals = (*this->Internals);
+  return internals.UpdateTime;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::SetLogName(const std::string& name)
+{
+  auto& internals = (*this->Internals);
+  internals.LogName = name;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVDataRepresentation::GetLogName() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.LogName;
+}
+
+//----------------------------------------------------------------------------
+vtkTypeBool vtkPVDataRepresentation::ProcessRequest(
+  vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  // generate the data
+  if (request->Has(vtkSDDP::REQUEST_DATA()))
   {
-    this->UpdateTimeValid = false;
+    this->Internals->PipelineDataTime.Modified();
+    return this->RequestData(request, inputVector, outputVector);
   }
+
+  // set update extent
+  if (request->Has(vtkSDDP::REQUEST_UPDATE_EXTENT()))
+  {
+    return this->RequestUpdateExtent(request, inputVector, outputVector);
+  }
+
+  if (request->Has(vtkSDDP::REQUEST_UPDATE_TIME()))
+  {
+    this->RequestUpdateTime(request, inputVector, outputVector);
+  }
+
+  return this->Superclass::ProcessRequest(request, inputVector, outputVector);
 }
 
 //----------------------------------------------------------------------------
-vtkExecutive* vtkPVDataRepresentation::CreateDefaultExecutive()
+bool vtkPVDataRepresentation::ProcessViewRequest(vtkInformation* request)
 {
-  return vtkPVDataRepresentationPipeline::New();
-}
-
-//----------------------------------------------------------------------------
-double vtkPVDataRepresentation::GetCacheKey() const
-{
-  return this->ForceUseCache ? this->ForcedCacheKey : this->CacheKey;
-}
-
-//----------------------------------------------------------------------------
-int vtkPVDataRepresentation::ProcessViewRequest(
-  vtkInformationRequestKey* request, vtkInformation*, vtkInformation*)
-{
-  assert("We must have an ID at that time" && this->UniqueIdentifier);
   assert(this->GetExecutive()->IsA("vtkPVDataRepresentationPipeline"));
   assert(this->GetVisibility());
 
-  if (request == vtkPVView::REQUEST_UPDATE())
+  const auto& internals = (*this->Internals);
+  if (request->Has(vtkPVView::REQUEST_UPDATE_DATA()))
   {
-    auto executive = vtkPVDataRepresentationPipeline::SafeDownCast(this->GetExecutive());
-    assert(executive);
+    // We could have called this->RequestDataToRender(...) here directly, but we
+    // don't since we want to let the VTK-pipeline determine if the
+    // representation really needs to execute based on changes to the pipeline.
+    auto tstamp = this->GetPipelineDataTime();
 
-    // The representation hasn't been marked modified since last update. In that
-    // case, we skip the update entirely since there's nothing to update.
-    if (!executive->GetNeedsUpdate())
+    if (request->Has(vtkPVView::UPDATE_TIME_STEP()))
     {
-      return 1;
+      this->SetUpdateTime(request->Get(vtkPVView::UPDATE_TIME_STEP()));
     }
 
-    auto pvview = vtkPVView::SafeDownCast(this->View);
-    assert(pvview);
-
-    // The representation needs to update. To support caching for playing
-    // animation, we need to save the data we'll prepare in this update request
-    // using a cache-key. That key is simply the view's current key. If nothing
-    // was changed in the representation's input since last update, then we
-    // won't get here and in that case we will continue to use the old
-    // cache-key. This neat little trick is crucial to ensure that we don't
-    // update representations that are not affected by the animation.
-    this->CacheKey = pvview->GetCacheKey();
-
-    // Now, check with the view, if the data was already cached. If so, we don't
-    // need to update and can skip it.
-    if (pvview->IsCached(this))
-    {
-      // update is needed, but we're skipping it since we have already cached
-      // the update result.
-      this->InvokeEvent(vtkPVDataRepresentation::SkippedUpdateDataEvent);
-      executive->SetNeedsUpdate(false);
-      return 1;
-    }
-
+    // This is only called on the data-service side and never on the rendering
+    // services.
     this->Update();
-    executive->SetNeedsUpdate(false);
-  }
-  return 1;
-}
 
-//----------------------------------------------------------------------------
-void vtkPVDataRepresentation::MarkModified()
-{
-  this->Modified();
-
-  if (this->HasExecutive())
-  {
-    auto executive = vtkPVDataRepresentationPipeline::SafeDownCast(this->GetExecutive());
-    if (!executive->GetNeedsUpdate())
+    if (tstamp != this->GetPipelineDataTime())
     {
-      executive->SetNeedsUpdate(true);
-      vtkLogF(TRACE, "MarkModified %s", this->LogName.c_str());
+      // Since the representation's pipeline re-executed, pass geometries to the view.
+      for (int cc = 0; cc < internals.NumberOfRenderingPorts; ++cc)
+      {
+        auto* info = internals.InformationVector->GetInformationObject(cc);
+        vtkPVView::SetPiece(this, cc, vtkDataObject::GetData(info));
+      }
     }
+
+    return true;
   }
 
-  // let the view know that representation has been modified;
-  // the view may use this information to determine if cache keeps to be cleared
-  // for the representation.
-  if (auto pvview = vtkPVView::SafeDownCast(this->View))
+  if (request->Has(vtkPVView::REQUEST_UPDATE_DATA_LOD()))
   {
-    pvview->ClearCache(this);
+    // TODO:
+    // this->RequestLODData(request, internals.InformationVector,
+    //      internals.LODInformationVector);
   }
-}
 
-//----------------------------------------------------------------------------
-unsigned int vtkPVDataRepresentation::Initialize(
-  unsigned int minIdAvailable, unsigned int maxIdAvailable)
-{
-  // Already initialized ?
-  if (this->UniqueIdentifier)
+  if (request->Has(vtkPVView::REQUEST_UPDATE_RENDERING_INFORMATION()))
   {
-    return minIdAvailable;
+    // TODO:
+    // return this->RequestRenderingInformation(request);
   }
 
-  assert(
-    "Invalid Representation Id. Not enough reserved ids." && (maxIdAvailable >= minIdAvailable));
-  (void)maxIdAvailable; // Prevent warning in Release build
+  if (request->Has(vtkPVView::REQUEST_PREPARE_FOR_RENDER()))
+  {
+    vtkLogScopeF(INFO, "REQUEST_PREPARE_FOR_RENDER(%s)", vtkLogIdentifier(this));
+    internals.InformationVector->SetNumberOfInformationObjects(internals.NumberOfRenderingPorts);
+    for (int cc = 0; cc < internals.NumberOfRenderingPorts; ++cc)
+    {
+      auto* info = internals.InformationVector->GetInformationObject(cc);
+      info->Set(vtkDataObject::DATA_OBJECT(), vtkPVView::GetPiece(this, cc));
+    }
+    return this->RequestPrepareForRender(request, internals.InformationVector);
+  }
 
-  this->UniqueIdentifier = minIdAvailable;
-  return (1 + this->UniqueIdentifier);
+  if (request->Has(vtkPVView::REQUEST_PREPARE_FOR_RENDER_LOD()))
+  {
+    // TODO:
+    // for (int cc=0; cc < internals.NumberOfRenderingPorts; ++cc)
+    // {
+    //   auto *info = internals.InformationVector->GetInformationObject(cc);
+    //   info->Set(vtkDataObject::DATA_OBJECT(), vtkPVView::GetPiece(this, cc, /*lod=*/1));
+    // }
+    // return this->RequestPrepareForRenderLOD(request, internals.InformationVector);
+  }
+
+  if (request->Has(vtkPVView::REQUEST_RENDER()))
+  {
+    return this->RequestRender(request);
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
 int vtkPVDataRepresentation::RequestData(
   vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector*)
 {
-  // cout << "Updated: " << this->LogName << endl;
-  bool is_temporal = false;
+  auto& internals = (*this->Internals);
+
+  // Let's check if the upstream pipeline is temporal.
+  // Need to check if'd still need this.
+  internals.HasTemporalPipeline = false;
   for (int cc = 0; cc < this->GetNumberOfInputPorts(); cc++)
   {
     for (int kk = 0; kk < inputVector[cc]->GetNumberOfInformationObjects(); kk++)
     {
       auto inInfo = inputVector[cc]->GetInformationObject(kk);
-      using SDDP = vtkStreamingDemandDrivenPipeline;
-      is_temporal =
-        is_temporal || inInfo->Has(SDDP::TIME_STEPS()) || inInfo->Has(SDDP::TIME_RANGE());
+      internals.HasTemporalPipeline = internals.HasTemporalPipeline ||
+        inInfo->Has(vtkSDDP::TIME_STEPS()) || inInfo->Has(vtkSDDP::TIME_RANGE());
     }
   }
-  this->HasTemporalPipeline = is_temporal;
 
-  return 1;
+  internals.InformationVector->SetNumberOfInformationObjects(internals.NumberOfRenderingPorts);
+  for (int cc = 0; cc < internals.NumberOfRenderingPorts; ++cc)
+  {
+    internals.InformationVector->GetInformationObject(cc)->Clear();
+  }
+
+  return this->RequestDataToRender(inputVector, internals.InformationVector) ? 1 : 0;
 }
 
 //----------------------------------------------------------------------------
 int vtkPVDataRepresentation::RequestUpdateTime(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* vtkNotUsed(outputVector))
 {
+  const auto& internals = (*this->Internals);
   for (int cc = 0; cc < this->GetNumberOfInputPorts(); cc++)
   {
     for (int kk = 0; kk < inputVector[cc]->GetNumberOfInformationObjects(); kk++)
     {
-      if (this->UpdateTimeValid)
-      {
-        inputVector[cc]->GetInformationObject(kk)->Set(
-          vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(), this->UpdateTime);
-      }
+      inputVector[cc]->GetInformationObject(kk)->Set(
+        vtkSDDP::UPDATE_TIME_STEP(), internals.UpdateTime);
     }
   }
-
   return 1;
 }
+
 //----------------------------------------------------------------------------
 int vtkPVDataRepresentation::RequestUpdateExtent(
   vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  this->Superclass::RequestUpdateExtent(request, inputVector, outputVector);
-
   // ideally, extent and time information will come from the view in
   // REQUEST_UPDATE(), include view-time.
-  vtkMultiProcessController* controller = vtkMultiProcessController::GetGlobalController();
-  for (int cc = 0; cc < this->GetNumberOfInputPorts() && controller != nullptr; cc++)
+  const auto* pm = vtkProcessModule::GetProcessModule();
+  const auto& internals = (*this->Internals);
+  for (int cc = 0; cc < this->GetNumberOfInputPorts() && pm != nullptr; cc++)
   {
     for (int kk = 0; kk < inputVector[cc]->GetNumberOfInformationObjects(); kk++)
     {
       vtkInformation* info = inputVector[cc]->GetInformationObject(kk);
-      info->Set(
-        vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER(), controller->GetLocalProcessId());
-      info->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(),
-        controller->GetNumberOfProcesses());
-      info->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(), 0);
-      info->Set(vtkStreamingDemandDrivenPipeline::EXACT_EXTENT(), 1);
-      if (this->UpdateTimeValid)
-      {
-        info->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(), this->UpdateTime);
-      }
+      info->Set(vtkSDDP::UPDATE_PIECE_NUMBER(), pm->GetRank());
+      info->Set(vtkSDDP::UPDATE_NUMBER_OF_PIECES(), pm->GetNumberOfRanks());
+      info->Set(vtkSDDP::UPDATE_NUMBER_OF_GHOST_LEVELS(), 0);
+      info->Set(vtkSDDP::EXACT_EXTENT(), 1);
+      info->Set(vtkSDDP::UPDATE_TIME_STEP(), internals.UpdateTime);
     }
   }
 
@@ -272,93 +342,94 @@ int vtkPVDataRepresentation::RequestUpdateExtent(
 }
 
 //----------------------------------------------------------------------------
-vtkAlgorithmOutput* vtkPVDataRepresentation::GetInternalOutputPort(int port, int conn)
+bool vtkPVDataRepresentation::RequestDataToRender(
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  vtkAlgorithmOutput* prevOutput = this->Superclass::GetInternalOutputPort(port, conn);
-  if (!prevOutput)
+  const int numPorts = this->GetNumberOfInputPorts();
+  for (int cc = 0; cc < numPorts && cc < this->GetNumberOfRenderingPorts(); ++cc)
   {
-    return nullptr;
+    const int numConnections = inputVector[cc]->GetNumberOfInformationObjects();
+    if (numConnections > 0)
+    {
+      outputVector->GetInformationObject(cc)->Copy(inputVector[cc]->GetInformationObject(cc));
+    }
   }
-
-  vtkTrivialProducer* prevProducer = static_cast<vtkTrivialProducer*>(prevOutput->GetProducer());
-  if (prevProducer->IsA("vtkPVTrivialProducer"))
-  {
-    return prevOutput;
-  }
-
-  vtkDataObject* dobj = prevProducer->GetOutputDataObject(0);
-
-  std::pair<int, int> p(port, conn);
-  vtkPVTrivialProducer* tprod = vtkPVTrivialProducer::New();
-  vtkCompositeDataPipeline* exec = vtkCompositeDataPipeline::New();
-  tprod->SetExecutive(exec);
-  tprod->SetOutput(dobj);
-  vtkInformation* portInfo = tprod->GetOutputPortInformation(0);
-  portInfo->Set(vtkDataObject::DATA_TYPE_NAME(), dobj->GetClassName());
-  this->SetInternalInput(port, conn, tprod);
-  tprod->Delete();
-  exec->Delete();
-
-  return tprod->GetOutputPort();
+  return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataRepresentation::AddToView(vtkView* view)
+bool vtkPVDataRepresentation::RequestPrepareForRender(
+  vtkInformation* vtkNotUsed(request), vtkInformationVector* inputVector)
 {
-  if (this->View != nullptr)
+  assert(inputVector->GetNumberOfInformationObjects() == this->GetNumberOfRenderingPorts());
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::RequestRender(vtkInformation* vtkNotUsed(request))
+{
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::InitializeForDataProcessing()
+{
+  auto& internals = (*this->Internals);
+  internals.Initialized = true;
+  internals.InitializedForDataProcessing = true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataRepresentation::InitializeForRendering()
+{
+  auto& internals = (*this->Internals);
+  internals.Initialized = true;
+  internals.InitializedForDataProcessing = false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::AddToView(vtkPVView* view)
+{
+  auto& internals = (*this->Internals);
+  if (internals.View != nullptr)
   {
-    vtkWarningMacro("Added representation has a non-null 'View'. "
-                    "A representation cannot be added to two views at the same time!");
+    vtkErrorMacro("Added representation has a non-null 'View'. "
+                  "A representation cannot be added to two views at the same time!");
+    return false;
   }
-  this->View = view;
-  return this->Superclass::AddToView(view);
+  internals.View = view;
+  return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataRepresentation::RemoveFromView(vtkView* view)
+bool vtkPVDataRepresentation::RemoveFromView(vtkPVView* view)
 {
-  if (this->View == view)
+  auto& internals = (*this->Internals);
+  if (internals.View == view)
   {
-    this->View = nullptr;
-  }
-  return this->Superclass::RemoveFromView(view);
-}
-
-//----------------------------------------------------------------------------
-vtkView* vtkPVDataRepresentation::GetView() const
-{
-  return this->View;
-}
-
-//----------------------------------------------------------------------------
-vtkMTimeType vtkPVDataRepresentation::GetPipelineDataTime()
-{
-  if (auto executive = vtkPVDataRepresentationPipeline::SafeDownCast(this->GetExecutive()))
-  {
-    return executive->GetDataTime();
+    internals.View = nullptr;
+    return true;
   }
 
-  vtkErrorMacro("vtkPVDataRepresentationPipeline is expected!!!");
-  return vtkMTimeType();
+  return false;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataRepresentation::GetNeedsUpdate()
+vtkPVView* vtkPVDataRepresentation::GetView() const
 {
-  auto executive = this->HasExecutive()
-    ? vtkPVDataRepresentationPipeline::SafeDownCast(this->GetExecutive())
-    : nullptr;
-  return executive ? executive->GetNeedsUpdate() : false;
+  const auto& internals = (*this->Internals);
+  return internals.View;
+}
+
+//----------------------------------------------------------------------------
+vtkMTimeType vtkPVDataRepresentation::GetPipelineDataTime() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.PipelineDataTime;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVDataRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "Visibility: " << this->Visibility << endl;
-  os << indent << "UpdateTimeValid: " << this->UpdateTimeValid << endl;
-  os << indent << "UpdateTime: " << this->UpdateTime << endl;
-  os << indent << "ForceUseCache: " << this->ForceUseCache << endl;
-  os << indent << "ForcedCacheKey: " << this->ForcedCacheKey << endl;
-  os << indent << "CacheKey: " << this->CacheKey << endl;
 }

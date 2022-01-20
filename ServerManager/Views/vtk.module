@@ -12,11 +12,23 @@ DEPENDS
   ParaView::ServerManagerCore
   VTK::ViewsCore
 PRIVATE_DEPENDS
+  ParaView::ServerManagerReflection
   ParaView::VTKExtensionsInteractionStyle
+  VTK::ChartsCore
   VTK::CommonSystem
+  VTK::FiltersGeneric
+  VTK::FiltersGeometry
+  VTK::FiltersHyperTree
   VTK::IOImage
+  VTK::jsoncpp
   VTK::RenderingFreeType
   VTK::RenderingOpenGL2
   VTK::RenderingParallel
   VTK::RenderingVolume
-  VTK::ChartsCore
+  VTK::FiltersParallel
+TEST_DEPENDS
+  ParaView::ServerManagerInitialization
+  VTK::InteractionStyle
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

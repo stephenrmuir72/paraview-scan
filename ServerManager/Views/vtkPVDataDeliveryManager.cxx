@@ -13,288 +13,233 @@
 
 =========================================================================*/
 #include "vtkPVDataDeliveryManager.h"
-#include "vtkPVDataDeliveryManagerInternals.h"
 
 #include "vtkAlgorithmOutput.h"
+#include "vtkDataObject.h"
 #include "vtkInformation.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataRepresentation.h"
 #include "vtkPVLogger.h"
 #include "vtkPVView.h"
+#include "vtkService.h"
 #include "vtkSmartPointer.h"
 #include "vtkWeakPointer.h"
 
+#include <algorithm>
+#include <map>
+#include <numeric>
+
+namespace
+{
+
+struct vtkItem
+{
+  vtkSmartPointer<vtkPVDataRepresentation> Representation;
+
+  vtkTimeStamp TimeStamp;
+  vtkSmartPointer<vtkDataObject> Data;
+  vtkSmartPointer<vtkInformation> MetaData{ vtkInformation::New() };
+
+  vtkTimeStamp LODTimeStamp;
+  vtkSmartPointer<vtkDataObject> LODData;
+  vtkSmartPointer<vtkInformation> LODMetaData{ vtkInformation::New() };
+};
+}
+
+class vtkPVDataDeliveryManager::vtkInternals
+{
+public:
+  vtkPVView* View{ nullptr };
+  std::map<vtkTypeUInt32, std::vector<vtkItem>> Items;
+
+  const vtkItem& GetItem(vtkPVDataRepresentation* repr, int port) const
+  {
+    return this->Items.at(repr->GetGlobalID()).at(port);
+  }
+
+  vtkItem& GetItem(vtkPVDataRepresentation* repr, int port)
+  {
+    return this->Items.at(repr->GetGlobalID()).at(port);
+  }
+
+  const vtkItem& GetItem(vtkTypeUInt32 gid, int port) const { return this->Items.at(gid).at(port); }
+
+  vtkItem& GetItem(vtkTypeUInt32 gid, int port) { return this->Items.at(gid).at(port); }
+};
+
 //*****************************************************************************
-//----------------------------------------------------------------------------
+vtkStandardNewMacro(vtkPVDataDeliveryManager);
 vtkPVDataDeliveryManager::vtkPVDataDeliveryManager()
-  : Internals(new vtkInternals())
+  : Internals(new vtkPVDataDeliveryManager::vtkInternals())
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPVDataDeliveryManager::~vtkPVDataDeliveryManager()
-{
-  delete this->Internals;
-  this->Internals = nullptr;
-}
+vtkPVDataDeliveryManager::~vtkPVDataDeliveryManager() = default;
 
 //----------------------------------------------------------------------------
 void vtkPVDataDeliveryManager::SetView(vtkPVView* view)
 {
-  this->View = view;
+  auto& internals = (*this->Internals);
+  internals.View = view;
 }
 
 //----------------------------------------------------------------------------
 vtkPVView* vtkPVDataDeliveryManager::GetView() const
 {
-  return this->View;
-}
-
-//----------------------------------------------------------------------------
-unsigned long vtkPVDataDeliveryManager::GetVisibleDataSize(bool low_res)
-{
-  return this->Internals->GetVisibleDataSize(low_res, this);
+  const auto& internals = (*this->Internals);
+  return internals.View;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVDataDeliveryManager::RegisterRepresentation(vtkPVDataRepresentation* repr)
 {
-  assert("A representation must have a valid UniqueIdentifier" && repr->GetUniqueIdentifier());
-  this->Internals->RepresentationsMap[repr->GetUniqueIdentifier()] = repr;
+  assert("A representation must have a valid GlobalID" && repr->GetGlobalID());
+  auto& internals = (*this->Internals);
+  // allocate space for all rendering-ports.
+  auto& vector = internals.Items[repr->GetGlobalID()];
+  vector.resize(repr->GetNumberOfRenderingPorts());
+  for (auto& item : vector)
+  {
+    item.Representation = repr;
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkPVDataDeliveryManager::UnRegisterRepresentation(vtkPVDataRepresentation* repr)
 {
-  unsigned int rid = repr->GetUniqueIdentifier();
-  this->Internals->RepresentationsMap.erase(rid);
+  assert("A representation must have a valid GlobalID" && repr->GetGlobalID());
 
-  vtkInternals::ItemsMapType::iterator iter = this->Internals->ItemsMap.begin();
-  while (iter != this->Internals->ItemsMap.end())
+  auto& internals = (*this->Internals);
+  const auto gid = repr->GetGlobalID();
+  internals.Items.erase(gid);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataDeliveryManager::SetPiece(
+  vtkPVDataRepresentation* repr, int port, vtkDataObject* data, bool useLOD)
+{
+  vtkLogF(TRACE, "SetPiece(repr=%s, port=%d, data=%p, useLOD=%d)", repr->GetLogName().c_str(), port,
+    data, useLOD ? 1 : 0);
+
+  auto& internals = (*this->Internals);
+  auto& item = internals.GetItem(repr, port);
+  item.TimeStamp.Modified();
+  item.Data = data;
+
+  // erase LOD to avoid using obsolete data.
+  item.LODTimeStamp = vtkTimeStamp();
+  item.LODData = nullptr;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkDataObject> vtkPVDataDeliveryManager::GetPiece(
+  vtkPVDataRepresentation* repr, int port, bool useLOD)
+{
+  auto& internals = (*this->Internals);
+  const auto& item = internals.GetItem(repr, port);
+  return useLOD ? item.LODData : item.Data;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataDeliveryManager::HasPiece(vtkPVDataRepresentation* repr, int port, bool useLOD)
+{
+  auto& internals = (*this->Internals);
+  const auto& item = internals.GetItem(repr, port);
+  auto& piece = useLOD ? item.LODData : item.Data;
+  return piece != nullptr;
+}
+
+//----------------------------------------------------------------------------
+vtkInformation* vtkPVDataDeliveryManager::GetInformation(
+  vtkPVDataRepresentation* repr, int port, bool useLOD)
+{
+  auto& internals = (*this->Internals);
+  const auto& item = internals.GetItem(repr, port);
+  return useLOD ? item.LODMetaData : item.MetaData;
+}
+
+//----------------------------------------------------------------------------
+vtkTypeUInt64 vtkPVDataDeliveryManager::GetVisibleDataSize(bool useLOD) const
+{
+  vtkTypeUInt64 size = 0;
+  const auto& internals = (*this->Internals);
+  for (const auto& pair : internals.Items)
   {
-    const vtkInternals::ReprPortType& key = iter->first;
-    if (key.first == rid)
+    const auto* repr =
+      pair.second.empty() ? nullptr : pair.second.front().Representation.GetPointer();
+    if (repr == nullptr || !repr->GetVisibility())
     {
-      vtkInternals::ItemsMapType::iterator toerase = iter;
-      ++iter;
-      this->Internals->ItemsMap.erase(toerase);
+      // skip hidden representations.
+      continue;
     }
-    else
-    {
-      ++iter;
-    }
+
+    size = std::accumulate(
+      pair.second.begin(), pair.second.end(), size, [useLOD](vtkTypeUInt64 sum, const auto& item) {
+        auto& data = useLOD && item.LODData ? item.LODData : item.Data;
+        return sum + (data ? data->GetActualMemorySize() : 0);
+      });
   }
+  return size;
 }
 
 //----------------------------------------------------------------------------
-vtkPVDataRepresentation* vtkPVDataDeliveryManager::GetRepresentation(unsigned int index)
+vtkJson vtkPVDataDeliveryManager::GetData(vtkMTimeType timestamp) const
 {
-  vtkInternals::RepresentationsMapType::const_iterator iter =
-    this->Internals->RepresentationsMap.find(index);
-  return iter != this->Internals->RepresentationsMap.end() ? iter->second.GetPointer() : nullptr;
-}
+  const auto& internals = (*this->Internals);
 
-//----------------------------------------------------------------------------
-int vtkPVDataDeliveryManager::GetNumberOfPorts(vtkPVDataRepresentation* repr)
-{
-  return this->Internals->GetNumberOfPorts(repr);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataDeliveryManager::SetPiece(vtkPVDataRepresentation* repr, vtkDataObject* data,
-  bool low_res, unsigned long trueSize, int port)
-{
-  vtkInternals::vtkItem* item =
-    this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/true);
-  if (item)
+  vtkJson json = vtkJson::array();
+  for (const auto& pair : internals.Items)
   {
-    const auto cacheKey = this->GetCacheKey(repr);
-    if (item->GetDataObject(cacheKey) == nullptr ||
-      repr->GetPipelineDataTime() > item->GetTimeStamp())
+    const auto* repr =
+      pair.second.empty() ? nullptr : pair.second.front().Representation.GetPointer();
+    if (repr == nullptr || !repr->GetVisibility())
     {
-      vtkLogF(
-        TRACE, "SetDataObject %s (key=%g) : %p", repr->GetLogName().c_str(), cacheKey, (void*)data);
-      item->SetDataObject(data, this->Internals, cacheKey);
-      if (trueSize > 0)
+      // skip hidden representations.
+      continue;
+    }
+
+    int port = 0;
+    for (auto& item : pair.second)
+    {
+      if (item.TimeStamp > timestamp)
       {
-        item->SetActualMemorySize(trueSize, cacheKey);
-      }
+        vtkJson node;
+        node["gid"] = repr->GetGlobalID();
+        node["port"] = port;
 
-      if (low_res == false)
-      {
-        // clear low_res data whenever full-res data changes. this ensures that
-        // we won't use obsolete low-res data.
-        this->SetPiece(repr, nullptr, true, 0, port);
+        auto* data = item.Data.GetPointer();
+        data->Register(nullptr);
+        node["data"] = reinterpret_cast<uintptr_t>(data);
+
+        json.push_back(std::move(node));
       }
+      ++port;
     }
   }
-  else
+
+  return !json.empty() ? json : vtkJson();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVDataDeliveryManager::SetData(const vtkJson& json)
+{
+  auto& internals = (*this->Internals);
+  for (const auto& node : json)
   {
-    vtkErrorMacro("Invalid argument.");
+    const auto gid = node.at("gid").get<vtkTypeUInt32>();
+    const auto port = node.at("port").get<int>();
+    auto& item = internals.GetItem(gid, port);
+
+    auto ptr = node.at("data").get<uintptr_t>();
+    item.TimeStamp.Modified();
+    item.Data.TakeReference(reinterpret_cast<vtkDataObject*>(ptr));
+
+    // erase LOD to avoid using obsolete data.
+    item.LODTimeStamp = vtkTimeStamp();
+    item.LODData = nullptr;
   }
-}
-
-//----------------------------------------------------------------------------
-vtkDataObject* vtkPVDataDeliveryManager::GetPiece(
-  vtkPVDataRepresentation* repr, bool low_res, int port)
-{
-  const auto cacheKey = this->GetCacheKey(repr);
-  vtkInternals::vtkItem* item =
-    this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/false);
-  return item ? item->GetDataObject(cacheKey) : nullptr;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVDataDeliveryManager::HasPiece(vtkPVDataRepresentation* repr, bool low_res, int port)
-{
-  vtkInternals::vtkItem* item =
-    this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/false);
-  const auto cacheKey = this->GetCacheKey(repr);
-  const bool val = item ? (item->GetDataObject(cacheKey) != nullptr) : false;
-
-  vtkLogF(TRACE, "HasPiece %s (key=%g) : %d", repr->GetLogName().c_str(), cacheKey, val);
-  return val;
-}
-
-//----------------------------------------------------------------------------
-vtkDataObject* vtkPVDataDeliveryManager::GetDeliveredPiece(
-  vtkPVDataRepresentation* repr, bool low_res, int port)
-{
-  vtkInternals::vtkItem* item =
-    this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/false);
-  const int dataKey = this->GetDeliveredDataKey(low_res);
-  const auto cacheKey = this->GetCacheKey(repr);
-  return item ? item->GetDeliveredDataObject(dataKey, cacheKey) : nullptr;
-}
-
-//----------------------------------------------------------------------------
-vtkAlgorithmOutput* vtkPVDataDeliveryManager::GetProducer(
-  vtkPVDataRepresentation* repr, bool low_res, int port)
-{
-  vtkInternals::vtkItem* item = this->Internals->GetItem(repr, low_res, port);
-  if (!item)
-  {
-    vtkErrorMacro("Invalid arguments.");
-    return nullptr;
-  }
-
-  const int dataKey = this->GetDeliveredDataKey(low_res);
-  const auto cacheKey = this->GetCacheKey(repr);
-  return item->GetProducer(dataKey, cacheKey)->GetOutputPort(0);
-}
-
-//----------------------------------------------------------------------------
-vtkInformation* vtkPVDataDeliveryManager::GetPieceInformation(
-  vtkPVDataRepresentation* repr, bool low_res, int port)
-{
-  vtkInternals::vtkItem* item =
-    this->Internals->GetItem(repr, low_res, port, /*create_if_needed=*/true);
-  const auto cacheKey = this->GetCacheKey(repr);
-  return item ? item->GetPieceInformation(cacheKey) : nullptr;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVDataDeliveryManager::NeedsDelivery(
-  vtkMTimeType timestamp, std::vector<unsigned int>& keys_to_deliver, bool low_res)
-{
-  vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "check for delivery (low_res=%s)",
-    (low_res ? "true" : "false"));
-  assert(this->View);
-  vtkInternals::ItemsMapType::iterator iter;
-  for (iter = this->Internals->ItemsMap.begin(); iter != this->Internals->ItemsMap.end(); ++iter)
-  {
-    if (this->Internals->IsRepresentationVisible(iter->first.first))
-    {
-      auto repr = this->GetRepresentation(iter->first.first);
-      const auto cacheKey = this->GetCacheKey(repr);
-      const int dataKey = this->GetDeliveredDataKey(low_res);
-      vtkInternals::vtkItem& item = low_res ? iter->second.second : iter->second.first;
-      if (item.GetTimeStamp(cacheKey) > timestamp ||
-        item.GetDeliveryTimeStamp(dataKey, cacheKey) < item.GetTimeStamp(cacheKey))
-      {
-        vtkVLogF(
-          PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "needs-delivery: %s", repr->GetLogName().c_str());
-        // FIXME: convert keys_to_deliver to a vector of pairs.
-        keys_to_deliver.push_back(iter->first.first);
-        keys_to_deliver.push_back(static_cast<unsigned int>(iter->first.second));
-      }
-    }
-  }
-  vtkVLogIfF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), keys_to_deliver.empty(), "none");
-  return !keys_to_deliver.empty();
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataDeliveryManager::Deliver(int low_res, unsigned int size, unsigned int* values)
-{
-  // This method gets called on all processes with the list of representations
-  // to "deliver". We check with the view what mode we're operating in and
-  // decide where the data needs to be delivered.
-  //
-  // Representations can provide overrides, e.g. though the view says data is
-  // merely "pass-through", some representation says we need to clone the data
-  // everywhere. That makes it critical that this method is called on all
-  // processes at the same time to avoid deadlocks and other complications.
-  //
-  // This method will be implemented in "view-specific" subclasses since how the
-  // data is delivered is very view specific.
-
-  assert(size % 2 == 0);
-
-  vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "%s data migration",
-    (low_res ? "low-resolution" : "full resolution"));
-  for (unsigned int cc = 0; cc < size; cc += 2)
-  {
-    const unsigned int id = values[cc];
-    const int port = static_cast<int>(values[cc + 1]);
-    if (auto item = this->Internals->GetItem(id, low_res != 0, port))
-    {
-      auto repr = this->GetRepresentation(id);
-      const auto cacheKey = this->GetCacheKey(repr);
-      vtkDataObject* data = item ? item->GetDataObject(cacheKey) : nullptr;
-      if (!data)
-      {
-        // ideally, we want to sync this info between all ranks some other rank
-        // doesn't deadlock (esp. in collaboration mode).
-        continue;
-      }
-      vtkVLogScopeF(
-        PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "move-data: %s", repr->GetLogName().c_str());
-      this->MoveData(repr, low_res != 0, port);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-int vtkPVDataDeliveryManager::GetSynchronizationMagicNumber()
-{
-  // The synchronization magic number is used to ensure that both the server and
-  // the client know of have identical representations, because if they don't,
-  // there may be a mismatch between the states of the two processes and it's
-  // best to skip delivery to avoid deadlocks.
-  const int prime = 31;
-  int result = 1;
-  result = prime * result + static_cast<int>(this->Internals->RepresentationsMap.size());
-  for (auto iter = this->Internals->RepresentationsMap.begin();
-       iter != this->Internals->RepresentationsMap.end(); ++iter)
-  {
-    result = prime * result + static_cast<int>(iter->first);
-  }
-  return result;
-}
-
-//----------------------------------------------------------------------------
-double vtkPVDataDeliveryManager::GetCacheKey(vtkPVDataRepresentation* repr) const
-{
-  assert(repr != nullptr);
-  return repr->GetCacheKey();
-}
-
-//----------------------------------------------------------------------------
-void vtkPVDataDeliveryManager::ClearCache(vtkPVDataRepresentation* repr)
-{
-  this->Internals->ClearCache(repr);
 }
 
 //----------------------------------------------------------------------------

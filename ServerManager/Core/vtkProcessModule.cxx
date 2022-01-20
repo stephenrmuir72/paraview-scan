@@ -172,6 +172,7 @@ public:
   std::atomic<bool> ReportInterpreterErrors{ true };
   int ExitCode{ EXIT_SUCCESS };
   bool ExitCodeSet{ false };
+  std::map<void*, std::vector<vtkSmartPointer<vtkObject>>> Artifacts;
 
   vtkInternals() = default;
   ~vtkInternals()
@@ -746,4 +747,39 @@ bool vtkProcessModule::WaitForExit(
   }
   controller->Barrier();
   return internals.ExitCodeSet;
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::RegisterArtifact(vtkObject* source, vtkObject* artifact)
+{
+  auto& internals = (*this->Internals);
+  auto iter = internals.Artifacts.find(source);
+  if (iter != internals.Artifacts.end())
+  {
+    iter->second.push_back(artifact);
+  }
+  else
+  {
+    internals.Artifacts[source].push_back(artifact);
+    source->AddObserver(vtkCommand::DeleteEvent, this, &vtkProcessModule::ReleaseArtifacts);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::ReleaseArtifacts(vtkObject* caller, unsigned long, void*)
+{
+  auto& internals = (*this->Internals);
+  internals.Artifacts.erase(caller);
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::InitializeService(
+  vtkService* vtkNotUsed(service), vtkObjectStore* vtkNotUsed(store))
+{
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::InitializeServiceEndpoint(
+  vtkServiceEndpoint* vtkNotUsed(endpoint), vtkSession* vtkNotUsed(session))
+{
 }

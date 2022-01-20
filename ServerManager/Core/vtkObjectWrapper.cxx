@@ -129,6 +129,11 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
     const auto& value = el.value();
     assert(internals.Properties.find(key) != internals.Properties.end());
     const auto& pinfo = internals.Properties.at(key);
+    if (value.find("elements") == value.end())
+    {
+      // the property has no value (not same as empty value)
+      continue;
+    }
     switch (pinfo.Type)
     {
       case vtkSMProperty::INT:

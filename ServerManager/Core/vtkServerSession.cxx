@@ -15,7 +15,6 @@
 #include "vtkServerSession.h"
 
 #include "vtkInformationProvider.h"
-#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkProcessModule.h"
@@ -27,8 +26,7 @@ struct ServiceInfo
 {
   vtkSmartPointer<vtkService> Service;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkRemoteObjectProvider> RemoteObjectProvider;
-  vtkSmartPointer<vtkInformationProvider> InformationProvider;
+  std::vector<vtkSmartPointer<vtkProvider>> Providers;
 };
 
 class vtkServerSession::vtkInternals
@@ -50,18 +48,21 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.ObjectStore = vtk::TakeSmartPointer(vtkObjectStore::New());
   info.Service = engine->CreateService(name);
 
-  // setup providers for the service.
-  info.RemoteObjectProvider = vtk::TakeSmartPointer(vtkRemoteObjectProvider::New());
-  info.RemoteObjectProvider->SetObjectStore(info.ObjectStore);
-  info.RemoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
-  info.RemoteObjectProvider->Initialize(info.Service);
+  auto remoteObjectProvider = vtk::TakeSmartPointer(vtkRemoteObjectProvider::New());
+  remoteObjectProvider->SetObjectStore(info.ObjectStore);
+  remoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
+  remoteObjectProvider->Initialize(info.Service);
 
-  info.InformationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
-  info.InformationProvider->SetObjectStore(info.ObjectStore);
-  info.InformationProvider->Initialize(info.Service);
+  auto informationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
+  informationProvider->SetObjectStore(info.ObjectStore);
+  informationProvider->Initialize(info.Service);
+  info.Providers.push_back(remoteObjectProvider);
+  info.Providers.push_back(informationProvider);
+
+  // Let the vtkProcessModule init the service.
+  pm->InitializeService(info.Service, info.ObjectStore);
 
   this->Services.emplace(name, info);
-
   info.Service->Start();
 }
 

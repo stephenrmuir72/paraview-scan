@@ -96,6 +96,8 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
     //       return std::get<0>(status) && std::get<1>(status);
     //   });
     internals.InitializeSession(this);
+    pm->InitializeServiceEndpoint(internals.DSEndpoint, this);
+    pm->InitializeServiceEndpoint(internals.RSEndpoint, this);
   }
 
   return rxcpp::sources::never<bool>();
