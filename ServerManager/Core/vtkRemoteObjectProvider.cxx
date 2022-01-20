@@ -34,7 +34,6 @@ class vtkRemoteObjectProvider::vtkInternals
 public:
   vtkRemoteObjectProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   vtkSmartPointer<vtkProxyDefinitionManager> ProxyDefinitionManager;
   std::vector<rxcpp::composite_subscription> Subscriptions;
   rxcpp::subjects::subject<vtkTypeUInt32> NotifyUpdateSubject;
@@ -245,17 +244,9 @@ vtkProxyDefinitionManager* vtkRemoteObjectProvider::GetProxyDefinitionManager() 
 }
 
 //----------------------------------------------------------------------------
-void vtkRemoteObjectProvider::SetController(vtkMultiProcessController* controller)
-{
-  auto& internals = (*this->Internals);
-  internals.Controller = controller;
-}
-
-//----------------------------------------------------------------------------
 vtkMultiProcessController* vtkRemoteObjectProvider::GetController() const
 {
-  const auto& internals = (*this->Internals);
-  return internals.Controller;
+  return this->GetService()->GetController();
 }
 
 //----------------------------------------------------------------------------

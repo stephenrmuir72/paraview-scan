@@ -46,10 +46,11 @@ public:
 
   ///@{
   /**
-   * Get/Set the controller to use to reduce information in a distributed
+   * Get the controller to use to reduce information in a distributed
    * environment.
+   *
+   * @sa vtkService::GetController
    */
-  void SetController(vtkMultiProcessController* controller);
   vtkMultiProcessController* GetController() const;
   ///@}
 

@@ -158,14 +158,6 @@ public:
   vtkServicesEngine* GetServicesEngine() const;
 
   /**
-   * This is used to create a new controller that is a duplicate of the main
-   * controller.
-   *
-   * When using MPI, this will be a controller with a different handle.
-   */
-  vtkSmartPointer<vtkMultiProcessController> NewController() const;
-
-  /**
    * Sets the exit code and will cause `WaitForExit` event loop to exit.
    */
   void Exit(int exitCode);

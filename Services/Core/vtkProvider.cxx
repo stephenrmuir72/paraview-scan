@@ -49,6 +49,12 @@ vtkService* vtkProvider::GetService() const
 }
 
 //----------------------------------------------------------------------------
+vtkMultiProcessController* vtkProvider::GetController() const
+{
+  return this->GetService()->GetController();
+}
+
+//----------------------------------------------------------------------------
 void vtkProvider::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

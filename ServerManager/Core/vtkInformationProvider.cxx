@@ -30,7 +30,6 @@ class vtkInformationProvider::vtkInternals
 public:
   vtkInformationProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   std::vector<rxcpp::composite_subscription> Subscriptions;
 
   vtkInternals(vtkInformationProvider* self)
@@ -56,8 +55,9 @@ vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& r
   auto object = vtkSMInstantiator::CreateInstance(infoClassName);
   auto* info = vtkPVInformation::SafeDownCast(object);
 
-  const auto rank = this->Controller->GetLocalProcessId();
-  const auto numRanks = this->Controller->GetNumberOfProcesses();
+  auto* controller = this->Self->GetController();
+  const auto rank = controller->GetLocalProcessId();
+  const auto numRanks = controller->GetNumberOfProcesses();
   if (info->GetRootOnly() && rank > 0)
   {
     return {};
@@ -83,7 +83,7 @@ vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& r
     }
 
     std::vector<vtkMultiProcessStream> streams;
-    this->Controller->Gather(stream, streams, 0);
+    controller->Gather(stream, streams, 0);
     if (rank == 0)
     {
       streams.erase(streams.begin());
@@ -135,17 +135,9 @@ vtkObjectStore* vtkInformationProvider::GetObjectStore() const
 }
 
 //----------------------------------------------------------------------------
-void vtkInformationProvider::SetController(vtkMultiProcessController* controller)
-{
-  auto& internals = (*this->Internals);
-  internals.Controller = controller;
-}
-
-//----------------------------------------------------------------------------
 vtkMultiProcessController* vtkInformationProvider::GetController() const
 {
-  const auto& internals = (*this->Internals);
-  return internals.Controller;
+  return this->GetService()->GetController();
 }
 
 //----------------------------------------------------------------------------

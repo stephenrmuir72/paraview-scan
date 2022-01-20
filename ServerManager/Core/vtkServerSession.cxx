@@ -26,7 +26,6 @@
 struct ServiceInfo
 {
   vtkSmartPointer<vtkService> Service;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
   vtkSmartPointer<vtkRemoteObjectProvider> RemoteObjectProvider;
   vtkSmartPointer<vtkInformationProvider> InformationProvider;
@@ -48,7 +47,6 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   auto* engine = pm->GetServicesEngine();
 
   ServiceInfo info;
-  info.Controller = pm->NewController();
   info.ObjectStore = vtk::TakeSmartPointer(vtkObjectStore::New());
   info.Service = engine->CreateService(name);
 
@@ -56,12 +54,10 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.RemoteObjectProvider = vtk::TakeSmartPointer(vtkRemoteObjectProvider::New());
   info.RemoteObjectProvider->SetObjectStore(info.ObjectStore);
   info.RemoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
-  info.RemoteObjectProvider->SetController(info.Controller);
   info.RemoteObjectProvider->Initialize(info.Service);
 
   info.InformationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
   info.InformationProvider->SetObjectStore(info.ObjectStore);
-  info.InformationProvider->SetController(info.Controller);
   info.InformationProvider->Initialize(info.Service);
 
   this->Services.emplace(name, info);

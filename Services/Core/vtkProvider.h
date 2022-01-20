@@ -29,6 +29,7 @@
 #include "vtkServicesCoreModule.h" // for exports
 #include "vtkSmartPointer.h"       // for vtkSmartPointer
 
+class vtkMultiProcessController;
 class vtkService;
 
 class VTKSERVICESCORE_EXPORT vtkProvider : public vtkObject
@@ -44,6 +45,16 @@ public:
    * Get the service to which this provider is attached.
    */
   vtkService* GetService() const;
+
+  ///@{
+  /**
+   * Get the controller to use to reduce information in a distributed
+   * environment.
+   *
+   * @sa vtkService::GetController
+   */
+  vtkMultiProcessController* GetController() const;
+  ///@}
 
   /**
    * Called to initialize the provider on a service. Subclasses should override
