@@ -29,8 +29,6 @@
 #include "vtkPVInformation.h"
 #include "vtkServerManagerCoreModule.h" //needed for exports
 
-class vtkClientServerStream;
-
 class VTKSERVERMANAGERCORE_EXPORT vtkPVServerInformation : public vtkPVInformation
 {
 public:
@@ -61,23 +59,12 @@ public:
 
   void DeepCopy(vtkPVServerInformation* info);
 
-  /**
-   * Transfer information about a single object into this object.
-   */
-  void CopyFromObject(vtkObject*) override;
-
-  /**
-   * Merge another information object.
-   */
+  ///@}
+  bool GatherInformation(vtkObject*) override;
   void AddInformation(vtkPVInformation*) override;
-
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  //@}
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
   //@{
   /**
@@ -129,20 +116,6 @@ public:
 
   //@{
   /**
-   * Return true if the server allow server client to connect to itself
-   */
-  vtkGetMacro(MultiClientsEnable, int);
-  //@}
-
-  //@{
-  /**
-   * Get the id that correspond to the current client
-   */
-  vtkGetMacro(ClientId, int);
-  //@}
-
-  //@{
-  /**
    * Set/Get vtkIdType size, which can be 32 or 64
    */
   vtkSetMacro(IdTypeSize, int);
@@ -176,8 +149,6 @@ protected:
   int Timeout;
   std::string TimeoutCommand;
   int UseIceT;
-  int MultiClientsEnable;
-  int ClientId;
   int IdTypeSize;
   bool IsInTileDisplay;
   bool IsInCave;
