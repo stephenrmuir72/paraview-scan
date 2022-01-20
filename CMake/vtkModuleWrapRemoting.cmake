@@ -173,7 +173,6 @@ function (_vtk_module_wrap_remoting_library name)
 
   set(_vtk_remoting_init_file
     "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${name}Init.cxx")
-  message(STATUS "Generate" ${_vtk_remoting_init_file})
   file(GENERATE
     OUTPUT  "${_vtk_remoting_init_file}"
     CONTENT "${_vtk_remoting_init_content}")

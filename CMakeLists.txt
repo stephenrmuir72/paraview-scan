@@ -734,12 +734,13 @@ set(CMAKE_INSTALL_RPATH
 #  TARGET    paraview_client_server
 #  INSTALL_EXPORT ParaView)
 
+message(STATUS "${paraview_client_modules}")
+message(STATUS "${paraview_modules}")
 vtk_module_wrap_remoting(
   MODULES   
-            VTK::FiltersSources
             #${paraview_client_modules}
             #${paraview_modules}
-            #${vtk_modules}
+            ${vtk_modules}
   TARGET    paraview_reflection
   INSTALL_EXPORT ParaView)
 
