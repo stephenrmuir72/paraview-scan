@@ -39,11 +39,11 @@
 #define vtkPVGridAxes3DActor_h
 
 #include "vtkGridAxes3DActor.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 class vtkMatrix4x4;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVGridAxes3DActor : public vtkGridAxes3DActor
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVGridAxes3DActor : public vtkGridAxes3DActor
 {
 public:
   static vtkPVGridAxes3DActor* New();

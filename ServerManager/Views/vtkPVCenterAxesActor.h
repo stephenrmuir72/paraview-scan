@@ -23,12 +23,12 @@
 #define vtkPVCenterAxesActor_h
 
 #include "vtkOpenGLActor.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkServerManagerViewsModule.h" // needed for export macro
 
 class vtkAxes;
 class vtkPolyDataMapper;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVCenterAxesActor : public vtkOpenGLActor
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVCenterAxesActor : public vtkOpenGLActor
 {
 public:
   static vtkPVCenterAxesActor* New();

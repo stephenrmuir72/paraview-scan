@@ -32,7 +32,7 @@
 #define vtkGridAxes2DActor_h
 
 #include "vtkProp3D.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 #include "vtkGridAxesHelper.h"       // needed of Helper
 #include "vtkGridAxesPlane2DActor.h" // needed for inline methods
@@ -45,7 +45,7 @@ class vtkDoubleArray;
 class vtkProperty;
 class vtkTextProperty;
 
-class VTKREMOTINGVIEWS_EXPORT vtkGridAxes2DActor : public vtkProp3D
+class VTKSERVERMANAGERVIEWS_EXPORT vtkGridAxes2DActor : public vtkProp3D
 {
 public:
   static vtkGridAxes2DActor* New();

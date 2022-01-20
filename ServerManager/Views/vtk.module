@@ -12,7 +12,11 @@ DEPENDS
   ParaView::ServerManagerCore
   VTK::ViewsCore
 PRIVATE_DEPENDS
+  ParaView::VTKExtensionsInteractionStyle
   VTK::CommonSystem
   VTK::IOImage
+  VTK::RenderingFreeType
   VTK::RenderingOpenGL2
   VTK::RenderingParallel
+  VTK::RenderingVolume
+  VTK::ChartsCore

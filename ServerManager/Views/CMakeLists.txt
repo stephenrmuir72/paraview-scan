@@ -35,8 +35,22 @@ set(classes
   vtkPVProcessWindow
   vtkPVRenderingCapabilitiesInformation
   vtkPVView
+  vtkPVRenderViewSettings
+  vtkPVRenderView
   vtkViewLayout
+  vtkOrderedCompositingHelper
+  vtkPVAxesWidget
+  vtkPVAxesActor
+  vtkPVCenterAxesActor
   vtkTilesHelper
+  vtkPVCameraCollection
+
+  vtkGridAxes2DActor
+  vtkGridAxes3DActor
+  vtkGridAxesHelper
+  vtkGridAxesPlane2DActor
+  vtkPVGridAxes3DActor
+  vtkPVMaterialLibrary
   )
 
 set(private_headers

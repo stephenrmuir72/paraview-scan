@@ -32,12 +32,12 @@
 
 #include "vtkObject.h"
 
-#include "vtkNew.h"                 // needed for vtkNew
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkNew.h"                      // needed for vtkNew
+#include "vtkServerManagerViewsModule.h" // needed for export macro
 
 class vtkCamera;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVCameraCollection : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVCameraCollection : public vtkObject
 {
 public:
   static vtkPVCameraCollection* New();
