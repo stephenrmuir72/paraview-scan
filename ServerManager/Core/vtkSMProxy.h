@@ -199,6 +199,16 @@ protected:
    */
   bool LoadState(const vtkJson& json, vtkSMStateContext* context);
 
+  ///@{
+  /**
+   * These method is called before/after the first state for this proxy is pushed.
+   * That indicates that the service-side VTK objects would potentially be
+   * created.
+   */
+  virtual void PreCreateVTKObjects();
+  virtual void PostCreateVTKObjects();
+  ///@}
+
 private:
   vtkSMProxy(const vtkSMProxy&) = delete;
   void operator=(const vtkSMProxy&) = delete;

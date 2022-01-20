@@ -69,6 +69,7 @@ public:
   std::string XMLLabel;
   std::string VTKClassName;
   bool Dirty{ true };
+  bool ObjectsCreated{ false };
 
   // This is a map of all public properties on this proxy i.e. properties on
   // this proxy as well as exposed properties from the sub-proxies.
@@ -463,8 +464,17 @@ bool vtkSMProxy::UpdateVTKObjects()
     vtkJson state = this->SaveState(/*verbose=*/false);
     if (!state.empty())
     {
+      if (!internals.ObjectsCreated)
+      {
+        this->PreCreateVTKObjects();
+      }
       auto packet = vtkRemoteObjectProvider::UpdateState(internals.GlobalID, state);
       internals.Session->SendMessage(internals.Location, std::move(packet));
+      if (!internals.ObjectsCreated)
+      {
+        this->PostCreateVTKObjects();
+        internals.ObjectsCreated = true;
+      }
     }
   }
 
@@ -670,6 +680,12 @@ void vtkSMProxy::MarkPipelineUpdated()
   // Notify the world that this algorithm has re-executed.
   this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
 }
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::PreCreateVTKObjects() {}
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::PostCreateVTKObjects() {}
 
 //----------------------------------------------------------------------------
 void vtkSMProxy::PrintSelf(ostream& os, vtkIndent indent)
