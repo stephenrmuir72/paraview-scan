@@ -26,7 +26,7 @@
 #define vtkGridAxes3DActor_h
 
 #include "vtkProp3D.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 #include "vtkGridAxesHelper.h" //  needed for vtkGridAxesHelper.
 #include "vtkNew.h"            // needed for vtkNew.
@@ -36,7 +36,7 @@ class vtkGridAxes2DActor;
 class vtkProperty;
 class vtkTextProperty;
 
-class VTKREMOTINGVIEWS_EXPORT vtkGridAxes3DActor : public vtkProp3D
+class VTKSERVERMANAGERVIEWS_EXPORT vtkGridAxes3DActor : public vtkProp3D
 {
 public:
   static vtkGridAxes3DActor* New();

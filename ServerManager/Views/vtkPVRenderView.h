@@ -30,9 +30,9 @@
 #include "vtkBoundingBox.h" // needed for iVar
 #include "vtkNew.h"         // needed for iVar
 #include "vtkPVView.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkSmartPointer.h"        // needed for iVar
-#include "vtkWeakPointer.h"         // needed for iVar
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkSmartPointer.h"             // needed for iVar
+#include "vtkWeakPointer.h"              // needed for iVar
 
 class vtkAlgorithmOutput;
 class vtkCamera;
@@ -70,7 +70,7 @@ class vtkTexture;
 class vtkTimerLog;
 class vtkWindowToImageFilter;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVRenderView : public vtkPVView
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVRenderView : public vtkPVView
 {
   //*****************************************************************
 public:
@@ -309,11 +309,6 @@ public:
   vtkBooleanMacro(UseLightKit, bool);
   //@}
 
-  //@{
-  void StreamingUpdate(const double view_planes[24]);
-  void DeliverStreamedPieces(unsigned int size, unsigned int* representation_ids);
-  //@}
-
   /**
    * USE_LOD indicates if LOD is being used for the current render/update.
    */
@@ -470,8 +465,6 @@ public:
   static void SetStreamable(vtkInformation* info, vtkPVDataRepresentation* repr, bool streamable);
   static void SetNextStreamedPiece(
     vtkInformation* info, vtkPVDataRepresentation* repr, vtkDataObject* piece);
-  static vtkDataObject* GetCurrentStreamedPiece(
-    vtkInformation* info, vtkPVDataRepresentation* repr);
   //@}
 
   //@{
@@ -763,35 +756,10 @@ public:
   vtkGetMacro(UseDistributedRenderingForLODRender, bool);
   //@}
 
-  //@{
-  /**
-   * Returns the processes (vtkPVSession::ServerFlags) that are to be involved
-   * in the next StillRender() call based on the decisions made during the most
-   * recent Update().
-   */
-  vtkGetMacro(StillRenderProcesses, vtkTypeUInt32);
-  //@}
-
-  //@{
-  /**
-   * Returns the processes (vtkPVSession::ServerFlags) that are to be involved
-   * in the next InteractiveRender() call based on the decisions made during the most
-   * recent Update() and UpdateLOD().
-   */
-  vtkGetMacro(InteractiveRenderProcesses, vtkTypeUInt32);
-  //@}
-
   /**
    * Returns the data distribution mode to use.
    */
   int GetDataDistributionMode(bool low_res);
-
-  /**
-   * Called on all processes to request data-delivery for the list of
-   * representations. Note this method has to be called on all processes or it
-   * may lead to deadlock.
-   */
-  void Deliver(int use_lod, unsigned int size, unsigned int* representation_ids) override;
 
   /**
    * Returns true when ordered compositing is needed on the current group of
@@ -1109,18 +1077,6 @@ protected:
   bool GetLocalProcessDoesRendering(bool using_distributed_rendering);
 
   /**
-   * In multi-clients mode, ensures that all processes are in the same "state"
-   * as far as the view is concerned. Returns false if that's not the case.
-   */
-  bool TestCollaborationCounter();
-
-  /**
-   * Synchronizes remote-rendering related parameters for collaborative
-   * rendering in multi-clients mode.
-   */
-  void SynchronizeForCollaboration();
-
-  /**
    * Method to build annotation text to annotate the view with runtime
    * information.
    */
@@ -1235,9 +1191,6 @@ protected:
   bool UseOutlineForLODRendering;
   bool UseDistributedRenderingForRender;
   bool UseDistributedRenderingForLODRender;
-
-  vtkTypeUInt32 StillRenderProcesses;
-  vtkTypeUInt32 InteractiveRenderProcesses;
 
   /**
    * Keeps track of the time when the priority-queue for streaming was

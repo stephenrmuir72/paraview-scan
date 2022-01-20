@@ -42,6 +42,7 @@ set(classes
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVInformation
+  vtkPVServerInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
   vtkRemoteObjectProvider
@@ -88,7 +89,6 @@ set(old_classes
   vtkPVPythonInformation
   vtkPVPythonModule
   vtkPVPythonPluginInterface
-  vtkPVServerInformation
   vtkPVServerManagerPluginInterface
   vtkPVSystemConfigInformation
   vtkPVSystemInformation

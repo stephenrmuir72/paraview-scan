@@ -29,13 +29,13 @@
 
 #include "vtkObject.h"
 
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkVector.h"              // needed for vtkVector.
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkVector.h"                   // needed for vtkVector.
 
 class vtkMatrix4x4;
 class vtkViewport;
 
-class VTKREMOTINGVIEWS_EXPORT vtkGridAxesHelper : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkGridAxesHelper : public vtkObject
 {
 public:
   static vtkGridAxesHelper* New();

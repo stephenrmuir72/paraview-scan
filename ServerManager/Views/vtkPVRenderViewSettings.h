@@ -27,10 +27,10 @@
 #define vtkPVRenderViewSettings_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkSmartPointer.h"        // needed for vtkSmartPointer
+#include "vtkServerManagerViewsModule.h" //needed for exports
+#include "vtkSmartPointer.h"             // needed for vtkSmartPointer
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVRenderViewSettings : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVRenderViewSettings : public vtkObject
 {
 public:
   static vtkPVRenderViewSettings* New();

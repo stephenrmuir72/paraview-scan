@@ -25,7 +25,7 @@
 #define vtkGridAxesPlane2DActor_h
 
 #include "vtkProp3D.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 #include "vtkGridAxesHelper.h" // For face enumeration
 #include "vtkNew.h"            // For member variables
@@ -40,7 +40,7 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkProperty;
 
-class VTKREMOTINGVIEWS_EXPORT vtkGridAxesPlane2DActor : public vtkProp3D
+class VTKSERVERMANAGERVIEWS_EXPORT vtkGridAxesPlane2DActor : public vtkProp3D
 {
 public:
   static vtkGridAxesPlane2DActor* New();

@@ -26,7 +26,7 @@
 #ifndef vtkPVView_h
 #define vtkPVView_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 #include "vtkView.h"
 #include "vtkWeakPointer.h" // for vtkWeakPointer
 
@@ -37,18 +37,14 @@ class vtkInformationRequestKey;
 class vtkInformationVector;
 class vtkPVDataDeliveryManager;
 class vtkPVDataRepresentation;
-class vtkPVSession;
 class vtkRenderWindow;
 class vtkViewLayout;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVView : public vtkView
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVView : public vtkView
 {
 public:
   vtkTypeMacro(vtkPVView, vtkView);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  static void SetEnableStreaming(bool);
-  static bool GetEnableStreaming();
 
   //@{
   /**
@@ -304,20 +300,6 @@ protected:
    */
   void SetRenderWindow(vtkRenderWindow*);
 
-  /**
-   * Reduce bounding box between all participating processes.
-   */
-  void AllReduce(const vtkBoundingBox& source, vtkBoundingBox& dest);
-
-  /**
-   * Reduce between all participating processes using the operation
-   * (vtkCommunicator::StandardOperations) specified. Currently only
-   * vtkCommunicator::MIN_OP, vtkCommunicator::MAX_OP, and
-   * vtkCommunicator::SUM_OP are supported.
-   */
-  void AllReduce(
-    vtkTypeUInt64 source, vtkTypeUInt64& dest, int operation, bool skip_data_server = false);
-
   //@{
   /**
    * Overridden to assign IDs to each representation. This assumes that
@@ -351,8 +333,6 @@ protected:
     vtkInformationRequestKey* passType, vtkInformation* request, vtkInformationVector* reply);
   //@}
 
-  vtkPVSession* GetSession();
-
   /**
    * Flag set to true between calls to `PrepareForScreenshot` and
    * `CleanupAfterScreenshot`.
@@ -378,16 +358,8 @@ private:
   vtkPVView(const vtkPVView&) = delete;
   void operator=(const vtkPVView&) = delete;
 
-  /**
-   * Called in Update() to sync HasTemporalPipeline flags between
-   * representations on all processes.
-   */
-  void SynchronizeRepresentationTemporalPipelineStates();
-
   vtkRenderWindow* RenderWindow;
   bool ViewTimeValid;
-  static bool EnableStreaming;
-  vtkWeakPointer<vtkPVSession> Session;
   std::string LogName;
 
   static bool UseGenericOpenGLRenderWindow;

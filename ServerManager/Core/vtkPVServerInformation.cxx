@@ -16,11 +16,8 @@
 
 #include "vtkPVServerInformation.h"
 
-#include "vtkClientServerStream.h"
-#include "vtkCompositeMultiProcessController.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVSession.h"
 #include "vtkProcessModule.h"
 #include "vtkRemotingCoreConfiguration.h"
 #include "vtkSMPTools.h"
@@ -59,13 +56,11 @@ vtkStandardNewMacro(vtkPVServerInformation);
 //----------------------------------------------------------------------------
 vtkPVServerInformation::vtkPVServerInformation()
 {
-  this->MultiClientsEnable = 0;
-  this->ClientId = 0;
   this->IdTypeSize = 0;
   vtkMultiProcessController* controller = vtkMultiProcessController::GetGlobalController();
   this->NumberOfProcesses = controller ? controller->GetNumberOfProcesses() : 1;
   this->MPIInitialized = controller ? controller->IsA("vtkMPIController") != 0 : false;
-  this->RootOnly = 1;
+  this->SetRootOnly(true);
   this->RemoteRendering = 1;
   this->Timeout = 0;
 #if VTK_MODULE_ENABLE_ParaView_icet
@@ -117,8 +112,6 @@ void vtkPVServerInformation::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "TimeoutCommand: " << this->TimeoutCommand << endl;
   os << indent << "NumberOfProcesses: " << this->NumberOfProcesses << endl;
   os << indent << "MPIInitialized: " << this->MPIInitialized << endl;
-  os << indent << "MultiClientsEnable: " << this->MultiClientsEnable << endl;
-  os << indent << "ClientId: " << this->ClientId << endl;
   os << indent << "IdTypeSize: " << this->IdTypeSize << endl;
   os << indent << "NVPipeSupport: " << this->NVPipeSupport << endl;
   os << indent << "IsInTileDisplay: " << this->IsInTileDisplay << endl;
@@ -132,8 +125,6 @@ void vtkPVServerInformation::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPVServerInformation::DeepCopy(vtkPVServerInformation* info)
 {
-  this->MultiClientsEnable = info->GetMultiClientsEnable();
-  this->ClientId = info->GetClientId();
   this->IdTypeSize = info->GetIdTypeSize();
   this->RemoteRendering = info->GetRemoteRendering();
   this->UseIceT = info->GetUseIceT();
@@ -150,13 +141,13 @@ void vtkPVServerInformation::DeepCopy(vtkPVServerInformation* info)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVServerInformation::CopyFromObject(vtkObject* vtkNotUsed(obj))
+bool vtkPVServerInformation::GatherInformation(vtkObject* vtkNotUsed(obj))
 {
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   if (!pm)
   {
     vtkWarningMacro("ProcessModule is not available.");
-    return;
+    return false;
   }
 
   auto config = vtkRemotingCoreConfiguration::GetInstance();
@@ -164,23 +155,9 @@ void vtkPVServerInformation::CopyFromObject(vtkObject* vtkNotUsed(obj))
   this->TimeoutCommand = config->GetTimeoutCommand();
   this->IsInCave = config->GetIsInCave();
   this->IsInTileDisplay = config->GetIsInTileDisplay();
-  this->MultiClientsEnable = config->GetMultiClientMode();
   config->GetTileDimensions(this->TileDimensions);
-
-  vtkPVSession* session = vtkPVSession::SafeDownCast(pm->GetSession());
-  vtkCompositeMultiProcessController* ctrl;
-  if (session &&
-    (ctrl = vtkCompositeMultiProcessController::SafeDownCast(
-       session->GetController(vtkPVSession::CLIENT))))
-  {
-    this->ClientId = ctrl->GetActiveControllerID();
-  }
-  else
-  {
-    this->ClientId = 0;
-  }
-
   this->IdTypeSize = static_cast<int>(8 * sizeof(vtkIdType));
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -224,14 +201,6 @@ void vtkPVServerInformation::AddInformation(vtkPVInformation* info)
       this->NumberOfProcesses = serverInfo->NumberOfProcesses;
     }
     this->MPIInitialized = serverInfo->MPIInitialized;
-    if (this->MultiClientsEnable < serverInfo->MultiClientsEnable)
-    {
-      this->MultiClientsEnable = serverInfo->MultiClientsEnable;
-    }
-    if (this->ClientId < serverInfo->ClientId)
-    {
-      this->ClientId = serverInfo->ClientId;
-    }
     this->SMPBackendName = serverInfo->GetSMPBackendName();
     this->SMPMaxNumberOfThreads = serverInfo->GetSMPMaxNumberOfThreads();
     this->SetIdTypeSize(serverInfo->GetIdTypeSize());
@@ -239,130 +208,46 @@ void vtkPVServerInformation::AddInformation(vtkPVInformation* info)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVServerInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVServerInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply;
-  *css << this->RemoteRendering;
-  *css << this->Timeout;
-  *css << this->TimeoutCommand;
-  *css << this->UseIceT;
-  *css << this->OGVSupport;
-  *css << this->AVISupport;
-  *css << this->NumberOfProcesses;
-  *css << this->MPIInitialized;
-  *css << this->MultiClientsEnable;
-  *css << this->ClientId;
-  *css << this->IdTypeSize;
-  *css << this->NVPipeSupport;
-  *css << this->IsInTileDisplay;
-  *css << this->IsInCave;
-  *css << this->TileDimensions[0] << this->TileDimensions[1];
-  *css << this->SMPBackendName;
-  *css << this->SMPMaxNumberOfThreads;
-  *css << vtkClientServerStream::End;
+  vtkJson json;
+  VTK_JSON_SAVE_MEMBER(json, RemoteRendering);
+  VTK_JSON_SAVE_MEMBER(json, Timeout);
+  VTK_JSON_SAVE_MEMBER(json, TimeoutCommand);
+  VTK_JSON_SAVE_MEMBER(json, UseIceT);
+  VTK_JSON_SAVE_MEMBER(json, OGVSupport);
+  VTK_JSON_SAVE_MEMBER(json, AVISupport);
+  VTK_JSON_SAVE_MEMBER(json, NumberOfProcesses);
+  VTK_JSON_SAVE_MEMBER(json, MPIInitialized);
+  VTK_JSON_SAVE_MEMBER(json, IdTypeSize);
+  VTK_JSON_SAVE_MEMBER(json, NVPipeSupport);
+  VTK_JSON_SAVE_MEMBER(json, IsInTileDisplay);
+  VTK_JSON_SAVE_MEMBER(json, IsInCave);
+  VTK_JSON_SAVE_MEMBER_ARRAY(json, TileDimensions);
+  VTK_JSON_SAVE_MEMBER(json, SMPBackendName);
+  VTK_JSON_SAVE_MEMBER(json, SMPMaxNumberOfThreads);
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVServerInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVServerInformation::LoadInformation(const vtkJson& json)
 {
-  int idx = 0;
-  if (!css->GetArgument(0, idx++, &this->RemoteRendering))
-  {
-    vtkErrorMacro("Error parsing RemoteRendering from message.");
-    return;
-  }
-
-  if (!css->GetArgument(0, idx++, &this->Timeout))
-  {
-    vtkErrorMacro("Error parsing Timeout from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->TimeoutCommand))
-  {
-    vtkErrorMacro("Error parsing TimeoutCommand from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->UseIceT))
-  {
-    vtkErrorMacro("Error parsing IceT flag from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->OGVSupport))
-  {
-    vtkErrorMacro("Error parsing OGVSupport flag from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->AVISupport))
-  {
-    vtkErrorMacro("Error parsing AVISupport flag from message.");
-    return;
-  }
-  int numProcs;
-  if (!css->GetArgument(0, idx++, &numProcs))
-  {
-    vtkErrorMacro("Error parsing number of processes from message.");
-    return;
-  }
-  this->NumberOfProcesses = numProcs;
-
-  bool mpiInitialized;
-  if (!css->GetArgument(0, idx++, &mpiInitialized))
-  {
-    vtkErrorMacro("Error parsing mpi initialized from message.");
-    return;
-  }
-  this->MPIInitialized = mpiInitialized;
-
-  if (!css->GetArgument(0, idx++, &this->MultiClientsEnable))
-  {
-    vtkErrorMacro("Error parsing MultiClientsEnable from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->ClientId))
-  {
-    vtkErrorMacro("Error parsing ClientId from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->IdTypeSize))
-  {
-    vtkErrorMacro("Error parsing IdTypeSize from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->NVPipeSupport))
-  {
-    vtkErrorMacro("Error parsing NVPipeSupport from message.");
-    return;
-  }
-
-  if (!css->GetArgument(0, idx++, &this->IsInTileDisplay))
-  {
-    vtkErrorMacro("Error parsing IsInTileDisplay from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->IsInCave))
-  {
-    vtkErrorMacro("Error parsing IsInCave from message.");
-    return;
-  }
-
-  if (!css->GetArgument(0, idx++, &this->TileDimensions[0]) ||
-    !css->GetArgument(0, idx++, &this->TileDimensions[1]))
-  {
-    vtkErrorMacro("Error parsing TileDimensions from message.");
-    return;
-  }
-
-  if (!css->GetArgument(0, idx++, &this->SMPBackendName))
-  {
-    vtkErrorMacro("Error parsing SMPBackendName from message.");
-    return;
-  }
-  if (!css->GetArgument(0, idx++, &this->SMPMaxNumberOfThreads))
-  {
-    vtkErrorMacro("Error parsing SMPMaxNumberOfThreads from message.");
-    return;
-  }
+  VTK_JSON_LOAD_MEMBER(json, RemoteRendering);
+  VTK_JSON_LOAD_MEMBER(json, Timeout);
+  VTK_JSON_LOAD_MEMBER(json, TimeoutCommand);
+  VTK_JSON_LOAD_MEMBER(json, UseIceT);
+  VTK_JSON_LOAD_MEMBER(json, OGVSupport);
+  VTK_JSON_LOAD_MEMBER(json, AVISupport);
+  VTK_JSON_LOAD_MEMBER(json, NumberOfProcesses);
+  VTK_JSON_LOAD_MEMBER(json, MPIInitialized);
+  VTK_JSON_LOAD_MEMBER(json, IdTypeSize);
+  VTK_JSON_LOAD_MEMBER(json, NVPipeSupport);
+  VTK_JSON_LOAD_MEMBER(json, IsInTileDisplay);
+  VTK_JSON_LOAD_MEMBER(json, IsInCave);
+  VTK_JSON_LOAD_MEMBER_ARRAY(json, TileDimensions);
+  VTK_JSON_LOAD_MEMBER(json, SMPBackendName);
+  VTK_JSON_LOAD_MEMBER(json, SMPMaxNumberOfThreads);
+  return true;
 }
 
 //----------------------------------------------------------------------------

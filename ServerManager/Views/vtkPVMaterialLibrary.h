@@ -26,12 +26,12 @@
 #ifndef vtkPVMaterialLibrary_h
 #define vtkPVMaterialLibrary_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkServerManagerViewsModule.h" //needed for exports
 
 #include "vtkObject.h"
 #include <string> //for std::string
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVMaterialLibrary : public vtkObject
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVMaterialLibrary : public vtkObject
 {
 public:
   static vtkPVMaterialLibrary* New();

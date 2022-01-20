@@ -294,7 +294,7 @@ void vtkViewLayout::UpdateLayoutForTileDisplay(vtkRenderWindow* vtkNotUsed(windo
   vtkVLogF(
     PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: UpdateLayoutForTileDisplay", vtkLogIdentifier(this));
 
-  const int rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  const int rank = vtkProcessModule::GetProcessModule()->GetRank();
 
   // We are dealing with two types of tiling:
   // 1. The global tiling based on the -tdx,-tdy parameters passed to pvserver
@@ -429,7 +429,7 @@ void vtkViewLayout::Paint(vtkViewport* vp)
 
   vtkNew<vtkTilesHelper> helper;
   helper->SetTileDimensions(this->TileDimensions);
-  const int rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  const int rank = vtkProcessModule::GetProcessModule()->GetRank();
 
   for (auto& item : internals.Items)
   {
@@ -515,7 +515,7 @@ bool vtkViewLayout::SaveAsPNG(int rank, const char* filename)
   if (processWindow)
   {
     int result = 0;
-    if (pm->GetPartitionId() == rank)
+    if (pm->GetRank() == rank)
     {
       vtkLogF(INFO, "saving tile to %s", filename);
       vtkNew<vtkWindowToImageFilter> wif;
@@ -534,7 +534,7 @@ bool vtkViewLayout::SaveAsPNG(int rank, const char* filename)
     }
 
     int all_result = result;
-    if (pm->GetNumberOfLocalPartitions() > 1)
+    if (pm->GetNumberOfRanks() > 1)
     {
       pm->GetGlobalController()->Reduce(&result, &all_result, 1, 0, vtkCommunicator::MAX_OP);
     }
