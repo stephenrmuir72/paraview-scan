@@ -68,13 +68,13 @@ std::string vtkPacket::ToString(int spaces) const
 //----------------------------------------------------------------------------
 std::vector<uint8_t> vtkPacket::GetBinary() const
 {
-  return vtkJson::to_ubjson(*this->JSON);
+  return vtkJson::to_cbor(*this->JSON);
 }
 
 //----------------------------------------------------------------------------
 void vtkPacket::SetBinary(const std::vector<uint8_t>& buffer)
 {
-  *this->JSON = vtkJson::from_ubjson(buffer);
+  *this->JSON = vtkJson::from_cbor(buffer);
 }
 
 //----------------------------------------------------------------------------
