@@ -203,6 +203,9 @@ private:
   // find ParaView modules. This does nothing if not build with Python support.
   bool InitializePythonEnvironment();
 
+  // Initializes vtkReflection by registering all the wrapped classes
+  virtual void InitializeReflection();
+
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
 

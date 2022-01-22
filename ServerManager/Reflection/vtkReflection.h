@@ -31,7 +31,7 @@
 #include <algorithm>  //for std::transform
 #include <functional> // for std::function
 #include <vector>     // for std::vector
-#include <string>
+#include <string>     // for std::string
 
 class VTKSERVERMANAGERREFLECTION_EXPORT vtkReflection : public vtkObject
 {
@@ -178,7 +178,6 @@ inline std::string variant_cast<std::string>(const vtkVariant& variant)
   }
   return result;
 }
-
 
 }
 

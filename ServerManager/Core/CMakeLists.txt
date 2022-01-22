@@ -183,7 +183,6 @@ vtk_module_client_server_exclude()
 # link with compiled proxy definitions
 vtk_module_link(ParaView::ServerManagerCore
   PRIVATE
-    paraview_reflection
     paraview_server_manager)
 
 paraview_add_server_manager_xmls(
