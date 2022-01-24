@@ -22,8 +22,11 @@
 #ifndef vtkObjectStore_h
 #define vtkObjectStore_h
 
+#include "vtkCommand.h" // for vtkCommand
 #include "vtkObject.h"
+#include "vtkObjectWrapper.h"           // for vtkObjectWrapper
 #include "vtkServerManagerCoreModule.h" // for exports
+#include "vtkSmartPointer.h"            // for vtkSmartPointer
 #include <memory>                       // for std::unique_ptr
 
 class VTKSERVERMANAGERCORE_EXPORT vtkObjectStore : public vtkObject
@@ -54,12 +57,39 @@ public:
    */
   vtkSmartPointer<vtkObject> FindObject(vtkTypeUInt32 gid) const;
 
+  template <typename T,
+    typename SFINAE = typename std::enable_if<std::is_base_of<vtkObject, T>::value>::type>
+  vtkSmartPointer<T> FindObject(vtkTypeUInt32 gid) const
+  {
+    vtkSmartPointer<T> result;
+    auto smartPtr = this->FindObject(gid);
+    if (smartPtr)
+    {
+      result = T::SafeDownCast(smartPtr);
+    }
+    return result;
+  }
+
+  template <typename T,
+    typename SFINAE = typename std::enable_if<std::is_base_of<vtkObject, T>::value>::type>
+  vtkSmartPointer<T> FindVTKObject(vtkTypeUInt32 gid) const
+  {
+    auto wrapper = this->FindObject<vtkObjectWrapper>(gid);
+    return (wrapper ? T::SafeDownCast(wrapper->GetVTKObject()) : nullptr);
+  }
+
   /**
    * Get the id for an object.
    *
    * This method is thread safe.
    */
   vtkTypeUInt32 GetID(const vtkObject* object) const;
+
+  enum
+  {
+    RegisterObjectEvent = vtkCommand::UserEvent + 91,
+    UnregisterObjectEvent,
+  };
 
 protected:
   vtkObjectStore();
