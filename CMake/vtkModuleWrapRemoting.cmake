@@ -27,7 +27,7 @@ function (_vtk_module_wrap_remoting_sources module sources classes)
     return ()
   endif ()
   _vtk_module_get_module_property("${module}"
-    PROPERTY  "client_server_exclude"
+    PROPERTY  "remoting_exclude"
     VARIABLE  _vtk_remoting_exclude)
   if (_vtk_remoting_exclude)
     return ()
@@ -137,7 +137,7 @@ function (_vtk_module_wrap_remoting_library name)
       continue ()
     endif ()
     _vtk_module_get_module_property("${_vtk_remoting_module}"
-      PROPERTY  "client_server_exclude"
+      PROPERTY  "remoting_exclude"
       VARIABLE  _vtk_remoting_exclude)
     if (_vtk_remoting_exclude)
       return ()
@@ -217,7 +217,7 @@ function (_vtk_module_wrap_remoting_library name)
 endfunction ()
 
 #[==[.md
-## Wrapping a set of VTK modules for ClientServer
+## Wrapping a set of VTK modules for Remoting
 
 ```
 vtk_module_wrap_remoting(
@@ -234,7 +234,7 @@ vtk_module_wrap_remoting(
 
   * `MODULES`: (Required) The list of modules to wrap.
   * `TARGET`: (Required) The target to create which represents all wrapped
-    ClientServer modules. This is used to provide the function used to
+    Remoting modules. This is used to provide the function used to
     initialize the bindings.
   * `WRAPPED_MODULES`: (Recommended) Not all modules are wrappable. This
     variable will be set to contain the list of modules which were wrapped.
@@ -302,7 +302,7 @@ function (vtk_module_wrap_remoting)
       continue ()
     endif ()
     _vtk_module_get_module_property("${_vtk_remoting_module}"
-      PROPERTY  "client_server_exclude"
+      PROPERTY  "remoting_exclude"
       VARIABLE  _vtk_remoting_exclude)
     if (_vtk_remoting_exclude)
       continue ()
@@ -386,12 +386,12 @@ endfunction ()
 #[==[.md
 ## Excluding a module from wrapping
 
-Some modules should not be wrapped using client server bindings. Since this is
+Some modules should not be wrapped using remoting bindings. Since this is
 independent of general wrapping facilities, an additional property is used to
-check. This may be set using the `vtk_module_client_server_exclude` function.
+check. This may be set using the `vtk_module_remoting_exclude` function.
 
 ```
-vtk_module_client_server_exclude(
+vtk_module_remoting_exclude(
   [MODULE <module>])
 ```
 
@@ -399,28 +399,28 @@ The `MODULE` defaults to the module currently being built. If a module is not
 being built when this function is called, it must be provided.
 #]==]
 function (vtk_module_remoting_exclude)
-  cmake_parse_arguments(_vtk_client_server_exclude
+  cmake_parse_arguments(_vtk_remoting_exclude
     ""
     "MODULE"
     ""
     ${ARGN})
 
-  if (_vtk_client_server_exclude_UNPARSED_ARGUMENTS)
+  if (_vtk_remoting_exclude_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
-      "Unparsed arguments for vtk_module_wrap_client_server_exclude: "
-      "${_vtk_client_server_exclude_UNPARSED_ARGUMENTS}")
+      "Unparsed arguments for vtk_module_wrap_remoting_exclude: "
+      "${_vtk_remoting_exclude_UNPARSED_ARGUMENTS}")
   endif ()
 
-  if (NOT DEFINED _vtk_client_server_exclude_MODULE)
+  if (NOT DEFINED _vtk_remoting_exclude_MODULE)
     if (NOT DEFINED _vtk_build_module)
       message(FATAL_ERROR
         "The `MODULE` argument must be provided outside of a module build.")
     endif ()
-    set(_vtk_client_server_exclude_MODULE "${_vtk_build_module}")
+    set(_vtk_remoting_exclude_MODULE "${_vtk_build_module}")
   endif ()
 
-  _vtk_module_set_module_property("${_vtk_client_server_exclude_MODULE}"
-    PROPERTY  "client_server_exclude"
+  _vtk_module_set_module_property("${_vtk_remoting_exclude_MODULE}"
+    PROPERTY  "remoting_exclude"
     VALUE     1)
 endfunction ()
 

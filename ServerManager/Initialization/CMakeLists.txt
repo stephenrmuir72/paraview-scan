@@ -35,10 +35,10 @@ vtk_object_factory_declare(
   BASE "vtkProcessModule"
   OVERRIDE "vtkProcessInitializer")
   
-  vtk_object_factory_configure(
-    SOURCE_FILE vtk_object_factory_source
-    HEADER_FILE vtk_object_factory_header
-    EXPORT_MACRO "VTKSERVERMANAGERINITIALIZATION_EXPORT")
+vtk_object_factory_configure(
+  SOURCE_FILE vtk_object_factory_source
+  HEADER_FILE vtk_object_factory_header
+  EXPORT_MACRO "VTKSERVERMANAGERINITIALIZATION_EXPORT")
   
 
 vtk_module_add_module(ParaView::ServerManagerInitialization
@@ -46,6 +46,8 @@ vtk_module_add_module(ParaView::ServerManagerInitialization
     SOURCES         ${vtk_object_factory_source}
     PRIVATE_HEADERS ${vtk_object_factory_header}
   )
+
+vtk_module_remoting_exclude()
 
 vtk_module_link(ParaView::ServerManagerInitialization
   PRIVATE

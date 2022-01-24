@@ -34,3 +34,5 @@ set(classes
 vtk_module_add_module(ParaView::ServerManagerReflection
   CLASSES ${classes}
   )
+
+vtk_module_remoting_exclude()

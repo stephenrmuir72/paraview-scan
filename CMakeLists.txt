@@ -737,9 +737,8 @@ set(CMAKE_INSTALL_RPATH
 vtk_module_wrap_remoting(
   MODULES   
             #${paraview_client_modules}
-            #${paraview_modules}
+            ${paraview_modules}
             ${vtk_modules}
-            ParaView::ServerManagerViews
   TARGET    paraview_reflection
   INSTALL_EXPORT ParaView)
 
