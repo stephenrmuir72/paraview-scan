@@ -6,6 +6,7 @@ GROUPS
   PARAVIEW_CORE
 KIT
   ParaView::ServerManagerKit
+IMPLEMENTABLE
 DEPENDS
   ParaView::rxcpp
   ParaView::ServicesCore
@@ -26,14 +27,8 @@ OPTIONAL_DEPENDS
   VTK::PythonInterpreter
   VTK::WrappingPythonCore
 
-  # These dependencies ensure that proper appropriate proxy definitions
-  # are enabled when corresponding modules are enabled.
-  VTK::FiltersSources
-  VTK::FiltersGeneral
-
 TEST_DEPENDS
-  VTK::FiltersSources
-  VTK::FiltersGeneral
   VTK::TestingCore
+  ParaView::ServerManagerInitialization
 TEST_LABELS
   ParaView

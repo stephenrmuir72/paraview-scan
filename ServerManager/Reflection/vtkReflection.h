@@ -31,6 +31,7 @@
 #include <algorithm>  //for std::transform
 #include <functional> // for std::function
 #include <vector>     // for std::vector
+#include <string>     // for std::string
 
 class VTKSERVERMANAGERREFLECTION_EXPORT vtkReflection : public vtkObject
 {
@@ -96,7 +97,7 @@ public:
 
 protected:
   vtkReflection();
-  ~vtkReflection();
+  ~vtkReflection() override;
 
 private:
   vtkReflection(const vtkReflection&) = delete;
@@ -121,10 +122,11 @@ inline double variant_cast<double>(const vtkVariant& variant)
 }
 
 template <>
-inline int variant_cast<int>(const vtkVariant& variant)
+inline bool variant_cast<bool>(const vtkVariant& variant)
 {
   bool valid = false;
-  int result = variant.ToInt(&valid);
+  //FIXME shold be add ToBool to vtkVariant ?
+  bool result = static_cast<bool>(variant.ToInt(&valid));
   if (!valid)
   {
     throw std::runtime_error("invalid cast");
@@ -141,6 +143,42 @@ inline vtkAlgorithmOutput* variant_cast<vtkAlgorithmOutput*>(const vtkVariant& v
   }
   return vtkAlgorithmOutput::SafeDownCast(variant.ToVTKObject());
 }
+
+template <>
+inline int32_t variant_cast<int32_t>(const vtkVariant& variant)
+{
+  bool valid = false;
+  int32_t result = variant.ToInt(&valid);
+  if (!valid)
+  {
+    throw std::runtime_error("invalid cast");
+  }
+  return result;
+}
+
+template <>
+inline int64_t variant_cast<int64_t>(const vtkVariant& variant)
+{
+  bool valid = false;
+  int64_t result = variant.ToTypeInt64(&valid);
+  if (!valid)
+  {
+    throw std::runtime_error("invalid cast");
+  }
+  return result;
+}
+
+template <>
+inline std::string variant_cast<std::string>(const vtkVariant& variant)
+{
+  std::string result = variant.ToString();
+  if (result.empty())
+  {
+    throw std::runtime_error("invalid cast");
+  }
+  return result;
+}
+
 }
 
 #define vtkRLogF(...) vtkVLogF(vtkReflection::GetLogVerbosity(), __VA_ARGS__)

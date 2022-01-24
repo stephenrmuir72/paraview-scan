@@ -25,3 +25,5 @@ vtk_module_add_module(ParaView::ServicesCore
   NOWRAP_CLASSES  ${nowrap_classes}
   HEADERS         ${headers}
   TEMPLATES       ${templates})
+
+vtk_module_remoting_exclude()

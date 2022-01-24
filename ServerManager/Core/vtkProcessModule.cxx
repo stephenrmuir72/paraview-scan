@@ -37,7 +37,6 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnstructuredGrid.h"
 
-#include "paraview_reflection.h"
 
 #include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
@@ -388,14 +387,14 @@ bool vtkProcessModule::Initialize(
   signal(SIGPIPE, SIG_IGN);
 #endif
 
-  // Setup reflection.
-  paraview_reflection_initialize();
 
   // Create the process module.
   vtkProcessModule::Singleton = vtk::TakeSmartPointer(vtkProcessModule::New());
   vtkProcessModule::Singleton->Internals->SetGlobalController(globalController);
   vtkProcessModule::Singleton->DetermineExecutablePath(argc, argv);
   vtkProcessModule::Singleton->InitializePythonEnvironment();
+  // Setup reflection.
+  vtkProcessModule::Singleton->InitializeReflection();
 
   // Setup services engine.
   auto engine = vtk::TakeSmartPointer(vtkServicesEngine::New());
@@ -525,7 +524,7 @@ int vtkProcessModule::GetNumberOfGhostLevelsToRequest(vtkInformation* info)
 
 //============================================================================
 // * vtkProcessModule non-static methods
-vtkStandardNewMacro(vtkProcessModule);
+vtkObjectFactoryNewMacro(vtkProcessModule);
 //----------------------------------------------------------------------------
 vtkProcessModule::vtkProcessModule()
   : Internals(new vtkProcessModule::vtkInternals())
@@ -683,6 +682,10 @@ vtkServicesEngine* vtkProcessModule::GetServicesEngine() const
   return internals.Engine;
 }
 
+//----------------------------------------------------------------------------
+void vtkProcessModule::InitializeReflection()
+{
+}
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkMultiProcessController> vtkProcessModule::NewController() const
 {

@@ -33,6 +33,7 @@ vtk_module_add_module(ParaView::ServicesThallium
   PRIVATE_HEADERS ${vtk_object_factory_header}
                   ${private_headers})
 
+vtk_module_remoting_exclude()
 vtk_module_find_package(PACKAGE thallium)
 vtk_module_link(ParaView::ServicesThallium
   PRIVATE

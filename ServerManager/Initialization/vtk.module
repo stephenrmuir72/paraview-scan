@@ -1,0 +1,27 @@
+NAME
+  ParaView::ServerManagerInitialization
+LIBRARY_NAME
+  vtkServerManagerInitialization
+IMPLEMENTS
+  ParaView::ServerManagerCore
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::ServerManagerKit
+TEST_LABELS
+  ParaView
+DEPENDS
+  ParaView::ServerManagerCore
+  ParaView::rxcpp
+  ParaView::ServicesCore
+  ParaView::VTKExtensionsCore
+  VTK::ParallelCore
+  VTK::pugixml
+PRIVATE_DEPENDS
+  ParaView::ServerManagerReflection
+  ParaView::ServicesThallium
+  VTK::cli11
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::fmt
+  VTK::vtksys
