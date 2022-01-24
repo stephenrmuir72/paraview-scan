@@ -1,7 +1,9 @@
 #include "projections.h"
 #include "helpers.h"
+
 #include "vtkMath.h"
-#include <math.h>
+
+#include <cmath>
 
 int CartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta)
 {
@@ -46,7 +48,7 @@ int SphericalToCartesian(double rho, double phi, double theta, double* x, double
 //  https://en.wikipedia.org/wiki/Mollweide_projection
 //----------------------------------------------------------------------------
 
-inline double iterate_theta(const double lon, const double lat, const double theta)
+inline double iterate_theta(const double vtkNotUsed(lon), const double lat, const double theta)
 {
   const double pi = vtkMath::Pi();
   return theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
@@ -73,7 +75,7 @@ inline double get_theta(const double lon, const double lat)
 #define RSQRT2 0.7071067811865475244008443620
 #endif
 
-static double ell_int_5(double phi)
+double ell_int_5(double phi)
 {
   /* Procedure to compute elliptic integral of the first kind
    * where k^2=0.5.  Precision good to better than 1e-7
@@ -221,7 +223,7 @@ int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
 
     rotateVec(v, p);
     double lon_rot, lat_rot, radius;
-    bool temp = CartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
+    (void)CartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
     lon_rot -= 1.536194408171;
     lat_rot -= M_PI_2;
 
@@ -305,5 +307,4 @@ void get_scaling(const projection ProjectionMode, const bool ShowMultilayerView,
       sz = 0;
       break;
   }
-  return;
 }

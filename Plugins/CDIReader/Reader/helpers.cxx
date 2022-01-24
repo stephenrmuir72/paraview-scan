@@ -1,9 +1,10 @@
 #include "helpers.h"
 #include <sstream>
 
-using namespace std;
+namespace helpers
+{
 
-string GetPathName(const string& s)
+std::string GetPathName(const std::string& s)
 {
   char sep = '/';
 #ifdef _WIN32
@@ -11,7 +12,7 @@ string GetPathName(const string& s)
 #endif
 
   size_t i = s.rfind(sep, s.length());
-  if (i != string::npos)
+  if (i != std::string::npos)
   {
     return (s.substr(0, i));
   }
@@ -19,15 +20,15 @@ string GetPathName(const string& s)
   return ("");
 }
 
-string GetBasenameFromUri(const string& s)
+std::string GetBasenameFromUri(const std::string& s)
 {
   const char sep = '/';
   size_t i = s.rfind(sep, s.length());
-  if (i != string::npos)
+  if (i != std::string::npos)
   {
     return (s.substr(i + 1));
   }
-  string res = s;
+  std::string res = s;
   return (res);
 }
 
@@ -51,12 +52,12 @@ bool CheckFileAccess(const std::string& name)
 
 // Strip leading and trailing punctuation
 // http://answers.yahoo.com/question/index?qid=20081226034047AAzf8lj
-void Strip(string& s)
+void Strip(std::string& s)
 {
-  string::iterator i = s.begin();
+  std::string::iterator i = s.begin();
   while (ispunct(*i))
     s.erase(i);
-  string::reverse_iterator j = s.rbegin();
+  std::string::reverse_iterator j = s.rbegin();
   while (ispunct(*j))
   {
     s.resize(s.length() - 1);
@@ -64,9 +65,11 @@ void Strip(string& s)
   }
 }
 
-string ConvertInt(int number)
+std::string ConvertInt(int number)
 {
-  stringstream ss;
+  std::stringstream ss;
   ss << number;
   return ss.str();
 }
+
+}; // end of namespace helpers

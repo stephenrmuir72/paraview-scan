@@ -29,8 +29,6 @@ double iterate_theta(const double lon, const double lat, const double theta);
 
 double get_theta(const double lon, const double lat);
 
-static double ell_int_5(double phi);
-
 double aasin(double v);
 
 double aacos(double v);

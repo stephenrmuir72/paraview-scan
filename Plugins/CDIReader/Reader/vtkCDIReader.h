@@ -43,28 +43,27 @@
 #define vtkCDIReader_h
 
 #define DEBUG 0
-#define MAX_VARS 100
 
 #include "vtkCDIReaderModule.h" // for export macro
-#include "vtkDataArraySelection.h"
-#include "vtkIntArray.h"     // for ivars
-#include "vtkSmartPointer.h" // for ivars
 #include "vtkUnstructuredGridAlgorithm.h"
 
-#ifdef PARAVIEW_USE_MPI
-class vtkMultiProcessController;
-#endif
+#include "vtkDataArraySelection.h" // for ivars
+#include "vtkSmartPointer.h"       // for ivars
+#include "vtkStringArray.h"        // for ivars
 
 #ifdef PARAVIEW_PLUGIN_BUILD_CDIReader_WITH_GRIB
-#include "eccodes.h"
-#include "grib_api.h"
+#include <eccodes.h>  // for cdi
+#include <grib_api.h> // for cdi
 #endif
 
-#include "projections.h"
+#include "projections.h" // for projection enum
+
+#include <vector> // for std::vector
 
 class vtkCallbackCommand;
 class vtkDoubleArray;
-class vtkStringArray;
+class vtkFieldData;
+class vtkMultiProcessController;
 
 class VTKCDIREADER_EXPORT vtkCDIReader : public vtkUnstructuredGridAlgorithm
 {
@@ -80,9 +79,8 @@ public:
   vtkGetMacro(NumberOfCellVars, int);
   vtkGetMacro(NumberOfPointVars, int);
 
-  vtkStringArray* VariableDimensions;
-  vtkStringArray* AllDimensions;
-  vtkSmartPointer<vtkIntArray> LoadingDimensions;
+  vtkSmartPointer<vtkStringArray> VariableDimensions;
+  vtkSmartPointer<vtkStringArray> AllDimensions;
   void SetDimensions(const char* dimensions);
   vtkStringArray* GetAllVariableArrayNames();
   vtkSmartPointer<vtkStringArray> AllVariableArrayNames;
@@ -178,14 +176,13 @@ public:
   void SetShowMultilayerView(bool val);
   vtkGetMacro(ShowMultilayerView, bool);
 
-#ifdef PARAVIEW_USE_MPI
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
   virtual void SetController(vtkMultiProcessController*);
-#endif
 
 protected:
   vtkCDIReader();
   ~vtkCDIReader() override;
+
   int OpenFile();
   void DestroyData();
   void SetDefaults();
@@ -247,9 +244,8 @@ protected:
   int AddMirrorPointX(int index, double dividerX, double offset);
   int AddMirrorPointY(int index, double dividerY, double offset);
 
-#ifdef PARAVIEW_USE_MPI
   vtkMultiProcessController* Controller;
-#endif
+
   bool initialized;
 
   int NumberOfProcesses;
@@ -295,19 +291,19 @@ protected:
 
   bool SkipGrid;
 
-  vtkCallbackCommand* SelectionObserver;
+  vtkNew<vtkCallbackCommand> SelectionObserver;
   bool InfoRequested;
   bool DataRequested;
   bool Grib;
   bool gridSelected;
 
-  vtkDataArraySelection* CellDataArraySelection;
-  vtkDataArraySelection* PointDataArraySelection;
-  vtkDataArraySelection* DomainDataArraySelection;
+  vtkNew<vtkDataArraySelection> CellDataArraySelection;
+  vtkNew<vtkDataArraySelection> PointDataArraySelection;
+  vtkNew<vtkDataArraySelection> DomainDataArraySelection;
 
-  vtkDataArray** CellVarDataArray;
-  vtkDataArray** PointVarDataArray;
-  vtkDoubleArray** DomainVarDataArray;
+  vtkNew<vtkFieldData> CellVarDataArray;
+  vtkNew<vtkFieldData> PointVarDataArray;
+  vtkNew<vtkFieldData> DomainVarDataArray;
 
   int VerticalLevelSelected;
   int VerticalLevelRange[2];
@@ -376,10 +372,9 @@ protected:
 
   std::string TimeUnits;
   std::string Calendar;
-  vtkSmartPointer<vtkIntArray> maskArray;
-  vtkSmartPointer<vtkDoubleArray> clonArray;
-  vtkSmartPointer<vtkDoubleArray> clatArray;
-  vtkSmartPointer<vtkUnstructuredGrid> Output;
+  vtkSmartPointer<vtkDoubleArray> ClonArray;
+  vtkSmartPointer<vtkDoubleArray> ClatArray;
+  vtkNew<vtkUnstructuredGrid> Output;
 
 private:
   vtkCDIReader(const vtkCDIReader&) = delete;

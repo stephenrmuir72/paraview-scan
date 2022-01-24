@@ -4,25 +4,26 @@
 #include "cdi.h"
 #include "helpers.h"
 
-#include <string.h>
+#include <cstring>
 
-using namespace std;
-
-string GuessGridFileFromUri(const string FileName)
+namespace cdi_tools
 {
-  string guess = "";
+std::string GuessGridFileFromUri(const std::string& FileName)
+{
+  std::string guess;
   // NETCDF-CALL:
-  string uri_filename = GetBasenameFromUri(get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
-  if (uri_filename != "")
+  std::string uri_filename =
+    helpers::GetBasenameFromUri(get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
+  if (!uri_filename.empty())
   {
-    guess = GetPathName(FileName) + "/" + uri_filename;
+    guess = helpers::GetPathName(FileName) + "/" + uri_filename;
   }
   return guess;
 }
 
-string get_att_str(const string filename, const string var, const string att)
+std::string get_att_str(const std::string& filename, const std::string& var, const std::string& att)
 {
-  string result = "";
+  std::string result;
 
   int ncFD;
   nc_open(filename.c_str(), NC_NOWRITE, &ncFD);
@@ -50,12 +51,11 @@ string get_att_str(const string filename, const string var, const string att)
   return result;
 }
 
-string ParseTimeUnits(const int vdate, const int vtime)
+std::string ParseTimeUnits(const int& vdate, const int& vtime)
 {
-
-  string date = ::ConvertInt(vdate);
-  string time = ::ConvertInt(vtime);
-  string time_units = "";
+  std::string date = helpers::ConvertInt(vdate);
+  std::string time = helpers::ConvertInt(vtime);
+  std::string time_units;
   if (strlen(date.c_str()) < 8)
   {
     time_units = "days since 0-1-1 ";
@@ -85,9 +85,9 @@ string ParseTimeUnits(const int vdate, const int vtime)
   return time_units;
 }
 
-string ParseCalendar(const int calendar)
+std::string ParseCalendar(const int& calendar)
 {
-  string calendar_name = "";
+  std::string calendar_name;
   switch (calendar)
   {
     case CALENDAR_STANDARD:
@@ -145,3 +145,5 @@ void readvar(int streamID, int varID, float data[], SizeType* nmiss)
 {
   streamReadVarF(streamID, varID, data, nmiss);
 }
+
+}; // end of namespace cdi_tools

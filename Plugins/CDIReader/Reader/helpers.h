@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace helpers
+{
 std::string GetPathName(const std::string& s);
 std::string GetBasenameFromUri(const std::string& s);
 bool CheckFileAccess(const std::string& name);
@@ -10,5 +12,6 @@ bool CheckFileAccess(const std::string& name);
 void Strip(std::string& s);
 
 std::string ConvertInt(int number);
+}; // end of namespace helper
 
 #endif /* CDI_READER_HELPERS_ */
