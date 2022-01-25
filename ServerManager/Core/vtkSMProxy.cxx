@@ -93,6 +93,13 @@ public:
         port->UnRegister(nullptr);
       }
     }
+
+    if (this->ObjectsCreated && this->Session && this->GlobalID)
+    {
+      auto packet = vtkRemoteObjectProvider::DeleteObject(this->GlobalID);
+      this->Session->SendMessage(this->Location, std::move(packet));
+    }
+
     this->OutputPorts.clear();
     this->UpdateInformationSubject.get_subscriber().on_completed();
     this->UpdatePipelineSubject.get_subscriber().on_completed();

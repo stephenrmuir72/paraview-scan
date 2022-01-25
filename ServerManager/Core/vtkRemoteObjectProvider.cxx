@@ -66,6 +66,11 @@ public:
    */
   vtkJson UpdatePipeline(vtkTypeUInt32 gid, double time);
 
+  /**
+   * Deletes an object.
+   */
+  void DeleteObject(vtkTypeUInt32 gid);
+
 private:
   /**
    * Find (or create) object.
@@ -185,6 +190,13 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid,
 }
 
 //----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::vtkInternals::DeleteObject(vtkTypeUInt32 gid)
+{
+  vtkLogF(INFO, "DeleteObject(%u)", gid);
+  this->ObjectStore->UnregisterObject(gid);
+}
+
+//----------------------------------------------------------------------------
 void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* objWrapper) const
 {
   auto gid = objWrapper->GetGlobalID();
@@ -279,6 +291,15 @@ vtkPacket vtkRemoteObjectProvider::UpdatePipeline(vtkTypeUInt32 gid, double time
 }
 
 //----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::DeleteObject(vtkTypeUInt32 gid)
+{
+  vtkJson message;
+  message["type"] = "vtk-remote-object-delete";
+  message["gid"] = gid;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
 std::vector<vtkTypeUInt32> vtkRemoteObjectProvider::ParseNotifyUpdate(const vtkPacket& packet)
 {
   return packet.GetJSON().at("gids").get<std::vector<vtkTypeUInt32>>();
@@ -342,9 +363,25 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
         receiver.Respond(internals.UpdatePipeline(gid, time));
       });
 
+  auto deleteSubscription = service->GetRequestObservable(/*skipEventLoop*/ true)
+                              .filter([](const vtkServiceReceiver& receiver) {
+                                const auto& json = receiver.GetPacket().GetJSON();
+                                auto iter = json.find("type");
+                                return (iter != json.end() &&
+                                  iter.value().get<std::string>() == "vtk-remote-object-delete");
+                              })
+                              .observe_on(service->GetRunLoopScheduler())
+                              .subscribe([&internals](const vtkServiceReceiver& receiver) {
+                                const auto& json = receiver.GetPacket().GetJSON();
+                                auto gid = json.at("gid").get<vtkTypeUInt32>();
+                                vtkLogScopeF(INFO, "received delete_object(%u)", gid);
+                                internals.DeleteObject(gid);
+                              });
+
   internals.Subscriptions.emplace_back(std::move(updateStateSubscription));
   internals.Subscriptions.emplace_back(std::move(updateInformationSubscription));
   internals.Subscriptions.emplace_back(std::move(updatePipelineSubscription));
+  internals.Subscriptions.emplace_back(std::move(deleteSubscription));
 
   internals.NotifyUpdateSubject.get_observable()
     .buffer_with_time(std::chrono::milliseconds(500), service->GetRunLoopScheduler())

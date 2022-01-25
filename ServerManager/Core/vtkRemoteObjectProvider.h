@@ -69,6 +69,7 @@ public:
   static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkJson& json);
   static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
+  static vtkPacket DeleteObject(vtkTypeUInt32 gid);
   ///@}
 
   ///@{
