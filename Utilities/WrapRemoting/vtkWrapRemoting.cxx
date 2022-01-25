@@ -150,6 +150,7 @@ int vtkWrapRemoting_IsStdArray(ValueInfo* val)
     strncmp(val->Class, "std::array<", 11) == 0);
 }
 
+//------------------------------------------------------------------------------
 int vtkWrapRemoting_IsStdString(ValueInfo* val)
 {
   unsigned int t = (val->Type & VTK_PARSE_BASE_TYPE);
@@ -247,32 +248,6 @@ int vtkWrapRemoting_GetIntegerSize(ValueInfo* val)
 
 //------------------------------------------------------------------------------
 /**
- * Get the type of a of the first argument of a templated type as string.
- * Example std::vector<double> -> double
- * It works type we have to convert \p val to be easier to pack with the parser
- */
-const char* vtkWrapRemoting_GetFirstTemplateType(const char* className)
-{
-
-  // find value between < , . or between <>
-  std::string type = className;
-  std::string::size_type first = type.find('<');
-  std::string::size_type last = type.find(',');
-  if (last == std::string::npos)
-  {
-    last = type.find('>');
-  }
-  first++;
-  std::string templateType = type.substr(first, last - first);
-  // remove spaces to make pointer parsing easier
-  templateType.erase(
-    std::remove(templateType.begin(), templateType.end(), ' '), templateType.end());
-
-  return vtkWrapRemoting_CreateStringCopy(templateType.c_str());
-}
-
-//------------------------------------------------------------------------------
-/**
  * Get the type we have to convert \p val to be easier to pack with the parser
  */
 unsigned int vtkWrapRemoting_CorrespondingParserType(ValueInfo* val) // NOLINT(misc-no-recursion)
@@ -329,12 +304,8 @@ unsigned int vtkWrapRemoting_CorrespondingParserType(ValueInfo* val) // NOLINT(m
   {
     parserType = REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION;
   }
-  else if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput"))
-  {
-    parserType = REMOTING_PARSER_VTK_OBJECT;
-  }
-  else if (vtkWrap_IsTypeOf(nullptr, val->Class,
-             "vtkPVDataRepresentation*")) // FIXME we should handle pointers separately
+  else if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput") ||
+    (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkPVDataRepresentation")))
   {
     parserType = REMOTING_PARSER_VTK_OBJECT;
   }
@@ -451,7 +422,11 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
     const char* parserElementTypeName = nullptr;
     if (vtkWrapRemoting_GetElementType(parserType) == REMOTING_PARSER_VTK_OBJECT)
     {
-      parserElementTypeName = vtkWrapRemoting_GetFirstTemplateType(value->Class);
+      const char** args;
+      const char* name;
+      vtkParse_DecomposeTemplatedType(value->Class, &name, 1, &args, nullptr);
+      parserElementTypeName = vtkWrapRemoting_CreateStringCopy(args[0]);
+      vtkParse_FreeTemplateDecomposition(name, 1, args);
     }
     else
     {
@@ -593,7 +568,7 @@ void vtkWrapRemoting_ConvertToParserType(
  * @brief Create a ValueInfo object based on a given name.
  *
  * Normally the parser will populate ValueInfo's fields. However, if we create
- * out own functions we need to fill the minimum information by ourlselves.
+ * our own functions we need to fill the minimum information by ourlselves.
  * This function "parses" \p className and produces the corresponding
  * ValueInfo. The type are extremly limited and cover only what is supported by
  * RemotingParserType enum.
@@ -604,52 +579,33 @@ ValueInfo* vtkWrapRemoting_CreateTypeFromName(const char* className) // NOLINT(m
   vtkParse_InitValue(parameter);
   parameter->Class = vtkWrapRemoting_CreateStringCopy(className);
   parameter->Type = VTK_PARSE_UNKNOWN;
-  if (!strcmp(className, "void"))
-  {
-    parameter->Type = VTK_PARSE_VOID;
-  }
-  else if (!strcmp(className, "bool"))
-  {
-    parameter->Type = VTK_PARSE_BOOL;
-  }
-  else if (!strcmp(className, "int32_t"))
-  {
-    parameter->Type = VTK_PARSE_INT;
-  }
-  else if (!strcmp(className, "int64_t"))
-  {
-    parameter->Type = VTK_PARSE___INT64;
-  }
-  else if (!strcmp(className, "double"))
-  {
-    parameter->Type = VTK_PARSE_DOUBLE;
-  }
-  else if (!strcmp(className, "std::string"))
-  {
-    parameter->Type = VTK_PARSE_STRING;
-  }
-  else if (!strcmp(className, "vtkDataArraySelection") ||
-    !strcmp(className, "vtkAlgorithmOutputValue") || !strcmp(className, "vtkPVDataRepresentation*"))
-  {
-    parameter->Type = VTK_PARSE_VTK_OBJECT;
-  }
-  else if (vtkWrap_IsStdVector(parameter))
+
+  vtkLogF(ERROR, "%s", className);
+  if (vtkWrap_IsStdVector(parameter))
   {
     // we need some minimal parsing to find the template type and set the template_parameter
+    const char** args;
+    const char* name;
+    vtkParse_DecomposeTemplatedType(parameter->Class, &name, 1, &args, nullptr);
 
-    const char* templateElementType = vtkWrapRemoting_GetFirstTemplateType(parameter->Class);
+    const char* templateElementType = args[0];
 
     parameter->Template = (TemplateInfo*)(std::malloc(sizeof(TemplateInfo)));
     vtkParse_InitTemplate(parameter->Template);
 
+    auto* templateParameter = (ValueInfo*)(std::malloc(sizeof(ValueInfo)));
+    vtkParse_InitValue(templateParameter);
+
     // NOLINTNEXTLINE(misc-no-recursion)
-    auto* template_parameter = vtkWrapRemoting_CreateTypeFromName(templateElementType);
+    vtkParse_ValueInfoFromString(templateParameter, Globals->StringsCache, templateElementType);
     parameter->Template->Parameters = (ValueInfo**)(std::malloc(sizeof(ValueInfo*)));
-    parameter->Template->Parameters[parameter->Template->NumberOfParameters++] = template_parameter;
+    parameter->Template->Parameters[parameter->Template->NumberOfParameters++] = templateParameter;
+
+    vtkParse_FreeTemplateDecomposition(name, 1, args);
   }
   else
   {
-    // vtkLogF(WARNING, "Creating variable of Class %s with unknown type !", className);
+    vtkParse_ValueInfoFromString(parameter, Globals->StringsCache, className);
   }
   return parameter;
 }
@@ -660,6 +616,7 @@ ValueInfo* vtkWrapRemoting_CreateTypeFromName(const char* className) // NOLINT(m
  */
 int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
 {
+  vtkLogF(WARNING, "%s", val->Class);
   if (vtkWrap_IsVoid(val))
   {
     return 1;
@@ -686,12 +643,8 @@ int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
   {
     return 1;
   }
-  if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput"))
-  {
-    return 1;
-  }
-  if (vtkWrap_IsTypeOf(
-        nullptr, val->Class, "vtkPVDataRepresentation*")) // FIXME we should remove pointers
+  if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput") ||
+    vtkWrap_IsTypeOf(nullptr, val->Class, "vtkPVDataRepresentation"))
   {
     return 1;
   }
@@ -705,7 +658,7 @@ int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
     {
       // FIXME: parser didn't gave us enough information. Let try ourselves
       ValueInfo* enrichedValue = vtkWrapRemoting_CreateTypeFromName(val->Class);
-      std::free(val);
+      vtkParse_FreeValue(val);
       val = enrichedValue;
       int result = vtkWrapRemoting_IsValueWrappable(enrichedValue);
       return result;
