@@ -21,17 +21,17 @@
 #ifndef vtkReflection_h
 #define vtkReflection_h
 
-#include "vtkAlgorithmOutput.h" // for vtkAlgorithmOutput
-#include "vtkLogger.h"          // for vtkLogger
+#include "vtkLogger.h"                        // for vtkLogger
 #include "vtkObject.h"
 #include "vtkServerManagerReflectionModule.h" // for exports
 #include "vtkSmartPointer.h"                  // for vtkSmartPointer
 #include "vtkVariant.h"                       // for vtkVariant
 
-#include <algorithm>  //for std::transform
-#include <functional> // for std::function
-#include <vector>     // for std::vector
-#include <string>     // for std::string
+#include <algorithm>   //for std::transform
+#include <functional>  // for std::function
+#include <string>      // for std::string
+#include <type_traits> // for type_traits
+#include <vector>      // for std::vector
 
 class VTKSERVERMANAGERREFLECTION_EXPORT vtkReflection : public vtkObject
 {
@@ -125,23 +125,13 @@ template <>
 inline bool variant_cast<bool>(const vtkVariant& variant)
 {
   bool valid = false;
-  //FIXME shold be add ToBool to vtkVariant ?
+  // FIXME shold be add ToBool to vtkVariant ?
   bool result = static_cast<bool>(variant.ToInt(&valid));
   if (!valid)
   {
     throw std::runtime_error("invalid cast");
   }
   return result;
-}
-
-template <>
-inline vtkAlgorithmOutput* variant_cast<vtkAlgorithmOutput*>(const vtkVariant& variant)
-{
-  if (!variant.IsVTKObject())
-  {
-    throw std::runtime_error("invalid cast");
-  }
-  return vtkAlgorithmOutput::SafeDownCast(variant.ToVTKObject());
 }
 
 template <>
@@ -177,6 +167,22 @@ inline std::string variant_cast<std::string>(const vtkVariant& variant)
     throw std::runtime_error("invalid cast");
   }
   return result;
+}
+
+template <typename T>
+inline T variant_cast_to_VTKObject(const vtkVariant& variant)
+{
+  if (!variant.IsValid())
+  {
+    return nullptr;
+  }
+
+  if (!variant.IsVTKObject())
+  {
+    throw std::runtime_error("invalid cast");
+  }
+  using VTK_TYPE = typename std::remove_pointer<T>::type;
+  return VTK_TYPE::SafeDownCast(variant.ToVTKObject());
 }
 
 }

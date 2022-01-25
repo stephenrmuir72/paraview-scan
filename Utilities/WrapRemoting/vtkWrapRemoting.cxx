@@ -388,7 +388,6 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
   }
   else if (vtkWrapRemoting_GetContainerType(parserType) == REMOTING_PARSER_STD_ARRAY_TYPE)
   {
-    const unsigned int vtkElementType = value->Type & VTK_PARSE_BASE_TYPE;
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
     const char* parserElementTypeName = vtkWrapRemoting_GetTypeName(parserType);
 
@@ -420,6 +419,7 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
   {
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
     const char* parserElementTypeName = nullptr;
+    const char* castFunction = "variant_cast";
     if (vtkWrapRemoting_GetElementType(parserType) == REMOTING_PARSER_VTK_OBJECT)
     {
       const char** args;
@@ -427,6 +427,7 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
       vtkParse_DecomposeTemplatedType(value->Class, &name, 1, &args, nullptr);
       parserElementTypeName = vtkWrapRemoting_CreateStringCopy(args[0]);
       vtkParse_FreeTemplateDecomposition(name, 1, args);
+      castFunction = "variant_cast_to_VTKObject";
     }
     else
     {
@@ -442,9 +443,9 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
       "    std::vector<%s> %s;\n"
       "    for(const auto& item : %s)\n"
       "    {\n"
-      "      %s.push_back(vtk::variant_cast<%s>(item));\n"
+      "      %s.push_back(vtk::%s<%s>(item));\n"
       "    }\n",
-      parserElementTypeName, vtkVariableName, parserVariableName2, vtkVariableName,
+      parserElementTypeName, vtkVariableName, parserVariableName2, vtkVariableName, castFunction,
       parserElementTypeName);
   }
   else if (parserType == REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION)
@@ -456,7 +457,7 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
   else if (parserType == REMOTING_PARSER_VTK_OBJECT)
   {
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
-    std::fprintf(fp, "    %s* %s = vtk::variant_cast<%s*>(%s);\n", vtkElementTypeName,
+    std::fprintf(fp, "    %s* %s = vtk::variant_cast_to_VTKObject<%s*>(%s);\n", vtkElementTypeName,
       vtkVariableName, vtkElementTypeName, parserVariableName);
   }
   else if (parserType == REMOTING_PARSER_INT32_TYPE || parserType == REMOTING_PARSER_INT64_TYPE ||
