@@ -50,9 +50,14 @@ struct vtkGlobals
 
   int TempVariableCounter;
 
+  // Information about the vtk classes and their base class.
+  // It is populated by the --types argument
+  HierarchyInfo* hinfo;
+
   vtkGlobals()
   {
-    TempVariableCounter = 0;
+    this->TempVariableCounter = 0;
+    this->hinfo = nullptr;
     this->StringsCache = (StringCache*)(std::malloc(sizeof(StringCache)));
     vtkParse_InitStringCache(this->StringsCache);
   }
@@ -61,6 +66,10 @@ struct vtkGlobals
   {
     vtkParse_FreeStringCache(this->StringsCache);
     std::free(this->StringsCache);
+    if (hinfo)
+    {
+      vtkParseHierarchy_Free(hinfo);
+    }
   }
 };
 
@@ -135,10 +144,6 @@ const char* vtkWrapRemoting_GetTypeName(unsigned int parserType)
   {
     returnValue = "std::string";
   }
-  else if (parserType == REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION)
-  {
-    returnValue = "vtkDataArraySelection";
-  }
 
   return returnValue;
 }
@@ -150,6 +155,7 @@ int vtkWrapRemoting_IsStdArray(ValueInfo* val)
     strncmp(val->Class, "std::array<", 11) == 0);
 }
 
+//------------------------------------------------------------------------------
 int vtkWrapRemoting_IsStdString(ValueInfo* val)
 {
   unsigned int t = (val->Type & VTK_PARSE_BASE_TYPE);
@@ -247,32 +253,6 @@ int vtkWrapRemoting_GetIntegerSize(ValueInfo* val)
 
 //------------------------------------------------------------------------------
 /**
- * Get the type of a of the first argument of a templated type as string.
- * Example std::vector<double> -> double
- * It works type we have to convert \p val to be easier to pack with the parser
- */
-const char* vtkWrapRemoting_GetFirstTemplateType(const char* className)
-{
-
-  // find value between < , . or between <>
-  std::string type = className;
-  std::string::size_type first = type.find('<');
-  std::string::size_type last = type.find(',');
-  if (last == std::string::npos)
-  {
-    last = type.find('>');
-  }
-  first++;
-  std::string templateType = type.substr(first, last - first);
-  // remove spaces to make pointer parsing easier
-  templateType.erase(
-    std::remove(templateType.begin(), templateType.end(), ' '), templateType.end());
-
-  return vtkWrapRemoting_CreateStringCopy(templateType.c_str());
-}
-
-//------------------------------------------------------------------------------
-/**
  * Get the type we have to convert \p val to be easier to pack with the parser
  */
 unsigned int vtkWrapRemoting_CorrespondingParserType(ValueInfo* val) // NOLINT(misc-no-recursion)
@@ -325,16 +305,7 @@ unsigned int vtkWrapRemoting_CorrespondingParserType(ValueInfo* val) // NOLINT(m
     // NOLINTNEXTLINE(misc-no-recursion)
     parserType = parserType | vtkWrapRemoting_CorrespondingParserType(val->Template->Parameters[0]);
   }
-  else if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkDataArraySelection"))
-  {
-    parserType = REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION;
-  }
-  else if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput"))
-  {
-    parserType = REMOTING_PARSER_VTK_OBJECT;
-  }
-  else if (vtkWrap_IsTypeOf(nullptr, val->Class,
-             "vtkPVDataRepresentation*")) // FIXME we should handle pointers separately
+  else if (vtkWrap_IsVTKObjectBaseType(Globals->hinfo, val->Class))
   {
     parserType = REMOTING_PARSER_VTK_OBJECT;
   }
@@ -373,7 +344,7 @@ unsigned int vtkWrapRemoting_CorrespondingVTKType(unsigned int parserType)
   {
     vtktype = VTK_PARSE_STRING;
   }
-  else if (parserType == REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION)
+  else if (parserType == REMOTING_PARSER_VTK_OBJECT)
   {
     vtktype = VTK_PARSE_VTK_OBJECT;
   }
@@ -417,7 +388,6 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
   }
   else if (vtkWrapRemoting_GetContainerType(parserType) == REMOTING_PARSER_STD_ARRAY_TYPE)
   {
-    const unsigned int vtkElementType = value->Type & VTK_PARSE_BASE_TYPE;
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
     const char* parserElementTypeName = vtkWrapRemoting_GetTypeName(parserType);
 
@@ -449,9 +419,15 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
   {
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
     const char* parserElementTypeName = nullptr;
+    const char* castFunction = "variant_cast";
     if (vtkWrapRemoting_GetElementType(parserType) == REMOTING_PARSER_VTK_OBJECT)
     {
-      parserElementTypeName = vtkWrapRemoting_GetFirstTemplateType(value->Class);
+      const char** args;
+      const char* name;
+      vtkParse_DecomposeTemplatedType(value->Class, &name, 1, &args, nullptr);
+      parserElementTypeName = vtkWrapRemoting_CreateStringCopy(args[0]);
+      vtkParse_FreeTemplateDecomposition(name, 1, args);
+      castFunction = "variant_cast_to_VTKObject";
     }
     else
     {
@@ -467,21 +443,15 @@ void vtkWrapRemoting_ConvertToVTKType(FILE* fp, unsigned int parserType, ValueIn
       "    std::vector<%s> %s;\n"
       "    for(const auto& item : %s)\n"
       "    {\n"
-      "      %s.push_back(vtk::variant_cast<%s>(item));\n"
+      "      %s.push_back(vtk::%s<%s>(item));\n"
       "    }\n",
-      parserElementTypeName, vtkVariableName, parserVariableName2, vtkVariableName,
+      parserElementTypeName, vtkVariableName, parserVariableName2, vtkVariableName, castFunction,
       parserElementTypeName);
-  }
-  else if (parserType == REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION)
-  {
-    const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
-    std::fprintf(fp, "    vtkDataArraySelection* %s = %s.GetPointer();\n", vtkVariableName,
-      parserVariableName);
   }
   else if (parserType == REMOTING_PARSER_VTK_OBJECT)
   {
     const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
-    std::fprintf(fp, "    %s* %s = vtk::variant_cast<%s*>(%s);\n", vtkElementTypeName,
+    std::fprintf(fp, "    %s* %s = vtk::variant_cast_to_VTKObject<%s*>(%s);\n", vtkElementTypeName,
       vtkVariableName, vtkElementTypeName, parserVariableName);
   }
   else if (parserType == REMOTING_PARSER_INT32_TYPE || parserType == REMOTING_PARSER_INT64_TYPE ||
@@ -551,14 +521,29 @@ void vtkWrapRemoting_ConvertToParserType(
   }
   else if (vtkWrapRemoting_GetContainerType(parserType) == REMOTING_PARSER_STD_VECTOR_TYPE)
   {
-    const char* elementTypeName = vtkWrapRemoting_GetTypeName(parserType);
+
+    const char* vtkElementTypeName = vtkWrap_GetTypeName(value);
+    const char* parserElementTypeName = nullptr;
+    if (vtkWrapRemoting_GetElementType(parserType) == REMOTING_PARSER_VTK_OBJECT)
+    {
+      const char** args;
+      const char* name;
+      vtkParse_DecomposeTemplatedType(value->Class, &name, 1, &args, nullptr);
+      parserElementTypeName = vtkWrapRemoting_CreateStringCopy(args[0]);
+      vtkParse_FreeTemplateDecomposition(name, 1, args);
+    }
+    else
+    {
+      parserElementTypeName = vtkWrapRemoting_GetTypeName(parserType);
+    }
+
     std::fprintf(fp,
       "    std::vector<%s> %s;\n"
       "    for (const auto& item : %s)\n"
       "    {\n"
       "      %s.emplace_back(item);\n"
       "    }\n",
-      elementTypeName, parserVariableName, vtkVariableName, parserVariableName);
+      parserElementTypeName, parserVariableName, vtkVariableName, parserVariableName);
   }
   else if (parserType == REMOTING_PARSER_STD_STRING_TYPE && vtkWrap_IsCharPointer(value))
   {
@@ -567,11 +552,6 @@ void vtkWrapRemoting_ConvertToParserType(
     std::fprintf(fp, "    {\n");
     std::fprintf(fp, "      %s.assign(%s);\n", parserVariableName, vtkVariableName);
     std::fprintf(fp, "    }\n");
-  }
-  else if (parserType == REMOTING_PARSER_VTK_DATA_ARRAY_SELECTION)
-  {
-    std::fprintf(fp, "    vtkSmartPointer<vtkDataArraySelection> %s(%s);\n", parserVariableName,
-      vtkVariableName);
   }
   else
   {
@@ -593,7 +573,7 @@ void vtkWrapRemoting_ConvertToParserType(
  * @brief Create a ValueInfo object based on a given name.
  *
  * Normally the parser will populate ValueInfo's fields. However, if we create
- * out own functions we need to fill the minimum information by ourlselves.
+ * our own functions we need to fill the minimum information by ourlselves.
  * This function "parses" \p className and produces the corresponding
  * ValueInfo. The type are extremly limited and cover only what is supported by
  * RemotingParserType enum.
@@ -604,52 +584,32 @@ ValueInfo* vtkWrapRemoting_CreateTypeFromName(const char* className) // NOLINT(m
   vtkParse_InitValue(parameter);
   parameter->Class = vtkWrapRemoting_CreateStringCopy(className);
   parameter->Type = VTK_PARSE_UNKNOWN;
-  if (!strcmp(className, "void"))
-  {
-    parameter->Type = VTK_PARSE_VOID;
-  }
-  else if (!strcmp(className, "bool"))
-  {
-    parameter->Type = VTK_PARSE_BOOL;
-  }
-  else if (!strcmp(className, "int32_t"))
-  {
-    parameter->Type = VTK_PARSE_INT;
-  }
-  else if (!strcmp(className, "int64_t"))
-  {
-    parameter->Type = VTK_PARSE___INT64;
-  }
-  else if (!strcmp(className, "double"))
-  {
-    parameter->Type = VTK_PARSE_DOUBLE;
-  }
-  else if (!strcmp(className, "std::string"))
-  {
-    parameter->Type = VTK_PARSE_STRING;
-  }
-  else if (!strcmp(className, "vtkDataArraySelection") ||
-    !strcmp(className, "vtkAlgorithmOutputValue") || !strcmp(className, "vtkPVDataRepresentation*"))
-  {
-    parameter->Type = VTK_PARSE_VTK_OBJECT;
-  }
-  else if (vtkWrap_IsStdVector(parameter))
+
+  if (vtkWrap_IsStdVector(parameter))
   {
     // we need some minimal parsing to find the template type and set the template_parameter
+    const char** args;
+    const char* name;
+    vtkParse_DecomposeTemplatedType(parameter->Class, &name, 1, &args, nullptr);
 
-    const char* templateElementType = vtkWrapRemoting_GetFirstTemplateType(parameter->Class);
+    const char* templateElementType = args[0];
 
     parameter->Template = (TemplateInfo*)(std::malloc(sizeof(TemplateInfo)));
     vtkParse_InitTemplate(parameter->Template);
 
+    auto* templateParameter = (ValueInfo*)(std::malloc(sizeof(ValueInfo)));
+    vtkParse_InitValue(templateParameter);
+
     // NOLINTNEXTLINE(misc-no-recursion)
-    auto* template_parameter = vtkWrapRemoting_CreateTypeFromName(templateElementType);
+    vtkParse_ValueInfoFromString(templateParameter, Globals->StringsCache, templateElementType);
     parameter->Template->Parameters = (ValueInfo**)(std::malloc(sizeof(ValueInfo*)));
-    parameter->Template->Parameters[parameter->Template->NumberOfParameters++] = template_parameter;
+    parameter->Template->Parameters[parameter->Template->NumberOfParameters++] = templateParameter;
+
+    vtkParse_FreeTemplateDecomposition(name, 1, args);
   }
   else
   {
-    // vtkLogF(WARNING, "Creating variable of Class %s with unknown type !", className);
+    vtkParse_ValueInfoFromString(parameter, Globals->StringsCache, className);
   }
   return parameter;
 }
@@ -682,22 +642,18 @@ int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
   {
     return 0;
   }
+  if (vtkWrap_IsRef(val) || vtkWrap_IsCharPointer(val))
+  {
+    return 0;
+  }
   if (vtkWrapRemoting_IsStdString(val) || vtkWrap_IsCharPointer(val))
   {
     return 1;
   }
-  if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkAlgorithmOutput"))
+  if (vtkWrap_IsPointer(val) && vtkWrap_IsVTKObjectBaseType(Globals->hinfo, val->Class) &&
+    vtkWrap_IsClassWrapped(Globals->hinfo, val->Class))
   {
     return 1;
-  }
-  if (vtkWrap_IsTypeOf(
-        nullptr, val->Class, "vtkPVDataRepresentation*")) // FIXME we should remove pointers
-  {
-    return 1;
-  }
-  if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkDataArraySelection"))
-  {
-    return 0;
   }
   if (vtkWrap_IsStdVector(val))
   {
@@ -705,7 +661,7 @@ int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
     {
       // FIXME: parser didn't gave us enough information. Let try ourselves
       ValueInfo* enrichedValue = vtkWrapRemoting_CreateTypeFromName(val->Class);
-      std::free(val);
+      vtkParse_FreeValue(val);
       val = enrichedValue;
       int result = vtkWrapRemoting_IsValueWrappable(enrichedValue);
       return result;
@@ -730,7 +686,7 @@ int vtkWrapRemoting_IsGetter(FunctionInfo* func)
 {
   if (func->Name && strlen(func->Name) > 3 && (!strncmp(func->Name, "Get", 3)))
   {
-    if (func->NumberOfParameters == 0)
+    if (func->NumberOfParameters == 0 && !vtkWrap_IsVoid(func->ReturnValue))
     {
       return 1;
     }
@@ -752,11 +708,15 @@ int vtkWrapRemoting_IsSetter(FunctionInfo* func)
   return 0;
 }
 //------------------------------------------------------------------------------
-int vtkWrapRemoting_IsGetterOrSetter(FunctionInfo* func)
+int vtkWrapRemoting_IsMethodWithNoArguments(FunctionInfo* func)
 {
-  return vtkWrapRemoting_IsGetter(func) || vtkWrapRemoting_IsSetter(func);
+  if (func->Name && strlen(func->Name) && func->NumberOfParameters == 0 &&
+    vtkWrap_IsVoid(func->ReturnValue))
+  {
+    return 1;
+  }
+  return 0;
 }
-/** @}*/
 
 //------------------------------------------------------------------------------
 /**
@@ -774,13 +734,7 @@ void vtkWrapRemoting_AssignToInternalObject(
     std::string variableNameSTD = variableBaseName;
     variableNameSTD.append("0");
     const char* variableName = variableNameSTD.c_str();
-    if (vtkWrap_IsTypeOf(nullptr, val->Class, "vtkDataArraySelection"))
-    {
-      char* getter_name = vtkWrapRemoting_CreateStringCopy(theFunc->Name);
-      getter_name[0] = 'G';
-      std::fprintf(fp, "  target->%s()->DeepCopy(%s);\n", getter_name, variableName);
-    }
-    else if (!strcmp(theFunc->Name, "SetFileNames"))
+    if (!strcmp(theFunc->Name, "SetFileNames"))
     {
       std::fprintf(fp,
         "    target->ClearFileNames();\n"
@@ -965,6 +919,16 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     std::fprintf(fp, "    return true;\n");
     std::fprintf(fp, "  }\n");
   }
+  else if (vtkWrapRemoting_IsMethodWithNoArguments(theFunc))
+  {
+    std::fprintf(fp, "  if (method == \"%s\")\n", theFunc->Name);
+
+    std::fprintf(fp, "  {\n");
+    std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+    std::fprintf(fp, "    target->%s();\n", theFunc->Name);
+    std::fprintf(fp, "    return true;\n");
+    std::fprintf(fp, "  }\n");
+  }
   else
   {
     std::fprintf(fp, "// Don't know how to convert %s\n", theFunc->Signature);
@@ -1079,8 +1043,8 @@ int vtkWrapRemoting_MethodCheck(ClassInfo* data, FunctionInfo* currentFunction)
   {
     return 0;
   }
-  // we care only for Get/Setters for now
-  if (!vtkWrapRemoting_IsGetterOrSetter(currentFunction))
+  if (!vtkWrapRemoting_IsGetter(currentFunction) && !vtkWrapRemoting_IsSetter(currentFunction) &&
+    !vtkWrapRemoting_IsMethodWithNoArguments(currentFunction))
   {
     return 0;
   }
@@ -1157,23 +1121,23 @@ FunctionInfo* vtkWrapRemoting_GenerateOneSpecialMethod(
 void vtkWrapRemoting_GenerateSpecialMethods(
   ClassInfo* data, std::vector<FunctionInfo*>& wrappableFunctions)
 {
-  // Add setters for vtkDataArraySelection getters
-  size_t count = wrappableFunctions.size();
   FunctionInfo* theFunc;
-  for (size_t i = 0; i < count; i++)
-  {
-    theFunc = wrappableFunctions[i];
-    if (vtkWrapRemoting_IsGetter(theFunc) &&
-      vtkWrap_IsTypeOf(nullptr, theFunc->ReturnValue->Class, "vtkDataArraySelection"))
-    {
-      char* new_name = vtkWrapRemoting_CreateStringCopy(theFunc->Name);
-      new_name[0] = 'S';
-      auto* newFunction =
-        vtkWrapRemoting_GenerateOneSpecialMethod(new_name, "void", "vtkDataArraySelection");
-      vtkParse_AddFunctionToClass(data, newFunction);
-      wrappableFunctions.push_back(newFunction);
-    }
-  }
+  // Add setters for vtkDataArraySelection getters
+  // size_t count = wrappableFunctions.size();
+  // for (size_t i = 0; i < count; i++)
+  //{
+  //  theFunc = wrappableFunctions[i];
+  //  if (vtkWrapRemoting_IsGetter(theFunc) &&
+  //    vtkWrap_IsTypeOf(nullptr, theFunc->ReturnValue->Class, "vtkDataArraySelection"))
+  //  {
+  //    char* new_name = vtkWrapRemoting_CreateStringCopy(theFunc->Name);
+  //    new_name[0] = 'S';
+  //    auto* newFunction =
+  //      vtkWrapRemoting_GenerateOneSpecialMethod(new_name, "void", "vtkDataArraySelection");
+  //    vtkParse_AddFunctionToClass(data, newFunction);
+  //    wrappableFunctions.push_back(newFunction);
+  //  }
+  //}
 
   // Check if AddFileName() exists in order to add Set/GetFilenames
   // If not, check if SetFileName exists and GetFilename is missing.
@@ -1241,6 +1205,7 @@ void vtkWrapRemoting_GenerateSpecialMethods(
   //}
 }
 
+//------------------------------------------------------------------------------
 /**
  * Get All the functions we can wrap
  */
@@ -1265,6 +1230,66 @@ std::vector<FunctionInfo*> vtkWrapRemoting_GetWrappableFunctions(ClassInfo* clas
 
   return wrappableFunctions;
 }
+
+//------------------------------------------------------------------------------
+void vtkWrapRemoting_AddNecessaryIncludeFiles(
+  FILE* fp, std::vector<FunctionInfo*>& wrappableFunctions)
+{
+  std::set<std::string> includeFiles;
+
+  // add few common ones
+  includeFiles.insert("#include <vector>");
+  includeFiles.insert("#include <string>");
+
+  ValueInfo* value;
+  unsigned int type;
+
+  for (FunctionInfo* theFunc : wrappableFunctions)
+  {
+    value = theFunc->ReturnValue;
+    type = vtkWrapRemoting_CorrespondingParserType(value);
+    if (vtkWrapRemoting_GetContainerType(type) == REMOTING_PARSER_STD_VECTOR_TYPE)
+    {
+      value = value->Template->Parameters[0];
+    }
+    type = vtkWrapRemoting_CorrespondingParserType(value);
+    if (vtkWrapRemoting_GetElementType(type) == REMOTING_PARSER_VTK_OBJECT)
+    {
+      // FIXME use fmt library to make this more readable
+      std::string header = "#include ";
+      header.append("\"");
+      header.append(value->Class);
+      header.append(".h\"");
+      includeFiles.insert(header);
+    }
+
+    for (int i = 0; i < theFunc->NumberOfParameters; i++)
+    {
+      value = theFunc->Parameters[i];
+      type = vtkWrapRemoting_CorrespondingParserType(value);
+      if (vtkWrapRemoting_GetContainerType(type) == REMOTING_PARSER_STD_VECTOR_TYPE)
+      {
+        value = value->Template->Parameters[0];
+      }
+      type = vtkWrapRemoting_CorrespondingParserType(value);
+      if (vtkWrapRemoting_GetElementType(type) == REMOTING_PARSER_VTK_OBJECT)
+      {
+        // FIXME use fmt library to make this more readable
+        std::string header = "#include ";
+        header.append("\"");
+        header.append(value->Class);
+        header.append(".h\"");
+        includeFiles.insert(header);
+      }
+    }
+  }
+
+  for (const std::string& header : includeFiles)
+  {
+    std::fprintf(fp, "%s\n", header.c_str());
+  }
+  std::fprintf(fp, "\n\n");
+}
 //------------------------------------------------------------------------------
 /**
  * Generate the implementation and header file of the wrapped class
@@ -1276,7 +1301,9 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
 
   std::vector<FunctionInfo*> wrappableFunctions = vtkWrapRemoting_GetWrappableFunctions(classInfo);
 
-  // Write Setters
+  vtkWrapRemoting_AddNecessaryIncludeFiles(fp, wrappableFunctions);
+
+  // Write Setters && Methods with no arguments
   std::fprintf(fp,
     "static bool %sSetter(vtkObject* object, const std::string& method, const "
     "std::vector<vtkVariant>& args)\n"
@@ -1291,7 +1318,7 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
   // write out the wrapper for each function in the array
   for (FunctionInfo* theFunc : wrappableFunctions)
   {
-    if (!vtkWrapRemoting_IsSetter(theFunc))
+    if (!vtkWrapRemoting_IsSetter(theFunc) && !vtkWrapRemoting_IsMethodWithNoArguments(theFunc))
     {
       continue;
     }
@@ -1395,7 +1422,6 @@ void vtkWrapRemoting_DecorateHeader(FILE* f, int argc, char** argv)
 int main(int argc, char* argv[])
 {
   ClassInfo* data = nullptr;
-  HierarchyInfo* hinfo = nullptr;
   FileInfo* file_info = nullptr;
   OptionInfo* options = nullptr;
   FILE* fp = nullptr;
@@ -1415,7 +1441,7 @@ int main(int argc, char* argv[])
   // get the hierarchy info for accurate typing
   if (options->HierarchyFileNames)
   {
-    hinfo =
+    Globals->hinfo =
       vtkParseHierarchy_ReadFiles(options->NumberOfHierarchyFileNames, options->HierarchyFileNames);
   }
 
@@ -1447,11 +1473,11 @@ int main(int argc, char* argv[])
   }
 
   // use the hierarchy file to expand typedefs
-  if ((data) && (hinfo))
+  if ((data) && (Globals->hinfo))
   {
-    vtkWrap_ApplyUsingDeclarations(data, file_info, hinfo);
-    vtkWrap_ExpandTypedefs(data, file_info, hinfo);
-    if (!vtkWrap_IsTypeOf(hinfo, className.c_str(), "vtkObject"))
+    vtkWrap_ApplyUsingDeclarations(data, file_info, Globals->hinfo);
+    vtkWrap_ExpandTypedefs(data, file_info, Globals->hinfo);
+    if (!vtkWrap_IsTypeOf(Globals->hinfo, className.c_str(), "vtkObject"))
     {
       skip = true;
     }
@@ -1484,10 +1510,6 @@ int main(int argc, char* argv[])
 
   std::fclose(fp);
   vtkParse_Free(file_info);
-  if (hinfo)
-  {
-    vtkParseHierarchy_Free(hinfo);
-  }
   // vtkParse_FreeOptions(options);
 
   vtkParse_FinalCleanup();
