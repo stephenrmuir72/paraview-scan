@@ -580,7 +580,6 @@ ValueInfo* vtkWrapRemoting_CreateTypeFromName(const char* className) // NOLINT(m
   parameter->Class = vtkWrapRemoting_CreateStringCopy(className);
   parameter->Type = VTK_PARSE_UNKNOWN;
 
-  vtkLogF(ERROR, "%s", className);
   if (vtkWrap_IsStdVector(parameter))
   {
     // we need some minimal parsing to find the template type and set the template_parameter
@@ -616,7 +615,6 @@ ValueInfo* vtkWrapRemoting_CreateTypeFromName(const char* className) // NOLINT(m
  */
 int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
 {
-  vtkLogF(WARNING, "%s", val->Class);
   if (vtkWrap_IsVoid(val))
   {
     return 1;
@@ -1194,6 +1192,7 @@ void vtkWrapRemoting_GenerateSpecialMethods(
   //}
 }
 
+//------------------------------------------------------------------------------
 /**
  * Get All the functions we can wrap
  */
@@ -1218,6 +1217,66 @@ std::vector<FunctionInfo*> vtkWrapRemoting_GetWrappableFunctions(ClassInfo* clas
 
   return wrappableFunctions;
 }
+
+//------------------------------------------------------------------------------
+void vtkWrapRemoting_AddNecessaryIncludeFiles(
+  FILE* fp, std::vector<FunctionInfo*>& wrappableFunctions)
+{
+  std::set<std::string> includeFiles;
+
+  // add few common ones
+  includeFiles.insert("#include <vector>");
+  includeFiles.insert("#include <string>");
+
+  ValueInfo* value;
+  unsigned int type;
+
+  for (FunctionInfo* theFunc : wrappableFunctions)
+  {
+    value = theFunc->ReturnValue;
+    type = vtkWrapRemoting_CorrespondingParserType(value);
+    if (vtkWrapRemoting_GetContainerType(type) == REMOTING_PARSER_STD_VECTOR_TYPE)
+    {
+      value = value->Template->Parameters[0];
+    }
+    type = vtkWrapRemoting_CorrespondingParserType(value);
+    if (vtkWrapRemoting_GetElementType(type) == REMOTING_PARSER_VTK_OBJECT)
+    {
+      // FIXME use fmt library to make this more readable
+      std::string header = "#include ";
+      header.append("\"");
+      header.append(value->Class);
+      header.append(".h\"");
+      includeFiles.insert(header);
+    }
+
+    for (int i = 0; i < theFunc->NumberOfParameters; i++)
+    {
+      value = theFunc->Parameters[i];
+      type = vtkWrapRemoting_CorrespondingParserType(value);
+      if (vtkWrapRemoting_GetContainerType(type) == REMOTING_PARSER_STD_VECTOR_TYPE)
+      {
+        value = value->Template->Parameters[0];
+      }
+      type = vtkWrapRemoting_CorrespondingParserType(value);
+      if (vtkWrapRemoting_GetElementType(type) == REMOTING_PARSER_VTK_OBJECT)
+      {
+        // FIXME use fmt library to make this more readable
+        std::string header = "#include ";
+        header.append("\"");
+        header.append(value->Class);
+        header.append(".h\"");
+        includeFiles.insert(header);
+      }
+    }
+  }
+
+  for (const std::string& header : includeFiles)
+  {
+    std::fprintf(fp, "%s\n", header.c_str());
+  }
+  std::fprintf(fp, "\n\n");
+}
 //------------------------------------------------------------------------------
 /**
  * Generate the implementation and header file of the wrapped class
@@ -1228,6 +1287,8 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
   FunctionInfo* theFunc = nullptr;
 
   std::vector<FunctionInfo*> wrappableFunctions = vtkWrapRemoting_GetWrappableFunctions(classInfo);
+
+  vtkWrapRemoting_AddNecessaryIncludeFiles(fp, wrappableFunctions);
 
   // Write Setters
   std::fprintf(fp,
