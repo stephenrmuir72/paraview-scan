@@ -686,7 +686,7 @@ int vtkWrapRemoting_IsGetter(FunctionInfo* func)
 {
   if (func->Name && strlen(func->Name) > 3 && (!strncmp(func->Name, "Get", 3)))
   {
-    if (func->NumberOfParameters == 0)
+    if (func->NumberOfParameters == 0 && !vtkWrap_IsVoid(func->ReturnValue))
     {
       return 1;
     }
@@ -708,11 +708,15 @@ int vtkWrapRemoting_IsSetter(FunctionInfo* func)
   return 0;
 }
 //------------------------------------------------------------------------------
-int vtkWrapRemoting_IsGetterOrSetter(FunctionInfo* func)
+int vtkWrapRemoting_IsMethodWithNoArguments(FunctionInfo* func)
 {
-  return vtkWrapRemoting_IsGetter(func) || vtkWrapRemoting_IsSetter(func);
+  if (func->Name && strlen(func->Name) && func->NumberOfParameters == 0 &&
+    vtkWrap_IsVoid(func->ReturnValue))
+  {
+    return 1;
+  }
+  return 0;
 }
-/** @}*/
 
 //------------------------------------------------------------------------------
 /**
@@ -915,6 +919,16 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     std::fprintf(fp, "    return true;\n");
     std::fprintf(fp, "  }\n");
   }
+  else if (vtkWrapRemoting_IsMethodWithNoArguments(theFunc))
+  {
+    std::fprintf(fp, "  if (method == \"%s\")\n", theFunc->Name);
+
+    std::fprintf(fp, "  {\n");
+    std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+    std::fprintf(fp, "    target->%s();\n", theFunc->Name);
+    std::fprintf(fp, "    return true;\n");
+    std::fprintf(fp, "  }\n");
+  }
   else
   {
     std::fprintf(fp, "// Don't know how to convert %s\n", theFunc->Signature);
@@ -1029,8 +1043,8 @@ int vtkWrapRemoting_MethodCheck(ClassInfo* data, FunctionInfo* currentFunction)
   {
     return 0;
   }
-  // we care only for Get/Setters for now
-  if (!vtkWrapRemoting_IsGetterOrSetter(currentFunction))
+  if (!vtkWrapRemoting_IsGetter(currentFunction) && !vtkWrapRemoting_IsSetter(currentFunction) &&
+    !vtkWrapRemoting_IsMethodWithNoArguments(currentFunction))
   {
     return 0;
   }
@@ -1289,7 +1303,7 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
 
   vtkWrapRemoting_AddNecessaryIncludeFiles(fp, wrappableFunctions);
 
-  // Write Setters
+  // Write Setters && Methods with no arguments
   std::fprintf(fp,
     "static bool %sSetter(vtkObject* object, const std::string& method, const "
     "std::vector<vtkVariant>& args)\n"
@@ -1304,7 +1318,7 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
   // write out the wrapper for each function in the array
   for (FunctionInfo* theFunc : wrappableFunctions)
   {
-    if (!vtkWrapRemoting_IsSetter(theFunc))
+    if (!vtkWrapRemoting_IsSetter(theFunc) && !vtkWrapRemoting_IsMethodWithNoArguments(theFunc))
     {
       continue;
     }
