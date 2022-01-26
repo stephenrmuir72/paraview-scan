@@ -14,16 +14,13 @@
 =========================================================================*/
 #include "vtkPVView.h"
 
-#include "vtkBoundingBox.h"
-#include "vtkCommunicator.h"
+#include "vtkDataObject.h"
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkInformation.h"
+#include "vtkInformationDoubleKey.h"
 #include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationRequestKey.h"
-#include "vtkInformationVector.h"
-#include "vtkLogger.h"
 #include "vtkMultiProcessController.h"
-#include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkOpenGLState.h"
 #include "vtkPVDataDeliveryManager.h"
@@ -36,6 +33,7 @@
 #include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRendererCollection.h"
+#include "vtkSynchronizedRenderers.h"
 #include "vtkTimerLog.h"
 #include "vtkViewLayout.h"
 
@@ -143,11 +141,39 @@ private:
 vtkStandardNewMacro(vtkOffscreenOpenGLRenderWindow);
 }
 
+//============================================================================
+class vtkPVView::vtkInternals
+{
+public:
+  vtkSmartPointer<vtkMultiProcessController> Controller;
+  vtkTypeUInt32 GlobalID{ 0 };
+  vtkVector2i Position{ 0, 0 };
+  vtkVector2i Size{ 300, 300 };
+  int PPI{ 72 };
+  double ViewTime{ 0.0 };
+  std::string LogName;
+  bool Initialized{ false };
+  bool InitializedForDataProcessing{ false };
+
+  vtkSmartPointer<vtkPVDataDeliveryManager> DeliveryManager;
+  std::vector<vtkSmartPointer<vtkPVDataRepresentation>> Representations;
+
+  mutable vtkTimeStamp UpdateTimeStamp;
+
+  /**
+   * Keeps track of the active rendering pass.
+   */
+  mutable vtkInformation* ActiveRequest{ nullptr };
+};
+
+vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_DATA, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_DATA_LOD, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_RENDERING_INFORMATION, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_PREPARE_FOR_RENDER, Request);
+vtkInformationKeyMacro(vtkPVView, REQUEST_PREPARE_FOR_RENDER_LOD, Request);
 vtkInformationKeyMacro(vtkPVView, REQUEST_RENDER, Request);
-vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_LOD, Request);
-vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE, Request);
-vtkInformationKeyRestrictedMacro(vtkPVView, VIEW, ObjectBase, "vtkPVView");
-//----------------------------------------------------------------------------
+vtkInformationKeyMacro(vtkPVView, UPDATE_TIME_STEP, Double);
+//============================================================================
 bool vtkPVView::UseGenericOpenGLRenderWindow = false;
 //----------------------------------------------------------------------------
 void vtkPVView::SetUseGenericOpenGLRenderWindow(bool val)
@@ -161,10 +187,9 @@ bool vtkPVView::GetUseGenericOpenGLRenderWindow()
   return vtkPVView::UseGenericOpenGLRenderWindow;
 }
 
-//----------------------------------------------------------------------------
-vtkCxxSetObjectMacro(vtkPVView, RenderWindow, vtkRenderWindow);
-//----------------------------------------------------------------------------
-vtkPVView::vtkPVView(bool create_render_window)
+//============================================================================
+vtkPVView::vtkPVView()
+  : Internals(new vtkPVView::vtkInternals())
 {
   // Ensure vtkProcessModule is setup correctly.
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
@@ -174,45 +199,153 @@ vtkPVView::vtkPVView(bool create_render_window)
     abort();
   }
 
-  this->ViewTime = 0.0;
-  this->CacheKey = 0.0;
-  this->UseCache = false;
-
-  this->RequestInformation = vtkInformation::New();
-  this->ReplyInformationVector = vtkInformationVector::New();
-
-  this->ViewTimeValid = false;
-
-  this->Size[1] = this->Size[0] = 300;
-  this->Position[0] = this->Position[1] = 0;
-  this->PPI = 72;
-
-  this->InCaptureScreenshot = false;
-
-  // Create render window, if requested.
-  this->RenderWindow = create_render_window ? this->NewRenderWindow() : nullptr;
-  if (this->RenderWindow)
-  {
-    this->RenderWindow->SetSize(this->Size);
-    this->RenderWindow->SetPosition(this->Position);
-    this->RenderWindow->SetDPI(this->PPI);
-  }
-
-  this->DeliveryManager = nullptr;
+  auto& internals = (*this->Internals);
+  internals.DeliveryManager.TakeReference(vtkPVDataDeliveryManager::New());
+  internals.DeliveryManager->SetView(this);
 }
 
 //----------------------------------------------------------------------------
-vtkPVView::~vtkPVView()
+vtkPVView::~vtkPVView() = default;
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetGlobalID(vtkTypeUInt32 gid)
 {
-  this->SetDeliveryManager(nullptr);
-  this->RequestInformation->Delete();
-  this->ReplyInformationVector->Delete();
-  this->SetRenderWindow(nullptr);
+  auto& internals = (*this->Internals);
+  internals.GlobalID = gid;
+}
+
+//----------------------------------------------------------------------------
+vtkTypeUInt32 vtkPVView::GetGlobalID() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.GlobalID;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetController(vtkMultiProcessController* controller)
+{
+  auto& internals = (*this->Internals);
+  internals.Controller = controller;
+}
+
+//----------------------------------------------------------------------------
+vtkMultiProcessController* vtkPVView::GetController() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Controller;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetPosition(int xpos, int ypos)
+{
+  auto& internals = (*this->Internals);
+  internals.Position = vtkVector2i(xpos, ypos);
+}
+
+//----------------------------------------------------------------------------
+const int* vtkPVView::GetPosition() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Position.GetData();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetSize(int width, int height)
+{
+  auto& internals = (*this->Internals);
+  if (this->InTileDisplayMode() || this->InCaveDisplayMode())
+  {
+    // the size request is ignored.
+  }
+  else if (auto* window = this->GetRenderWindow())
+  {
+    const auto cur_size = window->GetActualSize();
+    if (cur_size[0] != width || cur_size[1] != height)
+    {
+      window->SetSize(width, height);
+    }
+  }
+  internals.Size = vtkVector2i(width, height);
+}
+
+//----------------------------------------------------------------------------
+const int* vtkPVView::GetSize() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Size.GetData();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetPPI(int ppi)
+{
+  auto& internals = (*this->Internals);
+  internals.PPI = ppi;
+  if (auto window = this->GetRenderWindow())
+  {
+    window->SetDPI(ppi);
+  }
+}
+
+//----------------------------------------------------------------------------
+int vtkPVView::GetPPI() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.PPI;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetViewTime(double value)
+{
+  auto& internals = (*this->Internals);
+  internals.ViewTime = value;
+}
+
+//----------------------------------------------------------------------------
+double vtkPVView::GetViewTime() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ViewTime;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::SetLogName(const std::string& name)
+{
+  auto& internals = (*this->Internals);
+  internals.LogName = name;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVView::GetLogName() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.LogName;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::InitializeForDataProcessing()
+{
+  auto& internals = (*this->Internals);
+  assert("Not already initialized" && !internals.Initialized);
+  internals.Initialized = true;
+  internals.InitializedForDataProcessing = true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::InitializeForRendering()
+{
+  auto& internals = (*this->Internals);
+  assert("Not already initialized" && !internals.Initialized);
+  internals.Initialized = true;
+  internals.InitializedForDataProcessing = false;
 }
 
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVView::NewRenderWindow()
 {
+  auto& internals = (*this->Internals);
+  assert("View has been initialized." && internals.Initialized);
+  assert("Called on rendering service." && !internals.InitializedForDataProcessing);
+
   auto pm = vtkProcessModule::GetProcessModule();
   auto config = vtkRemotingCoreConfiguration::GetInstance();
 
@@ -221,47 +354,10 @@ vtkRenderWindow* vtkPVView::NewRenderWindow()
   config->HandleDisplayEnvironment();
 
   vtkSmartPointer<vtkRenderWindow> window;
-  switch (pm->GetProcessType())
-  {
-    case vtkProcessModule::PROCESS_CLIENT:
-      if (vtkPVView::GetUseGenericOpenGLRenderWindow())
-      {
-        window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-      }
-      else if (config->GetForceOffscreenRendering())
-      {
-        // this may be a headless window if ParaView was built with headless
-        // capabilities.
-        window = vtkPVRenderingCapabilitiesInformation::NewOffscreenRenderWindow();
-      }
-      else
-      {
-        window = vtkSmartPointer<vtkRenderWindow>::New();
-      }
-      break;
-
-    case vtkProcessModule::PROCESS_SERVER:
-    case vtkProcessModule::PROCESS_BATCH:
-      if (auto processWindow = vtkPVProcessWindow::GetRenderWindow())
-      {
-        auto owindow = vtkSmartPointer<vtkOffscreenOpenGLRenderWindow>::New();
-        owindow->SetContext(vtkOpenGLRenderWindow::SafeDownCast(processWindow));
-        owindow->DoubleBufferOff();
-        window = owindow;
-      }
-      else
-      {
-        vtkErrorMacro(
-          "Expecting a process window, which is missing. Aborting for debugging purposes.");
-        abort();
-      }
-      break;
-
-    default:
-      vtkErrorMacro("Invalid process type. Aborting for debugging purposes.");
-      abort();
-  }
-
+  // FIXME: ASYNC
+  // For now, just create offscreen window always...we need to rethink this
+  // quite a bit.
+  window = vtkPVRenderingCapabilitiesInformation::NewOffscreenRenderWindow();
   if (window)
   {
     vtkVLogF(PARAVIEW_LOG_RENDERING_VERBOSITY(),
@@ -297,54 +393,6 @@ vtkRenderWindow* vtkPVView::NewRenderWindow()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::SetPosition(int x, int y)
-{
-  this->Position[0] = x;
-  this->Position[1] = y;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVView::SetSize(int x, int y)
-{
-  if (this->InTileDisplayMode() || this->InCaveDisplayMode())
-  {
-    // the size request is ignored.
-  }
-  else if (auto window = this->GetRenderWindow())
-  {
-    const auto cur_size = window->GetActualSize();
-    if (cur_size[0] != x || cur_size[1] != y)
-    {
-      window->SetSize(x, y);
-    }
-  }
-  this->Size[0] = x;
-  this->Size[1] = y;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVView::SetPPI(int ppi)
-{
-  this->PPI = ppi;
-  if (auto window = this->GetRenderWindow())
-  {
-    window->SetDPI(ppi);
-  }
-  this->Modified();
-}
-
-//----------------------------------------------------------------------------
-void vtkPVView::SetViewTime(double time)
-{
-  if (!this->ViewTimeValid || this->ViewTime != time)
-  {
-    this->ViewTime = time;
-    this->ViewTimeValid = true;
-    this->Modified();
-  }
-}
-
-//----------------------------------------------------------------------------
 bool vtkPVView::InTileDisplayMode()
 {
   // auto serverInfo = this->Session->GetServerInformation();
@@ -363,43 +411,9 @@ bool vtkPVView::InCaveDisplayMode()
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVView::GetLocalProcessSupportsInteraction()
-{
-  auto pm = vtkProcessModule::GetProcessModule();
-  switch (pm->GetProcessType())
-  {
-    case vtkProcessModule::PROCESS_CLIENT:
-      assert(pm->GetRank() == 0);
-      return true;
-
-    case vtkProcessModule::PROCESS_BATCH:
-      return (pm->GetRank() == 0);
-
-    case vtkProcessModule::PROCESS_SERVER:
-    default:
-      return false;
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "ViewTime: " << this->ViewTime << endl;
-  os << indent << "CacheKey: " << this->CacheKey << endl;
-  os << indent << "UseCache: " << this->UseCache << endl;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVView::PrepareForScreenshot()
-{
-  this->InCaptureScreenshot = true;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVView::CleanupAfterScreenshot()
-{
-  this->InCaptureScreenshot = false;
 }
 
 //----------------------------------------------------------------------------
@@ -407,105 +421,162 @@ void vtkPVView::Update()
 {
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: update view", this->GetLogName().c_str());
 
-  // Propagate update time.
-  const int num_reprs = this->GetNumberOfRepresentations();
-  const auto view_time = this->GetViewTime();
-  for (int cc = 0; cc < num_reprs; cc++)
+  const auto& internals = (*this->Internals);
+  if (!internals.InitializedForDataProcessing)
   {
-    if (auto pvrepr = vtkPVDataRepresentation::SafeDownCast(this->GetRepresentation(cc)))
-    {
-      // Pass the view time information to the representation
-      if (this->ViewTimeValid)
-      {
-        pvrepr->SetUpdateTime(view_time);
-      }
-      else
-      {
-        pvrepr->ResetUpdateTime();
-      }
-    }
+    vtkLogF(WARNING, "Update called on non-data processing service. Ignored.");
+    return;
   }
 
-  vtkTimerLog::MarkStartEvent("vtkPVView::Update");
-  const int count = this->CallProcessViewRequest(
-    vtkPVView::REQUEST_UPDATE(), this->RequestInformation, this->ReplyInformationVector);
-  vtkTimerLog::MarkEndEvent("vtkPVView::Update");
-  this->UpdateTimeStamp.Modified();
+  vtkNew<vtkInformation> request;
+  request->Set(vtkPVView::REQUEST_UPDATE_DATA());
+  request->Set(vtkPVView::UPDATE_TIME_STEP(), internals.ViewTime);
+  this->CallProcessViewRequest(request);
+  internals.UpdateTimeStamp.Modified();
+
+  // TODO:
+  // reduce visible data size across all ranks.
+  // this will then be used for other decision making.
+  // This decision making will include which service to render on, perhaps i.e. render-server
+  // or render-server-lite.
+  this->InvokeEvent(vtkCommand::UpdateEvent);
 }
 
 //----------------------------------------------------------------------------
-int vtkPVView::CallProcessViewRequest(
-  vtkInformationRequestKey* type, vtkInformation* inInfo, vtkInformationVector* outVec)
+void vtkPVView::UpdateForRendering()
 {
-  int count = 0;
-  int num_reprs = this->GetNumberOfRepresentations();
-  outVec->SetNumberOfInformationObjects(num_reprs);
-
-  // NOTE: This will create a reference loop (depending on what inInfo is). If
-  // it's this->RequestInformation, then we have a loop and hence it's
-  // essential to call vtkInformation::Clear() before this method returns.
-  inInfo->Set(VIEW(), this);
-
-  for (int cc = 0; cc < num_reprs; cc++)
+  vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: update view", this->GetLogName().c_str());
+  const auto& internals = (*this->Internals);
+  if (internals.InitializedForDataProcessing)
   {
-    vtkInformation* outInfo = outVec->GetInformationObject(cc);
-    outInfo->Clear();
-    vtkDataRepresentation* repr = this->GetRepresentation(cc);
-    vtkPVDataRepresentation* pvrepr = vtkPVDataRepresentation::SafeDownCast(repr);
-    if (pvrepr)
+    vtkLogF(WARNING, "UpdateForRendering called on data processing service. Ignored.");
+    return;
+  }
+
+  vtkNew<vtkInformation> request;
+  request->Set(vtkPVView::REQUEST_UPDATE_RENDERING_INFORMATION());
+  this->CallProcessViewRequest(request);
+  request->Remove(vtkPVView::REQUEST_UPDATE_RENDERING_INFORMATION());
+  request->Clear();
+
+  request->Set(vtkPVView::REQUEST_PREPARE_FOR_RENDER());
+  this->CallProcessViewRequest(request);
+
+  this->InvokeEvent(vtkCommand::UpdateEvent);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::StillRender()
+{
+  vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: still-render", this->GetLogName().c_str());
+  const auto& internals = (*this->Internals);
+  if (internals.InitializedForDataProcessing)
+  {
+    vtkLogF(WARNING, "StillRender called on data processing service. Ignored.");
+    return;
+  }
+
+  vtkNew<vtkInformation> request;
+  request->Set(vtkPVView::REQUEST_RENDER());
+  this->CallProcessViewRequest(request);
+  if (auto* window = this->GetRenderWindow())
+  {
+    window->Render();
+  }
+
+  int interactiveRender = 0;
+  this->InvokeEvent(vtkCommand::RenderEvent, &interactiveRender);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::InteractiveRender() {}
+
+//----------------------------------------------------------------------------
+int vtkPVView::CallProcessViewRequest(vtkInformation* request)
+{
+  const auto& internals = (*this->Internals);
+  internals.ActiveRequest = request;
+
+  int count = 0;
+  for (auto& repr : internals.Representations)
+  {
+    if (repr->GetVisibility())
     {
-      if (pvrepr->GetVisibility())
-      {
-        if (pvrepr->ProcessViewRequest(type, inInfo, outInfo))
-        {
-          ++count;
-        }
-      }
-    }
-    else if (repr && type == REQUEST_UPDATE())
-    {
-      repr->Update();
+      count += repr->ProcessViewRequest(request) ? 1 : 0;
     }
   }
 
-  // Clear input information since we are done with the pass. This avoids any
-  // need for garbage collection.
-  inInfo->Clear();
+  internals.ActiveRequest = nullptr;
   return count;
 }
 
 //-----------------------------------------------------------------------------
-void vtkPVView::AddRepresentationInternal(vtkDataRepresentation* rep)
+void vtkPVView::SetRepresentations(const std::vector<vtkPVDataRepresentation*>& representations)
 {
-  if (vtkPVDataRepresentation* drep = vtkPVDataRepresentation::SafeDownCast(rep))
-  {
-    if (drep->GetView() != this)
-    {
-      vtkErrorMacro(<< drep->GetClassName()
-                    << " may not be calling this->Superclass::AddToView(...) in its "
-                    << "AddToView implementation. Please fix that. "
-                    << "Also check the same for RemoveFromView(..).");
-    }
+  const auto& internals = (*this->Internals);
 
-    if (this->DeliveryManager)
+  std::vector<vtkPVDataRepresentation*> to_add;
+  std::vector<vtkPVDataRepresentation*> to_remove;
+
+  const std::set<vtkPVDataRepresentation*> old_value(
+    internals.Representations.begin(), internals.Representations.end());
+  const std::set<vtkPVDataRepresentation*> new_value(
+    representations.begin(), representations.end());
+
+  std::set_difference(old_value.begin(), old_value.end(), new_value.begin(), new_value.end(),
+    std::back_inserter(to_remove));
+  std::set_difference(new_value.begin(), new_value.end(), old_value.begin(), old_value.end(),
+    std::back_inserter(to_add));
+
+  for (auto& repr : to_remove)
+  {
+    if (repr)
     {
-      this->DeliveryManager->RegisterRepresentation(drep);
+      this->RemoveRepresentation(repr);
     }
   }
-  this->Superclass::AddRepresentationInternal(rep);
+
+  for (auto& repr : to_add)
+  {
+    if (repr)
+    {
+      this->AddRepresentation(repr);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::RemoveRepresentationInternal(vtkDataRepresentation* rep)
+void vtkPVView::AddRepresentation(vtkPVDataRepresentation* representation)
 {
-  if (auto dataRep = vtkPVDataRepresentation::SafeDownCast(rep))
+  auto& internals = (*this->Internals);
+  auto iter =
+    std::find(internals.Representations.begin(), internals.Representations.end(), representation);
+  if (iter == internals.Representations.end())
   {
-    if (this->DeliveryManager)
+    if (representation->AddToView(this))
     {
-      this->DeliveryManager->UnRegisterRepresentation(dataRep);
+      this->AddRepresentationInternal(representation);
+      internals.DeliveryManager->RegisterRepresentation(representation);
+      internals.Representations.push_back(representation);
     }
+    this->Modified();
   }
-  this->Superclass::RemoveRepresentationInternal(rep);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::RemoveRepresentation(vtkPVDataRepresentation* representation)
+{
+  auto& internals = (*this->Internals);
+  auto iter =
+    std::find(internals.Representations.begin(), internals.Representations.end(), representation);
+  if (iter != internals.Representations.end())
+  {
+    this->RemoveRepresentationInternal(representation);
+    representation->RemoveFromView(this);
+    internals.DeliveryManager->UnRegisterRepresentation(representation);
+    internals.Representations.erase(iter);
+    this->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -551,121 +622,70 @@ void vtkPVView::SetTileViewport(double x0, double y0, double x1, double y1)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVView::IsCached(vtkPVDataRepresentation* repr)
+std::string vtkPVView::GetChannelName(vtkTypeUInt32 gid)
 {
-  if (this->DeliveryManager && this->DeliveryManager->HasPiece(repr))
-  {
-    vtkLogF(TRACE, "cached %s", repr->GetLogName().c_str());
-    return true;
-  }
-  return false;
+  return "view-image-" + std::to_string(gid);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::ClearCache(vtkPVDataRepresentation* repr)
+void vtkPVView::SetPiece(
+  vtkPVDataRepresentation* repr, int index, vtkDataObject* data, int lodLevel)
 {
-  assert(repr != nullptr);
-  if (!this->GetUseCache() && !repr->GetForceUseCache() && this->DeliveryManager != nullptr)
+  if (auto* self = repr ? repr->GetView() : nullptr)
   {
-    vtkLogF(TRACE, "clear cache %s", repr->GetLogName().c_str());
-    this->DeliveryManager->ClearCache(repr);
+    auto& dManager = self->Internals->DeliveryManager;
+    dManager->SetPiece(repr, index, data, lodLevel);
   }
 }
 
-//-----------------------------------------------------------------------------
-void vtkPVView::SetDeliveryManager(vtkPVDataDeliveryManager* manager)
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkDataObject> vtkPVView::GetPiece(
+  vtkPVDataRepresentation* repr, int index, int lodLevel)
 {
-  if (this->DeliveryManager)
+  if (auto* self = repr ? repr->GetView() : nullptr)
   {
-    this->DeliveryManager->SetView(nullptr);
+    auto& dManager = self->Internals->DeliveryManager;
+    return dManager->GetPiece(repr, index, lodLevel);
   }
-  vtkSetObjectBodyMacro(DeliveryManager, vtkPVDataDeliveryManager, manager);
-  if (this->DeliveryManager)
-  {
-    // not reference counted.
-    this->DeliveryManager->SetView(this);
-  }
-}
 
-//-----------------------------------------------------------------------------
-vtkPVDataDeliveryManager* vtkPVView::GetDeliveryManager(vtkInformation* info)
-{
-  auto* view = info ? vtkPVView::SafeDownCast(info->Get(VIEW())) : nullptr;
-  if (!view)
-  {
-    vtkGenericWarningMacro("Missing VIEW().");
-    return nullptr;
-  }
-  return view->GetDeliveryManager();
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVView::SetPiece(vtkInformation* info, vtkPVDataRepresentation* repr, vtkDataObject* data,
-  unsigned long trueSize, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    dm->SetPiece(repr, data, false, trueSize, port);
-  }
-}
-
-//-----------------------------------------------------------------------------
-vtkDataObject* vtkPVView::GetPiece(vtkInformation* info, vtkPVDataRepresentation* repr, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    return dm->GetPiece(repr, false, port);
-  }
-  return nullptr;
-}
-
-//-----------------------------------------------------------------------------
-vtkDataObject* vtkPVView::GetDeliveredPiece(
-  vtkInformation* info, vtkPVDataRepresentation* repr, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    return dm->GetDeliveredPiece(repr, false, port);
-  }
-  return nullptr;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVView::SetPieceLOD(vtkInformation* info, vtkPVDataRepresentation* repr,
-  vtkDataObject* data, unsigned long trueSize, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    dm->SetPiece(repr, data, true, trueSize, port);
-  }
-}
-
-//-----------------------------------------------------------------------------
-vtkDataObject* vtkPVView::GetPieceLOD(vtkInformation* info, vtkPVDataRepresentation* repr, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    return dm->GetPiece(repr, true, port);
-  }
-  return nullptr;
-}
-
-//-----------------------------------------------------------------------------
-vtkDataObject* vtkPVView::GetDeliveredPieceLOD(
-  vtkInformation* info, vtkPVDataRepresentation* repr, int port)
-{
-  if (auto dm = vtkPVView::GetDeliveryManager(info))
-  {
-    return dm->GetDeliveredPiece(repr, true, port);
-  }
   return nullptr;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::Deliver(int use_lod, unsigned int size, unsigned int* representation_ids)
+vtkPVDataDeliveryManager* vtkPVView::GetDataDeliveryManager() const
 {
-  if (auto dm = this->GetDeliveryManager())
+  const auto& internals = (*this->Internals);
+  return internals.DeliveryManager;
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkPVView::GetRenderedResult() const
+{
+  vtkSynchronizedRenderers::vtkRawImage buffer;
+  if (auto* window = this->GetRenderWindow())
   {
-    dm->Deliver(use_lod, size, representation_ids);
+    auto* renderer = window->GetRenderers()->GetFirstRenderer();
+    vtkLogStartScope(INFO, "capture");
+    buffer.Capture(renderer);
+    vtkLogEndScope("capture");
+
+    vtkJson result;
+#if 0
+    std::vector<std::uint8_t> copy;
+    copy.resize(buffer.GetRawPtr()->GetNumberOfValues());
+    std::copy_n(buffer.GetRawPtr()->GetPointer(0), copy.size(), copy.begin());
+    result["image"] = vtkJson::binary(std::move(copy));
+#else
+    auto* data = buffer.GetRawPtr();
+    data->Register(nullptr);
+    result["image"] = reinterpret_cast<uintptr_t>(data);
+#endif
+    result["gid"] = this->GetGlobalID();
+    result["width"] = buffer.GetWidth();
+    result["height"] = buffer.GetHeight();
+
+    return vtkPacket(std::move(result));
   }
+
+  return vtkPacket();
 }

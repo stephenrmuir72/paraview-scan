@@ -69,6 +69,7 @@ public:
   std::string XMLLabel;
   std::string VTKClassName;
   bool Dirty{ true };
+  bool ObjectsCreated{ false };
 
   // This is a map of all public properties on this proxy i.e. properties on
   // this proxy as well as exposed properties from the sub-proxies.
@@ -92,6 +93,13 @@ public:
         port->UnRegister(nullptr);
       }
     }
+
+    if (this->ObjectsCreated && this->Session && this->GlobalID)
+    {
+      auto packet = vtkRemoteObjectProvider::DeleteObject(this->GlobalID);
+      this->Session->SendMessage(this->Location, std::move(packet));
+    }
+
     this->OutputPorts.clear();
     this->UpdateInformationSubject.get_subscriber().on_completed();
     this->UpdatePipelineSubject.get_subscriber().on_completed();
@@ -463,8 +471,17 @@ bool vtkSMProxy::UpdateVTKObjects()
     vtkJson state = this->SaveState(/*verbose=*/false);
     if (!state.empty())
     {
+      if (!internals.ObjectsCreated)
+      {
+        this->PreCreateVTKObjects();
+      }
       auto packet = vtkRemoteObjectProvider::UpdateState(internals.GlobalID, state);
       internals.Session->SendMessage(internals.Location, std::move(packet));
+      if (!internals.ObjectsCreated)
+      {
+        this->PostCreateVTKObjects();
+        internals.ObjectsCreated = true;
+      }
     }
   }
 
@@ -532,6 +549,15 @@ rxcpp::observable<bool> vtkSMProxy::UpdatePipeline(double time)
     .take(1)
     .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
     .observe_on(coordination);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::InvokeCommand(const std::string& name)
+{
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
+  internals.Session->SendMessage(internals.Location, std::move(packet));
 }
 
 //----------------------------------------------------------------------------
@@ -670,6 +696,12 @@ void vtkSMProxy::MarkPipelineUpdated()
   // Notify the world that this algorithm has re-executed.
   this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
 }
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::PreCreateVTKObjects() {}
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::PostCreateVTKObjects() {}
 
 //----------------------------------------------------------------------------
 void vtkSMProxy::PrintSelf(ostream& os, vtkIndent indent)

@@ -24,7 +24,8 @@
 #define vtkPVGeometryFilter_h
 
 #include "vtkDataObjectAlgorithm.h"
-#include "vtkPVVTKExtensionsFiltersRenderingModule.h" // needed for export macro
+#include "vtkServerManagerViewsModule.h" // needed for exports
+
 class vtkCallbackCommand;
 class vtkDataSet;
 class vtkDataSetSurfaceFilter;
@@ -48,7 +49,7 @@ class vtkUnstructuredGridGeometryFilter;
 class vtkAMRBox;
 class vtkOverlappingAMR;
 
-class VTKPVVTKEXTENSIONSFILTERSRENDERING_EXPORT vtkPVGeometryFilter : public vtkDataObjectAlgorithm
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVGeometryFilter : public vtkDataObjectAlgorithm
 {
 public:
   static vtkPVGeometryFilter* New();

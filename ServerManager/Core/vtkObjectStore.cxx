@@ -57,9 +57,11 @@ void vtkObjectStore::RegisterObject(vtkTypeUInt32 gid, vtkSmartPointer<vtkObject
   if (object)
   {
     auto& internals = (*this->Internals);
-    const std::lock_guard<std::mutex> lk(internals.ObjectMapMutex);
+    std::unique_lock<std::mutex> lk(internals.ObjectMapMutex);
     internals.ObjectMap[gid] = object;
+    lk.unlock(); // release lock before firing signals
     this->Modified();
+    this->InvokeEvent(vtkObjectStore::RegisterObjectEvent, object.GetPointer());
   }
 }
 
@@ -67,11 +69,14 @@ void vtkObjectStore::RegisterObject(vtkTypeUInt32 gid, vtkSmartPointer<vtkObject
 void vtkObjectStore::UnregisterObject(vtkTypeUInt32 gid)
 {
   auto& internals = (*this->Internals);
-  const std::lock_guard<std::mutex> lk(internals.ObjectMapMutex);
+  std::unique_lock<std::mutex> lk(internals.ObjectMapMutex);
   auto iter = internals.ObjectMap.find(gid);
   if (iter != internals.ObjectMap.end())
   {
+    vtkSmartPointer<vtkObject> object = iter->second;
     internals.ObjectMap.erase(iter);
+    lk.unlock(); // release lock before firing signals
+    this->InvokeEvent(vtkObjectStore::UnregisterObjectEvent, iter->second.GetPointer());
     this->Modified();
   }
 }

@@ -29,6 +29,9 @@ public:
 
   static vtkProcessInitializer* New();
 
+  void InitializeService(vtkService* service, vtkObjectStore* store) override;
+  void InitializeServiceEndpoint(vtkServiceEndpoint* endpoint, vtkSession* session) override;
+
 protected:
   vtkProcessInitializer();
   ~vtkProcessInitializer() override;

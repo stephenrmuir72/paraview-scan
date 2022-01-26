@@ -18,6 +18,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkObjectWrapper.h"
 #include "vtkPVDataInformation.h"
+#include "vtkReflection.h"
 #include "vtkSMDoubleRangeDomain.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIdTypeVectorProperty.h"
@@ -40,6 +41,10 @@ vtkSMInstantiator::~vtkSMInstantiator() = default;
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkObject> vtkSMInstantiator::CreateInstance(const std::string& className)
 {
+  if (auto object = vtkReflection::CreateInstance(className))
+  {
+    return object;
+  }
   if (className == "vtkSMProxy")
   {
     return vtk::TakeSmartPointer(vtkSMProxy::New());

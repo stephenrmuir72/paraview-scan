@@ -79,6 +79,7 @@ static const int RenderingVerbosityKey = 4;
 static const int ApplicationVerbosityKey = 5;
 static const int ExecutionVerbosityKey = 6;
 static const int CatalystVerbosityKey = 7;
+static const int ProviderVerbosityKey = 8;
 }
 
 //----------------------------------------------------------------------------
@@ -225,6 +226,25 @@ void vtkPVLogger::SetCatalystVerbosity(vtkLogger::Verbosity value)
   if (value > vtkLogger::VERBOSITY_INVALID && value <= vtkLogger::VERBOSITY_MAX)
   {
     set_verbosity(CatalystVerbosityKey, value);
+  }
+  else
+  {
+    vtkLogF(WARNING, "ignoring invalid verbosity %d", value);
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkLogger::Verbosity vtkPVLogger::GetProviderVerbosity()
+{
+  return get_verbosity(CatalystVerbosityKey, "PARAVIEW_LOG_PROVIDER_VERBOSITY");
+}
+
+//----------------------------------------------------------------------------
+void vtkPVLogger::SetProviderVerbosity(vtkLogger::Verbosity value)
+{
+  if (value > vtkLogger::VERBOSITY_INVALID && value <= vtkLogger::VERBOSITY_MAX)
+  {
+    set_verbosity(ProviderVerbosityKey, value);
   }
   else
   {

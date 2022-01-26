@@ -172,6 +172,7 @@ public:
   std::atomic<bool> ReportInterpreterErrors{ true };
   int ExitCode{ EXIT_SUCCESS };
   bool ExitCodeSet{ false };
+  std::map<void*, std::vector<vtkSmartPointer<vtkObject>>> Artifacts;
 
   vtkInternals() = default;
   ~vtkInternals()
@@ -686,40 +687,6 @@ vtkServicesEngine* vtkProcessModule::GetServicesEngine() const
 void vtkProcessModule::InitializeReflection()
 {
 }
-//----------------------------------------------------------------------------
-vtkSmartPointer<vtkMultiProcessController> vtkProcessModule::NewController() const
-{
-  auto* worldController = this->GetGlobalController();
-  if (vtkDummyController::SafeDownCast(worldController))
-  {
-    auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
-    controller->Initialize(nullptr, nullptr);
-    return controller;
-  }
-
-#if VTK_MODULE_ENABLE_VTK_ParallelMPI
-  auto* worldComm = vtkMPICommunicator::SafeDownCast(worldController->GetCommunicator());
-  auto* mpiHandle = worldComm->GetMPIComm()->GetHandle();
-
-  MPI_Comm clone;
-  MPI_Comm_dup(*mpiHandle, &clone);
-
-  vtkMPICommunicatorOpaqueComm opaqueComm(&clone);
-  vtkNew<vtkMPICommunicator> cloneComm;
-  cloneComm->InitializeExternal(&opaqueComm);
-
-  vtkNew<vtkMPIController> controller;
-  controller->SetCommunicator(cloneComm);
-  // ensure we use broadcast/collectives for RMI rather than p2p messaging.
-  controller->BroadcastTriggerRMIOn();
-
-  return controller.GetPointer();
-#else
-  auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
-  controller->Initialize(nullptr, nullptr);
-  return controller;
-#endif
-}
 
 //-----------------------------------------------------------------------------
 void vtkProcessModule::Exit(int exitCode)
@@ -780,4 +747,39 @@ bool vtkProcessModule::WaitForExit(
   }
   controller->Barrier();
   return internals.ExitCodeSet;
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::RegisterArtifact(vtkObject* source, vtkObject* artifact)
+{
+  auto& internals = (*this->Internals);
+  auto iter = internals.Artifacts.find(source);
+  if (iter != internals.Artifacts.end())
+  {
+    iter->second.push_back(artifact);
+  }
+  else
+  {
+    internals.Artifacts[source].push_back(artifact);
+    source->AddObserver(vtkCommand::DeleteEvent, this, &vtkProcessModule::ReleaseArtifacts);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::ReleaseArtifacts(vtkObject* caller, unsigned long, void*)
+{
+  auto& internals = (*this->Internals);
+  internals.Artifacts.erase(caller);
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::InitializeService(
+  vtkService* vtkNotUsed(service), vtkObjectStore* vtkNotUsed(store))
+{
+}
+
+//-----------------------------------------------------------------------------
+void vtkProcessModule::InitializeServiceEndpoint(
+  vtkServiceEndpoint* vtkNotUsed(endpoint), vtkSession* vtkNotUsed(session))
+{
 }

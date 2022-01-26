@@ -16,173 +16,94 @@
  * @class   vtkPVView
  * @brief   baseclass for all ParaView views.
  *
- * vtkPVView adds API to vtkView for ParaView specific views. Typically, one
- * writes a simple vtkView subclass for their custom view. Then one subclasses
- * vtkPVView to use their own vtkView subclass with added support for
- * parallel rendering, tile-displays and client-server. Even if the view is
- * client-only view, it needs to address these other configuration gracefully.
+ * TODO:
  */
 
 #ifndef vtkPVView_h
 #define vtkPVView_h
 
-#include "vtkServerManagerViewsModule.h" //needed for exports
-#include "vtkView.h"
-#include "vtkWeakPointer.h" // for vtkWeakPointer
+#include "vtkObject.h"
+#include "vtkPVDataRepresentation.h"     // until wrapping if fixed
+#include "vtkPacket.h"                   // for vtkPacket
+#include "vtkServerManagerViewsModule.h" // needed for exports
+#include "vtkSmartPointer.h"             // for vtkSmartPointer
 
-class vtkBoundingBox;
+#include <memory> // for std::unique_ptr
+#include <vector> // for std::vector
+
+class vtkDataObject;
 class vtkInformation;
-class vtkInformationObjectBaseKey;
+class vtkInformationDoubleKey;
 class vtkInformationRequestKey;
 class vtkInformationVector;
+class vtkMultiProcessController;
 class vtkPVDataDeliveryManager;
 class vtkPVDataRepresentation;
 class vtkRenderWindow;
-class vtkViewLayout;
+class vtkCamera;
 
-class VTKSERVERMANAGERVIEWS_EXPORT vtkPVView : public vtkView
+class VTKSERVERMANAGERVIEWS_EXPORT vtkPVView : public vtkObject
 {
 public:
-  vtkTypeMacro(vtkPVView, vtkView);
+  vtkTypeMacro(vtkPVView, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  //@{
+  ///@{
   /**
-   * Set the position on this view in the multiview configuration.
-   * \note CallOnAllProcesses
+   * Each view is assigned a unique id.
    */
-  virtual void SetPosition(int, int);
-  vtkGetVector2Macro(Position, int);
-  //@}
+  void SetGlobalID(vtkTypeUInt32 gid);
+  vtkTypeUInt32 GetGlobalID() const;
+  ///@}
+
+  ///@{
+  /**
+   * Get/Set the parallel controller.
+   */
+  void SetController(vtkMultiProcessController* controller);
+  vtkMultiProcessController* GetController() const;
+  ///@}
+
+  ///@{
+  /**
+   * Set the position on this view in the multi-view configuration.
+   */
+  virtual void SetPosition(int xpos, int ypos);
+  const int* GetPosition() const;
+  ///@}
 
   //@{
   /**
    * Set the size of this view in the multiview configuration.
-   * \note CallOnAllProcesses
    */
-  virtual void SetSize(int, int);
-  vtkGetVector2Macro(Size, int);
-  //@}
+  virtual void SetSize(int width, int height);
+  const int* GetSize() const;
+  ///@}
 
+  ///@{
   /**
-   * Description:
    * Set the screen PPI.
-   * \note CallOnAllProcesses
    */
-  virtual void SetPPI(int);
-  vtkGetMacro(PPI, int);
+  void SetPPI(int ppi);
+  int GetPPI() const;
+  ///@}
 
-  /**
-   * Triggers a high-resolution render.
-   * \note CallOnAllProcesses
-   */
-  virtual void StillRender() = 0;
-
-  /**
-   * Triggers a interactive render. Based on the settings on the view, this may
-   * result in a low-resolution rendering or a simplified geometry rendering.
-   * \note CallOnAllProcesses
-   */
-  virtual void InteractiveRender() = 0;
-
-  //@{
+  ///@{
   /**
    * Get/Set the time this view is showing.
-   *
-   * \note CallOnAllProcesses
    */
   virtual void SetViewTime(double value);
-  vtkGetMacro(ViewTime, double);
-  //@}
+  double GetViewTime() const;
+  ///@}
 
-  //@{
+  ///@{
   /**
-   * Get/Set the cache key. When caching is enabled, this key is used to
-   * identify what geometry cache to use for the current render. It is passed on
-   * to the representations in vtkPVView::Update(). The CacheKey is respected
-   * only when UseCache is true.
-   * \note CallOnAllProcesses
+   * This is solely intended to simplify debugging and use for any other purpose
+   * is vehemently discouraged.
    */
-  vtkSetMacro(CacheKey, double);
-  vtkGetMacro(CacheKey, double);
-  //@}
-
-  //@{
-  /**
-   * Get/Set whether caching is enabled.
-   * \note CallOnAllProcesses
-   */
-  vtkSetMacro(UseCache, bool);
-  vtkGetMacro(UseCache, bool);
-  //@}
-
-  //@{
-  /**
-   * These methods are used to setup the view for capturing screen shots.
-   */
-  virtual void PrepareForScreenshot();
-  virtual void CleanupAfterScreenshot();
-  //@}
-
-  /**
-   * Key used to pass the vtkPVView pointer to the representation during any of
-   * the view passes such as REQUEST_UPDATE(), REQUEST_UPDATE_LOD(),
-   * REQUEST_RENDER(), etc.
-   */
-  static vtkInformationObjectBaseKey* VIEW();
-
-  /**
-   * This is a Update-Data pass. All representations are expected to update
-   * their inputs and prepare geometries for rendering. All heavy work that has
-   * to happen only when input-data changes can be done in this pass.
-   * This is the first pass.
-   */
-  static vtkInformationRequestKey* REQUEST_UPDATE();
-
-  /**
-   * This is a Update-LOD-Data pass. All representations are expected to update
-   * their lod-data, if any. This is assured to be called only after
-   * REQUEST_UPDATE() pass.
-   */
-  static vtkInformationRequestKey* REQUEST_UPDATE_LOD();
-
-  /**
-   * This is a render pass. This is called for every render, hence
-   * representations should not do any work that doesn't depend on things that
-   * could change every render.
-   */
-  static vtkInformationRequestKey* REQUEST_RENDER();
-
-  /**
-   * Overridden to not call Update() directly on the input representations,
-   * instead use ProcessViewRequest() for all vtkPVDataRepresentations.
-   */
-  void Update() override;
-
-  /**
-   * Returns true if the application is currently in tile display mode.
-   */
-  bool InTileDisplayMode();
-
-  /**
-   * Returns true if the application is currently in cave/immersive display
-   * mode.
-   */
-  bool InCaveDisplayMode();
-
-  /**
-   * Returns true if the local process can support interaction. This will return
-   * true only on the client node e.g. Qt client (or pvpython)
-   * when connected to builtin or remote server. On server nodes this will return false.
-   * CAVEAT: Currently this returns true on root node on batch and false on all
-   * other nodes. In reality batch processes should not support interaction. Due
-   * to a bug in vtkPVAxesWidget, if there's no interactor, the batch mode ends
-   * up missing the orientation widget and hence rendering differently than
-   * pvpython. To avoid that, this method currently returns true on the root
-   * node in batch mode. This will however change in the future once
-   * vtkPVAxesWidget has been cleaned up.
-   */
-  bool GetLocalProcessSupportsInteraction();
+  void SetLogName(const std::string& name);
+  const std::string& GetLogName() const;
+  ///@}
 
   /**
    * If this view needs a render window (not all views may use one),
@@ -191,7 +112,59 @@ public:
    * views depending on the process on which this is called and the
    * configuration ParaView is running under.
    */
-  vtkRenderWindow* GetRenderWindow() { return this->RenderWindow; }
+  virtual vtkRenderWindow* GetRenderWindow() const { return nullptr; }
+
+  /**
+   * Returns active camera, if available.
+   */
+  virtual vtkCamera* GetActiveCamera() const { return nullptr; }
+
+  ///@{
+  /**
+   * Assign a role to the view. This should be assigned immediately after
+   * creation and should not change during the lifetime of the view.
+   */
+  virtual void InitializeForDataProcessing();
+  virtual void InitializeForRendering();
+  ///@}
+
+  /**
+   * Triggers a high-resolution render.
+   */
+  void StillRender();
+
+  /**
+   * Triggers a interactive render. Based on the settings on the view, this may
+   * result in a low-resolution rendering or a simplified geometry rendering.
+   */
+  void InteractiveRender();
+
+  /**
+   * Updates the representations. This triggers various view passes based on the
+   * role assigned to this view.
+   */
+  void Update();
+
+  /**
+   * This is called when new geometries are available on the rendering services.
+   * The view will triggering rendering passes that provide the new data to the
+   * representations so they can update their rendering pipelines.
+   */
+  void UpdateForRendering();
+
+  static vtkInformationRequestKey* REQUEST_UPDATE_DATA();
+  static vtkInformationRequestKey* REQUEST_UPDATE_DATA_LOD();
+  static vtkInformationRequestKey* REQUEST_UPDATE_RENDERING_INFORMATION();
+  static vtkInformationRequestKey* REQUEST_PREPARE_FOR_RENDER();
+  static vtkInformationRequestKey* REQUEST_PREPARE_FOR_RENDER_LOD();
+  static vtkInformationRequestKey* REQUEST_RENDER();
+  static vtkInformationDoubleKey* UPDATE_TIME_STEP();
+
+  ///@{
+  void AddRepresentation(vtkPVDataRepresentation* representation);
+  void RemoveRepresentation(vtkPVDataRepresentation* representation);
+  void SetRepresentations(const std::vector<vtkPVDataRepresentation*>& representations);
+  ///@}
 
   //@{
   /**
@@ -214,15 +187,6 @@ public:
   void SetTileViewport(double x0, double y0, double x1, double y1);
   //@}
 
-  //@{
-  /**
-   * This is solely intended to simplify debugging and use for any other purpose
-   * is vehemently discouraged.
-   */
-  virtual void SetLogName(const std::string& name) { this->LogName = name; }
-  const std::string& GetLogName() const { return this->LogName; }
-  //@}
-
   /**
    * vtkViewLayout calls this method to update the total viewport available for
    * this view. Generally, views can assume viewport is [0, 0, 1, 1] i.e. the
@@ -238,54 +202,47 @@ public:
   virtual void ScaleRendererViewports(const double viewport[4]);
 
   /**
-   * Provides access to the time when Update() was last called.
+   * Generates a channel name given the proxy's global id.
    */
-  vtkMTimeType GetUpdateTimeStamp() { return this->UpdateTimeStamp; }
-
-  //@{
-  /**
-   * Provides access to data delivery & cache manager for this view.
-   */
-  void SetDeliveryManager(vtkPVDataDeliveryManager*);
-  vtkGetObjectMacro(DeliveryManager, vtkPVDataDeliveryManager);
-  //@}
-
-  static void SetPiece(vtkInformation* info, vtkPVDataRepresentation* repr, vtkDataObject* data,
-    unsigned long trueSize = 0, int port = 0);
-  static vtkDataObject* GetPiece(vtkInformation* info, vtkPVDataRepresentation* repr, int port = 0);
-  static vtkDataObject* GetDeliveredPiece(
-    vtkInformation* info, vtkPVDataRepresentation* repr, int port = 0);
-
-  static void SetPieceLOD(vtkInformation* info, vtkPVDataRepresentation* repr, vtkDataObject* data,
-    unsigned long trueSize = 0, int port = 0);
-  static vtkDataObject* GetPieceLOD(
-    vtkInformation* info, vtkPVDataRepresentation* repr, int port = 0);
-  static vtkDataObject* GetDeliveredPieceLOD(
-    vtkInformation* info, vtkPVDataRepresentation* repr, int port = 0);
+  static std::string GetChannelName(vtkTypeUInt32 gid);
 
   /**
-   * Called on all processes to request data-delivery for the list of
-   * representations. Note this method has to be called on all processes or it
-   * may lead to deadlock.
+   * Returns true if the application is currently in tile display mode.
    */
-  virtual void Deliver(int use_lod, unsigned int size, unsigned int* representation_ids);
+  bool InTileDisplayMode();
 
   /**
-   * Called in `vtkPVDataRepresentation::ProcessViewRequest` to check if the
-   * representation already has cached data. If so, the representation may
-   * choose to not update itself.
+   * Returns true if the application is currently in cave/immersive display
+   * mode.
    */
-  virtual bool IsCached(vtkPVDataRepresentation*);
+  bool InCaveDisplayMode();
 
   /**
-   * Called by `vtkPVDataRepresentation` whenever
-   * `vtkPVDataRepresentation::MarkModified` is called. Subclasses may use this
-   * method to clear internal caches, if needed.
+   * Representations can call this method to pass data for rendering to the
+   * view. This can only be called on data-processing service.
    */
-  virtual void ClearCache(vtkPVDataRepresentation*);
+  static void SetPiece(
+    vtkPVDataRepresentation* repr, int index, vtkDataObject* data, int lodLevel = 0);
+
+  /**
+   * Representations can call this method to obtain data for rendering. If
+   * available, the data will be returned.
+   */
+  static vtkSmartPointer<vtkDataObject> GetPiece(
+    vtkPVDataRepresentation* repr, int index, int lodLevel = 0);
+
+  /**
+   * Provides access to the view's data delivery manager.
+   */
+  vtkPVDataDeliveryManager* GetDataDeliveryManager() const;
+
+  /**
+   * Capture current rendering result and returns it.
+   */
+  vtkPacket GetRenderedResult() const;
 
 protected:
-  vtkPVView(bool create_render_window = true);
+  vtkPVView();
   ~vtkPVView() override;
 
   /**
@@ -294,79 +251,31 @@ protected:
    */
   vtkRenderWindow* NewRenderWindow();
 
+  ///@{
   /**
-   * Subclasses can use this method to set the render window created for this
-   * view.
+   * Subclasses can override these methods to know when representations are
+   * added or removed.
    */
-  void SetRenderWindow(vtkRenderWindow*);
+  virtual void AddRepresentationInternal(vtkPVDataRepresentation* rep){};
+  virtual void RemoveRepresentationInternal(vtkPVDataRepresentation* rep){};
+  ///@}
 
-  //@{
-  /**
-   * Overridden to assign IDs to each representation. This assumes that
-   * representations will be added/removed in a consistent fashion across
-   * processes even in multi-client modes. The only exception is
-   * vtk3DWidgetRepresentation. However, since vtk3DWidgetRepresentation never
-   * does any data-delivery, we don't assign IDs for these, nor affect the ID
-   * uniquifier when a vtk3DWidgetRepresentation is added.
-   */
-  void AddRepresentationInternal(vtkDataRepresentation* rep) override;
-  void RemoveRepresentationInternal(vtkDataRepresentation* rep) override;
-  //@}
-
-  //@{
-  /**
-   * These are passed as arguments to
-   * vtkDataRepresentation::ProcessViewRequest(). This avoid repeated creation
-   * and deletion of vtkInformation objects.
-   */
-  vtkInformation* RequestInformation;
-  vtkInformationVector* ReplyInformationVector;
-  //@}
-
-  //@{
+  ///@{
   /**
    * Subclasses can use this method to trigger a pass on all representations.
    * @returns the count for representations that processed the call and returned
    * success.
    */
-  int CallProcessViewRequest(
-    vtkInformationRequestKey* passType, vtkInformation* request, vtkInformationVector* reply);
-  //@}
-
-  /**
-   * Flag set to true between calls to `PrepareForScreenshot` and
-   * `CleanupAfterScreenshot`.
-   */
-  vtkGetMacro(InCaptureScreenshot, bool);
-
-  double ViewTime;
-  double CacheKey;
-  bool UseCache;
-
-  int Size[2];
-  int Position[2];
-  int PPI;
-
-  /**
-   * Keeps track of the time when vtkPVRenderView::Update() was called.
-   */
-  vtkTimeStamp UpdateTimeStamp;
-
-  static vtkPVDataDeliveryManager* GetDeliveryManager(vtkInformation* info);
+  int CallProcessViewRequest(vtkInformation* request);
+  ///@}
 
 private:
   vtkPVView(const vtkPVView&) = delete;
   void operator=(const vtkPVView&) = delete;
 
-  vtkRenderWindow* RenderWindow;
-  bool ViewTimeValid;
-  std::string LogName;
-
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
   static bool UseGenericOpenGLRenderWindow;
-
-  bool InCaptureScreenshot;
-
-  vtkPVDataDeliveryManager* DeliveryManager;
 };
 
 #endif

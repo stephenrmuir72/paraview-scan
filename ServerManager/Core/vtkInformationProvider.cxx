@@ -14,14 +14,14 @@
 =========================================================================*/
 #include "vtkInformationProvider.h"
 
-#include "vtkLogger.h"
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkObjectWrapper.h"
 #include "vtkPVInformation.h"
-#include "vtkSMInstantiator.h"
+#include "vtkPVLogger.h"
+#include "vtkReflection.h"
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 
@@ -30,7 +30,6 @@ class vtkInformationProvider::vtkInternals
 public:
   vtkInformationProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   std::vector<rxcpp::composite_subscription> Subscriptions;
 
   vtkInternals(vtkInformationProvider* self)
@@ -53,11 +52,11 @@ public:
 vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& request) const
 {
   const auto infoClassName = request.at("class").get<std::string>();
-  auto object = vtkSMInstantiator::CreateInstance(infoClassName);
-  auto* info = vtkPVInformation::SafeDownCast(object);
+  auto info = vtkReflection::CreateInstance<vtkPVInformation>(infoClassName);
 
-  const auto rank = this->Controller->GetLocalProcessId();
-  const auto numRanks = this->Controller->GetNumberOfProcesses();
+  auto* controller = this->Self->GetController();
+  const auto rank = controller->GetLocalProcessId();
+  const auto numRanks = controller->GetNumberOfProcesses();
   if (info->GetRootOnly() && rank > 0)
   {
     return {};
@@ -83,7 +82,7 @@ vtkJson vtkInformationProvider::vtkInternals::GatherInformation(const vtkJson& r
     }
 
     std::vector<vtkMultiProcessStream> streams;
-    this->Controller->Gather(stream, streams, 0);
+    controller->Gather(stream, streams, 0);
     if (rank == 0)
     {
       streams.erase(streams.begin());
@@ -117,7 +116,7 @@ vtkInformationProvider::vtkInformationProvider()
 //----------------------------------------------------------------------------
 vtkInformationProvider::~vtkInformationProvider()
 {
-  vtkLogF(INFO, "vtkInformationProvider::~vtkInformationProvider()");
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "vtkInformationProvider::~vtkInformationProvider()");
 }
 
 //----------------------------------------------------------------------------
@@ -132,20 +131,6 @@ vtkObjectStore* vtkInformationProvider::GetObjectStore() const
 {
   const auto& internals = (*this->Internals);
   return internals.ObjectStore;
-}
-
-//----------------------------------------------------------------------------
-void vtkInformationProvider::SetController(vtkMultiProcessController* controller)
-{
-  auto& internals = (*this->Internals);
-  internals.Controller = controller;
-}
-
-//----------------------------------------------------------------------------
-vtkMultiProcessController* vtkInformationProvider::GetController() const
-{
-  const auto& internals = (*this->Internals);
-  return internals.Controller;
 }
 
 //----------------------------------------------------------------------------
@@ -182,7 +167,8 @@ void vtkInformationProvider::InitializeInternal(vtkService* service)
       .subscribe([&internals](const vtkServiceReceiver& receiver) {
         const auto& packet = receiver.GetPacket();
         const auto& json = packet.GetJSON();
-        vtkLogF(INFO, "%s", json.dump(-1).c_str());
+        const auto txt = json.dump(-1);
+        vtkVLogScopeF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "%s", txt.c_str());
         receiver.Respond(internals.GatherInformation(json));
       });
 

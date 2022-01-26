@@ -52,7 +52,7 @@ vtkPVRenderViewSettings::vtkPVRenderViewSettings()
   , EnableFastPreselection(false)
   , BackgroundColor{ 0, 0, 0 }
   , Background2Color{ 0, 0, 0 }
-  , BackgroundColorMode(vtkPVRenderView::DEFAULT)
+//  , BackgroundColorMode(vtkPVRenderView::DEFAULT)
 {
 }
 

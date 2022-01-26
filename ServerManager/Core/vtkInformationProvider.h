@@ -25,7 +25,6 @@
 #include "vtkServerManagerCoreModule.h"
 
 class vtkObjectStore;
-class vtkMultiProcessController;
 class vtkPVInformation;
 
 class VTKSERVERMANAGERCORE_EXPORT vtkInformationProvider : public vtkProvider
@@ -41,15 +40,6 @@ public:
    */
   void SetObjectStore(vtkObjectStore* store);
   vtkObjectStore* GetObjectStore() const;
-  ///@}
-
-  ///@{
-  /**
-   * Get/Set the controller to use to reduce information in a distributed
-   * environment.
-   */
-  void SetController(vtkMultiProcessController* controller);
-  vtkMultiProcessController* GetController() const;
   ///@}
 
   static vtkPacket GatherInformation(vtkPVInformation* information, vtkTypeUInt32 targetGID);

@@ -145,6 +145,11 @@ public:
   rxcpp::observable<bool> UpdatePipeline(double time);
 
   /**
+   * Invoke command.
+   */
+  void InvokeCommand(const std::string& name);
+
+  /**
    * Returns the number of output ports, if any. A proxy may have one or more
    * output ports if it represents a vtkAlgorithm or subclass with one or more
    * outputs.
@@ -198,6 +203,16 @@ protected:
    * may be referenced in the state.
    */
   bool LoadState(const vtkJson& json, vtkSMStateContext* context);
+
+  ///@{
+  /**
+   * These method is called before/after the first state for this proxy is pushed.
+   * That indicates that the service-side VTK objects would potentially be
+   * created.
+   */
+  virtual void PreCreateVTKObjects();
+  virtual void PostCreateVTKObjects();
+  ///@}
 
 private:
   vtkSMProxy(const vtkSMProxy&) = delete;

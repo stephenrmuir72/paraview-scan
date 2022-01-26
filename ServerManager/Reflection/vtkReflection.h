@@ -47,6 +47,14 @@ public:
    */
   static vtkSmartPointer<vtkObject> CreateInstance(const std::string& name);
 
+  template <typename T,
+    typename SFINAE = typename std::enable_if<std::is_base_of<vtkObject, T>::value>::type>
+  static vtkSmartPointer<T> CreateInstance(const std::string& name)
+  {
+    auto object = vtkReflection::CreateInstance(name);
+    return T::SafeDownCast(object);
+  }
+
   static bool Set(vtkObject* object, const std::string& methodName,
     const std::vector<vtkVariant>& args, const std::string& className = {});
 

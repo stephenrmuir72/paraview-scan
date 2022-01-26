@@ -29,34 +29,44 @@
 #
 #==========================================================================
 set(classes
-  vtkPVDataDeliveryManager
-  vtkPVDataRepresentation
-  vtkPVDataRepresentationPipeline
-  vtkPVProcessWindow
-  vtkPVRenderingCapabilitiesInformation
-  vtkPVView
-  vtkPVRenderViewSettings
-  vtkPVRenderView
-  vtkViewLayout
-  vtkOrderedCompositingHelper
-  vtkPVAxesWidget
-  vtkPVAxesActor
-  vtkPVCenterAxesActor
-  vtkTilesHelper
-  vtkPVCameraCollection
-
+  vtkGeometryRepresentation
   vtkGridAxes2DActor
   vtkGridAxes3DActor
   vtkGridAxesHelper
   vtkGridAxesPlane2DActor
+  vtkInteractionProvider
+  vtkOrderedCompositingHelper
+  vtkPVAxesActor
+  vtkPVAxesWidget
+  vtkPVCameraCollection
+  vtkPVCenterAxesActor
+  vtkPVDataDeliveryManager
+  vtkPVDataRepresentation
+  vtkPVDataRepresentationPipeline
+  vtkPVGeometryFilter
   vtkPVGridAxes3DActor
+  vtkPVLODActor
   vtkPVMaterialLibrary
-  )
+  vtkPVProcessWindow
+  vtkPVRecoverGeometryWireframe
+  vtkPVRenderingCapabilitiesInformation
+  vtkPVRenderView
+  vtkPVRenderViewSettings
+  vtkPVView
+  vtkPVViewProvider
+  vtkSMViewProxy
+  vtkTilesHelper
+  vtkViewLayout
+)
 
 set(private_headers
-  vtkPVDataDeliveryManagerInternals.h)
+  vtkGeometryRepresentationInternal.h
+  )
 
 vtk_module_add_module(ParaView::ServerManagerViews
   CLASSES ${classes}
   PRIVATE_HEADERS ${private_headers}
 )
+
+paraview_add_server_manager_xmls(
+  XMLS  XML/ParaView_ServerManagerViews.xml)

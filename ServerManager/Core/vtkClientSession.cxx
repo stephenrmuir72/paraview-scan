@@ -37,7 +37,7 @@ public:
    */
   void InitializeSession(vtkClientSession* self);
 
-  std::vector<vtkServiceEndpoint*> GetEndpoints(vtkTypeUInt32 destination) const
+  std::vector<vtkServiceEndpoint*> GetEndpoints(int destination) const
   {
     std::vector<vtkServiceEndpoint*> endpoints;
     if ((destination & vtkClientSession::DATA_SERVER) != 0)
@@ -96,6 +96,8 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
     //       return std::get<0>(status) && std::get<1>(status);
     //   });
     internals.InitializeSession(this);
+    pm->InitializeServiceEndpoint(internals.DSEndpoint, this);
+    pm->InitializeServiceEndpoint(internals.RSEndpoint, this);
   }
 
   return rxcpp::sources::never<bool>();
@@ -191,6 +193,13 @@ vtkServiceEndpoint* vtkClientSession::GetEndpoint(ServiceTypes type) const
     default:
       return nullptr;
   }
+}
+
+//----------------------------------------------------------------------------
+std::vector<vtkServiceEndpoint*> vtkClientSession::GetEndpoints(int type) const
+{
+  const auto& internals = (*this->Internals);
+  return internals.GetEndpoints(type);
 }
 
 //----------------------------------------------------------------------------

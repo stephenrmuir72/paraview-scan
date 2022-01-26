@@ -14,8 +14,10 @@
 =========================================================================*/
 /**
  * @class vtkRemoteObjectProvider
- * @brief
+ * @brief provider that adds support for remote-objects
  *
+ * vtkRemoteObjectProvider is the provider to add support for handling messages
+ * sent by vtkSMProxy for creation / updating / deletion of remote VTK objects.
  */
 
 #ifndef vtkRemoteObjectProvider_h
@@ -26,7 +28,6 @@
 #include "vtkServerManagerCoreModule.h"
 
 class vtkObjectStore;
-class vtkMultiProcessController;
 class vtkProxyDefinitionManager;
 
 class VTKSERVERMANAGERCORE_EXPORT vtkRemoteObjectProvider : public vtkProvider
@@ -46,15 +47,6 @@ public:
 
   ///@{
   /**
-   * Get/Set the controller to use to reduce information in a distributed
-   * environment.
-   */
-  void SetController(vtkMultiProcessController* controller);
-  vtkMultiProcessController* GetController() const;
-  ///@}
-
-  ///@{
-  /**
    * Get/Set the proxy definition manager.
    */
   void SetProxyDefinitionManager(vtkProxyDefinitionManager* mgr);
@@ -68,6 +60,8 @@ public:
   static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkJson& json);
   static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
+  static vtkPacket DeleteObject(vtkTypeUInt32 gid);
+  static vtkPacket InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
   ///@}
 
   ///@{

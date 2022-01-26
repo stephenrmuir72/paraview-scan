@@ -88,7 +88,7 @@ private:
 
   ///@{
   /**
-   * Serialize to/from UBJSON format.
+   * Serialize to/from CBOR format.
    */
   std::vector<uint8_t> GetBinary() const;
   void SetBinary(const std::vector<uint8_t>& buffer);

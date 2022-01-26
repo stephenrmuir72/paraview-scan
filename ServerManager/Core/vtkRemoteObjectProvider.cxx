@@ -15,15 +15,14 @@
 #include "vtkRemoteObjectProvider.h"
 
 #include "vtkAlgorithm.h"
-#include "vtkLogger.h"
-#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkObjectWrapper.h"
+#include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkProxyDefinitionManager.h"
 #include "vtkReactiveCommand.h"
-#include "vtkSMInstantiator.h"
+#include "vtkReflection.h"
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 
@@ -34,9 +33,8 @@ class vtkRemoteObjectProvider::vtkInternals
 public:
   vtkRemoteObjectProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   vtkSmartPointer<vtkProxyDefinitionManager> ProxyDefinitionManager;
-  std::vector<rxcpp::composite_subscription> Subscriptions;
+  rxcpp::composite_subscription Subscription;
   rxcpp::subjects::subject<vtkTypeUInt32> NotifyUpdateSubject;
 
   vtkInternals(vtkRemoteObjectProvider* self)
@@ -44,13 +42,11 @@ public:
   {
   }
 
-  ~vtkInternals()
-  {
-    for (auto& subscription : this->Subscriptions)
-    {
-      subscription.unsubscribe();
-    }
-  }
+  ~vtkInternals() { this->Subscription.unsubscribe(); }
+
+  void Preview(const vtkPacket& packet) {}
+
+  vtkPacket Process(const vtkPacket& packet);
 
   /**
    * Handle state update. This is only called on the service's main thread.
@@ -67,6 +63,16 @@ public:
    */
   vtkJson UpdatePipeline(vtkTypeUInt32 gid, double time);
 
+  /**
+   * Deletes an object.
+   */
+  void DeleteObject(vtkTypeUInt32 gid);
+
+  /**
+   * Invokes a command.
+   */
+  void InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
+
 private:
   /**
    * Find (or create) object.
@@ -81,7 +87,7 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
   vtkTypeUInt32 gid, const vtkJson& state)
 {
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
-    vtkObjectWrapper::SafeDownCast(this->ObjectStore->FindObject(gid));
+    this->ObjectStore->FindObject<vtkObjectWrapper>(gid);
   if (objWrapper)
   {
     return objWrapper;
@@ -112,7 +118,7 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
 
     auto node = doc.document_element();
     const std::string className = node.attribute("wrapper_class").as_string("vtkObjectWrapper");
-    objWrapper = vtkObjectWrapper::SafeDownCast(vtkSMInstantiator::CreateInstance(className));
+    objWrapper = vtkReflection::CreateInstance<vtkObjectWrapper>(className);
     if (!objWrapper)
     {
       vtkLogF(ERROR, "Unknown wrapper class '%s'", className.c_str());
@@ -130,7 +136,8 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
     // Register the wrapper so it is associated with the global id.
     this->ObjectStore->RegisterObject(gid, objWrapper);
 
-    vtkLogF(INFO, "created instance of '%s' (gid=%u)", className.c_str(), gid);
+    vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "created object (gid=%u, wrapper=%s, object=%s)",
+      gid, vtkLogIdentifier(objWrapper), vtkLogIdentifier(objWrapper->GetVTKObject()));
     return objWrapper;
   }
   catch (vtkJson::out_of_range&)
@@ -148,6 +155,8 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
 //----------------------------------------------------------------------------
 void vtkRemoteObjectProvider::vtkInternals::UpdateState(vtkTypeUInt32 gid, const vtkJson& state)
 {
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdateState(%u, ...)", gid);
+
   auto object = this->GetObject(gid, state);
   if (!object)
   {
@@ -160,6 +169,8 @@ void vtkRemoteObjectProvider::vtkInternals::UpdateState(vtkTypeUInt32 gid, const
 //----------------------------------------------------------------------------
 vtkJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 gid)
 {
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdateInformation(%u)", gid);
+
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
     vtkObjectWrapper::SafeDownCast(this->ObjectStore->FindObject(gid));
   if (!objWrapper)
@@ -174,6 +185,8 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 g
 //----------------------------------------------------------------------------
 vtkJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid, double time)
 {
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdatePipeline(%u, %f)", gid, time);
+
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
     vtkObjectWrapper::SafeDownCast(this->ObjectStore->FindObject(gid));
   if (!objWrapper)
@@ -183,6 +196,66 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid,
   }
 
   return objWrapper->UpdatePipeline(time);
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::vtkInternals::DeleteObject(vtkTypeUInt32 gid)
+{
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "DeleteObject(%u)", gid);
+
+  this->ObjectStore->UnregisterObject(gid);
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::vtkInternals::InvokeCommand(
+  vtkTypeUInt32 gid, const std::string& command)
+{
+  vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "InvokeCommand(%u, %s)", gid, command.c_str());
+
+  if (auto wrapper = this->ObjectStore->FindObject<vtkObjectWrapper>(gid))
+  {
+    wrapper->InvokeCommand(command);
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::vtkInternals::Process(const vtkPacket& packet)
+{
+  const auto& json = packet.GetJSON();
+  vtkVLogScopeF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Process: %s", json.dump(-1).c_str());
+  const auto type = json.at("type").get<std::string>();
+
+  if (type == "vtk-remote-object-update-state")
+  {
+    this->UpdateState(json.at("gid").get<vtkTypeUInt32>(), json.at("state"));
+    return {};
+  }
+
+  if (type == "vtk-remote-object-update-information")
+  {
+    return this->UpdateInformation(json.at("gid").get<vtkTypeUInt32>());
+  }
+
+  if (type == "vtk-remote-object-update-pipeline")
+  {
+    return this->UpdatePipeline(json.at("gid").get<vtkTypeUInt32>(), json.at("time").get<double>());
+  }
+
+  if (type == "vtk-remote-object-delete")
+  {
+    this->DeleteObject(json.at("gid").get<vtkTypeUInt32>());
+    return {};
+  }
+
+  if (type == "vtk-remote-object-invoke-command")
+  {
+    this->InvokeCommand(json.at("gid").get<vtkTypeUInt32>(), json.at("command").get<std::string>());
+    return {};
+  }
+
+  // TODO: return error?
+  vtkLogF(ERROR, "unknown type '%s'", type.c_str());
+  return {};
 }
 
 //----------------------------------------------------------------------------
@@ -213,7 +286,8 @@ vtkRemoteObjectProvider::vtkRemoteObjectProvider()
 //----------------------------------------------------------------------------
 vtkRemoteObjectProvider::~vtkRemoteObjectProvider()
 {
-  vtkLogF(INFO, "vtkRemoteObjectProvider::~vtkRemoteObjectProvider()");
+  vtkVLogF(
+    PARAVIEW_LOG_PROVIDER_VERBOSITY(), "vtkRemoteObjectProvider::~vtkRemoteObjectProvider()");
 }
 
 //----------------------------------------------------------------------------
@@ -244,19 +318,6 @@ vtkProxyDefinitionManager* vtkRemoteObjectProvider::GetProxyDefinitionManager() 
   return internals.ProxyDefinitionManager;
 }
 
-//----------------------------------------------------------------------------
-void vtkRemoteObjectProvider::SetController(vtkMultiProcessController* controller)
-{
-  auto& internals = (*this->Internals);
-  internals.Controller = controller;
-}
-
-//----------------------------------------------------------------------------
-vtkMultiProcessController* vtkRemoteObjectProvider::GetController() const
-{
-  const auto& internals = (*this->Internals);
-  return internals.Controller;
-}
 
 //----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::UpdateState(vtkTypeUInt32 gid, const vtkJson& json)
@@ -288,6 +349,25 @@ vtkPacket vtkRemoteObjectProvider::UpdatePipeline(vtkTypeUInt32 gid, double time
 }
 
 //----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::DeleteObject(vtkTypeUInt32 gid)
+{
+  vtkJson message;
+  message["type"] = "vtk-remote-object-delete";
+  message["gid"] = gid;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::string& command)
+{
+  vtkJson message;
+  message["type"] = "vtk-remote-object-invoke-command";
+  message["gid"] = gid;
+  message["command"] = command;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
 std::vector<vtkTypeUInt32> vtkRemoteObjectProvider::ParseNotifyUpdate(const vtkPacket& packet)
 {
   return packet.GetJSON().at("gids").get<std::vector<vtkTypeUInt32>>();
@@ -298,63 +378,29 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
 {
   assert(service != nullptr);
   auto& internals = (*this->Internals);
-  auto updateStateSubscription =
-    service->GetRequestObservable(/*skipEventLoop*/ true)
-      .filter([](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
-        auto iter = json.find("type");
-        return (iter != json.end() &&
-          iter.value().get<std::string>() == "vtk-remote-object-update-state");
-      })
-      .map([](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
-        vtkLogF(INFO, "received update_state(%u)", json.at("gid").get<vtkTypeUInt32>());
-        return receiver.GetPacket();
-      })
-      .observe_on(service->GetRunLoopScheduler())
-      .subscribe([&internals](const vtkPacket& packet) {
-        const auto& json = packet.GetJSON();
-        vtkLogF(INFO, "%s", json.dump(-1).c_str());
-        internals.UpdateState(json.at("gid").get<vtkTypeUInt32>(), json.at("state"));
-      });
 
-  auto updateInformationSubscription =
-    service->GetRequestObservable(/*skipEventLoop*/ true)
+  auto observable = service->GetRequestObservable(/*skipEventLoop*/ true);
+
+  // since we want to handle each message in order it is received we create a
+  // single processing stream.
+  internals.Subscription =
+    observable
       .filter([](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
+        auto& json = receiver.GetPacket().GetJSON();
         auto iter = json.find("type");
-        return (iter != json.end() &&
-          iter.value().get<std::string>() == "vtk-remote-object-update-information");
+        return iter != json.end() &&
+          iter.value().get<std::string>().find("vtk-remote-object-") != std::string::npos;
+      })
+      .map([&internals](const vtkServiceReceiver& receiver) {
+        internals.Preview(receiver.GetPacket());
+        return receiver;
       })
       .observe_on(service->GetRunLoopScheduler())
       .subscribe([&internals](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
-        auto gid = json.at("gid").get<vtkTypeUInt32>();
-        vtkLogF(INFO, "received update_information(%u)", gid);
-        receiver.Respond(internals.UpdateInformation(gid));
+        receiver.Respond(internals.Process(receiver.GetPacket()));
       });
 
-  auto updatePipelineSubscription =
-    service->GetRequestObservable(/*skipEventLoop*/ true)
-      .filter([](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
-        auto iter = json.find("type");
-        return (iter != json.end() &&
-          iter.value().get<std::string>() == "vtk-remote-object-update-pipeline");
-      })
-      .observe_on(service->GetRunLoopScheduler())
-      .subscribe([&internals](const vtkServiceReceiver& receiver) {
-        const auto& json = receiver.GetPacket().GetJSON();
-        auto gid = json.at("gid").get<vtkTypeUInt32>();
-        auto time = json.at("time").get<double>();
-        vtkLogScopeF(INFO, "received update_pipeline(%u, time=%f)", gid, time);
-        receiver.Respond(internals.UpdatePipeline(gid, time));
-      });
-
-  internals.Subscriptions.emplace_back(std::move(updateStateSubscription));
-  internals.Subscriptions.emplace_back(std::move(updateInformationSubscription));
-  internals.Subscriptions.emplace_back(std::move(updatePipelineSubscription));
-
+  // publish pipeline-updated notifications periodically.
   internals.NotifyUpdateSubject.get_observable()
     .buffer_with_time(std::chrono::milliseconds(500), service->GetRunLoopScheduler())
     .filter([](auto& vector) { return !vector.empty(); })

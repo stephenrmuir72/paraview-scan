@@ -39,7 +39,11 @@
 
 class vtkInformation;
 class vtkMultiProcessController;
+class vtkObjectStore;
+class vtkService;
+class vtkServiceEndpoint;
 class vtkServicesEngine;
+class vtkSession;
 
 class VTKSERVERMANAGERCORE_EXPORT vtkProcessModule : public vtkObject
 {
@@ -158,14 +162,6 @@ public:
   vtkServicesEngine* GetServicesEngine() const;
 
   /**
-   * This is used to create a new controller that is a duplicate of the main
-   * controller.
-   *
-   * When using MPI, this will be a controller with a different handle.
-   */
-  vtkSmartPointer<vtkMultiProcessController> NewController() const;
-
-  /**
    * Sets the exit code and will cause `WaitForExit` event loop to exit.
    */
   void Exit(int exitCode);
@@ -187,9 +183,20 @@ public:
   bool WaitForExit(
     const rxcpp::schedulers::run_loop& rlp, const std::chrono::milliseconds& duration) const;
 
+  ///@{
+  /**
+   * Called to initialize a new service or a service endpoint using a session
+   * creation.
+   */
+  virtual void InitializeService(vtkService* service, vtkObjectStore* store);
+  virtual void InitializeServiceEndpoint(vtkServiceEndpoint* endpoint, vtkSession* session);
+  ///@}
+
 protected:
   vtkProcessModule();
   ~vtkProcessModule() override;
+
+  void RegisterArtifact(vtkObject* source, vtkObject* artifact);
 
 private:
   static vtkProcessModule* New();
@@ -220,6 +227,8 @@ private:
   static vtkSmartPointer<vtkProcessModule> Singleton;
   static int DefaultMinimumGhostLevelsToRequestForStructuredPipelines;
   static int DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines;
+
+  void ReleaseArtifacts(vtkObject* caller, unsigned long, void*);
 };
 
 #endif // vtkProcessModule_h

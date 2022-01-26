@@ -1,4 +1,4 @@
-vtk_add_test_cxx(vtkRemotingCoreCxxTests tests
+vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
   NO_DATA NO_VALID NO_OUTPUT
   #  TestPartialArraysInformation.cxx
   # TestPVArrayInformation.cxx
@@ -7,8 +7,8 @@ vtk_add_test_cxx(vtkRemotingCoreCxxTests tests
   TestRemoteObjectProvider.cxx
   )
 
-vtk_add_test_cxx(vtkRemotingCoreCxxTests tests
+vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
   --server
   TestProcessModuleForServer,TestProcessModule.cxx,NO_VALID)
 
-vtk_test_cxx_executable(vtkRemotingCoreCxxTests tests)
+vtk_test_cxx_executable(vtkServerManagerCoreCxxTests tests)

@@ -158,6 +158,14 @@ public:
   bool ProcessEventsFor(
     const std::chrono::duration<Rep, Period>& duration, Predicate stopProcessing);
 
+  /**
+   * This is used to create a new controller that is a duplicate of the main
+   * controller.
+   *
+   * When using MPI, this will be a controller with a different handle.
+   */
+  vtkSmartPointer<vtkMultiProcessController> NewController() const;
+
 protected:
   vtkServicesEngine();
   ~vtkServicesEngine() override;

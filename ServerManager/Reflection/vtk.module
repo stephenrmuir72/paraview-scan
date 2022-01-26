@@ -6,7 +6,6 @@ GROUPS
   PARAVIEW_CORE
 DEPENDS
   VTK::CommonCore
-  VTK::CommonExecutionModel
 TEST_DEPENDS
   VTK::TestingCore
 TEST_LABELS

@@ -60,6 +60,7 @@ public:
   const std::thread::id OwnerTID{ std::this_thread::get_id() };
   vtkServicesEngine* Engine{ nullptr };
   std::string Name;
+  vtkSmartPointer<vtkMultiProcessController> Controller;
 
   // This is the subject that is used to dispatch all messages received by this
   // service.
@@ -108,6 +109,7 @@ void vtkService::Initialize(vtkServicesEngine* engine, const std::string& name)
   internals.Initialized = true;
   internals.Engine = engine;
   internals.Name = name;
+  internals.Controller = engine->NewController();
 
   auto* controller = engine->GetController();
   if (controller->GetLocalProcessId() > 0)
@@ -130,6 +132,13 @@ vtkServicesEngine* vtkService::GetEngine() const
 {
   auto& internals = (*this->Internals);
   return internals.Engine;
+}
+
+//----------------------------------------------------------------------------
+vtkMultiProcessController* vtkService::GetController() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Controller;
 }
 
 //----------------------------------------------------------------------------
