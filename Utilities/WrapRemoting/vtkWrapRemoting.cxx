@@ -642,7 +642,7 @@ int vtkWrapRemoting_IsValueWrappable(ValueInfo*& val)
   {
     return 0;
   }
-  if (vtkWrap_IsRef(val) || vtkWrap_IsCharPointer(val))
+  if (vtkWrap_IsRef(val) && vtkWrap_IsCharPointer(val))
   {
     return 0;
   }
