@@ -14,16 +14,18 @@
 =========================================================================*/
 #include "vtkGeometryRepresentation.h"
 
+#include "vtkCompositeDataSet.h"
 #include "vtkCompositePolyDataMapper2.h"
 #include "vtkDataObject.h"
+#include "vtkDataSet.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
-#include "vtkProcessModule.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -59,7 +61,8 @@ public:
     this->Actor->SetProperty(this->Property);
   }
 };
-
+int vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = 1;
+int vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = 0;
 vtkStandardNewMacro(vtkGeometryRepresentation);
 //----------------------------------------------------------------------------
 vtkGeometryRepresentation::vtkGeometryRepresentation()
@@ -96,7 +99,7 @@ int vtkGeometryRepresentation::RequestUpdateExtent(
       auto* inInfo = inputVector[cc]->GetInformationObject(kk);
       int ghostLevels =
         inInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS());
-      ghostLevels += vtkProcessModule::GetNumberOfGhostLevelsToRequest(inInfo);
+      ghostLevels += vtkGeometryRepresentation::GetNumberOfGhostLevelsToRequest(inInfo);
       inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(), ghostLevels);
     }
   }
@@ -188,6 +191,62 @@ bool vtkGeometryRepresentation::RequestRender(vtkInformation* vtkNotUsed(request
   return true;
 }
 
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetDefaultMinimumGhostLevelsToRequestForStructuredPipelines(int val)
+{
+  vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = val;
+}
+
+//----------------------------------------------------------------------------
+int vtkGeometryRepresentation::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
+{
+  return vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForStructuredPipelines;
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines(
+  int val)
+{
+  vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = val;
+}
+
+//----------------------------------------------------------------------------
+int vtkGeometryRepresentation::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines()
+{
+  return vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines;
+}
+
+//----------------------------------------------------------------------------
+int vtkGeometryRepresentation::GetNumberOfGhostLevelsToRequest(vtkInformation* info)
+{
+  if (vtkPVCoreApplication::GetInstance()->GetNumberOfRanks() <= 1)
+  {
+    return 0;
+  }
+
+  vtkDataSet* ds = vtkDataSet::GetData(info);
+  if (ds || vtkCompositeDataSet::GetData(info) != nullptr)
+  {
+    // Check if this is structured-pipeline, this includes unstructured pipelines
+    // downstream from structured source e.g. Wavelet - > Clip.
+    // To do that, we use a trick. If WHOLE_EXTENT() key us present, it must have
+    // started as a structured dataset.
+    // The is one exception to this for ExplicitStructuredGrid data, their
+    // behavior is both structured and unstructured but regarding ghost cells
+    // they have the behavior of an unstructured dataset.
+    const bool is_structured = (info->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()) != 0) &&
+      (!ds || (ds && !ds->IsA("vtkExplicitStructuredGrid")));
+    return is_structured
+      ? vtkGeometryRepresentation::GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines()
+      : vtkGeometryRepresentation::GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines();
+  }
+  else
+  {
+    // the pipeline is for a non-dataset/composite-dataset filter. don't bother
+    // asking for ghost levels.
+    return 0;
+  }
+}
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {

@@ -29,6 +29,7 @@
 #
 #==========================================================================
 set(classes
+  vtkClientSessionViews
   vtkGeometryRepresentation
   vtkGridAxes2DActor
   vtkGridAxes3DActor
@@ -54,6 +55,7 @@ set(classes
   vtkPVRenderViewSettings
   vtkPVView
   vtkPVViewProvider
+  vtkServerSessionViews
   vtkSMViewProxy
   vtkTilesHelper
   vtkViewLayout
@@ -63,9 +65,23 @@ set(private_headers
   vtkGeometryRepresentationInternal.h
   )
 
+vtk_object_factory_declare(
+  BASE "vtkServerSession"
+  OVERRIDE "vtkServerSessionViews")
+
+vtk_object_factory_declare(
+  BASE "vtkClientSession"
+  OVERRIDE "vtkClientSessionViews")
+
+vtk_object_factory_configure(
+  SOURCE_FILE vtk_object_factory_source
+  HEADER_FILE vtk_object_factory_header
+  EXPORT_MACRO "VTKSERVERMANAGERVIEWS_EXPORT")
+
 vtk_module_add_module(ParaView::ServerManagerViews
-  CLASSES ${classes}
-  PRIVATE_HEADERS ${private_headers}
+  CLASSES         ${classes}
+  SOURCES         ${vtk_object_factory_source}
+  PRIVATE_HEADERS ${private_headers} ${vtk_object_factory_header}
 )
 
 paraview_add_server_manager_xmls(

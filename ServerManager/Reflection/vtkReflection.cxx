@@ -65,10 +65,10 @@ struct vtkReflectionSingleton
 
 vtkStandardNewMacro(vtkReflection);
 //----------------------------------------------------------------------------
-vtkReflection::vtkReflection() {}
+vtkReflection::vtkReflection() = default;
 
 //----------------------------------------------------------------------------
-vtkReflection::~vtkReflection() {}
+vtkReflection::~vtkReflection() = default;
 
 //----------------------------------------------------------------------------
 void vtkReflection::RegisterNew(

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkBuiltinSession.cxx
+  Module:    vtkPVReflection.cxx
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -12,32 +12,26 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkBuiltinSession.h"
+#include "vtkPVReflection.h"
 
-#include "vtkLogger.h"
-#include "vtkNew.h"
+#include "paraview_reflection.h"
 #include "vtkObjectFactory.h"
-#include "vtkServerSession.h"
 
-class vtkBuiltinSession::vtkInternals
-{
-public:
-  vtkNew<vtkServerSession> ServerSession;
-};
-
-vtkStandardNewMacro(vtkBuiltinSession);
+vtkObjectFactoryNewMacro(vtkPVReflection);
 //----------------------------------------------------------------------------
-vtkBuiltinSession::vtkBuiltinSession()
-  : Internals(new vtkBuiltinSession::vtkInternals())
+vtkPVReflection::vtkPVReflection() = default;
+
+//----------------------------------------------------------------------------
+vtkPVReflection::~vtkPVReflection() = default;
+
+//----------------------------------------------------------------------------
+void vtkPVReflection::Initialize()
 {
-  this->Connect().subscribe([](bool status) { vtkLogF(INFO, "connected %d", status); });
+  paraview_reflection_initialize();
 }
 
 //----------------------------------------------------------------------------
-vtkBuiltinSession::~vtkBuiltinSession() = default;
-
-//----------------------------------------------------------------------------
-void vtkBuiltinSession::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPVReflection::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

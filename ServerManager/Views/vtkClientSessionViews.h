@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkBuiltinSession.h
+  Module:    vtkClientSessionViews.h
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -13,30 +13,33 @@
 
 =========================================================================*/
 /**
- * @class vtkBuiltinSession
+ * @class vtkClientSessionViews
  * @brief
  *
  */
 
-#ifndef vtkBuiltinSession_h
-#define vtkBuiltinSession_h
+#ifndef vtkClientSessionViews_h
+#define vtkClientSessionViews_h
 
 #include "vtkClientSession.h"
+#include "vtkServerManagerViewsModule.h" // for exports
 
-class VTKSERVERMANAGERCORE_EXPORT vtkBuiltinSession : public vtkClientSession
+class VTKSERVERMANAGERVIEWS_EXPORT vtkClientSessionViews : public vtkClientSession
 {
 public:
-  static vtkBuiltinSession* New();
-  vtkTypeMacro(vtkBuiltinSession, vtkClientSession);
+  static vtkClientSessionViews* New();
+  vtkTypeMacro(vtkClientSessionViews, vtkClientSession);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
-  vtkBuiltinSession();
-  ~vtkBuiltinSession() override;
+  vtkClientSessionViews();
+  ~vtkClientSessionViews();
+
+  void InitializeServiceEndpoint(vtkServiceEndpoint* endpoint) override;
 
 private:
-  vtkBuiltinSession(const vtkBuiltinSession&) = delete;
-  void operator=(const vtkBuiltinSession&) = delete;
+  vtkClientSessionViews(const vtkClientSessionViews&) = delete;
+  void operator=(const vtkClientSessionViews&) = delete;
 
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;

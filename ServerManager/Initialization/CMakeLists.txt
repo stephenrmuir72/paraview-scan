@@ -29,23 +29,22 @@
 #
 #==========================================================================
 set(classes
-  vtkProcessInitializer)
+  vtkPVReflection)
 
 vtk_object_factory_declare(
-  BASE "vtkProcessModule"
-  OVERRIDE "vtkProcessInitializer")
-  
+  BASE "vtkReflectionInitializer"
+  OVERRIDE "vtkPVReflection")
+
 vtk_object_factory_configure(
   SOURCE_FILE vtk_object_factory_source
   HEADER_FILE vtk_object_factory_header
   EXPORT_MACRO "VTKSERVERMANAGERINITIALIZATION_EXPORT")
-  
 
 vtk_module_add_module(ParaView::ServerManagerInitialization
-  CLASSES ${classes}
-    SOURCES         ${vtk_object_factory_source}
-    PRIVATE_HEADERS ${vtk_object_factory_header}
-  )
+  CLASSES         ${classes}
+  SOURCES         ${vtk_object_factory_source}
+  PRIVATE_HEADERS ${vtk_object_factory_header}
+)
 
 vtk_module_remoting_exclude()
 

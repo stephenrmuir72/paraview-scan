@@ -17,7 +17,7 @@
 #include "vtkInformationProvider.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
-#include "vtkProcessModule.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkService.h"
 #include "vtkServicesEngine.h"
@@ -40,9 +40,9 @@ public:
 //----------------------------------------------------------------------------
 void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkServerSession* self)
 {
-  auto* pm = vtkProcessModule::GetProcessModule();
-  assert(pm != nullptr);
-  auto* engine = pm->GetServicesEngine();
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  assert(pvapp != nullptr);
+  auto* engine = pvapp->GetServicesEngine();
 
   ServiceInfo info;
   info.ObjectStore = vtk::TakeSmartPointer(vtkObjectStore::New());
@@ -59,18 +59,26 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   info.Providers.push_back(remoteObjectProvider);
   info.Providers.push_back(informationProvider);
 
-  // Let the vtkProcessModule init the service.
-  pm->InitializeService(info.Service, info.ObjectStore);
+  // let sub-classes initialize services.
+  self->InitializeService(info.Service, info.ObjectStore);
 
   this->Services.emplace(name, info);
   info.Service->Start();
 }
 
 //============================================================================
-vtkStandardNewMacro(vtkServerSession);
+vtkObjectFactoryNewMacro(vtkServerSession);
 //----------------------------------------------------------------------------
 vtkServerSession::vtkServerSession()
   : Internals(new vtkInternals())
+{
+}
+
+//----------------------------------------------------------------------------
+vtkServerSession::~vtkServerSession() = default;
+
+//----------------------------------------------------------------------------
+void vtkServerSession::StartServices()
 {
   auto& internals = (*this->Internals);
   internals.StartService("ds", this);
@@ -78,7 +86,7 @@ vtkServerSession::vtkServerSession()
 }
 
 //----------------------------------------------------------------------------
-vtkServerSession::~vtkServerSession() = default;
+void vtkServerSession::InitializeService(vtkService*, vtkObjectStore*) {}
 
 //----------------------------------------------------------------------------
 void vtkServerSession::PrintSelf(ostream& os, vtkIndent indent)

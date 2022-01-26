@@ -18,7 +18,6 @@
 
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
 #include "vtkRemotingCoreConfiguration.h"
 #include "vtkSMPTools.h"
 #if VTK_MODULE_ENABLE_ParaView_nvpipe
@@ -143,13 +142,6 @@ void vtkPVServerInformation::DeepCopy(vtkPVServerInformation* info)
 //----------------------------------------------------------------------------
 bool vtkPVServerInformation::GatherInformation(vtkObject* vtkNotUsed(obj))
 {
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  if (!pm)
-  {
-    vtkWarningMacro("ProcessModule is not available.");
-    return false;
-  }
-
   auto config = vtkRemotingCoreConfiguration::GetInstance();
   this->Timeout = config->GetTimeout();
   this->TimeoutCommand = config->GetTimeoutCommand();

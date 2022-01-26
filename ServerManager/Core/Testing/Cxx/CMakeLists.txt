@@ -1,14 +1,22 @@
+# vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
+#   NO_DATA NO_VALID NO_OUTPUT
+#   #  TestPartialArraysInformation.cxx
+#   # TestPVArrayInformation.cxx
+#   # TestSpecialDirectories.cxx
+#   # TestProxy.cxx
+#   )
+
 vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
-  NO_DATA NO_VALID NO_OUTPUT
-  #  TestPartialArraysInformation.cxx
-  # TestPVArrayInformation.cxx
-  # TestSpecialDirectories.cxx
-  TestProcessModule.cxx
-  TestRemoteObjectProvider.cxx
-  )
+  --client
+  TestClientApplication,TestPVApplication.cxx,NO_VALID)
 
 vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
   --server
-  TestProcessModuleForServer,TestProcessModule.cxx,NO_VALID)
+  TestServerApplication,TestPVApplication.cxx,NO_VALID)
+
+# TODO
+#vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
+#  --batch
+#  TestBatchApplication,TestPVApplication.cxx,NO_VALID)
 
 vtk_test_cxx_executable(vtkServerManagerCoreCxxTests tests)

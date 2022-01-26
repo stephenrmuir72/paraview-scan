@@ -21,7 +21,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPacket.h"
-#include "vtkProcessModule.h"
 #include "vtkProxyDefinitionManager.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"

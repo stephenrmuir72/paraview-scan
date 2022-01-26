@@ -15,7 +15,8 @@
 #include "vtkPVRenderingCapabilitiesInformation.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkRemotingCoreConfiguration.h"
+#include "vtkPVApplicationOptions.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
 
@@ -41,8 +42,7 @@ namespace
 {
 bool SkipDisplayTest()
 {
-  auto config = vtkRemotingCoreConfiguration::GetInstance();
-  return config->GetDisableXDisplayTests();
+  return vtkPVCoreApplication::GetInstance()->GetOptions()->GetDisableXDisplayTests();
 }
 
 bool SkipOpenGLTest()

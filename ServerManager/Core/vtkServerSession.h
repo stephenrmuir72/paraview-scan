@@ -28,6 +28,9 @@
 #include "vtkSession.h"
 #include <memory> // for std::unique_ptr
 
+class vtkService;
+class vtkObjectStore;
+
 class VTKSERVERMANAGERCORE_EXPORT vtkServerSession : public vtkSession
 {
 public:
@@ -35,9 +38,19 @@ public:
   vtkTypeMacro(vtkServerSession, vtkSession);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  /**
+   * Setups all services.
+   */
+  void StartServices();
+
 protected:
   vtkServerSession();
   ~vtkServerSession() override;
+
+  /**
+   * Subclasses can override this method to setup providers, for example.
+   */
+  virtual void InitializeService(vtkService* service, vtkObjectStore* store);
 
 private:
   vtkServerSession(const vtkServerSession&) = delete;
