@@ -106,6 +106,10 @@ bool vtkObjectWrapper::Initialize(
       return false;
     }
 
+    // Pass gloabl-id to  VTK object;
+    vtkReflection::Set(
+      internals.VTKObject, "SetGlobalID", std::vector<int>{ static_cast<int>(gid) });
+
     // Pass controller to the VTK object; this is a no-op of the "SetController"
     // is not supported by the VTKObject. Passing the controller is crucial to
     // ensure that the VTK object uses the service-specific distributed controller,

@@ -82,8 +82,6 @@ void vtkPVViewProvider::HandleObjectStoreEvent(
     auto* wrapper = vtkObjectWrapper::SafeDownCast(reinterpret_cast<vtkObject*>(callData));
     if (auto* view = wrapper ? vtkPVView::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
     {
-      view->SetGlobalID(internals.ObjectStore->GetID(wrapper));
-      view->SetController(this->GetController());
       if (internals.DataProcessing)
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for data processing (%s)",
@@ -103,8 +101,6 @@ void vtkPVViewProvider::HandleObjectStoreEvent(
     else if (auto* repr =
                wrapper ? vtkPVDataRepresentation::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
     {
-      repr->SetGlobalID(internals.ObjectStore->GetID(wrapper));
-      repr->SetController(this->GetController());
       if (internals.DataProcessing)
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for data processing (%s)",
