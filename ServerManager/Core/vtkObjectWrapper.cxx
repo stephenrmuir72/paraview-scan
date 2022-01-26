@@ -51,6 +51,7 @@ public:
   int NumberOfRanks{ 1 };
   vtkSmartPointer<vtkObject> VTKObject;
   std::map<std::string, PropertyInformation> Properties;
+  std::map<std::string, std::string> Commands;
 };
 
 vtkStandardNewMacro(vtkObjectWrapper);
@@ -80,6 +81,11 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
       info.Method = child.attribute("command").as_string();
       info.InformationOnly = child.attribute("information_only").as_bool(false);
       internals.Properties.emplace(child.attribute("name").as_string(), std::move(info));
+    }
+    else if (strcmp(child.name(), "Command") == 0)
+    {
+      auto name = child.attribute("name").as_string();
+      internals.Commands.emplace(name, child.attribute("method").as_string(name));
     }
   }
   return true;
@@ -195,9 +201,24 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
 }
 
 //----------------------------------------------------------------------------
+void vtkObjectWrapper::InvokeCommand(const std::string& command)
+{
+  const auto& internals = (*this->Internals);
+  auto iter = internals.Commands.find(command);
+  auto* object = this->GetVTKObject();
+  if (object && iter != internals.Commands.end())
+  {
+    vtkReflection::Set(object, iter->second, std::vector<vtkVariant>{});
+  }
+  else
+  {
+    vtkLogF(ERROR, "Unknown command '%s'", command.c_str());
+  }
+}
+
+//----------------------------------------------------------------------------
 vtkJson vtkObjectWrapper::UpdateInformation() const
 {
-  auto& internals = (*this->Internals);
   auto* object = this->GetVTKObject();
   if (auto* algorithm = vtkAlgorithm::SafeDownCast(object))
   {

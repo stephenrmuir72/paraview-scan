@@ -70,6 +70,7 @@ public:
   static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
   static vtkPacket DeleteObject(vtkTypeUInt32 gid);
+  static vtkPacket InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
   ///@}
 
   ///@{

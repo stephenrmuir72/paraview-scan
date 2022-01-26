@@ -49,7 +49,6 @@ public:
   std::vector<vtkWeakPointer<vtkSMDomain>> DependentDomains;
 };
 
-vtkStandardNewMacro(vtkSMProperty);
 //----------------------------------------------------------------------------
 vtkSMProperty::vtkSMProperty()
   : Internals(new vtkSMProperty::vtkInternals())
@@ -317,6 +316,7 @@ int vtkSMProperty::GetPropertyType(const std::string& className)
   {
     return INPUT;
   }
+
   return INVALID;
 }
 

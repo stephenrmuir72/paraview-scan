@@ -61,6 +61,11 @@ public:
   void UpdateState(const vtkJson& state, vtkRemoteObjectProvider* provider);
 
   /**
+   * Invokes a command.
+   */
+  void InvokeCommand(const std::string& command);
+
+  /**
    * Returns state for all information properties.
    */
   vtkJson UpdateInformation() const;

@@ -71,6 +71,11 @@ public:
    */
   void DeleteObject(vtkTypeUInt32 gid);
 
+  /**
+   * Invokes a command.
+   */
+  void InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
+
 private:
   /**
    * Find (or create) object.
@@ -197,6 +202,16 @@ void vtkRemoteObjectProvider::vtkInternals::DeleteObject(vtkTypeUInt32 gid)
 }
 
 //----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::vtkInternals::InvokeCommand(
+  vtkTypeUInt32 gid, const std::string& command)
+{
+  if (auto wrapper = this->ObjectStore->FindObject<vtkObjectWrapper>(gid))
+  {
+    wrapper->InvokeCommand(command);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* objWrapper) const
 {
   auto gid = objWrapper->GetGlobalID();
@@ -300,6 +315,16 @@ vtkPacket vtkRemoteObjectProvider::DeleteObject(vtkTypeUInt32 gid)
 }
 
 //----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::string& command)
+{
+  vtkJson message;
+  message["type"] = "vtk-remote-object-invoke-command";
+  message["gid"] = gid;
+  message["command"] = command;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
 std::vector<vtkTypeUInt32> vtkRemoteObjectProvider::ParseNotifyUpdate(const vtkPacket& packet)
 {
   return packet.GetJSON().at("gids").get<std::vector<vtkTypeUInt32>>();
@@ -378,10 +403,28 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
                                 internals.DeleteObject(gid);
                               });
 
+  auto invokeCommandSubscription =
+    service->GetRequestObservable(/*skipEventLoop*/ true)
+      .filter([](const vtkServiceReceiver& receiver) {
+        const auto& json = receiver.GetPacket().GetJSON();
+        auto iter = json.find("type");
+        return (iter != json.end() &&
+          iter.value().get<std::string>() == "vtk-remote-object-invoke-command");
+      })
+      .observe_on(service->GetRunLoopScheduler())
+      .subscribe([&internals](const vtkServiceReceiver& receiver) {
+        const auto& json = receiver.GetPacket().GetJSON();
+        auto gid = json.at("gid").get<vtkTypeUInt32>();
+        auto command = json.at("command").get<std::string>();
+        vtkLogScopeF(INFO, "received invoke_command(%u, command=%s)", gid, command.c_str());
+        internals.InvokeCommand(gid, command);
+      });
+
   internals.Subscriptions.emplace_back(std::move(updateStateSubscription));
   internals.Subscriptions.emplace_back(std::move(updateInformationSubscription));
   internals.Subscriptions.emplace_back(std::move(updatePipelineSubscription));
   internals.Subscriptions.emplace_back(std::move(deleteSubscription));
+  internals.Subscriptions.emplace_back(std::move(invokeCommandSubscription));
 
   internals.NotifyUpdateSubject.get_observable()
     .buffer_with_time(std::chrono::milliseconds(500), service->GetRunLoopScheduler())

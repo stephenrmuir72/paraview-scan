@@ -145,6 +145,11 @@ public:
   rxcpp::observable<bool> UpdatePipeline(double time);
 
   /**
+   * Invoke command.
+   */
+  void InvokeCommand(const std::string& name);
+
+  /**
    * Returns the number of output ports, if any. A proxy may have one or more
    * output ports if it represents a vtkAlgorithm or subclass with one or more
    * outputs.

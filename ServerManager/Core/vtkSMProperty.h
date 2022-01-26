@@ -154,14 +154,12 @@ class vtkSMStateContext;
 class VTKSERVERMANAGERCORE_EXPORT vtkSMProperty : public vtkObject
 {
 public:
-  static vtkSMProperty* New();
   vtkTypeMacro(vtkSMProperty, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum PropertyTypes
   {
     INVALID,
-    NO_VALUE,
     INT,
     DOUBLE,
     ID_TYPE,
@@ -300,7 +298,7 @@ public:
   /**
    * Returns the type elements this property holds.
    */
-  virtual int GetElementType() const { return vtkSMProperty::NO_VALUE; }
+  virtual int GetElementType() const = 0;
 
   ///@{
   /**

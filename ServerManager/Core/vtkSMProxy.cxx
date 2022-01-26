@@ -552,6 +552,15 @@ rxcpp::observable<bool> vtkSMProxy::UpdatePipeline(double time)
 }
 
 //----------------------------------------------------------------------------
+void vtkSMProxy::InvokeCommand(const std::string& name)
+{
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
+  internals.Session->SendMessage(internals.Location, std::move(packet));
+}
+
+//----------------------------------------------------------------------------
 int vtkSMProxy::GetNumberOfOutputPorts() const
 {
   const auto& internals = (*this->Internals);
