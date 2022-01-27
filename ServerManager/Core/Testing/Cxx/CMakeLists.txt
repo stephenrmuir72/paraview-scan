@@ -6,6 +6,7 @@
    # TestProxy.cxx
    TestDomainIterator.cxx
    TestPropertyIterator.cxx
+   TestProxyManagerIterator.cxx
    )
 
 vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
