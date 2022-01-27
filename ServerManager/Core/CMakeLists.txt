@@ -57,6 +57,8 @@ set(classes
   vtkSession
   vtkSMCommand
   vtkSMDomain
+  vtkSMDomainIterator
+  vtkSMDomainRange
   vtkSMDoubleRangeDomain
   vtkSMDoubleVectorProperty
   vtkSMIdTypeVectorProperty

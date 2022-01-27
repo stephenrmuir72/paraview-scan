@@ -4,6 +4,7 @@
    # TestPVArrayInformation.cxx
    # TestSpecialDirectories.cxx
    # TestProxy.cxx
+   TestDomainIterator.cxx
    TestPropertyIterator.cxx
    )
 
