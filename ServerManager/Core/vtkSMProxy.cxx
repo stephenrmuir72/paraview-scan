@@ -846,3 +846,16 @@ void vtkSMProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
+
+//----------------------------------------------------------------------------
+vtkSMPropertyRange vtkSMProxy::GetProperties()
+{
+  return vtkSMPropertyRange(this, this->Internals->Properties);
+}
+
+//----------------------------------------------------------------------------
+vtkSMOrderedPropertyRange vtkSMProxy::GetOrderedProperties()
+{
+  return vtkSMOrderedPropertyRange(
+    this, this->Internals->Properties, this->Internals->PropertyNamesOrder);
+}

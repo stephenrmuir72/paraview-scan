@@ -64,8 +64,12 @@ set(classes
   vtkSMInstantiator
   vtkSMIntRangeDomain
   vtkSMIntVectorProperty
+  vtkSMOrderedPropertyIterator
+  vtkSMOrderedPropertyRange
   vtkSMOutputPort
   vtkSMProperty
+  vtkSMPropertyIterator
+  vtkSMPropertyRange
   vtkSMProxy
   vtkSMProxyManager
   vtkSMProxyProperty
