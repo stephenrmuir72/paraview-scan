@@ -175,7 +175,7 @@ void pqPythonScriptEditor::createMenus()
   this->editMenu->addAction(&this->Actions[Action::Undo]);
   this->editMenu->addAction(&this->Actions[Action::Redo]);
 
-  this->Actions.updateScriptsList();
+  this->Actions.updateScriptsList(this->PythonManager);
   auto menu = menuBar()->addMenu(this->tr("&Scripts"));
   menu->setToolTipsVisible(true);
   menu->addAction(&this->Actions[Action::SaveFileAsScript]);
@@ -231,7 +231,7 @@ void pqPythonScriptEditor::updateMacroList()
 void pqPythonScriptEditor::updateScriptList()
 {
   auto editor = pqPythonScriptEditor::getUniqueInstance();
-  editor->Actions.updateScriptsList();
+  editor->Actions.updateScriptsList(editor->PythonManager);
   editor->Actions.FillQMenu(editor->scriptMenus);
 }
 
