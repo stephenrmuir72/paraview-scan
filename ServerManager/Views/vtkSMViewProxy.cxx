@@ -96,6 +96,7 @@ private:
         break;
 
       case vtkCommand::WindowResizeEvent:
+      case vtkCommand::ConfigureEvent:
         this->UpdateSize();
         break;
     }
@@ -141,6 +142,10 @@ void vtkSMViewProxy::vtkInternals::SetupInteractor()
     iren->AddObserver(vtkCommand::RenderEvent, this, &vtkInternals::HandleInteractorEvent));
   this->InteractorObserverIds.push_back(
     iren->AddObserver(vtkCommand::WindowResizeEvent, this, &vtkInternals::HandleInteractorEvent));
+
+  // XOpenGLRenderWindow fires ConfigureEvent when window resizes.
+  this->InteractorObserverIds.push_back(
+    iren->AddObserver(vtkCommand::ConfigureEvent, this, &vtkInternals::HandleInteractorEvent));
   this->RenderWindow->RemoveObserver(this->RenderWindowObserverId);
   this->RenderWindowObserverId = 0;
 }
