@@ -47,6 +47,7 @@ set(classes
   vtkPVServerOptions
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
+  vtkReflectionInitializer
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
@@ -65,7 +66,6 @@ set(classes
   vtkSMProxyProperty
   vtkSMStringVectorProperty
   vtkStringUtilities
-  vtkReflectionInitializer
 )
 set(template_classes
   vtkSMPropertyTemplate
@@ -89,7 +89,6 @@ set(old_classes
   vtkPVPluginLoader
   vtkPVPluginsInformation
   vtkPVPluginTracker
-  vtkPVProgressHandler
   vtkPVPythonInformation
   vtkPVPythonModule
   vtkPVPythonPluginInterface

@@ -14,13 +14,17 @@
 =========================================================================*/
 #include "vtkClientSession.h"
 
+#include "vtkChannelSubscription.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVCoreApplication.h"
+#include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"
+#include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
 #include "vtkServiceEndpoint.h"
 #include "vtkServicesEngine.h"
+#include "vtkSmartPointer.h"
 
 #include <cassert>
 
@@ -31,6 +35,10 @@ public:
   vtkSmartPointer<vtkServiceEndpoint> DSEndpoint;
   vtkSmartPointer<vtkServiceEndpoint> RSEndpoint;
   vtkSmartPointer<vtkSMProxyManager> ProxyManager;
+  std::vector<vtkSmartPointer<vtkChannelSubscription>> ProgressSubscriptions;
+
+  rxcpp::subjects::subject<std::tuple<std::string, vtkSMProxy*, std::string, int8_t>>
+    ProgressSubject;
 
   /**
    * Called when the session is ready.
@@ -116,7 +124,22 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
 }
 
 //----------------------------------------------------------------------------
-void vtkClientSession::InitializeServiceEndpoint(vtkServiceEndpoint*) {}
+void vtkClientSession::InitializeServiceEndpoint(vtkServiceEndpoint* endpoint)
+{
+  const std::string serviceName = endpoint->GetServiceName();
+  auto& internals = (*this->Internals);
+  auto subscription = endpoint->Subscribe(vtkRemoteObjectProvider::CHANNEL_PROGRESS());
+  subscription->GetObservable().subscribe([&internals, serviceName](const vtkPacket& packet) {
+    const auto tuple = vtkRemoteObjectProvider::ParseProgress(packet);
+    auto proxy = internals.ProxyManager->FindProxy(std::get<0>(tuple));
+    auto text = std::get<1>(tuple);
+    auto progress = std::get<2>(tuple);
+    vtkLogF(INFO, "progress %s %s %d", proxy->GetName().c_str(), text.c_str(), progress);
+    internals.ProgressSubject.get_subscriber().on_next(
+      std::make_tuple(serviceName, proxy.GetPointer(), text, progress));
+  });
+  internals.ProgressSubscriptions.push_back(subscription);
+}
 
 //----------------------------------------------------------------------------
 vtkSMProxyManager* vtkClientSession::GetProxyManager() const

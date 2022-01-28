@@ -68,6 +68,12 @@ public:
   static const std::string CHANNEL_NOTIFY_UPDATE() { return "notify::update"; }
   static std::vector<vtkTypeUInt32> ParseNotifyUpdate(const vtkPacket& packet);
   ///@}
+
+  ///@{
+  static const std::string CHANNEL_PROGRESS() { return "pipeline::progress"; }
+  static std::tuple<vtkTypeUInt32, std::string, int8_t> ParseProgress(const vtkPacket& packet);
+  ///@}
+
 protected:
   vtkRemoteObjectProvider();
   ~vtkRemoteObjectProvider() override;
