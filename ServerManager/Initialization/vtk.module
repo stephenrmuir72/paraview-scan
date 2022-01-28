@@ -12,10 +12,4 @@ TEST_LABELS
   ParaView
 DEPENDS
   ParaView::ServerManagerCore
-  ParaView::VTKExtensionsCore
-OPTIONAL_DEPENDS
-  ParaView::ServerManagerViews
-PRIVATE_DEPENDS
   ParaView::ServerManagerReflection
-  ParaView::ServicesThallium
-  ParaView::ServicesCore

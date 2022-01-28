@@ -22,9 +22,10 @@
 #include "vtkInteractionProvider.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVApplicationOptions.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVView.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -95,6 +96,7 @@ private:
         break;
 
       case vtkCommand::WindowResizeEvent:
+      case vtkCommand::ConfigureEvent:
         this->UpdateSize();
         break;
     }
@@ -140,6 +142,10 @@ void vtkSMViewProxy::vtkInternals::SetupInteractor()
     iren->AddObserver(vtkCommand::RenderEvent, this, &vtkInternals::HandleInteractorEvent));
   this->InteractorObserverIds.push_back(
     iren->AddObserver(vtkCommand::WindowResizeEvent, this, &vtkInternals::HandleInteractorEvent));
+
+  // XOpenGLRenderWindow fires ConfigureEvent when window resizes.
+  this->InteractorObserverIds.push_back(
+    iren->AddObserver(vtkCommand::ConfigureEvent, this, &vtkInternals::HandleInteractorEvent));
   this->RenderWindow->RemoveObserver(this->RenderWindowObserverId);
   this->RenderWindowObserverId = 0;
 }
@@ -152,12 +158,12 @@ vtkSMViewProxy::vtkSMViewProxy()
   auto& internals = (*this->Internals);
   internals.Self = this;
 
-  auto* config = vtkRemotingCoreConfiguration::GetInstance();
+  auto* options = vtkPVCoreApplication::GetInstance()->GetOptions();
   if (vtkPVView::GetUseGenericOpenGLRenderWindow())
   {
     internals.RenderWindow = vtk::TakeSmartPointer(vtkGenericOpenGLRenderWindow::New());
   }
-  else if (config->GetForceOffscreenRendering())
+  else if (options->GetForceOffscreenRendering())
   {
     internals.RenderWindow = vtkPVRenderingCapabilitiesInformation::NewOffscreenRenderWindow();
   }

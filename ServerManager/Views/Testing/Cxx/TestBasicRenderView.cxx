@@ -12,11 +12,13 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkBuiltinSession.h"
+#include "vtkClientSession.h"
+#include "vtkDistributedEnvironment.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
+#include "vtkPVApplication.h"
+#include "vtkPVApplicationOptions.h"
 #include "vtkPVDataInformation.h"
-#include "vtkProcessModule.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMOutputPort.h"
@@ -25,10 +27,12 @@
 #include "vtkSMProxyManager.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMViewProxy.h"
+#include "vtkSmartPointer.h"
 
-bool DoTest(vtkBuiltinSession* session, rxcpp::schedulers::run_loop& runLoop)
+#include <vtk_cli11.h>
+
+bool DoTest(vtkClientSession* session, rxcpp::schedulers::run_loop& runLoop)
 {
-  auto* pm = vtkProcessModule::GetProcessModule();
   auto* pxm = session->GetProxyManager();
   auto proxy = pxm->NewProxy("sources", "SphereSource");
   vtkSMPropertyTemplate<int>::SafeDownCast(proxy->GetProperty("PhiResolution"))
@@ -64,9 +68,11 @@ bool DoTest(vtkBuiltinSession* session, rxcpp::schedulers::run_loop& runLoop)
   vtkNew<vtkRenderWindowInteractor> iren;
   iren->SetRenderWindow(view->GetRenderWindow());
   iren->Initialize();
+
+  auto* app = vtkPVCoreApplication::GetInstance();
   while (!iren->GetDone())
   {
-    if (pm->WaitForExit(runLoop, std::chrono::milliseconds(5)))
+    if (app->WaitForExit(runLoop, std::chrono::milliseconds(5)))
     {
       break;
     }
@@ -74,31 +80,43 @@ bool DoTest(vtkBuiltinSession* session, rxcpp::schedulers::run_loop& runLoop)
   }
   viewProxy = nullptr;
   view = nullptr;
+  app->Exit(EXIT_SUCCESS);
   return true;
 }
 
 int TestBasicRenderView(int argc, char* argv[])
 {
-  vtkProcessModule::ProcessTypes type = vtkProcessModule::PROCESS_BATCH;
+  // Create the primary event-loop for the application.
   rxcpp::schedulers::run_loop runLoop;
-  vtkProcessModule::Initialize(type, argc, argv, rxcpp::observe_on_run_loop(runLoop));
-  auto* pm = vtkProcessModule::GetProcessModule();
 
-  // start the server session. this will start the services.
-  auto session = vtk::TakeSmartPointer(vtkBuiltinSession::New());
-  if (pm->GetRank() == 0)
+  // initialize the MPI environment.
+  vtkDistributedEnvironment environment(&argc, &argv);
+
+  // determine what mode this test is running under
+  // and create appropriate application type.
+  vtkNew<vtkPVApplication> app;
+
+  // process command line arguments.
+  CLI::App cli("Test View/Representation application");
+
+  // let's use nicer formatter for help text.
+  vtkPVApplicationOptions::SetupDefaults(cli);
+
+  app->GetOptions()->Populate(cli);
+
+  try
   {
-    auto status = DoTest(session, runLoop);
-    pm->WaitForExit(runLoop, std::chrono::milliseconds(100));
-    pm->Exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
+    cli.parse(argc, argv);
   }
-  else
+  catch (const CLI::ParseError& e)
   {
-    pm->WaitForExit(runLoop);
+    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
   }
 
-  session = nullptr;
-  pm = nullptr;
-  vtkProcessModule::Finalize();
-  return EXIT_SUCCESS;
+  app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
+
+  auto id = app->CreateBuiltinSession();
+  DoTest(app->GetSession(id), runLoop);
+  app->Finalize();
+  return app->GetExitCode();
 }

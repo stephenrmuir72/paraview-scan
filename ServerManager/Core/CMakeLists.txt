@@ -29,24 +29,25 @@
 #
 #==========================================================================
 set(classes
-  vtkBuiltinSession
   vtkClientSession
   vtkDisplayConfiguration
+  vtkDistributedEnvironment
   vtkInformationProvider
   vtkObjectStore
   vtkObjectWrapper
-  vtkProcessModule
-  vtkProcessModuleConfiguration
   vtkProxyDefinitionManager
+  vtkPVApplication
+  vtkPVApplicationOptions
   vtkPVArrayInformation
+  vtkPVCoreApplication
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVInformation
-  vtkPVServerInformation
+  vtkPVServerApplication
+  vtkPVServerOptions
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
   vtkRemoteObjectProvider
-  vtkRemotingCoreConfiguration
   vtkServerSession
   vtkSession
   vtkSMDomain
@@ -64,6 +65,7 @@ set(classes
   vtkSMProxyProperty
   vtkSMStringVectorProperty
   vtkStringUtilities
+  vtkReflectionInitializer
 )
 set(template_classes
   vtkSMPropertyTemplate
@@ -72,6 +74,8 @@ set(template_classes
 
 set(old_classes
   vtkPResourceFileLocator
+  vtkPVServerInformation
+  vtkRemotingCoreConfiguration
   vtkPVDataAssemblyInformation
   vtkPVDataSizeInformation
   vtkPVDynamicInitializerPluginInterface
@@ -126,14 +130,14 @@ set_property(SOURCE vtkPVPluginTracker.cxx APPEND
       "PARAVIEW_RELATIVE_LIBPATH=\"${libdir_relpath}\""
       "PARAVIEW_SUBDIR=\"paraview${paraview_version_suffix}/plugins\"")
 
-set(vtkProcessModule_defines "BUILD_SHARED_LIBS=$<BOOL:${BUILD_SHARED_LIBS}>")
+set(vtkPVCoreApplication_defines "BUILD_SHARED_LIBS=$<BOOL:${BUILD_SHARED_LIBS}>")
 if (PARAVIEW_INITIALIZE_MPI_ON_CLIENT)
-  list(APPEND vtkProcessModule_defines
+  list(APPEND vtkPVCoreApplication_defines
     PARAVIEW_INITIALIZE_MPI_ON_CLIENT)
 endif ()
-set_source_files_properties(vtkProcessModule.cxx
+set_source_files_properties(vtkPVCoreApplication.cxx
   PROPERTIES
-    COMPILE_DEFINITIONS "${vtkProcessModule_defines}")
+    COMPILE_DEFINITIONS "${vtkPVCoreApplication_defines}")
 
 # TODO: Expose CMake options for these?
 set(vtkPVOptions_defines)

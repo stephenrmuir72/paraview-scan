@@ -49,13 +49,13 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVArrayInformation.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVDataSetAttributesInformation.h"
 #include "vtkPVInformationKeys.h"
 #include "vtkPVLogger.h"
 #include "vtkPartitionedDataSet.h"
 #include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
-#include "vtkProcessModule.h"
 #include "vtkRectilinearGrid.h"
 #include "vtkSelection.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -343,8 +343,8 @@ bool vtkPVDataInformation::GatherInformation(vtkObject* object)
     return false;
   }
 
-  auto pm = vtkProcessModule::GetProcessModule();
-  if (this->Rank != -1 && this->Rank != pm->GetRank())
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  if (this->Rank != -1 && this->Rank != pvapp->GetRank())
   {
     // nothing to do.
     return false;

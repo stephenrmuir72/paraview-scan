@@ -45,6 +45,34 @@ public:
    */
   void SetVisibility(bool val) override;
 
+  //@{
+  /**
+   * This is temporary approach to control the number of ghost-levels to request
+   * by default for data pipelines. Currently, change in ghost level
+   * request causes the pipeline to re-execute which can be expensive. In an
+   * ideal world, additional ghost levels can be automatically provided by
+   * data-exchange between ranks. Until we do that, this is only mechanism
+   * available to override the number of ghost levels requested by default.
+   *
+   * The default is 0 for structured pipelines, and 1 for unstructured
+   * pipelines. When not running in parallel, however, these ghost-level
+   * requests don't make sense and hence are generally ignored.
+   *
+   * Note, this is expected to change in the future, so use this with
+   * caution.
+   */
+  static void SetDefaultMinimumGhostLevelsToRequestForStructuredPipelines(int);
+  static int GetDefaultMinimumGhostLevelsToRequestForStructuredPipelines();
+  static void SetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines(int);
+  static int GetDefaultMinimumGhostLevelsToRequestForUnstructuredPipelines();
+  //@}
+
+  /**
+   * This returns number of ghost level to request based on characteristics of
+   * the pipelines.
+   */
+  static int GetNumberOfGhostLevelsToRequest(vtkInformation* outInfo);
+
 protected:
   vtkGeometryRepresentation();
   ~vtkGeometryRepresentation() override;
@@ -80,6 +108,9 @@ private:
 
   std::unique_ptr<vtkDataProcessingInternals> DInternals;
   std::unique_ptr<vtkRenderingInternals> RInternals;
+
+  static int DefaultMinimumGhostLevelsToRequestForStructuredPipelines;
+  static int DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines;
 };
 
 #endif

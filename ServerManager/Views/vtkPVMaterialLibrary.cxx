@@ -16,7 +16,8 @@
 
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
+#include "vtkPVCoreApplication.h"
+#include "vtkPVVersion.h"
 #include "vtkResourceFileLocator.h"
 #include "vtkVersion.h"
 
@@ -63,8 +64,8 @@ vtkPVMaterialLibrary::vtkPVMaterialLibrary()
   {
     // this can happen for static builds (see paraview/paraview#19775),
     // in which case we just we the executable path to locate the materials.
-    auto pm = vtkProcessModule::GetProcessModule();
-    vtklibs = pm ? std::string(pm->GetSelfDir()) : std::string();
+    auto* pvapp = vtkPVCoreApplication::GetInstance();
+    vtklibs = pvapp ? pvapp->GetApplicationDirPath() : std::string();
   }
 
   // where materials might be in relation to that

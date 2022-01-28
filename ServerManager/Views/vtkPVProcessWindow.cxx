@@ -18,8 +18,6 @@
 #include "vtkDisplayConfiguration.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include <vtksys/SystemTools.hxx>
@@ -100,6 +98,7 @@ void vtkPVProcessWindow::PrepareForRendering()
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewWindow()
 {
+#if 0 /// need to redo this
   static bool attempted_once = false;
   if (attempted_once)
   {
@@ -183,11 +182,14 @@ vtkRenderWindow* vtkPVProcessWindow::NewWindow()
     [](vtkObject*, unsigned long, void*, void*) { ::DeleteProcessWindowSingleton(); });
   pm->AddObserver(vtkCommand::ExitEvent, observer);
   return window;
+#endif
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
 {
+#if 0 /// need to redo this
   auto pm = vtkProcessModule::GetProcessModule();
   auto config = vtkRemotingCoreConfiguration::GetInstance();
 
@@ -236,11 +238,14 @@ vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
     window->SetFullScreen(1);
   }
   return window;
+#endif
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
 {
+#if 0 /// need to redo this
   auto pm = vtkProcessModule::GetProcessModule();
   auto config = vtkRemotingCoreConfiguration::GetInstance();
   auto caveConfig = config->GetDisplayConfiguration();
@@ -319,4 +324,6 @@ vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
     window->SetSize(w, h);
   }
   return window;
+#endif
+  return nullptr;
 }

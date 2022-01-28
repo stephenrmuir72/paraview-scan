@@ -93,6 +93,11 @@ protected:
   vtkClientSession();
   ~vtkClientSession() override;
 
+  /**
+   * Give subclasses an opportunity to setup an endpoint.
+   */
+  virtual void InitializeServiceEndpoint(vtkServiceEndpoint* endpoint);
+
 private:
   vtkClientSession(const vtkClientSession&) = delete;
   void operator=(const vtkClientSession&) = delete;

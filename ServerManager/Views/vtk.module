@@ -8,6 +8,8 @@ CONDITION
   PARAVIEW_ENABLE_RENDERING
 KIT
   ParaView::ServerManagerKit
+IMPLEMENTS
+  ParaView::ServerManagerCore
 DEPENDS
   ParaView::ServerManagerCore
   VTK::ViewsCore

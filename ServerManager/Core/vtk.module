@@ -23,12 +23,13 @@ PRIVATE_DEPENDS
   VTK::vtksys
 OPTIONAL_DEPENDS
   ParaView::nvpipe
+  VTK::mpi
   VTK::ParallelMPI
   VTK::PythonInterpreter
   VTK::WrappingPythonCore
-
 TEST_DEPENDS
-  VTK::TestingCore
   ParaView::ServerManagerInitialization
+  ParaView::ServerManagerViews
+  VTK::TestingCore
 TEST_LABELS
   ParaView

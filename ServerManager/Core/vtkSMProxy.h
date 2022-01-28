@@ -195,8 +195,11 @@ protected:
    * Save proxy state. `verbose` is set to true to save extraneous information
    * useful for public facing state files. This will include things like domains
    * etc.
+   *
+   * It tstamp is non-zero, then only those properties that have been modified
+   * since the tstamp are saved to the state.
    */
-  vtkJson SaveState(bool verbose) const;
+  vtkJson SaveState(bool verbose, vtkMTimeType tstamp = 0) const;
 
   /**
    * Load state. `context` is used to locate other proxies, for example, that

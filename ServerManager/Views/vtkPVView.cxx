@@ -23,14 +23,13 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkOpenGLState.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVDataDeliveryManager.h"
 #include "vtkPVDataRepresentation.h"
 #include "vtkPVLogger.h"
 #include "vtkPVProcessWindow.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVServerInformation.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRendererCollection.h"
 #include "vtkSynchronizedRenderers.h"
@@ -191,14 +190,6 @@ bool vtkPVView::GetUseGenericOpenGLRenderWindow()
 vtkPVView::vtkPVView()
   : Internals(new vtkPVView::vtkInternals())
 {
-  // Ensure vtkProcessModule is setup correctly.
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  if (!pm)
-  {
-    vtkErrorMacro("vtkProcessModule not initialized. Aborting.");
-    abort();
-  }
-
   auto& internals = (*this->Internals);
   internals.DeliveryManager.TakeReference(vtkPVDataDeliveryManager::New());
   internals.DeliveryManager->SetView(this);
@@ -346,12 +337,12 @@ vtkRenderWindow* vtkPVView::NewRenderWindow()
   assert("View has been initialized." && internals.Initialized);
   assert("Called on rendering service." && !internals.InitializedForDataProcessing);
 
-  auto pm = vtkProcessModule::GetProcessModule();
-  auto config = vtkRemotingCoreConfiguration::GetInstance();
-
-  // A little bit of a hack. I am not what's a good place to setup the display
-  // environment for this rank. So doing it here.
-  config->HandleDisplayEnvironment();
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  // FIXME:
+  // auto config = vtkRemotingCoreConfiguration::GetInstance();
+  // // A little bit of a hack. I am not what's a good place to setup the display
+  // // environment for this rank. So doing it here.
+  // config->HandleDisplayEnvironment();
 
   vtkSmartPointer<vtkRenderWindow> window;
   // FIXME: ASYNC
@@ -367,20 +358,19 @@ vtkRenderWindow* vtkPVView::NewRenderWindow()
     window->AlphaBitPlanesOn();
 
     std::ostringstream str;
-    switch (pm->GetProcessType())
+    switch (pvapp->GetApplicationType())
     {
-      case vtkProcessModule::PROCESS_SERVER:
+      case vtkPVCoreApplication::SERVER:
         str << "ParaView Server";
         break;
-      case vtkProcessModule::PROCESS_CLIENT:
-      case vtkProcessModule::PROCESS_BATCH:
+
       default:
         str << "ParaView";
         break;
     }
-    if (pm->GetNumberOfRanks() > 1)
+    if (pvapp->GetNumberOfRanks() > 1)
     {
-      str << pm->GetRank();
+      str << pvapp->GetRank();
     }
     window->SetWindowName(str.str().c_str());
     window->Register(this);

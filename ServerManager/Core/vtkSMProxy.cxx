@@ -21,7 +21,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPacket.h"
-#include "vtkProcessModule.h"
 #include "vtkProxyDefinitionManager.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"
@@ -83,6 +82,8 @@ public:
   vtkWeakPointer<vtkSMProperty> AddProperty(const pugi::xml_node& node, vtkSMProxy* self);
   std::vector<vtkWeakPointer<vtkSMProperty>> AddSubProxy(
     const pugi::xml_node& node, vtkSMProxy* self);
+
+  vtkTimeStamp UpdateVTKObjectsTimeStamp;
 
   ~vtkInternals()
   {
@@ -468,7 +469,7 @@ bool vtkSMProxy::UpdateVTKObjects()
 
   if (internals.Dirty)
   {
-    vtkJson state = this->SaveState(/*verbose=*/false);
+    vtkJson state = this->SaveState(/*verbose=*/false, internals.UpdateVTKObjectsTimeStamp);
     if (!state.empty())
     {
       if (!internals.ObjectsCreated)
@@ -488,6 +489,7 @@ bool vtkSMProxy::UpdateVTKObjects()
   if (subproxyUpdated || internals.Dirty)
   {
     internals.Dirty = false;
+    internals.UpdateVTKObjectsTimeStamp.Modified();
     this->InvokeEvent(vtkCommand::UpdateEvent, nullptr);
     return true;
   }
@@ -629,7 +631,7 @@ void vtkSMProxy::ReportReferences(vtkGarbageCollector* collector)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkSMProxy::SaveState(bool verbose) const
+vtkJson vtkSMProxy::SaveState(bool verbose, vtkMTimeType tstamp) const
 {
   const auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
@@ -646,6 +648,12 @@ vtkJson vtkSMProxy::SaveState(bool verbose) const
     {
       // skip exposed properties from sub proxies; they would have been pushed
       // by the sub proxy itself.
+      continue;
+    }
+
+    if (property->GetMTime() < tstamp)
+    {
+      // skip un-modified property
       continue;
     }
 

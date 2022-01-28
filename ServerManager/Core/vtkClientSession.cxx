@@ -16,7 +16,7 @@
 
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkSMProxyManager.h"
 #include "vtkServiceEndpoint.h"
@@ -50,6 +50,18 @@ public:
     }
     return endpoints;
   }
+
+  ~vtkInternals()
+  {
+    if (this->DSEndpoint)
+    {
+      this->DSEndpoint->Shutdown();
+    }
+    if (this->RSEndpoint)
+    {
+      this->RSEndpoint->Shutdown();
+    }
+  }
 };
 
 //----------------------------------------------------------------------------
@@ -61,7 +73,7 @@ void vtkClientSession::vtkInternals::InitializeSession(vtkClientSession* self)
 }
 
 //============================================================================
-vtkStandardNewMacro(vtkClientSession);
+vtkObjectFactoryNewMacro(vtkClientSession);
 //----------------------------------------------------------------------------
 vtkClientSession::vtkClientSession()
   : Internals(new vtkInternals())
@@ -77,10 +89,10 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
 
-  auto* pm = vtkProcessModule::GetProcessModule();
-  assert(pm != nullptr);
-  auto* engine = pm->GetServicesEngine();
-  if (pm->GetRank() == 0)
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  assert(pvapp != nullptr);
+  auto* engine = pvapp->GetServicesEngine();
+  if (pvapp->GetRank() == 0)
   {
     // FIXME: ASYNC
     // These should not "wait"
@@ -96,12 +108,15 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
     //       return std::get<0>(status) && std::get<1>(status);
     //   });
     internals.InitializeSession(this);
-    pm->InitializeServiceEndpoint(internals.DSEndpoint, this);
-    pm->InitializeServiceEndpoint(internals.RSEndpoint, this);
+    this->InitializeServiceEndpoint(internals.DSEndpoint);
+    this->InitializeServiceEndpoint(internals.RSEndpoint);
   }
 
   return rxcpp::sources::never<bool>();
 }
+
+//----------------------------------------------------------------------------
+void vtkClientSession::InitializeServiceEndpoint(vtkServiceEndpoint*) {}
 
 //----------------------------------------------------------------------------
 vtkSMProxyManager* vtkClientSession::GetProxyManager() const
@@ -174,8 +189,8 @@ vtkTypeUInt32 vtkClientSession::GetRootDestination(vtkTypeUInt32 destination)
 //----------------------------------------------------------------------------
 rxcpp::observe_on_one_worker vtkClientSession::GetCoordination() const
 {
-  auto* pm = vtkProcessModule::GetProcessModule();
-  return pm->GetServicesEngine()->GetCoordination();
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  return pvapp->GetServicesEngine()->GetCoordination();
 }
 
 //----------------------------------------------------------------------------

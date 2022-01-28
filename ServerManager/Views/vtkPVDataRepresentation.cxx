@@ -23,10 +23,10 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVCompositeDataPipeline.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVDataRepresentationPipeline.h"
 #include "vtkPVTrivialProducer.h"
 #include "vtkPVView.h"
-#include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
 #include "vtkWeakPointer.h"
 
@@ -323,15 +323,15 @@ int vtkPVDataRepresentation::RequestUpdateExtent(
 {
   // ideally, extent and time information will come from the view in
   // REQUEST_UPDATE(), include view-time.
-  const auto* pm = vtkProcessModule::GetProcessModule();
+  const auto* pvapp = vtkPVCoreApplication::GetInstance();
   const auto& internals = (*this->Internals);
-  for (int cc = 0; cc < this->GetNumberOfInputPorts() && pm != nullptr; cc++)
+  for (int cc = 0; cc < this->GetNumberOfInputPorts() && pvapp != nullptr; cc++)
   {
     for (int kk = 0; kk < inputVector[cc]->GetNumberOfInformationObjects(); kk++)
     {
       vtkInformation* info = inputVector[cc]->GetInformationObject(kk);
-      info->Set(vtkSDDP::UPDATE_PIECE_NUMBER(), pm->GetRank());
-      info->Set(vtkSDDP::UPDATE_NUMBER_OF_PIECES(), pm->GetNumberOfRanks());
+      info->Set(vtkSDDP::UPDATE_PIECE_NUMBER(), pvapp->GetRank());
+      info->Set(vtkSDDP::UPDATE_NUMBER_OF_PIECES(), pvapp->GetNumberOfRanks());
       info->Set(vtkSDDP::UPDATE_NUMBER_OF_GHOST_LEVELS(), 0);
       info->Set(vtkSDDP::EXACT_EXTENT(), 1);
       info->Set(vtkSDDP::UPDATE_TIME_STEP(), internals.UpdateTime);
