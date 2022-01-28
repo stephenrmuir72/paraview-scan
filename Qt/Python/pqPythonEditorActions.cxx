@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqFileDialog.h"
 #include "pqPythonFileIO.h"
+#include "pqPythonManager.h"
 #include "pqPythonScriptEditor.h"
 #include "pqPythonTabWidget.h"
 #include "pqPythonTextArea.h"
@@ -120,7 +121,7 @@ pqPythonEditorActions::pqPythonEditorActions()
 }
 
 //-----------------------------------------------------------------------------
-void pqPythonEditorActions::updateScriptsList()
+void pqPythonEditorActions::updateScriptsList(pqPythonManager* const python_mng)
 {
   auto scripts = details::ListFiles(pqPythonScriptEditor::getScriptsDir());
 
