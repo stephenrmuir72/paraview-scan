@@ -143,6 +143,7 @@ struct pqPythonEditorActions
     Open,
     Load,
     Delete,
+    Run,
 
     END
   };
