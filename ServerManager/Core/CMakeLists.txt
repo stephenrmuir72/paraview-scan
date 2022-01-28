@@ -100,8 +100,8 @@ set(sources)
 set(private_headers)
 
 set(headers
-  vtkParaViewDeprecation.h
-  vtkReservedRemoteObjectIds.h)
+  vtkParaViewDeprecation.h)
+
 if (APPLE)
   list(APPEND sources
     vtkPVMacFileInformationHelper.mm)
