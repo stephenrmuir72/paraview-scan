@@ -110,7 +110,7 @@ int TestBasicRenderView(int argc, char* argv[])
   }
   catch (const CLI::ParseError& e)
   {
-    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
+    return (app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
