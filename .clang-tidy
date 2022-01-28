@@ -4,6 +4,7 @@ boost-*,\
 bugprone-*,\
 -bugprone-argument-comment,\
 -bugprone-branch-clone,\
+-bugprone-easily-swappable-parameters,\
 -bugprone-incorrect-roundings,\
 -bugprone-macro-parentheses,\
 -bugprone-misplaced-widening-cast,\
@@ -79,6 +80,7 @@ readability-*,\
 -readability-braces-around-statements,\
 -readability-convert-member-functions-to-static,\
 -readability-else-after-return,\
+-readability-function-cognitive-complexity,\
 -readability-function-size,\
 -readability-implicit-bool-conversion,\
 -readability-inconsistent-declaration-parameter-name,\
