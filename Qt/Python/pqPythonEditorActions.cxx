@@ -162,6 +162,16 @@ void pqPythonEditorActions::updateScriptsList(pqPythonManager* const python_mng)
       file.remove();
       pqPythonScriptEditor::getUniqueInstance()->updateScriptList();
     });
+
+    QAction* runAction = &actions[ScriptAction::Type::Run];
+    runAction->setText(filename);
+    QObject::connect(runAction, &QAction::triggered, [runAction, python_mng]() {
+      const QString runFilename =
+        pqPythonScriptEditor::getScriptsDir() + "/" + runAction->text() + ".py";
+      python_mng->executeScriptAndRender(runFilename);
+      auto scriptEditor = pqPythonScriptEditor::getUniqueInstance();
+      scriptEditor->open(runFilename);
+    });
   }
 }
 
