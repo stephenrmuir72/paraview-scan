@@ -196,6 +196,11 @@ void pqPythonScriptEditor::createMenus()
   this->scriptMenus[ScriptActionType::Delete]->setStatusTip(this->tr("Delete the script"));
   this->scriptMenus[ScriptActionType::Delete]->setToolTipsVisible(true);
 
+  this->scriptMenus[ScriptActionType::Run] = menu->addMenu(this->tr("Run..."));
+  this->scriptMenus[ScriptActionType::Run]->setStatusTip(
+    this->tr("Open, in a new tab, and run the script"));
+  this->scriptMenus[ScriptActionType::Run]->setToolTipsVisible(true);
+
   this->Actions.FillQMenu(this->scriptMenus);
 }
 
