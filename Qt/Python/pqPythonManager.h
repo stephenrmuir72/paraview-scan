@@ -93,6 +93,19 @@ public:
   void updateMacroList();
 
 public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
+
+  /**
+   * Executes the given code.  If the python interpreter hasn't been initialized
+   * yet it will be initialized.
+   */
+  void executeCode(const QString& code);
+
+  /**
+   * Same as `executeCode()` except that is also triggers a render on all
+   * views in the application after the code has been processed.
+   */
+  void executeCodeAndRender(const QString& code);
+
   /**
    * Executes the given script.  If the python interpreter hasn't been initialized
    * yet it will be initialized.
