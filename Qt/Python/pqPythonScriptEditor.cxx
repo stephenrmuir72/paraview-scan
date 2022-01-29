@@ -106,6 +106,16 @@ pqPythonScriptEditor::pqPythonScriptEditor(QWidget* p)
 }
 
 //-----------------------------------------------------------------------------
+void pqPythonScriptEditor::runCurrentTab()
+{
+  if (!this->TabWidget->getCurrentTextArea()->isEmpty())
+  {
+    const QString& code{ this->TabWidget->getCurrentTextArea()->getTextEdit()->toPlainText() };
+    this->PythonManager->executeCodeAndRender(code);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqPythonScriptEditor::closeEvent(QCloseEvent* e)
 {
   if (this->TabWidget->saveOnClose())
@@ -161,6 +171,7 @@ void pqPythonScriptEditor::createMenus()
   this->fileMenu->addAction(&this->Actions[Action::SaveFileAs]);
   this->fileMenu->addAction(&this->Actions[Action::SaveFileAsMacro]);
   this->fileMenu->addAction(&this->Actions[Action::SaveFileAsScript]);
+  this->fileMenu->addAction(&this->Actions[Action::Run]);
   this->fileMenu->addSeparator();
   this->fileMenu->addAction(&this->Actions[Action::CloseCurrentTab]);
   this->fileMenu->addAction(&this->Actions[Action::Exit]);
