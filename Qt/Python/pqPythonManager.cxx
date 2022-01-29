@@ -165,6 +165,46 @@ void pqPythonManager::addWidgetForDeleteMacros(QWidget* widget)
   this->Internal->MacroSupervisor->addWidgetForDeleteMacros(widget);
 }
 
+void pqPythonManager::executeCode(const QString& code)
+{
+  pqPythonManagerRawInputHelper helper;
+
+  // we capture messages from the script so that when the end up on the
+  // terminal they are grouped as single message, otherwise they get split at
+  // each "\n" since that how Python sends those messages over to us.
+  vtkNew<pqPythonManagerOutputWindow> owindow;
+  vtkSmartPointer<vtkOutputWindow> old = vtkOutputWindow::GetInstance();
+  vtkOutputWindow::SetInstance(owindow);
+  const bool prevCapture = vtkPythonInterpreter::GetCaptureStdin();
+  vtkPythonInterpreter::SetCaptureStdin(true);
+
+  vtkNew<vtkPythonInteractiveInterpreter> interp;
+  interp->AddObserver(vtkCommand::UpdateEvent, &helper, &pqPythonManagerRawInputHelper::rawInput);
+  interp->RunStringWithConsoleLocals(code.toUtf8().data());
+  vtkPythonInterpreter::SetCaptureStdin(prevCapture);
+  vtkOutputWindow::SetInstance(old);
+  interp->RemoveObservers(vtkCommand::UpdateEvent);
+
+  auto txt = owindow->text();
+  if (!txt.empty())
+  {
+    vtkOutputWindowDisplayText(txt.c_str());
+  }
+
+  auto errorText = owindow->errorText();
+  if (!errorText.empty())
+  {
+    vtkOutputWindowDisplayErrorText(errorText.c_str());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqPythonManager::executeCodeAndRender(const QString& code)
+{
+  this->executeCode(code);
+  pqApplicationCore::instance()->render();
+}
+
 //-----------------------------------------------------------------------------
 void pqPythonManager::executeScript(const QString& filename)
 {
