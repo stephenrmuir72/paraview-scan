@@ -95,7 +95,6 @@ set(old_classes
   vtkPVPythonPluginInterface
   vtkPVServerManagerPluginInterface
   vtkPVSystemConfigInformation
-  vtkPVSystemInformation
 )
 set(sources)
 set(private_headers
