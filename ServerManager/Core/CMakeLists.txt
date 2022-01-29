@@ -45,6 +45,7 @@ set(classes
   vtkPVInformation
   vtkPVServerApplication
   vtkPVServerOptions
+  vtkPVSystemConfigInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
   vtkReflectionInitializer
@@ -94,7 +95,6 @@ set(old_classes
   vtkPVPythonModule
   vtkPVPythonPluginInterface
   vtkPVServerManagerPluginInterface
-  vtkPVSystemConfigInformation
 )
 set(sources)
 set(private_headers
