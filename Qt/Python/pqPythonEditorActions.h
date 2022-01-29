@@ -133,6 +133,9 @@ struct pqPythonEditorActions
     CloseCurrentTab,
     Exit,
 
+    // Run Actions
+    Run,
+
     END
   };
 
