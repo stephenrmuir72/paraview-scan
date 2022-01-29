@@ -84,6 +84,9 @@ pqPythonEditorActions::pqPythonEditorActions()
   this->GeneralActions[Action::SaveFileAsScript].setStatusTip(
     QObject::tr("Save the document as a Script"));
 
+  this->GeneralActions[Action::Run].setText(QObject::tr("Run..."));
+  this->GeneralActions[Action::Run].setStatusTip(QObject::tr("Run the current edited text"));
+
   this->GeneralActions[Action::Cut].setText(QObject::tr("Cut"));
   this->GeneralActions[Action::Cut].setShortcut(QKeySequence::Cut);
   this->GeneralActions[Action::Cut].setStatusTip(
@@ -229,6 +232,8 @@ void pqPythonEditorActions::connect<pqPythonScriptEditor>(
 
   QObject::connect(
     &actions[Action::Exit], &QAction::triggered, scriptEditor, &pqPythonScriptEditor::close);
+  QObject::connect(
+    &actions[Action::Run], &QAction::triggered, scriptEditor, &pqPythonScriptEditor::runCurrentTab);
 }
 
 //-----------------------------------------------------------------------------
@@ -241,6 +246,7 @@ void pqPythonEditorActions::disconnect<pqPythonScriptEditor>(
   using Action = pqPythonEditorActions::GeneralActionType;
 
   actions[Action::Exit].disconnect();
+  actions[Action::Run].disconnect();
 }
 
 //-----------------------------------------------------------------------------
