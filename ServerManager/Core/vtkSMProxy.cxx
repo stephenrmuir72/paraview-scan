@@ -24,6 +24,7 @@
 #include "vtkProxyDefinitionManager.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"
+#include "vtkSMCommand.h"
 #include "vtkSMDomain.h"
 #include "vtkSMInstantiator.h"
 #include "vtkSMOutputPort.h"
@@ -77,7 +78,11 @@ public:
   // This helps preserve order for properties as they are defined.
   std::vector<std::string> PropertyNamesOrder;
 
+  // Map of subproxies
   std::map<std::string, vtkSmartPointer<vtkSMProxy>> SubProxies;
+
+  // Vector of consumers.
+  std::vector<std::pair<vtkWeakPointer<vtkSMProxy>, vtkWeakPointer<vtkSMProperty>>> Consumers;
 
   vtkWeakPointer<vtkSMProperty> AddProperty(const pugi::xml_node& node, vtkSMProxy* self);
   std::vector<vtkWeakPointer<vtkSMProperty>> AddSubProxy(
@@ -710,6 +715,43 @@ void vtkSMProxy::PreCreateVTKObjects() {}
 
 //----------------------------------------------------------------------------
 void vtkSMProxy::PostCreateVTKObjects() {}
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::AddConsumer(vtkSMProxy* proxy, vtkSMProperty* property)
+{
+  assert(proxy && property);
+
+  auto& internals = (*this->Internals);
+  auto iter = std::find_if(internals.Consumers.begin(), internals.Consumers.end(),
+    [&](const auto& pair) { return pair.first == proxy && pair.second == property; });
+  if (iter != internals.Consumers.end())
+  {
+    vtkLogF(WARNING,
+      "Same (proxy, property) is being added as consumer multiple times!"
+      "If this is expected, the implementation needs to be updated!");
+  }
+  else
+  {
+    internals.Consumers.emplace_back(proxy, property);
+  }
+
+  this->InvokeEvent(vtkSMCommand::ConsumersChangedEvent);
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProxy::RemoveConsumer(vtkSMProxy* proxy, vtkSMProperty* property)
+{
+  assert(proxy && property);
+  auto& internals = (*this->Internals);
+  auto iter = std::find_if(internals.Consumers.begin(), internals.Consumers.end(),
+    [&](const auto& pair) { return pair.first == proxy && pair.second == property; });
+  if (iter != internals.Consumers.end())
+  {
+    internals.Consumers.erase(iter);
+  }
+
+  this->InvokeEvent(vtkSMCommand::ConsumersChangedEvent);
+}
 
 //----------------------------------------------------------------------------
 void vtkSMProxy::PrintSelf(ostream& os, vtkIndent indent)

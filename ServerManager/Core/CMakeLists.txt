@@ -51,6 +51,7 @@ set(classes
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
+  vtkSMCommand
   vtkSMDomain
   vtkSMDoubleRangeDomain
   vtkSMDoubleVectorProperty
@@ -97,7 +98,8 @@ set(old_classes
   vtkPVSystemInformation
 )
 set(sources)
-set(private_headers)
+set(private_headers
+  vtkSMPropertyProducer.h)
 
 set(headers
   vtkParaViewDeprecation.h)

@@ -36,6 +36,11 @@ public:
 
   int GetElementType() const override { return vtkSMProperty::PROXY; }
 
+  /**
+   * Overridden to update producer/consumer relationships.
+   */
+  void Modified() override;
+
 protected:
   vtkSMProxyProperty();
   ~vtkSMProxyProperty() override;
@@ -48,6 +53,9 @@ protected:
 private:
   vtkSMProxyProperty(const vtkSMProxyProperty&) = delete;
   void operator=(const vtkSMProxyProperty&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

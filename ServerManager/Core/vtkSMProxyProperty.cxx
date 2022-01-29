@@ -15,11 +15,28 @@
 #include "vtkSMProxyProperty.h"
 
 #include "vtkObjectFactory.h"
+#include "vtkSMPropertyProducer.h"
 #include "vtkSMProxyManager.h"
+
+class vtkSMProxyProperty::vtkInternals
+{
+  vtkSMPropertyProducer ProducerHelper;
+
+public:
+  void UpdateProducers(vtkSMProperty* self, const std::vector<vtkSmartPointer<vtkSMProxy>>& inputs)
+  {
+    std::vector<vtkSMProxy*> proxies;
+    std::copy(inputs.begin(), inputs.end(), std::back_inserter(proxies));
+    this->ProducerHelper.UpdateProducers(self, proxies);
+  }
+};
 
 vtkStandardNewMacro(vtkSMProxyProperty);
 //----------------------------------------------------------------------------
-vtkSMProxyProperty::vtkSMProxyProperty() = default;
+vtkSMProxyProperty::vtkSMProxyProperty()
+  : Internals(new vtkSMProxyProperty::vtkInternals())
+{
+}
 
 //----------------------------------------------------------------------------
 vtkSMProxyProperty::~vtkSMProxyProperty() = default;
@@ -42,6 +59,14 @@ vtkSmartPointer<vtkSMProxy> vtkSMProxyProperty::ToValue(
 {
   auto* pxm = this->GetProxyManager();
   return pxm ? pxm->FindProxy(json.get<vtkTypeUInt32>()) : nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMProxyProperty::Modified()
+{
+  auto& internals = (*this->Internals);
+  internals.UpdateProducers(this, this->GetElements());
+  this->Superclass::Modified();
 }
 
 //----------------------------------------------------------------------------

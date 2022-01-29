@@ -37,7 +37,8 @@ public:
   int GetElementType() const override { return vtkSMProperty::INPUT; }
 
   /**
-   * Overridden to add observers for inputs.
+   * Overridden to add observers for inputs and update producer/consumer
+   * relationships.
    */
   void Modified() override;
 
