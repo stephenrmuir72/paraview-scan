@@ -40,6 +40,7 @@ set(classes
   vtkPVApplicationOptions
   vtkPVArrayInformation
   vtkPVCoreApplication
+  vtkPVDataAssemblyInformation
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVInformation
@@ -78,7 +79,6 @@ set(old_classes
   vtkPResourceFileLocator
   vtkPVServerInformation
   vtkRemotingCoreConfiguration
-  vtkPVDataAssemblyInformation
   vtkPVDataSizeInformation
   vtkPVDynamicInitializerPluginInterface
   vtkPVEnvironmentInformation
