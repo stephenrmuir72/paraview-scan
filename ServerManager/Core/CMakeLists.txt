@@ -153,7 +153,9 @@ if (VTK_OPENGL_HAS_EGL)
   list(APPEND vtkPVOptions_defines
     VTK_OPENGL_HAS_EGL)
 endif ()
-set_source_files_properties(vtkPVOptions.cxx
+set_source_files_properties(
+  vtkPVOptions.cxx
+  vtkPVApplicationOptions.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${vtkPVOptions_defines}")
 

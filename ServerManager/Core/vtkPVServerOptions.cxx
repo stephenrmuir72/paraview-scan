@@ -24,6 +24,8 @@ public:
   int Port{ 33333 };
   bool ReverseConnection{ false };
   std::string ClientHostName;
+  int Timeout{ 0 };
+  std::string TimeoutCommand;
 };
 
 #define CHECK_READ_ONLY()                                                                          \
@@ -62,6 +64,38 @@ int vtkPVServerOptions::GetPort() const
 }
 
 //----------------------------------------------------------------------------
+int vtkPVServerOptions::GetTimeout() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Timeout;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVServerOptions::SetTimeout(int minutes)
+{
+  CHECK_READ_ONLY();
+
+  auto& internals = (*this->Internals);
+  internals.Timeout = minutes;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVServerOptions::GetTimeoutCommand() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.TimeoutCommand;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVServerOptions::SetTimeoutCommand(const std::string& command)
+{
+  CHECK_READ_ONLY();
+
+  auto& internals = (*this->Internals);
+  internals.TimeoutCommand = command;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVServerOptions::Populate(CLI::App& app)
 {
   CHECK_READ_ONLY();
@@ -87,6 +121,16 @@ void vtkPVServerOptions::Populate(CLI::App& app)
       "Port number to use to listen for connections from the client. In reverse-connection mode, "
       "this is the port number on which the client is listening for connections.")
     ->default_val(internals.Port);
+
+  groupServer
+    ->add_option("--timeout", internals.Timeout,
+      "Time interval (in minutes) since a connection is established that the server-connection "
+      "may timeout. "
+      "The client typically shows a warning message before the server times out.")
+    ->default_val(0);
+
+  groupServer->add_option("--timeout-command", internals.TimeoutCommand,
+    "Timeout command allowing server to regularly check remaining time available.");
 }
 
 //----------------------------------------------------------------------------

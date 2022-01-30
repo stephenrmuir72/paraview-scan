@@ -259,9 +259,6 @@ bool vtkRemotingCoreConfiguration::PopulateGlobalOptions(
   vtkCLIOptions* options, vtkProcessModule::ProcessTypes vtkNotUsed(ptype))
 {
   auto app = options->GetCLI11App();
-  app->add_flag("-V,--version", this->TellVersion, "Print version number and exit.");
-  app->add_flag("-d,--dr,--disable-registry", this->DisableRegistry,
-    "Skip user-specific applications settings and configuration options.");
 #if defined(_WIN32)
   app->add_flag("--print-monitors", this->PrintMonitors, "Print monitor information and exit.");
 #endif
@@ -301,21 +298,6 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
   auto groupConnection = app->add_option_group(
     "Connection options", "Options affecting connections between client/server processes");
 
-  groupConnection
-    ->add_option("--connect-id", this->ConnectID,
-      "An identifier used to match client-server connections. When non-zero, the client and server "
-      "processes "
-      "must used identical identifier for the connection to succeed.")
-#if PARAVIEW_ALWAYS_SECURE_CONNECTION
-    ->required();
-#else
-    ->default_val(0);
-#endif
-
-  groupConnection->add_option("--hostname", this->HostName,
-    "Override the hostname to be used to connect to this process. "
-    "By default, the hostname is determined using appropriate system calls.");
-
   if (ptype == vtkProcessModule::PROCESS_SERVER)
   {
     groupConnection->add_option("--client-host", this->ClientHostName,
@@ -327,35 +309,6 @@ bool vtkRemotingCoreConfiguration::PopulateConnectionOptions(
         "Use reverse connection mode, i.e. instead of client connecting to the server(s), "
         "the server(s) will connect back to the client.")
       ->default_val(false);
-
-    std::string argnames;
-    int port;
-    switch (ptype)
-    {
-      case vtkProcessModule::PROCESS_SERVER:
-        argnames = "-p,--sp,--server-port";
-        port = 11111;
-        break;
-
-      default:
-        abort();
-    }
-
-    groupConnection
-      ->add_option(argnames, this->ServerPort,
-        "Port number to use to listen for connections from the client. In reverse-connection mode, "
-        "this is the port number on which the client is listening for connections.")
-      ->default_val(port);
-
-    groupConnection
-      ->add_option("--timeout", this->Timeout,
-        "Time interval (in minutes) since a connection is established that the server-connection "
-        "may timeout. "
-        "The client typically shows a warning message before the server times out.")
-      ->default_val(0);
-
-    groupConnection->add_option("--timeout-command", this->TimeoutCommand,
-      "Timeout command allowing server to regularly check remaining time available.");
   }
   else if (ptype == vtkProcessModule::PROCESS_CLIENT)
   {
@@ -385,25 +338,9 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
   auto app = options->GetCLI11App();
   auto group = app->add_option_group("Rendering", "Rendering specific options");
 
-  auto ofnr = group->add_flag("--force-offscreen-rendering", this->ForceOffscreenRendering,
-    "If supported by the build and platform, create headless (offscreen) render windows "
-    "for rendering results.");
-
-  group
-    ->add_flag("--force-onscreen-rendering", this->ForceOnscreenRendering,
-      "If supported by the build and platform, create on-screen render windows "
-      "for rendering results.")
-    ->excludes(ofnr)
-    ->envname("PV_DEBUG_REMOTE_RENDERING");
-
   // Display
   auto displayGroup =
     app->add_option_group("Display Environment", "Display/Device specific settings.");
-
-  displayGroup->add_flag("--disable-xdisplay-test", this->DisableXDisplayTests,
-    "Skip all X-display tests and OpenGL version checks. Use this option if "
-    "you are getting remote-rendering disabled errors and you are positive that "
-    "the X environment is set up properly and your OpenGL support is adequate (experimental).");
 
   displayGroup->add_option("--displays", this->Displays,
     "Specify a list of rendering display or device ids either as a comma-separated string "

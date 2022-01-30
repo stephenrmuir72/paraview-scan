@@ -110,6 +110,16 @@ public:
   void SetForceOnscreenRendering(bool value);
   ///@}
 
+  ///@{
+  /**
+   * Get/Set connection id.
+   * The connection identifier used to validate client-server
+   * connections.
+   */
+  int GetConnectID() const;
+  void SetConnectID(int value);
+  ///@}
+
   /**
    * Populate CLI::App with command line arguments to update options.
    */

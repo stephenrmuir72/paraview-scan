@@ -110,6 +110,7 @@ public:
   bool ForceOnscreenRendering{ false };
   std::vector<std::pair<std::string, vtkLogger::Verbosity>> LogFiles;
   std::string LocalHostname;
+  int ConnectID{ 0 };
 };
 
 #define CHECK_READ_ONLY(x)                                                                         \
@@ -260,6 +261,22 @@ void vtkPVApplicationOptions::SetForceOffscreenRendering(bool value)
 }
 
 //----------------------------------------------------------------------------
+int vtkPVApplicationOptions::GetConnectID() const
+{
+  auto& internals = (*this->Internals);
+  return internals.ConnectID;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVApplicationOptions::SetConnectID(int value)
+{
+  auto& internals = (*this->Internals);
+  // for now, we allow changing connect id even when ReadOnly is true.
+  // CHECK_READ_ONLY(internals);
+  internals.ConnectID = value;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVApplicationOptions::Populate(CLI::App& app)
 {
   auto& internals = (*this->Internals);
@@ -330,6 +347,16 @@ void vtkPVApplicationOptions::Populate(CLI::App& app)
   //---------------------------------------------------------------------------
   auto groupConnection = app.add_option_group(
     "Connection options", "Options affecting connections between client/server processes");
+
+  groupConnection
+    ->add_option("--connect-id", internals.ConnectID,
+      "An identifier used to match client-server connections. When non-zero, the client and server "
+      "processes must used identical identifier for the connection to succeed.")
+#if PARAVIEW_ALWAYS_SECURE_CONNECTION
+    ->required();
+#else
+    ->default_val(internals.ConnectID);
+#endif
 
   groupConnection
     ->add_option("--hostname", internals.LocalHostname,
