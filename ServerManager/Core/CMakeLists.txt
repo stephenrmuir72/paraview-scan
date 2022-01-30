@@ -44,6 +44,7 @@ set(classes
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVInformation
+  vtkPVMemoryUseInformation
   vtkPVServerApplication
   vtkPVServerOptions
   vtkPVSystemConfigInformation
@@ -86,7 +87,6 @@ set(old_classes
   vtkPVFileInformation
   vtkPVFileInformationHelper
   vtkPVLogInformation
-  vtkPVMemoryUseInformation
   vtkPVPlugin
   vtkPVPluginLoader
   vtkPVPluginsInformation

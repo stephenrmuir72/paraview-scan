@@ -14,109 +14,71 @@
 =========================================================================*/
 #include "vtkPVMemoryUseInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
-
+#include "vtkPVCoreApplication.h"
 #include <vtksys/SystemInformation.hxx>
 
-//#define vtkPVMemoryUseInformationDEBUG
-
-#define vtkVerifyParseMacro(_call, _field)                                                         \
-  if (!(_call))                                                                                    \
-  {                                                                                                \
-    vtkErrorMacro("Error parsing " _field ".");                                                    \
-    return;                                                                                        \
-  }
-
-//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPVMemoryUseInformation);
-
-//----------------------------------------------------------------------------
 vtkPVMemoryUseInformation::vtkPVMemoryUseInformation() = default;
-
-//----------------------------------------------------------------------------
 vtkPVMemoryUseInformation::~vtkPVMemoryUseInformation() = default;
 
 //----------------------------------------------------------------------------
-void vtkPVMemoryUseInformation::CopyFromObject(vtkObject* obj)
+bool vtkPVMemoryUseInformation::GatherInformation(vtkObject*)
 {
-  (void)obj;
-
   this->MemInfos.clear();
-
-  MemInfo info;
-
   vtksys::SystemInformation sysInfo;
 
-  info.ProcessType = vtkProcessModule::GetProcessType();
-  info.Rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
+  MemInfo info;
+  info.ProcessType = pvapp->GetApplicationType();
+  info.Rank = pvapp->GetRank();
   info.ProcMemUse = sysInfo.GetProcMemoryUsed();
   info.HostMemUse = sysInfo.GetHostMemoryUsed();
-
-#ifdef vtkPVMemoryUseInformationDEBUG
-  info.Print();
-#endif
-
   this->MemInfos.push_back(info);
+  return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVMemoryUseInformation::AddInformation(vtkPVInformation* pvinfo)
 {
-  vtkPVMemoryUseInformation* info = dynamic_cast<vtkPVMemoryUseInformation*>(pvinfo);
-
+  vtkPVMemoryUseInformation* info = vtkPVMemoryUseInformation::SafeDownCast(pvinfo);
   if (!info)
   {
     return;
   }
-
-  this->MemInfos.insert(this->MemInfos.end(), info->MemInfos.begin(), info->MemInfos.end());
+  std::copy(info->MemInfos.begin(), info->MemInfos.end(), std::back_inserter(this->MemInfos));
 }
 
 //----------------------------------------------------------------------------
-void vtkPVMemoryUseInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVMemoryUseInformation::SaveInformation() const
 {
-  css->Reset();
-
-  size_t count = this->MemInfos.size();
-
-  *css << vtkClientServerStream::Reply << count;
-
-  for (size_t i = 0; i < count; ++i)
+  vtkJson json = vtkJson::array();
+  for (const auto& info : MemInfos)
   {
-    *css << this->MemInfos[i].ProcessType << this->MemInfos[i].Rank << this->MemInfos[i].ProcMemUse
-         << this->MemInfos[i].HostMemUse;
+    vtkJson item;
+    VTK_JSON_SAVE_MEMBER(item, info.ProcessType);
+    VTK_JSON_SAVE_MEMBER(item, info.Rank);
+    VTK_JSON_SAVE_MEMBER(item, info.ProcMemUse);
+    VTK_JSON_SAVE_MEMBER(item, info.HostMemUse);
+    json.push_back(std::move(item));
   }
-
-  *css << vtkClientServerStream::End;
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVMemoryUseInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVMemoryUseInformation::LoadInformation(const vtkJson& json)
 {
-  int offset = 0;
-  size_t count = 0;
-
-  vtkVerifyParseMacro(css->GetArgument(0, offset, &count), "count");
-  ++offset;
-
-  this->MemInfos.resize(count);
-
-  for (size_t i = 0; i < count; ++i)
+  this->MemInfos.clear();
+  for (const auto& item : json)
   {
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &MemInfos[i].ProcessType), "ProcessType");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &MemInfos[i].Rank), "Rank");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &MemInfos[i].ProcMemUse), "ProcMemUse");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &MemInfos[i].HostMemUse), "HostMemUse");
-    ++offset;
+    MemInfo info;
+    VTK_JSON_LOAD_MEMBER(item, info.ProcessType);
+    VTK_JSON_LOAD_MEMBER(item, info.Rank);
+    VTK_JSON_LOAD_MEMBER(item, info.ProcMemUse);
+    VTK_JSON_LOAD_MEMBER(item, info.HostMemUse);
+    this->MemInfos.push_back(std::move(info));
   }
+  return true;
 }
 
 //----------------------------------------------------------------------------
