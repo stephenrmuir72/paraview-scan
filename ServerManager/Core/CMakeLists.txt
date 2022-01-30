@@ -81,8 +81,6 @@ set(old_classes
   vtkPVServerInformation
   vtkRemotingCoreConfiguration
   vtkPVDynamicInitializerPluginInterface
-  vtkPVEnvironmentInformation
-  vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
   vtkPVFileInformationHelper
   vtkPVLogInformation
