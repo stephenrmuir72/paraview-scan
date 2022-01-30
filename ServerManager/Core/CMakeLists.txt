@@ -80,7 +80,6 @@ set(old_classes
   vtkPResourceFileLocator
   vtkPVServerInformation
   vtkRemotingCoreConfiguration
-  vtkPVDataSizeInformation
   vtkPVDynamicInitializerPluginInterface
   vtkPVEnvironmentInformation
   vtkPVEnvironmentInformationHelper
