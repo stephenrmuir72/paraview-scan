@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPythonModule.h" // for exports
 
 #include <QObject>
+#include <QVector>
 
 class QWidget;
 class QToolBar;
@@ -98,7 +99,8 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    * Executes the given code.  If the python interpreter hasn't been initialized
    * yet it will be initialized.
    */
-  void executeCode(const QString& code);
+  void executeCode(const QByteArray& code, const QVector<QByteArray>& pre_push = {},
+    const QVector<QByteArray>& post_push = {});
 
   /**
    * Same as `executeCode()` except that is also triggers a render on all

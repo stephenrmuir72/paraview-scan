@@ -165,7 +165,8 @@ void pqPythonManager::addWidgetForDeleteMacros(QWidget* widget)
   this->Internal->MacroSupervisor->addWidgetForDeleteMacros(widget);
 }
 
-void pqPythonManager::executeCode(const QString& code)
+void pqPythonManager::executeCode(
+  const QByteArray& code, const QVector<QByteArray>& pre_push, const QVector<QByteArray>& post_push)
 {
   pqPythonManagerRawInputHelper helper;
 
@@ -180,7 +181,15 @@ void pqPythonManager::executeCode(const QString& code)
 
   vtkNew<vtkPythonInteractiveInterpreter> interp;
   interp->AddObserver(vtkCommand::UpdateEvent, &helper, &pqPythonManagerRawInputHelper::rawInput);
-  interp->RunStringWithConsoleLocals(code.toUtf8().data());
+  for (const auto& instr : pre_push)
+  {
+    interp->Push(instr.data());
+  }
+  interp->RunStringWithConsoleLocals(code.data());
+  for (const auto& instr : post_push)
+  {
+    interp->Push(instr.data());
+  }
   vtkPythonInterpreter::SetCaptureStdin(prevCapture);
   vtkOutputWindow::SetInstance(old);
   interp->RemoveObservers(vtkCommand::UpdateEvent);
@@ -201,7 +210,7 @@ void pqPythonManager::executeCode(const QString& code)
 //-----------------------------------------------------------------------------
 void pqPythonManager::executeCodeAndRender(const QString& code)
 {
-  this->executeCode(code);
+  this->executeCode(code.toUtf8());
   pqApplicationCore::instance()->render();
 }
 
@@ -212,38 +221,10 @@ void pqPythonManager::executeScript(const QString& filename)
   if (file.open(QIODevice::ReadOnly))
   {
     const QByteArray code = file.readAll();
-    pqPythonManagerRawInputHelper helper;
-
-    // we capture messages from the script so that when the end up on the
-    // terminal they are grouped as single message, otherwise they get split at
-    // each "\n" since that how Python sends those messages over to us.
-    vtkNew<pqPythonManagerOutputWindow> owindow;
-    vtkSmartPointer<vtkOutputWindow> old = vtkOutputWindow::GetInstance();
-    vtkOutputWindow::SetInstance(owindow);
-    const bool prevCapture = vtkPythonInterpreter::GetCaptureStdin();
-    vtkPythonInterpreter::SetCaptureStdin(true);
-
-    vtkNew<vtkPythonInteractiveInterpreter> interp;
-    interp->AddObserver(vtkCommand::UpdateEvent, &helper, &pqPythonManagerRawInputHelper::rawInput);
-    interp->Push("import sys");
-    interp->Push(QString("__file__ = r'%1'").arg(filename).toUtf8().data());
-    interp->RunStringWithConsoleLocals(code.data());
-    interp->Push("del __file__");
-    vtkPythonInterpreter::SetCaptureStdin(prevCapture);
-    vtkOutputWindow::SetInstance(old);
-    interp->RemoveObservers(vtkCommand::UpdateEvent);
-
-    auto txt = owindow->text();
-    if (!txt.empty())
-    {
-      vtkOutputWindowDisplayText(txt.c_str());
-    }
-
-    auto errorText = owindow->errorText();
-    if (!errorText.empty())
-    {
-      vtkOutputWindowDisplayErrorText(errorText.c_str());
-    }
+    const QVector<QByteArray> pre_cmd = { "import sys",
+      QString("__file__ = r'%1'").arg(filename).toUtf8() };
+    const QVector<QByteArray> post_cmd = { "del __file__" };
+    this->executeCode(code, pre_cmd, post_cmd);
   }
   else
   {
