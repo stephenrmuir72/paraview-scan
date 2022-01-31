@@ -184,6 +184,31 @@ public:
    */
   vtkSMProperty* GetProperty(const std::string& name) const;
 
+  //@{
+  /**
+   * Log name is a name for this proxy that will be used when logging status
+   * messages. This helps make the log more user friendly by making sure it uses
+   * names that the user can easily map to objects shown in the user interface.
+   *
+   * This method will set the log name for this proxy and iterate over all
+   * subproxies and set log name for each using the provided `name` as prefix.
+   *
+   * Furthermore, for all properties with vtkSMProxyListDomain, it will set log
+   * name for proxies in those domains to use the provided `name` as prefix as
+   * well.
+   *
+   * @note The use of this name for any other purpose than logging is strictly
+   * discouraged.
+   */
+  void SetLogName(const std::string& name);
+  const std::string& GetLogName() const;
+  //@}
+
+  /**
+   * A helper that makes up an default name if none is provided.
+   */
+  const std::string& GetLogNameOrDefault() const;
+
 protected:
   vtkSMProxy();
   ~vtkSMProxy() override;
@@ -262,6 +287,12 @@ private:
   std::unique_ptr<vtkInternals> Internals;
 
   void HandlePropertyEvents(vtkObject* caller, unsigned long eventId, void* callData);
+
+  /**
+   * Internal method used by `SetLogName`
+   */
+  void SetLogNameInternal(
+    const std::string& name, bool propagate_to_subproxies, bool propagate_to_proxylistdomains);
 };
 
 #endif

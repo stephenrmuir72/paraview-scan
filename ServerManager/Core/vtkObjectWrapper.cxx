@@ -47,6 +47,7 @@ class vtkObjectWrapper::vtkInternals
 public:
   vtkTypeUInt32 GlobalID{ 0 };
   std::string VTKClassName;
+  std::string LogName;
   int Rank{ 0 };
   int NumberOfRanks{ 1 };
   vtkSmartPointer<vtkObject> VTKObject;
@@ -127,6 +128,7 @@ bool vtkObjectWrapper::Initialize(
 void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider* provider)
 {
   auto& internals = (*this->Internals);
+  internals.LogName = state.at("log_name").get<std::string>();
   for (auto& el : state.at("properties").items())
   {
     const auto& key = el.key();

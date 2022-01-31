@@ -43,6 +43,7 @@
 // clang-format on
 
 #include <cassert>
+#include <sstream>
 
 class vtkSMProxy::vtkInternals
 {
@@ -70,6 +71,8 @@ public:
   std::string VTKClassName;
   bool Dirty{ true };
   bool ObjectsCreated{ false };
+  std::string LogName;
+  std::string DefaultLogName;
 
   // This is a map of all public properties on this proxy i.e. properties on
   // this proxy as well as exposed properties from the sub-proxies.
@@ -594,6 +597,90 @@ vtkSMProperty* vtkSMProxy::GetProperty(const std::string& name) const
 }
 
 //----------------------------------------------------------------------------
+void vtkSMProxy::SetLogName(const std::string& name)
+{
+  this->SetLogNameInternal(name, true, true);
+}
+
+//---------------------------------------------------------------------------
+void vtkSMProxy::SetLogNameInternal(
+  const std::string& name, bool propagate_to_subproxies, bool propagate_to_proxylistdomains)
+{
+  auto& internals = (*this->Internals);
+  if (internals.LogName == name)
+  {
+    return;
+  }
+
+  internals.Dirty = true;
+  internals.LogName = name;
+
+  if (propagate_to_subproxies)
+  {
+    // recursively label subproxies.
+    for (const auto& apair : internals.SubProxies)
+    {
+      if (apair.second != nullptr)
+      {
+        std::ostringstream str;
+        str << name << "/" << apair.first;
+        apair.second->SetLogName(str.str().c_str());
+      }
+    }
+  }
+
+#if 0
+  // FIXME: ASYNC
+  if (propagate_to_proxylistdomains)
+  {
+    // recursively label proxy-list domain proxies.
+    for (const auto& apair : this->Internals->Properties)
+    {
+      if (auto plistdomain = apair.second.Property->FindDomain<vtkSMProxyListDomain>())
+      {
+        std::ostringstream str;
+        str << this->LogName << "/" << apair.first;
+        plistdomain->SetLogName(str.str().c_str());
+      }
+    }
+  }
+#endif
+
+  if (internals.ObjectsCreated)
+  {
+    // need to push state to update log name remote
+    this->UpdateVTKObjects();
+  }
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkSMProxy::GetLogName() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.LogName;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkSMProxy::GetLogNameOrDefault() const
+{
+  auto& internals = (*this->Internals);
+  if (!internals.LogName.empty())
+  {
+    return internals.LogName;
+  }
+
+  if (internals.DefaultLogName.empty())
+  {
+    std::ostringstream stream;
+    stream << vtkLogger::GetIdentifier(const_cast<vtkSMProxy*>(this));
+    stream << "[" << internals.Group << ", " << internals.Name << "]";
+    internals.DefaultLogName = stream.str();
+  }
+
+  return internals.DefaultLogName;
+}
+
+//----------------------------------------------------------------------------
 void vtkSMProxy::HandlePropertyEvents(vtkObject* caller, unsigned long eventId, void* callData)
 {
   auto* property = vtkSMProperty::SafeDownCast(caller);
@@ -645,6 +732,7 @@ vtkJson vtkSMProxy::SaveState(bool verbose, vtkMTimeType tstamp) const
   state["group"] = internals.Group;
   state["name"] = internals.Name;
   state["id"] = internals.GlobalID;
+  state["log_name"] = internals.LogName;
   vtkJson properties = vtkJson::object();
   for (auto& pair : internals.Properties)
   {
