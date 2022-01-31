@@ -24,9 +24,12 @@
 #ifndef vtkSMProxyManager_h
 #define vtkSMProxyManager_h
 
-#include "vtkObject.h"
 #include "vtkServerManagerCoreModule.h" // for exports
-#include "vtkSmartPointer.h"            // for vtkSmartPointer
+
+#include "vtkObject.h"
+#include "vtkSMPrototypeProxiesRange.h"  // for vtkSMPrototypeProxiesRange
+#include "vtkSMRegisteredProxiesRange.h" // for vtkSMRegisteredProxiesRange
+#include "vtkSmartPointer.h"             // for vtkSmartPointer
 
 class vtkSMProxy;
 class vtkClientSession;
@@ -95,6 +98,9 @@ public:
    * nullptr.
    */
   vtkSmartPointer<vtkSMProxy> FindProxy(vtkTypeUInt32 gid) const;
+
+  vtkSMRegisteredProxiesRange GetRegisteredProxies(const std::string& groupName = "");
+  vtkSMPrototypeProxiesRange GetPrototypeProxies();
 
 protected:
   vtkSMProxyManager();

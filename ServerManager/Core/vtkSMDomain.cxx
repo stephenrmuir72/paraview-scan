@@ -96,6 +96,8 @@ bool vtkSMDomain::ReadXMLAttributes(const pugi::xml_node& node)
 
   auto& internals = (*this->Internals);
   internals.IsOptional = node.attribute("optional").as_bool(false);
+  
+  internals.Name = node.attribute("name").as_string();
 
   std::set<vtkSMProperty*> propertiesSet;
   for (auto child : node.children("RequiredProperties"))

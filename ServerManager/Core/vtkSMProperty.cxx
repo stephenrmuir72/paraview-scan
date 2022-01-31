@@ -382,6 +382,12 @@ void vtkSMProperty::UpdateDependentDomains() const
 }
 
 //----------------------------------------------------------------------------
+vtkSMDomainRange vtkSMProperty::GetDomains()
+{
+  return vtkSMDomainRange(this, this->Internals->Domains);
+}
+
+//----------------------------------------------------------------------------
 void vtkSMProperty::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

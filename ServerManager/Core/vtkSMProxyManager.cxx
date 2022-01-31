@@ -283,6 +283,18 @@ void vtkSMProxyManager::MarkPipelineUpdated(vtkSMProxy* proxy)
 }
 
 //----------------------------------------------------------------------------
+vtkSMPrototypeProxiesRange vtkSMProxyManager::GetPrototypeProxies()
+{
+  auto& internals = (*this->Internals);
+  return vtkSMPrototypeProxiesRange(internals.Prototypes);
+}
+//----------------------------------------------------------------------------
+vtkSMRegisteredProxiesRange vtkSMProxyManager::GetRegisteredProxies(const std::string& groupName)
+{
+  auto& internals = (*this->Internals);
+  return vtkSMRegisteredProxiesRange(internals.RegisteredProxies, groupName);
+}
+//----------------------------------------------------------------------------
 void vtkSMProxyManager::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

@@ -73,6 +73,9 @@
 #include VTK_REMOTING_RXCPP(rx.hpp)
 // clang-format on
 
+#include "vtkSMPropertyRange.h"        // for vtkSMPropertyRange
+#include "vtkSMOrderedPropertyRange.h" // for vtkSMOrderedPropertyRange
+
 class vtkClientSession;
 class vtkSMOutputPort;
 class vtkSMProxyManager;
@@ -208,6 +211,9 @@ public:
    * A helper that makes up an default name if none is provided.
    */
   const std::string& GetLogNameOrDefault() const;
+
+  vtkSMPropertyRange GetProperties();
+  vtkSMOrderedPropertyRange GetOrderedProperties();
 
 protected:
   vtkSMProxy();

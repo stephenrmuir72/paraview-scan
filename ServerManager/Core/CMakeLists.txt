@@ -57,6 +57,8 @@ set(classes
   vtkSession
   vtkSMCommand
   vtkSMDomain
+  vtkSMDomainIterator
+  vtkSMDomainRange
   vtkSMDoubleRangeDomain
   vtkSMDoubleVectorProperty
   vtkSMIdTypeVectorProperty
@@ -64,11 +66,22 @@ set(classes
   vtkSMInstantiator
   vtkSMIntRangeDomain
   vtkSMIntVectorProperty
+  vtkSMOrderedPropertyIterator
+  vtkSMOrderedPropertyRange
   vtkSMOutputPort
+  vtkSMPrototypeProxiesIterator
+  vtkSMPrototypeProxiesRange
   vtkSMProperty
+  vtkSMPropertyIterator
+  vtkSMPropertyRange
+  vtkSMProxy
+  vtkSMProxyDefinitionsIterator
+  vtkSMProxyDefinitionsRange
   vtkSMProxy
   vtkSMProxyManager
   vtkSMProxyProperty
+  vtkSMRegisteredProxiesIterator
+  vtkSMRegisteredProxiesRange
   vtkSMStringVectorProperty
   vtkStringUtilities
 )

@@ -133,10 +133,10 @@
 #ifndef vtkSMProperty_h
 #define vtkSMProperty_h
 
-#include "vtkObject.h"
-#include "vtkServerManagerCoreModule.h" //needed for exports
-// #include "vtkSMDomainIterator.h"            // needed for vtkSMDomainIterator
 #include "vtkJsonFwd.h" // for vtkJson
+#include "vtkObject.h"
+#include "vtkSMDomainRange.h"           // for vtkSMDomainRange
+#include "vtkServerManagerCoreModule.h" //needed for exports
 
 #include <vtk_pugixml.h> // for pugi
 
@@ -321,6 +321,8 @@ public:
   virtual bool ResetToDomainDefaults(bool useUnchecked = false);
   bool ResetToDefaults(bool useUnchecked = false);
   ///@}
+
+  vtkSMDomainRange GetDomains();
 
 protected:
   vtkSMProperty();

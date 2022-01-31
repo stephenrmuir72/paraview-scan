@@ -24,9 +24,9 @@
 #define vtkProxyDefinitionManager_h
 
 #include "vtkObject.h"
+#include "vtkSMProxyDefinitionsRange.h"
 #include "vtkServerManagerCoreModule.h" // for exports
-
-#include <memory> // for std::unique_ptr
+#include <memory>                       // for std::unique_ptr
 class vtkPVXMLElement;
 
 class VTKSERVERMANAGERCORE_EXPORT vtkProxyDefinitionManager : public vtkObject
@@ -53,6 +53,8 @@ public:
   {
     ProxyDefinitionsUpdated = 2000,
   };
+
+  vtkSMProxyDefinitionsRange GetDefinitions(const std::string& groupName = "");
 
 protected:
   vtkProxyDefinitionManager();

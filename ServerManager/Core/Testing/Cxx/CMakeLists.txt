@@ -1,10 +1,14 @@
-# vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
-#   NO_DATA NO_VALID NO_OUTPUT
-#   #  TestPartialArraysInformation.cxx
-#   # TestPVArrayInformation.cxx
-#   # TestSpecialDirectories.cxx
-#   # TestProxy.cxx
-#   )
+ vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
+   NO_DATA NO_VALID NO_OUTPUT
+   #  TestPartialArraysInformation.cxx
+   # TestPVArrayInformation.cxx
+   # TestSpecialDirectories.cxx
+   # TestProxy.cxx
+   TestDomainIterator.cxx
+   TestPropertyIterator.cxx
+   TestProxyDefinitionsIterator.cxx
+   TestProxyManagerIterator.cxx
+   )
 
 vtk_add_test_cxx(vtkServerManagerCoreCxxTests tests
   --client
