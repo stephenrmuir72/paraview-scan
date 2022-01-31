@@ -42,6 +42,32 @@ public:
    */
   void Modified() override;
 
+  vtkSMProxy* GetProxy(size_t index) const
+  {
+    auto port = this->GetElement(index);
+    return port ? port->GetProducer() : nullptr;
+  }
+
+  vtkSMProxy* GetUncheckedProxy(size_t index) const
+  {
+    auto port = this->GetUncheckedElement(index);
+    return port ? port->GetProducer() : nullptr;
+  }
+
+  int GetOutputPortForConnection(size_t index) const
+  {
+    auto port = this->GetElement(index);
+    return port ? port->GetIndex() : 0;
+  }
+
+  int GetUncheckedOutputPortForConnection(size_t index) const
+  {
+    auto port = this->GetUncheckedElement(index);
+    return port ? port->GetIndex() : 0;
+  }
+
+  bool RemoveProxy(vtkSMProxy* proxy);
+
 protected:
   vtkSMInputProperty();
   ~vtkSMInputProperty();

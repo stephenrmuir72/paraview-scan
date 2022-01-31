@@ -251,16 +251,28 @@ public:
    * accepts multiple values which can grow or shrink as necessary.
    */
   bool GetIsResizable() const;
+  bool GetRepeatCommand() const { return this->GetIsResizable(); }
+  bool GetRepeatable() const { return this->GetIsResizable(); }
 
   /**
    * Returns the number of elements in the property.
    */
-  virtual size_t GetNumberOfElements() const;
+  virtual size_t GetNumberOfElements() const = 0;
 
   /**
    * Returns the number of unchecked elements in the property.
    */
-  virtual size_t GetNumberOfUncheckedElements() const;
+  virtual size_t GetNumberOfUncheckedElements() const = 0;
+
+  /**
+   * Returns the number of elements in the property.
+   */
+  virtual void SetNumberOfElements(size_t count) = 0;
+
+  /**
+   * Returns the number of unchecked elements in the property.
+   */
+  virtual void SetNumberOfUncheckedElements(size_t count) = 0;
 
   /**
    * For a resizable property (GetIsResizable() == true), this returns the
@@ -268,6 +280,7 @@ public:
    * tuples of size 3, this will return 3. Default is 1.
    */
   size_t GetNumberOfComponents() const;
+  size_t GetNumberOfElementsPerCommand() const { return this->GetNumberOfComponents(); }
 
   /**
    * Clears unchecked element values, if any.

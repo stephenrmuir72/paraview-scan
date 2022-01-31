@@ -257,18 +257,6 @@ void vtkSMProperty::HandleDomainModifiedEvent()
 }
 
 //----------------------------------------------------------------------------
-size_t vtkSMProperty::GetNumberOfElements() const
-{
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-size_t vtkSMProperty::GetNumberOfUncheckedElements() const
-{
-  return 0;
-}
-
-//----------------------------------------------------------------------------
 size_t vtkSMProperty::GetNumberOfComponents() const
 {
   const auto& internals = (*this->Internals);

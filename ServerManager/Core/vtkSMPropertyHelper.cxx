@@ -49,9 +49,8 @@
 #include "vtkSMInputProperty.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMProxy.h"
-#include "vtkSMSourceProxy.h"
+#include "vtkSMProxyProperty.h"
 #include "vtkSMStringVectorProperty.h"
-#include "vtkStringList.h"
 
 #include <sstream>
 
@@ -67,7 +66,7 @@
 
 //----------------------------------------------------------------------------
 template <typename T>
-inline T vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline T vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   (void)index;
 
@@ -76,7 +75,7 @@ inline T vtkSMPropertyHelper::GetProperty(unsigned int index) const
 
 //----------------------------------------------------------------------------
 template <>
-inline int vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline int vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   switch (this->Type)
   {
@@ -91,8 +90,8 @@ inline int vtkSMPropertyHelper::GetProperty(unsigned int index) const
       return this->UseUnchecked ? this->IdTypeVectorProperty->GetUncheckedElement(index)
                                 : this->IdTypeVectorProperty->GetElement(index);
     case STRING:
-      return this->UseUnchecked ? std::atoi(this->StringVectorProperty->GetUncheckedElement(index))
-                                : std::atoi(this->StringVectorProperty->GetElement(index));
+      return this->UseUnchecked ? std::stoi(this->StringVectorProperty->GetUncheckedElement(index))
+                                : std::stoi(this->StringVectorProperty->GetElement(index));
 
     default:
       return 0;
@@ -101,7 +100,7 @@ inline int vtkSMPropertyHelper::GetProperty(unsigned int index) const
 
 //----------------------------------------------------------------------------
 template <>
-inline double vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline double vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   switch (this->Type)
   {
@@ -116,8 +115,8 @@ inline double vtkSMPropertyHelper::GetProperty(unsigned int index) const
                                 : this->IdTypeVectorProperty->GetElement(index);
 
     case STRING:
-      return this->UseUnchecked ? std::atof(this->StringVectorProperty->GetUncheckedElement(index))
-                                : std::atof(this->StringVectorProperty->GetElement(index));
+      return this->UseUnchecked ? std::stod(this->StringVectorProperty->GetUncheckedElement(index))
+                                : std::stod(this->StringVectorProperty->GetElement(index));
 
     default:
       return 0;
@@ -127,7 +126,7 @@ inline double vtkSMPropertyHelper::GetProperty(unsigned int index) const
 #if VTK_SIZEOF_ID_TYPE != VTK_SIZEOF_INT
 //----------------------------------------------------------------------------
 template <>
-inline vtkIdType vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline vtkIdType vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   switch (this->Type)
   {
@@ -145,7 +144,7 @@ inline vtkIdType vtkSMPropertyHelper::GetProperty(unsigned int index) const
 
 //----------------------------------------------------------------------------
 template <>
-inline const char* vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline std::string vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   if (this->Type == STRING)
   {
@@ -154,6 +153,7 @@ inline const char* vtkSMPropertyHelper::GetProperty(unsigned int index) const
   }
   else if (this->Type == INT)
   {
+#if 0 // FIXME: ASYNC
     // enumeration domain
     auto domain = this->Property->FindDomain<vtkSMEnumerationDomain>();
     if (domain != nullptr)
@@ -166,21 +166,26 @@ inline const char* vtkSMPropertyHelper::GetProperty(unsigned int index) const
         return entry;
       }
     }
+#else
+    abort();
+#endif
   }
 
-  return nullptr;
+  return {};
 }
 
 //----------------------------------------------------------------------------
 template <>
-inline vtkSMProxy* vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline vtkSMProxy* vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   switch (this->Type)
   {
     case PROXY:
-    case INPUT:
       return this->UseUnchecked ? this->ProxyProperty->GetUncheckedProxy(index)
                                 : this->ProxyProperty->GetProxy(index);
+    case INPUT:
+      return this->UseUnchecked ? this->InputProperty->GetUncheckedProxy(index)
+                                : this->InputProperty->GetProxy(index);
     default:
       return nullptr;
   }
@@ -188,7 +193,7 @@ inline vtkSMProxy* vtkSMPropertyHelper::GetProperty(unsigned int index) const
 
 //----------------------------------------------------------------------------
 template <>
-inline vtkVariant vtkSMPropertyHelper::GetProperty(unsigned int index) const
+inline vtkVariant vtkSMPropertyHelper::GetProperty(size_t index) const
 {
   switch (this->Type)
   {
@@ -202,12 +207,15 @@ inline vtkVariant vtkSMPropertyHelper::GetProperty(unsigned int index) const
       return this->UseUnchecked ? this->IdTypeVectorProperty->GetUncheckedElement(index)
                                 : this->IdTypeVectorProperty->GetElement(index);
     case STRING:
-      return this->UseUnchecked ? this->StringVectorProperty->GetUncheckedElement(index)
-                                : this->StringVectorProperty->GetElement(index);
+      return this->UseUnchecked
+        ? vtkStdString(this->StringVectorProperty->GetUncheckedElement(index))
+        : vtkStdString(this->StringVectorProperty->GetElement(index));
     case PROXY:
-    case INPUT:
       return this->UseUnchecked ? this->ProxyProperty->GetUncheckedProxy(index)
                                 : this->ProxyProperty->GetProxy(index);
+    case INPUT:
+      return this->UseUnchecked ? this->InputProperty->GetUncheckedProxy(index)
+                                : this->InputProperty->GetProxy(index);
     default:
       return vtkVariant();
   }
@@ -219,7 +227,7 @@ inline std::vector<T> vtkSMPropertyHelper::GetPropertyArray() const
 {
   std::vector<T> array;
 
-  for (unsigned int i = 0; i < this->GetNumberOfElements(); i++)
+  for (size_t i = 0; i < this->GetNumberOfElements(); i++)
   {
     array.push_back(this->GetProperty<T>(i));
   }
@@ -229,11 +237,11 @@ inline std::vector<T> vtkSMPropertyHelper::GetPropertyArray() const
 
 //----------------------------------------------------------------------------
 template <typename T>
-unsigned int vtkSMPropertyHelper::GetPropertyArray(T* values, unsigned int count) const
+size_t vtkSMPropertyHelper::GetPropertyArray(T* values, size_t count) const
 {
   count = std::min(count, this->GetNumberOfElements());
 
-  for (unsigned int i = 0; i < count; i++)
+  for (size_t i = 0; i < count; i++)
   {
     values[i] = this->GetProperty<T>(i);
   }
@@ -243,7 +251,7 @@ unsigned int vtkSMPropertyHelper::GetPropertyArray(T* values, unsigned int count
 
 //----------------------------------------------------------------------------
 template <typename T>
-inline void vtkSMPropertyHelper::SetProperty(unsigned int index, T value)
+inline void vtkSMPropertyHelper::SetProperty(size_t index, T value)
 {
   (void)index;
   (void)value;
@@ -251,7 +259,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, T value)
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetProperty(unsigned int index, int value)
+inline void vtkSMPropertyHelper::SetProperty(size_t index, int value)
 {
   switch (this->Type)
   {
@@ -306,7 +314,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, int value)
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetProperty(unsigned int index, double value)
+inline void vtkSMPropertyHelper::SetProperty(size_t index, double value)
 {
   switch (this->Type)
   {
@@ -338,7 +346,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, double value)
 #if VTK_SIZEOF_ID_TYPE != VTK_SIZEOF_INT
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetProperty(unsigned int index, vtkIdType value)
+inline void vtkSMPropertyHelper::SetProperty(size_t index, vtkIdType value)
 {
   switch (this->Type)
   {
@@ -369,7 +377,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, vtkIdType value
 #endif
 
 template <>
-inline void vtkSMPropertyHelper::SetProperty(unsigned int index, const char* value)
+inline void vtkSMPropertyHelper::SetProperty(size_t index, const std::string& value)
 {
   if (this->Type == STRING)
   {
@@ -384,6 +392,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, const char* val
   }
   else if (this->Type == INT)
   {
+#if 0 // FIXME: ASYNC
     // enumeration domain
     auto domain = this->Property->FindDomain<vtkSMEnumerationDomain>();
     if (domain != nullptr && domain->HasEntryText(value))
@@ -398,6 +407,9 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, const char* val
         this->IntVectorProperty->SetElement(index, domain->GetEntryValue(value, valid));
       }
     }
+#else
+    abort();
+#endif
   }
   else
   {
@@ -407,7 +419,7 @@ inline void vtkSMPropertyHelper::SetProperty(unsigned int index, const char* val
 
 //----------------------------------------------------------------------------
 template <typename T>
-inline void vtkSMPropertyHelper::SetPropertyArray(const T* values, unsigned int count)
+inline void vtkSMPropertyHelper::SetPropertyArray(const T* values, size_t count)
 {
   (void)values;
   (void)count;
@@ -415,7 +427,7 @@ inline void vtkSMPropertyHelper::SetPropertyArray(const T* values, unsigned int 
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetPropertyArray(const int* values, unsigned int count)
+inline void vtkSMPropertyHelper::SetPropertyArray(const int* values, size_t count)
 {
   if (this->Type == INT)
   {
@@ -431,7 +443,7 @@ inline void vtkSMPropertyHelper::SetPropertyArray(const int* values, unsigned in
   else if (this->Type == IDTYPE)
   {
     vtkIdType* temp = new vtkIdType[count + 1];
-    for (unsigned int cc = 0; cc < count; cc++)
+    for (size_t cc = 0; cc < count; cc++)
     {
       temp[cc] = static_cast<vtkIdType>(values[cc]);
     }
@@ -446,7 +458,7 @@ inline void vtkSMPropertyHelper::SetPropertyArray(const int* values, unsigned in
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetPropertyArray(const double* values, unsigned int count)
+inline void vtkSMPropertyHelper::SetPropertyArray(const double* values, size_t count)
 {
   if (this->Type == DOUBLE)
   {
@@ -466,7 +478,7 @@ inline void vtkSMPropertyHelper::SetPropertyArray(const double* values, unsigned
 }
 
 //----------------------------------------------------------------------------
-inline void vtkSMPropertyHelper::SetPropertyArrayIdType(const vtkIdType* values, unsigned int count)
+inline void vtkSMPropertyHelper::SetPropertyArrayIdType(const vtkIdType* values, size_t count)
 {
   if (this->Type == IDTYPE)
   {
@@ -488,7 +500,7 @@ inline void vtkSMPropertyHelper::SetPropertyArrayIdType(const vtkIdType* values,
 #if VTK_SIZEOF_ID_TYPE != VTK_SIZEOF_INT
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::SetPropertyArray(const vtkIdType* values, unsigned int count)
+inline void vtkSMPropertyHelper::SetPropertyArray(const vtkIdType* values, size_t count)
 {
   this->SetPropertyArrayIdType(values, count);
 }
@@ -496,7 +508,7 @@ inline void vtkSMPropertyHelper::SetPropertyArray(const vtkIdType* values, unsig
 
 //----------------------------------------------------------------------------
 template <typename T>
-inline void vtkSMPropertyHelper::AppendPropertyArray(const T* values, unsigned int count)
+inline void vtkSMPropertyHelper::AppendPropertyArray(const T* values, size_t count)
 {
   (void)values;
   (void)count;
@@ -504,17 +516,17 @@ inline void vtkSMPropertyHelper::AppendPropertyArray(const T* values, unsigned i
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::AppendPropertyArray(const int* values, unsigned int count)
+inline void vtkSMPropertyHelper::AppendPropertyArray(const int* values, size_t count)
 {
   if (this->Type == INT)
   {
     if (this->UseUnchecked)
     {
-      this->IntVectorProperty->AppendUncheckedElements(values, count);
+      this->IntVectorProperty->AppendUncheckedElements({ values, values + count });
     }
     else
     {
-      this->IntVectorProperty->AppendElements(values, count);
+      this->IntVectorProperty->AppendElements({ values, values + count });
     }
   }
   else
@@ -525,17 +537,17 @@ inline void vtkSMPropertyHelper::AppendPropertyArray(const int* values, unsigned
 
 //----------------------------------------------------------------------------
 template <>
-inline void vtkSMPropertyHelper::AppendPropertyArray(const double* values, unsigned int count)
+inline void vtkSMPropertyHelper::AppendPropertyArray(const double* values, size_t count)
 {
   if (this->Type == DOUBLE)
   {
     if (this->UseUnchecked)
     {
-      this->DoubleVectorProperty->AppendUncheckedElements(values, count);
+      this->DoubleVectorProperty->AppendUncheckedElements({ values, values + count });
     }
     else
     {
-      this->DoubleVectorProperty->AppendElements(values, count);
+      this->DoubleVectorProperty->AppendElements({ values, values + count });
     }
   }
   else
@@ -547,17 +559,17 @@ inline void vtkSMPropertyHelper::AppendPropertyArray(const double* values, unsig
 //----------------------------------------------------------------------------
 #if VTK_SIZEOF_ID_TYPE != VTK_SIZEOF_INT
 template <>
-inline void vtkSMPropertyHelper::AppendPropertyArray(const vtkIdType* values, unsigned int count)
+inline void vtkSMPropertyHelper::AppendPropertyArray(const vtkIdType* values, size_t count)
 {
   if (this->Type == IDTYPE)
   {
     if (this->UseUnchecked)
     {
-      this->IdTypeVectorProperty->AppendUncheckedElements(values, count);
+      this->IdTypeVectorProperty->AppendUncheckedElements({ values, values + count });
     }
     else
     {
-      this->IdTypeVectorProperty->AppendElements(values, count);
+      this->IdTypeVectorProperty->AppendElements({ values, values + count });
     }
   }
   else
@@ -639,20 +651,7 @@ void vtkSMPropertyHelper::Initialize(vtkSMProperty* property)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::UpdateValueFromServer()
-{
-  if (this->Proxy)
-  {
-    this->Proxy->UpdatePropertyInformation(this->Property);
-  }
-  else
-  {
-    vtkGenericWarningMacro("No proxy set.");
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSMPropertyHelper::SetNumberOfElements(unsigned int elems)
+void vtkSMPropertyHelper::SetNumberOfElements(size_t elems)
 {
   switch (this->Type)
   {
@@ -660,24 +659,15 @@ void vtkSMPropertyHelper::SetNumberOfElements(unsigned int elems)
     case DOUBLE:
     case IDTYPE:
     case STRING:
-      if (this->UseUnchecked)
-      {
-        this->VectorProperty->SetNumberOfUncheckedElements(elems);
-      }
-      else
-      {
-        this->VectorProperty->SetNumberOfElements(elems);
-      }
-      break;
     case PROXY:
     case INPUT:
       if (this->UseUnchecked)
       {
-        this->ProxyProperty->SetNumberOfUncheckedProxies(elems);
+        this->Property->SetNumberOfUncheckedElements(elems);
       }
       else
       {
-        this->ProxyProperty->SetNumberOfProxies(elems);
+        this->Property->SetNumberOfElements(elems);
       }
       break;
     default:
@@ -686,7 +676,7 @@ void vtkSMPropertyHelper::SetNumberOfElements(unsigned int elems)
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSMPropertyHelper::GetNumberOfElements() const
+size_t vtkSMPropertyHelper::GetNumberOfElements() const
 {
   switch (this->Type)
   {
@@ -694,19 +684,11 @@ unsigned int vtkSMPropertyHelper::GetNumberOfElements() const
     case DOUBLE:
     case IDTYPE:
     case STRING:
-      if (this->UseUnchecked)
-      {
-        return this->VectorProperty->GetNumberOfUncheckedElements();
-      }
-      return this->VectorProperty->GetNumberOfElements();
-
     case PROXY:
     case INPUT:
-      if (this->UseUnchecked)
-      {
-        return this->ProxyProperty->GetNumberOfUncheckedProxies();
-      }
-      return this->ProxyProperty->GetNumberOfProxies();
+      return (this->UseUnchecked ? this->Property->GetNumberOfUncheckedElements()
+                                 : this->Property->GetNumberOfElements());
+
     default:
       vtkSMPropertyHelperWarningMacro("Call not supported for the current property type.");
       return 0;
@@ -714,25 +696,25 @@ unsigned int vtkSMPropertyHelper::GetNumberOfElements() const
 }
 
 //----------------------------------------------------------------------------
-vtkVariant vtkSMPropertyHelper::GetAsVariant(unsigned int index) const
+vtkVariant vtkSMPropertyHelper::GetAsVariant(size_t index) const
 {
   return GetProperty<vtkVariant>(index);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(unsigned int index, int value)
+void vtkSMPropertyHelper::Set(size_t index, int value)
 {
   this->SetProperty<int>(index, value);
 }
 
 //----------------------------------------------------------------------------
-int vtkSMPropertyHelper::GetAsInt(unsigned int index /*=0*/) const
+int vtkSMPropertyHelper::GetAsInt(size_t index /*=0*/) const
 {
   return this->GetProperty<int>(index);
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSMPropertyHelper::Get(int* values, unsigned int count /*=1*/) const
+size_t vtkSMPropertyHelper::Get(int* values, size_t count /*=1*/) const
 {
   return this->GetPropertyArray<int>(values, count);
 }
@@ -744,37 +726,37 @@ std::vector<int> vtkSMPropertyHelper::GetIntArray() const
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(const int* values, unsigned int count)
+void vtkSMPropertyHelper::Set(const int* values, size_t count)
 {
   this->SetPropertyArray<int>(values, count);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Append(const int* values, unsigned int count)
+void vtkSMPropertyHelper::Append(const int* values, size_t count)
 {
   this->AppendPropertyArray(values, count);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(unsigned int index, double value)
+void vtkSMPropertyHelper::Set(size_t index, double value)
 {
   this->SetProperty<double>(index, value);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Append(const double* values, unsigned int count)
+void vtkSMPropertyHelper::Append(const double* values, size_t count)
 {
   this->AppendPropertyArray(values, count);
 }
 
 //----------------------------------------------------------------------------
-double vtkSMPropertyHelper::GetAsDouble(unsigned int index /*=0*/) const
+double vtkSMPropertyHelper::GetAsDouble(size_t index /*=0*/) const
 {
   return this->GetProperty<double>(index);
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSMPropertyHelper::Get(double* values, unsigned int count /*=1*/) const
+size_t vtkSMPropertyHelper::Get(double* values, size_t count /*=1*/) const
 {
   return this->GetPropertyArray<double>(values, count);
 }
@@ -786,39 +768,39 @@ std::vector<double> vtkSMPropertyHelper::GetDoubleArray() const
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(const double* values, unsigned int count)
+void vtkSMPropertyHelper::Set(const double* values, size_t count)
 {
   this->SetPropertyArray<double>(values, count);
 }
 
 #if VTK_SIZEOF_ID_TYPE != VTK_SIZEOF_INT
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(unsigned int index, vtkIdType value)
+void vtkSMPropertyHelper::Set(size_t index, vtkIdType value)
 {
   this->SetProperty<vtkIdType>(index, value);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(const vtkIdType* values, unsigned int count)
+void vtkSMPropertyHelper::Set(const vtkIdType* values, size_t count)
 {
   this->SetPropertyArray<vtkIdType>(values, count);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Append(const vtkIdType* values, unsigned int count)
+void vtkSMPropertyHelper::Append(const vtkIdType* values, size_t count)
 {
   this->AppendPropertyArray(values, count);
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSMPropertyHelper::Get(vtkIdType* values, unsigned int count /*=1*/) const
+size_t vtkSMPropertyHelper::Get(vtkIdType* values, size_t count /*=1*/) const
 {
   return this->GetPropertyArray<vtkIdType>(values, count);
 }
 #endif
 
 //----------------------------------------------------------------------------
-vtkIdType vtkSMPropertyHelper::GetAsIdType(unsigned int index /*=0*/) const
+vtkIdType vtkSMPropertyHelper::GetAsIdType(size_t index /*=0*/) const
 {
   return this->GetProperty<vtkIdType>(index);
 }
@@ -830,40 +812,41 @@ std::vector<vtkIdType> vtkSMPropertyHelper::GetIdTypeArray() const
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(unsigned int index, const char* value)
+void vtkSMPropertyHelper::Set(size_t index, const std::string& value)
 {
-  this->SetProperty<const char*>(index, value);
+  this->SetProperty<std::string>(index, value);
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSMPropertyHelper::GetAsString(unsigned int index /*=0*/) const
+std::string vtkSMPropertyHelper::GetAsString(size_t index /*=0*/) const
 {
-  return this->GetProperty<const char*>(index);
+  return this->GetProperty<std::string>(index);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(unsigned int index, vtkSMProxy* value, unsigned int outputport /*=0*/)
+void vtkSMPropertyHelper::Set(size_t index, vtkSMProxy* value, int outputport /*=0*/)
 {
   if (this->Type == PROXY)
   {
     if (this->UseUnchecked)
     {
-      this->ProxyProperty->SetUncheckedProxy(index, value);
+      this->ProxyProperty->SetUncheckedElement(index, value);
     }
     else
     {
-      this->ProxyProperty->SetProxy(index, value);
+      this->ProxyProperty->SetElement(index, value);
     }
   }
   else if (this->Type == INPUT)
   {
+    auto port = value ? value->GetOutputPort(outputport) : nullptr;
     if (this->UseUnchecked)
     {
-      this->InputProperty->SetUncheckedInputConnection(index, value, outputport);
+      this->InputProperty->SetUncheckedElement(index, port);
     }
     else
     {
-      this->InputProperty->SetInputConnection(index, value, outputport);
+      this->InputProperty->SetElement(index, port);
     }
   }
   else
@@ -873,8 +856,7 @@ void vtkSMPropertyHelper::Set(unsigned int index, vtkSMProxy* value, unsigned in
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Set(
-  vtkSMProxy** value, unsigned int count, unsigned int* outputports /*=nullptr*/)
+void vtkSMPropertyHelper::Set(vtkSMProxy** value, size_t count, int* outputports /*=nullptr*/)
 {
   if (this->UseUnchecked)
   {
@@ -885,11 +867,16 @@ void vtkSMPropertyHelper::Set(
 
   if (this->Type == PROXY)
   {
-    this->ProxyProperty->SetProxies(count, value);
+    this->ProxyProperty->SetElements({ value, value + count });
   }
   else if (this->Type == INPUT)
   {
-    this->InputProperty->SetProxies(count, value, outputports);
+    std::vector<vtkSmartPointer<vtkSMOutputPort>> ports(count);
+    for (size_t cc = 0; cc < count; ++cc)
+    {
+      ports[cc] = value[cc] ? value[cc]->GetOutputPort(outputports[cc]) : nullptr;
+    }
+    this->InputProperty->SetElements(ports);
   }
   else
   {
@@ -898,7 +885,7 @@ void vtkSMPropertyHelper::Set(
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::Add(vtkSMProxy* value, unsigned int outputport /*=0*/)
+void vtkSMPropertyHelper::Add(vtkSMProxy* value, int outputport /*=0*/)
 {
   if (this->UseUnchecked)
   {
@@ -908,11 +895,11 @@ void vtkSMPropertyHelper::Add(vtkSMProxy* value, unsigned int outputport /*=0*/)
   }
   if (this->Type == PROXY)
   {
-    this->ProxyProperty->AddProxy(value);
+    this->ProxyProperty->AppendElements({ value });
   }
   else if (this->Type == INPUT)
   {
-    this->InputProperty->AddInputConnection(value, outputport);
+    this->InputProperty->AppendElements({ value ? value->GetOutputPort(outputport) : nullptr });
   }
   else
   {
@@ -929,9 +916,13 @@ void vtkSMPropertyHelper::Remove(vtkSMProxy* value)
     vtkSMPropertyHelperWarningMacro("Call not supported for unchecked values");
     return;
   }
-  if (this->Type == PROXY || this->Type == INPUT)
+  if (this->Type == PROXY)
   {
     this->ProxyProperty->RemoveProxy(value);
+  }
+  else if (this->Type == INPUT)
+  {
+    this->InputProperty->RemoveProxy(value);
   }
   else
   {
@@ -940,13 +931,13 @@ void vtkSMPropertyHelper::Remove(vtkSMProxy* value)
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxy* vtkSMPropertyHelper::GetAsProxy(unsigned int index /*=0*/) const
+vtkSMProxy* vtkSMPropertyHelper::GetAsProxy(size_t index /*=0*/) const
 {
   return this->GetProperty<vtkSMProxy*>(index);
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSMPropertyHelper::GetOutputPort(unsigned int index /*=0*/) const
+int vtkSMPropertyHelper::GetOutputPort(size_t index /*=0*/) const
 {
   if (this->Type == INPUT)
   {
@@ -965,13 +956,12 @@ unsigned int vtkSMPropertyHelper::GetOutputPort(unsigned int index /*=0*/) const
 }
 
 //----------------------------------------------------------------------------
-vtkSMOutputPort* vtkSMPropertyHelper::GetAsOutputPort(unsigned int index) const
+vtkSMOutputPort* vtkSMPropertyHelper::GetAsOutputPort(size_t index) const
 {
   if (this->Type == INPUT)
   {
-    auto proxy = vtkSMSourceProxy::SafeDownCast(this->GetAsProxy(index));
-    auto port = this->GetOutputPort(index);
-    return proxy ? proxy->GetOutputPort(port) : nullptr;
+    return this->UseUnchecked ? this->InputProperty->GetUncheckedElement(index)
+                              : this->InputProperty->GetElement(index);
   }
 
   vtkSMPropertyHelperWarningMacro("Call not supported for the current property type.");
@@ -1024,20 +1014,18 @@ void vtkSMPropertyHelper::SetStatus(const char* key, double* values, int num_val
     return;
   }
 
-  vtkStringList* list = vtkStringList::New();
-  svp->GetElements(list);
+  std::vector<std::string> list = svp->GetElements();
 
   bool append = true;
-  for (unsigned int cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements();
-       cc += (num_values + 1))
+  for (size_t cc = 0; (cc + num_values + 1) < list.size(); cc += num_values + 1)
   {
-    if (strcmp(svp->GetElement(cc), key) == 0)
+    if (list[cc] == key)
     {
       for (int kk = 0; kk < num_values; kk++)
       {
         std::ostringstream str;
         str << values[kk];
-        list->SetString(cc + kk + 1, str.str().c_str());
+        list[cc + 1 + kk] = str.str();
       }
       append = false;
     }
@@ -1045,16 +1033,15 @@ void vtkSMPropertyHelper::SetStatus(const char* key, double* values, int num_val
 
   if (append)
   {
-    list->AddString(key);
+    list.push_back(key);
     for (int kk = 0; kk < num_values; kk++)
     {
       std::ostringstream str;
       str << values[kk];
-      list->AddString(str.str().c_str());
+      list.push_back(str.str());
     }
   }
   svp->SetElements(list);
-  list->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -1089,21 +1076,20 @@ bool vtkSMPropertyHelper::GetStatus(const char* key, double* values, int num_val
       return false;
     }
 
-    for (unsigned int cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements();
-         cc += (num_values + 1))
+    for (size_t cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements(); cc += (num_values + 1))
     {
-      if (strcmp(svp->GetElement(cc), key) == 0)
+      if (svp->GetElement(cc) == key)
       {
         for (int kk = 0; kk < num_values; kk++)
         {
-          values[kk] = atof(svp->GetElement(cc + kk + 1));
+          values[kk] = std::stod(svp->GetElement(cc + kk + 1));
         }
         return true;
       }
     }
 
     // Now check if the information_property has the value.
-    svp = svp->GetInformationOnly() == 0
+    svp = svp->GetIsInformationOnly() == 0
       ? vtkSMStringVectorProperty::SafeDownCast(svp->GetInformationProperty())
       : nullptr;
   }
@@ -1141,8 +1127,7 @@ void vtkSMPropertyHelper::SetStatus(const int key, int* values, int num_values)
   }
 
   bool append = true;
-  for (unsigned int cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements();
-       cc += (num_values + 1))
+  for (size_t cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements(); cc += (num_values + 1))
   {
     if (svp->GetElement(cc) == key)
     {
@@ -1156,13 +1141,13 @@ void vtkSMPropertyHelper::SetStatus(const int key, int* values, int num_values)
 
   if (append)
   {
-    std::vector<int> list(svp->GetElements(), svp->GetElements() + svp->GetNumberOfElements());
+    std::vector<int> list = svp->GetElements();
     list.push_back(key);
     for (int kk = 0; kk < num_values; kk++)
     {
       list.push_back(values[kk]);
     }
-    svp->SetElements(&list[0]);
+    svp->SetElements(list);
   }
 }
 
@@ -1198,8 +1183,7 @@ bool vtkSMPropertyHelper::GetStatus(const int key, int* values, int num_values) 
       return false;
     }
 
-    for (unsigned int cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements();
-         cc += (num_values + 1))
+    for (size_t cc = 0; (cc + num_values + 1) <= svp->GetNumberOfElements(); cc += (num_values + 1))
     {
       if (svp->GetElement(cc) == key)
       {
@@ -1212,7 +1196,7 @@ bool vtkSMPropertyHelper::GetStatus(const int key, int* values, int num_values) 
     }
 
     // Now check if the information_property has the value.
-    svp = svp->GetInformationOnly() == 0
+    svp = svp->GetIsInformationOnly() == 0
       ? vtkSMIntVectorProperty::SafeDownCast(svp->GetInformationProperty())
       : nullptr;
   }
@@ -1244,9 +1228,9 @@ void vtkSMPropertyHelper::SetStatus(const char* key, const char* value)
 
   if (this->UseUnchecked)
   {
-    for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
+    for (size_t cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
     {
-      if (strcmp(svp->GetUncheckedElement(cc), key) == 0)
+      if (svp->GetUncheckedElement(cc) == key)
       {
         svp->SetUncheckedElement(cc + 1, value);
         return;
@@ -1255,9 +1239,9 @@ void vtkSMPropertyHelper::SetStatus(const char* key, const char* value)
   }
   else
   {
-    for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
+    for (size_t cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
     {
-      if (strcmp(svp->GetElement(cc), key) == 0)
+      if (svp->GetElement(cc) == key)
       {
         svp->SetElement(cc + 1, value);
         return;
@@ -1265,26 +1249,18 @@ void vtkSMPropertyHelper::SetStatus(const char* key, const char* value)
     }
   }
 
-  vtkStringList* list = vtkStringList::New();
+  std::vector<std::string> elements =
+    this->UseUnchecked ? svp->GetUncheckedElements() : svp->GetElements();
+  elements.push_back(key);
+  elements.push_back(value);
   if (this->UseUnchecked)
   {
-    svp->GetUncheckedElements(list);
+    svp->SetUncheckedElements(elements);
   }
   else
   {
-    svp->GetElements(list);
+    svp->SetElements(elements);
   }
-  list->AddString(key);
-  list->AddString(value);
-  if (this->UseUnchecked)
-  {
-    svp->SetUncheckedElements(list);
-  }
-  else
-  {
-    svp->SetElements(list);
-  }
-  list->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -1313,27 +1289,27 @@ const char* vtkSMPropertyHelper::GetStatus(const char* key, const char* default_
 
     if (this->UseUnchecked)
     {
-      for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
+      for (size_t cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
       {
-        if (strcmp(svp->GetUncheckedElement(cc), key) == 0)
+        if (svp->GetUncheckedElement(cc) == key)
         {
-          return svp->GetUncheckedElement(cc + 1);
+          return svp->GetUncheckedElement(cc + 1).c_str();
         }
       }
     }
     else
     {
-      for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
+      for (size_t cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
       {
-        if (strcmp(svp->GetElement(cc), key) == 0)
+        if (svp->GetElement(cc) == key)
         {
-          return svp->GetElement(cc + 1);
+          return svp->GetElement(cc + 1).c_str();
         }
       }
     }
 
     // Now check if the information_property has the value.
-    svp = svp->GetInformationOnly() == 0
+    svp = svp->GetIsInformationOnly() == 0
       ? vtkSMStringVectorProperty::SafeDownCast(svp->GetInformationProperty())
       : nullptr;
   }
@@ -1350,8 +1326,8 @@ void vtkSMPropertyHelper::SetStatus(const int key, const int value)
     return;
   }
 
-  vtkSMIntVectorProperty* svp = vtkSMIntVectorProperty::SafeDownCast(this->Property);
-  if (svp->GetNumberOfElementsPerCommand() != 2)
+  vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(this->Property);
+  if (ivp->GetNumberOfElementsPerCommand() != 2)
   {
     vtkSMPropertyHelperWarningMacro("NumberOfElementsPerCommand != 2");
     return;
@@ -1359,47 +1335,37 @@ void vtkSMPropertyHelper::SetStatus(const int key, const int value)
 
   if (this->UseUnchecked)
   {
-    for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
+    for (size_t cc = 0; (cc + 1) < ivp->GetNumberOfUncheckedElements(); cc += 2)
     {
-      if (svp->GetUncheckedElement(cc) == key)
+      if (ivp->GetUncheckedElement(cc) == key)
       {
-        svp->SetUncheckedElement(cc + 1, value);
+        ivp->SetUncheckedElement(cc + 1, value);
         return;
       }
     }
   }
   else
   {
-    for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
+    for (size_t cc = 0; (cc + 1) < ivp->GetNumberOfElements(); cc += 2)
     {
-      if (svp->GetElement(cc) == key)
+      if (ivp->GetElement(cc) == key)
       {
-        svp->SetElement(cc + 1, value);
+        ivp->SetElement(cc + 1, value);
         return;
       }
     }
   }
 
-  std::vector<int> list;
-  if (this->UseUnchecked)
-  {
-    list.assign(
-      svp->GetUnCheckedElements(), svp->GetUnCheckedElements() + svp->GetNumberOfElements());
-  }
-  else
-  {
-    list.assign(svp->GetElements(), svp->GetElements() + svp->GetNumberOfElements());
-  }
+  std::vector<int> list = this->UseUnchecked ? ivp->GetUncheckedElements() : ivp->GetElements();
   list.push_back(key);
   list.push_back(value);
-
   if (this->UseUnchecked)
   {
-    svp->SetUncheckedElements(&list[0]);
+    ivp->SetUncheckedElements(list);
   }
   else
   {
-    svp->SetElements(&list[0]);
+    ivp->SetElements(list);
   }
 }
 
@@ -1412,10 +1378,10 @@ int vtkSMPropertyHelper::GetStatus(const int key, const int default_value) const
     return default_value;
   }
 
-  vtkSMIntVectorProperty* svp = vtkSMIntVectorProperty::SafeDownCast(this->Property);
-  while (svp)
+  vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(this->Property);
+  while (ivp)
   {
-    if (svp->GetNumberOfElementsPerCommand() != 2)
+    if (ivp->GetNumberOfElementsPerCommand() != 2)
     {
       vtkSMPropertyHelperWarningMacro("NumberOfElementsPerCommand != 2");
       return default_value;
@@ -1423,28 +1389,28 @@ int vtkSMPropertyHelper::GetStatus(const int key, const int default_value) const
 
     if (this->UseUnchecked)
     {
-      for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfUncheckedElements(); cc += 2)
+      for (size_t cc = 0; (cc + 1) < ivp->GetNumberOfUncheckedElements(); cc += 2)
       {
-        if (svp->GetUncheckedElement(cc) == key)
+        if (ivp->GetUncheckedElement(cc) == key)
         {
-          return svp->GetUncheckedElement(cc + 1);
+          return ivp->GetUncheckedElement(cc + 1);
         }
       }
     }
     else
     {
-      for (unsigned int cc = 0; (cc + 1) < svp->GetNumberOfElements(); cc += 2)
+      for (size_t cc = 0; (cc + 1) < ivp->GetNumberOfElements(); cc += 2)
       {
-        if (svp->GetElement(cc) == key)
+        if (ivp->GetElement(cc) == key)
         {
-          return svp->GetElement(cc + 1);
+          return ivp->GetElement(cc + 1);
         }
       }
     }
 
     // Now check if the information_property has the value.
-    svp = svp->GetInformationOnly() == 0
-      ? vtkSMIntVectorProperty::SafeDownCast(svp->GetInformationProperty())
+    ivp = ivp->GetIsInformationOnly() == 0
+      ? vtkSMIntVectorProperty::SafeDownCast(ivp->GetInformationProperty())
       : nullptr;
   }
 
@@ -1514,26 +1480,25 @@ void vtkSMPropertyHelper::SetInputArrayToProcess(int fieldAssociation, const cha
   std::ostringstream str;
   str << fieldAssociation;
 
-  vtkNew<vtkStringList> vals;
-  svp->GetElements(vals.GetPointer());
-  if (svp->GetNumberOfElements() == 2)
+  std::vector<std::string> vals = svp->GetElements();
+  if (vals.size() == 2)
   {
-    vals->SetString(0, str.str().c_str());
-    vals->SetString(1, (arrayName ? arrayName : ""));
+    vals[0] = str.str();
+    vals[1] = (arrayName ? arrayName : "");
   }
   else
   {
-    vals->SetString(3, str.str().c_str());
-    vals->SetString(4, (arrayName ? arrayName : ""));
+    vals[3] = str.str();
+    vals[4] = (arrayName ? arrayName : "");
   }
 
   if (this->GetUseUnchecked())
   {
-    svp->SetUncheckedElements(vals.GetPointer());
+    svp->SetUncheckedElements(vals);
   }
   else
   {
-    svp->SetElements(vals.GetPointer());
+    svp->SetElements(vals);
   }
 }
 
@@ -1557,8 +1522,8 @@ int vtkSMPropertyHelper::GetInputArrayAssociation() const
       return -1;
     }
 
-    return svp->GetNumberOfUncheckedElements() == 2 ? std::atoi(svp->GetUncheckedElement(0))
-                                                    : std::atoi(svp->GetUncheckedElement(3));
+    return svp->GetNumberOfUncheckedElements() == 2 ? std::stoi(svp->GetUncheckedElement(0))
+                                                    : std::stoi(svp->GetUncheckedElement(3));
   }
   else
   {
@@ -1568,8 +1533,8 @@ int vtkSMPropertyHelper::GetInputArrayAssociation() const
       return -1;
     }
 
-    return svp->GetNumberOfElements() == 2 ? std::atoi(svp->GetElement(0))
-                                           : std::atoi(svp->GetElement(3));
+    return svp->GetNumberOfElements() == 2 ? std::stoi(svp->GetElement(0))
+                                           : std::stoi(svp->GetElement(3));
   }
 }
 
@@ -1592,8 +1557,8 @@ const char* vtkSMPropertyHelper::GetInputArrayNameToProcess() const
       return nullptr;
     }
 
-    return svp->GetNumberOfUncheckedElements() == 2 ? svp->GetUncheckedElement(1)
-                                                    : svp->GetUncheckedElement(4);
+    return svp->GetNumberOfUncheckedElements() == 2 ? svp->GetUncheckedElement(1).c_str()
+                                                    : svp->GetUncheckedElement(4).c_str();
   }
   else
   {
@@ -1603,7 +1568,8 @@ const char* vtkSMPropertyHelper::GetInputArrayNameToProcess() const
       return nullptr;
     }
 
-    return svp->GetNumberOfElements() == 2 ? svp->GetElement(1) : svp->GetElement(4);
+    return svp->GetNumberOfElements() == 2 ? svp->GetElement(1).c_str()
+                                           : svp->GetElement(4).c_str();
   }
 }
 
@@ -1613,7 +1579,7 @@ bool vtkSMPropertyHelper::CopyInternal(const vtkSMPropertyHelper& source)
 {
   std::vector<T> values = source.GetPropertyArray<T>();
   this->SetPropertyArray<T>(
-    !values.empty() ? &values[0] : nullptr, static_cast<unsigned int>(values.size()));
+    !values.empty() ? &values[0] : nullptr, static_cast<size_t>(values.size()));
   return true;
 }
 

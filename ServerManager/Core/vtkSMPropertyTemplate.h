@@ -64,17 +64,34 @@ public:
   bool AppendUncheckedElements(const std::vector<ValueTypeT>& elements);
   ///@}
 
-  // TODO:
-  // /**
-  //  * Set an element at a specific index. This will resize the property, if
-  //  * needed.
-  //  */
-  // bool SetElement(size_t index, const ValueTypeT& value);
+  /**
+   * Set an element at a specific index. This will resize the property, if
+   * needed.
+   *
+   * Note, it's always better (faster) to simply use `SetElements` to
+   * set property values then using this API for setting a property's value.
+   */
+  bool SetElement(size_t index, const ValueTypeT& value);
 
-  // /**
-  //  * Same as `SetElement` except for unchecked values of the property.
-  //  */
-  // bool SetUncheckedElement(size_t index, const ValueTypeT& value);
+  /**
+   * Same as `SetElement` except for unchecked values of the property.
+   *
+   * Note, it's always better (faster) to simply use `SetUncheckedElements` to
+   * set property values then using this API for setting a property's value.
+   */
+  bool SetUncheckedElement(size_t index, const ValueTypeT& value);
+
+  /**
+   * Returns an element at a particular index. If the index is invalid a default
+   * constructed value will be returned.
+   */
+  ValueTypeT GetElement(size_t index) const;
+
+  /**
+   * Returns an unchecked element at a particular index. If the index is invalid a default
+   * constructed value will be returned.
+   */
+  ValueTypeT GetUncheckedElement(size_t index) const;
 
   /**
    * Returns the current value for the property.
@@ -98,6 +115,8 @@ public:
   }
   void ClearUncheckedElements() override;
   void Copy(const vtkSMProperty* source) override;
+  void SetNumberOfElements(size_t count) override;
+  void SetNumberOfUncheckedElements(size_t count) override;
   ///@}
 protected:
   vtkSMPropertyTemplate();

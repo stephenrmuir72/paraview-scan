@@ -70,6 +70,15 @@ void vtkSMProxyProperty::Modified()
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMProxyProperty::RemoveProxy(vtkSMProxy* proxy)
+{
+  auto elements = this->GetElements();
+  auto iter = std::remove(elements.begin(), elements.end(), proxy);
+  elements.erase(iter, elements.end());
+  return this->SetElements(elements);
+}
+
+//----------------------------------------------------------------------------
 void vtkSMProxyProperty::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

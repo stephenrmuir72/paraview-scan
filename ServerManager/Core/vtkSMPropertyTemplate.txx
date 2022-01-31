@@ -130,6 +130,66 @@ void vtkSMPropertyTemplate<ValueTypeT>::ClearUncheckedElements()
 
 //-----------------------------------------------------------------------------
 template <class ValueTypeT>
+bool vtkSMPropertyTemplate<ValueTypeT>::SetElement(size_t index, const ValueTypeT& value)
+{
+  std::vector<ValueTypeT> elements = this->GetElements();
+  if (index >= elements.size())
+  {
+    elements.resize(index+1);
+  }
+  elements[index] = value;
+  return this->SetElements(elements);
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
+bool vtkSMPropertyTemplate<ValueTypeT>::SetUncheckedElement(size_t index, const ValueTypeT& value)
+{
+  std::vector<ValueTypeT> elements = this->GetUncheckedElements();
+  if (index >= elements.size())
+  {
+    elements.resize(index+1);
+  }
+  elements[index] = value;
+  return this->SetUncheckedElements(elements);
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
+ValueTypeT vtkSMPropertyTemplate<ValueTypeT>::GetElement(size_t index) const
+{
+  const auto& elements = this->GetElements();
+  return index < elements.size() ? elements.at(index) : ValueTypeT{};
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
+ValueTypeT vtkSMPropertyTemplate<ValueTypeT>::GetUncheckedElement(size_t index) const
+{
+  const auto& elements = this->GetUncheckedElements();
+  return index < elements.size() ? elements.at(index) : ValueTypeT{};
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
+void vtkSMPropertyTemplate<ValueTypeT>::SetNumberOfElements(size_t count)
+{
+  auto elements = this->GetElements();
+  elements.resize(count);
+  this->SetElements(elements);
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
+void vtkSMPropertyTemplate<ValueTypeT>::SetNumberOfUncheckedElements(size_t count)
+{
+  auto elements = this->GetUncheckedElements();
+  elements.resize(count);
+  this->SetUncheckedElements(elements);
+}
+
+//-----------------------------------------------------------------------------
+template <class ValueTypeT>
 void vtkSMPropertyTemplate<ValueTypeT>::Copy(const vtkSMProperty* source)
 {
   const auto* sourceP = vtkSMPropertyTemplate<ValueTypeT>::SafeDownCast(

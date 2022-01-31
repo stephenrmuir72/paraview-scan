@@ -41,6 +41,12 @@ public:
    */
   void Modified() override;
 
+  vtkSMProxy* GetProxy(size_t index) const { return this->GetElement(index); }
+
+  vtkSMProxy* GetUncheckedProxy(size_t index) const { return this->GetUncheckedElement(index); }
+
+  bool RemoveProxy(vtkSMProxy* proxy);
+
 protected:
   vtkSMProxyProperty();
   ~vtkSMProxyProperty() override;

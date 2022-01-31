@@ -142,6 +142,16 @@ void vtkSMInputProperty::InputDataInformationUpdated()
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMInputProperty::RemoveProxy(vtkSMProxy* proxy)
+{
+  auto elements = this->GetElements();
+  auto iter = std::remove_if(elements.begin(), elements.end(),
+    [&](const auto& port) { return port != nullptr && port->GetProducer() == proxy; });
+  elements.erase(iter, elements.end());
+  return this->SetElements(elements);
+}
+
+//----------------------------------------------------------------------------
 void vtkSMInputProperty::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
