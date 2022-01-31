@@ -55,6 +55,7 @@ set(classes
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
+  vtkSMBooleanDomain
   vtkSMCommand
   vtkSMDomain
   vtkSMDomainIterator

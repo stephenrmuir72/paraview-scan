@@ -15,11 +15,9 @@
 #include "vtkSMBooleanDomain.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkPVXMLElement.h"
-#include "vtkSMPropertyHelper.h"
+#include "vtkSMIntVectorProperty.h"
 
 vtkStandardNewMacro(vtkSMBooleanDomain);
-
 //---------------------------------------------------------------------------
 vtkSMBooleanDomain::vtkSMBooleanDomain() = default;
 
@@ -27,30 +25,28 @@ vtkSMBooleanDomain::vtkSMBooleanDomain() = default;
 vtkSMBooleanDomain::~vtkSMBooleanDomain() = default;
 
 //---------------------------------------------------------------------------
-int vtkSMBooleanDomain::IsInDomain(vtkSMProperty* property)
+int vtkSMBooleanDomain::IsInDomain(vtkSMProperty* property) const
 {
-  if (this->IsOptional)
+  if (this->GetIsOptional())
   {
-    return 1;
+    return IN_DOMAIN;
   }
 
-  if (!property)
+  auto iproperty = vtkSMIntVectorProperty::SafeDownCast(property);
+  if (!iproperty)
   {
-    return 0;
+    return NOT_APPLICABLE;
   }
 
-  int value = vtkSMPropertyHelper(property).GetAsInt();
-  return (value == 0 || value == 1) ? 1 : 0;
-}
-
-//---------------------------------------------------------------------------
-void vtkSMBooleanDomain::SetAnimationValue(vtkSMProperty* property, int idx, double value)
-{
-  if (!property)
+  for (const auto& elem : iproperty->GetElements())
   {
-    return;
+    if (elem != 0 && elem != 1)
+    {
+      return NOT_IN_DOMAIN;
+    }
   }
-  vtkSMPropertyHelper(property).Set(idx, static_cast<int>(value));
+
+  return IN_DOMAIN;
 }
 
 //---------------------------------------------------------------------------
