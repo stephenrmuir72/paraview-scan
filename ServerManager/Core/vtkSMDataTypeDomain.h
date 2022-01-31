@@ -19,8 +19,7 @@
  * vtkSMDataTypeDomain restricts the input proxies to one or more data types.
  * These data types are specified in the XML with the \c \<DataType\> element.
  * VTK class names are used. It is possible to specify a superclass
- * (i.e. vtkDataSet) for a more general domain. Works with vtkSMSourceProxy
- * only. Valid XML elements are:
+ * (i.e. vtkDataSet) for a more general domain. Valid XML elements are:
  * @verbatim
  * * <DataType value=""> where value is the classname for the data type
  * for example: vtkDataSet, vtkImageData,...
@@ -45,22 +44,20 @@
  * child datasets being either vtkImageData or vtkUnstructuredGrid.
  *
  * @sa
- * vtkSMDomain  vtkSMSourceProxy
+ * vtkSMDomain  vtkSMProxy
  */
 
 #ifndef vtkSMDataTypeDomain_h
 #define vtkSMDataTypeDomain_h
 
-#include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMDomain.h"
 
 #include <string> // for std::string
 
-class vtkSMSourceProxy;
-
+class vtkSMProxy;
 struct vtkSMDataTypeDomainInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDataTypeDomain : public vtkSMDomain
+class VTKSERVERMANAGERCORE_EXPORT vtkSMDataTypeDomain : public vtkSMDomain
 {
 public:
   static vtkSMDataTypeDomain* New();
@@ -70,15 +67,15 @@ public:
   /**
    * Returns true if the value of the property is in the domain.
    * The property has to be a vtkSMProxyProperty which points
-   * to a vtkSMSourceProxy. If all data types of the input's
+   * to a vtkSMProxy. If all data types of the input's
    * parts are in the domain, it returns. It returns 0 otherwise.
    */
-  int IsInDomain(vtkSMProperty* property) override;
+  int IsInDomain(vtkSMProperty* property) const override;
 
   /**
    * Returns true if all parts of the source proxy are in the domain.
    */
-  int IsInDomain(vtkSMSourceProxy* proxy, int outputport = 0);
+  int IsInDomain(vtkSMProxy* proxy, int outputport = 0) const;
 
   /**
    * An experimental API to provide a user-friendly text describing this domain.
@@ -89,11 +86,7 @@ protected:
   vtkSMDataTypeDomain();
   ~vtkSMDataTypeDomain() override;
 
-  /**
-   * Set the appropriate ivars from the xml element. Should
-   * be overwritten by subclass if adding ivars.
-   */
-  int ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element) override;
+  bool ReadXMLAttributes(const pugi::xml_node& node) override;
 
 private:
   vtkSMDataTypeDomain(const vtkSMDataTypeDomain&) = delete;

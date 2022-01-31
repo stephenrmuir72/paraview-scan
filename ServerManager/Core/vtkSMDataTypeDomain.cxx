@@ -14,13 +14,12 @@
 =========================================================================*/
 #include "vtkSMDataTypeDomain.h"
 
-#include "vtkClientServerStreamInstantiator.h"
 #include "vtkDataObjectTypes.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMInputProperty.h"
-#include "vtkSMSourceProxy.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 
 #include <sstream>
 #include <string>
@@ -58,40 +57,35 @@ vtkSMDataTypeDomain::~vtkSMDataTypeDomain()
 }
 
 //---------------------------------------------------------------------------
-int vtkSMDataTypeDomain::IsInDomain(vtkSMProperty* property)
+int vtkSMDataTypeDomain::IsInDomain(vtkSMProperty* property) const
 {
-  if (this->IsOptional)
+  if (this->GetIsOptional())
   {
-    return 1;
+    return IN_DOMAIN;
   }
 
   if (!property)
   {
-    return 0;
+    return NOT_APPLICABLE;
   }
 
-  vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(property);
-  vtkSMInputProperty* ip = vtkSMInputProperty::SafeDownCast(pp);
-  if (pp)
+  vtkSMPropertyHelper helper(property);
+  helper.SetUseUnchecked(true);
+  for (size_t cc = 0, max = helper.GetNumberOfElements(); cc < max; ++cc)
   {
-    unsigned int numProxs = pp->GetNumberOfUncheckedProxies();
-    for (unsigned int i = 0; i < numProxs; i++)
+    auto* proxy = helper.GetAsProxy(cc);
+    int port = helper.GetOutputPort(cc);
+    if (!this->IsInDomain(proxy, port))
     {
-      vtkSMProxy* proxy = pp->GetUncheckedProxy(i);
-      int portno = ip ? ip->GetUncheckedOutputPortForConnection(i) : 0;
-      if (!this->IsInDomain(vtkSMSourceProxy::SafeDownCast(proxy), portno))
-      {
-        return 0;
-      }
+      return NOT_IN_DOMAIN;
     }
-    return 1;
   }
 
-  return 0;
+  return IN_DOMAIN;
 }
 
 //---------------------------------------------------------------------------
-int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0*/)
+int vtkSMDataTypeDomain::IsInDomain(vtkSMProxy* proxy, int outputport /*=0*/) const
 {
   if (!proxy)
   {
@@ -104,8 +98,6 @@ int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0
   }
 
   // Make sure the outputs are created.
-  proxy->CreateOutputPorts();
-
   vtkPVDataInformation* info = proxy->GetDataInformation(outputport);
   if (!info || info->IsNull())
   {
@@ -205,73 +197,60 @@ std::string vtkSMDataTypeDomain::GetDomainDescription() const
 }
 
 //---------------------------------------------------------------------------
-int vtkSMDataTypeDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element)
+bool vtkSMDataTypeDomain::ReadXMLAttributes(const pugi::xml_node& node)
 {
-  this->Superclass::ReadXMLAttributes(prop, element);
-
-  int compositeDataSupported;
-  if (element->GetScalarAttribute("composite_data_supported", &compositeDataSupported))
+  if (!this->Superclass::ReadXMLAttributes(node))
   {
-    this->CompositeDataSupported = (compositeDataSupported == 1);
+    return false;
   }
 
-  int compositeDataRequired;
-  if (element->GetScalarAttribute("composite_data_required", &compositeDataRequired))
-  {
-    this->CompositeDataRequired = (compositeDataRequired == 1);
-  }
+  this->CompositeDataSupported =
+    node.attribute("composite_data_supported").as_bool(this->CompositeDataSupported);
+
+  this->CompositeDataRequired =
+    node.attribute("composite_data_required").as_bool(this->CompositeDataRequired);
 
   // Loop over the top-level elements.
-  for (unsigned int i = 0; i < element->GetNumberOfNestedElements(); ++i)
+  for (auto selement : node.children("DataType"))
   {
-    vtkPVXMLElement* selement = element->GetNestedElement(i);
-    if (strcmp("DataType", selement->GetName()) != 0)
-    {
-      continue;
-    }
-    const char* value = selement->GetAttribute("value");
+    const char* value = selement.attribute("value").as_string(nullptr);
     if (!value)
     {
       vtkErrorMacro(<< "Can not find required attribute 'value'");
-      return 0;
+      return false;
     }
 
     const int typeId = vtkDataObjectTypes::GetTypeIdFromClassName(value);
     if (typeId == -1)
     {
       vtkErrorMacro("'" << value << "' not a known data object type!");
-      return 0;
+      return false;
     }
 
     vtkSMDataTypeDomainAllowedType typeInfo;
     typeInfo.Type = typeId;
 
-    const char* childMatch = selement->GetAttributeOrDefault("child_match", "any");
+    const char* childMatch = selement.attribute("child_match").as_string("any");
     if (strcmp(childMatch, "any") != 0 && strcmp(childMatch, "all") != 0)
     {
       vtkErrorMacro("'child_match' can only be 'any' or 'all', got '" << childMatch << "'.");
-      return 0;
+      return false;
     }
     typeInfo.ChildMatchAny = (strcmp(childMatch, "any") == 0);
-    for (unsigned int cc = 0; cc < selement->GetNumberOfNestedElements(); ++cc)
+    for (auto childElement : selement.children("DataType"))
     {
-      vtkPVXMLElement* childElement = selement->GetNestedElement(cc);
-      if (strcmp("DataType", childElement->GetName()) != 0)
-      {
-        continue;
-      }
-      const char* childValue = childElement->GetAttribute("value");
+      const char* childValue = childElement.attribute("value").as_string(nullptr);
       if (!childValue)
       {
         vtkErrorMacro("Missing required attribute 'value'. ");
-        return 0;
+        return false;
       }
 
       const auto childTypeId = vtkDataObjectTypes::GetTypeIdFromClassName(childValue);
       if (childTypeId == -1)
       {
         vtkErrorMacro("'" << childValue << "' not a known data object type!");
-        return 0;
+        return false;
       }
 
       typeInfo.ChildTypes.push_back(childTypeId);
@@ -279,7 +258,7 @@ int vtkSMDataTypeDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement*
 
     this->DTInternals->DataTypes.push_back(typeInfo);
   }
-  return 1;
+  return true;
 }
 
 //---------------------------------------------------------------------------

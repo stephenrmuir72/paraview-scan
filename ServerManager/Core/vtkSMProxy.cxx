@@ -588,6 +588,13 @@ vtkSMOutputPort* vtkSMProxy::GetOutputPort(int index) const
 }
 
 //----------------------------------------------------------------------------
+vtkPVDataInformation* vtkSMProxy::GetDataInformation(int index) const
+{
+  auto* port = this->GetOutputPort(index);
+  return port ? port->GetDataInformation() : nullptr;
+}
+
+//----------------------------------------------------------------------------
 vtkSMProperty* vtkSMProxy::GetProperty(const std::string& name) const
 {
   const auto& internals = (*this->Internals);

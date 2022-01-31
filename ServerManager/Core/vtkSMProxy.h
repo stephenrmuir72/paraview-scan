@@ -81,6 +81,7 @@ class vtkSMOutputPort;
 class vtkSMProxyManager;
 class vtkSMProperty;
 class vtkSMStateContext;
+class vtkPVDataInformation;
 
 class VTKSERVERMANAGERCORE_EXPORT vtkSMProxy : public vtkObject
 {
@@ -170,6 +171,11 @@ public:
    * Returns the vtkSMOutputPort for a specific output port index, if any.
    */
   vtkSMOutputPort* GetOutputPort(int index) const;
+
+  /**
+   * Convenience method to access data information.
+   */
+  vtkPVDataInformation* GetDataInformation(int index = 0) const;
 
   ///@{
   /**

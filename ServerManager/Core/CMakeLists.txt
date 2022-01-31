@@ -58,6 +58,7 @@ set(classes
   vtkSMBooleanDomain
   # vtkSMBoundsDomain
   vtkSMCommand
+  vtkSMDataTypeDomain
   vtkSMDomain
   vtkSMDomainIterator
   vtkSMDomainRange
@@ -78,7 +79,6 @@ set(classes
   vtkSMPropertyRange
   vtkSMPrototypeProxiesIterator
   vtkSMPrototypeProxiesRange
-  vtkSMProxy
   vtkSMProxy
   vtkSMProxyDefinitionsIterator
   vtkSMProxyDefinitionsRange
