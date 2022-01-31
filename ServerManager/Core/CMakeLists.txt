@@ -40,16 +40,22 @@ set(classes
   vtkPVApplicationOptions
   vtkPVArrayInformation
   vtkPVCoreApplication
+  vtkPVDataAssemblyInformation
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVInformation
+  vtkPVLogInformation
+  vtkPVMemoryUseInformation
   vtkPVServerApplication
   vtkPVServerOptions
+  vtkPVSystemConfigInformation
   vtkPVTemporalDataInformation
   vtkPVTimerInformation
+  vtkReflectionInitializer
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
+  vtkSMCommand
   vtkSMDomain
   vtkSMDoubleRangeDomain
   vtkSMDoubleVectorProperty
@@ -65,7 +71,6 @@ set(classes
   vtkSMProxyProperty
   vtkSMStringVectorProperty
   vtkStringUtilities
-  vtkReflectionInitializer
 )
 set(template_classes
   vtkSMPropertyTemplate
@@ -76,33 +81,25 @@ set(old_classes
   vtkPResourceFileLocator
   vtkPVServerInformation
   vtkRemotingCoreConfiguration
-  vtkPVDataAssemblyInformation
-  vtkPVDataSizeInformation
   vtkPVDynamicInitializerPluginInterface
-  vtkPVEnvironmentInformation
-  vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
   vtkPVFileInformationHelper
-  vtkPVLogInformation
-  vtkPVMemoryUseInformation
   vtkPVPlugin
   vtkPVPluginLoader
   vtkPVPluginsInformation
   vtkPVPluginTracker
-  vtkPVProgressHandler
   vtkPVPythonInformation
   vtkPVPythonModule
   vtkPVPythonPluginInterface
   vtkPVServerManagerPluginInterface
-  vtkPVSystemConfigInformation
-  vtkPVSystemInformation
 )
 set(sources)
-set(private_headers)
+set(private_headers
+  vtkSMPropertyProducer.h)
 
 set(headers
-  vtkParaViewDeprecation.h
-  vtkReservedRemoteObjectIds.h)
+  vtkParaViewDeprecation.h)
+
 if (APPLE)
   list(APPEND sources
     vtkPVMacFileInformationHelper.mm)
@@ -153,7 +150,9 @@ if (VTK_OPENGL_HAS_EGL)
   list(APPEND vtkPVOptions_defines
     VTK_OPENGL_HAS_EGL)
 endif ()
-set_source_files_properties(vtkPVOptions.cxx
+set_source_files_properties(
+  vtkPVOptions.cxx
+  vtkPVApplicationOptions.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${vtkPVOptions_defines}")
 

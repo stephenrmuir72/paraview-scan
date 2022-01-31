@@ -40,18 +40,19 @@ public:
   /**
    * Get/Set the method name to use to get the assembly.
    */
-  vtkSetStringMacro(MethodName);
-  vtkGetStringMacro(MethodName);
+  const std::string& GetMethodName() const;
+  void SetMethodName(const std::string& name);
   ///@}
 
   vtkGetObjectMacro(DataAssembly, vtkDataAssembly);
 
   ///@{
-  void CopyFromObject(vtkObject*) override;
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  void CopyParametersToStream(vtkMultiProcessStream&) override;
-  void CopyParametersFromStream(vtkMultiProcessStream&) override;
+  bool GatherInformation(vtkObject* target) override;
+  void AddInformation(vtkPVInformation*) override {}
+  vtkJson SaveState() const override;
+  bool LoadState(const vtkJson& state) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
   ///@}
 
 protected:
@@ -65,7 +66,7 @@ private:
   void SetDataAssembly(vtkDataAssembly*);
 
   vtkDataAssembly* DataAssembly;
-  char* MethodName;
+  std::string MethodName;
 };
 
 #endif

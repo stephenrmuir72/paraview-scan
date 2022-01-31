@@ -36,6 +36,7 @@ public:
   vtkSmartPointer<vtkProxyDefinitionManager> ProxyDefinitionManager;
   rxcpp::composite_subscription Subscription;
   rxcpp::subjects::subject<vtkTypeUInt32> NotifyUpdateSubject;
+  rxcpp::subjects::subject<std::tuple<vtkTypeUInt32, std::string, int8_t>> ProgressSubject;
 
   vtkInternals(vtkRemoteObjectProvider* self)
     : Self(self)
@@ -266,12 +267,23 @@ void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* obj
   if (auto* algorithm = vtkAlgorithm::SafeDownCast(vtkobject))
   {
     auto* service = this->Self->GetService();
+
     // FIXME: see async/paraview#2
     // Need to use vtkCommand::RealEndEvent
     rxvtk::from_event(algorithm, vtkCommand::EndEvent)
       .map([gid](const auto& tuple) { return gid; })
       .debounce(std::chrono::milliseconds(500), service->GetRunLoopScheduler())
       .subscribe(this->NotifyUpdateSubject.get_subscriber());
+
+    // progress event
+    rxvtk::from_event(vtkobject, vtkCommand::ProgressEvent)
+      .map([gid, algorithm](const auto& tuple) {
+        std::string txt = algorithm->GetProgressText() ? algorithm->GetProgressText() : "";
+        auto value = static_cast<int8_t>(algorithm->GetProgress() * 10);
+        return std::make_tuple(gid, txt, value);
+      })
+      .distinct_until_changed()
+      .subscribe(this->ProgressSubject.get_subscriber());
   }
 }
 
@@ -374,6 +386,17 @@ std::vector<vtkTypeUInt32> vtkRemoteObjectProvider::ParseNotifyUpdate(const vtkP
 }
 
 //----------------------------------------------------------------------------
+std::tuple<vtkTypeUInt32, std::string, int8_t> vtkRemoteObjectProvider::ParseProgress(
+  const vtkPacket& packet)
+{
+  auto& json = packet.GetJSON();
+  vtkTypeUInt32 gid = json.at("gid").get<vtkTypeUInt32>();
+  int8_t progress = json.at("progress").get<int8_t>();
+  std::string progress_text = json.at("progress_text").get<std::string>();
+  return std::make_tuple(gid, progress_text, progress);
+}
+
+//----------------------------------------------------------------------------
 void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
 {
   assert(service != nullptr);
@@ -411,6 +434,16 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
       service->Publish(
         vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE(), vtkJson({ { "gids", gids } }));
     });
+
+  // can't really buffer since we don't want to skip start/end.
+  // just sending all for now, need to figure out better time management.
+  internals.ProgressSubject.get_observable().subscribe([service](const auto& tuple) {
+    vtkJson json;
+    json["gid"] = std::get<0>(tuple);
+    json["progress_text"] = std::get<1>(tuple);
+    json["progress"] = std::get<2>(tuple);
+    service->Publish(vtkRemoteObjectProvider::CHANNEL_PROGRESS(), std::move(json));
+  });
 }
 
 //----------------------------------------------------------------------------

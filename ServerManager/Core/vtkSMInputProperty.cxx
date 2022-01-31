@@ -17,6 +17,7 @@
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMOutputPort.h"
+#include "vtkSMPropertyProducer.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
 #include "vtkWeakPointer.h"
@@ -66,9 +67,10 @@ class vtkSMInputProperty::vtkInternals
   vtkNew<vtkSMInputProperty::vtkObserver> Observer;
   std::vector<vtkObserverHelper> Helpers;
 
+  vtkSMPropertyProducer ProducerHelper;
+
 public:
   vtkInternals(vtkSMInputProperty* property) { this->Observer->Property = property; }
-
   ~vtkInternals() { this->Observer->Property = nullptr; }
 
   void UpdateObservers(const std::vector<vtkSmartPointer<vtkSMOutputPort>>& inputs)
@@ -77,6 +79,15 @@ public:
     std::transform(inputs.begin(), inputs.end(), std::back_inserter(helpers),
       [this](vtkSMOutputPort* port) { return vtkObserverHelper(port, this->Observer); });
     this->Helpers = std::move(helpers);
+  }
+
+  void UpdateProducers(
+    vtkSMProperty* self, const std::vector<vtkSmartPointer<vtkSMOutputPort>>& inputs)
+  {
+    std::vector<vtkSMProxy*> proxies;
+    std::transform(inputs.begin(), inputs.end(), std::back_inserter(proxies),
+      [](auto& port) { return port->GetProducer(); });
+    this->ProducerHelper.UpdateProducers(self, proxies);
   }
 };
 
@@ -120,6 +131,7 @@ void vtkSMInputProperty::Modified()
 {
   auto& internals = (*this->Internals);
   internals.UpdateObservers(this->GetElements());
+  internals.UpdateProducers(this, this->GetElements());
   this->Superclass::Modified();
 }
 

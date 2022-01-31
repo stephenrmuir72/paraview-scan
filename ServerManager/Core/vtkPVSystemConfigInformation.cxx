@@ -14,25 +14,11 @@
 =========================================================================*/
 #include "vtkPVSystemConfigInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
-
-#include <sstream>
-using std::ostringstream;
-#include <algorithm>
-using std::sort;
-
+#include "vtkPVCoreApplication.h"
 #include <vtksys/SystemInformation.hxx>
 
-// #define vtkPVSystemConfigInformationDEBUG
-
-#define vtkVerifyParseMacro(_call, _field)                                                         \
-  if (!(_call))                                                                                    \
-  {                                                                                                \
-    vtkErrorMacro("Error parsing " _field ".");                                                    \
-    return;                                                                                        \
-  }
+#include <algorithm>
 
 void vtkPVSystemConfigInformation::ConfigInfo::Print()
 {
@@ -54,38 +40,19 @@ void vtkPVSystemConfigInformation::ConfigInfo::Print()
 vtkStandardNewMacro(vtkPVSystemConfigInformation);
 
 //----------------------------------------------------------------------------
-#ifdef vtkPVSystemConfigInformationDEBUG
-vtkPVSystemConfigInformation::vtkPVSystemConfigInformation()
-{
-  cerr << "=====vtkPVSystemConfigInformation::vtkPVSystemConfigInformation" << endl;
-}
-#else
 vtkPVSystemConfigInformation::vtkPVSystemConfigInformation() = default;
-#endif
 
 //----------------------------------------------------------------------------
-#ifdef vtkPVSystemConfigInformationDEBUG
-vtkPVSystemConfigInformation::~vtkPVSystemConfigInformation()
-{
-  cerr << "=====vtkPVSystemConfigInformation::~vtkPVSystemConfigInformation" << endl;
-}
-#else
 vtkPVSystemConfigInformation::~vtkPVSystemConfigInformation() = default;
-#endif
 
 //----------------------------------------------------------------------------
-void vtkPVSystemConfigInformation::CopyFromObject(vtkObject* obj)
+bool vtkPVSystemConfigInformation::GatherInformation(vtkObject* vtkNotUsed(obj))
 {
-#ifdef vtkPVSystemConfigInformationDEBUG
-  cerr << "=====vtkPVSystemConfigInformation::CopyFromObject" << endl;
-#endif
-
-  (void)obj;
-
   this->Configs.clear();
 
-  ConfigInfo info;
+  auto* pvapp = vtkPVCoreApplication::GetInstance();
 
+  ConfigInfo info;
   vtksys::SystemInformation sysInfo;
   sysInfo.RunCPUCheck();
   sysInfo.RunOSCheck();
@@ -95,9 +62,9 @@ void vtkPVSystemConfigInformation::CopyFromObject(vtkObject* obj)
   info.CPUDescriptor = sysInfo.GetCPUDescription();
   info.MemDescriptor = sysInfo.GetMemoryDescription();
   info.HostName = sysInfo.GetHostname();
-  info.ProcessType = vtkProcessModule::GetProcessType();
+  info.ProcessType = pvapp->GetApplicationType();
   info.SystemType = sysInfo.GetOSIsWindows();
-  info.Rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  info.Rank = pvapp->GetRank();
   info.Pid = sysInfo.GetProcessId();
   info.HostMemoryTotal = sysInfo.GetHostMemoryTotal();
   // the folloowing envornment variables are querried, if set they
@@ -107,125 +74,75 @@ void vtkPVSystemConfigInformation::CopyFromObject(vtkObject* obj)
   info.ProcMemoryAvailable =
     sysInfo.GetProcMemoryAvailable("PV_HOST_MEMORY_LIMIT", "PV_PROC_MEMORY_LIMIT");
 
-#ifdef vtkPVSystemConfigInformationDEBUG
-  info.Print();
-#endif
-
   this->Configs.push_back(info);
+  return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSystemConfigInformation::AddInformation(vtkPVInformation* pvinfo)
 {
-#ifdef vtkPVSystemConfigInformationDEBUG
-  cerr << "=====vtkPVSystemConfigInformation::AddInformation" << endl;
-#endif
-  vtkPVSystemConfigInformation* info = dynamic_cast<vtkPVSystemConfigInformation*>(pvinfo);
-
+  vtkPVSystemConfigInformation* info = vtkPVSystemConfigInformation::SafeDownCast(pvinfo);
   if (!info)
   {
     return;
   }
 
-  this->Configs.insert(this->Configs.end(), info->Configs.begin(), info->Configs.end());
+  std::copy(info->Configs.begin(), info->Configs.end(), std::back_inserter(this->Configs));
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSystemConfigInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVSystemConfigInformation::SaveInformation() const
 {
-#ifdef vtkPVSystemConfigInformationDEBUG
-  cerr << "=====vtkPVSystemConfigInformation::CopyToStream" << endl;
-#endif
-
-  css->Reset();
-
-  size_t numberOfConfigs = this->Configs.size();
-
-  *css << vtkClientServerStream::Reply << numberOfConfigs;
-
-  for (size_t i = 0; i < numberOfConfigs; ++i)
+  vtkJson json;
+  vtkJson configs = vtkJson::array();
+  for (const auto& config : this->Configs)
   {
-    *css << this->Configs[i].OSDescriptor.c_str() << this->Configs[i].CPUDescriptor.c_str()
-         << this->Configs[i].MemDescriptor.c_str() << this->Configs[i].HostName.c_str()
-         << this->Configs[i].ProcessType << this->Configs[i].SystemType << this->Configs[i].Rank
-         << this->Configs[i].Pid << this->Configs[i].HostMemoryTotal
-         << this->Configs[i].HostMemoryAvailable << this->Configs[i].ProcMemoryAvailable;
+    vtkJson item;
+    VTK_JSON_SAVE_MEMBER(item, config.OSDescriptor);
+    VTK_JSON_SAVE_MEMBER(item, config.CPUDescriptor);
+    VTK_JSON_SAVE_MEMBER(item, config.MemDescriptor);
+    VTK_JSON_SAVE_MEMBER(item, config.HostName);
+    VTK_JSON_SAVE_MEMBER(item, config.ProcessType);
+    VTK_JSON_SAVE_MEMBER(item, config.SystemType);
+    VTK_JSON_SAVE_MEMBER(item, config.Rank);
+    VTK_JSON_SAVE_MEMBER(item, config.Pid);
+    VTK_JSON_SAVE_MEMBER(item, config.HostMemoryTotal);
+    VTK_JSON_SAVE_MEMBER(item, config.HostMemoryAvailable);
+    VTK_JSON_SAVE_MEMBER(item, config.ProcMemoryAvailable);
+    configs.push_back(std::move(item));
   }
-
-  *css << vtkClientServerStream::End;
+  json["configs"] = std::move(configs);
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSystemConfigInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVSystemConfigInformation::LoadInformation(const vtkJson& json)
 {
-#ifdef vtkPVSystemConfigInformationDEBUG
-  cerr << "=====vtkPVSystemConfigInformation::CopyFromStream" << endl;
-#endif
-
-  int offset = 0;
-  size_t numberOfConfigs = 0;
-
-  vtkVerifyParseMacro(css->GetArgument(0, offset, &numberOfConfigs), "numberOfConfigs");
-  ++offset;
-
-  this->Configs.resize(numberOfConfigs);
-
-  for (size_t i = 0; i < numberOfConfigs; ++i)
+  this->Configs.clear();
+  for (const auto& item : json.at("configs"))
   {
-    char* osDescr;
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &osDescr), "OSDescriptor");
-    ++offset;
-    this->Configs[i].OSDescriptor = osDescr;
-
-    char* cpuDescr;
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &cpuDescr), "CPUDescriptor");
-    ++offset;
-    this->Configs[i].CPUDescriptor = cpuDescr;
-
-    char* memDescr;
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &memDescr), "MemDescriptor");
-    ++offset;
-    this->Configs[i].MemDescriptor = memDescr;
-
-    char* hostName;
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &hostName), "HostName");
-    ++offset;
-    this->Configs[i].HostName = hostName;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &this->Configs[i].ProcessType), "ProcessType");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &this->Configs[i].SystemType), "SystemType");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &this->Configs[i].Rank), "Rank");
-    ++offset;
-
-    vtkVerifyParseMacro(css->GetArgument(0, offset, &this->Configs[i].Pid), "Pid");
-    ++offset;
-
-    vtkVerifyParseMacro(
-      css->GetArgument(0, offset, &this->Configs[i].HostMemoryTotal), "HostMemoryTotal");
-    ++offset;
-
-    vtkVerifyParseMacro(
-      css->GetArgument(0, offset, &this->Configs[i].HostMemoryAvailable), "HostMemoryAvailable");
-    ++offset;
-
-    vtkVerifyParseMacro(
-      css->GetArgument(0, offset, &this->Configs[i].ProcMemoryAvailable), "ProcMemoryAvailable");
-    ++offset;
+    ConfigInfo config;
+    VTK_JSON_LOAD_MEMBER(item, config.OSDescriptor);
+    VTK_JSON_LOAD_MEMBER(item, config.CPUDescriptor);
+    VTK_JSON_LOAD_MEMBER(item, config.MemDescriptor);
+    VTK_JSON_LOAD_MEMBER(item, config.HostName);
+    VTK_JSON_LOAD_MEMBER(item, config.ProcessType);
+    VTK_JSON_LOAD_MEMBER(item, config.SystemType);
+    VTK_JSON_LOAD_MEMBER(item, config.Rank);
+    VTK_JSON_LOAD_MEMBER(item, config.Pid);
+    VTK_JSON_LOAD_MEMBER(item, config.HostMemoryTotal);
+    VTK_JSON_LOAD_MEMBER(item, config.HostMemoryAvailable);
+    VTK_JSON_LOAD_MEMBER(item, config.ProcMemoryAvailable);
+    this->Configs.push_back(std::move(config));
   }
+
+  return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSystemConfigInformation::Sort()
 {
-#ifdef vtkPVSystemConfigInformationDEBUG
-  cerr << "=====vtkPVSystemConfigInformation::Sort" << endl;
-#endif
-
-  sort(this->Configs.begin(), this->Configs.end());
+  std::sort(this->Configs.begin(), this->Configs.end());
 }
 
 //----------------------------------------------------------------------------

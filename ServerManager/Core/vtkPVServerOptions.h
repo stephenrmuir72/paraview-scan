@@ -38,6 +38,25 @@ public:
   int GetPort() const;
   ///@}
 
+  ///@{
+  /**
+   * Get/Set timeout. This denotes the time (in minutes)
+   * since the time that the connection was established with the server that the
+   * server may timeout. timeout <= 0 means no timeout.
+   */
+  int GetTimeout() const;
+  void SetTimeout(int minutes);
+  ///@}
+
+  ///@{
+  /**
+   * Get/Set the timeout command, called regularly on server side and giving
+   * remaining time available for server access.
+   */
+  const std::string& GetTimeoutCommand() const;
+  void SetTimeoutCommand(const std::string& command);
+  ///@}
+
   void Populate(CLI::App& app) override;
 
 protected:

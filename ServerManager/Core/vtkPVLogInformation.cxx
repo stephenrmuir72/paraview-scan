@@ -29,17 +29,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-
 #include "vtkPVLogInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkLogRecorder.h"
 #include "vtkLogger.h"
-#include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkPVLogInformation);
-
 //----------------------------------------------------------------------------
 void vtkPVLogInformation::PrintSelf(ostream& os, vtkIndent indent)
 {
@@ -51,72 +47,78 @@ void vtkPVLogInformation::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVLogInformation::CopyFromObject(vtkObject* obj)
+bool vtkPVLogInformation::GatherInformation(vtkObject* obj)
 {
   if (!obj)
   {
     vtkErrorMacro("Cannot get class name from NULL object.");
-    return;
+    return false;
   }
+
   vtkLogRecorder* logRecorder = vtkLogRecorder::SafeDownCast(obj);
   if (logRecorder == nullptr)
   {
     vtkErrorMacro("Cannot down cast to vtkLogRecorder.");
+    return false;
   }
-  else
+
+  if (this->Rank == logRecorder->GetMyRank())
   {
-    if (this->Rank == logRecorder->GetMyRank())
-    {
-      this->Logs = logRecorder->GetLogs();
-      this->StartingLogs = logRecorder->GetStartingLog();
-    }
-    this->Verbosity = vtkLogger::GetCurrentVerbosityCutoff();
+    this->Logs = logRecorder->GetLogs();
+    this->StartingLogs = logRecorder->GetStartingLog();
   }
+  this->Verbosity = vtkLogger::GetCurrentVerbosityCutoff();
+  return true;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVLogInformation::AddInformation(vtkPVInformation* info)
 {
-  if (vtkPVLogInformation::SafeDownCast(info))
+  if (auto* pvinfo = vtkPVLogInformation::SafeDownCast(info))
   {
-    this->Logs += vtkPVLogInformation::SafeDownCast(info)->Logs;
-    this->StartingLogs += vtkPVLogInformation::SafeDownCast(info)->StartingLogs;
+    this->Logs += pvinfo->Logs;
+    this->StartingLogs += pvinfo->StartingLogs;
     if (this->Verbosity == 20)
     {
-      this->Verbosity = vtkPVLogInformation::SafeDownCast(info)->Verbosity;
+      this->Verbosity = pvinfo->Verbosity;
     }
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPVLogInformation::CopyFromStream(const vtkClientServerStream* css)
+vtkJson vtkPVLogInformation::SaveState() const
 {
-  css->GetArgument(0, 0, &Logs);
-  css->GetArgument(0, 1, &StartingLogs);
-  css->GetArgument(0, 2, &Verbosity);
+  auto json = this->Superclass::SaveState();
+  VTK_JSON_SAVE_MEMBER(json, Rank);
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVLogInformation::CopyParametersToStream(vtkMultiProcessStream& str)
+bool vtkPVLogInformation::LoadState(const vtkJson& json)
 {
-  str << 557499 << this->Rank;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVLogInformation::CopyParametersFromStream(vtkMultiProcessStream& str)
-{
-  int magic_number;
-  str >> magic_number >> this->Rank;
-  if (magic_number != 557499)
+  if (!this->Superclass::LoadState(json))
   {
-    vtkErrorMacro("Magic number mismatch.");
+    return false;
   }
+  VTK_JSON_LOAD_MEMBER(json, Rank);
+  return true;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVLogInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVLogInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply << this->Logs << this->StartingLogs << this->Verbosity
-       << vtkClientServerStream::End;
+  vtkJson json;
+  VTK_JSON_SAVE_MEMBER(json, Logs);
+  VTK_JSON_SAVE_MEMBER(json, StartingLogs);
+  VTK_JSON_SAVE_MEMBER(json, Verbosity);
+  return json;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVLogInformation::LoadInformation(const vtkJson& json)
+{
+  VTK_JSON_LOAD_MEMBER(json, Logs);
+  VTK_JSON_LOAD_MEMBER(json, StartingLogs);
+  VTK_JSON_LOAD_MEMBER(json, Verbosity);
+  return true;
 }

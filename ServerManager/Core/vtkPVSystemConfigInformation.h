@@ -13,10 +13,11 @@
 
 =========================================================================*/
 /**
- * @class   vtkPVSystemConfigInformation
+ * @class vtkPVSystemConfigInformation
+ * @brief Information object providing system resource information
  *
- * A vtkClientServerStream serializable container of information describing
- * memory configuration of the host of a single process.
+ * vtkPVSystemConfigInformation is intended to collect information about system
+ * resources such as memory used, available etc.
  */
 
 #ifndef vtkPVSystemConfigInformation_h
@@ -24,10 +25,8 @@
 
 #include "vtkPVInformation.h"
 
-#include <string> // for string
-using std::string;
-#include <vector> // for vector
-using std::vector;
+#include <string> // for std::string
+#include <vector> // for std::vector
 
 class VTKSERVERMANAGERCORE_EXPORT vtkPVSystemConfigInformation : public vtkPVInformation
 {
@@ -50,10 +49,10 @@ public:
 
     bool operator<(const ConfigInfo& other) const { return this->Rank < other.Rank; }
 
-    string OSDescriptor;
-    string CPUDescriptor;
-    string MemDescriptor;
-    string HostName;
+    std::string OSDescriptor;
+    std::string CPUDescriptor;
+    std::string MemDescriptor;
+    std::string HostName;
     int ProcessType;
     int SystemType;
     int Rank;
@@ -67,29 +66,21 @@ public:
   vtkTypeMacro(vtkPVSystemConfigInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
   /**
-   * Transfer information about a single object into this object.
+   * vtkPVInformation overrides.
    */
-  void CopyFromObject(vtkObject* obj) override;
-
-  /**
-   * Merge another information object.
-   */
+  bool GatherInformation(vtkObject* target) override;
   void AddInformation(vtkPVInformation* info) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  void CopyToStream(vtkClientServerStream* css) override;
-  void CopyFromStream(const vtkClientServerStream* css) override;
-  //@}
-
+  ///@{
   /**
    * Access managed information
    */
   size_t GetSize() { return this->Configs.size(); }
-
   const char* GetOSDescriptor(size_t i) { return this->Configs[i].OSDescriptor.c_str(); }
   const char* GetCPUDescriptor(size_t i) { return this->Configs[i].CPUDescriptor.c_str(); }
   const char* GetMemoryDescriptor(size_t i) { return this->Configs[i].MemDescriptor.c_str(); }
@@ -101,6 +92,7 @@ public:
   long long GetHostMemoryTotal(size_t i) { return this->Configs[i].HostMemoryTotal; }
   long long GetHostMemoryAvailable(size_t i) { return this->Configs[i].HostMemoryAvailable; }
   long long GetProcMemoryAvailable(size_t i) { return this->Configs[i].ProcMemoryAvailable; }
+  ///@}
 
   /**
    * Sort elements by mpi rank.
@@ -112,7 +104,7 @@ protected:
   ~vtkPVSystemConfigInformation() override;
 
 private:
-  vector<ConfigInfo> Configs;
+  std::vector<ConfigInfo> Configs;
 
   vtkPVSystemConfigInformation(const vtkPVSystemConfigInformation&) = delete;
   void operator=(const vtkPVSystemConfigInformation&) = delete;

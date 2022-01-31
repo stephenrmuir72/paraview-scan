@@ -49,6 +49,13 @@
  * is unique for the specific client session. Thus proxies on two different
  * sessions may have conflicting global ids.
  *
+ * @section Events Events
+ *
+ * * vtkSMCommand::ConsumersChangedEvent: This event is fired anytime the
+ * consumers for this proxy change. The consumers are other proxies that depend
+ * on this proxy i.e. this proxy has been set (or unset) as the value for either a
+ * vtkSMProxyProperty or a vtkSMInputProperty on the other proxy. `callData`
+ * passed to the event handler is nullptr.
  */
 
 #ifndef vtkSMProxy_h
@@ -177,6 +184,31 @@ public:
    */
   vtkSMProperty* GetProperty(const std::string& name) const;
 
+  //@{
+  /**
+   * Log name is a name for this proxy that will be used when logging status
+   * messages. This helps make the log more user friendly by making sure it uses
+   * names that the user can easily map to objects shown in the user interface.
+   *
+   * This method will set the log name for this proxy and iterate over all
+   * subproxies and set log name for each using the provided `name` as prefix.
+   *
+   * Furthermore, for all properties with vtkSMProxyListDomain, it will set log
+   * name for proxies in those domains to use the provided `name` as prefix as
+   * well.
+   *
+   * @note The use of this name for any other purpose than logging is strictly
+   * discouraged.
+   */
+  void SetLogName(const std::string& name);
+  const std::string& GetLogName() const;
+  //@}
+
+  /**
+   * A helper that makes up an default name if none is provided.
+   */
+  const std::string& GetLogNameOrDefault() const;
+
 protected:
   vtkSMProxy();
   ~vtkSMProxy() override;
@@ -217,6 +249,21 @@ protected:
   virtual void PostCreateVTKObjects();
   ///@}
 
+  ///@{
+  /**
+   * Add/Remove a consumer. The `proxy` is the proxy that depends on this proxy and
+   * `property` identifies the property that establishes that dependency.
+   *
+   * We're making as assumption that the same proxy cannot be added to a
+   * property twice. While that's not necessarily required, in practice that is
+   * the case. We will need to change the implementation if that's no longer the
+   * case.
+   */
+  void AddConsumer(vtkSMProxy* proxy, vtkSMProperty* property);
+  void RemoveConsumer(vtkSMProxy* proxy, vtkSMProperty* property);
+  friend class vtkSMPropertyProducer;
+  ///@}
+
 private:
   vtkSMProxy(const vtkSMProxy&) = delete;
   void operator=(const vtkSMProxy&) = delete;
@@ -240,6 +287,12 @@ private:
   std::unique_ptr<vtkInternals> Internals;
 
   void HandlePropertyEvents(vtkObject* caller, unsigned long eventId, void* callData);
+
+  /**
+   * Internal method used by `SetLogName`
+   */
+  void SetLogNameInternal(
+    const std::string& name, bool propagate_to_subproxies, bool propagate_to_proxylistdomains);
 };
 
 #endif

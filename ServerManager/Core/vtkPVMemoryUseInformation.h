@@ -36,23 +36,10 @@ public:
   vtkTypeMacro(vtkPVMemoryUseInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /**
-   * Transfer information about a single object into this object.
-   */
-  void CopyFromObject(vtkObject*) override;
-
-  /**
-   * Merge another information object.
-   */
+  bool GatherInformation(vtkObject*) override;
   void AddInformation(vtkPVInformation*) override;
-
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  //@}
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
 
   /**
    * access the managed information.

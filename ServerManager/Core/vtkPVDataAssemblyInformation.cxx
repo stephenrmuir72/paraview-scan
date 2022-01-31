@@ -14,104 +14,111 @@
 =========================================================================*/
 #include "vtkPVDataAssemblyInformation.h"
 
-#include "vtkClientServerInterpreter.h"
-#include "vtkClientServerInterpreterInitializer.h"
-#include "vtkClientServerStream.h"
 #include "vtkDataAssembly.h"
-#include "vtkMultiProcessStream.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkReflection.h"
 
 vtkStandardNewMacro(vtkPVDataAssemblyInformation);
 vtkCxxSetObjectMacro(vtkPVDataAssemblyInformation, DataAssembly, vtkDataAssembly);
 //----------------------------------------------------------------------------
 vtkPVDataAssemblyInformation::vtkPVDataAssemblyInformation()
   : DataAssembly(nullptr)
-  , MethodName(nullptr)
+  , MethodName("GetAssembly")
 {
-  this->SetRootOnly(1);
-  this->SetMethodName("GetAssembly");
+  this->SetRootOnly(true);
 }
 
 //----------------------------------------------------------------------------
 vtkPVDataAssemblyInformation::~vtkPVDataAssemblyInformation()
 {
   this->SetDataAssembly(nullptr);
-  this->SetMethodName(nullptr);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataAssemblyInformation::CopyParametersToStream(vtkMultiProcessStream& stream)
+const std::string& vtkPVDataAssemblyInformation::GetMethodName() const
 {
-  this->Superclass::CopyParametersToStream(stream);
-
-  std::string name(this->MethodName ? this->MethodName : "");
-  stream << name;
+  return this->MethodName;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataAssemblyInformation::CopyParametersFromStream(vtkMultiProcessStream& stream)
+void vtkPVDataAssemblyInformation::SetMethodName(const std::string& name)
 {
-  this->Superclass::CopyParametersFromStream(stream);
-
-  std::string name;
-  stream >> name;
-  this->SetMethodName(name.empty() ? nullptr : name.c_str());
+  this->MethodName = name;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataAssemblyInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVDataAssemblyInformation::SaveState() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply;
+  auto json = this->Superclass::SaveState();
+  VTK_JSON_SAVE_MEMBER(json, MethodName);
+  return json;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataAssemblyInformation::LoadState(const vtkJson& state)
+{
+  if (!this->Superclass::LoadState(state))
+  {
+    return false;
+  }
+  VTK_JSON_LOAD_MEMBER(state, MethodName);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+vtkJson vtkPVDataAssemblyInformation::SaveInformation() const
+{
+  vtkJson json;
   if (this->DataAssembly)
   {
-    *css << this->DataAssembly->SerializeToXML(vtkIndent());
+    json["DataAssembly"] = this->DataAssembly->SerializeToXML(vtkIndent());
   }
-  *css << vtkClientServerStream::End;
+  else
+  {
+    json["DataAssembly"] = std::string();
+  }
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataAssemblyInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVDataAssemblyInformation::LoadInformation(const vtkJson& json)
 {
-  this->SetDataAssembly(nullptr);
-  if (css->GetNumberOfArguments(0) == 1)
+  if (json.find("DataAssembly") == json.end())
   {
-    std::string xml;
-    css->GetArgument(0, 0, &xml);
+    return false;
+  }
 
+  this->SetDataAssembly(nullptr);
+
+  auto xml = json.at("DataAssembly").get<std::string>();
+  if (!xml.empty())
+  {
     vtkNew<vtkDataAssembly> info;
     info->InitializeFromXML(xml.c_str());
     this->SetDataAssembly(info);
   }
+  return true;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataAssemblyInformation::CopyFromObject(vtkObject* obj)
+bool vtkPVDataAssemblyInformation::GatherInformation(vtkObject* obj)
 {
   this->SetDataAssembly(nullptr);
-
-  auto interp = vtkClientServerInterpreterInitializer::GetGlobalInterpreter();
-  vtkClientServerStream command;
-  command << vtkClientServerStream::Invoke << obj << this->GetMethodName()
-          << vtkClientServerStream::End;
-  if (interp && interp->ProcessStream(command))
+  std::vector<vtkVariant> args;
+  if (vtkReflection::Get(obj, this->MethodName, args) && args.size() == 1)
   {
-    auto& result = interp->GetLastResult();
-    if (result.GetNumberOfMessages() == 1 && result.GetNumberOfArguments(0) == 1)
+    if (auto assembly = vtk::variant_cast_to_VTKObject<vtkDataAssembly*>(args[0]))
     {
-      vtkObjectBase* ptr = nullptr;
-      result.GetArgument(0, 0, &ptr);
-      if (auto assembly = vtkDataAssembly::SafeDownCast(ptr))
-      {
-        // we store a clone just to avoid the scenario where the `obj` modifies
-        // the vtkDataAssembly under the covers.
-        vtkNew<vtkDataAssembly> clone;
-        clone->DeepCopy(assembly);
-        this->SetDataAssembly(clone);
-      }
+      // we store a clone just to avoid the scenario where the `obj` modifies
+      // the vtkDataAssembly under the covers.
+      vtkNew<vtkDataAssembly> clone;
+      clone->DeepCopy(assembly);
+      this->SetDataAssembly(clone);
     }
+    return true;
   }
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -119,5 +126,5 @@ void vtkPVDataAssemblyInformation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "DataAssembly: " << this->DataAssembly << endl;
-  os << indent << "MethodName: " << (this->MethodName ? this->MethodName : "(nullptr)") << endl;
+  os << indent << "MethodName: " << this->MethodName << endl;
 }

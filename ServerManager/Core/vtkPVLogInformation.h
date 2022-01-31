@@ -29,7 +29,6 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-
 #ifndef vtkPVLogInformation_h
 #define vtkPVLogInformation_h
 
@@ -37,8 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkServerManagerCoreModule.h" // needed for exports
 
 #include <string> // for std::string
-
-class vtkClientServerStream;
 
 /**
  * @class vtkPVLogInformation
@@ -51,34 +48,17 @@ public:
   vtkTypeMacro(vtkPVLogInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
   /**
-   * Transfer information about a single object into this object.
+   * vtkPVInformation overrides.
    */
-  void CopyFromObject(vtkObject*) override;
-
-  /**
-   * Merge another information object.
-   */
-  void AddInformation(vtkPVInformation*) override;
-
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  //@}
-
-  //@{
-  /**
-   * Serialize/Deserialize the parameters that control how/what information is
-   * gathered. This are different from the ivars that constitute the gathered
-   * information itself. For example, PortNumber on vtkPVDataInformation
-   * controls what output port the data-information is gathered from.
-   */
-  void CopyParametersToStream(vtkMultiProcessStream&) override;
-  void CopyParametersFromStream(vtkMultiProcessStream&) override;
-  //@}
+  bool GatherInformation(vtkObject* target) override;
+  vtkJson SaveState() const override;
+  bool LoadState(const vtkJson& state) override;
+  void AddInformation(vtkPVInformation* info) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
   /**
    * Get the recorded logs.
