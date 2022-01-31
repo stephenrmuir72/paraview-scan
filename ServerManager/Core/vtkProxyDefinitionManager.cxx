@@ -19,6 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
+#include "vtkSMProxyDefinitionsIterator.h"
 #include "vtkSmartPointer.h"
 
 #include <map>
@@ -158,6 +159,13 @@ bool vtkProxyDefinitionManager::LoadConfigurationXML(const char* xmlcontents)
   vtkNew<vtkPVXMLParser> parser;
   auto root = parser->ParseXML(xmlcontents);
   return root ? this->LoadConfigurationXML(root) : false;
+}
+
+//----------------------------------------------------------------------------
+vtkSMProxyDefinitionsRange vtkProxyDefinitionManager::GetDefinitions(const std::string& groupName)
+{
+  auto& internals = (*this->Internals);
+  return vtkSMProxyDefinitionsRange(internals.Definitions, groupName);
 }
 
 //----------------------------------------------------------------------------

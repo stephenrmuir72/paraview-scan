@@ -81,7 +81,7 @@ bool DoProxyManagerIteratorTest(vtkClientSession* session)
     VALIDATE(items == expectedItems)
   }
 
-  // FIXME update once we gave prototype proxies
+  // FIXME update once we have prototype proxies
   for (const auto& item : pxm->GetPrototypeProxies())
   {
     vtkLogF(INFO, " name %s group %s proxy %p", item.GetGroup().c_str(), item.GetName().c_str(),

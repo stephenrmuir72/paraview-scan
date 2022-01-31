@@ -69,16 +69,19 @@ set(classes
   vtkSMOrderedPropertyIterator
   vtkSMOrderedPropertyRange
   vtkSMOutputPort
-  vtkSMPrototypeProxiesRange
   vtkSMPrototypeProxiesIterator
+  vtkSMPrototypeProxiesRange
   vtkSMProperty
   vtkSMPropertyIterator
   vtkSMPropertyRange
   vtkSMProxy
+  vtkSMProxyDefinitionsIterator
+  vtkSMProxyDefinitionsRange
+  vtkSMProxy
   vtkSMProxyManager
   vtkSMProxyProperty
-  vtkSMRegisteredProxiesRange
   vtkSMRegisteredProxiesIterator
+  vtkSMRegisteredProxiesRange
   vtkSMStringVectorProperty
   vtkStringUtilities
 )

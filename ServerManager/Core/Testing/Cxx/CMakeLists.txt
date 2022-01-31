@@ -6,6 +6,7 @@
    # TestProxy.cxx
    TestDomainIterator.cxx
    TestPropertyIterator.cxx
+   TestProxyDefinitionsIterator.cxx
    TestProxyManagerIterator.cxx
    )
 
