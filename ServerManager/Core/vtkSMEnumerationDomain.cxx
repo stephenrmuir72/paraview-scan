@@ -15,7 +15,6 @@
 #include "vtkSMEnumerationDomain.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkPVXMLElement.h"
 #include "vtkSMIntVectorProperty.h"
 
 #include <algorithm>
@@ -45,6 +44,8 @@ struct EntryType
       this->Info = info;
     }
   }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EntryType, Text, Value, Info);
 };
 }
 
@@ -62,19 +63,16 @@ vtkSMEnumerationDomain::vtkSMEnumerationDomain()
 }
 
 //---------------------------------------------------------------------------
-vtkSMEnumerationDomain::~vtkSMEnumerationDomain()
-{
-  delete this->EInternals;
-}
+vtkSMEnumerationDomain::~vtkSMEnumerationDomain() = default;
 
 //---------------------------------------------------------------------------
-unsigned int vtkSMEnumerationDomain::GetNumberOfEntries()
+unsigned int vtkSMEnumerationDomain::GetNumberOfEntries() const
 {
   return static_cast<unsigned int>(this->EInternals->Entries.size());
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::GetEntryValue(unsigned int idx)
+int vtkSMEnumerationDomain::GetEntryValue(unsigned int idx) const
 {
   if (idx >= static_cast<unsigned int>(this->EInternals->Entries.size()))
   {
@@ -85,7 +83,7 @@ int vtkSMEnumerationDomain::GetEntryValue(unsigned int idx)
 }
 
 //---------------------------------------------------------------------------
-const char* vtkSMEnumerationDomain::GetEntryText(unsigned int idx)
+const char* vtkSMEnumerationDomain::GetEntryText(unsigned int idx) const
 {
   if (idx >= static_cast<unsigned int>(this->EInternals->Entries.size()))
   {
@@ -96,7 +94,7 @@ const char* vtkSMEnumerationDomain::GetEntryText(unsigned int idx)
 }
 
 //---------------------------------------------------------------------------
-const char* vtkSMEnumerationDomain::GetInfoText(unsigned int idx)
+const char* vtkSMEnumerationDomain::GetInfoText(unsigned int idx) const
 {
   if (idx >= static_cast<unsigned int>(this->EInternals->Entries.size()))
   {
@@ -108,7 +106,7 @@ const char* vtkSMEnumerationDomain::GetInfoText(unsigned int idx)
 }
 
 //---------------------------------------------------------------------------
-const char* vtkSMEnumerationDomain::GetEntryTextForValue(int value)
+const char* vtkSMEnumerationDomain::GetEntryTextForValue(int value) const
 {
   unsigned int idx = 0;
   if (!this->IsInDomain(value, idx))
@@ -119,7 +117,7 @@ const char* vtkSMEnumerationDomain::GetEntryTextForValue(int value)
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::HasEntryText(const char* text)
+int vtkSMEnumerationDomain::HasEntryText(const char* text) const
 {
   int valid;
   this->GetEntryValue(text, valid);
@@ -127,14 +125,14 @@ int vtkSMEnumerationDomain::HasEntryText(const char* text)
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::GetEntryValueForText(const char* text)
+int vtkSMEnumerationDomain::GetEntryValueForText(const char* text) const
 {
   int valid;
   return this->GetEntryValue(text, valid);
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::GetEntryValue(const char* text, int& valid)
+int vtkSMEnumerationDomain::GetEntryValue(const char* text, int& valid) const
 {
   valid = 0;
   if (!text)
@@ -156,37 +154,37 @@ int vtkSMEnumerationDomain::GetEntryValue(const char* text, int& valid)
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::IsInDomain(vtkSMProperty* property)
+int vtkSMEnumerationDomain::IsInDomain(vtkSMProperty* property) const
 {
-  if (this->IsOptional)
+  if (this->GetIsOptional())
   {
-    return 1;
+    return IN_DOMAIN;
   }
 
   if (!property)
   {
-    return 0;
+    return NOT_APPLICABLE;
   }
+
   vtkSMIntVectorProperty* ip = vtkSMIntVectorProperty::SafeDownCast(property);
   if (ip)
   {
-    unsigned int numElems = ip->GetNumberOfUncheckedElements();
-    for (unsigned int i = 0; i < numElems; i++)
+    for (const auto& elem : ip->GetUncheckedElements())
     {
       unsigned int idx;
-      if (!this->IsInDomain(ip->GetUncheckedElement(i), idx))
+      if (!this->IsInDomain(elem, idx))
       {
-        return 0;
+        return NOT_IN_DOMAIN;
       }
     }
-    return 1;
+    return IN_DOMAIN;
   }
 
-  return 0;
+  return NOT_IN_DOMAIN;
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::IsInDomain(int val, unsigned int& idx)
+int vtkSMEnumerationDomain::IsInDomain(int val, unsigned int& idx) const
 {
   unsigned int numEntries = this->GetNumberOfEntries();
   if (numEntries == 0)
@@ -207,19 +205,14 @@ int vtkSMEnumerationDomain::IsInDomain(int val, unsigned int& idx)
 }
 
 //---------------------------------------------------------------------------
-void vtkSMEnumerationDomain::ChildSaveState(vtkPVXMLElement* domainElement)
+vtkJson vtkSMEnumerationDomain::SaveState(bool verbose) const
 {
-  this->Superclass::ChildSaveState(domainElement);
-  unsigned int size = this->GetNumberOfEntries();
-  for (unsigned int i = 0; i < size; i++)
+  auto json = this->Superclass::SaveState(verbose);
+  if (verbose)
   {
-    vtkPVXMLElement* entryElem = vtkPVXMLElement::New();
-    entryElem->SetName("Entry");
-    entryElem->AddAttribute("value", this->GetEntryValue(i));
-    entryElem->AddAttribute("text", this->GetEntryText(i));
-    domainElement->AddNestedElement(entryElem);
-    entryElem->Delete();
+    json["entries"] = this->EInternals->Entries;
   }
+  return json;
 }
 
 //---------------------------------------------------------------------------
@@ -238,44 +231,34 @@ void vtkSMEnumerationDomain::RemoveAllEntries()
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element)
+bool vtkSMEnumerationDomain::ReadXMLAttributes(const pugi::xml_node& node)
 {
-  this->Superclass::ReadXMLAttributes(prop, element);
+  if (!this->Superclass::ReadXMLAttributes(node))
+  {
+    return false;
+  }
 
   // Loop over the top-level elements.
-  unsigned int i;
-  for (i = 0; i < element->GetNumberOfNestedElements(); ++i)
+  for (auto child : node.children("Entry"))
   {
-    vtkPVXMLElement* selement = element->GetNestedElement(i);
-    if (strcmp("Entry", selement->GetName()) != 0)
+    if (!child.attribute("text") || !child.attribute("value"))
     {
-      continue;
-    }
-    const char* text = selement->GetAttribute("text");
-    if (!text)
-    {
-      vtkErrorMacro(<< "Can not find required attribute: text. "
-                    << "Can not parse domain xml.");
-      return 0;
+      vtkErrorMacro("Invalid XML. Missing 'text' or 'value'.");
+      return false;
     }
 
-    int value;
-    if (!selement->GetScalarAttribute("value", &value))
-    {
-      vtkErrorMacro(<< "Can not find required attribute: text. "
-                    << "Can not parse domain xml.");
-      return 0;
-    }
-
-    const char* info = selement->GetAttribute("info");
-    this->AddEntry(text, value, info);
+    const char* text = child.attribute("text").as_string();
+    int value = child.attribute("value").as_int();
+    this->AddEntry(text, value, child.attribute("info").as_string(nullptr));
   }
-  return 1;
+
+  return true;
 }
 
 //---------------------------------------------------------------------------
-void vtkSMEnumerationDomain::Update(vtkSMProperty* prop)
+void vtkSMEnumerationDomain::Update()
 {
+#if 0 // FIXME: ASYNC
   vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(prop);
   if (ivp && ivp->GetInformationOnly())
   {
@@ -289,11 +272,13 @@ void vtkSMEnumerationDomain::Update(vtkSMProperty* prop)
     }
     this->InvokeModified();
   }
+#endif
 }
 
 //---------------------------------------------------------------------------
-int vtkSMEnumerationDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unchecked_values)
+bool vtkSMEnumerationDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unchecked_values) const
 {
+#if 0 // FIXME: ASYNC
   vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(prop);
   if (ivp && this->GetNumberOfEntries() > 0)
   {
@@ -308,9 +293,10 @@ int vtkSMEnumerationDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unche
       {
         ivp->SetElement(0, this->GetEntryValue(0));
       }
-      return 1;
+      return true;
     }
   }
+#endif
   return this->Superclass::SetDefaultValues(prop, use_unchecked_values);
 }
 

@@ -70,13 +70,12 @@
 #ifndef vtkSMEnumerationDomain_h
 #define vtkSMEnumerationDomain_h
 
-#include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMDomain.h"
 
 #include <utility> // for std::pair
 #include <vector>  //  for std::vector
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMEnumerationDomain : public vtkSMDomain
+class VTKSERVERMANAGERCORE_EXPORT vtkSMEnumerationDomain : public vtkSMDomain
 {
 public:
   static vtkSMEnumerationDomain* New();
@@ -89,51 +88,51 @@ public:
    * vector values are in the domain, it returns 1. It returns
    * 0 otherwise.
    */
-  int IsInDomain(vtkSMProperty* property) override;
+  int IsInDomain(vtkSMProperty* property) const override;
 
   /**
    * Returns true if the int is in the domain. If value is
    * in domain, it's index is return in idx.
    */
-  int IsInDomain(int val, unsigned int& idx);
+  int IsInDomain(int val, unsigned int& idx) const;
 
   /**
    * Returns the number of entries in the enumeration.
    */
-  unsigned int GetNumberOfEntries();
+  unsigned int GetNumberOfEntries() const;
 
   /**
    * Returns the integer value of an enumeration entry.
    */
-  int GetEntryValue(unsigned int idx);
+  int GetEntryValue(unsigned int idx) const;
 
   /**
    * Returns the descriptive string of an enumeration entry.
    */
-  const char* GetEntryText(unsigned int idx);
+  const char* GetEntryText(unsigned int idx) const;
 
   /**
    * Returns the text for an enumeration value.
    */
-  const char* GetEntryTextForValue(int value);
+  const char* GetEntryTextForValue(int value) const;
 
   /**
    * Return 1 is the text is present in the enumeration, otherwise 0.
    */
-  int HasEntryText(const char* text);
+  int HasEntryText(const char* text) const;
 
   /**
    * Get the value for an enumeration text. The return value is valid only is
    * HasEntryText() returns 1.
    */
-  int GetEntryValueForText(const char* text);
+  int GetEntryValueForText(const char* text) const;
 
   /**
    * Given an entry text, return the integer value.
    * Valid is set to 1 if text is defined, otherwise 0.
    * If valid=0, return value is undefined.
    */
-  int GetEntryValue(const char* text, int& valid);
+  int GetEntryValue(const char* text, int& valid) const;
 
   /**
    * Returns the `info` text for an enumeration entry.
@@ -141,7 +140,7 @@ public:
    * @param[in] idx - index for the entry (not to confused with `value`).
    * @returns info-text, if non-empty else `nullptr`.
    */
-  const char* GetInfoText(unsigned int idx);
+  const char* GetInfoText(unsigned int idx) const;
 
   /**
    * Add a new enumeration entry. text cannot be null.
@@ -157,14 +156,14 @@ public:
    * Update self based on the "unchecked" values of all required
    * properties. Overwritten by sub-classes.
    */
-  void Update(vtkSMProperty* property) override;
+  void Update() override;
 
   //@{
   /**
    * Overridden to ensure that the property's default value is valid for the
    * enumeration, if not it will be set to the first enumeration value.
    */
-  int SetDefaultValues(vtkSMProperty*, bool use_unchecked_values) override;
+  bool SetDefaultValues(vtkSMProperty*, bool use_unchecked_values) const override;
 
 protected:
   vtkSMEnumerationDomain();
@@ -175,16 +174,15 @@ protected:
    * Set the appropriate ivars from the xml element. Should
    * be overwritten by subclass if adding ivars.
    */
-  int ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element) override;
-
-  void ChildSaveState(vtkPVXMLElement* domainElement) override;
+  bool ReadXMLAttributes(const pugi::xml_node& node) override;
+  vtkJson SaveState(bool verbose) const override;
 
 private:
   vtkSMEnumerationDomain(const vtkSMEnumerationDomain&) = delete;
   void operator=(const vtkSMEnumerationDomain&) = delete;
 
   struct vtkEDInternals;
-  vtkEDInternals* EInternals;
+  std::unique_ptr<vtkEDInternals> EInternals;
 };
 
 #endif
