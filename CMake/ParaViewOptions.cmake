@@ -58,6 +58,7 @@ set(PARAVIEW_ENABLE_NONESSENTIAL OFF)
 if (PARAVIEW_BUILD_EDITION STREQUAL "ASYNC")
   # modules are explicitly enabled as we add support for them.
   set(PARAVIEW_BUILD_ASYNC ON)
+  set(PARAVIEW_ENABLE_RENDERING ON)
 elseif (PARAVIEW_BUILD_EDITION STREQUAL "CORE")
   # all are OFF.
   set(PARAVIEW_BUILD_CORE ON)
@@ -337,11 +338,13 @@ endmacro()
 # async modules
 paraview_require_module(
   CONDITION PARAVIEW_BUILD_ASYNC
-  MODULES   ParaView::ServicesCore
+  MODULES   ParaView::ProcessXML
+            #ParaView::ServerManagerCore
+            #ParaView::ServerManagerViews
+            ParaView::ServicesCore
             ParaView::ServicesThallium
-            ParaView::RemotingCore
-            ParaView::WrapClientServer
-            ParaView::ProcessXML
+            ParaView::WrapRemoting
+            ParaView::RemotingReflection
   )
 
 

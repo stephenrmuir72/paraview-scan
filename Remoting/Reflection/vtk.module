@@ -1,0 +1,13 @@
+NAME
+  ParaView::RemotingReflection
+LIBRARY_NAME
+  vtkRemotingReflection
+GROUPS
+  PARAVIEW_CORE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonSystem
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_LABELS
+  ParaView
