@@ -12,6 +12,8 @@ DEPENDS
   VTK::IOLegacy
   VTK::nlohmannjson
   VTK::ParallelCore
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI
 TEST_DEPENDS
   ParaView::ServicesThallium
   VTK::TestingCore

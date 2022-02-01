@@ -61,7 +61,7 @@ public:
    */
   void Print() const;
   void Print(std::ostream& ostream, int spaces) const;
-  std::string ToString() const;
+  std::string ToString(int spaces = 2) const;
 
   template <typename Ar>
   void save(Ar& archive) const
@@ -88,7 +88,7 @@ private:
 
   ///@{
   /**
-   * Serialize to/from UBJSON format.
+   * Serialize to/from CBOR format.
    */
   std::vector<uint8_t> GetBinary() const;
   void SetBinary(const std::vector<uint8_t>& buffer);

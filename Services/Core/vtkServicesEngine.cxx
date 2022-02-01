@@ -23,6 +23,11 @@
 #include "vtkServiceEndpoint.h"
 #include "vtkSmartPointer.h"
 
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+#include "vtkMPI.h"
+#include "vtkMPIController.h"
+#endif
+
 #include <map>
 #include <mutex>
 
@@ -343,6 +348,41 @@ bool vtkServicesEngine::ProcessEvents() const
   }
 
   return status;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkMultiProcessController> vtkServicesEngine::NewController() const
+{
+  auto* worldController = this->GetController();
+  if (vtkDummyController::SafeDownCast(worldController))
+  {
+    auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
+    controller->Initialize(nullptr, nullptr);
+    return controller;
+  }
+
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  auto* worldComm = vtkMPICommunicator::SafeDownCast(worldController->GetCommunicator());
+  auto* mpiHandle = worldComm->GetMPIComm()->GetHandle();
+
+  MPI_Comm clone;
+  MPI_Comm_dup(*mpiHandle, &clone);
+
+  vtkMPICommunicatorOpaqueComm opaqueComm(&clone);
+  vtkNew<vtkMPICommunicator> cloneComm;
+  cloneComm->InitializeExternal(&opaqueComm);
+
+  vtkNew<vtkMPIController> controller;
+  controller->SetCommunicator(cloneComm);
+  // ensure we use broadcast/collectives for RMI rather than p2p messaging.
+  controller->BroadcastTriggerRMIOn();
+
+  return controller.GetPointer();
+#else
+  auto controller = vtk::TakeSmartPointer(vtkDummyController::New());
+  controller->Initialize(nullptr, nullptr);
+  return controller;
+#endif
 }
 
 //----------------------------------------------------------------------------

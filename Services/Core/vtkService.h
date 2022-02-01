@@ -40,6 +40,7 @@
 // clang-format on
 
 class vtkChannelSubscription;
+class vtkMultiProcessController;
 class vtkPacket;
 class vtkServiceReceiver;
 class vtkServicesEngine;
@@ -162,6 +163,20 @@ public:
    * This method is thread-safe.
    */
   vtkServicesEngine* GetEngine() const;
+
+  ///@{
+  /**
+   * Get the controller to use. The controller is provided by the
+   * vtkServicesEngine during initialization. Each service gets its own
+   * controller to avoid interfering with one another. If vtkServicesEngine
+   * doesn't have a MPI-controller, then the services too inherit a
+   * dummy-controller.
+   *
+   * Note, the controller is primarily intended to be used in the service's
+   * main thread.
+   */
+  vtkMultiProcessController* GetController() const;
+  ///@}
 
 protected:
   vtkService();
