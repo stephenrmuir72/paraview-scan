@@ -87,6 +87,7 @@ include(ParaViewClient)
 include(ParaViewPlugin)
 include(ParaViewPluginDebugging)
 include(vtkModuleWrapClientServer)
+include(vtkModuleWrapRemoting)
 include(CTest)
 set_property(CACHE BUILD_TESTING
   PROPERTY
@@ -320,6 +321,7 @@ set(paraview_source_directories
   "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
   "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
   "${CMAKE_CURRENT_SOURCE_DIR}/Services"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ServerManager"
   "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
   "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
   "${CMAKE_CURRENT_SOURCE_DIR}/Web"
@@ -726,11 +728,19 @@ paraview_plugin_build(
 set(CMAKE_INSTALL_RPATH
   "${_paraview_CMAKE_INSTALL_RPATH_save}")
 
-vtk_module_wrap_client_server(
-  MODULES   ${paraview_client_modules}
+#vtk_module_wrap_client_server(
+#  MODULES   ${paraview_client_modules}
+#            ${paraview_modules}
+#            ${vtk_modules}
+#  TARGET    paraview_client_server
+#  INSTALL_EXPORT ParaView)
+
+vtk_module_wrap_remoting(
+  MODULES   
+            #${paraview_client_modules}
             ${paraview_modules}
             ${vtk_modules}
-  TARGET    paraview_client_server
+  TARGET    paraview_reflection
   INSTALL_EXPORT ParaView)
 
 paraview_server_manager_process(

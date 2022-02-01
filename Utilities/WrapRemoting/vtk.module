@@ -1,0 +1,12 @@
+NAME
+  ParaView::WrapRemoting
+LIBRARY_NAME
+  vtkWrapRemoting
+GROUPS
+  PARAVIEW_ASYNC
+DESCRIPTION
+  Wrapper executable for generating *RXX wrappers
+  for VTK objects.
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::WrappingTools
