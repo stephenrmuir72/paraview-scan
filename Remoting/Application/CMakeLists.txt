@@ -29,19 +29,28 @@
 #
 #==========================================================================
 set(classes
-  vtkInitializationHelper)
+  vtkPVReflection)
 
-set(private_headers
-  vtkPVInitializer.h)
+vtk_object_factory_declare(
+  BASE "vtkReflectionInitializer"
+  OVERRIDE "vtkPVReflection")
+
+vtk_object_factory_configure(
+  SOURCE_FILE vtk_object_factory_source
+  HEADER_FILE vtk_object_factory_header
+  EXPORT_MACRO "VTKREMOTINGAPPLICATION_EXPORT")
 
 vtk_module_add_module(ParaView::RemotingApplication
   CLASSES ${classes}
-  PRIVATE_HEADERS ${private_headers})
+  SOURCES ${vtk_object_factory_source}
+  PRIVATE_HEADERS ${private_headers} ${vtk_object_factory_header})
+
 vtk_module_link(ParaView::RemotingApplication
   PRIVATE
-    paraview_client_server
+    paraview_reflection
     paraview_server_manager)
-vtk_module_client_server_exclude()
+
+vtk_module_remoting_exclude()
 
 set(xml_files
   Resources/extractors.xml

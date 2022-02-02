@@ -5,13 +5,14 @@ GROUPS
 LIBRARY_NAME
   vtkRemotingApplication
 DEPENDS
-  ParaView::RemotingCore
+  ParaView::RemotingServerManager
+IMPLEMENTS
   ParaView::RemotingServerManager
 #KIT
 #  This module cannot be part of a kit because it links to ClientServer
 #  wrappings of all modules. This ends up with a cycle in a shared kit build.
 PRIVATE_DEPENDS
-  ParaView::RemotingSettings
+  # ParaView::RemotingSettings
   VTK::vtksys
 OPTIONAL_DEPENDS
   ParaView::RemotingViews
@@ -87,7 +88,7 @@ OPTIONAL_DEPENDS
   VTK::RenderingFreeType
 TEST_DEPENDS
   VTK::TestingCore
-TEST_OPTIONAL_DEPENDS
-  ParaView::RemotingMisc
+#TEST_OPTIONAL_DEPENDS
+#  ParaView::RemotingMisc
 TEST_LABELS
   ParaView

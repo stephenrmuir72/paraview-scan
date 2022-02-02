@@ -29,7 +29,7 @@ OPTIONAL_DEPENDS
   VTK::PythonInterpreter
   VTK::WrappingPythonCore
 TEST_DEPENDS
-#  ParaView::ServerManagerInitialization
+  ParaView::RemotingApplication
 #  ParaView::ServerManagerViews
   VTK::TestingCore
 TEST_LABELS
