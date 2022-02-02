@@ -18,7 +18,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkSMDeserializer.h"
 #include "vtkSMProxy.h"
-#include "vtkSMSession.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
 
 #include <map>
@@ -38,7 +38,6 @@ vtkSMProxyLocator::vtkSMProxyLocator()
 {
   this->Internal = new vtkInternal();
   this->Deserializer = nullptr;
-  this->Session = nullptr;
   this->LocateProxyWithSessionToo = false;
 }
 
@@ -47,7 +46,6 @@ vtkSMProxyLocator::~vtkSMProxyLocator()
 {
   delete this->Internal;
   this->SetDeserializer(nullptr);
-  this->SetSession(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -74,6 +72,7 @@ vtkSMProxy* vtkSMProxyLocator::LocateProxy(vtkTypeUInt32 id)
 
   // Try to lookup in session (if we setup the locator to use the session too)
   vtkSMProxy* proxy;
+#if 0 // FIXME: ASYNC
   if (this->LocateProxyWithSessionToo && this->Session)
   {
     proxy = vtkSMProxy::SafeDownCast(this->Session->GetRemoteObject(id));
@@ -83,6 +82,9 @@ vtkSMProxy* vtkSMProxyLocator::LocateProxy(vtkTypeUInt32 id)
       return proxy;
     }
   }
+#else
+  abort();
+#endif
 
   // Create a brand new proxy
   proxy = this->NewProxy(id);
@@ -141,17 +143,19 @@ void vtkSMProxyLocator::GetLocatedProxies(vtkCollection* collectionToFill)
     iter++;
   }
 }
+
 //----------------------------------------------------------------------------
-vtkSMSession* vtkSMProxyLocator::GetSession()
+vtkSMSessionProxyManager* vtkSMProxyLocator::GetSessionProxyManager()
 {
-  return this->Session.GetPointer();
+  return this->ProxyManager.GetPointer();
 }
+
 //----------------------------------------------------------------------------
-void vtkSMProxyLocator::SetSession(vtkSMSession* s)
+void vtkSMProxyLocator::SetSessionProxyManager(vtkSMSessionProxyManager* pxm)
 {
-  this->Session = s;
+  this->ProxyManager = pxm;
   if (this->Deserializer)
   {
-    this->Deserializer->SetSessionProxyManager(s ? s->GetSessionProxyManager() : nullptr);
+    this->Deserializer->SetSessionProxyManager(pxm);
   }
 }

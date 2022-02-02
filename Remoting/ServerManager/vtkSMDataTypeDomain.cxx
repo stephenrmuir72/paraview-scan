@@ -14,7 +14,6 @@
 =========================================================================*/
 #include "vtkSMDataTypeDomain.h"
 
-#include "vtkClientServerStreamInstantiator.h"
 #include "vtkDataObjectTypes.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
@@ -102,9 +101,6 @@ int vtkSMDataTypeDomain::IsInDomain(vtkSMSourceProxy* proxy, int outputport /*=0
   {
     return 1;
   }
-
-  // Make sure the outputs are created.
-  proxy->CreateOutputPorts();
 
   vtkPVDataInformation* info = proxy->GetDataInformation(outputport);
   if (!info || info->IsNull())

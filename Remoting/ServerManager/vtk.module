@@ -18,6 +18,7 @@ PRIVATE_DEPENDS
   ParaView::ServicesThallium
   VTK::cli11
   VTK::CommonSystem
+  VTK::doubleconversion
   VTK::FiltersExtraction
   VTK::fmt
   VTK::vtksys

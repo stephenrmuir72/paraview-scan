@@ -18,8 +18,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
-#include "vtkSMSession.h"
-#include "vtkSMSourceProxy.h"
+// #include "vtkSMSourceProxy.h"
 #include "vtkSMUncheckedPropertyHelper.h"
 #include "vtkWeakPointer.h"
 
@@ -117,8 +116,6 @@ void vtkSMDomain::RemoveRequiredProperty(vtkSMProperty* prop)
 int vtkSMDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element)
 {
   assert("Property and proxy should be properly set" && prop && prop->GetParent());
-  this->SetSession(prop->GetParent()->GetSession());
-
   int isOptional;
   int retVal = element->GetScalarAttribute("optional", &isOptional);
   if (retVal)
@@ -194,11 +191,13 @@ vtkPVDataInformation* vtkSMDomain::GetInputDataInformation(const char* function,
   vtkSMUncheckedPropertyHelper helper(inputProperty);
   if (helper.GetNumberOfElements() > index)
   {
+#if 0 // FIXME: ASYNC
     vtkSMSourceProxy* sp = vtkSMSourceProxy::SafeDownCast(helper.GetAsProxy(index));
     if (sp)
     {
       return sp->GetDataInformation(helper.GetOutputPort());
     }
+#endif
   }
 
   return nullptr;
@@ -217,11 +216,13 @@ vtkPVDataInformation* vtkSMDomain::GetInputSubsetDataInformation(
   vtkSMUncheckedPropertyHelper helper(inputProperty);
   if (helper.GetNumberOfElements() > index)
   {
+#if 0 // FIXME: ASYNC
     vtkSMSourceProxy* sp = vtkSMSourceProxy::SafeDownCast(helper.GetAsProxy(index));
     if (sp)
     {
       return sp->GetSubsetDataInformation(helper.GetOutputPort(), compositeIndex);
     }
+#endif
   }
 
   return nullptr;
@@ -283,7 +284,7 @@ void vtkSMDomain::SaveState(vtkPVXMLElement* parent, const char* uid)
 }
 
 //---------------------------------------------------------------------------
-vtkSMProperty* vtkSMDomain::GetProperty()
+vtkSMProperty* vtkSMDomain::GetProperty() const
 {
   return this->Internals->DomainProperty;
 }
@@ -292,6 +293,13 @@ vtkSMProperty* vtkSMDomain::GetProperty()
 void vtkSMDomain::SetProperty(vtkSMProperty* prop)
 {
   this->Internals->DomainProperty = prop;
+}
+
+//---------------------------------------------------------------------------
+vtkSMSessionProxyManager* vtkSMDomain::GetSessionProxyManager() const
+{
+  auto* property = this->GetProperty();
+  return property ? property->GetSessionProxyManager() : nullptr;
 }
 
 //---------------------------------------------------------------------------

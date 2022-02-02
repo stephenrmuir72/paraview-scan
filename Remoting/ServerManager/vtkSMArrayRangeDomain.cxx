@@ -77,9 +77,6 @@ void vtkSMArrayRangeDomain::Update(const char* arrayName, int fieldAssociation,
 {
   assert(producer != nullptr && arrayName != nullptr);
 
-  // Make sure the outputs are created.
-  producer->CreateOutputPorts();
-
   vtkPVDataInformation* info = producer->GetDataInformation(producerPort);
   if (!info)
   {

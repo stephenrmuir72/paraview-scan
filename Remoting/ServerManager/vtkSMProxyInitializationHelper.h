@@ -36,15 +36,16 @@
 #ifndef vtkSMProxyInitializationHelper_h
 #define vtkSMProxyInitializationHelper_h
 
-#include "vtkSMObject.h"
+#include "vtkObject.h"
+#include "vtkRemotingServerManagerModule.h" // for exports
 
 class vtkPVXMLElement;
 class vtkSMProxy;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyInitializationHelper : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyInitializationHelper : public vtkObject
 {
 public:
-  vtkTypeMacro(vtkSMProxyInitializationHelper, vtkSMObject);
+  vtkTypeMacro(vtkSMProxyInitializationHelper, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

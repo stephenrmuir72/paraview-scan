@@ -17,6 +17,7 @@
 #include "vtkLogger.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
 #include "vtkSMProxyDefinitionsIterator.h"
 #include "vtkSmartPointer.h"
@@ -162,6 +163,21 @@ vtkSMProxyDefinitionsRange vtkProxyDefinitionManager::GetDefinitions(const std::
 {
   auto& internals = (*this->Internals);
   return vtkSMProxyDefinitionsRange(internals.Definitions, groupName);
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkPVXMLElement> vtkProxyDefinitionManager::FindProxyLegacy(
+  const std::string& group, const std::string& name) const
+{
+  auto xmlDoc = this->FindProxy(group, name);
+  if (xmlDoc)
+  {
+    std::ostringstream stream;
+    xmlDoc->save(stream);
+    return vtkPVXMLParser::ParseXML(stream.str().c_str());
+  }
+
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------

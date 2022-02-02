@@ -35,22 +35,22 @@
 #ifndef vtkSMDomain_h
 #define vtkSMDomain_h
 
-#include "vtkClientServerID.h"              // needed for saving animation in batch script
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMSessionObject.h"
 
 class vtkPVDataInformation;
 class vtkPVXMLElement;
 class vtkSMProperty;
 class vtkSMProxyLocator;
+class vtkSMSessionProxyManager;
 
 struct vtkSMDomainInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDomain : public vtkSMSessionObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDomain : public vtkObject
 {
 public:
   static vtkSMDomain* New();
-  vtkTypeMacro(vtkSMDomain, vtkSMSessionObject);
+  vtkTypeMacro(vtkSMDomain, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
@@ -124,7 +124,7 @@ public:
   /**
    * Provides access to the vtkSMProperty on which this domain is hooked up.
    */
-  vtkSMProperty* GetProperty();
+  vtkSMProperty* GetProperty() const;
 
   //@{
   /**
@@ -150,6 +150,11 @@ public:
    * in the XML file.
    */
   vtkSMProperty* GetRequiredProperty(const char* function);
+
+  /**
+   * Returns the session proxy manager.
+   */
+  vtkSMSessionProxyManager* GetSessionProxyManager() const;
 
 protected:
   vtkSMDomain();

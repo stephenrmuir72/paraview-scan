@@ -18,7 +18,6 @@
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMSession.h"
 
 vtkStandardNewMacro(vtkSMInputProperty);
 

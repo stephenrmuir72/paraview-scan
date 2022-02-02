@@ -133,14 +133,13 @@
 #ifndef vtkSMProperty_h
 #define vtkSMProperty_h
 
+#include "vtkJsonFwd.h" // needed for vtkJson
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMDomainIterator.h"            // needed for vtkSMDomainIterator
-#include "vtkSMMessageMinimal.h"            // needed for vtkSMMessage
-#include "vtkSMObject.h"
-#include "vtkSmartPointer.h" // needed for vtkSmartPointer
-#include "vtkWeakPointer.h"  // needed for vtkWeakPointer
+#include "vtkSmartPointer.h"                // needed for vtkSmartPointer
+#include "vtkWeakPointer.h"                 // needed for vtkWeakPointer
 
-class vtkClientServerStream;
 class vtkPVXMLElement;
 class vtkSMDocumentation;
 class vtkSMDomain;
@@ -149,14 +148,16 @@ class vtkSMInformationHelper;
 class vtkSMPropertyLink;
 class vtkSMProxy;
 class vtkSMProxyLocator;
+class vtkClientSession;
+class vtkSMSessionProxyManager;
 
 struct vtkSMPropertyInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProperty : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProperty : public vtkObject
 {
 public:
   static vtkSMProperty* New();
-  vtkTypeMacro(vtkSMProperty, vtkSMObject);
+  vtkTypeMacro(vtkSMProperty, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
@@ -538,6 +539,16 @@ public:
    */
   static const char* CreateNewPrettyLabel(const char* name);
 
+  /**
+   * Returns the session this property belongs to.
+   */
+  vtkClientSession* GetSession() const;
+
+  /**
+   * Returns the proxy manager for the session this property belongs to.
+   */
+  vtkSMSessionProxyManager* GetSessionProxyManager() const;
+
 protected:
   vtkSMProperty();
   ~vtkSMProperty() override;
@@ -551,14 +562,17 @@ protected:
   friend class vtkSMPropertyModificationUndoElement;
 
   /**
-   * Let the property write its content into the stream
+   * Populate element with the state for this property. Element is an empty object.
+   * Subclasses can populate it.
+   *
+   * Returns true on success.
    */
-  virtual void WriteTo(vtkSMMessage* msg);
+  virtual bool SaveState(vtkJson& element);
 
   /**
-   * Let the property read and set its content from the stream
+   * Load state.
    */
-  virtual void ReadFrom(const vtkSMMessage*, int vtkNotUsed(message_offset), vtkSMProxyLocator*){};
+  virtual bool LoadState(vtkJson& element, vtkSMProxyLocator* locator);
 
   /**
    * Set the appropriate ivars from the xml element. Should
@@ -622,6 +636,7 @@ protected:
    */
   virtual void SaveState(
     vtkPVXMLElement* parent, const char* property_name, const char* uid, int saveDomains = 1);
+
   /**
    * This method must be overridden by concrete class in order to save the real
    * property data

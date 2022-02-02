@@ -16,10 +16,8 @@
 #define vtkSMProxyPropertyInternals_h
 
 #include "vtkCommand.h"        // for vtkCommand enums
-#include "vtkSMMessage.h"      // for paraview_protobuf
 #include "vtkSMProxy.h"        // for vtkSMProxy
 #include "vtkSMProxyLocator.h" // for vtkSMProxyLocator
-#include "vtkSMSession.h"      // for vtkSMSession
 #include "vtkSmartPointer.h"   // for vtkSmartPointer
 #include "vtkWeakPointer.h"    // for vtkWeakPointer
 
@@ -337,62 +335,6 @@ public:
     return this->GetPort(index);
   }
 
-  //------------------------------------------------------------------------------------
-  // Serialization methods.
-  //------------------------------------------------------------------------------------
-  bool WriteTo(paraview_protobuf::Variant* variant) const
-  {
-    variant->set_type(Variant::INPUT); // or PROXY?
-    for (SmartVectorOfProxies::const_iterator iter = this->Proxies.begin();
-         iter != this->Proxies.end(); ++iter)
-    {
-      if (vtkSMProxy* proxy = iter->GetPointer())
-      {
-        proxy->CreateVTKObjects();
-        variant->add_proxy_global_id(proxy->GetGlobalID());
-      }
-      else
-      {
-        variant->add_proxy_global_id(0);
-      }
-    }
-    for (VectorOfUInts::const_iterator iter = this->Ports.begin(); iter != this->Ports.end();
-         ++iter)
-    {
-      variant->add_port_number(*iter);
-    }
-    return true;
-  }
-
-  bool ReadFrom(const paraview_protobuf::Variant& variant, vtkSMProxyLocator* locator)
-  {
-    SmartVectorOfProxies proxies;
-    VectorOfUInts ports;
-    assert(variant.proxy_global_id_size() == variant.port_number_size());
-    for (int cc = 0, max = variant.proxy_global_id_size(); cc < max; cc++)
-    {
-      vtkTypeUInt32 gid = variant.proxy_global_id(cc);
-      unsigned int port = variant.port_number(cc);
-
-      // either ask the locator for the proxy, or find an existing one.
-      vtkSMProxy* proxy = nullptr;
-      if (locator && vtkSMProxyProperty::CanCreateProxy())
-      {
-        proxy = locator->LocateProxy(gid);
-      }
-      else
-      {
-        proxy =
-          vtkSMProxy::SafeDownCast(this->Self->GetParent()->GetSession()->GetRemoteObject(gid));
-      }
-      if (proxy != nullptr || gid == 0)
-      {
-        proxies.push_back(proxy);
-        ports.push_back(port);
-      }
-    }
-    return this->SetProxies(proxies, ports);
-  }
 };
 #endif
 // VTK-HeaderTest-Exclude: vtkSMProxyPropertyInternals.h

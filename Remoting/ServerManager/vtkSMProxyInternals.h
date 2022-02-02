@@ -40,11 +40,9 @@ struct vtkSMProxyInternals
   {
     PropertyInfo()
     {
-      this->ModifiedFlag = 0;
       this->ObserverTag = 0;
     };
     vtkSmartPointer<vtkSMProperty> Property;
-    int ModifiedFlag;
     unsigned int ObserverTag;
   };
   // Note that the name of the property is the map key. That is the
@@ -93,10 +91,8 @@ struct vtkSMProxyInternals
   // Annotation map
   typedef std::map<std::string, std::string> AnnotationMap;
   AnnotationMap Annotations;
-  bool EnableAnnotationPush;
 
-  // Setup default values
-  vtkSMProxyInternals() { this->EnableAnnotationPush = true; }
+  vtkTimeStamp UpdateVTKObjectsTimeStamp;
 };
 
 #endif

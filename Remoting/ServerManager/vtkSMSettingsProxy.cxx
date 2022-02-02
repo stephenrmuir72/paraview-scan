@@ -131,6 +131,7 @@ int vtkSMSettingsProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXML
 }
 
 //----------------------------------------------------------------------------
+#if 0 // FIXME: ASYNC
 void vtkSMSettingsProxy::CreateVTKObjects()
 {
   if (this->ObjectsCreated)
@@ -145,6 +146,7 @@ void vtkSMSettingsProxy::CreateVTKObjects()
       object->AddObserver(vtkCommand::ModifiedEvent, this, &vtkSMSettingsProxy::VTKObjectModified);
   }
 }
+#endif
 
 //----------------------------------------------------------------------------
 void vtkSMSettingsProxy::VTKObjectModified()

@@ -36,7 +36,7 @@ protected:
   vtkSMNullProxy();
   ~vtkSMNullProxy() override;
 
-  void CreateVTKObjects() override;
+  int ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element) override;
 
 private:
   vtkSMNullProxy(const vtkSMNullProxy&) = delete;

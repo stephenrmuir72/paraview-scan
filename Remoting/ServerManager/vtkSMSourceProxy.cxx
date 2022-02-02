@@ -14,28 +14,15 @@
 =========================================================================*/
 #include "vtkSMSourceProxy.h"
 
-#include "vtkClientServerStream.h"
-#include "vtkCollection.h"
 #include "vtkCommand.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVAlgorithmPortsInformation.h"
-#include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
-#include "vtkPVDataSetAttributesInformation.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
 #include "vtkSMDocumentation.h"
-#include "vtkSMDoubleVectorProperty.h"
-#include "vtkSMIdTypeVectorProperty.h"
 #include "vtkSMInputProperty.h"
-#include "vtkSMIntVectorProperty.h"
-#include "vtkSMMessage.h"
 #include "vtkSMOutputPort.h"
-#include "vtkSMProxyLocator.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMStringVectorProperty.h"
 #include "vtkSmartPointer.h"
 
 #include <cassert>
@@ -120,17 +107,9 @@ struct vtkSMSourceProxyInternals
 //---------------------------------------------------------------------------
 vtkSMSourceProxy::vtkSMSourceProxy()
 {
-  this->SetSIClassName("vtkSISourceProxy");
-
   this->PInternals = new vtkSMSourceProxyInternals;
-  this->OutputPortsCreated = 0;
-
-  this->ExecutiveName = nullptr;
-  this->SetExecutiveName("vtkCompositeDataPipeline");
-
   this->DisableSelectionProxies = false;
   this->SelectionProxiesCreated = false;
-
   this->NumberOfAlgorithmOutputPorts = VTK_UNSIGNED_INT_MAX;
   this->NumberOfAlgorithmRequiredInputPorts = VTK_UNSIGNED_INT_MAX;
   this->ProcessSupport = vtkSMSourceProxy::BOTH;
@@ -141,27 +120,10 @@ vtkSMSourceProxy::vtkSMSourceProxy()
 vtkSMSourceProxy::~vtkSMSourceProxy()
 {
   delete this->PInternals;
-
-  this->SetExecutiveName(nullptr);
 }
 
 //---------------------------------------------------------------------------
-vtkTypeUInt32 vtkSMSourceProxy::GetGlobalID()
-{
-  bool has_gid = this->HasGlobalID();
-
-  if (!has_gid && this->Session != nullptr)
-  {
-    // reserve 1+MAX_NUMBER_OF_PORTS contiguous IDs for the source proxies and possible extract
-    // selection proxies.
-    this->SetGlobalID(
-      this->GetSession()->GetNextChunkGlobalUniqueIdentifier(1 + MAX_NUMBER_OF_PORTS));
-  }
-  return this->GlobalID;
-}
-
-//---------------------------------------------------------------------------
-unsigned int vtkSMSourceProxy::GetNumberOfOutputPorts()
+unsigned int vtkSMSourceProxy::GetNumberOfOutputPorts() const
 {
   return static_cast<int>(this->PInternals->OutputPorts.size());
 }
@@ -226,30 +188,14 @@ vtkSMDocumentation* vtkSMSourceProxy::GetOutputPortDocumentation(const char* por
 }
 
 //---------------------------------------------------------------------------
-void vtkSMSourceProxy::UpdatePipelineInformation()
-{
-  if (this->ObjectsCreated)
-  {
-    vtkClientServerStream stream;
-    stream << vtkClientServerStream::Invoke << SIPROXY(this) << "UpdatePipelineInformation"
-           << vtkClientServerStream::End;
-    this->ExecuteStream(stream);
-  }
-
-  // This simply iterates over subproxies and calls UpdatePropertyInformation();
-  this->Superclass::UpdatePipelineInformation();
-
-  this->InvokeEvent(vtkCommand::UpdateInformationEvent);
-  // this->MarkModified(this);
-}
-//---------------------------------------------------------------------------
 int vtkSMSourceProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element)
 {
-  const char* executiveName = element->GetAttribute("executive");
-  if (executiveName)
+  int numPorts = 0;
+  if (element->GetScalarAttribute("number_of_output_ports", &numPorts))
   {
-    this->SetExecutiveName(executiveName);
+    this->NumberOfAlgorithmOutputPorts = numPorts;
   }
+
   if (const char* mp = element->GetAttribute("multiprocess_support"))
   {
     // For ParaView we don't mark any sources as multiple_processes only
@@ -322,98 +268,41 @@ int vtkSMSourceProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLEl
     }
   }
 
+  this->CreateOutputPorts();
   return this->Superclass::ReadXMLAttributes(pm, element);
 }
 
 //---------------------------------------------------------------------------
-// Call Update() on all sources
-// TODO this should update information properties.
-void vtkSMSourceProxy::UpdatePipeline()
-{
-  if (!this->NeedsUpdate)
-  {
-    return;
-  }
-
-  this->CreateOutputPorts();
-  int num = this->GetNumberOfOutputPorts();
-  for (int i = 0; i < num; ++i)
-  {
-    this->GetOutputPort(i)->UpdatePipeline();
-  }
-
-  this->PostUpdateData(false);
-  // this->InvalidateDataInformation();
-}
-
-//---------------------------------------------------------------------------
 // Call Update() on all sources with given time
-// TODO this should update information properties.
-void vtkSMSourceProxy::UpdatePipeline(double time)
+rxcpp::observable<bool> vtkSMSourceProxy::UpdatePipeline(double time)
 {
-  int i;
-
-  this->CreateOutputPorts();
-  int num = this->GetNumberOfOutputPorts();
-  for (i = 0; i < num; ++i)
-  {
-    this->GetOutputPort(i)->UpdatePipeline(time);
-  }
-
-  // When calling UpdatePipeline() we check if this->NeedsUpdate is true and
-  // call the real update only if that's the case. We don't do that when one
-  // uses UpdatePipeline(time) since we can never be too sure what time was
-  // used. In that case, we assume the pipeline needs update and hence we should
-  // set the NeedsUpdate ivar to true as well. Otherwise PostUpdateData()
-  // doesn't fire the necessary events and that can cause problems (BUG
-  // #12571).
-  this->NeedsUpdate = true;
-
-  this->PostUpdateData(false);
-  // this->InvalidateDataInformation();
-}
-
-//---------------------------------------------------------------------------
-void vtkSMSourceProxy::CreateVTKObjects()
-{
-  if (this->ObjectsCreated)
-  {
-    return;
-  }
-  this->Superclass::CreateVTKObjects();
-
-  // We are going to fix the ports such that we don't have to update the
-  // pipeline or even UpdateInformation() to create the ports.
-  this->CreateOutputPorts();
-}
-
-//---------------------------------------------------------------------------
-unsigned int vtkSMSourceProxy::GetNumberOfAlgorithmOutputPorts()
-{
-  if (this->NumberOfAlgorithmOutputPorts != VTK_UNSIGNED_INT_MAX)
-  {
-    // avoids unnecessary information gathers.
-    return this->NumberOfAlgorithmOutputPorts;
-  }
-
-  if (this->ObjectsCreated)
-  {
-    vtkSmartPointer<vtkPVAlgorithmPortsInformation> info =
-      vtkSmartPointer<vtkPVAlgorithmPortsInformation>::New();
-    this->GatherInformation(info);
-    this->NumberOfAlgorithmOutputPorts = info->GetNumberOfOutputs();
-    this->NumberOfAlgorithmRequiredInputPorts = info->GetNumberOfRequiredInputs();
-    return this->NumberOfAlgorithmOutputPorts;
-  }
-
-  return 0;
+  // FIXME:
+  //  auto& internals = (*this->Internals);
+  //  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  //  const vtkTypeUInt32 tag = ++internals.UpdatePipelineTag;
+  //
+  //  auto subscriber = internals.UpdatePipelineSubject.get_subscriber();
+  //  auto packet = vtkRemoteObjectProvider::UpdatePipeline(this->GetGlobalID(), time);
+  //  auto eventual = internals.Session->SendRequest(internals.Location, std::move(packet));
+  //  eventual.GetObservable().subscribe([this, subscriber, tag](const vtkPacket& reply) {
+  //    vtkLogF(INFO, "handle UpdatePipeline response");
+  //    const bool status = reply.GetJSON().get<bool>();
+  //    subscriber.on_next(std::make_pair(tag, status));
+  //  });
+  //
+  //  auto coordination = this->GetSession()->GetCoordination();
+  //  return internals.UpdatePipelineSubject.get_observable()
+  //    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
+  //    .take(1)
+  //    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
+  //    .observe_on(coordination);
+  return rxcpp::sources::never<bool>();
 }
 
 //---------------------------------------------------------------------------
 unsigned int vtkSMSourceProxy::GetNumberOfAlgorithmRequiredInputPorts()
 {
-  this->GetNumberOfAlgorithmOutputPorts();
-
+  // FIXME:
   if (this->NumberOfAlgorithmRequiredInputPorts != VTK_UNSIGNED_INT_MAX)
   {
     // avoid unnecessary information gathers.
@@ -426,18 +315,6 @@ unsigned int vtkSMSourceProxy::GetNumberOfAlgorithmRequiredInputPorts()
 //---------------------------------------------------------------------------
 void vtkSMSourceProxy::CreateOutputPorts()
 {
-  if (this->OutputPortsCreated && this->GetNumberOfOutputPorts())
-  {
-    return;
-  }
-  this->OutputPortsCreated = 1;
-
-  // This will only create objects if they are not already created.
-  // This happens when connecting a filter to a source which is not
-  // initialized. In other situations, SetInput() creates the VTK
-  // objects before this gets called.
-  this->CreateVTKObjects();
-
   // We simply set/replace the Port pointers in the
   // this->PInternals->OutputPorts. This ensures that the port names,
   // port documentation is preserved.
@@ -451,6 +328,7 @@ void vtkSMSourceProxy::CreateOutputPorts()
   for (int j = 0; j < numOutputs; j++)
   {
     vtkSMOutputPort* opPort = vtkSMOutputPort::New();
+    opPort->ProxyManager = this->ProxyManager;
     opPort->SetPortIndex(j);
     opPort->SetSourceProxy(this);
     this->PInternals->OutputPorts[j].Port = opPort;
@@ -510,36 +388,8 @@ void vtkSMSourceProxy::RemoveAllExtractSelectionProxies()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMSourceProxy::PostUpdateData(bool using_cache)
-{
-  if (!using_cache)
-  {
-    this->InvalidateDataInformation();
-  }
-  this->Superclass::PostUpdateData(using_cache);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMSourceProxy::MarkDirty(vtkSMProxy* modifiedProxy)
-{
-  // Mark the extract selection proxies modified as well.
-  // This is needed to be done explicitly since we don't use vtkSMInputProperty
-  // to connect this proxy to the input of the extract selection filter.
-  std::vector<vtkSmartPointer<vtkSMSourceProxy>>::iterator iter;
-  for (iter = this->PInternals->SelectionProxies.begin();
-       iter != this->PInternals->SelectionProxies.end(); ++iter)
-  {
-    iter->GetPointer()->MarkDirty(modifiedProxy);
-  }
-
-  this->Superclass::MarkDirty(modifiedProxy);
-  // this->InvalidateDataInformation();
-}
-
-//----------------------------------------------------------------------------
 vtkPVDataInformation* vtkSMSourceProxy::GetDataInformation(unsigned int idx)
 {
-  this->CreateOutputPorts();
   if (idx >= this->GetNumberOfOutputPorts())
   {
     return nullptr;
@@ -551,7 +401,6 @@ vtkPVDataInformation* vtkSMSourceProxy::GetDataInformation(unsigned int idx)
 //----------------------------------------------------------------------------
 vtkPVDataInformation* vtkSMSourceProxy::GetRankDataInformation(unsigned int idx, int rank)
 {
-  this->CreateOutputPorts();
   if (idx >= this->GetNumberOfOutputPorts())
   {
     return nullptr;
@@ -564,7 +413,6 @@ vtkPVDataInformation* vtkSMSourceProxy::GetRankDataInformation(unsigned int idx,
 vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
   unsigned int idx, const char* selector, const char* assemblyName)
 {
-  this->CreateOutputPorts();
   if (idx >= this->GetNumberOfOutputPorts())
   {
     return nullptr;
@@ -577,7 +425,6 @@ vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
 vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
   unsigned int idx, unsigned int compositeIndex)
 {
-  this->CreateOutputPorts();
   if (idx >= this->GetNumberOfOutputPorts())
   {
     return nullptr;
@@ -589,13 +436,10 @@ vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
 //----------------------------------------------------------------------------
 void vtkSMSourceProxy::InvalidateDataInformation()
 {
-  if (this->OutputPortsCreated)
+  vtkSMSourceProxyInternals::VectorOfPorts::iterator it = this->PInternals->OutputPorts.begin();
+  for (; it != this->PInternals->OutputPorts.end(); it++)
   {
-    vtkSMSourceProxyInternals::VectorOfPorts::iterator it = this->PInternals->OutputPorts.begin();
-    for (; it != this->PInternals->OutputPorts.end(); it++)
-    {
-      it->Port.GetPointer()->InvalidateDataInformation();
-    }
+    it->Port.GetPointer()->InvalidateDataInformation();
   }
 }
 
@@ -607,9 +451,9 @@ void vtkSMSourceProxy::CreateSelectionProxies()
     return;
   }
 
-  this->CreateOutputPorts();
   this->SelectionProxiesCreated = true;
 
+#if 0 // FIXME: ASYNC
   int numOutputs = this->GetNumberOfAlgorithmOutputPorts();
 
   // Setup selection proxies
@@ -626,32 +470,16 @@ void vtkSMSourceProxy::CreateSelectionProxies()
   this->PInternals->SelectionObservers.resize(numOutputs);
 
   vtkClientServerStream stream;
-  assert("Session should be valid" && this->Session);
   vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
   for (int j = 0; j < numOutputs; j++)
   {
     vtkSmartPointer<vtkSMSourceProxy> esProxy;
-    // If the selection proxy has been created previously on the server,
-    // lets register it...
-    // This happen in collaboration mode when the SelectionProxy
-    // became alive because of the SelectionRepresentation before the
-    // CreateSelectionProxies() get called on the original source proxy...
-    if ((esProxy = vtkSMSourceProxy::SafeDownCast(
-           this->Session->GetRemoteObject(this->GetGlobalID() + j + 1))) != nullptr)
-    {
-      esProxy->DisableSelectionProxies = true;
-      this->PInternals->SelectionProxies[j] = esProxy;
-      continue;
-    }
-
     // Otherwise create it properly
     esProxy.TakeReference(
       vtkSMSourceProxy::SafeDownCast(pxm->NewProxy("filters", "PVExtractSelection")));
     if (esProxy)
     {
       esProxy->DisableSelectionProxies = true;
-      esProxy->SetLocation(this->Location);
-      esProxy->SetGlobalID(this->GetGlobalID() + j + 1);
       esProxy->UpdateVTKObjects();
 
       std::ostringstream sstream;
@@ -666,7 +494,7 @@ void vtkSMSourceProxy::CreateSelectionProxies()
              << SIPROXY(esProxy) << vtkClientServerStream::End;
     }
   }
-  this->ExecuteStream(stream);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -777,6 +605,5 @@ void vtkSMSourceProxy::SetLogNameInternal(
 void vtkSMSourceProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "OutputPortsCreated: " << this->OutputPortsCreated << endl;
   os << indent << "ProcessSupport: " << this->ProcessSupport << endl;
 }

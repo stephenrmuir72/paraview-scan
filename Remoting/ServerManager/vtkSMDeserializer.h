@@ -31,7 +31,6 @@
 class vtkPVXMLElement;
 class vtkSMProxy;
 class vtkSMProxyLocator;
-class vtkSMSession;
 class vtkSMSessionProxyManager;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDeserializer : public vtkObject
@@ -39,13 +38,6 @@ class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDeserializer : public vtkObject
 public:
   vtkTypeMacro(vtkSMDeserializer, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  /**
-   * Convenience method for setting the SessionProxyManager. This is equivalent
-   * to calling
-   * vtkSMDeserializer::SetSessionProxyManager(session->GetSessionProxyManager()).
-   */
-  void SetSession(vtkSMSession* session);
 
   //@{
   /**
@@ -55,12 +47,6 @@ public:
   vtkSMSessionProxyManager* GetSessionProxyManager();
   void SetSessionProxyManager(vtkSMSessionProxyManager*);
   //@}
-
-  /**
-   * Provides access to the session. This is same as calling
-   * this->GetSessionProxyManager()->GetSession() (with nullptr checks).
-   */
-  vtkSMSession* GetSession();
 
 protected:
   vtkSMDeserializer();

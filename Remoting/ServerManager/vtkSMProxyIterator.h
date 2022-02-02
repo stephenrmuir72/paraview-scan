@@ -25,32 +25,25 @@
 #ifndef vtkSMProxyIterator_h
 #define vtkSMProxyIterator_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
 
 struct vtkSMProxyIteratorInternals;
 
 class vtkSMProxy;
-class vtkSMSession;
 class vtkSMSessionProxyManager;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyIterator : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyIterator : public vtkObject
 {
 public:
   static vtkSMProxyIterator* New();
-  vtkTypeMacro(vtkSMProxyIterator, vtkSMObject);
+  vtkTypeMacro(vtkSMProxyIterator, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Override the set session so the SessionProxyManager could be cache for
    */
   void SetSessionProxyManager(vtkSMSessionProxyManager*);
-
-  /**
-   * Convenience method. Internally calls
-   * this->SetSessionProxyManager(session->GetSessionProxyManager());
-   */
-  void SetSession(vtkSMSession* session);
 
   /**
    * Go to the beginning of the collection.

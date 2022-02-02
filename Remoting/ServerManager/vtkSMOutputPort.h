@@ -38,7 +38,6 @@
 #include <map> // needed for std::map
 
 class vtkCollection;
-class vtkPVClassNameInformation;
 class vtkPVDataAssemblyInformation;
 class vtkPVDataInformation;
 class vtkPVTemporalDataInformation;
@@ -58,7 +57,7 @@ public:
    * If data information is gathered then this fires the
    * vtkCommand::UpdateInformationEvent event.
    */
-  virtual vtkPVDataInformation* GetDataInformation();
+  vtkPVDataInformation* GetDataInformation();
 
   /**
    * Get rank-specific data information.
@@ -92,22 +91,12 @@ public:
    * pipeline. If the data information is not valid, this results iterating over
    * the pipeline and hence can be slow. Use with caution.
    */
-  virtual vtkPVTemporalDataInformation* GetTemporalDataInformation();
-
-  /**
-   * Returns the classname of the data object on this output port.
-   */
-  virtual const char* GetDataClassName();
-
-  /**
-   * Returns classname information.
-   */
-  virtual vtkPVClassNameInformation* GetClassNameInformation();
+  vtkPVTemporalDataInformation* GetTemporalDataInformation();
 
   /**
    * Mark data information as invalid.
    */
-  virtual void InvalidateDataInformation();
+  void InvalidateDataInformation();
 
   //@{
   /**
@@ -121,31 +110,9 @@ public:
    */
   vtkSMSourceProxy* GetSourceProxy();
 
-  //@{
-  /** Overridden to forward to the source proxy.
-   */
-  vtkSMSession* GetSession() override;
-  vtkSMSessionProxyManager* GetSessionProxyManager() override;
-  //@}
 protected:
   vtkSMOutputPort();
   ~vtkSMOutputPort() override;
-
-  /**
-   * Get the classname of the dataset from server.
-   */
-  virtual void GatherClassNameInformation();
-
-  /**
-   * Get information about dataset from server.
-   * Fires the vtkCommand::UpdateInformationEvent event.
-   */
-  virtual void GatherDataInformation();
-
-  /**
-   * Get temporal information from the server.
-   */
-  virtual void GatherTemporalDataInformation();
 
   void SetSourceProxy(vtkSMSourceProxy* src);
 
@@ -158,24 +125,17 @@ protected:
   /**
    * An internal update pipeline method that subclasses may override.
    */
-  virtual void UpdatePipelineInternal(double time, bool doTime);
+  void UpdatePipelineInternal(double time, bool doTime);
 
   // The index of the port the output is obtained from.
   vtkSetMacro(PortIndex, int);
   int PortIndex;
 
   vtkWeakPointer<vtkSMSourceProxy> SourceProxy;
-  vtkWeakPointer<vtkSMCompoundSourceProxy> CompoundSourceProxy;
-
-  vtkPVClassNameInformation* ClassNameInformation;
-  int ClassNameInformationValid;
+  // vtkWeakPointer<vtkSMCompoundSourceProxy> CompoundSourceProxy;
 
   vtkPVDataInformation* DataInformation;
-  bool DataInformationValid;
-
   vtkPVTemporalDataInformation* TemporalDataInformation;
-  bool TemporalDataInformationValid;
-
   std::map<std::string, std::map<int, vtkSmartPointer<vtkPVDataInformation>>>
     SubsetDataInformations;
   std::map<int, vtkSmartPointer<vtkPVDataInformation>> RankDataInformations;
@@ -186,10 +146,6 @@ private:
 
   friend class vtkSMSourceProxy;
   friend class vtkSMCompoundSourceProxy;
-  void UpdatePipeline();
-
-  // Update Pipeline with the given timestep request.
-  void UpdatePipeline(double time);
 };
 
 #endif

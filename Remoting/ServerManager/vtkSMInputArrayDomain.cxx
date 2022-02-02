@@ -94,8 +94,6 @@ int vtkSMInputArrayDomain::IsInDomain(vtkSMSourceProxy* proxy, unsigned int outp
     return vtkSMDomain::NOT_IN_DOMAIN;
   }
 
-  // Make sure the outputs are created.
-  proxy->CreateOutputPorts();
   vtkPVDataInformation* info = proxy->GetDataInformation(outputport);
   if (!info)
   {

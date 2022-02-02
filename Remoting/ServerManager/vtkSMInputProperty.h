@@ -35,8 +35,6 @@ struct vtkSMInputPropertyInternals;
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMProxyProperty.h"
 
-class vtkSMStateLocator;
-
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMInputProperty : public vtkSMProxyProperty
 {
 public:

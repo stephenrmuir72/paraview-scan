@@ -16,11 +16,10 @@
 
 #include "vtkObjectFactory.h"
 #include "vtkSMProxy.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSessionProxyManagerInternals.h"
 
-vtkStandardNewMacro(vtkSMProxyIterator);
+#include <cassert>
 
 struct vtkSMProxyIteratorInternals
 {
@@ -30,6 +29,7 @@ struct vtkSMProxyIteratorInternals
   vtkWeakPointer<vtkSMSessionProxyManager> ProxyManager;
 };
 
+vtkStandardNewMacro(vtkSMProxyIterator);
 //---------------------------------------------------------------------------
 vtkSMProxyIterator::vtkSMProxyIterator()
 {
@@ -42,12 +42,6 @@ vtkSMProxyIterator::vtkSMProxyIterator()
 vtkSMProxyIterator::~vtkSMProxyIterator()
 {
   delete this->Internals;
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxyIterator::SetSession(vtkSMSession* session)
-{
-  this->SetSessionProxyManager(session ? session->GetSessionProxyManager() : nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -110,7 +104,7 @@ void vtkSMProxyIterator::Begin()
   if (this->SkipPrototypes)
   {
     auto proxy = this->GetProxy();
-    if (proxy && (proxy->GetSession() == nullptr || proxy->IsPrototype()))
+    if (proxy && (proxy->GetSession() == nullptr || proxy->GetGlobalID() == 0))
     {
       this->Next();
     }
@@ -141,7 +135,7 @@ void vtkSMProxyIterator::Next()
   if (this->SkipPrototypes && !this->IsAtEnd())
   {
     auto proxy = this->GetProxy();
-    if (proxy && (proxy->GetSession() == nullptr || proxy->IsPrototype()))
+    if (proxy && (proxy->GetSession() == nullptr || proxy->GetGlobalID() == 0))
     {
       this->Next();
     }

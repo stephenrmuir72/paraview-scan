@@ -1,3 +1,19 @@
+vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
+  --client
+  TestClientApplication,TestPVApplication.cxx,NO_VALID)
+
+vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
+  --server
+  TestServerApplication,TestPVApplication.cxx,NO_VALID)
+
+vtk_test_cxx_executable(vtkRemotingServerManagerCxxTests tests)
+# TODO
+#vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
+#  --batch
+#  TestBatchApplication,TestPVApplication.cxx,NO_VALID)
+
+
+if (FALSE) # FIXME: ASYNC
 if (PARAVIEW_USE_QT)
   find_package(Qt5 REQUIRED COMPONENTS Test)
   set(CMAKE_AUTOMOC 1)
@@ -43,3 +59,4 @@ endif ()
 set_property(SOURCE TestValidateProxies.cxx APPEND
   PROPERTY
     COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=$<BOOL:${BUILD_SHARED_LIBS}>")
+endif() # FIXME

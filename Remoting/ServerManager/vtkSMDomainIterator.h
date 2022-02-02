@@ -22,19 +22,19 @@
 #ifndef vtkSMDomainIterator_h
 #define vtkSMDomainIterator_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
 
 class vtkSMProperty;
 class vtkSMDomain;
 
 struct vtkSMDomainIteratorInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDomainIterator : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDomainIterator : public vtkObject
 {
 public:
   static vtkSMDomainIterator* New();
-  vtkTypeMacro(vtkSMDomainIterator, vtkSMObject);
+  vtkTypeMacro(vtkSMDomainIterator, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

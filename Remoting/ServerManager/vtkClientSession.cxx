@@ -20,8 +20,8 @@
 #include "vtkPVCoreApplication.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"
-// #include "vtkSMProxy.h"
-// #include "vtkSMProxyManager.h"
+#include "vtkSMProxy.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkServiceEndpoint.h"
 #include "vtkServicesEngine.h"
 #include "vtkSmartPointer.h"
@@ -34,11 +34,11 @@ public:
   const std::thread::id OwnerTID{ std::this_thread::get_id() };
   vtkSmartPointer<vtkServiceEndpoint> DSEndpoint;
   vtkSmartPointer<vtkServiceEndpoint> RSEndpoint;
-  // vtkSmartPointer<vtkSMProxyManager> ProxyManager;
+  vtkSmartPointer<vtkSMSessionProxyManager> ProxyManager;
   std::vector<vtkSmartPointer<vtkChannelSubscription>> ProgressSubscriptions;
 
-  // rxcpp::subjects::subject<std::tuple<std::string, vtkSMProxy*, std::string, int8_t>>
-  //   ProgressSubject;
+  rxcpp::subjects::subject<std::tuple<std::string, vtkSMProxy*, std::string, int8_t>>
+    ProgressSubject;
 
   /**
    * Called when the session is ready.
@@ -76,8 +76,7 @@ public:
 void vtkClientSession::vtkInternals::InitializeSession(vtkClientSession* self)
 {
   assert(this->DSEndpoint && this->RSEndpoint);
-  // this->ProxyManager = vtk::TakeSmartPointer(vtkSMProxyManager::New());
-  // this->ProxyManager->SetSession(self);
+  this->ProxyManager = vtk::TakeSmartPointer(vtkSMSessionProxyManager::New(self));
 }
 
 //============================================================================
@@ -142,18 +141,16 @@ void vtkClientSession::InitializeServiceEndpoint(vtkServiceEndpoint* endpoint)
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxyManager* vtkClientSession::GetProxyManager() const
+vtkSMSessionProxyManager* vtkClientSession::GetProxyManager() const
 {
-  //  auto& internals = (*this->Internals);
-  //  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  //  if (!internals.ProxyManager)
-  //  {
-  //    vtkLogF(ERROR, "No proxymanager present. Is the session connected yet?");
-  //    return nullptr;
-  //  }
-  //
-  //  return internals.ProxyManager;
-  return nullptr;
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  if (!internals.ProxyManager)
+  {
+    vtkLogF(ERROR, "No proxymanager present. Is the session connected yet?");
+    return nullptr;
+  }
+  return internals.ProxyManager;
 }
 
 //----------------------------------------------------------------------------

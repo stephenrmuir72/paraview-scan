@@ -100,13 +100,6 @@ public:
   //@}
 
   /**
-   * Updates the property value by fetching the value from the server. This only
-   * works for properties with \c InformationOnly attribute set to 1. For all
-   * other properties, this has no effect.
-   */
-  void UpdateValueFromServer();
-
-  /**
    * Set the number of elements in the property. For vtkSMProxyProperty, this is
    * equivalent to SetNumberOfProxies().
    */

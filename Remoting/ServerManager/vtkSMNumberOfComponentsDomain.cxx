@@ -128,8 +128,6 @@ void vtkSMNumberOfComponentsDomain::Update(vtkSMProperty*)
 void vtkSMNumberOfComponentsDomain::Update(
   const char* arrayName, vtkSMSourceProxy* sp, vtkSMInputArrayDomain* iad, int outputport)
 {
-  // Make sure the outputs are created.
-  sp->CreateOutputPorts();
   vtkPVDataInformation* info = sp->GetDataInformation(outputport);
   if (!info)
   {

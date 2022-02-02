@@ -54,33 +54,20 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Calls UpdateInformation() on all sources.
-   */
-  void UpdatePipelineInformation() override;
-
-  /**
-   * Calls Update() on all sources. It also creates output ports if
-   * they are not already created.
-   */
-  virtual void UpdatePipeline();
-
-  /**
    * Calls Update() on all sources with the given time request.
    * It also creates output ports if they are not already created.
    */
-  virtual void UpdatePipeline(double time);
-
-  //@{
-  /**
-   * Returns if the output port proxies have been created.
-   */
-  vtkGetMacro(OutputPortsCreated, int);
-  //@}
+  rxcpp::observable<bool> UpdatePipeline(double time);
 
   /**
    * Return the number of output ports.
    */
-  virtual unsigned int GetNumberOfOutputPorts();
+  vtkGetMacro(NumberOfAlgorithmOutputPorts, unsigned int);
+
+  /**
+   * Returns the number of output ports.
+   */
+  unsigned int GetNumberOfOutputPorts() const;
 
   /**
    * Return an output port.
@@ -123,13 +110,6 @@ public:
   vtkSMDocumentation* GetOutputPortDocumentation(unsigned int index);
   vtkSMDocumentation* GetOutputPortDocumentation(const char* portname);
   //@}
-
-  /**
-   * Creates the output port proxies for this filter.
-   * Each output port proxy corresponds to an actual output port on the
-   * algorithm.
-   */
-  virtual void CreateOutputPorts();
 
   //@{
   /**
@@ -233,20 +213,10 @@ public:
   //@}
 
   /**
-   * Returns the number of output ports provided by the algorithm.
-   */
-  unsigned int GetNumberOfAlgorithmOutputPorts();
-
-  /**
    * Returns the number of non-optional input ports required by the algorithm.
    * This value is cached after the first call.
    */
   virtual unsigned int GetNumberOfAlgorithmRequiredInputPorts();
-
-  /**
-   * Overridden to reserve additional IDs for use by "ExtractSelection" proxies.
-   */
-  vtkTypeUInt32 GetGlobalID() override;
 
   enum ProcessSupportType
   {
@@ -255,19 +225,12 @@ public:
     BOTH
   };
 
-  /**
-   * Marks the selection proxies dirty as well as chain to superclass.
-   */
-  void MarkDirty(vtkSMProxy* modifiedProxy) override;
-
 protected:
   vtkSMSourceProxy();
   ~vtkSMSourceProxy() override;
 
   friend class vtkSMInputProperty;
   friend class vtkSMOutputPort;
-
-  int OutputPortsCreated;
 
   int ProcessSupport;
   bool MPIRequired;
@@ -276,15 +239,6 @@ protected:
    * Mark the data information as invalid.
    */
   virtual void InvalidateDataInformation();
-
-  /**
-   * Call superclass' and then assigns a new executive
-   * (vtkCompositeDataPipeline)
-   */
-  void CreateVTKObjects() override;
-
-  char* ExecutiveName;
-  vtkSetStringMacro(ExecutiveName);
 
   /**
    * Read attributes from an XML element.
@@ -303,11 +257,6 @@ protected:
   void SetExtractSelectionProxy(unsigned int index, vtkSMSourceProxy* proxy);
   void RemoveAllExtractSelectionProxies();
   //@}
-
-  /**
-   * Overwritten from superclass to invoke
-   */
-  void PostUpdateData(bool) override;
 
   /**
    * Overridden to pass the logname to the internal ExtractSelection proxies.
@@ -330,6 +279,8 @@ private:
 
   vtkSMSourceProxy(const vtkSMSourceProxy&) = delete;
   void operator=(const vtkSMSourceProxy&) = delete;
+
+  void CreateOutputPorts();
 };
 
 #endif

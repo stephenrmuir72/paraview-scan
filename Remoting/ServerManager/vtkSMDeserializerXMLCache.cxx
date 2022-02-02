@@ -18,8 +18,6 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyLocator.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMSession.h"
 #include "vtkSmartPointer.h"
 
 #include <map>

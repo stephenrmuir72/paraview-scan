@@ -17,11 +17,10 @@
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMProxyInternals.h"
 #include "vtkSMProxyLink.h"
 #include "vtkSMProxyLocator.h"
@@ -402,7 +401,7 @@ int vtkSMProxyListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
       {
         // Browse group and recover each proxy type
         vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
-        vtkSMProxyDefinitionManager* pxdm = pxm->GetProxyDefinitionManager();
+        auto* pxdm = pxm->GetProxyDefinitionManager();
         if (!pxdm)
         {
           vtkErrorMacro("No vtkSMProxyDefinitionManager available in vtkSMSessionProxyManager, "
@@ -412,18 +411,16 @@ int vtkSMProxyListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
         else
         {
           unsigned int index = 0;
-          vtkPVProxyDefinitionIterator* iter = pxdm->NewSingleGroupIterator(name);
-          for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+          for (const auto& item : pxdm->GetDefinitions(name))
           {
-            const char* proxyName = iter->GetProxyName();
-            this->AddProxy(name, proxyName);
-            if (defaultProxyName && (strcmp(proxyName, defaultProxyName) == 0))
+            const std::string proxyName = item.GetName();
+            this->AddProxy(name, proxyName.c_str());
+            if (defaultProxyName && proxyName == defaultProxyName)
             {
               this->SetDefaultIndex(index);
             }
             index++;
           }
-          iter->Delete();
         }
       }
     }

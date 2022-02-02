@@ -24,19 +24,18 @@
 #ifndef vtkSMLink_h
 #define vtkSMLink_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMMessageMinimal.h"            // Needed
-#include "vtkSMRemoteObject.h"
 
 class vtkCommand;
 class vtkPVXMLElement;
 class vtkSMProxy;
 class vtkSMProxyLocator;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMLink : public vtkSMRemoteObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMLink : public vtkObject
 {
 public:
-  vtkTypeMacro(vtkSMLink, vtkSMRemoteObject);
+  vtkTypeMacro(vtkSMLink, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum UpdateDirections
@@ -71,28 +70,6 @@ public:
   virtual void RemoveAllLinks() = 0;
 
   /**
-   * This method returns the full object state that can be used to create the
-   * object from scratch.
-   * This method will be used to fill the undo stack.
-   * If not overridden this will return nullptr.
-   */
-  const vtkSMMessage* GetFullState() override;
-
-  /**
-   * This method is used to initialize the object to the given state
-   * If the definitionOnly Flag is set to True the proxy won't load the
-   * properties values and just setup the new proxy hierarchy with all subproxy
-   * globalIDs set. This enables splitting the load process in 2 step to prevent
-   * invalid state when a property refers to a sub-proxy that does not exist yet.
-   */
-  void LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locator) override;
-
-  /**
-   * Update the internal protobuf state
-   */
-  virtual void UpdateState() = 0;
-
-  /**
    * Get the number of object that are involved in this link.
    */
   virtual unsigned int GetNumberOfLinkedObjects() = 0;
@@ -111,12 +88,6 @@ public:
 protected:
   vtkSMLink();
   ~vtkSMLink() override;
-
-  /**
-   * When the state has changed we call that method so the state can be shared
-   * if any collaboration is involved.
-   */
-  void PushStateToSession();
 
   /**
    * Called when an input proxy is updated (UpdateVTKObjects).
@@ -154,8 +125,8 @@ protected:
   virtual int LoadXMLState(vtkPVXMLElement* linkElement, vtkSMProxyLocator* locator) = 0;
 
   friend class vtkSMLinkObserver;
-  friend class vtkSMStateLoader;
   friend class vtkSMSessionProxyManager;
+  friend class vtkSMStateLoader;
 
   vtkCommand* Observer;
   // Set by default. In a link P1->P2, if this flag is set, when ever Proxy with P1
@@ -164,9 +135,6 @@ protected:
   int PropagateUpdateVTKObjects;
 
   bool Enabled;
-
-  // Cached version of State
-  vtkSMMessage* State;
 
 private:
   vtkSMLink(const vtkSMLink&) = delete;

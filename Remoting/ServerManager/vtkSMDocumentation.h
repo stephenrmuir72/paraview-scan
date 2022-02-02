@@ -25,16 +25,16 @@
 #ifndef vtkSMDocumentation_h
 #define vtkSMDocumentation_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
 
 class vtkPVXMLElement;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDocumentation : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDocumentation : public vtkObject
 {
 public:
   static vtkSMDocumentation* New();
-  vtkTypeMacro(vtkSMDocumentation, vtkSMObject);
+  vtkTypeMacro(vtkSMDocumentation, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

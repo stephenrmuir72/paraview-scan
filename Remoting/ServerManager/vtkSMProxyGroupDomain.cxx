@@ -19,7 +19,6 @@
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMProxyProperty.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 
@@ -139,7 +138,6 @@ const char* vtkSMProxyGroupDomain::GetProxyName(unsigned int idx)
   unsigned int proxyCount = 0;
   unsigned int prevProxyCount = 0;
 
-  assert("Session should be set by now" && this->Session);
   vtkSMSessionProxyManager* pm = this->GetSessionProxyManager();
   if (pm)
   {
@@ -168,8 +166,6 @@ vtkSMProxy* vtkSMProxyGroupDomain::GetProxy(unsigned int idx)
 const char* vtkSMProxyGroupDomain::GetProxyName(vtkSMProxy* proxy)
 {
   const char* proxyName = nullptr;
-
-  assert("Session should be set by now" && this->Session);
   vtkSMSessionProxyManager* pm = this->GetSessionProxyManager();
   if (pm)
   {
@@ -189,7 +185,6 @@ const char* vtkSMProxyGroupDomain::GetProxyName(vtkSMProxy* proxy)
 //---------------------------------------------------------------------------
 vtkSMProxy* vtkSMProxyGroupDomain::GetProxy(const char* name)
 {
-  assert("Session should be set by now" && this->Session);
   vtkSMSessionProxyManager* pm = this->GetSessionProxyManager();
   if (pm)
   {

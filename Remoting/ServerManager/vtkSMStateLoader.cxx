@@ -14,21 +14,18 @@
 =========================================================================*/
 #include "vtkSMStateLoader.h"
 
-#include "vtkClientServerStreamInstantiator.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
+#include "vtkReflection.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyLink.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyLink.h"
 #include "vtkSMProxyLocator.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMSettingsProxy.h"
-#include "vtkSMSourceProxy.h"
-#include "vtkSMStateVersionController.h"
 #include "vtkSmartPointer.h"
+// #include "vtkSMSettingsProxy.h"
+#include "vtkSMSourceProxy.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -217,14 +214,22 @@ void vtkSMStateLoader::CreatedNewProxy(vtkTypeUInt32 id, vtkSMProxy* proxy)
   // reviving the server-side server manager, which needs special handling.
   if (this->Internal->KeepOriginalId)
   {
+#if 0 // FIXME: ASYNC
     proxy->SetGlobalID(id);
+#else
+    abort();
+#endif
   }
 
   // Calling UpdateVTKObjects() will assign the proxy a GlobalId, if needed.
   proxy->UpdateVTKObjects();
   if (proxy->IsA("vtkSMSourceProxy"))
   {
+#if 0 // FIXME: ASYNC
     vtkSMSourceProxy::SafeDownCast(proxy)->UpdatePipelineInformation();
+#else
+    abort();
+#endif
   }
   if (this->Internal->DeferProxyRegistration)
   {
@@ -287,7 +292,7 @@ bool vtkSMStateLoader::UpdateRegistrationInfo(
     if (vtkSMProxy* helpedProxy = this->ProxyLocator->LocateProxy(gid))
     {
       group = helper_proxies_prefix;
-      group += helpedProxy->GetGlobalIDAsString();
+      group += std::to_string(helpedProxy->GetGlobalID());
     }
   }
 
@@ -304,7 +309,7 @@ bool vtkSMStateLoader::UpdateRegistrationInfo(
       vtkTypeUInt32 gid = static_cast<vtkTypeUInt32>(std::atoi(gidStr.c_str()));
       if (vtkSMProxy* helpedProxy = this->ProxyLocator->LocateProxy(gid))
       {
-        name.replace(separateLen, gidLen, helpedProxy->GetGlobalIDAsString());
+        name.replace(separateLen, gidLen, std::to_string(helpedProxy->GetGlobalID()));
       }
     }
   }
@@ -474,9 +479,7 @@ int vtkSMStateLoader::HandleLinks(vtkPVXMLElement* element)
       {
         std::string classname = "vtkSM";
         classname += name;
-        vtkSmartPointer<vtkObjectBase> obj;
-        obj.TakeReference(vtkClientServerStreamInstantiator::CreateInstance(classname.c_str()));
-        link = vtkSMLink::SafeDownCast(obj);
+        auto link = vtkReflection::CreateInstance<vtkSMLink>(classname);
         if (link == nullptr)
         {
           vtkWarningMacro("Failed to create object for link (name="
@@ -485,7 +488,6 @@ int vtkSMStateLoader::HandleLinks(vtkPVXMLElement* element)
         }
         pxm->RegisterLink(linkname, link);
       }
-      assert(link != nullptr);
       if (!link->LoadXMLState(currentElement, this->ProxyLocator))
       {
         return 0;
@@ -571,14 +573,6 @@ int vtkSMStateLoader::LoadStateInternal(vtkPVXMLElement* parent)
       return 0;
     }
   }
-
-  vtkSMStateVersionController* converter = vtkSMStateVersionController::New();
-  if (!converter->Process(parent, this->GetSession()))
-  {
-    vtkWarningMacro("State converter was not able to convert the state to current "
-                    "version successfully");
-  }
-  converter->Delete();
 
   if (!this->VerifyXMLVersion(rootElement))
   {
@@ -694,12 +688,14 @@ int vtkSMStateLoader::LoadStateInternal(vtkPVXMLElement* parent)
         auto sproxy = currentElement->GetNestedElement(cc);
         if (sproxy && sproxy->GetName() && strcmp(sproxy->GetName(), "SettingsProxy") == 0)
         {
+#if 0 // FIXME: ASYNC
           auto settingsProxy = vtkSMSettingsProxy::SafeDownCast(
             pxm->GetProxy(sproxy->GetAttribute("group"), sproxy->GetAttribute("type")));
           if (settingsProxy)
           {
             settingsProxy->LoadLinksState(sproxy, this->ProxyLocator);
           }
+#endif
         }
       }
     }

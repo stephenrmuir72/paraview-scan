@@ -24,10 +24,11 @@ vtkSMNullProxy::vtkSMNullProxy() = default;
 vtkSMNullProxy::~vtkSMNullProxy() = default;
 
 //-----------------------------------------------------------------------------
-void vtkSMNullProxy::CreateVTKObjects()
+int vtkSMNullProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element)
 {
+  auto retVal = this->Superclass::ReadXMLAttributes(pm, element);
   this->SetVTKClassName(nullptr);
-  this->Superclass::CreateVTKObjects();
+  return retVal;
 }
 
 //-----------------------------------------------------------------------------

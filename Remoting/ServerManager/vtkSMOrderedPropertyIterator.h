@@ -28,17 +28,17 @@
 #ifndef vtkSMOrderedPropertyIterator_h
 #define vtkSMOrderedPropertyIterator_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
 
 class vtkSMProperty;
 class vtkSMProxy;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMOrderedPropertyIterator : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMOrderedPropertyIterator : public vtkObject
 {
 public:
   static vtkSMOrderedPropertyIterator* New();
-  vtkTypeMacro(vtkSMOrderedPropertyIterator, vtkSMObject);
+  vtkTypeMacro(vtkSMOrderedPropertyIterator, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

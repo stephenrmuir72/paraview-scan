@@ -18,7 +18,6 @@
 
 #include "vtkObjectBase.h"
 #include "vtkSMLink.h"                // for vtkSMLink
-#include "vtkSMMessage.h"             // for vtkSMMessage
 #include "vtkSMProxyLocator.h"        // for vtkSMProxyLocator
 #include "vtkSMProxySelectionModel.h" // for vtkSMProxySelectionModel
 #include "vtkSmartPointer.h"          // for vtkSmartPointer
@@ -208,11 +207,10 @@ struct vtkSMSessionProxyManagerInternals
   typedef std::map<std::string, vtkSmartPointer<vtkSMProxySelectionModel>> SelectionModelsType;
   SelectionModelsType SelectionModels;
 
-  // Data structure for storing the fullState
-  vtkSMMessage State;
-
   // Keep ref to the proxyManager to access the session
   vtkSMSessionProxyManager* ProxyManager;
+
+  vtkTypeUInt32 NextGlobalID{ 100 };
 
   // Helper methods -----------------------------------------------------------
   void FindProxyTuples(vtkSMProxy* proxy, std::set<vtkSMProxyManagerEntry>& tuplesFounds)
@@ -224,55 +222,6 @@ struct vtkSMSessionProxyManagerInternals
       if (iter->Proxy == proxy)
       {
         tuplesFounds.insert(*iter);
-      }
-      iter++;
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  void ComputeDelta(const vtkSMMessage* newState, vtkSMProxyLocator* locator,
-    std::set<vtkSMProxyManagerEntry>& toRegister, std::set<vtkSMProxyManagerEntry>& toUnregister)
-  {
-    // Fill equivalent temporary data structure
-    std::set<vtkSMProxyManagerEntry> newStateContent;
-    int max = newState->ExtensionSize(PXMRegistrationState::registered_proxy);
-    for (int cc = 0; cc < max; cc++)
-    {
-      PXMRegistrationState_Entry reg =
-        newState->GetExtension(PXMRegistrationState::registered_proxy, cc);
-      vtkSMProxy* proxy = locator->LocateProxy(reg.global_id());
-      if (proxy)
-      {
-        newStateContent.insert(
-          vtkSMProxyManagerEntry(reg.group().c_str(), reg.name().c_str(), proxy));
-      }
-    }
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // FIXME there might be a better way to do that
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    // Look for proxy to Register
-    std::set<vtkSMProxyManagerEntry>::iterator iter;
-    iter = newStateContent.begin();
-    while (iter != newStateContent.end())
-    {
-      if (this->RegisteredProxyTuple.find(*iter) == this->RegisteredProxyTuple.end())
-      {
-        toRegister.insert(*iter);
-      }
-      iter++;
-    }
-
-    // Look for proxy to Unregister
-    iter = this->RegisteredProxyTuple.begin();
-    vtksys::RegularExpression prototypesRe("_prototypes$");
-    while (iter != this->RegisteredProxyTuple.end())
-    {
-      if (newStateContent.find(*iter) == newStateContent.end() &&
-        !prototypesRe.find(iter->Group.c_str()))
-      {
-        toUnregister.insert(*iter);
       }
       iter++;
     }
@@ -307,22 +256,6 @@ struct vtkSMSessionProxyManagerInternals
       if (it2 != it->second.end())
       {
         this->RemoveTuples(it->first.c_str(), name, removedEntries, true);
-      }
-    }
-
-    // Deal with State
-    vtkSMMessage backup;
-    backup.CopyFrom(this->State);
-    int nbRegisteredProxy = this->State.ExtensionSize(PXMRegistrationState::registered_proxy);
-    this->State.ClearExtension(PXMRegistrationState::registered_proxy);
-    for (int cc = 0; cc < nbRegisteredProxy; ++cc)
-    {
-      const PXMRegistrationState_Entry* reg =
-        &backup.GetExtension(PXMRegistrationState::registered_proxy, cc);
-
-      if (reg->name() != nameString) // Keep it
-      {
-        this->State.AddExtension(PXMRegistrationState::registered_proxy)->CopyFrom(*reg);
       }
     }
   }
@@ -369,26 +302,6 @@ struct vtkSMSessionProxyManagerInternals
         it->second.erase(it2);
       }
     }
-
-    // Deal with state
-    vtksys::RegularExpression prototypesRe("_prototypes$");
-    if (!doMapOnly && !prototypesRe.find(group))
-    {
-      vtkSMMessage backup;
-      backup.CopyFrom(this->State);
-      int nbRegisteredProxy = this->State.ExtensionSize(PXMRegistrationState::registered_proxy);
-      this->State.ClearExtension(PXMRegistrationState::registered_proxy);
-      for (int cc = 0; cc < nbRegisteredProxy; ++cc)
-      {
-        const PXMRegistrationState_Entry* reg =
-          &backup.GetExtension(PXMRegistrationState::registered_proxy, cc);
-
-        if (reg->group() != groupString || reg->name() != nameString) // Keep it
-        {
-          this->State.AddExtension(PXMRegistrationState::registered_proxy)->CopyFrom(*reg);
-        }
-      }
-    }
   }
 
   // --------------------------------------------------------------------------
@@ -426,65 +339,9 @@ struct vtkSMSessionProxyManagerInternals
       }
     }
 
-    // Deal with state
-    vtksys::RegularExpression prototypesRe("_prototypes$");
-    if (!prototypesRe.find(group))
-    {
-      vtkSMMessage backup;
-      backup.CopyFrom(this->State);
-
-      int nbRegisteredProxy = this->State.ExtensionSize(PXMRegistrationState::registered_proxy);
-      this->State.ClearExtension(PXMRegistrationState::registered_proxy);
-
-      for (int cc = 0; cc < nbRegisteredProxy; ++cc)
-      {
-        const PXMRegistrationState_Entry* reg =
-          &backup.GetExtension(PXMRegistrationState::registered_proxy, cc);
-
-        if (reg->group() == groupString && reg->name() == nameString &&
-          reg->global_id() == proxy->GetGlobalID())
-        {
-          // Do not keep it
-        }
-        else
-        {
-          // Keep it
-          this->State.AddExtension(PXMRegistrationState::registered_proxy)->CopyFrom(*reg);
-        }
-      }
-    }
 
     return found;
   }
-
-  // --------------------------------------------------------------------------
-  void UpdateProxySelectionModelState()
-  {
-    this->State.ClearExtension(PXMRegistrationState::registered_selection_model);
-    std::map<std::string, vtkSmartPointer<vtkSMProxySelectionModel>>::iterator iter;
-    for (iter = this->SelectionModels.begin(); iter != this->SelectionModels.end(); iter++)
-    {
-      PXMRegistrationState_Entry* selModel =
-        this->State.AddExtension(PXMRegistrationState::registered_selection_model);
-      selModel->set_name(iter->first);
-      selModel->set_global_id(iter->second->GetGlobalID());
-    }
-  }
-  // --------------------------------------------------------------------------
-  void UpdateLinkState()
-  {
-    this->State.ClearExtension(PXMRegistrationState::registered_link);
-
-    LinkType::iterator iter;
-    for (iter = this->RegisteredLinkMap.begin(); iter != this->RegisteredLinkMap.end(); iter++)
-    {
-      PXMRegistrationState_Entry* linkEntry =
-        this->State.AddExtension(PXMRegistrationState::registered_link);
-      linkEntry->set_name(iter->first);
-      linkEntry->set_global_id(iter->second->GetGlobalID());
-    }
-  }
-  // --------------------------------------------------------------------------
 };
 
 #endif

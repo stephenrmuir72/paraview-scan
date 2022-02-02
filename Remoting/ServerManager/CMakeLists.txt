@@ -55,8 +55,71 @@ set(classes
   vtkRemoteObjectProvider
   vtkServerSession
   vtkSession
+  vtkSMAMRLevelsDomain
+  vtkSMArrayListDomain
+  vtkSMArrayRangeDomain
+  vtkSMArraySelectionDomain
+  vtkSMBooleanDomain
+  vtkSMBoundsDomain
+  vtkSMCompositeTreeDomain
+  vtkSMCoreUtilities
+  vtkSMDataAssemblyDomain
+  vtkSMDataAssemblyListDomain
+  vtkSMDataTypeDomain
+  vtkSMDeserializer
+  vtkSMDeserializerXML
+  vtkSMDeserializerXMLCache
+  vtkSMDimensionsDomain
+  vtkSMDiscreteDoubleDomain
+  vtkSMDocumentation
+  vtkSMDomain
+  vtkSMDomainIterator
+  vtkSMDoubleRangeDomain
+  vtkSMDoubleVectorProperty
+  vtkSMEnumerationDomain
+  vtkSMExtentDomain
+  vtkSMFieldDataDomain
+  vtkSMFileListDomain
+  vtkSMIdTypeVectorProperty
+  vtkSMIndexSelectionDomain
+  vtkSMInputArrayDomain
+  vtkSMInputFileNameDomain
+  vtkSMInputProperty
+  vtkSMIntRangeDomain
+  vtkSMIntVectorProperty
+  vtkSMLink
+  vtkSMNamedPropertyIterator
+  vtkSMNullProxy
+  vtkSMNumberOfComponentsDomain
+  vtkSMOrderedPropertyIterator
+  vtkSMOutputPort
+  vtkSMProperty
+  vtkSMPropertyGroup
+  vtkSMPropertyHelper
+  vtkSMPropertyIterator
+  vtkSMPropertyLink
+  vtkSMProxy
   vtkSMProxyDefinitionsIterator
   vtkSMProxyDefinitionsRange
+  vtkSMProxyGroupDomain
+  vtkSMProxyInitializationHelper
+  vtkSMProxyIterator
+  vtkSMProxyLink
+  vtkSMProxyListDomain
+  vtkSMProxyLocator
+  vtkSMProxyProperty
+  vtkSMProxySelectionModel
+  vtkSMRegistrationNamesDomain
+  vtkSMSelectionQueryDomain
+  vtkSMSessionProxyManager
+  vtkSMSourceProxy
+  vtkSMStateLoader
+  vtkSMStringListDomain
+  vtkSMStringVectorProperty
+  vtkSMTimeStepIndexDomain
+  vtkSMTrace
+  vtkSMUncheckedPropertyHelper
+  vtkSMVectorProperty
   vtkStringUtilities
 )
 
@@ -67,155 +130,44 @@ set(old_classes
   vtkPVCatalystSessionCore
   vtkPVDataMover
   vtkPVFilePathEncodingHelper
-  vtkPVMultiClientsInformation
-  vtkPVProxyDefinitionIterator
-  vtkPVSessionBase
-  vtkPVSessionCore
-  vtkPVSessionCoreInterpreterHelper
-  vtkPVSessionServer
-  vtkSIArraySelectionProperty
-  vtkSICollaborationManager
-  vtkSICompoundSourceProxy
-  vtkSIDataArrayProperty
-  vtkSIDataArraySelectionProperty
-  vtkSIDirectoryProxy
-  vtkSIDoubleMapProperty
-  vtkSIDoubleVectorProperty
-  vtkSIIdTypeVectorProperty
-  vtkSIIndexSelectionProperty
-  vtkSIInputProperty
-  vtkSIIntVectorProperty
-  vtkSIMetaReaderProxy
-  vtkSIMultiplexerSourceProxy
-  vtkSIObject
-  vtkSIProperty
-  vtkSIProxy
-  vtkSIProxyDefinitionManager
-  vtkSIProxyProperty
-  vtkSISourceProxy
-  vtkSIStringVectorProperty
-  vtkSITimeLabelProperty
-  vtkSITimeRangeProperty
-  vtkSITimeStepsProperty
-  vtkSIVectorProperty
-  vtkSIWriterProxy
-  vtkSMAMRLevelsDomain
-  vtkSMArrayListDomain
-  vtkSMArrayRangeDomain
-  vtkSMArraySelectionDomain
-  vtkSMBooleanDomain
-  vtkSMBoundsDomain
-  vtkSMCollaborationManager
-  vtkSMCompositeTreeDomain
   vtkSMCompoundProxyDefinitionLoader
   vtkSMCompoundSourceProxy
   vtkSMCompoundSourceProxyDefinitionBuilder
-  vtkSMCoreUtilities
-  vtkSMDataAssemblyDomain
-  vtkSMDataAssemblyListDomain
   vtkSMDataExtractWriterProxy
   vtkSMDataSourceProxy
-  vtkSMDataTypeDomain
-  vtkSMDeserializer
   vtkSMDeserializerProtobuf
-  vtkSMDeserializerXML
-  vtkSMDeserializerXMLCache
-  vtkSMDimensionsDomain
   vtkSMDirectoryProxy
-  vtkSMDiscreteDoubleDomain
-  vtkSMDocumentation
-  vtkSMDomain
-  vtkSMDomainIterator
-  vtkSMDoubleMapProperty
-  vtkSMDoubleMapPropertyIterator
-  vtkSMDoubleRangeDomain
-  vtkSMDoubleVectorProperty
-  vtkSMEnumerationDomain
-  vtkSMExtentDomain
   vtkSMExtractsController
   vtkSMExtractTriggerProxy
   vtkSMExtractWriterProxy
-  vtkSMFieldDataDomain
-  vtkSMFileListDomain
   vtkSMFileUtilities
-  vtkSMFixedTypeDomain
-  vtkSMIdTypeVectorProperty
-  vtkSMIndexSelectionDomain
-  vtkSMInputArrayDomain
-  vtkSMInputFileNameDomain
-  vtkSMInputProperty
-  vtkSMIntRangeDomain
-  vtkSMIntVectorProperty
-  vtkSMLink
   vtkSMLoadStateOptionsProxy
-  vtkSMMapProperty
-  vtkSMMessage
   vtkSMMultiplexerSourceProxy
   vtkSMMultiplexerInputDomain
-  vtkSMNamedPropertyIterator
-  vtkSMNullProxy
-  vtkSMNumberOfComponentsDomain
-  vtkSMObject
-  vtkSMOrderedPropertyIterator
-  vtkSMOutputPort
   vtkSMParaViewPipelineController
-  vtkSMPipelineState
   vtkSMPluginLoaderProxy
   vtkSMPluginManager
-  vtkSMProperty
-  vtkSMPropertyGroup
-  vtkSMPropertyHelper
-  vtkSMPropertyIterator
-  vtkSMPropertyLink
   vtkSMPropertyModificationUndoElement
-  vtkSMProxy
-  vtkSMProxyDefinitionManager
-  vtkSMProxyGroupDomain
-  vtkSMProxyInitializationHelper
-  vtkSMProxyIterator
-  vtkSMProxyLink
-  vtkSMProxyListDomain
-  vtkSMProxyLocator
-  vtkSMProxyManager
   vtkSMProxyManagerUtilities
-  vtkSMProxyProperty
-  vtkSMProxySelectionModel
   vtkSMPSWriterProxy
+  vtkSMProxyManager
   vtkSMPWriterProxy
   vtkSMReaderFactory
   vtkSMReaderReloadHelper
-  vtkSMRegistrationNamesDomain
-  vtkSMRemoteObject
   vtkSMRemoteObjectUpdateUndoElement
-  vtkSMSelectionQueryDomain
   vtkSMSelfGeneratingSourceProxy
-  vtkSMServerStateLocator
-  vtkSMSession
-  vtkSMSessionClient
-  vtkSMSessionObject
-  vtkSMSessionProxyManager
   vtkSMSettings
   vtkSMSettingsProxy
-  vtkSMSourceProxy
-  vtkSMStateLoader
-  vtkSMStateLocator
   vtkSMStateVersionController
-  vtkSMStringListDomain
-  vtkSMStringVectorProperty
   vtkSMTimeKeeper
   vtkSMTimeKeeperProxy
-  vtkSMTimeStepIndexDomain
-  vtkSMTrace
-  vtkSMUncheckedPropertyHelper
   vtkSMUndoElement
   vtkSMUndoStack
   vtkSMUndoStackBuilder
-  vtkSMVectorProperty
   vtkSMWriterFactory
   vtkSMWriterProxy)
 
 set(headers
-  vtkSMMessageMinimal.h
   vtkParaViewDeprecation.h
 )
 
@@ -234,7 +186,6 @@ set(private_headers
 
 
 set(template_classes
-  vtkSIVectorPropertyTemplate
   vtkSMRangeDomainTemplate)
 
 vtk_module_add_module(ParaView::RemotingServerManager

@@ -24,20 +24,20 @@
 #ifndef vtkSMProxyLocator_h
 #define vtkSMProxyLocator_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
-#include "vtkWeakPointer.h" // needed to keep the session around
+#include "vtkWeakPointer.h"                 // needed to keep the session around
 
 class vtkCollection;
 class vtkSMDeserializer;
 class vtkSMProxy;
-class vtkSMSession;
+class vtkSMSessionProxyManager;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyLocator : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyLocator : public vtkObject
 {
 public:
   static vtkSMProxyLocator* New();
-  vtkTypeMacro(vtkSMProxyLocator, vtkSMObject);
+  vtkTypeMacro(vtkSMProxyLocator, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
@@ -58,10 +58,10 @@ public:
 
   //@{
   /**
-   * Get/Set the session.
+   * Get/Set the proxy manager..
    */
-  virtual vtkSMSession* GetSession();
-  virtual void SetSession(vtkSMSession* s);
+  vtkSMSessionProxyManager* GetSessionProxyManager();
+  void SetSessionProxyManager(vtkSMSessionProxyManager* s);
   //@}
 
   /**
@@ -101,7 +101,7 @@ protected:
   virtual vtkSMProxy* NewProxy(vtkTypeUInt32 globalID);
 
   vtkSMDeserializer* Deserializer;
-  vtkWeakPointer<vtkSMSession> Session;
+  vtkWeakPointer<vtkSMSessionProxyManager> ProxyManager;
   bool LocateProxyWithSessionToo;
 
 private:

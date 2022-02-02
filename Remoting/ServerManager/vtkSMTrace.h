@@ -59,20 +59,20 @@
 #ifndef vtkSMTrace_h
 #define vtkSMTrace_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" // needed for exports
-#include "vtkSMObject.h"
-#include "vtkSmartPointer.h" // needed for iVar
+#include "vtkSmartPointer.h"                // needed for iVar
 
 #include <vector> // for std::vector
 
 class vtkSMProxy;
 class vtkSmartPyObject;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMTrace : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMTrace : public vtkObject
 {
 public:
   static vtkSMTrace* New();
-  vtkTypeMacro(vtkSMTrace, vtkSMObject);
+  vtkTypeMacro(vtkSMTrace, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

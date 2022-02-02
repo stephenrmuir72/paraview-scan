@@ -14,11 +14,8 @@
 =========================================================================*/
 #include "vtkSMStringVectorProperty.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMMessage.h"
-#include "vtkSMStateLocator.h"
 #include "vtkSMVectorPropertyTemplate.h"
 #include "vtkStringList.h"
 
@@ -73,39 +70,6 @@ int vtkSMStringVectorProperty::GetElementType(unsigned int idx)
     return STRING;
   }
   return this->Internals->ElementTypes[idx];
-}
-
-//---------------------------------------------------------------------------
-void vtkSMStringVectorProperty::WriteTo(vtkSMMessage* msg)
-{
-  ProxyState_Property* prop = msg->AddExtension(ProxyState::property);
-  prop->set_name(this->GetXMLName());
-  Variant* variant = prop->mutable_value();
-  variant->set_type(Variant::STRING);
-  for (unsigned int i = 0; i < this->GetNumberOfElements(); i++)
-  {
-    variant->add_txt(this->GetElement(i));
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSMStringVectorProperty::ReadFrom(const vtkSMMessage* msg, int offset, vtkSMProxyLocator*)
-{
-  assert(msg->ExtensionSize(ProxyState::property) > offset);
-
-  const ProxyState_Property* prop = &msg->GetExtension(ProxyState::property, offset);
-  assert(strcmp(prop->name().c_str(), this->GetXMLName()) == 0);
-
-  const Variant* variant = &prop->value();
-
-  int num_elems = variant->txt_size();
-  const char** values = new const char*[num_elems + 1];
-  for (int cc = 0; cc < num_elems; cc++)
-  {
-    values[cc] = variant->txt(cc).c_str();
-  }
-  this->SetElements(values, num_elems);
-  delete[] values;
 }
 
 //---------------------------------------------------------------------------

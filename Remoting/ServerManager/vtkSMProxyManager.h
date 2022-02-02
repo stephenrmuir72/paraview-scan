@@ -26,9 +26,9 @@
 #ifndef vtkSMProxyManager_h
 #define vtkSMProxyManager_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
-#include "vtkSmartPointer.h" // Needed for the singleton
+#include "vtkSmartPointer.h"                // Needed for the singleton
 
 #include <string> // needed for std::string
 
@@ -44,10 +44,10 @@ class vtkSMStateLoader;
 class vtkSMUndoStackBuilder;
 class vtkSMWriterFactory;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyManager : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyManager : public vtkObject
 {
 public:
-  vtkTypeMacro(vtkSMProxyManager, vtkSMObject);
+  vtkTypeMacro(vtkSMProxyManager, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

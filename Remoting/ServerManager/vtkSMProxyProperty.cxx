@@ -15,20 +15,16 @@
 #include "vtkSMProxyProperty.h"
 #include "vtkSMProxyPropertyInternals.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDomainIterator.h"
-#include "vtkSMMessage.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyGroupDomain.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMProxyManager.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMStateLocator.h"
 #include "vtkSmartPointer.h"
 
 #include <cassert>
@@ -202,105 +198,6 @@ void vtkSMProxyProperty::SetNumberOfUncheckedProxies(unsigned int count)
 }
 
 //---------------------------------------------------------------------------
-void vtkSMProxyProperty::WriteTo(vtkSMMessage* message)
-{
-  ProxyState_Property* prop = message->AddExtension(ProxyState::property);
-  prop->set_name(this->GetXMLName());
-  this->PPInternals->WriteTo(prop->mutable_value());
-
-  // Generally, domains don't need to be serialized in protobuf state. The only
-  // except in vtkSMProxyListDomain. That domain has a state that need to
-  // serialized and preserved esp. for undo-redo and collaboration to work
-  // correctly.
-  for (this->DomainIterator->Begin(); !this->DomainIterator->IsAtEnd();
-       this->DomainIterator->Next())
-  {
-    vtkSMProxyListDomain* pld =
-      vtkSMProxyListDomain::SafeDownCast(this->DomainIterator->GetDomain());
-    if (pld)
-    {
-      // for each vtkSMProxyListDomain, add all proxies in that domain to the
-      // message.
-      ProxyState_UserData* user_data = prop->add_user_data();
-      user_data->set_key("ProxyListDomain"); // fixme -- add domain name, maybe?
-      Variant* variant = user_data->add_variant();
-      variant->set_type(Variant::PROXY);
-      for (unsigned int cc = 0, max = pld->GetNumberOfProxies(); cc < max; cc++)
-      {
-        variant->add_proxy_global_id(pld->GetProxy(cc) ? pld->GetProxy(cc)->GetGlobalID() : 0);
-      }
-    }
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxyProperty::ReadFrom(
-  const vtkSMMessage* message, int msg_offset, vtkSMProxyLocator* locator)
-{
-  const ProxyState_Property* prop = &message->GetExtension(ProxyState::property, msg_offset);
-  if (strcmp(prop->name().c_str(), this->GetXMLName()) != 0)
-  {
-    vtkErrorMacro("Invalid offset for this property. "
-                  "Typically indicates that state being loaded is invalid/corrupted.");
-    return;
-  }
-
-  if (this->PPInternals->ReadFrom(prop->value(), locator))
-  {
-    this->Modified();
-    this->InvokeEvent(vtkCommand::UncheckedPropertyModifiedEvent);
-  }
-
-  // The EXCEPTION case: read proxy list domain state.
-  int pld_index = 0;
-  for (this->DomainIterator->Begin(); !this->DomainIterator->IsAtEnd();
-       this->DomainIterator->Next())
-  {
-    vtkSMProxyListDomain* pld =
-      vtkSMProxyListDomain::SafeDownCast(this->DomainIterator->GetDomain());
-    if (pld)
-    {
-      if (pld_index >= prop->user_data_size())
-      {
-        vtkWarningMacro("Missing matched in ProxyListDomain state.");
-        continue;
-      }
-
-      const ProxyState_UserData& user_data = prop->user_data(pld_index);
-      pld_index++;
-
-      std::vector<vtkSMProxy*> proxies;
-
-      assert(user_data.key() == "ProxyListDomain");
-      assert(user_data.variant_size() == 1);
-
-      for (int cc = 0, max = user_data.variant(0).proxy_global_id_size(); cc < max; cc++)
-      {
-        vtkTypeUInt32 gid = user_data.variant(0).proxy_global_id(cc);
-
-        // either ask the locator for the proxy, or find an existing one.
-        vtkSMProxy* proxy = nullptr;
-        if (locator && vtkSMProxyProperty::CanCreateProxy())
-        {
-          proxy = locator->LocateProxy(gid);
-        }
-        else
-        {
-          proxy = vtkSMProxy::SafeDownCast(this->GetParent()->GetSession()->GetRemoteObject(gid));
-        }
-        if (proxy != nullptr || gid == 0)
-        {
-          proxies.push_back(proxy);
-        }
-      }
-      proxies.push_back(nullptr);
-
-      pld->SetProxies(&proxies[0], static_cast<unsigned int>(proxies.size() - 1));
-    }
-  }
-}
-
-//---------------------------------------------------------------------------
 int vtkSMProxyProperty::ReadXMLAttributes(vtkSMProxy* parent, vtkPVXMLElement* element)
 {
   return this->Superclass::ReadXMLAttributes(parent, element);
@@ -460,20 +357,6 @@ int vtkSMProxyProperty::LoadState(vtkPVXMLElement* element, vtkSMProxyLocator* l
 
   this->ImmediateUpdate = prevImUpdate;
   return 1;
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxyProperty::UpdateAllInputs()
-{
-  unsigned int numProxies = this->GetNumberOfProxies();
-  for (unsigned int idx = 0; idx < numProxies; idx++)
-  {
-    vtkSMProxy* proxy = this->GetProxy(idx);
-    if (proxy)
-    {
-      proxy->UpdateSelfAndAllInputs();
-    }
-  }
 }
 
 //---------------------------------------------------------------------------

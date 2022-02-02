@@ -28,8 +28,6 @@
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMVectorProperty.h"
 
-class vtkSMStateLocator;
-
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMIntVectorProperty : public vtkSMVectorProperty
 {
 public:
@@ -180,16 +178,6 @@ public:
 protected:
   vtkSMIntVectorProperty();
   ~vtkSMIntVectorProperty() override;
-
-  /**
-   * Let the property write its content into the stream
-   */
-  void WriteTo(vtkSMMessage*) override;
-
-  /**
-   * Let the property read and set its content from the stream
-   */
-  void ReadFrom(const vtkSMMessage*, int msg_offset, vtkSMProxyLocator*) override;
 
   // Handle XML with int type for default values.
   int ReadXMLAttributes(vtkSMProxy* parent, vtkPVXMLElement* element) override;

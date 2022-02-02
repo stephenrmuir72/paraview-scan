@@ -16,8 +16,8 @@
 #ifndef vtkSMPropertyGroup_h
 #define vtkSMPropertyGroup_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
 
 class vtkPVXMLElement;
 class vtkSMDocumentation;
@@ -25,11 +25,11 @@ class vtkSMProperty;
 class vtkSMPropertyGroupInternals;
 class vtkSMProxy;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMPropertyGroup : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMPropertyGroup : public vtkObject
 {
 public:
   static vtkSMPropertyGroup* New();
-  vtkTypeMacro(vtkSMPropertyGroup, vtkSMObject);
+  vtkTypeMacro(vtkSMPropertyGroup, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{

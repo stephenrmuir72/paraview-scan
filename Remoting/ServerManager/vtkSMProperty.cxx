@@ -13,34 +13,28 @@
 
 =========================================================================*/
 #include "vtkSMProperty.h"
+#include "vtkSMPropertyInternals.h"
 
-#include "vtkClientServerStream.h"
-#include "vtkClientServerStreamInstantiator.h"
 #include "vtkCommand.h"
+#include "vtkJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
+#include "vtkReflection.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMDomain.h"
 #include "vtkSMDomainIterator.h"
-#include "vtkSMMessage.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyLink.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyProperty.h"
 #include "vtkSmartPointer.h"
 
 #include <sstream>
 #include <vector>
 
-#include "vtkSMPropertyInternals.h"
-
 vtkStandardNewMacro(vtkSMProperty);
-
 vtkCxxSetObjectMacro(vtkSMProperty, InformationProperty, vtkSMProperty);
 vtkCxxSetObjectMacro(vtkSMProperty, Documentation, vtkSMDocumentation);
 vtkCxxSetObjectMacro(vtkSMProperty, Hints, vtkPVXMLElement);
-
 //---------------------------------------------------------------------------
 vtkSMProperty::vtkSMProperty()
 {
@@ -287,7 +281,7 @@ void vtkSMProperty::UpdateDomains()
   // also raise issues like #20617. So starting with 5.10, we're skipping
   // updating dependent domains on prototype properties.
   auto parent = this->GetParent();
-  if (parent && parent->IsPrototype())
+  if (parent && parent->GetGlobalID() == 0)
   {
     return;
   }
@@ -536,34 +530,22 @@ int vtkSMProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* element
     vtkObjectBase* object = nullptr;
     std::ostringstream name;
     name << "vtkSM" << domainEl->GetName() << ends;
-    object = vtkClientServerStreamInstantiator::CreateInstance(name.str().c_str());
-    if (object)
+    auto domain = vtkReflection::CreateInstance<vtkSMDomain>(name.str());
+    if (domain)
     {
-      vtkSMDomain* domain = vtkSMDomain::SafeDownCast(object);
-      if (domain)
+      if (domain->ReadXMLAttributes(this, domainEl))
       {
-        domain->SetSession(proxy->GetSession());
-        if (domain->ReadXMLAttributes(this, domainEl))
+        const char* dname = domainEl->GetAttribute("name");
+        if (dname)
         {
-          const char* dname = domainEl->GetAttribute("name");
-          if (dname)
-          {
-            domain->SetXMLName(dname);
-            this->AddDomain(dname, domain);
-          }
+          domain->SetXMLName(dname);
+          this->AddDomain(dname, domain);
         }
       }
-      else
-      {
-        vtkErrorMacro(
-          "Object created (type: " << name.str().c_str() << ") is not of a recognized type.");
-      }
-      object->Delete();
     }
     else
     {
-      vtkErrorMacro("Could not create object of type: " << name.str().c_str()
-                                                        << ". Did you specify wrong xml element?");
+      vtkErrorMacro("Could not create a vtkSMDomain subclasses of type " << name.str());
     }
   }
 
@@ -574,24 +556,23 @@ int vtkSMProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* element
 void vtkSMProperty::Copy(vtkSMProperty*) {}
 
 //---------------------------------------------------------------------------
-void vtkSMProperty::WriteTo(vtkSMMessage* msg)
+bool vtkSMProperty::SaveState(vtkJson& element)
 {
-  ProxyState_Property* prop = msg->AddExtension(ProxyState::property);
-  prop->set_name(this->GetXMLName());
+  element = vtkJson::object();
+  element["name"] = this->GetXMLName();
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMProperty::LoadState(vtkJson& element, vtkSMProxyLocator* locator)
+{
+  return element.is_object() && element.find("name") != element.end() &&
+    element.at("name").get<std::string>() == this->GetXMLName();
 }
 
 //---------------------------------------------------------------------------
 bool vtkSMProperty::ResetToDomainDefaults(bool use_unchecked_values)
 {
-  if (vtkProcessModule::GetProcessModule() &&
-    vtkProcessModule::GetProcessModule()->GetSymmetricMPIMode() &&
-    vtkSMProxyProperty::SafeDownCast(this) == nullptr)
-  {
-    // when using symmetric mpi, we disable domains since they don't always have
-    // the most updated information.
-    return false;
-  }
-
   this->DomainIterator->Begin();
   while (!this->DomainIterator->IsAtEnd())
   {
@@ -717,6 +698,18 @@ void vtkSMProperty::SetParent(vtkSMProxy* proxy)
 vtkSMProxy* vtkSMProperty::GetParent()
 {
   return this->Proxy.GetPointer();
+}
+
+//---------------------------------------------------------------------------
+vtkClientSession* vtkSMProperty::GetSession() const
+{
+  return this->Proxy ? this->Proxy->GetSession() : nullptr;
+}
+
+//---------------------------------------------------------------------------
+vtkSMSessionProxyManager* vtkSMProperty::GetSessionProxyManager() const
+{
+  return this->Proxy ? this->Proxy->GetSessionProxyManager() : nullptr;
 }
 
 //---------------------------------------------------------------------------

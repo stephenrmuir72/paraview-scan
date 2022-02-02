@@ -36,7 +36,6 @@
 #include <vector> // needed for std::vector
 
 class vtkStringList;
-class vtkSMStateLocator;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMStringVectorProperty : public vtkSMVectorProperty
 {
@@ -209,16 +208,6 @@ protected:
    * therefore we store for each element its type. [INT, DOUBLE, STRING]
    */
   int ReadXMLAttributes(vtkSMProxy* parent, vtkPVXMLElement* element) override;
-
-  /**
-   * Let the property write its content into the stream
-   */
-  void WriteTo(vtkSMMessage*) override;
-
-  /**
-   * Let the property read and set its content from the stream
-   */
-  void ReadFrom(const vtkSMMessage*, int msg_offset, vtkSMProxyLocator*) override;
 
   /**
    * Load the XML state.

@@ -130,33 +130,67 @@
 #ifndef vtkSMProxy_h
 #define vtkSMProxy_h
 
-#include "vtkClientServerID.h"              // needed for vtkClientServerID
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMRemoteObject.h"
+#include "vtkWeakPointer.h"                 // for vtkWeakPointer
 
-struct vtkSMProxyInternals;
+#include "vtk_rxcpp.h" // for rxcpp
+// clang-format off
+// ideally, we include rx-lite.hpp here.
+#include VTK_REMOTING_RXCPP(rx.hpp)
+// clang-format on
 
-class vtkClientServerStream;
+class vtkClientSession;
 class vtkPVInformation;
-class vtkSMLoadStateContext;
 class vtkPVXMLElement;
 class vtkSMDocumentation;
+class vtkSMLoadStateContext;
 class vtkSMProperty;
 class vtkSMPropertyGroup;
 class vtkSMPropertyIterator;
 class vtkSMProxyLocator;
 class vtkSMProxyManager;
-class vtkSMSessionProxyManager;
 class vtkSMProxyObserver;
+class vtkSMSessionProxyManager;
+struct vtkSMProxyInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxy : public vtkSMRemoteObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxy : public vtkObject
 {
 public:
   static vtkSMProxy* New();
-  vtkTypeMacro(vtkSMProxy, vtkSMRemoteObject);
+  vtkTypeMacro(vtkSMProxy, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  // Description:
+  ///@{
+  /**
+   * Provides access to the proxy manager.
+   */
+  vtkSMSessionProxyManager* GetSessionProxyManager() const { return this->GetProxyManager(); }
+  vtkSMSessionProxyManager* GetProxyManager() const;
+  ///@}
+
+  ///@{
+  /**
+   * Returns the client-session that this proxy belongs to.
+   */
+  vtkClientSession* GetSession() const;
+  ///@}
+
+  ///@{
+  /**
+   * Get the location where the underlying VTK-objects are created. The
+   * value can be constructed by or-ing vtkClientSession::ServiceTypes.
+   */
+  vtkGetMacro(Location, vtkTypeUInt32);
+  ///@}
+
+  /**
+   * Returns the global id for this proxy.
+   *
+   * A global id of 0 indicates a prototype proxy.
+   */
+  vtkGetMacro(GlobalID, vtkTypeUInt32);
+
   // Set or override a key/value pair as annotation to that proxy.
   // If the value is nullptr, this method is equivalent to RemoveAnnotation(key)
   void SetAnnotation(const char* key, const char* value);
@@ -191,12 +225,6 @@ public:
    * Return the nth key of the available annotations.
    */
   const char* GetAnnotationKeyAt(int index);
-
-  /**
-   * Get/Set the location where the underlying VTK-objects are created. The
-   * value can be constructed by or-ing vtkSMSession::ServerFlags
-   */
-  void SetLocation(vtkTypeUInt32) override;
 
   /**
    * Return the property with the given name. If no property is found
@@ -237,21 +265,10 @@ public:
    */
   virtual void RecreateVTKObjects();
 
-  //@{
   /**
-   * Update the value of one property (pushed to the server) if it is
-   * modified.  If the object has not been created, it will be created
-   * first. If force is true, the property is pushed even if it not
-   * modified. Return true if UpdateProperty pushes the property value.
+   * Invoke a command.
    */
-  bool UpdateProperty(const char* name) { return this->UpdateProperty(name, 0); }
-  bool UpdateProperty(const char* name, int force);
-  //@}
-
-  /**
-   * Convenience method equivalent to UpdateProperty(name, 1).
-   */
-  void InvokeCommand(const char* name) { this->UpdateProperty(name, 1); }
+  void InvokeCommand(const char* name);
 
   //@{
   /**
@@ -342,25 +359,15 @@ public:
   //@}
 
   /**
-   * Updates all property information by calling UpdateInformation()
-   * and populating the values.
+   * Fetch properties. The observable will return true if the any properties
+   * were changed otherwise returns false.
+   *
+   * This method intentionally returns an observable instead of a vtkEventual.
+   * If this returned an vtkEventual, the calling code could call
+   * `Wait` which can cause a deadlock since `UpdateInformation` enqueue code
+   * that needs to execute on the main thread
    */
-  virtual void UpdatePropertyInformation();
-
-  /**
-   * Similar to UpdatePropertyInformation() but updates only the given property.
-   * If the property does not belong to the proxy, the call is ignored.
-   */
-  virtual void UpdatePropertyInformation(vtkSMProperty* prop);
-
-  /**
-   * Marks all properties as modified.  This will cause them all to be sent
-   * to be sent on the next call to UpdateVTKObjects.  This method is
-   * useful when the proxy is first created to make sure that the default
-   * property values in the properties is synced with the values in the
-   * actual objects.
-   */
-  virtual void MarkAllPropertiesAsModified();
+  rxcpp::observable<bool> UpdateInformation();
 
   /**
    * Use this method to set all properties on this proxy to their default
@@ -425,11 +432,6 @@ public:
   virtual void Copy(vtkSMProxy* src, const char* exceptionClass, int proxyPropertyCopyFlag);
   //@}
 
-  /**
-   * Calls MarkDirty() and invokes ModifiedEvent.
-   */
-  virtual void MarkModified(vtkSMProxy* modifiedProxy);
-
   //@{
   /**
    * Returns the documentation for this proxy.
@@ -466,18 +468,6 @@ public:
    */
   void InitializeAndCopyFromProxy(vtkSMProxy* source);
 
-  /**
-   * Dirty means this algorithm will execute during next update.
-   * This all marks all consumers as dirty.
-   */
-  virtual void MarkDirty(vtkSMProxy* modifiedProxy);
-
-  /**
-   * Returns the client side object associated with the VTKObjectID (if any).
-   * Returns 0 otherwise.
-   */
-  vtkObjectBase* GetClientSideObject();
-
   //@{
   /**
    * Gathers information about this proxy.
@@ -511,24 +501,6 @@ public:
    */
   virtual int LoadXMLState(vtkPVXMLElement* element, vtkSMProxyLocator* locator);
 
-  //@{
-  /**
-   * Allow user to set the remote object to be discard for Undo/Redo
-   * action. By default, any remote object is Undoable.
-   * This override the RemoteObject ones to propagate the flag to the sub-proxy
-   */
-  void PrototypeOn() override;
-  void PrototypeOff() override;
-  void SetPrototype(bool undo) override;
-  //@}
-
-  /**
-   * This method call UpdateVTKObjects on the current pipeline by starting at
-   * the sources. The sources are found by getting the Input of all the filter
-   * along the pipeline.
-   */
-  void UpdateSelfAndAllInputs();
-
   /**
    * A proxy instance can be a sub-proxy for some other proxy. In that case,
    * this method returns true.
@@ -547,36 +519,6 @@ public:
    * subproxy of any other proxy.
    */
   vtkSMProxy* GetTrueParentProxy();
-
-  /**
-   * Allow to switch off any push of state change to the server for that
-   * particular object.
-   * This is used when we load a state based on a server notification. In that
-   * particular case, the server is already aware of that new state, so we keep
-   * those changes local.
-   */
-  void EnableLocalPushOnly() override;
-
-  /**
-   * Enable the given remote object to communicate its state normally to the
-   * server location.
-   */
-  void DisableLocalPushOnly() override;
-
-  /**
-   * This method return the full object state that can be used to create that
-   * object from scratch.
-   */
-  const vtkSMMessage* GetFullState() override;
-
-  /**
-   * This method is used to initialise the object to the given state
-   * If the definitionOnly Flag is set to True the proxy won't load the
-   * properties values and just setup the new proxy hierarchy with all subproxy
-   * globalID set. This allow to split the load process in 2 step to prevent
-   * invalid state when property refere to a sub-proxy that does not exist yet.
-   */
-  void LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locator) override;
 
   /**
    * Returns the property group at \p index for the proxy.
@@ -618,59 +560,12 @@ protected:
   ~vtkSMProxy() override;
 
   /**
-   * Invoke that takes a vtkClientServerStream as the argument.
-   */
-  void ExecuteStream(
-    const vtkClientServerStream& msg, bool ignore_errors = false, vtkTypeUInt32 location = 0);
-
-  // Any method changing the annotations will trigger this method that will
-  // update the local full state as well as sending the annotation state part
-  // to the session.
-  virtual void UpdateAndPushAnnotationState();
-
-  //@{
-  /**
-   * Get the last result
-   */
-  virtual const vtkClientServerStream& GetLastResult();
-  virtual const vtkClientServerStream& GetLastResult(vtkTypeUInt32 location);
-  //@}
-
-  /**
    * Add a property with the given key (name). The name can then
    * be used to retrieve the property with GetProperty(). If a
    * property with the given name has been added before, it will
    * be replaced. This includes properties in sub-proxies.
    */
   virtual void AddProperty(const char* name, vtkSMProperty* prop);
-
-  /**
-   * Calls `MarkDirtyFromProducer` on all consumers.
-   */
-  virtual void MarkConsumersAsDirty(vtkSMProxy* modifiedProxy);
-
-  /**
-   * `MarkConsumersAsDirty` calls this method on each consumer, instead of
-   * directly calling `MarkDirty` on the consumer. This provides the consumer
-   * with potentially useful insight about which producer the modification is
-   * coming from which can be useful e.g. vtkSMRepresentationProxy.
-   *
-   * Default implementation simply calls `this->MarkDirty(modifiedProxy)`.
-   */
-  virtual void MarkDirtyFromProducer(
-    vtkSMProxy* modifiedProxy, vtkSMProxy* producer, vtkSMProperty* property);
-
-  /**
-   * This method is called by vtkSMRepresentationProxy whenever the time request
-   * for the pipeline may have potentially changed. While this does not mean
-   * that the pipeline will re-execute, it does indicate that the pipeline could
-   * execute and hence to ensure we update data information (and other state)
-   * correctly when PostUpdateData gets called, need to ensure the upstream
-   * pipeline on the proxy side realizes it may need update. This method simply
-   * toggles NeedsUpdate flag and propagate up the producer chain through input
-   * properties.
-   */
-  void MarkInputsAsDirty();
 
   //@{
   /**
@@ -683,7 +578,6 @@ protected:
   friend class vtkSMCompoundProxy;
   friend class vtkSMCompoundSourceProxy;
   friend class vtkSMDeserializerProtobuf;
-  friend class vtkSMInputProperty;
   friend class vtkSMMultiServerSourceProxy;
   friend class vtkSMNamedPropertyIterator;
   friend class vtkSMOrderedPropertyIterator;
@@ -696,7 +590,6 @@ protected:
   friend class vtkSMSessionProxyManager;
   friend class vtkSMSourceProxy;
   friend class vtkSMStateLoader;
-  friend class vtkSMStateLocator;
   friend class vtkSMUndoRedoStateLoader;
   friend class vtkSMViewProxy;
   //@}
@@ -728,24 +621,6 @@ protected:
    */
   vtkSetStringMacro(XMLLabel);
   //@}
-
-  //@{
-  /**
-   * Assigned by the XML parser. It is used to figure out the origin
-   * of the definition of that proxy.
-   * By default, it stay nullptr, only in-line subProxy do specify
-   * this field so when the definition is sent to the server, it can
-   * retrieve the in-line definition of that proxy.
-   */
-  vtkSetStringMacro(XMLSubProxyName);
-  //@}
-
-  /**
-   * Given a class name (by setting VTKClassName) and server ids (by
-   * setting ServerIDs), this methods instantiates the objects on the
-   * server(s)
-   */
-  virtual void CreateVTKObjects();
 
   /**
    * Cleanup code. Remove all observers from all properties assigned to
@@ -844,38 +719,9 @@ protected:
   void RemoveProducer(vtkSMProperty* property, vtkSMProxy* proxy);
 
   /**
-   * This method is called after the algorithm(s) (if any) associated
-   * with this proxy execute. Subclasses overwrite this method to
-   * add necessary functionality.
-   *
-   * `using_cache` is set to true when the pipeline update was requested but
-   * skipped because the result was previously generated. This happens when
-   * using playing animations with cache enabled.
-   */
-  virtual void PostUpdateData(bool using_cache);
-
-  /**
-   * This is called by `PostUpdateData` to only update state for this proxy
-   * without iterative over producers.
-   */
-  void PostUpdateDataSelfOnly(bool using_cache);
-
-  /**
    * If a proxy is deprecated, prints a warning.
    */
   bool WarnIfDeprecated();
-
-  /**
-   * This method simply iterates over subproxies and calls
-   * UpdatePipelineInformation() on them. vtkSMSourceProxy overrides this method
-   * (makes it public) and updates the pipeline information.
-   */
-  virtual void UpdatePipelineInformation();
-
-  // When an algorithm proxy is marked modified, NeedsUpdate is
-  // set to true. In PostUpdateData(), NeedsUpdate is set to false.
-  // This is used to keep track of data information validity.
-  bool NeedsUpdate;
 
   //@{
   /**
@@ -931,53 +777,20 @@ protected:
   virtual int CreateSubProxiesAndProperties(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element);
 
   /**
-   * Called to update the property information on the property. It is assured
-   * that the property passed in as an argument is a self property. Both the
-   * overloads of UpdatePropertyInformation() call this method, so subclass can
-   * override this method to perform special tasks.
-   */
-  virtual void UpdatePropertyInformationInternal(vtkSMProperty* prop = nullptr);
-
-  /**
-   * vtkSMProxy tracks state of properties on this proxy in an internal State
-   * object. Since it tracks all the properties by index, if there's a potential
-   * for the properties order to have changed, then this method must be called
-   * after the changes have happened so that vtkSMProxy can rebuild this->State.
-   * Currently, this is only relevant for vtkSMSelfGeneratingSourceProxy and
-   * similar that add new properties at run time.
-   */
-  void RebuildStateForProperties();
-
-  /**
    * Internal method used by `SetLogName`
    */
   virtual void SetLogNameInternal(
     const char* name, bool propagate_to_subproxies, bool propagate_to_proxylistdomains);
 
-  //@{
-  /**
-   * SIClassName identifies the classname for the helper on the server side.
-   */
-  vtkSetStringMacro(SIClassName);
-  vtkGetStringMacro(SIClassName);
-  char* SIClassName;
-  //@}
-
   char* VTKClassName;
   char* XMLGroup;
   char* XMLName;
   char* XMLLabel;
-  char* XMLSubProxyName;
   int ObjectsCreated;
-  int DoNotUpdateImmediately;
   int DoNotModifyProperty;
 
-  /**
-   * Avoids calls to UpdateVTKObjects in UpdateVTKObjects.
-   * UpdateVTKObjects call it self recursively until no
-   * properties are modified.
-   */
-  int InUpdateVTKObjects;
+  vtkTypeUInt32 GlobalID;
+  vtkTypeUInt32 Location;
 
   /**
    * Flag used to help speed up UpdateVTKObjects and ArePropertiesModified
@@ -1000,13 +813,8 @@ protected:
   vtkPVXMLElement* Hints;
   vtkPVXMLElement* Deprecated;
 
-  // Cached version of State
-  vtkSMMessage* State;
-
-  // Flag used to break consumer loops.
-  int InMarkModified;
-
   vtkWeakPointer<vtkSMProxy> ParentProxy;
+  vtkWeakPointer<vtkSMSessionProxyManager> ProxyManager;
 
   vtkSMProxyInternals* Internals;
   vtkSMProxyObserver* SubProxyObserver;
@@ -1021,56 +829,5 @@ private:
   char* LogName;
   std::string DefaultLogName;
 };
-
-/// This defines a stream manipulator for the vtkClientServerStream that can be used
-/// to indicate to the interpreter that the placeholder is to be replaced by
-/// the vtkSIProxy instance for the given vtkSMProxy instance.
-/// e.g.
-/// \code
-/// vtkClientServerStream stream;
-/// stream << vtkClientServerStream::Invoke
-///        << SIPROXY(proxyA)
-///        << "MethodName"
-///        << vtkClientServerStream::End;
-/// \endcode
-/// Will result in calling the vtkSIProxy::MethodName() when the stream in
-/// interpreted.
-class VTKREMOTINGSERVERMANAGER_EXPORT SIPROXY : public SIOBJECT
-{
-public:
-  SIPROXY(vtkSMProxy* proxy)
-    : SIOBJECT(proxy)
-  {
-  }
-};
-
-/// This defines a stream manipulator for the vtkClientServerStream that can be used
-/// to indicate to the interpreter that the placeholder is to be replaced by
-/// the vtkObject instance for the given vtkSMProxy instance.
-/// e.g.
-/// \code
-/// vtkClientServerStream stream;
-/// stream << vtkClientServerStream::Invoke
-///        << VTKOBJECT(proxyA)
-///        << "MethodName"
-///        << vtkClientServerStream::End;
-/// \endcode
-/// Will result in calling the vtkClassName::MethodName() when the stream in
-/// interpreted where vtkClassName is the type for the VTKObject which the proxyA
-/// represents.
-class VTKREMOTINGSERVERMANAGER_EXPORT VTKOBJECT
-{
-  vtkSMProxy* Reference;
-  friend VTKREMOTINGSERVERMANAGER_EXPORT vtkClientServerStream& operator<<(
-    vtkClientServerStream& stream, const VTKOBJECT& manipulator);
-
-public:
-  VTKOBJECT(vtkSMProxy* proxy)
-    : Reference(proxy)
-  {
-  }
-};
-VTKREMOTINGSERVERMANAGER_EXPORT vtkClientServerStream& operator<<(
-  vtkClientServerStream& stream, const VTKOBJECT& manipulator);
 
 #endif

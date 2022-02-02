@@ -639,19 +639,6 @@ void vtkSMPropertyHelper::Initialize(vtkSMProperty* property)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMPropertyHelper::UpdateValueFromServer()
-{
-  if (this->Proxy)
-  {
-    this->Proxy->UpdatePropertyInformation(this->Property);
-  }
-  else
-  {
-    vtkGenericWarningMacro("No proxy set.");
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkSMPropertyHelper::SetNumberOfElements(unsigned int elems)
 {
   switch (this->Type)

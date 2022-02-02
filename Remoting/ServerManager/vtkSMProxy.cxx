@@ -15,8 +15,7 @@
 #include "vtkSMProxy.h"
 #include "vtkSMProxyInternals.h"
 
-#include "vtkClientServerStream.h"
-#include "vtkClientServerStreamInstantiator.h"
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
 #include "vtkDebugLeaks.h"
 #include "vtkGarbageCollector.h"
@@ -26,20 +25,15 @@
 #include "vtkPVInformation.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
-#include "vtkSIProxy.h"
-#include "vtkSIProxyDefinitionManager.h"
+#include "vtkReflection.h"
+#include "vtkRemoteObjectProvider.h"
 #include "vtkSMDocumentation.h"
-#include "vtkSMInputProperty.h"
-#include "vtkSMMessage.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMProxyManager.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMStateLocator.h"
 #include "vtkSmartPointer.h"
 
 #include <algorithm>
@@ -96,37 +90,27 @@ vtkCxxSetObjectMacro(vtkSMProxy, Deprecated, vtkPVXMLElement);
 vtkSMProxy::vtkSMProxy()
 {
   this->Internals = new vtkSMProxyInternals;
-  this->SIClassName = nullptr;
-  this->SetSIClassName("vtkSIProxy");
 
   // By default, all objects are created on data server.
-  this->Location = vtkProcessModule::DATA_SERVER;
+  this->Location = vtkClientSession::DATA_SERVER;
+  this->GlobalID = 0;
   this->VTKClassName = nullptr;
   this->XMLGroup = nullptr;
   this->XMLName = nullptr;
   this->XMLLabel = nullptr;
-  this->XMLSubProxyName = nullptr;
   this->ObjectsCreated = 0;
 
   this->XMLElement = nullptr;
-  this->DoNotUpdateImmediately = 0;
   this->DoNotModifyProperty = 0;
-  this->InUpdateVTKObjects = 0;
-  this->PropertiesModified = 0;
+  this->PropertiesModified = false;
 
   this->SubProxyObserver = vtkSMProxyObserver::New();
   this->SubProxyObserver->SetProxy(this);
 
   this->Documentation = vtkSMDocumentation::New();
-  this->InMarkModified = 0;
-
-  this->NeedsUpdate = true;
 
   this->Hints = nullptr;
   this->Deprecated = nullptr;
-
-  this->State = new vtkSMMessage();
-
   this->LogName = nullptr;
 }
 
@@ -143,7 +127,6 @@ vtkSMProxy::~vtkSMProxy()
   this->SetXMLGroup(nullptr);
   this->SetXMLName(nullptr);
   this->SetXMLLabel(nullptr);
-  this->SetXMLSubProxyName(nullptr);
   this->SetXMLElement(nullptr);
   if (this->SubProxyObserver)
   {
@@ -153,14 +136,6 @@ vtkSMProxy::~vtkSMProxy()
   this->Documentation->Delete();
   this->SetHints(nullptr);
   this->SetDeprecated(nullptr);
-  this->SetSIClassName(nullptr);
-
-  if (this->State)
-  {
-    delete this->State;
-    this->State = nullptr;
-  }
-
   delete[] this->LogName;
   this->LogName = nullptr;
 }
@@ -184,35 +159,6 @@ const char* vtkSMProxy::GetLogNameOrDefault()
     this->DefaultLogName = stream.str();
   }
   return this->DefaultLogName.c_str();
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::SetLocation(vtkTypeUInt32 location)
-{
-  this->Superclass::SetLocation(location);
-
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->SetLocation(location);
-  }
-}
-
-//---------------------------------------------------------------------------
-vtkObjectBase* vtkSMProxy::GetClientSideObject()
-{
-  if (this->Session)
-  {
-    this->CreateVTKObjects();
-
-    vtkTypeUInt32 gid = this->GetGlobalID();
-    vtkSIProxy* siProxy = vtkSIProxy::SafeDownCast(this->Session->GetSIObject(gid));
-    if (siProxy)
-    {
-      return siProxy->GetVTKObject();
-    }
-  }
-  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -348,82 +294,10 @@ void vtkSMProxy::AddProperty(const char* name, vtkSMProperty* prop)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMProxy::UpdateProperty(const char* name, int force)
+void vtkSMProxy::InvokeCommand(const char* name)
 {
-  vtkSMProxyInternals::PropertyInfoMap::iterator it = this->Internals->Properties.find(name);
-  if (it == this->Internals->Properties.end())
-  {
-    // Search exposed subproxy properties.
-    vtkSMProxyInternals::ExposedPropertyInfoMap::iterator eiter =
-      this->Internals->ExposedProperties.find(name);
-    if (eiter == this->Internals->ExposedProperties.end())
-    {
-      return false;
-    }
-    const char* subproxy_name = eiter->second.SubProxyName.c_str();
-    const char* property_name = eiter->second.PropertyName.c_str();
-    vtkSMProxy* sp = this->GetSubProxy(subproxy_name);
-    if (sp && sp->UpdateProperty(property_name, force))
-    {
-      this->MarkModified(this);
-      return true;
-    }
-
-    return false;
-  }
-
-  if (!it->second.ModifiedFlag && !force)
-  {
-    return false;
-  }
-
-  if (it->second.Property->GetInformationOnly())
-  {
-    // cannot update information only properties.
-    return false;
-  }
-
-  this->CreateVTKObjects();
-
-  // In case this property is a self property and causes
-  // another UpdateVTKObjects(), make sure that it does
-  // not cause recursion. If this is not set, UpdateVTKObjects()
-  // that is caused by UpdateProperty() can end up calling trying
-  // to push the same property.
-  it->second.ModifiedFlag = 0;
-
-  vtkSMMessage message;
-
-  // Make sure the local state is updated as well
-  if (this->State)
-  {
-    vtkSMMessage oldState;
-    oldState.CopyFrom(*this->State);
-    this->State->ClearExtension(ProxyState::property);
-    int nbProps = oldState.ExtensionSize(ProxyState::property);
-    for (int cc = 0; cc < nbProps; cc++)
-    {
-      const ProxyState_Property* oldProperty = &oldState.GetExtension(ProxyState::property, cc);
-
-      if (oldProperty->name() == it->second.Property->GetXMLName())
-      {
-        it->second.Property->WriteTo(this->State);
-      }
-      else
-      {
-        ProxyState_Property* newProperty = this->State->AddExtension(ProxyState::property);
-        newProperty->CopyFrom(oldState.GetExtension(ProxyState::property, cc));
-      }
-    }
-  }
-
-  it->second.Property->WriteTo(&message);
-  this->PushState(&message);
-
-  // Fire event to let everyone know that a property has been updated.
-  this->InvokeEvent(vtkCommand::UpdatePropertyEvent, const_cast<char*>(name));
-  this->MarkModified(this);
-  return true;
+  // FIXME:
+  abort();
 }
 
 //---------------------------------------------------------------------------
@@ -441,35 +315,13 @@ void vtkSMProxy::SetPropertyModifiedFlag(const char* name, int flag)
   }
 
   this->InvokeEvent(vtkCommand::PropertyModifiedEvent, (void*)name);
-
   vtkSMProperty* prop = it->second.Property.GetPointer();
   if (prop->GetInformationOnly())
   {
     // Information only property is modified...nothing much to do.
     return;
   }
-
-  it->second.ModifiedFlag = flag;
-
-  if (flag && !this->DoNotUpdateImmediately && prop->GetImmediateUpdate())
-  {
-    this->UpdateProperty(it->first.c_str());
-  }
-  else
-  {
-    this->PropertiesModified = 1;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void vtkSMProxy::MarkAllPropertiesAsModified()
-{
-  vtkSMProxyInternals::PropertyInfoMap::iterator it;
-  for (it = this->Internals->Properties.begin(); it != this->Internals->Properties.end(); it++)
-  {
-    // Not the most efficient way to set the flag, but probably the safest.
-    this->SetPropertyModifiedFlag(it->first.c_str(), 1);
-  }
+  this->PropertiesModified = true;
 }
 
 //---------------------------------------------------------------------------
@@ -525,329 +377,93 @@ void vtkSMProxy::ResetPropertiesToDefault(ResetPropertiesMode mode)
   this->UpdateVTKObjects();
 }
 
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdatePropertyInformation(vtkSMProperty* prop)
+//----------------------------------------------------------------------------
+rxcpp::observable<bool> vtkSMProxy::UpdateInformation()
 {
-  // If property does not belong to this proxy do nothing.
-  int found = 0;
-  vtkSMProxyInternals::PropertyInfoMap::iterator it;
-  for (it = this->Internals->Properties.begin(); it != this->Internals->Properties.end(); ++it)
-  {
-    if (prop == it->second.Property.GetPointer())
-    {
-      found = 1;
-      break;
-    }
-  }
-
-  if (!found)
-  {
-    // Check if the property is an exposed property
-    const char* exposed_name = this->GetPropertyName(prop);
-    if (exposed_name)
-    {
-      vtkSMProxyInternals::ExposedPropertyInfoMap::iterator eiter =
-        this->Internals->ExposedProperties.find(exposed_name);
-      if (eiter != this->Internals->ExposedProperties.end())
-      {
-        const char* subproxy_name = eiter->second.SubProxyName.c_str();
-        const char* property_name = eiter->second.PropertyName.c_str();
-        vtkSMProxy* sp = this->GetSubProxy(subproxy_name);
-        if (sp)
-        {
-          sp->UpdatePropertyInformation(sp->GetProperty(property_name));
-        }
-      }
-    }
-    return;
-  }
-
-  this->UpdatePropertyInformationInternal(prop);
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdatePropertyInformation()
-{
-  this->UpdatePropertyInformationInternal(nullptr);
-
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->UpdatePropertyInformation();
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdatePropertyInformationInternal(vtkSMProperty* single_property /*=nullptr*/)
-{
-  this->CreateVTKObjects();
-
-  // If no location, it means no state...
-  if (!this->ObjectsCreated || this->Location == 0)
-  {
-    return;
-  }
-
-  bool some_thing_to_fetch = false;
-  vtkSMMessage message;
-  Variant* var = message.AddExtension(PullRequest::arguments);
-  var->set_type(Variant::STRING);
-
-  vtkSMProxyInternals::PropertyInfoMap::iterator it;
-  if (single_property != nullptr)
-  {
-    if (single_property->GetInformationOnly())
-    {
-      var->add_txt(single_property->GetXMLName());
-      some_thing_to_fetch = true;
-    }
-  }
-  else
-  {
-    // Update all information properties.
-    for (it = this->Internals->Properties.begin(); it != this->Internals->Properties.end(); ++it)
-    {
-      vtkSMProperty* prop = it->second.Property.GetPointer();
-      if (prop->GetInformationOnly())
-      {
-        var->add_txt(it->first.c_str());
-        some_thing_to_fetch = true;
-      }
-    }
-  }
-
-  if (!some_thing_to_fetch)
-  {
-    return;
-  }
-
-  // Hmm, this changes message itself. Funky.
-  this->PullState(&message);
-
-  // Update internal values
-  this->LoadState(&message, this->Session->GetProxyLocator());
+  // FIXME:
+  //  auto& internals = (*this->Internals);
+  //  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  //  const vtkTypeUInt32 tag = ++internals.UpdateInformationTag;
+  //
+  //  auto subscriber = internals.UpdateInformationSubject.get_subscriber();
+  //
+  //  auto packet = vtkRemoteObjectProvider::UpdateInformation(this->GetGlobalID());
+  //  auto coordination = this->GetSession()->GetCoordination();
+  //  auto eventual = internals.Session->SendRequest(internals.Location, std::move(packet));
+  //  eventual.GetObservable()
+  //    .observe_on(coordination)
+  //    .subscribe([this, subscriber, tag](const vtkPacket& packet) {
+  //      vtkLogF(INFO, "handle UpdateInformation response");
+  //
+  //      const auto mtime = this->GetMTime();
+  //      // TODO: ASYNC
+  //      // this->LoadState(packet.GetJSON());
+  //
+  //      const bool propertiesUpdated = mtime != this->GetMTime();
+  //      subscriber.on_next(std::make_pair(tag, false));
+  //    });
+  //
+  //  return internals.UpdateInformationSubject.get_observable()
+  //    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
+  //    .take(1)
+  //    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
+  //    .observe_on(coordination);
+  return rxcpp::sources::never<bool>();
 }
 
 //---------------------------------------------------------------------------
 void vtkSMProxy::UpdateVTKObjects()
 {
-  this->CreateVTKObjects();
-  if (!this->ObjectsCreated || this->InUpdateVTKObjects || !this->ArePropertiesModified() ||
-    this->Location == 0)
+  if (this->GetGlobalID() == 0)
   {
     return;
   }
 
-  if (this->PropertiesModified)
+  auto& internals = (*this->Internals);
+
+  // Update sub proxies.
+  for (const auto& pair : internals.SubProxies)
   {
-    this->InUpdateVTKObjects = 1;
+    // TODO: ASYNC
+    // At some point we want to enable putting all subproxy states
+    // in the same message. Principle #1: sending multiple messages is worse than sending
+    // large messages.
+    pair.second->UpdateVTKObjects();
+  }
 
-    // Save previous property values and clear the State properties
-    vtkSMMessage oldState;
-    oldState.CopyFrom(*this->State);
-    this->State->ClearExtension(ProxyState::property);
-
-    // iterate over all properties and push modified ones.
-    vtkSMMessage message;
-    vtkSMProxyInternals::PropertyInfoMap::iterator iter;
-    int cc = 0;
-    for (iter = this->Internals->Properties.begin(); iter != this->Internals->Properties.end();
-         ++iter)
+  if (!this->ObjectsCreated || this->PropertiesModified)
+  {
+    if (!this->ObjectsCreated)
     {
-      vtkSMProperty* property = iter->second.Property;
-      if (property && !property->GetInformationOnly())
-      {
-        if (property->GetIsInternal() || property->IsStateIgnored() ||
-          strcmp(property->GetClassName(), "vtkSMProperty") == 0)
-        {
-          // Push only modified properties
-          if (iter->second.ModifiedFlag)
-          {
-            // Write to message because vtkSMProperty do not have state
-            property->WriteTo(&message);
-
-            // the property is no longer dirty.
-            iter->second.ModifiedFlag = 0;
-
-            // Fire event to let everyone know that a property has been updated.
-            // This is currently used by vtkSMLink. Need to see if we can avoid this
-            // as firing these events ain't inexpensive.
-            this->InvokeEvent(
-              vtkCommand::UpdatePropertyEvent, const_cast<char*>(iter->first.c_str()));
-          }
-        }
-        else
-        {
-          // Push only modified properties
-          if (iter->second.ModifiedFlag)
-          {
-            // Write to state
-            property->WriteTo(this->State);
-
-            // the property is no longer dirty.
-            iter->second.ModifiedFlag = 0;
-
-            // Write to Push message
-            ProxyState_Property* prop = message.AddExtension(ProxyState::property);
-            prop->CopyFrom(this->State->GetExtension(ProxyState::property, cc));
-
-            // Fire event to let everyone know that a property has been updated.
-            // This is currently used by vtkSMLink. Need to see if we can avoid this
-            // as firing these events ain't inexpensive.
-            this->InvokeEvent(
-              vtkCommand::UpdatePropertyEvent, const_cast<char*>(iter->first.c_str()));
-          }
-          else
-          {
-            // Just copy the previous old value to the state
-            ProxyState_Property* prop = this->State->AddExtension(ProxyState::property);
-            prop->CopyFrom(oldState.GetExtension(ProxyState::property, cc));
-          }
-
-          // One more property
-          ++cc;
-        }
-      }
+      this->WarnIfDeprecated();
     }
-    this->InUpdateVTKObjects = 0;
+
+    vtkJson state;
+#if FIXME // ASYNC
+    if (this->SaveState(state, /*tstamp*/ internals.UpdateVTKObjectsTimeStamp) && !state.empty())
+#else
+    state["group"] = this->XMLGroup;
+    state["name"] = this->XMLName;
+    state["id"] = this->GlobalID;
+    state["log_name"] = this->LogName;
+#endif
+    {
+      auto packet = vtkRemoteObjectProvider::UpdateState(this->GetGlobalID(), state);
+      this->GetSession()->SendMessage(this->GetLocation(), std::move(packet));
+    }
+
+    internals.UpdateVTKObjectsTimeStamp.Modified();
     this->PropertiesModified = false;
-
-    // Send the message
-    this->PushState(&message);
+    this->ObjectsCreated = true;
   }
 
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->UpdateVTKObjects();
-  }
-
-  this->MarkModified(this);
   this->InvokeEvent(vtkCommand::UpdateEvent, nullptr);
-}
-
-//---------------------------------------------------------------------------
-bool vtkSMProxy::ArePropertiesModified()
-{
-  if (this->PropertiesModified)
-  {
-    return true;
-  }
-
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    if (it2->second.GetPointer()->ArePropertiesModified())
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::CreateVTKObjects()
-{
-  if (this->ObjectsCreated && this->State && this->Location == 0)
-  {
-    return;
-  }
-  this->WarnIfDeprecated();
-
-  assert("Test Proxy definition" && this->GetClassName() && this->GetSIClassName() &&
-    this->GetXMLGroup() && this->GetXMLName());
-
-  vtkSMMessage message;
-  message.SetExtension(DefinitionHeader::client_class, this->GetClassName());
-  message.SetExtension(DefinitionHeader::server_class, this->GetSIClassName());
-  message.SetExtension(ProxyState::xml_group, this->GetXMLGroup());
-  message.SetExtension(ProxyState::xml_name, this->GetXMLName());
-  if (this->GetVTKClassName())
-  {
-    message.SetExtension(ProxyState::vtk_classname, this->GetVTKClassName());
-  }
-  if (this->XMLSubProxyName)
-  {
-    message.SetExtension(ProxyState::xml_sub_proxy_name, this->XMLSubProxyName);
-  }
-  if (this->LogName)
-  {
-    message.SetExtension(ProxyState::log_name, this->LogName);
-  }
-
-  // Create sub-proxies first.
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->CreateVTKObjects();
-    ProxyState_SubProxy* subproxy = message.AddExtension(ProxyState::subproxy);
-    subproxy->set_name(it2->first.c_str());
-    subproxy->set_global_id(it2->second.GetPointer()->GetGlobalID());
-  }
-
-  // Save to state
-  this->State->CopyFrom(message);
-
-  // Add Empty property into state to keep track of index later on
-  this->RebuildStateForProperties();
-
-  // Even if the Proxy was marked as Created, we went so far to build correctly
-  // the state and this is the same case for prototype.
-  if (this->ObjectsCreated)
-  {
-    return;
-  }
-  this->ObjectsCreated = 1;
-  if (this->Location == 0)
-  {
-    return;
-  }
-
-  // Push the state
-  this->PushState(&message);
-
-  // Update assigned id/location while the push
-  this->State->set_global_id(this->GetGlobalID());
-  // Using the real location and not the filtered one allow us to store
-  // the correct location in full state that is used in Undo/Redo.
-  this->State->set_location(this->Location);
-
-  bool oldPushState = this->Internals->EnableAnnotationPush;
-  this->Internals->EnableAnnotationPush = false;
-  this->UpdateAndPushAnnotationState();
-  this->Internals->EnableAnnotationPush = oldPushState;
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::RebuildStateForProperties()
-{
-  this->State->ClearExtension(ProxyState::property);
-
-  vtkSMProxyInternals::PropertyInfoMap::iterator iter;
-  for (iter = this->Internals->Properties.begin(); iter != this->Internals->Properties.end();
-       ++iter)
-  {
-    vtkSMProperty* property = iter->second.Property;
-    if (property && !property->GetInformationOnly())
-    {
-      if (property->GetIsInternal() || property->IsStateIgnored() ||
-        strcmp(property->GetClassName(), "vtkSMProperty") == 0)
-      {
-        // No state for vtkSMProperty
-      }
-      else
-      {
-        // Write empty property inside state
-        property->WriteTo(this->State);
-      }
-    }
-  }
 }
 
 //---------------------------------------------------------------------------
 bool vtkSMProxy::GatherInformation(vtkPVInformation* information)
 {
+#if 0 // FIXME: ASYNC
   assert(information);
 
   vtkVLogScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "%s: gather information %s",
@@ -860,12 +476,16 @@ bool vtkSMProxy::GatherInformation(vtkPVInformation* information)
 
     return this->GetSession()->GatherInformation(this->Location, information, this->GetGlobalID());
   }
+#else
+  abort();
+#endif
   return false;
 }
 
 //---------------------------------------------------------------------------
 bool vtkSMProxy::GatherInformation(vtkPVInformation* information, vtkTypeUInt32 location)
 {
+#if 0 // FIXME: ASYNC
   assert(information);
 
   vtkVLogScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "%s: gather information %s",
@@ -884,6 +504,9 @@ bool vtkSMProxy::GatherInformation(vtkPVInformation* information, vtkTypeUInt32 
     vtkWarningMacro("GatherInformation was called with location "
                     "on which the proxy does not exist. Ignoring.");
   }
+#else
+  abort();
+#endif
   return false;
 }
 
@@ -1006,7 +629,6 @@ void vtkSMProxy::AddSubProxy(const char* name, vtkSMProxy* proxy, int override)
   proxy->ParentProxy = this;
 
   proxy->AddObserver(vtkCommand::PropertyModifiedEvent, this->SubProxyObserver);
-  proxy->AddObserver(vtkCommand::UpdatePropertyEvent, this->SubProxyObserver);
 }
 
 //---------------------------------------------------------------------------
@@ -1071,8 +693,7 @@ void vtkSMProxy::RemoveSubProxy(const char* name)
 //---------------------------------------------------------------------------
 void vtkSMProxy::ExecuteSubProxyEvent(vtkSMProxy* subproxy, unsigned long event, void* data)
 {
-  if (subproxy &&
-    (event == vtkCommand::PropertyModifiedEvent || event == vtkCommand::UpdatePropertyEvent))
+  if (subproxy && event == vtkCommand::PropertyModifiedEvent)
   {
     // A Subproxy has been modified.
     const char* name = reinterpret_cast<const char*>(data);
@@ -1118,12 +739,12 @@ void vtkSMProxy::ExecuteSubProxyEvent(vtkSMProxy* subproxy, unsigned long event,
       // some internal property has changed.
       this->InvokeEvent(vtkCommand::PropertyModifiedEvent, (void*)exposed_name);
     }
-    else if (exposed_name && event == vtkCommand::UpdatePropertyEvent)
-    {
-      // UpdatePropertyEvent is fired only for exposed properties.
-      this->InvokeEvent(vtkCommand::UpdatePropertyEvent, (void*)exposed_name);
-      this->MarkModified(subproxy);
-    }
+    // else if (exposed_name && event == vtkCommand::UpdatePropertyEvent)
+    // {
+    //   // UpdatePropertyEvent is fired only for exposed properties.
+    //   this->InvokeEvent(vtkCommand::UpdatePropertyEvent, (void*)exposed_name);
+    //   this->MarkModified(subproxy);
+    // }
   }
 
   // Note we are not throwing vtkCommand::UpdateEvent fired by subproxies.
@@ -1246,112 +867,6 @@ vtkSMProperty* vtkSMProxy::GetProducerProperty(unsigned int idx)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMProxy::PostUpdateData(bool using_cache)
-{
-  unsigned int numProducers = this->GetNumberOfProducers();
-  for (unsigned int i = 0; i < numProducers; i++)
-  {
-    if (this->GetProducerProxy(i)->NeedsUpdate)
-    {
-      this->GetProducerProxy(i)->PostUpdateData(using_cache);
-    }
-  }
-  this->PostUpdateDataSelfOnly(using_cache);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::PostUpdateDataSelfOnly(bool using_cache)
-{
-  if (this->NeedsUpdate)
-  {
-    vtkLogF(TRACE, "PostUpdateData (%s)", this->GetLogNameOrDefault());
-    // this->NeedsUpdate must be set to false before firing this event otherwise
-    // if the event handler results in other view updates, we end up
-    // unnecessarily thinking that this proxy needs update.
-    this->NeedsUpdate = false;
-
-    if (!using_cache)
-    {
-      this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::MarkModified(vtkSMProxy* modifiedProxy)
-{
-  /*
-   * UpdatePropertyInformation() is now explicitly called in
-   * UpdatePipelineInformation(). The calling on UpdatePropertyInformation()
-   * was not really buying us much as far as keeping dependent domains updated
-   * was concerned, for unless UpdatePipelineInformation was called on the
-   * reader/filter, updating info properties was not going to yield any
-   * changed values. Removing this also allows for linking for info properties
-   * and properties using property links.
-   * A side effect of this may be that the 3DWidgets information properties wont get
-   * updated on setting "action" properties such as PlaceWidget.
-  if (this->ObjectsCreated)
-    {
-    // If not created yet, don't worry syncing the info properties.
-    this->UpdatePropertyInformation();
-    }
-  */
-  if (!this->InMarkModified)
-  {
-    this->InMarkModified = 1;
-    this->InvokeEvent(vtkCommand::ModifiedEvent, (void*)modifiedProxy);
-    this->MarkDirty(modifiedProxy);
-    this->InMarkModified = 0;
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::MarkDirty(vtkSMProxy* modifiedProxy)
-{
-  if (this->NeedsUpdate)
-  {
-    return;
-  }
-
-  vtkLogF(TRACE, "MarkDirty (%s)", this->GetLogNameOrDefault());
-  this->MarkConsumersAsDirty(modifiedProxy);
-  this->NeedsUpdate = true;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::MarkConsumersAsDirty(vtkSMProxy* modifiedProxy)
-{
-  for (const auto& cinfo : this->Internals->Consumers)
-  {
-    if (auto cons = cinfo.Proxy.GetPointer())
-    {
-      cons->MarkDirtyFromProducer(modifiedProxy, this, cinfo.Property);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::MarkDirtyFromProducer(vtkSMProxy* modifiedProxy, vtkSMProxy* vtkNotUsed(producer),
-  vtkSMProperty* vtkNotUsed(producerProperty))
-{
-  this->MarkDirty(modifiedProxy);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMProxy::MarkInputsAsDirty()
-{
-  for (unsigned int cc = 0, max = this->GetNumberOfProducers(); cc < max; ++cc)
-  {
-    if (vtkSMInputProperty::SafeDownCast(this->GetProducerProperty(cc)))
-    {
-      auto producer = this->GetProducerProxy(cc);
-      producer->NeedsUpdate = true;
-      producer->MarkInputsAsDirty();
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
 vtkSMProperty* vtkSMProxy::NewProperty(const char* name)
 {
   vtkSMProperty* property = this->GetProperty(name);
@@ -1390,8 +905,7 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name)
 //----------------------------------------------------------------------------
 vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propElement)
 {
-  vtkSMProperty* property = this->GetProperty(name);
-  if (property)
+  if (vtkSMProperty* property = this->GetProperty(name))
   {
     return property;
   }
@@ -1402,19 +916,14 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propEl
   }
 
   // Patch XML to remove InformationHelper and set right si_class
-  vtkSIProxyDefinitionManager::PatchXMLProperty(propElement);
+  // vtkSIProxyDefinitionManager::PatchXMLProperty(propElement);
 
-  vtkObjectBase* object = nullptr;
   std::ostringstream cname;
   cname << "vtkSM" << propElement->GetName() << ends;
-  object = vtkClientServerStreamInstantiator::CreateInstance(cname.str().c_str());
-
-  property = vtkSMProperty::SafeDownCast(object);
+  auto property = vtkReflection::CreateInstance<vtkSMProperty>(cname.str());
   if (property)
   {
-    int old_val = this->DoNotUpdateImmediately;
     int old_val2 = this->DoNotModifyProperty;
-    this->DoNotUpdateImmediately = 1;
 
     // Internal properties should not be created as modified.
     // Otherwise, properties like ForceUpdate get pushed and
@@ -1436,10 +945,8 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propEl
     if (!property->ReadXMLAttributes(this, propElement))
     {
       vtkErrorMacro("Could not parse property: " << propElement->GetName());
-      this->DoNotUpdateImmediately = old_val;
       return nullptr;
     }
-    this->DoNotUpdateImmediately = old_val;
     this->DoNotModifyProperty = old_val2;
 
     // Properties should be created as modified unless they
@@ -1454,7 +961,6 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propEl
   {
     vtkErrorMacro("Could not instantiate property: " << propElement->GetName());
   }
-
   return property;
 }
 
@@ -1530,6 +1036,9 @@ void vtkSMProxy::AppendPropertyGroup(vtkSMPropertyGroup* group)
 //---------------------------------------------------------------------------
 int vtkSMProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element)
 {
+  // save the proxy manager.
+  this->ProxyManager = pm;
+
   this->SetXMLElement(element);
 
   // Read the common attributes.
@@ -1537,12 +1046,6 @@ int vtkSMProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement*
   if (className)
   {
     this->SetVTKClassName(className);
-  }
-
-  const char* kernelClass = element->GetAttribute("si_class");
-  if (kernelClass)
-  {
-    this->SetSIClassName(kernelClass);
   }
 
   const char* xmllabel = element->GetAttribute("label");
@@ -1562,17 +1065,17 @@ int vtkSMProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement*
     std::string strprocesses = processes;
     if (strprocesses.find("client") != std::string::npos)
     {
-      uiprocesses |= vtkProcessModule::CLIENT;
+      uiprocesses |= vtkClientSession::CLIENT;
     }
     if (strprocesses.find("renderserver") != std::string::npos)
     {
-      uiprocesses |= vtkProcessModule::RENDER_SERVER;
+      uiprocesses |= vtkClientSession::RENDER_SERVER;
     }
     if (strprocesses.find("dataserver") != std::string::npos)
     {
-      uiprocesses |= vtkProcessModule::DATA_SERVER;
+      uiprocesses |= vtkClientSession::DATA_SERVER;
     }
-    this->SetLocation(uiprocesses);
+    this->Location = uiprocesses;
   }
 
   // Locate documentation.
@@ -1874,6 +1377,7 @@ void vtkSMProxy::SetupExposedProperties(const char* subproxy_name, vtkPVXMLEleme
     }
   }
 }
+
 //---------------------------------------------------------------------------
 void vtkSMProxy::SetupSharedProperties(vtkSMProxy* subproxy, vtkPVXMLElement* element)
 {
@@ -1974,11 +1478,15 @@ void vtkSMProxy::Copy(vtkSMProxy* src, const char* exceptionClass, int proxyProp
       {
         if (!exceptionClass || !dest->IsA(exceptionClass))
         {
+#if 0 // FIXME: ASYNC
           vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(dest);
           if (!pp || proxyPropertyCopyFlag == vtkSMProxy::COPY_PROXY_PROPERTY_VALUES_BY_REFERENCE)
           {
             dest->Copy(source);
           }
+#else
+          abort();
+#endif
         }
       }
     }
@@ -2065,6 +1573,7 @@ void vtkSMProxy::PrintSelf(ostream& os, vtkIndent indent)
     iter->Delete();
   }
 }
+
 //---------------------------------------------------------------------------
 vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root)
 {
@@ -2073,6 +1582,7 @@ vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root)
   iter->Delete();
   return result;
 }
+
 //---------------------------------------------------------------------------
 vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIterator* iter)
 {
@@ -2082,7 +1592,6 @@ vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIt
   }
 
   vtkPVXMLElement* proxyXml = vtkPVXMLElement::New();
-
   proxyXml->SetName("Proxy");
   proxyXml->AddAttribute("group", this->XMLGroup);
   proxyXml->AddAttribute("type", this->XMLName);
@@ -2128,6 +1637,7 @@ vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIt
 
   return proxyXml;
 }
+
 //---------------------------------------------------------------------------
 int vtkSMProxy::LoadXMLState(vtkPVXMLElement* proxyElement, vtkSMProxyLocator* locator)
 {
@@ -2172,145 +1682,6 @@ int vtkSMProxy::LoadXMLState(vtkPVXMLElement* proxyElement, vtkSMProxyLocator* l
   }
   return 1;
 }
-//---------------------------------------------------------------------------
-const vtkSMMessage* vtkSMProxy::GetFullState()
-{
-  return this->State;
-}
-//---------------------------------------------------------------------------
-void vtkSMProxy::LoadState(const vtkSMMessage* message, vtkSMProxyLocator* locator)
-{
-  // Update globalId. This will fails if that one is already set with a different value
-  if (this->HasGlobalID() && this->GetGlobalID() != message->global_id())
-  {
-    vtkErrorMacro("Try to load a state on a proxy which has a different ID"
-      << "(" << this->GetGlobalID() << " != " << message->global_id() << ")");
-  }
-  else
-  {
-    this->SetGlobalID(message->global_id());
-  }
-
-  // We try to extract some message information that we might not get from
-  // proxy definition in the XML. This is specially true in collaboration.
-  if (message->HasExtension(DefinitionHeader::server_class))
-  {
-    this->SetSIClassName(message->GetExtension(DefinitionHeader::server_class).c_str());
-  }
-  if (message->HasExtension(ProxyState::xml_group))
-  {
-    this->SetXMLGroup(message->GetExtension(ProxyState::xml_group).c_str());
-  }
-  if (message->HasExtension(ProxyState::xml_name))
-  {
-    this->SetXMLName(message->GetExtension(ProxyState::xml_name).c_str());
-  }
-  if (message->HasExtension(ProxyState::xml_sub_proxy_name))
-  {
-    this->SetXMLSubProxyName(message->GetExtension(ProxyState::xml_sub_proxy_name).c_str());
-  }
-
-  // Manage its sub-proxy state
-  int nbSubProxy = message->ExtensionSize(ProxyState::subproxy);
-  std::vector<vtkSMMessage> subProxyStateToLoad;
-  for (int idx = 0; idx < nbSubProxy; idx++)
-  {
-    const ProxyState_SubProxy* subProxyMsg = &message->GetExtension(ProxyState::subproxy, idx);
-    vtkSMProxy* subProxy = this->GetSubProxy(subProxyMsg->name().c_str());
-
-    if (subProxy == nullptr)
-    {
-      vtkWarningMacro("State provide a sub-proxy information although the proxy"
-        << "does not find that sub-proxy."
-        << " - Proxy: " << this->XMLGroup << " - " << this->XMLName << endl
-        << " - Sub-Proxy: " << subProxyMsg->name().c_str() << " " << subProxyMsg->global_id());
-      continue;
-    }
-
-    // Make sure we do not try to load a state to a proxy that has already
-    // sub-proxy with IDs that differ from the message state
-    if (subProxy->HasGlobalID() &&
-      (subProxy->GlobalID != subProxyMsg->global_id() ||
-        !this->Session->GetRemoteObject(subProxyMsg->global_id())))
-    {
-      vtkErrorMacro("Invalid Proxy for message "
-        << endl
-        << "Parent Proxy : (" << this->XMLGroup << "," << this->XMLName << ")" << endl
-        << "SubProxy - XMLName: " << subProxy->GetXMLName() << " - SubProxyName: "
-        << subProxyMsg->name().c_str() << " - Id: " << subProxy->GlobalID << endl
-        << message->DebugString().c_str() << endl);
-    }
-
-    // Update sub-proxy state if possible
-    if (!subProxy->HasGlobalID())
-    {
-      vtkSMMessage subProxyState;
-      subProxy->SetGlobalID(subProxyMsg->global_id());
-      if (this->GetSession()->GetStateLocator()->FindState(subProxy->GetGlobalID(), &subProxyState))
-      {
-        subProxyStateToLoad.push_back(subProxyState);
-      }
-    }
-  }
-  // Load deferred sub-proxy state
-  // Deferring sub-proxy loading IS VERY IMPORTANT, especially for compound proxy
-  // that define pipeline connectivity.
-  // If not done while loading the pipeline connection, this will failed because
-  // the sub-proxy involved might not have a GlobalID yet !
-  for (size_t i = 0; i < subProxyStateToLoad.size(); i++)
-  {
-    vtkSMProxy* proxy =
-      vtkSMProxy::SafeDownCast(this->Session->GetRemoteObject(subProxyStateToLoad[i].global_id()));
-    proxy->LoadState(&subProxyStateToLoad[i], locator);
-  }
-
-  // Manage properties
-  vtkSMProxyInternals::PropertyInfoMap::iterator it;
-  for (int i = 0; i < message->ExtensionSize(ProxyState::property); ++i)
-  {
-    const ProxyState_Property* prop_message = &message->GetExtension(ProxyState::property, i);
-    const char* pname = prop_message->name().c_str();
-    it = this->Internals->Properties.find(pname);
-    if (it != this->Internals->Properties.end())
-    {
-      if (it->second.Property->GetIsInternal())
-      {
-        // skip internal properties. Their state is never updated.
-        continue;
-      }
-
-      // Some view properties need some special treatment and some
-      // of there properties MUST NOT be updated in case of collaborative
-      // notification.
-      if (this->Session->IsProcessingRemoteNotification() &&
-        it->second.Property->GetIgnoreSynchronization())
-      {
-        continue;
-      }
-
-      it->second.Property->ReadFrom(message, i, locator);
-    }
-  }
-
-  // We don't need to do anything special to update domains that may have
-  // changed as a consequence of the information properties being updated since
-  // the vtkSMProperty automatically called vtkSMProperty::UpdateDomains() when
-  // the property changes.
-
-  // Manage annotation
-  if (message->GetExtension(ProxyState::has_annotation))
-  {
-    int nbAnnotation = message->ExtensionSize(ProxyState::annotation);
-    bool previousAnnotationPush = this->Internals->EnableAnnotationPush;
-    this->RemoveAllAnnotations();
-    for (int idx = 0; idx < nbAnnotation; idx++)
-    {
-      const ProxyState_Annotation* annotation = &message->GetExtension(ProxyState::annotation, idx);
-      this->SetAnnotation(annotation->key().c_str(), annotation->value().c_str());
-    }
-    this->Internals->EnableAnnotationPush = previousAnnotationPush;
-  }
-}
 
 //---------------------------------------------------------------------------
 vtkSMPropertyGroup* vtkSMProxy::GetPropertyGroup(size_t index) const
@@ -2327,44 +1698,9 @@ size_t vtkSMProxy::GetNumberOfPropertyGroups() const
 }
 
 //---------------------------------------------------------------------------
-void vtkSMProxy::PrototypeOn()
-{
-  this->SetPrototype(true);
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::PrototypeOff()
-{
-  this->SetPrototype(false);
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::SetPrototype(bool proto)
-{
-  this->Superclass::SetPrototype(proto);
-  for (unsigned int cc = 0; cc < this->GetNumberOfSubProxies(); cc++)
-  {
-    this->GetSubProxy(cc)->SetPrototype(proto);
-  }
-}
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdateSelfAndAllInputs()
-{
-  vtkSMPropertyIterator* iter = this->NewPropertyIterator();
-
-  while (!iter->IsAtEnd())
-  {
-    iter->GetProperty()->UpdateAllInputs();
-    iter->Next();
-  }
-  iter->Delete();
-
-  this->UpdateVTKObjects();
-}
-
-//---------------------------------------------------------------------------
 void vtkSMProxy::InitializeAndCopyFromProxy(vtkSMProxy* fromP)
 {
+#if 0 // FIXME: ASYNC
   if (this->ObjectsCreated)
   {
     vtkWarningMacro("Cannot Initialize since proxy already created.");
@@ -2384,104 +1720,28 @@ void vtkSMProxy::InitializeAndCopyFromProxy(vtkSMProxy* fromP)
   stream << vtkClientServerStream::Invoke << SIPROXY(this) << "SetVTKObject" << VTKOBJECT(fromP)
          << vtkClientServerStream::End;
   this->ExecuteStream(stream);
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::ExecuteStream(
-  const vtkClientServerStream& stream, bool ignore_errors /*=false*/, vtkTypeUInt32 location /*=0*/)
-{
-  if (location == 0)
-  {
-    location = this->Location;
-  }
-  if (location == 0 || stream.GetNumberOfMessages() == 0)
-  {
-    return;
-  }
-
-  if (this->GetSession())
-  {
-    this->GetSession()->ExecuteStream(location, stream, ignore_errors);
-  }
-  // if no session, nothing to do.
-}
-
-//---------------------------------------------------------------------------
-const vtkClientServerStream& vtkSMProxy::GetLastResult()
-{
-  return this->GetLastResult(this->Location);
-}
-
-//---------------------------------------------------------------------------
-const vtkClientServerStream& vtkSMProxy::GetLastResult(vtkTypeUInt32 location)
-{
-  return this->Session->GetLastResult(location);
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdatePipelineInformation()
-{
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->UpdatePipelineInformation();
-  }
-
-  this->UpdatePropertyInformation();
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::EnableLocalPushOnly()
-{
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->EnableLocalPushOnly();
-  }
-  this->Superclass::EnableLocalPushOnly();
-}
-
-//---------------------------------------------------------------------------
-void vtkSMProxy::DisableLocalPushOnly()
-{
-  vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
-  for (; it2 != this->Internals->SubProxies.end(); it2++)
-  {
-    it2->second.GetPointer()->DisableLocalPushOnly();
-  }
-  this->Superclass::DisableLocalPushOnly();
-}
-
-//---------------------------------------------------------------------------
-vtkClientServerStream& operator<<(vtkClientServerStream& stream, const VTKOBJECT& manipulator)
-{
-  vtkClientServerStream substream;
-  substream << vtkClientServerStream::Invoke
-            << vtkClientServerID(1) // ID for the vtkSMSessionCore helper.
-            << "GetVTKObject" << manipulator.Reference->GetGlobalID() << vtkClientServerStream::End;
-  stream << substream;
-  return stream;
+#else
+  abort();
+#endif
 }
 
 //---------------------------------------------------------------------------
 //                       Annotation management
 //---------------------------------------------------------------------------
-
 void vtkSMProxy::SetAnnotation(const char* key, const char* value)
 {
   assert("We expect a valid key for proxy annotation." && key);
   if (value)
   {
     this->Internals->Annotations[key] = value;
-    this->UpdateAndPushAnnotationState();
   }
   else
   {
     this->RemoveAnnotation(key);
   }
 }
-//---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
 const char* vtkSMProxy::GetAnnotation(const char* key)
 {
   vtkSMProxyInternals::AnnotationMap::iterator iter = this->Internals->Annotations.find(key);
@@ -2491,33 +1751,32 @@ const char* vtkSMProxy::GetAnnotation(const char* key)
   }
   return nullptr;
 }
+
 //---------------------------------------------------------------------------
 void vtkSMProxy::RemoveAnnotation(const char* key)
 {
   this->Internals->Annotations.erase(key);
-  this->UpdateAndPushAnnotationState();
 }
-//---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
 void vtkSMProxy::RemoveAllAnnotations()
 {
   this->Internals->Annotations.clear();
-  this->UpdateAndPushAnnotationState();
 }
-//---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
 bool vtkSMProxy::HasAnnotation(const char* key)
 {
   return (this->Internals->Annotations.find(key) != this->Internals->Annotations.end());
 }
-//---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
 int vtkSMProxy::GetNumberOfAnnotations()
 {
   return static_cast<int>(this->Internals->Annotations.size());
 }
-//---------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------
 const char* vtkSMProxy::GetAnnotationKeyAt(int index)
 {
   vtkSMProxyInternals::AnnotationMap::iterator iter = this->Internals->Annotations.begin();
@@ -2534,49 +1793,11 @@ const char* vtkSMProxy::GetAnnotationKeyAt(int index)
   return nullptr;
 }
 
-//---------------------------------------------------------------------------
-void vtkSMProxy::UpdateAndPushAnnotationState()
-{
-  if (!this->ObjectsCreated)
-  {
-    return;
-  }
-
-  // Update state
-  vtkSMMessage localAnnotationState;
-  localAnnotationState.SetExtension(ProxyState::has_annotation, true);
-
-  this->State->ClearExtension(ProxyState::annotation);
-  this->State->SetExtension(ProxyState::has_annotation, true);
-
-  vtkSMProxyInternals::AnnotationMap::iterator iter = this->Internals->Annotations.begin();
-  ProxyState_Annotation* annotation = nullptr;
-  while (iter != this->Internals->Annotations.end())
-  {
-    // Add in full state
-    annotation = this->State->AddExtension(ProxyState::annotation);
-    annotation->set_key(iter->first);
-    annotation->set_value(iter->second);
-
-    // Add in local tmp state
-    annotation = localAnnotationState.AddExtension(ProxyState::annotation);
-    annotation->set_key(iter->first);
-    annotation->set_value(iter->second);
-
-    // move forward
-    iter++;
-  }
-
-  // Push annotation state to the session
-  if (this->Internals->EnableAnnotationPush)
-  {
-    this->PushState(&localAnnotationState);
-  }
-}
 
 //---------------------------------------------------------------------------
 void vtkSMProxy::RecreateVTKObjects()
 {
+#if 0 // FIXME: ASYNC
   vtkSMProxyInternals::ProxyMap::iterator it2 = this->Internals->SubProxies.begin();
   for (; it2 != this->Internals->SubProxies.end(); it2++)
   {
@@ -2594,6 +1815,9 @@ void vtkSMProxy::RecreateVTKObjects()
   // Push our full state over to the server. This is akin to loading the
   // state on the newly created VTK object.
   this->PushState(this->State);
+#else
+  abort();
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2647,13 +1871,19 @@ void vtkSMProxy::SetLogNameInternal(
 
   if (this->ObjectsCreated)
   {
-    // need to push state to update log name on the si objects.
-    vtkSMMessage logname_state;
-    logname_state.SetExtension(ProxyState::log_name, (this->LogName ? this->LogName : ""));
-
-    // update local `full state`.
-    this->State->SetExtension(ProxyState::log_name, (this->LogName ? this->LogName : ""));
-
-    this->PushState(&logname_state);
+    // need to push the state to update log name on the service.
+    this->UpdateVTKObjects();
   }
+}
+
+//---------------------------------------------------------------------------
+vtkSMSessionProxyManager* vtkSMProxy::GetProxyManager() const
+{
+  return this->ProxyManager;
+}
+
+//---------------------------------------------------------------------------
+vtkClientSession* vtkSMProxy::GetSession() const
+{
+  return this->ProxyManager ? this->ProxyManager->GetSession() : nullptr;
 }

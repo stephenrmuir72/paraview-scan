@@ -30,8 +30,7 @@
  * vtkSMSessionProxyManager is designed to work with only one session. When
  * the session on which it is attached closes, it has no role and should be
  * deleted right away.
- * @sa
- * vtkSMProxyDefinitionManager
+ * @sa vtkProxyDefinitionManager
  *
  * @sa
  * Basic XML Proxy definition documentation:
@@ -113,38 +112,37 @@
 #ifndef vtkSMSessionProxyManager_h
 #define vtkSMSessionProxyManager_h
 
+#include "vtkJsonFwd.h" // needed for vtkJson
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" // needed for exports
-#include "vtkSMMessageMinimal.h"            // needed for vtkSMMessage.
-#include "vtkSMSessionObject.h"
-#include "vtkSmartPointer.h" // needed for vtkSmartPointer
+#include "vtkSmartPointer.h"                // needed for vtkSmartPointer
+#include "vtkWeakPointer.h"                 // needed for vtkWeakPointer
 
 #include <set>    // needed for std::set
 #include <string> // needed for std::string
 
+class vtkClientSession;
 class vtkCollection;
 class vtkEventForwarderCommand;
+class vtkProxyDefinitionManager;
 class vtkPVXMLElement;
 class vtkSMCompoundSourceProxy;
 class vtkSMDocumentation;
 class vtkSMLink;
 class vtkSMProperty;
 class vtkSMProxy;
-class vtkSMProxyDefinitionManager;
 class vtkSMProxyIterator;
 class vtkSMProxyLocator;
 class vtkSMProxyManagerObserver;
 class vtkSMProxyManagerProxySet;
-class vtkSMSession;
+class vtkSMProxySelectionModel;
 class vtkSMStateLoader;
 class vtkStringList;
-class vtkSMPipelineState;
-class vtkSMStateLocator;
-class vtkSMProxySelectionModel;
 
 struct vtkSMSessionProxyManagerInternals;
 struct vtkClientServerID;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMSessionProxyManager : public vtkSMSessionObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMSessionProxyManager : public vtkObject
 {
 public:
   //@{
@@ -152,15 +150,16 @@ public:
    * vtkSMSessionProxyManager requires a session and cannot be created without
    * one.
    */
-  static vtkSMSessionProxyManager* New(vtkSMSession* session);
-  vtkTypeMacro(vtkSMSessionProxyManager, vtkSMSessionObject);
+  static vtkSMSessionProxyManager* New(vtkClientSession* session);
+  vtkTypeMacro(vtkSMSessionProxyManager, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
-   * Return the GlobalID that should be used to refer to the ProxyManager state
+   * Get the vtkClientSession that this proxy manager is for. Each
+   * vtkClientSession has exactly one vtkSMProxyManager.
    */
-  static vtkTypeUInt32 GetReservedGlobalID();
+  vtkClientSession* GetSession() const;
 
   /**
    * Given a group and proxy name, create and return a proxy instance.
@@ -392,11 +391,6 @@ public:
    */
   void UnRegisterCustomProxyDefinitions();
 
-  /**
-   * Returns a registered proxy definition.
-   */
-  vtkPVXMLElement* GetProxyDefinition(const char* group, const char* name);
-
   //@{
   /**
    * Load custom proxy definitions and register them.
@@ -482,7 +476,7 @@ public:
   void ClearPrototypes();
 
   /**
-   * Return true if the XML Definition was found by vtkSMProxyDefinitionManager
+   * Return true if the XML Definition was found by vtkProxyDefinitionManager
    */
   bool HasDefinition(const char* groupName, const char* proxyName);
 
@@ -522,14 +516,14 @@ public:
    */
   bool LoadConfigurationXML(const char* xmlcontents);
 
-  //@{
+  ///@{
   /**
    * Get the proxy definition manager.
    * Proxy definition manager maintains all the information about proxy
    * definitions.
    */
-  vtkGetObjectMacro(ProxyDefinitionManager, vtkSMProxyDefinitionManager);
-  //@}
+  vtkProxyDefinitionManager* GetProxyDefinitionManager() const;
+  ///@}
 
   /**
    * Get a registered selection model. Will return nullptr if no such model is
@@ -559,46 +553,53 @@ public:
   //@}
 
   /**
-   * Method used to fetch the last state of the ProxyManager from the pvserver.
-   * This is used in the collaboration context when the user connects to a remote
-   * server and wants to update its state before doing anything.
-   */
-  void UpdateFromRemote();
-
-  //@{
-  /**
-   * These methods allow the user to make atomic change set in the notification
-   * collaboration in terms of set of proxy registration.
-   * This enables us to prevent deletion on remote sites of proxies that
-   * will end up in the ProxyManager but have not been set into it yet.
-   */
-  bool IsStateUpdateNotificationEnabled();
-  void DisableStateUpdateNotification();
-  void EnableStateUpdateNotification();
-  void TriggerStateUpdate();
-  //@}
-
-  /**
-   * This method returns the full object state that can be used to create that
-   * object from scratch.
-   * This method will be used to fill the undo stack.
-   * If not overridden this will return nullptr.
-   */
-  virtual const vtkSMMessage* GetFullState();
-
-  /**
-   * This method is used to initialise the ProxyManager to the given state
-   */
-  virtual void LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locator);
-
-  /**
    * Find proxy of the group type (xmlgroup, xmltype) registered under a
    * particular group (reggroup). Returns the first proxy found, if any.
    */
   vtkSMProxy* FindProxy(const char* reggroup, const char* xmlgroup, const char* xmltype);
 
+  ///@{
+  /**
+   * Various structs with meta that are passed as callData when events are
+   * fired.
+   */
+  struct RegisteredProxyInformation
+  {
+    vtkSMProxy* Proxy;
+    const char* GroupName;
+    const char* ProxyName;
+    // Set when the register/unregister event if fired for registration of
+    // a compound proxy definition.
+    unsigned int Type;
+
+    enum
+    {
+      PROXY = 0x1,
+      COMPOUND_PROXY_DEFINITION = 0x2,
+      LINK = 0x3,
+    };
+  };
+
+  struct ModifiedPropertyInformation
+  {
+    vtkSMProxy* Proxy;
+    const char* PropertyName;
+  };
+
+  struct LoadStateInformation
+  {
+    vtkPVXMLElement* RootElement;
+    vtkSMProxyLocator* ProxyLocator;
+  };
+
+  struct StateChangedInformation
+  {
+    vtkSMProxy* Proxy;
+    vtkPVXMLElement* StateChangeElement;
+  };
+  ///@}
 protected:
-  vtkSMSessionProxyManager(vtkSMSession*);
+  vtkSMSessionProxyManager();
   ~vtkSMSessionProxyManager() override;
 
   friend class vtkSMProxy;
@@ -617,7 +618,7 @@ protected:
    * Given the proxy name and group name, returns the XML element for
    * the proxy.
    */
-  vtkPVXMLElement* GetProxyElement(
+  vtkSmartPointer<vtkPVXMLElement> GetProxyElement(
     const char* groupName, const char* proxyName, const char* subProxyName = nullptr);
 
   /**
@@ -644,20 +645,16 @@ protected:
   void CollectReferredProxies(vtkSMProxyManagerProxySet& setOfProxies, vtkSMProxy* proxy);
 
   int UpdateInputProxies;
-  vtkSMProxyDefinitionManager* ProxyDefinitionManager;
   vtkEventForwarderCommand* Forwarder;
-  vtkSMPipelineState* PipelineState;
   bool StateUpdateNotification;
 
 private:
   vtkSMSessionProxyManagerInternals* Internals;
   vtkSMProxyManagerObserver* Observer;
+  vtkWeakPointer<vtkClientSession> Session;
   bool InLoadXMLState;
 
-#ifndef __WRAP__
-  static vtkSMSessionProxyManager* New() { return nullptr; }
-#endif
-
+  static vtkSMSessionProxyManager* New();
   vtkSMSessionProxyManager(const vtkSMSessionProxyManager&) = delete;
   void operator=(const vtkSMSessionProxyManager&) = delete;
 };

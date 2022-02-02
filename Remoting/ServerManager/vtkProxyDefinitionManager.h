@@ -26,6 +26,10 @@
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" // for exports
 #include "vtkSMProxyDefinitionsRange.h"
+#include "vtkSmartPointer.h" // for vtkSmartPointer
+
+class vtkPVXMLElement;
+
 #include <memory> // for std::unique_ptr
 #include <string> // for std::string
 #include <vtk_pugixml.h>
@@ -43,6 +47,13 @@ public:
    */
   std::shared_ptr<pugi::xml_document> FindProxy(
     const std::string& group, const std::string& name) const;
+
+  /**
+   * Temporary API that returns a vtkPVXMLElement instead.
+   */
+  vtkSmartPointer<vtkPVXMLElement> FindProxyLegacy(
+    const std::string& group, const std::string& name) const;
+
   /**
    * Load configuration XML
    */

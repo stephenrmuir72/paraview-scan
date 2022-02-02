@@ -125,11 +125,6 @@ protected:
   vtkSMSettingsProxy();
   ~vtkSMSettingsProxy() override;
 
-  /**
-   * Overridden from vtkSMProxy to install an observer on the VTK object
-   */
-  void CreateVTKObjects() override;
-
   void SetPropertyModifiedFlag(const char* name, int flag) override;
 
 private:

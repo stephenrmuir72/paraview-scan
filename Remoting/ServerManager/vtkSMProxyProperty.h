@@ -64,7 +64,6 @@
 #include "vtkSMProperty.h"
 
 class vtkSMProxy;
-class vtkSMStateLocator;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyProperty : public vtkSMProperty
 {
@@ -166,11 +165,6 @@ public:
    */
   void Copy(vtkSMProperty* src) override;
 
-  /**
-   * Update all proxies referred by this property (if any).
-   */
-  void UpdateAllInputs() override;
-
   bool IsValueDefault() override;
 
   /**
@@ -184,16 +178,6 @@ public:
 protected:
   vtkSMProxyProperty();
   ~vtkSMProxyProperty() override;
-
-  /**
-   * Let the property write its content into the stream
-   */
-  void WriteTo(vtkSMMessage* msg) override;
-
-  /**
-   * Let the property read and set its content from the stream
-   */
-  void ReadFrom(const vtkSMMessage* msg, int msg_offset, vtkSMProxyLocator*) override;
 
   friend class vtkSMProxy;
 

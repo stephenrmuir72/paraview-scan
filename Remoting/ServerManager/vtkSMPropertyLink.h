@@ -83,15 +83,6 @@ public:
    */
   void RemoveAllLinks() override;
 
-  /**
-   * This method is used to initialize the object to the given state
-   * If the definitionOnly Flag is set to True the proxy won't load the
-   * properties values and just setup the new proxy hierarchy with all subproxy
-   * globalIDs set. This enables splitting the load process in 2 step to prevent
-   * invalid state when a property refers to a sub-proxy that does not exist yet.
-   */
-  void LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locator) override;
-
 protected:
   vtkSMPropertyLink();
   ~vtkSMPropertyLink() override;
@@ -117,11 +108,6 @@ protected:
   void UpdateVTKObjects(vtkSMProxy* caller) override;
   void PropertyModified(vtkSMProxy* caller, const char* pname) override;
   void UpdateProperty(vtkSMProxy* caller, const char* pname) override;
-
-  /**
-   * Update the internal protobuf state
-   */
-  void UpdateState() override;
 
 private:
   vtkSMPropertyLinkInternals* Internals;

@@ -19,6 +19,7 @@
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVApplicationOptions.h"
+#include "vtkPVVersion.h" // for PARAVIEW_VERSION_*
 #include "vtkReflectionInitializer.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkServicesEngine.h"
@@ -32,6 +33,8 @@
 #include <vtk_fmt.h> // needed for `fmt`
 #include VTK_FMT(fmt/core.h)
 // clang-format on
+
+#define PARAVIEW_SOURCE_VERSION "paraview version " PARAVIEW_VERSION_FULL
 
 class vtkPVCoreApplication::vtkInternals
 {
@@ -359,6 +362,30 @@ bool vtkPVCoreApplication::WaitForExit(
   }
   controller->Barrier();
   return internals.ExitCodeSet;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkPVCoreApplication::GetParaViewSourceVersion()
+{
+  return PARAVIEW_SOURCE_VERSION;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVCoreApplication::GetVersionMajor()
+{
+  return PARAVIEW_VERSION_MAJOR;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVCoreApplication::GetVersionMinor()
+{
+  return PARAVIEW_VERSION_MINOR;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVCoreApplication::GetVersionPatch()
+{
+  return PARAVIEW_VERSION_PATCH;
 }
 
 //----------------------------------------------------------------------------

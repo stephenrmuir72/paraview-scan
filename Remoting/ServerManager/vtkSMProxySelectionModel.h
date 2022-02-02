@@ -26,10 +26,9 @@
 #ifndef vtkSMProxySelectionModel_h
 #define vtkSMProxySelectionModel_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMMessageMinimal.h"            // Needed for vtkSMMessage*
-#include "vtkSMRemoteObject.h"
-#include "vtkSmartPointer.h" // needed for vtkSmartPointer.
+#include "vtkSmartPointer.h"                // needed for vtkSmartPointer.
 
 class vtkSMProxySelectionModelInternal;
 class vtkCollection;
@@ -37,27 +36,12 @@ class vtkSMProxy;
 
 #include <list> // needed for vtkset::list.
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxySelectionModel : public vtkSMRemoteObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxySelectionModel : public vtkObject
 {
 public:
   static vtkSMProxySelectionModel* New();
-  vtkTypeMacro(vtkSMProxySelectionModel, vtkSMRemoteObject);
+  vtkTypeMacro(vtkSMProxySelectionModel, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  /**
-   * Override the set session, so we can attach an observer to the Collaboration
-   * manager in order to monitor master/slave changes.
-   */
-  void SetSession(vtkSMSession*) override;
-
-  //@{
-  /**
-   * Allow to synchronize the active object with master or just keep remote object
-   * out-of-synch. Only the state from the master will be loaded.
-   */
-  void SetFollowingMaster(bool following);
-  bool IsFollowingMaster();
-  //@}
 
   /**
    * Type for selection.
@@ -139,23 +123,6 @@ public:
    */
   bool GetSelectionDataBounds(double bounds[6]);
 
-  /**
-   * This method return the full object state that can be used to create that
-   * object from scratch.
-   * This method will be used to fill the undo stack.
-   * If not overridden this will return nullptr.
-   */
-  const vtkSMMessage* GetFullState() override;
-
-  /**
-   * This method is used to initialise the object to the given state
-   * If the definitionOnly Flag is set to True the proxy won't load the
-   * properties values and just setup the new proxy hierarchy with all subproxy
-   * globalID set. This allow to split the load process in 2 step to prevent
-   * invalid state when property refere to a sub-proxy that does not exist yet.
-   */
-  void LoadState(const vtkSMMessage* msg, vtkSMProxyLocator* locator) override;
-
 protected:
   vtkSMProxySelectionModel();
   ~vtkSMProxySelectionModel() override;
@@ -165,15 +132,6 @@ protected:
 
   vtkSmartPointer<vtkSMProxy> Current;
   SelectionType Selection;
-
-  /**
-   * When the state has changed we call that method so the state can be shared
-   * is any collaboration is involved
-   */
-  void PushStateToSession();
-
-  // Cached version of State
-  vtkSMMessage* State;
 
 private:
   vtkSMProxySelectionModel(const vtkSMProxySelectionModel&) = delete;

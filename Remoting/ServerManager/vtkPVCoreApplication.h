@@ -150,6 +150,29 @@ public:
   bool WaitForExit(
     const rxcpp::schedulers::run_loop& rlp, const std::chrono::milliseconds& duration) const;
 
+  /**
+   * Returns the major version number eg. if version is 2.9.1
+   * this method will return 2.
+   */
+  static int GetVersionMajor();
+
+  /**
+   * Returns the minor version number eg. if version is 2.9.1
+   * this method will return 9.
+   */
+  static int GetVersionMinor();
+
+  /**
+   * Returns the patch version number eg. if version is 2.9.1
+   * this method will return 1.
+   */
+  static int GetVersionPatch();
+
+  /**
+   * Returns a string with the format "paraview version x.x.x, Date: YYYY-MM-DD"
+   */
+  static const char* GetParaViewSourceVersion();
+
 protected:
   vtkPVCoreApplication(ApplicationTypes type);
   ~vtkPVCoreApplication() override;
