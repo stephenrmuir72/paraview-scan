@@ -29,6 +29,38 @@
 #
 #==========================================================================
 set(classes
+  vtkClientSession
+  vtkDisplayConfiguration
+  vtkDistributedEnvironment
+  vtkInformationProvider
+  vtkObjectStore
+  vtkObjectWrapper
+  vtkProxyDefinitionManager
+  vtkPVApplication
+  vtkPVApplicationOptions
+  vtkPVArrayInformation
+  vtkPVCoreApplication
+  vtkPVDataAssemblyInformation
+  vtkPVDataInformation
+  vtkPVDataSetAttributesInformation
+  vtkPVInformation
+  vtkPVLogInformation
+  vtkPVMemoryUseInformation
+  vtkPVServerApplication
+  vtkPVServerOptions
+  vtkPVSystemConfigInformation
+  vtkPVTemporalDataInformation
+  vtkPVTimerInformation
+  vtkReflectionInitializer
+  vtkRemoteObjectProvider
+  vtkServerSession
+  vtkSession
+  vtkSMProxyDefinitionsIterator
+  vtkSMProxyDefinitionsRange
+  vtkStringUtilities
+)
+
+set(old_classes
   vtkLoadStateOptions
   vtkRemoteWriterHelper
   vtkPVCatalystChannelInformation
@@ -183,7 +215,16 @@ set(classes
   vtkSMWriterProxy)
 
 set(headers
-  vtkSMMessageMinimal.h)
+  vtkSMMessageMinimal.h
+  vtkParaViewDeprecation.h
+)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/vtkPVVersion.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkPVVersion.h"
+  @ONLY)
+list(APPEND headers
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkPVVersion.h")
 
 set(private_headers
   vtkSMPropertyInternals.h
@@ -202,16 +243,7 @@ vtk_module_add_module(ParaView::RemotingServerManager
   PRIVATE_HEADERS ${private_headers}
   TEMPLATE_CLASSES ${template_classes})
 
-paraview_protobuf_generate(
-  PROTOS    vtkPVMessage.proto
-  OUT_VAR   vtkPVMessage_sources
-  LANGUAGE  cpp
-  EXPORT_MACRO VTKREMOTINGSERVERMANAGER_EXPORT)
-# Install this way to hide it from the wrappers.
-vtk_module_install_headers(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/vtkPVMessage.pb.h")
-add_custom_target(vtkPVMessage_protobuf_compile
-  DEPENDS
-    ${vtkPVMessage_sources})
-vtk_module_depend(ParaView::RemotingServerManager
-  vtkPVMessage_protobuf_compile)
+# link with compiled proxy definitions
+vtk_module_link(ParaView::RemotingServerManager
+  PRIVATE
+    paraview_server_manager)

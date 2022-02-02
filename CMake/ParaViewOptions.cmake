@@ -339,7 +339,7 @@ endmacro()
 paraview_require_module(
   CONDITION PARAVIEW_BUILD_ASYNC
   MODULES   ParaView::ProcessXML
-            #ParaView::ServerManagerCore
+            ParaView::RemotingServerManager
             #ParaView::ServerManagerViews
             ParaView::ServicesCore
             ParaView::ServicesThallium
