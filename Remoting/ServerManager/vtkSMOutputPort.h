@@ -93,11 +93,6 @@ public:
    */
   vtkPVTemporalDataInformation* GetTemporalDataInformation();
 
-  /**
-   * Mark data information as invalid.
-   */
-  void InvalidateDataInformation();
-
   //@{
   /**
    * Returns the index of the port the output is obtained from.
@@ -139,6 +134,12 @@ protected:
   std::map<std::string, std::map<int, vtkSmartPointer<vtkPVDataInformation>>>
     SubsetDataInformations;
   std::map<int, vtkSmartPointer<vtkPVDataInformation>> RankDataInformations;
+
+  /**
+   * Called by vtkSMSourceProxy::PipelineUpdated(). Enqueue data information
+   * update requests.
+   */
+  void PipelineUpdated();
 
 private:
   vtkSMOutputPort(const vtkSMOutputPort&) = delete;

@@ -30,10 +30,10 @@
 #include "vtkSMDocumentation.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyIterator.h"
-#include "vtkSMProxy.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMProxySelectionModel.h"
+#include "vtkSMSourceProxy.h"
 // #include "vtkSMSettingsProxy.h"
 #include "vtkSMStateLoader.h"
 #include "vtkSmartPointer.h"
@@ -1242,4 +1242,13 @@ vtkClientSession* vtkSMSessionProxyManager::GetSession() const
 vtkProxyDefinitionManager* vtkSMSessionProxyManager::GetProxyDefinitionManager() const
 {
   return this->Internals->Session ? this->Internals->Session->GetProxyDefinitionManager() : nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMSessionProxyManager::MarkPipelineUpdated(vtkSMProxy* proxy) const
+{
+  if (auto* sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy))
+  {
+    sourceProxy->PipelineUpdated();
+  }
 }

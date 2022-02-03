@@ -225,6 +225,12 @@ public:
     BOTH
   };
 
+  /**
+   * This is called by vtkSMSessionProxyManager when the service notifies the
+   * client that the VTK-pipeline has executed.
+   */
+  void PipelineUpdated();
+
 protected:
   vtkSMSourceProxy();
   ~vtkSMSourceProxy() override;
@@ -234,11 +240,6 @@ protected:
 
   int ProcessSupport;
   bool MPIRequired;
-
-  /**
-   * Mark the data information as invalid.
-   */
-  virtual void InvalidateDataInformation();
 
   /**
    * Read attributes from an XML element.
