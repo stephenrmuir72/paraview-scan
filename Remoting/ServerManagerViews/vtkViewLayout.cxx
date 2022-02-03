@@ -29,12 +29,12 @@
 #include "vtkOpenGLRenderer.h"
 #include "vtkOpenGLState.h"
 #include "vtkPNGWriter.h"
+#include "vtkPVApplicationOptions.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkPVProcessWindow.h"
 #include "vtkPVView.h"
-#include "vtkProcessModule.h"
 #include "vtkProp.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRendererCollection.h"
 #include "vtkSmartPointer.h"
 #include "vtkTilesHelper.h"
@@ -119,21 +119,24 @@ vtkViewLayout::vtkViewLayout()
     auto ren = processWindow->GetRenderers()->GetFirstRenderer();
     ren->AddActor(this->Prop);
 
-    auto config = vtkRemotingCoreConfiguration::GetInstance();
-    if (config->GetIsInTileDisplay())
-    {
-      this->InTileDisplay = true;
-      this->SetTileMullions(config->GetTileMullions());
-      this->SetTileDimensions(config->GetTileDimensions());
-      // TODO: skip paste-back on extra ranks if not debugging.
-    }
-    else if (config->GetIsInCave())
-    {
-      this->InCave = true;
-    }
+    auto* options = vtkPVCoreApplication::GetInstance()->GetOptions();
+
+    // FIXME: ASYNC
+    // auto config = vtkRemotingCoreConfiguration::GetInstance();
+    // if (config->GetIsInTileDisplay())
+    // {
+    //   this->InTileDisplay = true;
+    //   this->SetTileMullions(config->GetTileMullions());
+    //   this->SetTileDimensions(config->GetTileDimensions());
+    //   // TODO: skip paste-back on extra ranks if not debugging.
+    // }
+    // else if (config->GetIsInCave())
+    // {
+    //   this->InCave = true;
+    // }
 
     this->DisplayResults =
-      this->InCave || this->InTileDisplay || config->GetForceOnscreenRendering();
+      this->InCave || this->InTileDisplay || options->GetForceOnscreenRendering();
   }
 }
 
@@ -294,7 +297,7 @@ void vtkViewLayout::UpdateLayoutForTileDisplay(vtkRenderWindow* vtkNotUsed(windo
   vtkVLogF(
     PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: UpdateLayoutForTileDisplay", vtkLogIdentifier(this));
 
-  const int rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  const int rank = vtkPVCoreApplication::GetInstance()->GetRank();
 
   // We are dealing with two types of tiling:
   // 1. The global tiling based on the -tdx,-tdy parameters passed to pvserver
@@ -429,7 +432,7 @@ void vtkViewLayout::Paint(vtkViewport* vp)
 
   vtkNew<vtkTilesHelper> helper;
   helper->SetTileDimensions(this->TileDimensions);
-  const int rank = vtkProcessModule::GetProcessModule()->GetPartitionId();
+  const int rank = vtkPVCoreApplication::GetInstance()->GetRank();
 
   for (auto& item : internals.Items)
   {
@@ -511,11 +514,13 @@ bool vtkViewLayout::NeedsActiveStereo() const
 bool vtkViewLayout::SaveAsPNG(int rank, const char* filename)
 {
   auto processWindow = vtkPVProcessWindow::GetRenderWindow();
-  auto pm = vtkProcessModule::GetProcessModule();
+  auto* app = vtkPVCoreApplication::GetInstance();
+  const int myRank = app->GetRank();
+  const int numRanks = app->GetNumberOfRanks();
   if (processWindow)
   {
     int result = 0;
-    if (pm->GetPartitionId() == rank)
+    if (myRank == rank)
     {
       vtkLogF(INFO, "saving tile to %s", filename);
       vtkNew<vtkWindowToImageFilter> wif;
@@ -534,9 +539,9 @@ bool vtkViewLayout::SaveAsPNG(int rank, const char* filename)
     }
 
     int all_result = result;
-    if (pm->GetNumberOfLocalPartitions() > 1)
+    if (numRanks > 1)
     {
-      pm->GetGlobalController()->Reduce(&result, &all_result, 1, 0, vtkCommunicator::MAX_OP);
+      app->GetController()->Reduce(&result, &all_result, 1, 0, vtkCommunicator::MAX_OP);
     }
     return all_result > 0;
   }

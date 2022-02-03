@@ -18,8 +18,6 @@
 #include "vtkDisplayConfiguration.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include <vtksys/SystemTools.hxx>
@@ -100,6 +98,7 @@ void vtkPVProcessWindow::PrepareForRendering()
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewWindow()
 {
+#if 0 /// need to redo this
   static bool attempted_once = false;
   if (attempted_once)
   {
@@ -111,12 +110,10 @@ vtkRenderWindow* vtkPVProcessWindow::NewWindow()
   switch (pm->GetProcessType())
   {
     case vtkProcessModule::PROCESS_SERVER:
-    case vtkProcessModule::PROCESS_RENDER_SERVER:
     case vtkProcessModule::PROCESS_BATCH:
       break;
 
     case vtkProcessModule::PROCESS_CLIENT:
-    case vtkProcessModule::PROCESS_DATA_SERVER:
     case vtkProcessModule::PROCESS_INVALID:
       // no process-window in these mode.
       return nullptr;
@@ -165,14 +162,13 @@ vtkRenderWindow* vtkPVProcessWindow::NewWindow()
   switch (pm->GetProcessType())
   {
     case vtkProcessModule::PROCESS_SERVER:
-    case vtkProcessModule::PROCESS_RENDER_SERVER:
       window->SetWindowName(
-        (std::string("ParaView Server #") + std::to_string(pm->GetPartitionId())).c_str());
+        (std::string("ParaView Server #") + std::to_string(pm->GetRank())).c_str());
       break;
 
     case vtkProcessModule::PROCESS_BATCH:
       window->SetWindowName(
-        (std::string("ParaView Batch #") + std::to_string(pm->GetPartitionId())).c_str());
+        (std::string("ParaView Batch #") + std::to_string(pm->GetRank())).c_str());
       break;
     default:
       break;
@@ -186,11 +182,14 @@ vtkRenderWindow* vtkPVProcessWindow::NewWindow()
     [](vtkObject*, unsigned long, void*, void*) { ::DeleteProcessWindowSingleton(); });
   pm->AddObserver(vtkCommand::ExitEvent, observer);
   return window;
+#endif
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
 {
+#if 0 /// need to redo this
   auto pm = vtkProcessModule::GetProcessModule();
   auto config = vtkRemotingCoreConfiguration::GetInstance();
 
@@ -202,8 +201,7 @@ vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
   // number of tiles may be less than the number of ranks; in that case we
   // don't create an on-screen window for those extra ranks unless explicitly
   // requested.
-  if (((pm->GetPartitionId() < tile_dims[0] * tile_dims[1]) &&
-        !config->GetForceOffscreenRendering()) ||
+  if (((pm->GetRank() < tile_dims[0] * tile_dims[1]) && !config->GetForceOffscreenRendering()) ||
     config->GetForceOnscreenRendering())
   {
     window = vtkRenderWindow::New();
@@ -240,11 +238,14 @@ vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
     window->SetFullScreen(1);
   }
   return window;
+#endif
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
 {
+#if 0 /// need to redo this
   auto pm = vtkProcessModule::GetProcessModule();
   auto config = vtkRemotingCoreConfiguration::GetInstance();
   auto caveConfig = config->GetDisplayConfiguration();
@@ -265,7 +266,7 @@ vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
 
   // Check if a custom window geometry was requested
   vtkTuple<int, 4> geometry(0);
-  const int idx = pm->GetPartitionId();
+  const int idx = pm->GetRank();
   const bool fullscreen = caveConfig->GetFullScreen();
   const bool showborders = caveConfig->GetShowBorders();
   if (!fullscreen)
@@ -323,4 +324,6 @@ vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
     window->SetSize(w, h);
   }
   return window;
+#endif
+  return nullptr;
 }
