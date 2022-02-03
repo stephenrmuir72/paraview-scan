@@ -529,7 +529,7 @@ int vtkSMProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* element
     // Everything else is assumed to be a domain element.
     vtkObjectBase* object = nullptr;
     std::ostringstream name;
-    name << "vtkSM" << domainEl->GetName() << ends;
+    name << "vtkSM" << domainEl->GetName();
     auto domain = vtkReflection::CreateInstance<vtkSMDomain>(name.str());
     if (domain)
     {
@@ -564,7 +564,7 @@ bool vtkSMProperty::SaveState(vtkJson& element)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMProperty::LoadState(vtkJson& element, vtkSMProxyLocator* locator)
+bool vtkSMProperty::LoadState(const vtkJson& element, vtkSMProxyLocator* locator)
 {
   return element.is_object() && element.find("name") != element.end() &&
     element.at("name").get<std::string>() == this->GetXMLName();
@@ -660,7 +660,7 @@ void vtkSMProperty::SaveDomainState(vtkPVXMLElement* propertyElement, const char
   while (!this->DomainIterator->IsAtEnd())
   {
     std::ostringstream dname;
-    dname << uid << "." << this->DomainIterator->GetKey() << ends;
+    dname << uid << "." << this->DomainIterator->GetKey();
     this->DomainIterator->GetDomain()->SaveState(propertyElement, dname.str().c_str());
     this->DomainIterator->Next();
   }

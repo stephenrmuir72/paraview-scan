@@ -439,14 +439,7 @@ void vtkSMProxy::UpdateVTKObjects()
     }
 
     vtkJson state;
-#if FIXME // ASYNC
     if (this->SaveState(state, /*tstamp*/ internals.UpdateVTKObjectsTimeStamp) && !state.empty())
-#else
-    state["group"] = this->XMLGroup;
-    state["name"] = this->XMLName;
-    state["id"] = this->GlobalID;
-    state["log_name"] = this->LogName;
-#endif
     {
       auto packet = vtkRemoteObjectProvider::UpdateState(this->GetGlobalID(), state);
       this->GetSession()->SendMessage(this->GetLocation(), std::move(packet));
@@ -459,6 +452,57 @@ void vtkSMProxy::UpdateVTKObjects()
 
   this->InvokeEvent(vtkCommand::UpdateEvent, nullptr);
 }
+
+
+//----------------------------------------------------------------------------
+bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
+{
+  auto& internals = (*this->Internals);
+  state["group"] = this->XMLGroup;
+  state["name"] = this->XMLName;
+  state["id"] = this->GlobalID;
+  state["log_name"] = this->GetLogNameOrDefault();
+  vtkJson properties = vtkJson::object();
+  for (auto& pair : internals.Properties)
+  {
+    const auto& property = pair.second.Property;
+    if (property->GetMTime() < tstamp)
+    {
+      // skip un-modified property
+      continue;
+    }
+
+    vtkJson propertyState;
+    if (property->SaveState(propertyState))
+    {
+      properties[pair.first] = std::move(propertyState);
+    }
+  }
+  state["properties"] = std::move(properties);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMProxy::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+{
+  if (json.count("properties") && json["properties"].is_object())
+  {
+    for (const auto& el : json["properties"].items())
+    {
+      const auto name = el.key();
+      if (auto* property = this->GetProperty(name.c_str()))
+      {
+        if (!property->LoadState(el.value(), locator))
+        {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
 
 //---------------------------------------------------------------------------
 bool vtkSMProxy::GatherInformation(vtkPVInformation* information)
@@ -919,7 +963,7 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propEl
   // vtkSIProxyDefinitionManager::PatchXMLProperty(propElement);
 
   std::ostringstream cname;
-  cname << "vtkSM" << propElement->GetName() << ends;
+  cname << "vtkSM" << propElement->GetName();
   auto property = vtkReflection::CreateInstance<vtkSMProperty>(cname.str());
   if (property)
   {
@@ -955,7 +999,6 @@ vtkSMProperty* vtkSMProxy::NewProperty(const char* name, vtkPVXMLElement* propEl
     //       {
     //       this->Internals->Properties[name].ModifiedFlag = 1;
     //       }
-    property->Delete();
   }
   else
   {
@@ -1609,7 +1652,7 @@ vtkPVXMLElement* vtkSMProxy::SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIt
     if (!iter->GetProperty()->GetIsInternal())
     {
       std::ostringstream propID;
-      propID << this->GetGlobalID() << "." << iter->GetKey() << ends;
+      propID << this->GetGlobalID() << "." << iter->GetKey();
       iter->GetProperty()->SaveState(proxyXml, iter->GetKey(), propID.str().c_str());
     }
   }
