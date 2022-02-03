@@ -572,7 +572,7 @@ protected:
   /**
    * Load state.
    */
-  virtual bool LoadState(vtkJson& element, vtkSMProxyLocator* locator);
+  virtual bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator);
 
   /**
    * Set the appropriate ivars from the xml element. Should

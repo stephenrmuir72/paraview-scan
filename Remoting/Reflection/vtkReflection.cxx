@@ -15,7 +15,7 @@
 #include "vtkReflection.h"
 
 #include "vtkObjectFactory.h"
-#include <map>
+#include <unordered_map>
 #include <mutex>
 
 namespace
@@ -24,15 +24,15 @@ namespace
 struct vtkReflectionSingleton
 {
   std::mutex NewCallbacksMutex;
-  std::map<std::string, std::function<vtkObject*()>> NewCallbacks;
+  std::unordered_map<std::string, std::function<vtkObject*()>> NewCallbacks;
 
   mutable std::mutex SettersMutex;
-  std::map<std::string,
+  std::unordered_map<std::string,
     std::function<bool(vtkObject*, const std::string&, const std::vector<vtkVariant>&)>>
     Setters;
 
   mutable std::mutex GettersMutex;
-  std::map<std::string,
+  std::unordered_map<std::string,
     std::function<bool(vtkObject*, const std::string&, std::vector<vtkVariant>&)>>
     Getters;
 

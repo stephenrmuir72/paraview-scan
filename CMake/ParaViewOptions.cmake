@@ -345,6 +345,7 @@ paraview_require_module(
             ParaView::ServicesThallium
             ParaView::WrapRemoting
             ParaView::RemotingReflection
+            ParaView::RemotingApplication
   )
 
 

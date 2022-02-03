@@ -133,6 +133,7 @@
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkWeakPointer.h"                 // for vtkWeakPointer
+#include "vtkJsonFwd.h" // needed for vtkJson
 
 #include "vtk_rxcpp.h" // for rxcpp
 // clang-format off
@@ -558,6 +559,22 @@ public:
 protected:
   vtkSMProxy();
   ~vtkSMProxy() override;
+
+  /**
+   * Save proxy state. `verbose` is set to true to save extraneous information
+   * useful for public facing state files. This will include things like domains
+   * etc.
+   *
+   * It tstamp is non-zero, then only those properties that have been modified
+   * since the tstamp are saved to the state.
+   */
+  bool SaveState(vtkJson& json, vtkMTimeType tstamp = 0);
+
+  /**
+   * Load state. `context` is used to locate other proxies, for example, that
+   * may be referenced in the state.
+   */
+  bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator);
 
   /**
    * Add a property with the given key (name). The name can then

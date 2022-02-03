@@ -1101,7 +1101,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkSphereSource"
                  label="Sphere"
-                 name="SphereSource">
+                 name="SphereSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a 3D sphere given a center and radius."
                      short_help="Create a 3D sphere">The Sphere source can be
                      used to add a polygonal sphere to the 3D scene. The output
