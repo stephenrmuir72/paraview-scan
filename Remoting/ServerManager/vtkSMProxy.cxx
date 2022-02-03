@@ -296,8 +296,10 @@ void vtkSMProxy::AddProperty(const char* name, vtkSMProperty* prop)
 //---------------------------------------------------------------------------
 void vtkSMProxy::InvokeCommand(const char* name)
 {
-  // FIXME:
-  abort();
+  // const auto& internals = (*this->Internals);
+  // vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
+  this->GetSession()->SendMessage(this->GetLocation(), std::move(packet));
 }
 
 //---------------------------------------------------------------------------
