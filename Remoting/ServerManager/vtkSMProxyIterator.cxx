@@ -23,10 +23,22 @@
 
 struct vtkSMProxyIteratorInternals
 {
-  vtkSMProxyManagerProxyListType::iterator ProxyIterator;
-  vtkSMProxyManagerProxyMapType::iterator ProxyListIterator;
-  vtkSMSessionProxyManagerInternals::ProxyGroupType::iterator GroupIterator;
   vtkWeakPointer<vtkSMSessionProxyManager> ProxyManager;
+
+  using ProxiesType = decltype(vtkSMSessionProxyManagerInternals::RegisteredProxies);
+  using IteratorType = ProxiesType::iterator;
+  IteratorType Iterator;
+
+  IteratorType NextUntil(
+    IteratorType iter, IteratorType end, std::function<bool(const std::string&)> criteria) const
+  {
+    while (iter != end && !criteria(iter->first.first))
+    {
+      ++iter;
+    }
+
+    return iter;
+  }
 };
 
 vtkStandardNewMacro(vtkSMProxyIterator);
@@ -35,7 +47,6 @@ vtkSMProxyIterator::vtkSMProxyIterator()
 {
   this->Internals = new vtkSMProxyIteratorInternals;
   this->Mode = vtkSMProxyIterator::ALL;
-  this->SkipPrototypes = true;
 }
 
 //---------------------------------------------------------------------------
@@ -53,230 +64,106 @@ void vtkSMProxyIterator::SetSessionProxyManager(vtkSMSessionProxyManager* pxm)
 //---------------------------------------------------------------------------
 void vtkSMProxyIterator::Begin(const char* groupName)
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-
+  auto& internals = (*this->Internals);
+  vtkSMSessionProxyManager* pm = internals.ProxyManager;
   if (!pm)
   {
     vtkWarningMacro("ProxyManager is not set. Can not perform operation: Begin()");
     return;
   }
   this->SetModeToOneGroup();
-  this->Internals->GroupIterator = pm->Internals->RegisteredProxyMap.find(groupName);
-  if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    this->Internals->ProxyListIterator = this->Internals->GroupIterator->second.begin();
-    if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-    {
-      this->Internals->ProxyIterator = this->Internals->ProxyListIterator->second.begin();
-    }
-  }
+
+  auto& registeredProxies = pm->Internals->RegisteredProxies;
+  internals.Iterator = internals.NextUntil(registeredProxies.begin(), registeredProxies.end(),
+    [&](const std::string& group) { return group == groupName; });
 }
 
 //---------------------------------------------------------------------------
 void vtkSMProxyIterator::Begin()
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-
+  auto& internals = (*this->Internals);
+  vtkSMSessionProxyManager* pm = internals.ProxyManager;
   if (!pm)
   {
     vtkWarningMacro("ProxyManager is not set. Can not perform operation: Begin()");
     return;
   }
-  this->Internals->GroupIterator = pm->Internals->RegisteredProxyMap.begin();
-  while (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    this->Internals->ProxyListIterator = this->Internals->GroupIterator->second.begin();
-    while (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-    {
-      this->Internals->ProxyIterator = this->Internals->ProxyListIterator->second.begin();
-      if (this->Internals->ProxyIterator != this->Internals->ProxyListIterator->second.end())
-      {
-        break;
-      }
-      this->Internals->ProxyListIterator++;
-    }
-    if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-    {
-      break;
-    }
-    this->Internals->GroupIterator++;
-  }
-  if (this->SkipPrototypes)
-  {
-    auto proxy = this->GetProxy();
-    if (proxy && (proxy->GetSession() == nullptr || proxy->GetGlobalID() == 0))
-    {
-      this->Next();
-    }
-  }
+
+  auto& registeredProxies = pm->Internals->RegisteredProxies;
+  internals.Iterator = registeredProxies.begin();
 }
 
 //---------------------------------------------------------------------------
 int vtkSMProxyIterator::IsAtEnd()
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
+  auto& internals = (*this->Internals);
+  vtkSMSessionProxyManager* pm = internals.ProxyManager;
+  if (pm == nullptr)
+  {
+    return 1;
+  }
 
-  if (pm == nullptr || this->Internals->GroupIterator == pm->Internals->RegisteredProxyMap.end())
-  {
-    return 1;
-  }
-  if (this->Mode == vtkSMProxyIterator::ONE_GROUP &&
-    this->Internals->ProxyListIterator == this->Internals->GroupIterator->second.end())
-  {
-    return 1;
-  }
-  return 0;
+  auto& registeredProxies = pm->Internals->RegisteredProxies;
+  return internals.Iterator == registeredProxies.end() ? 1 : 0;
 }
 
 //---------------------------------------------------------------------------
 void vtkSMProxyIterator::Next()
 {
-  this->NextInternal();
-  if (this->SkipPrototypes && !this->IsAtEnd())
+  auto& internals = (*this->Internals);
+  vtkSMSessionProxyManager* pm = internals.ProxyManager;
+  if (!pm)
   {
-    auto proxy = this->GetProxy();
-    if (proxy && (proxy->GetSession() == nullptr || proxy->GetGlobalID() == 0))
-    {
-      this->Next();
-    }
+    vtkWarningMacro("ProxyManager is not set. Can not perform operation: Begin()");
+    return;
   }
-}
 
-//---------------------------------------------------------------------------
-void vtkSMProxyIterator::NextInternal()
-{
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-  assert(pm != nullptr);
+  assert(!this->IsAtEnd());
 
-  if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    if (this->Mode == vtkSMProxyIterator::GROUPS_ONLY)
-    {
-      this->Internals->GroupIterator++;
-      if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
+  auto& registeredProxies = pm->Internals->RegisteredProxies;
+  const std::string currentGroup = this->GetGroup();
+
+  internals.Iterator =
+    internals.NextUntil(internals.Iterator, registeredProxies.end(), [&](const std::string& group) {
+      switch (this->Mode)
       {
-        this->Internals->ProxyListIterator = this->Internals->GroupIterator->second.begin();
-        if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-        {
-          this->Internals->ProxyIterator = this->Internals->ProxyListIterator->second.begin();
-        }
+        case GROUPS_ONLY:
+          return group != currentGroup;
+        case ONE_GROUP:
+          return group == currentGroup;
+        default:
+          return true;
       }
-    }
-    else
-    {
-      if (this->Internals->ProxyIterator != this->Internals->ProxyListIterator->second.end())
-      {
-        this->Internals->ProxyIterator++;
-      }
-
-      if (this->Internals->ProxyIterator == this->Internals->ProxyListIterator->second.end())
-      {
-        if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-        {
-          // Advance the proxy list iterator till
-          // we reach a non-empty proxy list. The proxy iterator
-          // must also be moved to the start of this new list.
-          this->Internals->ProxyListIterator++;
-          while (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-          {
-            this->Internals->ProxyIterator = this->Internals->ProxyListIterator->second.begin();
-            if (this->Internals->ProxyIterator != this->Internals->ProxyListIterator->second.end())
-            {
-              break;
-            }
-            this->Internals->ProxyListIterator++;
-          }
-        }
-      }
-
-      if (this->Mode != vtkSMProxyIterator::ONE_GROUP)
-      {
-        if (this->Internals->ProxyListIterator == this->Internals->GroupIterator->second.end())
-        {
-          // Advance the group iter till we reach a non-empty group.
-          // The proxt list iter and the proxy iter also need to be
-          // updated accordingly.
-          this->Internals->GroupIterator++;
-          while (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-          {
-            this->Internals->ProxyListIterator = this->Internals->GroupIterator->second.begin();
-
-            while (
-              this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-            {
-              this->Internals->ProxyIterator = this->Internals->ProxyListIterator->second.begin();
-              if (this->Internals->ProxyIterator !=
-                this->Internals->ProxyListIterator->second.end())
-              {
-                break;
-              }
-              this->Internals->ProxyListIterator++;
-            }
-
-            if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-            {
-              break;
-            }
-            this->Internals->GroupIterator++;
-          }
-        }
-      }
-    }
-  }
+    });
 }
 
 //---------------------------------------------------------------------------
 const char* vtkSMProxyIterator::GetGroup()
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-  assert(pm != nullptr);
-
-  if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    return this->Internals->GroupIterator->first.c_str();
-  }
-  return nullptr;
+  const auto& internals = (*this->Internals);
+  assert(!this->IsAtEnd());
+  return internals.Iterator->first.first.c_str();
 }
 
 //---------------------------------------------------------------------------
 const char* vtkSMProxyIterator::GetKey()
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-  assert(pm != nullptr);
-
-  if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-    {
-      return this->Internals->ProxyListIterator->first.c_str();
-    }
-  }
-  return nullptr;
+  const auto& internals = (*this->Internals);
+  assert(!this->IsAtEnd());
+  return internals.Iterator->first.second.c_str();
 }
 
 //---------------------------------------------------------------------------
 vtkSMProxy* vtkSMProxyIterator::GetProxy()
 {
-  vtkSMSessionProxyManager* pm = this->Internals->ProxyManager;
-  assert(pm != nullptr);
-
-  if (this->Internals->GroupIterator != pm->Internals->RegisteredProxyMap.end())
-  {
-    if (this->Internals->ProxyListIterator != this->Internals->GroupIterator->second.end())
-    {
-      if (this->Internals->ProxyIterator != this->Internals->ProxyListIterator->second.end())
-      {
-        return this->Internals->ProxyIterator->GetPointer()->Proxy.GetPointer();
-      }
-    }
-  }
-  return nullptr;
+  const auto& internals = (*this->Internals);
+  assert(!this->IsAtEnd());
+  return internals.Iterator->second.GetPointer();
 }
 
 //---------------------------------------------------------------------------
 void vtkSMProxyIterator::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "SkipPrototypes: " << this->SkipPrototypes << endl;
   os << indent << "Mode: " << this->Mode << endl;
 }

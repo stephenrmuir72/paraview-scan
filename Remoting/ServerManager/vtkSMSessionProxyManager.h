@@ -244,7 +244,7 @@ public:
   /**
    * Returns the number of proxies in a group.
    */
-  unsigned int GetNumberOfProxies(const char* groupname);
+  unsigned int GetNumberOfProxies(const char* groupname) const;
 
   /**
    * Given a group and an index, returns the name of a proxy.
@@ -290,7 +290,6 @@ public:
    * of managed proxies.
    */
   void UnRegisterProxy(const char* groupname, const char* name, vtkSMProxy*);
-  void UnRegisterProxy(const char* name);
   //@}
 
   /**
@@ -303,29 +302,6 @@ public:
    * Unregisters all managed proxies.
    */
   void UnRegisterProxies();
-
-  //@{
-  /**
-   * Calls UpdateVTKObjects() on all managed proxies.
-   * If modified_only flag is set, then UpdateVTKObjects will be called
-   * only those proxies that have any properties that were modified i.e.
-   * not pushed to the VTK objects.
-   */
-  void UpdateRegisteredProxies(const char* groupname, int modified_only = 1);
-  void UpdateRegisteredProxies(int modified_only = 1);
-  //@}
-
-  //@{
-  /**
-   * Updates all registered proxies in order, respecting dependencies
-   * among each other. This is used after loading state or after instantiating
-   * a compound proxy. This uses the "UpdateInputProxies" flag which
-   * vtkSMProxy checks in UpdateVTKObjects() to call UpdateVTKObjects() on the input
-   * proxies as well if the flag is set.
-   */
-  void UpdateRegisteredProxiesInOrder(int modified_only = 1);
-  void UpdateProxyInOrder(vtkSMProxy* proxy);
-  //@}
 
   /**
    * Get the number of registered links with the server manager.
@@ -500,17 +476,6 @@ public:
     const char* groupName, const char* proxyName, const char* propertyName);
   //@}
 
-  //@{
-  /**
-   * Check if UpdateInputProxies flag is set.
-   * This is used after loading state or after instantiating
-   * a compound proxy. This uses the "UpdateInputProxies" flag which
-   * vtkSMProxy checks in UpdateVTKObjects() to call UpdateVTKObjects() on the input
-   * proxies as well if the flag is set.
-   */
-  vtkGetMacro(UpdateInputProxies, int);
-  //@}
-
   /**
    * Loads server-manager configuration xml.
    */
@@ -557,6 +522,11 @@ public:
    * particular group (reggroup). Returns the first proxy found, if any.
    */
   vtkSMProxy* FindProxy(const char* reggroup, const char* xmlgroup, const char* xmltype);
+
+  /**
+   * Find a proxy given its global id.
+   */
+  vtkSMProxy* FindProxy(vtkTypeUInt32 gid) const;
 
   ///@{
   /**
@@ -631,27 +601,8 @@ protected:
    */
   void RemovePrototype(const char* groupname, const char* proxyname);
 
-  //@{
-  /**
-   * Mark/UnMark a proxy as modified.
-   */
-  void MarkProxyAsModified(vtkSMProxy*);
-  void UnMarkProxyAsModified(vtkSMProxy*);
-  //@}
-
-  /**
-   * Recursively collects all proxies referred by the proxy in the set.
-   */
-  void CollectReferredProxies(vtkSMProxyManagerProxySet& setOfProxies, vtkSMProxy* proxy);
-
-  int UpdateInputProxies;
-  vtkEventForwarderCommand* Forwarder;
-  bool StateUpdateNotification;
-
 private:
-  vtkSMSessionProxyManagerInternals* Internals;
-  vtkSMProxyManagerObserver* Observer;
-  vtkWeakPointer<vtkClientSession> Session;
+  std::unique_ptr<vtkSMSessionProxyManagerInternals> Internals;
   bool InLoadXMLState;
 
   static vtkSMSessionProxyManager* New();
