@@ -35,6 +35,7 @@ bool DoClientTest(vtkTypeUInt32 sessionId, rxcpp::schedulers::run_loop& runLoop)
   vtkSMPropertyHelper(proxy, "PhiResolution").Set(800);
   vtkSMPropertyHelper(proxy, "ThetaResolution").Set(800);
   proxy->UpdateVTKObjects();
+  proxy->UpdatePipeline(0.0);
 
   auto shrink =
     vtk::TakeSmartPointer(vtkSMSourceProxy::SafeDownCast(pxm->NewProxy("filters", "ShrinkFilter")));

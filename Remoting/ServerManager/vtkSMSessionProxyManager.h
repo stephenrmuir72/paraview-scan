@@ -602,12 +602,15 @@ protected:
   void RemovePrototype(const char* groupname, const char* proxyname);
 
 private:
-  std::unique_ptr<vtkSMSessionProxyManagerInternals> Internals;
-  bool InLoadXMLState;
-
-  static vtkSMSessionProxyManager* New();
   vtkSMSessionProxyManager(const vtkSMSessionProxyManager&) = delete;
   void operator=(const vtkSMSessionProxyManager&) = delete;
+  static vtkSMSessionProxyManager* New();
+
+  void MarkPipelineUpdated(vtkSMProxy* proxy) const;
+
+  friend class vtkSMSessionProxyManagerInternals;
+  std::unique_ptr<vtkSMSessionProxyManagerInternals> Internals;
+  bool InLoadXMLState;
 };
 
 #endif

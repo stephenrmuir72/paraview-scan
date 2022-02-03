@@ -14,11 +14,14 @@
 =========================================================================*/
 #include "vtkSMSourceProxy.h"
 
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVDataInformation.h"
+#include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
+#include "vtkRemoteObjectProvider.h"
+#include "vtkRemotingCoreUtilities.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMOutputPort.h"
@@ -72,10 +75,15 @@ struct vtkSMSourceProxyOutputPort
 
 struct vtkSMSourceProxyInternals
 {
+  const std::thread::id OwnerTID{ std::this_thread::get_id() };
   typedef std::vector<vtkSMSourceProxyOutputPort> VectorOfPorts;
   VectorOfPorts OutputPorts;
   std::vector<vtkSmartPointer<vtkSMSourceProxy>> SelectionProxies;
   std::vector<unsigned long> SelectionObservers;
+
+  vtkTypeUInt32 UpdatePipelineTag{ 0 };
+  rxcpp::subjects::behavior<std::pair<vtkTypeUInt32, bool>> UpdatePipelineSubject{ std::make_pair(
+    0, false) };
 
   // Resizes output ports and ensures that Name for each port is initialized to
   // the default.
@@ -102,6 +110,8 @@ struct vtkSMSourceProxyInternals
       this->ResizeOutputPorts(size);
     }
   }
+
+  ~vtkSMSourceProxyInternals() { this->UpdatePipelineSubject.get_subscriber().on_completed(); }
 };
 
 //---------------------------------------------------------------------------
@@ -276,27 +286,27 @@ int vtkSMSourceProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLEl
 // Call Update() on all sources with given time
 rxcpp::observable<bool> vtkSMSourceProxy::UpdatePipeline(double time)
 {
-  // FIXME:
-  //  auto& internals = (*this->Internals);
-  //  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  //  const vtkTypeUInt32 tag = ++internals.UpdatePipelineTag;
-  //
-  //  auto subscriber = internals.UpdatePipelineSubject.get_subscriber();
-  //  auto packet = vtkRemoteObjectProvider::UpdatePipeline(this->GetGlobalID(), time);
-  //  auto eventual = internals.Session->SendRequest(internals.Location, std::move(packet));
-  //  eventual.GetObservable().subscribe([this, subscriber, tag](const vtkPacket& reply) {
-  //    vtkLogF(INFO, "handle UpdatePipeline response");
-  //    const bool status = reply.GetJSON().get<bool>();
-  //    subscriber.on_next(std::make_pair(tag, status));
-  //  });
-  //
-  //  auto coordination = this->GetSession()->GetCoordination();
-  //  return internals.UpdatePipelineSubject.get_observable()
-  //    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
-  //    .take(1)
-  //    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
-  //    .observe_on(coordination);
-  return rxcpp::sources::never<bool>();
+  auto& internals = (*this->PInternals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+
+  const vtkTypeUInt32 tag = ++internals.UpdatePipelineTag;
+  auto* session = this->GetSession();
+
+  auto subscriber = internals.UpdatePipelineSubject.get_subscriber();
+  auto packet = vtkRemoteObjectProvider::UpdatePipeline(this->GetGlobalID(), time);
+  auto eventual = session->SendRequest(this->GetLocation(), std::move(packet));
+  eventual.GetObservable().subscribe([this, subscriber, tag](const vtkPacket& reply) {
+    vtkLogF(INFO, "handle UpdatePipeline response");
+    const bool status = reply.GetJSON().get<bool>();
+    subscriber.on_next(std::make_pair(tag, status));
+  });
+
+  auto coordination = session->GetCoordination();
+  return internals.UpdatePipelineSubject.get_observable()
+    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
+    .take(1)
+    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
+    .observe_on(coordination);
 }
 
 //---------------------------------------------------------------------------
@@ -434,13 +444,18 @@ vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
 }
 
 //----------------------------------------------------------------------------
-void vtkSMSourceProxy::InvalidateDataInformation()
+void vtkSMSourceProxy::PipelineUpdated()
 {
-  vtkSMSourceProxyInternals::VectorOfPorts::iterator it = this->PInternals->OutputPorts.begin();
-  for (; it != this->PInternals->OutputPorts.end(); it++)
+  // This is called when the remote VTK object has re-executed.
+  vtkLogF(INFO, "Proxy (%s, %s): %u has been updated!", this->GetXMLGroup(), this->GetXMLName(),
+    this->GetGlobalID());
+  for (const auto& item : this->PInternals->OutputPorts)
   {
-    it->Port.GetPointer()->InvalidateDataInformation();
+    item.Port->PipelineUpdated();
   }
+
+  // Notify the world that this algorithm has re-executed.
+  this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
 }
 
 //---------------------------------------------------------------------------

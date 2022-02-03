@@ -14,8 +14,12 @@
 =========================================================================*/
 #include "vtkSMOutputPort.h"
 
+#include "vtkClientSession.h"
+#include "vtkCommand.h"
 #include "vtkDataAssembly.h"
 #include "vtkDataAssemblyUtilities.h"
+#include "vtkInformationProvider.h"
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVTemporalDataInformation.h"
@@ -176,15 +180,6 @@ vtkPVDataInformation* vtkSMOutputPort::GetRankDataInformation(int rank)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMOutputPort::InvalidateDataInformation()
-{
-  this->DataInformation->SetIsObsolete(true);
-  this->TemporalDataInformation->SetIsObsolete(true);
-  this->SubsetDataInformations.clear();
-  this->RankDataInformations.clear();
-}
-
-//----------------------------------------------------------------------------
 void vtkSMOutputPort::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -213,4 +208,32 @@ void vtkSMOutputPort::SetSourceProxy(vtkSMSourceProxy* src)
 void vtkSMOutputPort::SetCompoundSourceProxy(vtkSMCompoundSourceProxy* src)
 {
   //  this->CompoundSourceProxy = src;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMOutputPort::PipelineUpdated()
+{
+  // This is called when the VTK algorithm has updated. We simply flag the data
+  // information obsolete.
+  this->DataInformation->SetIsObsolete(true);
+  this->TemporalDataInformation->SetIsObsolete(true);
+  this->SubsetDataInformations.clear();
+  this->RankDataInformations.clear();
+
+  auto* producer = this->GetSourceProxy();
+  auto* session = producer->GetSession();
+
+  auto packet =
+    vtkInformationProvider::GatherInformation(this->DataInformation, producer->GetGlobalID());
+  auto coordination = session->GetCoordination();
+  auto eventual = session->SendRequest(
+    /** FIXME**/ producer->GetLocation(), std::move(packet));
+  eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
+    vtkLogF(INFO, "received updated data information");
+    if (vtkInformationProvider::ParseResponse(packet, this->DataInformation))
+    {
+      // FIXME: need better named events
+      this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
+    }
+  });
 }
