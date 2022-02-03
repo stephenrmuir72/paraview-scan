@@ -1322,7 +1322,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkShrinkFilter"
                  label="Shrink"
-                 name="ShrinkFilter">
+                 name="ShrinkFilter"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter shrinks each input cell so they pull away from their neighbors."
                      short_help="Shrink each input cell.">The Shrink filter
                      causes the individual cells of a dataset to break apart
