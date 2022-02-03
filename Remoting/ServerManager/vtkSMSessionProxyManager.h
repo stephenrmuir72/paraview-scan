@@ -523,6 +523,11 @@ public:
    */
   vtkSMProxy* FindProxy(const char* reggroup, const char* xmlgroup, const char* xmltype);
 
+  /**
+   * Find a proxy given its global id.
+   */
+  vtkSMProxy* FindProxy(vtkTypeUInt32 gid) const;
+
   ///@{
   /**
    * Various structs with meta that are passed as callData when events are

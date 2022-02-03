@@ -180,6 +180,8 @@ vtkSMProxy* vtkSMSessionProxyManager::NewProxy(
     proxy->SetXMLName(proxyname);
     proxy->ReadXMLAttributes(this, pelement);
     proxy->Register(this);
+    internals.Proxies[proxy->GlobalID] =
+      proxy; // FIXME: if this a prototype, this need  to be fixed.
 
     // Add observers to note proxy modification.
     proxy->AddObserver(vtkCommand::PropertyModifiedEvent, internals.Observer);
@@ -1213,6 +1215,19 @@ vtkSMProxy* vtkSMSessionProxyManager::FindProxy(
     {
       return proxy;
     }
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+vtkSMProxy* vtkSMSessionProxyManager::FindProxy(vtkTypeUInt32 gid) const
+{
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  auto iter = internals.Proxies.find(gid);
+  if (iter != internals.Proxies.end() && iter->second && iter->second->GetGlobalID() == gid)
+  {
+    return iter->second;
   }
   return nullptr;
 }
