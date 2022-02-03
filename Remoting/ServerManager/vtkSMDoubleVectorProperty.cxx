@@ -18,6 +18,8 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSMVectorPropertyTemplate.h"
 
+#include "vtkJson.h" // for vtkJson
+
 vtkStandardNewMacro(vtkSMDoubleVectorProperty);
 
 class vtkSMDoubleVectorProperty::vtkInternals : public vtkSMVectorPropertyTemplate<double>
@@ -285,4 +287,13 @@ void vtkSMDoubleVectorProperty::SaveStateValues(vtkPVXMLElement* propElement)
 bool vtkSMDoubleVectorProperty::IsValueDefault()
 {
   return this->Internals->IsValueDefault();
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMDoubleVectorProperty::SaveState(vtkJson& element)
+{
+  this->Superclass::SaveState(element);
+  element["type"] = this->GetElementType();
+  this->Internals->SaveState(element);
+  return true;
 }

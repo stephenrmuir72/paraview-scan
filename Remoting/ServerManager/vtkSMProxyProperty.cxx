@@ -16,6 +16,7 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
+#include "vtkJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDomainIterator.h"
@@ -386,4 +387,26 @@ bool vtkSMProxyProperty::IsValueDefault()
 void vtkSMProxyProperty::ResetToXMLDefaults()
 {
   this->RemoveAllProxies();
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMProxyProperty::SaveState(vtkJson& element)
+{
+  this->vtkSMProperty::SaveState(element);
+  auto& internals = (*this->PPInternals);
+  element["type"] = this->GetElementType(); // variant->set_type(Variant::INPUT); // or PROXY?
+  auto array = vtkJson::array();
+  for (auto proxy : internals.GetProxies())
+  {
+    array.push_back(this->ToJson(proxy));
+  }
+  element["elements"] = std::move(array);
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+vtkJson vtkSMProxyProperty::ToJson(const vtkSmartPointer<vtkSMProxy>& value) const
+{
+  return vtkJson(value ? value->GetGlobalID() : 0);
 }

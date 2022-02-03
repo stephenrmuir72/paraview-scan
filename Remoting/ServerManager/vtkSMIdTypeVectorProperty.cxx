@@ -278,3 +278,12 @@ void vtkSMIdTypeVectorProperty::SaveStateValues(vtkPVXMLElement* propElement)
 {
   this->Internals->SaveStateValues(propElement);
 }
+
+//---------------------------------------------------------------------------
+bool vtkSMIdTypeVectorProperty::SaveState(vtkJson& element)
+{
+  this->Superclass::SaveState(element);
+  element["type"] = this->GetElementType();
+  this->Internals->SaveState(element);
+  return true;
+}

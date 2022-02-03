@@ -399,3 +399,12 @@ bool vtkSMStringVectorProperty::IsValueDefault()
 {
   return this->Internals->IsValueDefault();
 }
+
+//---------------------------------------------------------------------------
+bool vtkSMStringVectorProperty::SaveState(vtkJson& element)
+{
+  this->Superclass::SaveState(element);
+  element["type"] = this->GetElementType();
+  this->Internals->SaveState(element);
+  return true;
+}

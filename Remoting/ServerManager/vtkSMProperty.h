@@ -549,6 +549,22 @@ public:
    */
   vtkSMSessionProxyManager* GetSessionProxyManager() const;
 
+  enum PropertyTypes
+  {
+    INVALID,
+    INT,
+    DOUBLE,
+    ID_TYPE,
+    STRING,
+    PROXY,
+    INPUT
+  };
+
+  /**
+   * Returns the type elements this property holds.
+   */
+  virtual int GetElementType() const { return INVALID; };
+
 protected:
   vtkSMProperty();
   ~vtkSMProperty() override;

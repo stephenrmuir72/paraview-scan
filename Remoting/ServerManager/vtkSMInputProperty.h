@@ -92,6 +92,8 @@ public:
   vtkGetMacro(PortIndex, int);
   //@}
 
+  int GetElementType() const override { return PropertyTypes::INPUT; }
+
 protected:
   vtkSMInputProperty();
   ~vtkSMInputProperty() override;
@@ -107,6 +109,8 @@ protected:
    */
   vtkPVXMLElement* AddProxyElementState(
     vtkPVXMLElement* propertyElement, unsigned int idx) override;
+
+  bool SaveState(vtkJson& element) override;
 
   int MultipleInput;
   int PortIndex;

@@ -22,6 +22,7 @@
 #define vtkSMVectorPropertyTemplate_h
 
 #include "vtkCommand.h"      // for vtkCommand enums
+#include "vtkJson.h"         // for vtkJson
 #include "vtkPVXMLElement.h" // for vtkPVXMLElement
 
 // clang-format off
@@ -431,6 +432,24 @@ public:
       elementElement->Delete();
     }
   }
+
+  //---------------------------------------------------------------------------
+  bool SaveState(vtkJson& element) const
+  {
+    // if (this->ElementsValid) FIXME is this applicable ?
+    {
+      auto array = vtkJson::array();
+      for (auto& value : this->Values)
+      {
+        array.push_back(this->ToJson(value));
+      }
+      element["elements"] = std::move(array);
+    }
+
+    return true;
+  }
+  //---------------------------------------------------------------------------
+  vtkJson ToJson(const T& value) const { return vtkJson(value); }
 
   //---------------------------------------------------------------------------
   void ClearUncheckedElements()

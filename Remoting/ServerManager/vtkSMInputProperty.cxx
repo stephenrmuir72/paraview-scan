@@ -16,6 +16,7 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
+#include "vtkJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 
@@ -136,4 +137,25 @@ vtkPVXMLElement* vtkSMInputProperty::AddProxyElementState(vtkPVXMLElement* prop,
     proxyElm->AddAttribute("output_port", this->GetOutputPortForConnection(idx));
   }
   return proxyElm;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMInputProperty::SaveState(vtkJson& element)
+{
+  this->vtkSMProperty::SaveState(element);
+  auto& internals = (*this->PPInternals);
+  element["type"] = this->GetElementType();
+  auto array = vtkJson::array();
+  const size_t count = internals.GetProxies().size();
+  for (size_t i = 0; i < count; i++)
+  {
+    vtkJson json = vtkJson::object();
+    vtkSMProxy* value = this->GetProxy(i);
+    json["producer"] = value ? value->GetGlobalID() : 0;
+    json["index"] = value ? internals.GetPort(i) : 0;
+    array.push_back(json);
+  }
+  element["elements"] = std::move(array);
+
+  return true;
 }

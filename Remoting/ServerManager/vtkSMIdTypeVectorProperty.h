@@ -176,6 +176,8 @@ public:
    */
   void ResetToXMLDefaults() override;
 
+  int GetElementType() const override { return PropertyTypes::ID_TYPE; };
+
 protected:
   vtkSMIdTypeVectorProperty();
   ~vtkSMIdTypeVectorProperty() override;
@@ -198,6 +200,8 @@ protected:
 
   // Save concrete property values into the XML state property declaration
   void SaveStateValues(vtkPVXMLElement* propElement) override;
+
+  bool SaveState(vtkJson& element) override;
 
 private:
   vtkSMIdTypeVectorProperty(const vtkSMIdTypeVectorProperty&) = delete;

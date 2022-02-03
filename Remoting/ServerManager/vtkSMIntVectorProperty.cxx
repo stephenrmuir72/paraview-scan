@@ -287,3 +287,12 @@ bool vtkSMIntVectorProperty::IsValueDefault()
 {
   return this->Internals->IsValueDefault();
 }
+
+//---------------------------------------------------------------------------
+bool vtkSMIntVectorProperty::SaveState(vtkJson& element)
+{
+  this->Superclass::SaveState(element);
+  element["type"] = this->GetElementType();
+  this->Internals->SaveState(element);
+  return true;
+}
