@@ -235,7 +235,7 @@ vtkSMProxy* vtkSMSessionProxyManager::NewProxy(
   }
   // Find the XML element from which the proxy can be instantiated and
   // initialized
-  vtkPVXMLElement* element = this->GetProxyElement(groupName, proxyName, subProxyName);
+  auto element = this->GetProxyElement(groupName, proxyName, subProxyName);
 
   // Support for secondary group
   std::string originalGroupName = groupName;
@@ -273,6 +273,7 @@ vtkSMProxy* vtkSMSessionProxyManager::NewProxy(
     proxy->SetXMLGroup(groupname);
     proxy->SetXMLName(proxyname);
     proxy->ReadXMLAttributes(this, pelement);
+    proxy->Register(this);
     return proxy;
   }
   vtkWarningMacro("Creation of new proxy " << cname.str() << " failed (" << groupname << ", "
