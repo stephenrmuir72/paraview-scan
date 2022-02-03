@@ -36,6 +36,7 @@
 #include <vector> // needed for std::vector
 
 class vtkStringList;
+class vtkSMProxyLocator;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMStringVectorProperty : public vtkSMVectorProperty
 {
@@ -220,6 +221,7 @@ protected:
   void SaveStateValues(vtkPVXMLElement* propElement) override;
 
   bool SaveState(vtkJson& element) override;
+  bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator) override;
 
 private:
   vtkSMStringVectorProperty(const vtkSMStringVectorProperty&) = delete;

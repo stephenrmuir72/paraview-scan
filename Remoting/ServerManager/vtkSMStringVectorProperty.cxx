@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkSMStringVectorProperty.h"
 
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMVectorPropertyTemplate.h"
@@ -406,5 +407,28 @@ bool vtkSMStringVectorProperty::SaveState(vtkJson& element)
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
   this->Internals->SaveState(element);
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMStringVectorProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+{
+  if (!this->Superclass::LoadState(json, locator))
+  {
+    return false;
+  }
+
+  if (!json.contains("type") || json.at("type").get<int>() != this->GetElementType())
+  {
+    vtkLogF(ERROR, "missing 'type' information!");
+    return false;
+  }
+
+  if (!this->Internals->LoadState(json, locator))
+  {
+    vtkLogF(ERROR, "error loading elements state!");
+    return false;
+  }
+
   return true;
 }

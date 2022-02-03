@@ -111,6 +111,7 @@ protected:
     vtkPVXMLElement* propertyElement, unsigned int idx) override;
 
   bool SaveState(vtkJson& element) override;
+  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator) override;
 
   int MultipleInput;
   int PortIndex;

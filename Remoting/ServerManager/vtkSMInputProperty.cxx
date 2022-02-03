@@ -17,8 +17,10 @@
 
 #include "vtkCommand.h"
 #include "vtkJson.h"
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
+#include "vtkSMSessionProxyManager.h"
 
 vtkStandardNewMacro(vtkSMInputProperty);
 
@@ -156,6 +158,38 @@ bool vtkSMInputProperty::SaveState(vtkJson& element)
     array.push_back(json);
   }
   element["elements"] = std::move(array);
+
+  return true;
+}
+//---------------------------------------------------------------------------
+bool vtkSMInputProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+{
+  if (!this->Superclass::LoadState(json, locator))
+  {
+    return false;
+  }
+
+  if (!json.contains("type") || json.at("type").get<int>() != this->GetElementType())
+  {
+    vtkLogF(ERROR, "missing 'type' information!");
+    return false;
+  }
+
+  auto& internals = (*this->PPInternals);
+  auto* pxm = this->GetSessionProxyManager();
+  if (!pxm)
+  {
+    vtkLogF(ERROR, "proxy manager is null!");
+    return false;
+  }
+  int i = 0;
+  for (const auto& element : json.at("elements"))
+  {
+    vtkIdType gid = element["producer"].get<vtkTypeUInt32>();
+    unsigned int port = element["index"].get<unsigned int>();
+    internals.Set(i, pxm->FindProxy(gid), port);
+    i++;
+  }
 
   return true;
 }

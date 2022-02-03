@@ -37,6 +37,7 @@
 #include <vector>    // for std::vector
 
 class vtkSMProperty;
+class vtkSMProxyLocator;
 
 namespace
 {
@@ -450,6 +451,20 @@ public:
   }
   //---------------------------------------------------------------------------
   vtkJson ToJson(const T& value) const { return vtkJson(value); }
+  T ToValue(const vtkJson& value, vtkSMProxyLocator*) const { return value.get<T>(); }
+
+  //---------------------------------------------------------------------------
+  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+  {
+    std::vector<T> elements;
+
+    for (const auto& element : json.at("elements"))
+    {
+      elements.push_back(this->ToValue(element, locator));
+    }
+    this->Values = elements;
+    return true;
+  }
 
   //---------------------------------------------------------------------------
   void ClearUncheckedElements()

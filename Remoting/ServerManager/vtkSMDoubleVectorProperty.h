@@ -206,6 +206,7 @@ protected:
   void SaveStateValues(vtkPVXMLElement* propElement) override;
 
   bool SaveState(vtkJson& node) override;
+  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator) override;
 
 private:
   vtkSMDoubleVectorProperty(const vtkSMDoubleVectorProperty&) = delete;
