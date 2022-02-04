@@ -565,6 +565,11 @@ public:
    */
   virtual int GetElementType() const { return INVALID; };
 
+  /**
+   * returns the PropertyTypes given the classname.
+   */
+  static int GetPropertyType(const std::string& className);
+
 protected:
   vtkSMProperty();
   ~vtkSMProperty() override;

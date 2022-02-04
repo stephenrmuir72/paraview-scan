@@ -23,7 +23,7 @@
 #include "vtkProxyDefinitionManager.h"
 #include "vtkReflection.h"
 #include "vtkRemoteObjectProvider.h"
-// #include "vtkSMProperty.h" // for vtkSMProperty::PropertyTypes
+#include "vtkSMProperty.h" // for vtkSMProperty::PropertyTypes
 #include "vtkSmartPointer.h"
 #include "vtkStringUtilities.h"
 
@@ -38,7 +38,7 @@
 struct PropertyInformation
 {
   std::string Method;
-  int Type;
+  int Type{ vtkSMProperty::INVALID };
   bool InformationOnly{ false };
 };
 
@@ -77,8 +77,8 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
     if (vtkStringUtilities::EndsWith(child.name(), "Property"))
     {
       PropertyInformation info;
-      // info.Type = vtkSMProperty::GetPropertyType(fmt::format("vtkSM{}", child.name()));
-      // assert(info.Type != vtkSMProperty::INVALID);
+      info.Type = vtkSMProperty::GetPropertyType(fmt::format("vtkSM{}", child.name()));
+      assert(info.Type != vtkSMProperty::INVALID);
       info.Method = child.attribute("command").as_string();
       info.InformationOnly = child.attribute("information_only").as_bool(false);
       internals.Properties.emplace(child.attribute("name").as_string(), std::move(info));
@@ -142,69 +142,68 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
     }
     switch (pinfo.Type)
     {
-        // case vtkSMProperty::INT:
-        // {
-        //   auto values = value.at("elements").get<std::vector<int>>();
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::INT:
+      {
+        auto values = value.at("elements").get<std::vector<int>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
-        // case vtkSMProperty::DOUBLE:
-        // {
-        //   auto values = value.at("elements").get<std::vector<double>>();
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::DOUBLE:
+      {
+        auto values = value.at("elements").get<std::vector<double>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
-        // case vtkSMProperty::ID_TYPE:
-        // {
-        //   auto values = value.at("elements").get<std::vector<vtkIdType>>();
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::ID_TYPE:
+      {
+        auto values = value.at("elements").get<std::vector<vtkIdType>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
-        // case vtkSMProperty::STRING:
-        // {
-        //   auto values = value.at("elements").get<std::vector<std::string>>();
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::STRING:
+      {
+        auto values = value.at("elements").get<std::vector<std::string>>();
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
-        // case vtkSMProperty::PROXY:
-        // {
-        //   auto objectStore = provider->GetObjectStore();
-        //   auto gids = value.at("elements").get<std::vector<vtkTypeUInt32>>();
-        //   // convert gids to vtkobjects
-        //   std::vector<vtkObject*> values;
-        //   values.reserve(gids.size());
-        //   std::transform(
-        //     gids.begin(), gids.end(), std::back_inserter(values), [&objectStore](vtkTypeUInt32
-        //     gid) {
-        //       auto smartPtr = objectStore->FindObject(gid);
-        //       auto* wrapper = vtkObjectWrapper::SafeDownCast(smartPtr);
-        //       return (wrapper ? wrapper->GetVTKObject() : nullptr);
-        //     });
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::PROXY:
+      {
+        auto objectStore = provider->GetObjectStore();
+        auto gids = value.at("elements").get<std::vector<vtkTypeUInt32>>();
+        // convert gids to vtkobjects
+        std::vector<vtkObject*> values;
+        values.reserve(gids.size());
+        std::transform(
+          gids.begin(), gids.end(), std::back_inserter(values), [&objectStore](vtkTypeUInt32 gid) {
+            auto smartPtr = objectStore->FindObject(gid);
+            auto* wrapper = vtkObjectWrapper::SafeDownCast(smartPtr);
+            return (wrapper ? wrapper->GetVTKObject() : nullptr);
+          });
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
-        // case vtkSMProperty::INPUT:
-        // {
-        //   auto objectStore = provider->GetObjectStore();
-        //   std::vector<vtkAlgorithmOutput*> values;
-        //   for (const auto& json : value.at("elements"))
-        //   {
-        //     auto producer = objectStore->FindObject(json.at("producer").get<vtkTypeUInt32>());
-        //     auto* wrapper = vtkObjectWrapper::SafeDownCast(producer);
-        //     if (auto* algorithm =
-        //           wrapper ? vtkAlgorithm::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
-        //     {
-        //       values.push_back(algorithm->GetOutputPort(json.at("index").get<int>()));
-        //     }
-        //   }
-        //   vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        // }
-        // break;
+      case vtkSMProperty::INPUT:
+      {
+        auto objectStore = provider->GetObjectStore();
+        std::vector<vtkAlgorithmOutput*> values;
+        for (const auto& json : value.at("elements"))
+        {
+          auto producer = objectStore->FindObject(json.at("producer").get<vtkTypeUInt32>());
+          auto* wrapper = vtkObjectWrapper::SafeDownCast(producer);
+          if (auto* algorithm =
+                wrapper ? vtkAlgorithm::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
+          {
+            values.push_back(algorithm->GetOutputPort(json.at("index").get<int>()));
+          }
+        }
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+      }
+      break;
 
       default:
         abort();
