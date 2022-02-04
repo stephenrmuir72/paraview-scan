@@ -1,0 +1,4 @@
+* text=auto
+
+# XXX(kitware): ignore whitespace issues
+* -whitespace
