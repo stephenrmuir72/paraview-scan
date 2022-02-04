@@ -23,6 +23,52 @@
 
 namespace
 {
+// Redefined from vtkRenderWindow.h
+static const int VTK_STEREO_CRYSTAL_EYES = 1;
+static const int VTK_STEREO_RED_BLUE = 2;
+static const int VTK_STEREO_INTERLACED = 3;
+static const int VTK_STEREO_LEFT = 4;
+static const int VTK_STEREO_RIGHT = 5;
+static const int VTK_STEREO_DRESDEN = 6;
+static const int VTK_STEREO_ANAGLYPH = 7;
+static const int VTK_STEREO_CHECKERBOARD = 8;
+static const int VTK_STEREO_SPLITVIEWPORT_HORIZONTAL = 9;
+static const int VTK_STEREO_FAKE = 10;
+static const int VTK_STEREO_EMULATE = 11;
+
+int ParseStereoType(const std::string& value)
+{
+  if (value == "Crystal Eyes")
+  {
+    return VTK_STEREO_CRYSTAL_EYES;
+  }
+  else if (value == "Red-Blue")
+  {
+    return VTK_STEREO_RED_BLUE;
+  }
+  else if (value == "Interlaced")
+  {
+    return VTK_STEREO_INTERLACED;
+  }
+  else if (value == "Dresden")
+  {
+    return VTK_STEREO_DRESDEN;
+  }
+  else if (value == "Anaglyph")
+  {
+    return VTK_STEREO_ANAGLYPH;
+  }
+  else if (value == "Checkerboard")
+  {
+    return VTK_STEREO_CHECKERBOARD;
+  }
+  else if (value == "SplitViewportHorizontal")
+  {
+    return VTK_STEREO_SPLITVIEWPORT_HORIZONTAL;
+  }
+  throw CLI::ValidationError("Invalid stereo-type specified.");
+}
+
 // This is fairly naive. It's not smart enough to detect 'quoted words'
 // and treat them as a single word. However, works reasonably okay for our
 // use-case.
@@ -108,6 +154,9 @@ public:
   bool DisableXDisplayTests{ false };
   bool ForceOffscreenRendering{ false };
   bool ForceOnscreenRendering{ false };
+  bool UseStereoRendering{ false };
+  int StereoType{ 0 };
+  double EyeSeparation{ 0.06 };
   std::vector<std::pair<std::string, vtkLogger::Verbosity>> LogFiles;
   std::string LocalHostname;
   int ConnectID{ 0 };
@@ -261,6 +310,77 @@ void vtkPVApplicationOptions::SetForceOffscreenRendering(bool value)
 }
 
 //----------------------------------------------------------------------------
+bool vtkPVApplicationOptions::GetUseStereoRendering() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.UseStereoRendering;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVApplicationOptions::SetUseStereoRendering(bool value)
+{
+  auto& internals = (*this->Internals);
+  CHECK_READ_ONLY(internals);
+  internals.UseStereoRendering = value;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVApplicationOptions::GetStereoType() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.StereoType;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkPVApplicationOptions::GetStereoTypeAsString() const
+{
+  switch (this->GetStereoType())
+  {
+    case VTK_STEREO_CRYSTAL_EYES:
+      return "Crystal Eyes";
+    case VTK_STEREO_RED_BLUE:
+      return "Red-Blue";
+    case VTK_STEREO_INTERLACED:
+      return "Interlaced";
+    case VTK_STEREO_LEFT:
+      return "Left";
+    case VTK_STEREO_RIGHT:
+      return "Right";
+    case VTK_STEREO_DRESDEN:
+      return "Dresden";
+    case VTK_STEREO_ANAGLYPH:
+      return "Anaglyph";
+    case VTK_STEREO_CHECKERBOARD:
+      return "Checkerboard";
+    case VTK_STEREO_SPLITVIEWPORT_HORIZONTAL:
+      return "SplitViewportHorizontal";
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVApplicationOptions::SetStereoType(int value)
+{
+  auto& internals = (*this->Internals);
+  CHECK_READ_ONLY(internals);
+  internals.StereoType = value;
+}
+
+//----------------------------------------------------------------------------
+double vtkPVApplicationOptions::GetEyeSeparation() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.EyeSeparation;
+}
+//----------------------------------------------------------------------------
+void vtkPVApplicationOptions::SetEyeSeparator(double value)
+{
+  auto& internals = (*this->Internals);
+  CHECK_READ_ONLY(internals);
+  internals.EyeSeparation = value;
+}
+
+//----------------------------------------------------------------------------
 int vtkPVApplicationOptions::GetConnectID() const
 {
   auto& internals = (*this->Internals);
@@ -392,6 +512,23 @@ void vtkPVApplicationOptions::Populate(CLI::App& app)
       "you are getting remote-rendering disabled errors and you are positive that "
       "the X environment is set up properly and your OpenGL support is adequate (experimental).")
     ->default_val(internals.DisableXDisplayTests);
+
+  //---------------------------------------------------------------------------
+  // Stereo specific options
+  //---------------------------------------------------------------------------
+  auto* stereoGroup = app.add_option_group("Stereo", "Stereo rendering options");
+  stereoGroup->add_flag("--stereo", internals.UseStereoRendering, "Enable stereo rendering.");
+  stereoGroup
+    ->add_option("--stereo-type", internals.StereoType,
+      "Specify the stereo type to use. Possible values are 'Crystal Eyes', "
+      "'Red-Blue', 'Interlaced', 'Dresden', 'Anaglyph', 'Checkerboard', or "
+      "'SplitViewportHorizontal'.")
+    ->needs("--stereo")
+    ->transform([](const std::string& value) { return std::to_string(::ParseStereoType(value)); });
+
+  stereoGroup
+    ->add_option("--eye-separation", internals.EyeSeparation, "Specify eye separation distance.")
+    ->needs("--stereo");
 }
 
 //----------------------------------------------------------------------------
