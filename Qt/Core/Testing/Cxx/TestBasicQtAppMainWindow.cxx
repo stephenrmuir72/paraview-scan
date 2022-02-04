@@ -81,7 +81,6 @@ void TestBasicQtAppMainWindow::QInternals::setupSession(
   auto observable = session->GetProgressObservable().subscribe(
     rxcpp::util::apply_to([progressWidget](const std::string& serviceName,
                             const vtkRemoteObjectProvider::vtkProgressItem& item) {
-      vtkLogF(INFO, "progress: ");
       if (item.Progress == 100)
       {
         progressWidget->enableProgress(false);
