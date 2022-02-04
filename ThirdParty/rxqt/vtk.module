@@ -1,0 +1,7 @@
+NAME
+  ParaView::rxqt
+LIBRARY_NAME
+  vtkrxqt
+DEPENDS
+  ParaView::rxcpp
+THIRD_PARTY
