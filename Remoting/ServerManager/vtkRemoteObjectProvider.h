@@ -70,8 +70,20 @@ public:
   ///@}
 
   ///@{
+  struct vtkProgressItem
+  {
+    std::string Message;
+    int8_t Progress;
+    vtkTypeUInt32 GlobalID;
+    bool operator==(const vtkProgressItem& other) const
+    {
+      return this->Message == other.Message && this->Progress == other.Progress &&
+        this->GlobalID == other.GlobalID;
+    }
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(vtkProgressItem, Message, Progress, GlobalID);
+  };
   static const std::string CHANNEL_PROGRESS() { return "pipeline::progress"; }
-  static std::tuple<vtkTypeUInt32, std::string, int8_t> ParseProgress(const vtkPacket& packet);
+  static vtkProgressItem ParseProgress(const vtkPacket& packet);
   ///@}
 
 protected:

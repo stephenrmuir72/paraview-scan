@@ -37,7 +37,7 @@ public:
   vtkSmartPointer<vtkSMSessionProxyManager> ProxyManager;
   std::vector<vtkSmartPointer<vtkChannelSubscription>> ProgressSubscriptions;
 
-  rxcpp::subjects::subject<std::tuple<std::string, vtkSMProxy*, std::string, int8_t>>
+  rxcpp::subjects::subject<std::tuple<std::string, vtkRemoteObjectProvider::vtkProgressItem>>
     ProgressSubject;
 
   /**
@@ -129,13 +129,13 @@ void vtkClientSession::InitializeServiceEndpoint(vtkServiceEndpoint* endpoint)
   auto& internals = (*this->Internals);
   auto subscription = endpoint->Subscribe(vtkRemoteObjectProvider::CHANNEL_PROGRESS());
   subscription->GetObservable().subscribe([&internals, serviceName](const vtkPacket& packet) {
-    const auto tuple = vtkRemoteObjectProvider::ParseProgress(packet);
-    // auto proxy = internals.ProxyManager->FindProxy(std::get<0>(tuple));
-    // auto text = std::get<1>(tuple);
-    // auto progress = std::get<2>(tuple);
-    // vtkLogF(INFO, "progress %s %s %d", proxy->GetName().c_str(), text.c_str(), progress);
-    // internals.ProgressSubject.get_subscriber().on_next(
-    //   std::make_tuple(serviceName, proxy.GetPointer(), text, progress));
+    auto item = vtkRemoteObjectProvider::ParseProgress(packet);
+    auto* proxy = internals.ProxyManager->FindProxy(item.GlobalID);
+    if (item.Message.empty() && proxy != nullptr)
+    {
+      item.Message = proxy->GetLogNameOrDefault();
+    }
+    internals.ProgressSubject.get_subscriber().on_next(std::make_tuple(serviceName, item));
   });
   internals.ProgressSubscriptions.push_back(subscription);
 }
@@ -236,6 +236,14 @@ std::vector<vtkServiceEndpoint*> vtkClientSession::GetEndpoints(int type) const
 {
   const auto& internals = (*this->Internals);
   return internals.GetEndpoints(type);
+}
+
+//----------------------------------------------------------------------------
+rxcpp::observable<std::tuple<std::string, vtkRemoteObjectProvider::vtkProgressItem>>
+vtkClientSession::GetProgressObservable() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ProgressSubject.get_observable();
 }
 
 //----------------------------------------------------------------------------
