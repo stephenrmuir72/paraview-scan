@@ -35,11 +35,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerConfiguration.h"
 #include "pqServerResource.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVGUIOptions.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkResourceFileLocator.h"
 #include "vtkVersion.h"
 
@@ -61,8 +61,11 @@ static QString userServers()
 
 static const std::vector<std::string>& customServers()
 {
-  return vtkRemotingCoreConfiguration::GetInstance()->GetServerConfigurationsFiles();
+  auto* app = vtkPVGUIApplication::GetInstance();
+  Q_ASSERT(app != nullptr);
+  return app->GetOptions()->GetServerConfigurationsFiles();
 }
+
 // get path to shared system servers.
 static QString systemServers()
 {
@@ -94,7 +97,15 @@ static QString defaultServers()
   }
   return QString();
 }
+
+static bool disableRegistry()
+{
+  auto* app = vtkPVGUIApplication::GetInstance();
+  Q_ASSERT(app != nullptr);
+  return app->GetOptions()->GetDisableRegistry();
 }
+
+} // namespace {}
 
 //-----------------------------------------------------------------------------
 pqServerConfigurationCollection::pqServerConfigurationCollection(QObject* parentObject)
@@ -108,7 +119,7 @@ pqServerConfigurationCollection::pqServerConfigurationCollection(QObject* parent
   config.setMutable(false);
   this->Configurations["builtin"] = config;
 
-  if (!vtkRemotingCoreConfiguration::GetInstance()->GetDisableRegistry())
+  if (!disableRegistry())
   {
     this->load(defaultServers(), false);
     this->load(systemServers(), false);
@@ -123,8 +134,7 @@ pqServerConfigurationCollection::pqServerConfigurationCollection(QObject* parent
 //-----------------------------------------------------------------------------
 pqServerConfigurationCollection::~pqServerConfigurationCollection()
 {
-  auto config = vtkRemotingCoreConfiguration::GetInstance();
-  if (!config->GetDisableRegistry())
+  if (!disableRegistry())
   {
     this->save(userServers(), true);
   }
@@ -147,9 +157,7 @@ bool pqServerConfigurationCollection::load(const QString& filename, bool mutable
 //-----------------------------------------------------------------------------
 bool pqServerConfigurationCollection::saveNow()
 {
-  auto config = vtkRemotingCoreConfiguration::GetInstance();
-  if (!config->GetDisableRegistry())
-
+  if (!disableRegistry())
   {
     return this->save(userServers(), true);
   }

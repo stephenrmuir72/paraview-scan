@@ -43,10 +43,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QStringList>
 
-#include "pqApplicationCore.h"
 #include "pqSettings.h"
 #include "vtkNumberToString.h"
 #include "vtkObject.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkWeakPointer.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -91,7 +91,7 @@ QWidget* pqCoreUtilities::findMainWindow()
 //-----------------------------------------------------------------------------
 QString pqCoreUtilities::getParaViewUserDirectory()
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   return QFileInfo(settings->fileName()).path();
 }
 
@@ -250,7 +250,7 @@ bool pqCoreUtilities::promptUser(const QString& settingsKey, QMessageBox::Icon i
 
   parentWdg = parentWdg ? parentWdg : pqCoreUtilities::mainWidget();
 
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   if (settings->contains(settingsKey))
   {
     return true;

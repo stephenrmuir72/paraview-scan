@@ -44,6 +44,16 @@ public:
    */
   void PostRenderingResult(const vtkPacket& packet);
 
+  ///@{
+  /**
+   * Use this to indicate that the process should use
+   * vtkGenericOpenGLRenderWindow rather than vtkRenderWindow when creating an
+   * new render window.
+   */
+  static void SetUseGenericOpenGLRenderWindow(bool val);
+  static bool GetUseGenericOpenGLRenderWindow();
+  ///@}
+
 protected:
   vtkSMViewProxy();
   ~vtkSMViewProxy() override;
@@ -54,6 +64,7 @@ private:
 
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
+  static bool UseGenericOpenGLRenderWindow;
 };
 
 #endif

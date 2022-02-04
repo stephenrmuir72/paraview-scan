@@ -349,6 +349,7 @@ paraview_require_module(
             ParaView::RemotingReflection
             ParaView::RemotingApplication
             ParaView::pqWidgets
+            ParaView::pqCore
   )
 
 

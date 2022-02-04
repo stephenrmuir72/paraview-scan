@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqApplicationCore_h
 #define pqApplicationCore_h
 
+#error "Bye pqApplicationCore!"
 #include "pqCoreModule.h"
 #include "pqQtConfig.h"             // for PARAVIEW_USE_QTHELP
 #include "vtkParaViewDeprecation.h" // for PARAVIEW_DEPRECATED_IN_5_10_0
