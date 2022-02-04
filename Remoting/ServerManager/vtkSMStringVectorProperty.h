@@ -36,6 +36,7 @@
 #include <vector> // needed for std::vector
 
 class vtkStringList;
+class vtkSMProxyLocator;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMStringVectorProperty : public vtkSMVectorProperty
 {
@@ -188,6 +189,8 @@ public:
    */
   void ResetToXMLDefaults() override;
 
+  int GetElementType() const override { return PropertyTypes::STRING; };
+
 protected:
   vtkSMStringVectorProperty();
   ~vtkSMStringVectorProperty() override;
@@ -216,6 +219,9 @@ protected:
 
   // Save concrete property values into the XML state property declaration
   void SaveStateValues(vtkPVXMLElement* propElement) override;
+
+  bool SaveState(vtkJson& element) override;
+  bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator) override;
 
 private:
   vtkSMStringVectorProperty(const vtkSMStringVectorProperty&) = delete;

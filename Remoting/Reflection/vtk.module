@@ -9,5 +9,6 @@ DEPENDS
   VTK::CommonSystem
 TEST_DEPENDS
   VTK::TestingCore
+  ParaView::RemotingApplication
 TEST_LABELS
   ParaView

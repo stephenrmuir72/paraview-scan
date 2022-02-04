@@ -175,6 +175,8 @@ public:
    */
   void ResetToXMLDefaults() override;
 
+  int GetElementType() const override { return PropertyTypes::PROXY; }
+
 protected:
   vtkSMProxyProperty();
   ~vtkSMProxyProperty() override;
@@ -203,6 +205,10 @@ protected:
    * Updates state from an XML element. Returns 0 on failure.
    */
   int LoadState(vtkPVXMLElement* element, vtkSMProxyLocator* loader) override;
+
+  bool SaveState(vtkJson& element) override;
+  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator) override;
+  vtkJson ToJson(const vtkSmartPointer<vtkSMProxy>& value) const;
 
   /**
    * Called when a producer fires the vtkCommand::UpdateDataEvent. We update all

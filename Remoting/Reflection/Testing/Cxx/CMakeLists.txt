@@ -1,0 +1,4 @@
+vtk_add_test_cxx(vtkRemotingReflectionCxxTests tests
+  TestReflectionBasic,TestReflectionBasic.cxx,NO_VALID)
+
+vtk_test_cxx_executable(vtkRemotingReflectionCxxTests tests)

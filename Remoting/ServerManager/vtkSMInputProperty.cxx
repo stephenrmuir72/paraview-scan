@@ -16,8 +16,11 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
+#include "vtkJson.h"
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
+#include "vtkSMSessionProxyManager.h"
 
 vtkStandardNewMacro(vtkSMInputProperty);
 
@@ -136,4 +139,57 @@ vtkPVXMLElement* vtkSMInputProperty::AddProxyElementState(vtkPVXMLElement* prop,
     proxyElm->AddAttribute("output_port", this->GetOutputPortForConnection(idx));
   }
   return proxyElm;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMInputProperty::SaveState(vtkJson& element)
+{
+  this->vtkSMProperty::SaveState(element);
+  auto& internals = (*this->PPInternals);
+  element["type"] = this->GetElementType();
+  auto array = vtkJson::array();
+  const size_t count = internals.GetProxies().size();
+  for (size_t i = 0; i < count; i++)
+  {
+    vtkJson json = vtkJson::object();
+    vtkSMProxy* value = this->GetProxy(i);
+    json["producer"] = value ? value->GetGlobalID() : 0;
+    json["index"] = value ? internals.GetPort(i) : 0;
+    array.push_back(json);
+  }
+  element["elements"] = std::move(array);
+
+  return true;
+}
+//---------------------------------------------------------------------------
+bool vtkSMInputProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+{
+  if (!this->Superclass::LoadState(json, locator))
+  {
+    return false;
+  }
+
+  if (!json.contains("type") || json.at("type").get<int>() != this->GetElementType())
+  {
+    vtkLogF(ERROR, "missing 'type' information!");
+    return false;
+  }
+
+  auto& internals = (*this->PPInternals);
+  auto* pxm = this->GetSessionProxyManager();
+  if (!pxm)
+  {
+    vtkLogF(ERROR, "proxy manager is null!");
+    return false;
+  }
+  int i = 0;
+  for (const auto& element : json.at("elements"))
+  {
+    vtkIdType gid = element["producer"].get<vtkTypeUInt32>();
+    unsigned int port = element["index"].get<unsigned int>();
+    internals.Set(i, pxm->FindProxy(gid), port);
+    i++;
+  }
+
+  return true;
 }

@@ -631,6 +631,37 @@ void vtkSMProperty::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //---------------------------------------------------------------------------
+int vtkSMProperty::GetPropertyType(const std::string& className)
+{
+  if (className == "vtkSMIntVectorProperty")
+  {
+    return INT;
+  }
+  if (className == "vtkSMDoubleVectorProperty")
+  {
+    return DOUBLE;
+  }
+  if (className == "vtkSMIdTypeVectorProperty")
+  {
+    return ID_TYPE;
+  }
+  if (className == "vtkSMStringVectorProperty")
+  {
+    return STRING;
+  }
+  if (className == "vtkSMProxyProperty")
+  {
+    return PROXY;
+  }
+  if (className == "vtkSMInputProperty")
+  {
+    return INPUT;
+  }
+
+  return INVALID;
+}
+
+//---------------------------------------------------------------------------
 void vtkSMProperty::SaveState(
   vtkPVXMLElement* parent, const char* property_name, const char* uid, int saveDomains /*=1*/)
 {

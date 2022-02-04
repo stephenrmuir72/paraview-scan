@@ -16,6 +16,8 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
+#include "vtkJson.h"
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDomainIterator.h"
@@ -386,4 +388,57 @@ bool vtkSMProxyProperty::IsValueDefault()
 void vtkSMProxyProperty::ResetToXMLDefaults()
 {
   this->RemoveAllProxies();
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMProxyProperty::SaveState(vtkJson& element)
+{
+  this->vtkSMProperty::SaveState(element);
+  auto& internals = (*this->PPInternals);
+  element["type"] = this->GetElementType(); // variant->set_type(Variant::INPUT); // or PROXY?
+  auto array = vtkJson::array();
+  for (auto proxy : internals.GetProxies())
+  {
+    array.push_back(this->ToJson(proxy));
+  }
+  element["elements"] = std::move(array);
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSMProxyProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+{
+  if (!this->Superclass::LoadState(json, locator))
+  {
+    return false;
+  }
+
+  if (!json.contains("type") || json.at("type").get<int>() != this->GetElementType())
+  {
+    vtkLogF(ERROR, "missing 'type' information!");
+    return false;
+  }
+
+  auto& internals = (*this->PPInternals);
+  auto* pxm = this->GetSessionProxyManager();
+  if (!pxm)
+  {
+    vtkLogF(ERROR, "proxy manager is null!");
+    return false;
+  }
+  int i = 0;
+  for (const auto& element : json.at("elements"))
+  {
+    internals.Set(i, pxm->FindProxy(element.get<vtkTypeUInt32>()));
+    i++;
+  }
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+vtkJson vtkSMProxyProperty::ToJson(const vtkSmartPointer<vtkSMProxy>& value) const
+{
+  return vtkJson(value ? value->GetGlobalID() : 0);
 }

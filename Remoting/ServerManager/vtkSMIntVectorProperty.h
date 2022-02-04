@@ -175,6 +175,8 @@ public:
    */
   void ResetToXMLDefaults() override;
 
+  int GetElementType() const override { return PropertyTypes::INT; };
+
 protected:
   vtkSMIntVectorProperty();
   ~vtkSMIntVectorProperty() override;
@@ -193,6 +195,9 @@ protected:
    * before a domain check is performed.
    */
   void SetNumberOfUncheckedElements(unsigned int num) override;
+
+  bool SaveState(vtkJson& node) override;
+  bool LoadState(const vtkJson& node, vtkSMProxyLocator* loader) override;
 
   /**
    * Load the XML state.
