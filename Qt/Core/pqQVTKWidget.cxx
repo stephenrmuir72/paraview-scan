@@ -36,15 +36,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include "QVTKOpenGLNativeWidget.h"
-#include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
 #include "pqQVTKWidgetBase.h"
-#include "pqUndoStack.h"
+#include "vtkPVApplicationOptions.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkPVLogger.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSession.h"
 #include "vtkSMViewProxy.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -54,7 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------------------
 pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f)
   : pqQVTKWidget(
-      parentObject, f, vtkRemotingCoreConfiguration::GetInstance()->GetUseStereoRendering())
+      parentObject, f, vtkPVCoreApplication::GetInstance()->GetOptions()->GetUseStereoRendering())
 {
 }
 
@@ -99,7 +97,7 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
   }
 
   // if active stereo requested, then we need to request appropriate context.
-  auto config = vtkRemotingCoreConfiguration::GetInstance();
+  auto config = vtkPVCoreApplication::GetInstance()->GetOptions();
   if (config->GetStereoType() == VTK_STEREO_CRYSTAL_EYES)
   {
 #if PARAVIEW_USING_QVTKOPENGLSTEREOWIDGET
@@ -123,18 +121,16 @@ void pqQVTKWidget::setViewProxy(vtkSMProxy* view)
   {
     this->VTKConnect->Disconnect();
     this->ViewProxy = view;
+#if 0 // FIXME: ASYNC
+    // this should not be needed anymore...rendering and display are two
+    // different things.
     if (view)
     {
       this->VTKConnect->Connect(
         view, vtkSMViewProxy::PrepareContextForRendering, this, SLOT(prepareContextForRendering()));
     }
+#endif
   }
-}
-
-//----------------------------------------------------------------------------
-void pqQVTKWidget::setSession(vtkSMSession* session)
-{
-  this->Session = session;
 }
 
 //----------------------------------------------------------------------------
@@ -146,6 +142,7 @@ bool pqQVTKWidget::renderVTK()
 //----------------------------------------------------------------------------
 bool pqQVTKWidget::canRender()
 {
+#if 0 // FIXME: ASYNC -- this should not be necessary anymore!
   // despite our best efforts, it's possible that the paint event happens while
   // the server manager is busy processing some other request that yields
   // progress (e.g. pvcrs.UndoRedo2 test).
@@ -160,6 +157,7 @@ bool pqQVTKWidget::canRender()
   {
     return false;
   }
+#endif
 
   return true;
 }
@@ -182,7 +180,7 @@ void pqQVTKWidget::resizeEvent(QResizeEvent* evt)
 
   if (this->ViewProxy)
   {
-    BEGIN_UNDO_EXCLUDE();
+    // BEGIN_UNDO_EXCLUDE(); FIXME: ASYNC
     // this is necessary only because resizeEvent are not propagated immediately
     // from the QWidget to an embedded QOpenGLWindow and hence the vtkRenderWindow
     // will not see updated size until Qt's event processing catches up. This can
@@ -192,7 +190,7 @@ void pqQVTKWidget::resizeEvent(QResizeEvent* evt)
     const int inewsize[2] = { newsize.width(), newsize.height() };
     vtkSMPropertyHelper(this->ViewProxy, "ViewSize").Set(inewsize, 2);
     this->ViewProxy->UpdateVTKObjects();
-    END_UNDO_EXCLUDE();
+    // END_UNDO_EXCLUDE(); FIXME: ASYNC
   }
 }
 #endif

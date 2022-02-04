@@ -15,13 +15,13 @@
 #include "vtkSMUtilities.h"
 
 #include "vtkBMPWriter.h"
-#include "vtkClientServerStreamInstantiator.h"
+#include "vtkReflection.h"
 #include "vtkErrorCode.h"
 #include "vtkImageData.h"
 #include "vtkImageIterator.h"
 #include "vtkJPEGWriter.h"
 #include "vtkMath.h"
-#include "vtkMultiProcessController.h"
+#include "vtkPVCoreApplication.h"
 #include "vtkObjectFactory.h"
 #include "vtkPNGWriter.h"
 #include "vtkPNMWriter.h"
@@ -109,19 +109,11 @@ int vtkSMUtilities::SaveImage(vtkImageData* image, const char* filename, const c
     return vtkErrorCode::UnknownError;
   }
 
-  auto object = vtkClientServerStreamInstantiator::CreateInstance(writerName);
-  if (!object)
-  {
-    vtkTimerLog::MarkEndEvent("vtkSMUtilities::SaveImage");
-    vtkGenericWarningMacro("Failed to create Writer " << writerName);
-    return vtkErrorCode::UnknownError;
-  }
-  vtkImageWriter* writer = vtkImageWriter::SafeDownCast(object);
+  auto writer = vtkReflection::CreateInstance<vtkImageWriter>(writerName);
   if (!writer)
   {
     vtkTimerLog::MarkEndEvent("vtkSMUtilities::SaveImage");
-    vtkGenericWarningMacro("Object is not a vtkImageWriter: " << object->GetClassName());
-    object->Delete();
+    vtkGenericWarningMacro("Object is not a vtkImageWriter: " << writerName);
     return vtkErrorCode::UnknownError;
   }
 
@@ -129,7 +121,6 @@ int vtkSMUtilities::SaveImage(vtkImageData* image, const char* filename, const c
   writer->SetFileName(filename);
   writer->Write();
   int error_code = writer->GetErrorCode();
-  writer->Delete();
 
   vtkTimerLog::MarkEndEvent("vtkSMUtilities::SaveImage");
   return error_code;
@@ -142,10 +133,10 @@ int vtkSMUtilities::SaveImage(vtkImageData* image, const char* filename, const c
 int vtkSMUtilities::SaveImageOnProcessZero(
   vtkImageData* image, const char* filename, const char* writerName)
 {
+#if 0 // FIXME: ASYNC
   vtkTimerLog::MarkStartEvent("vtkSMUtilities::SaveImageOnProcessZero");
   int error_code;
   vtkMultiProcessController* controller = vtkMultiProcessController::GetGlobalController();
-
   if (controller)
   {
     if (controller->GetLocalProcessId() == 0)
@@ -161,6 +152,11 @@ int vtkSMUtilities::SaveImageOnProcessZero(
 
   vtkTimerLog::MarkEndEvent("vtkSMUtilities::SaveImageOnProcessZero");
   return error_code;
+
+#else
+  abort();
+#endif
+
 }
 
 //----------------------------------------------------------------------------

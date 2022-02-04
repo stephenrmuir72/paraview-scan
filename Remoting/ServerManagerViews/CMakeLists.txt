@@ -47,6 +47,7 @@ set(classes
   vtkPVView
   vtkPVViewProvider
   vtkServerSessionViews
+  vtkSMUtilities
   vtkSMViewProxy
   vtkTilesHelper
   vtkViewLayout

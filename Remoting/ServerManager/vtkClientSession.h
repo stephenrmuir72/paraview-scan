@@ -21,7 +21,8 @@
 #ifndef vtkClientSession_h
 #define vtkClientSession_h
 
-#include "vtkEventual.h" // for vtkEventual
+#include "vtkEventual.h"             // for vtkEventual
+#include "vtkRemoteObjectProvider.h" // for vtkRemoteObjectProvider::vtkProgressItem
 #include "vtkSession.h"
 
 #include <memory> // for std::unique_ptr
@@ -88,6 +89,13 @@ public:
    * Returns the end point for a specific type.
    */
   std::vector<vtkServiceEndpoint*> GetEndpoints(int type) const;
+
+  /**
+   * Returns an observable that can be used to observe progress events.
+   * The tuple contains the following:
+   */
+  rxcpp::observable<std::tuple<std::string, vtkRemoteObjectProvider::vtkProgressItem>>
+  GetProgressObservable() const;
 
 protected:
   vtkClientSession();

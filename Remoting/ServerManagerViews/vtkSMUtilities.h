@@ -22,18 +22,18 @@
 #ifndef vtkSMUtilities_h
 #define vtkSMUtilities_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
-#include "vtkSMObject.h"
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
+#include "vtkObject.h"
 #include "vtkSmartPointer.h" // needed for vtkSmartPointer
 #include <vector>            // needed for std::vector
 
 class vtkImageData;
 class vtkPoints;
-class VTKREMOTINGVIEWS_EXPORT vtkSMUtilities : public vtkSMObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMUtilities : public vtkObject
 {
 public:
   static vtkSMUtilities* New();
-  vtkTypeMacro(vtkSMUtilities, vtkSMObject);
+  vtkTypeMacro(vtkSMUtilities, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

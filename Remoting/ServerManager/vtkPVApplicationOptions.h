@@ -112,6 +112,32 @@ public:
 
   ///@{
   /**
+   * Get/Set whether stereo rendering should be enabled.
+   */
+  bool GetUseStereoRendering() const;
+  void SetUseStereoRendering(bool value);
+  ///@}
+
+  ///@{
+  /**
+   * Get stereo type requested. Returned values are `VTK_STEREO_*` defined in
+   * vtkRenderWindow.h.
+   */
+  int GetStereoType() const;
+  const char* GetStereoTypeAsString() const;
+  void SetStereoType(int value);
+  ///@}
+
+  ///@{
+  /**
+   * Eye separation to use when using stereo rendering.
+   */
+  double GetEyeSeparation() const;
+  void SetEyeSeparator(double value);
+  ///@}
+
+  ///@{
+  /**
    * Get/Set connection id.
    * The connection identifier used to validate client-server
    * connections.

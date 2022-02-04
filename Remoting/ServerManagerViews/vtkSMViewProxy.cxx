@@ -25,7 +25,6 @@
 #include "vtkPVApplicationOptions.h"
 #include "vtkPVCoreApplication.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
-#include "vtkPVView.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -151,6 +150,7 @@ void vtkSMViewProxy::vtkInternals::SetupInteractor()
 }
 
 vtkStandardNewMacro(vtkSMViewProxy);
+bool vtkSMViewProxy::UseGenericOpenGLRenderWindow = false;
 //----------------------------------------------------------------------------
 vtkSMViewProxy::vtkSMViewProxy()
   : Internals(new vtkSMViewProxy::vtkInternals())
@@ -159,7 +159,7 @@ vtkSMViewProxy::vtkSMViewProxy()
   internals.Self = this;
 
   auto* options = vtkPVCoreApplication::GetInstance()->GetOptions();
-  if (vtkPVView::GetUseGenericOpenGLRenderWindow())
+  if (vtkSMViewProxy::GetUseGenericOpenGLRenderWindow())
   {
     internals.RenderWindow = vtk::TakeSmartPointer(vtkGenericOpenGLRenderWindow::New());
   }
@@ -216,6 +216,18 @@ void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
   image.Initialize(json.at("width").get<int>(), json.at("height").get<int>(), array);
   image.MarkValid();
   internals.PushImage(std::move(image));
+}
+
+//----------------------------------------------------------------------------
+void vtkSMViewProxy::SetUseGenericOpenGLRenderWindow(bool val)
+{
+  vtkSMViewProxy::UseGenericOpenGLRenderWindow = val;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
+{
+  return vtkSMViewProxy::UseGenericOpenGLRenderWindow;
 }
 
 //----------------------------------------------------------------------------

@@ -1,3 +1,19 @@
+set(CMAKE_AUTOMOC TRUE)
+set(CMAKE_AUTOUIC TRUE)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
+vtk_add_test_cxx(pqCoreCxxTests tests
+  --exit
+  TestBasicQtApp.cxx,NO_VALID)
+
+vtk_test_cxx_executable(pqCoreCxxTests tests
+  TestBasicQtAppMainWindow.ui
+  TestBasicQtAppMainWindow.cxx
+)
+
+#-----------------------------------------------------------------
+
+if (FALSE) # FIXME: ASYNC
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets Test)
 set(CMAKE_AUTOMOC 1)
 vtk_module_test_executable(pqCoreBasicApp BasicApp.cxx BasicApp.h)
@@ -32,3 +48,4 @@ foreach(test_file ${MyTests})
     NAME pqCore${test}
     COMMAND pqCoreTest ${test})
 endforeach()
+endif() # FIXME: ASYNC

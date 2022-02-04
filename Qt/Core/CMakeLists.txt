@@ -29,10 +29,27 @@
 #
 #=========================================================================
 set(classes
+  pqAutoStartInterface
+  pqCoreConfiguration
+  pqCoreInit
+  pqCoreUtilities
+  pqImageUtil
+  pqKeySequences
+  pqModalShortcut
+  pqServerConfiguration
+  pqServerConfigurationCollection
+  pqServerManagerModelItem
+  vtkPVGUIApplication
+  pqServerResource
+  pqSettings
+  vtkPVGUIOptions
+  pqQVTKWidget
+
+)
+set(old_classes
   pqAnimationCue
   pqAnimationScene
   pqApplicationCore
-  pqAutoStartInterface
   pqBoxChartView
   pqCheckBoxDelegate
   pqCollaborationEventPlayer
@@ -42,10 +59,7 @@ set(classes
   pqComparativeXYBarChartView
   pqComparativeXYChartView
   pqContextView
-  pqCoreConfiguration
-  pqCoreInit
   pqCoreTestUtility
-  pqCoreUtilities
   pqDataRepresentation
   pqExtractor
   pqFileDialog
@@ -59,17 +73,14 @@ set(classes
   pqFlatTreeViewEventPlayer
   pqFlatTreeViewEventTranslator
   pqGraphLayoutStrategyInterface
-  pqImageUtil
   pqInteractiveViewLink
   pqInterfaceTracker
-  pqKeySequences
   pqLinkedObjectInterface
   pqLinkedObjectQTextEdit
   pqLinkViewWidget
   pqLinksModel
   pqLogViewerWidget
   pqMainWindowEventManager
-  pqModalShortcut
   pqMultiSliceAxisWidget
   pqMultiSliceView
   pqNonEditableStyledItemDelegate
@@ -91,7 +102,6 @@ set(classes
   pqProxy
   pqProxyModifiedStateUndoElement
   pqProxySelection
-  pqQVTKWidget
   pqQVTKWidgetEventPlayer
   pqQVTKWidgetEventTranslator
   pqRecentlyUsedResourceLoaderInterface
@@ -104,14 +114,8 @@ set(classes
   pqScalarBarRepresentation
   pqScalarsToColors
   pqServer
-  pqServerConfiguration
-  pqServerConfigurationCollection
-  pqServerManagerModel
   pqServerManagerModelInterface
-  pqServerManagerModelItem
   pqServerManagerObserver
-  pqServerResource
-  pqSettings
   pqSignalsBlocker
   pqSpreadSheetView
   pqSpreadSheetViewModel

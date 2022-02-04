@@ -9,27 +9,28 @@ GROUPS
 DEPENDS
   ParaView::pqWidgets
   ParaView::qttesting
-  ParaView::RemotingCore
   ParaView::RemotingServerManager
+  ParaView::RemotingServerManagerViews
   VTK::GUISupportQt
 PRIVATE_DEPENDS
-  ParaView::RemotingAnimation
+  # ParaView::RemotingAnimation
   ParaView::RemotingApplication
-  ParaView::RemotingMisc
-  ParaView::RemotingSettings
-  ParaView::RemotingViews
-  ParaView::VTKExtensionsFiltersRendering
+  # ParaView::RemotingMisc
+  # ParaView::RemotingSettings
+  # ParaView::RemotingViews
+  ParaView::rxqt
+  # ParaView::VTKExtensionsFiltersRendering
   VTK::cli11
   VTK::CommonSystem
   VTK::ImagingCore
   VTK::IOImage
   VTK::TestingRendering
   VTK::vtksys
+TEST_DEPENDS
+  VTK::TestingCore
 OPTIONAL_DEPENDS
   # fixme: affects public API
   ParaView::RemotingViewsPython
-TEST_DEPENDS
-  ParaView::RemotingViews
 TEST_LABELS
   ParaView
 EXCLUDE_WRAP

@@ -45,7 +45,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QWidget>
 
 class vtkSMProxy;
-class vtkSMSession;
 
 /**
  * @class pqQVTKWidget
@@ -74,12 +73,6 @@ public:
    * Set the view proxy.
    */
   void setViewProxy(vtkSMProxy*);
-
-  /**
-   * Set the session.
-   * This is only used when ViewProxy is not set.
-   */
-  void setSession(vtkSMSession*);
 
   /**
    * Return the Proxy ID if any, otherwise return 0
@@ -132,7 +125,6 @@ protected:
 private:
   Q_DISABLE_COPY(pqQVTKWidget)
   vtkSmartPointer<vtkSMProxy> ViewProxy;
-  vtkWeakPointer<vtkSMSession> Session;
   QString SizePropertyName;
   vtkNew<vtkEventQtSlotConnect> VTKConnect;
 

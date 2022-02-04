@@ -153,7 +153,9 @@ option(PARAVIEW_USE_PYTHON "Enable/Disable Python scripting support" "${python_d
 vtk_deprecated_setting(qt_gui_default PARAVIEW_USE_QT PARAVIEW_BUILD_QT_GUI "ON")
 cmake_dependent_option(PARAVIEW_USE_QT
   "Enable Qt-support needed for graphical UI" "${qt_gui_default}"
-  "PARAVIEW_BUILD_CANONICAL;PARAVIEW_ENABLE_RENDERING;PARAVIEW_ENABLE_NONESSENTIAL" OFF)
+  # FIXME: ASYNC
+  #  "PARAVIEW_BUILD_CANONICAL;PARAVIEW_ENABLE_RENDERING;PARAVIEW_ENABLE_NONESSENTIAL" OFF)
+  "PARAVIEW_BUILD_ASYNC;PARAVIEW_ENABLE_RENDERING" OFF)
 
 # Add an option to enable using Qt WebEngine for widgets, as needed.
 # Default is OFF. We don't want to depend on WebEngine unless absolutely needed.
@@ -346,6 +348,8 @@ paraview_require_module(
             ParaView::WrapRemoting
             ParaView::RemotingReflection
             ParaView::RemotingApplication
+            ParaView::pqWidgets
+            ParaView::pqCore
   )
 
 
