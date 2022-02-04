@@ -1,0 +1,41 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="views">
+    <ViewProxy class="vtkPVRenderView"
+               name="RenderView"
+               processes="client dataserver renderserver">
+
+      <IntVectorProperty command="SetSize"
+                         default_values="1920 1163"
+                         name="ViewSize"
+                         number_of_elements="2"
+                         panel_visibility="never"
+                         processes="client renderserver" >
+        <Documentation>
+            Resolution to use when rendering images in this view.
+        </Documentation>
+      </IntVectorProperty>
+
+      <ProxyProperty name="Representations"
+                     command="SetRepresentations"
+                     resizable="1">
+        <Documentation>Representations in this view.</Documentation>
+      </ProxyProperty>
+
+      <Command name="Update" command="Update" />
+    </ViewProxy>
+  </ProxyGroup>
+
+  <ProxyGroup name="representations">
+    <Proxy class="vtkGeometryRepresentation"
+           name="GeometryRepresentation"
+           processes="client dataserver renderserver">
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+      </InputProperty>
+    </Proxy>
+  </ProxyGroup>
+
+</ServerManagerConfiguration>

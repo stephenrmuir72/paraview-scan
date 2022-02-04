@@ -26,7 +26,7 @@
 #define vtkPVAxesActor_h
 
 #include "vtkProp3D.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 
 class vtkRenderer;
 class vtkPropCollection;
@@ -41,7 +41,7 @@ class vtkSphereSource;
 class vtkPolyData;
 class vtkVectorText;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVAxesActor : public vtkProp3D
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVAxesActor : public vtkProp3D
 {
 public:
   static vtkPVAxesActor* New();

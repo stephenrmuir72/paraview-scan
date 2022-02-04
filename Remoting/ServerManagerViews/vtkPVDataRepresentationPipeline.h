@@ -29,9 +29,10 @@
 #define vtkPVDataRepresentationPipeline_h
 
 #include "vtkCompositeDataPipeline.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDataRepresentationPipeline : public vtkCompositeDataPipeline
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVDataRepresentationPipeline
+  : public vtkCompositeDataPipeline
 {
 public:
   static vtkPVDataRepresentationPipeline* New();

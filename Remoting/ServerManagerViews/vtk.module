@@ -1,0 +1,36 @@
+NAME
+  ParaView::RemotingServerManagerViews
+LIBRARY_NAME
+  vtkRemotingServerManagerViews
+GROUPS
+  PARAVIEW_CORE
+CONDITION
+  PARAVIEW_ENABLE_RENDERING
+KIT
+  ParaView::ServerManagerKit
+IMPLEMENTS
+  ParaView::RemotingServerManager
+DEPENDS
+  ParaView::RemotingServerManager
+  VTK::ViewsCore
+PRIVATE_DEPENDS
+  ParaView::RemotingReflection
+  ParaView::VTKExtensionsInteractionStyle
+  VTK::ChartsCore
+  VTK::CommonSystem
+  VTK::FiltersGeneric
+  VTK::FiltersGeometry
+  VTK::FiltersHyperTree
+  VTK::IOImage
+  VTK::jsoncpp
+  VTK::RenderingFreeType
+  VTK::RenderingOpenGL2
+  VTK::RenderingParallel
+  VTK::RenderingVolume
+  VTK::FiltersParallel
+TEST_DEPENDS
+  ParaView::RemotingApplication
+  VTK::InteractionStyle
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

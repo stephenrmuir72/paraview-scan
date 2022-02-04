@@ -29,12 +29,12 @@
 #define vtkPVLODActor_h
 
 #include "vtkActor.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for exports
 
 class vtkMapper;
 class vtkPiecewiseFunction;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVLODActor : public vtkActor
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVLODActor : public vtkActor
 {
 public:
   vtkTypeMacro(vtkPVLODActor, vtkActor);

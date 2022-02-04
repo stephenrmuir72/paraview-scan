@@ -340,7 +340,7 @@ paraview_require_module(
   CONDITION PARAVIEW_BUILD_ASYNC
   MODULES   ParaView::ProcessXML
             ParaView::RemotingServerManager
-            #ParaView::ServerManagerViews
+            ParaView::RemotingServerManagerViews
             ParaView::ServicesCore
             ParaView::ServicesThallium
             ParaView::WrapRemoting

@@ -30,7 +30,7 @@
 #define vtkPVAxesWidget_h
 
 #include "vtkInteractorObserver.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 
 class vtkActor2D;
 class vtkKWApplication;
@@ -38,7 +38,7 @@ class vtkPolyData;
 class vtkPVAxesActor;
 class vtkRenderer;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVAxesWidget : public vtkInteractorObserver
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVAxesWidget : public vtkInteractorObserver
 {
 public:
   static vtkPVAxesWidget* New();

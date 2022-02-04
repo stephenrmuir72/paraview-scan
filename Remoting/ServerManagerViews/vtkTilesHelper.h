@@ -25,10 +25,10 @@
 #define vtkTilesHelper_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
-#include "vtkVector.h"              // for vtkVector
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
+#include "vtkVector.h"                           // for vtkVector
 
-class VTKREMOTINGVIEWS_EXPORT vtkTilesHelper : public vtkObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkTilesHelper : public vtkObject
 {
 public:
   static vtkTilesHelper* New();
