@@ -97,6 +97,12 @@ public:
   rxcpp::observable<std::tuple<std::string, vtkRemoteObjectProvider::vtkProgressItem>>
   GetProgressObservable() const;
 
+  /**
+   * Returns true if the client is connected to a remote server i.e. the
+   * services are running on a different process.
+   */
+  bool GetIsRemote() const;
+
 protected:
   vtkClientSession();
   ~vtkClientSession() override;

@@ -44,6 +44,7 @@ set(classes
   pqSettings
   vtkPVGUIOptions
   pqQVTKWidget
+  pqServer
 
 )
 set(old_classes
@@ -112,7 +113,6 @@ set(old_classes
   pqSMProxy
   pqScalarBarRepresentation
   pqScalarsToColors
-  pqServer
   pqServerManagerModelInterface
   pqServerManagerObserver
   pqSignalsBlocker
