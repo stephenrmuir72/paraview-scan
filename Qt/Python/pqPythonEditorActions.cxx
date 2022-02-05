@@ -85,7 +85,7 @@ pqPythonEditorActions::pqPythonEditorActions()
     QObject::tr("Save the document as a Script"));
 
   this->GeneralActions[Action::Run].setText(QObject::tr("Run..."));
-  this->GeneralActions[Action::Run].setStatusTip(QObject::tr("Run the current edited text"));
+  this->GeneralActions[Action::Run].setStatusTip(QObject::tr("Run the currently edited script"));
 
   this->GeneralActions[Action::Cut].setText(QObject::tr("Cut"));
   this->GeneralActions[Action::Cut].setShortcut(QKeySequence::Cut);
