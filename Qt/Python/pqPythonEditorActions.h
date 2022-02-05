@@ -132,8 +132,6 @@ struct pqPythonEditorActions
     // Editor Actions
     CloseCurrentTab,
     Exit,
-
-    // Run Actions
     Run,
 
     END

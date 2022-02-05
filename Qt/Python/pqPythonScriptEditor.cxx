@@ -209,7 +209,7 @@ void pqPythonScriptEditor::createMenus()
 
   this->scriptMenus[ScriptActionType::Run] = menu->addMenu(this->tr("Run..."));
   this->scriptMenus[ScriptActionType::Run]->setStatusTip(
-    this->tr("Open, in a new tab, and run the script"));
+    this->tr("Load a python script in a new tab and run it"));
   this->scriptMenus[ScriptActionType::Run]->setToolTipsVisible(true);
 
   this->Actions.FillQMenu(this->scriptMenus);
