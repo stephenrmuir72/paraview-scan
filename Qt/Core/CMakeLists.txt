@@ -85,7 +85,6 @@ set(old_classes
   pqMultiSliceView
   pqNonEditableStyledItemDelegate
   pqObjectBuilder
-  pqOptions
   pqOutputPort
   pqOutputWidget
   pqParallelCoordinatesChartView
