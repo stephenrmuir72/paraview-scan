@@ -32,8 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqModalShortcut_h
 #define pqModalShortcut_h
 
-#include "pqProxy.h"
+#include "pqCoreModule.h" // for exports
 #include <QKeySequence>
+#include <QPointer>
 #include <QWidget>
 
 class QAction;

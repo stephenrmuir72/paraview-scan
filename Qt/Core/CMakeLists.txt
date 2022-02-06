@@ -45,6 +45,7 @@ set(classes
   vtkPVGUIOptions
   pqQVTKWidget
   pqServer
+  pqProxy
 
 )
 set(old_classes
@@ -99,7 +100,6 @@ set(old_classes
   pqPropertyLinks
   pqPropertyLinksConnection
   pqPropertyManager
-  pqProxy
   pqProxyModifiedStateUndoElement
   pqProxySelection
   pqQVTKWidgetEventPlayer
