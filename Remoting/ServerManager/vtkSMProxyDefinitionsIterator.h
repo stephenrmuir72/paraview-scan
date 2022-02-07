@@ -38,6 +38,9 @@ public:
    */
   vtkSMProxyDefinitionsIterator(Level0InternalIteratorType level0IteratorCurrent,
     Level0InternalIteratorType level0IteratorEnd, Level1InternalIteratorType level1Iterator);
+  
+  vtkSMProxyDefinitionsIterator(Level0InternalIteratorType level0IteratorCurrent,
+    Level0InternalIteratorType level0IteratorEnd);
 
   bool operator==(const vtkSMProxyDefinitionsIterator& other) const;
   bool operator!=(const vtkSMProxyDefinitionsIterator& other) const;
@@ -57,5 +60,9 @@ private:
   Level0InternalIteratorType InternalLevel0IteratorCurrent;
   Level0InternalIteratorType InternalLevel0IteratorEnd;
   Level1InternalIteratorType InternalLevel1Iterator;
+  // keep track whether both iterator levels have been initialized.  Used
+  // during comparison to avoid comparing uninitialized level1 iterators;
+  // Non-FullyInitialized iterators may only be used as sentinel values.
+  const bool FullyInitialized;
 };
 #endif

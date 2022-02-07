@@ -15,28 +15,48 @@
 
 #include "vtkSMProxyDefinitionsIterator.h"
 #include "vtkLogger.h"
+#include <cassert>
 
 vtkSMProxyDefinitionsIterator::vtkSMProxyDefinitionsIterator(
   Level0InternalIteratorType level0IteratorCurrent, Level0InternalIteratorType level0IteratorEnd,
   Level1InternalIteratorType level1Iterator)
+  :FullyInitialized(true)
 {
   this->InternalLevel0IteratorCurrent = level0IteratorCurrent;
   this->InternalLevel0IteratorEnd = level0IteratorEnd;
   this->InternalLevel1Iterator = level1Iterator;
 }
 
+////------------------------------------------------------------------------------
+vtkSMProxyDefinitionsIterator::vtkSMProxyDefinitionsIterator(
+  Level0InternalIteratorType level0IteratorCurrent, Level0InternalIteratorType level0IteratorEnd)
+  :FullyInitialized(false)
+{
+  this->InternalLevel0IteratorCurrent = level0IteratorCurrent;
+  this->InternalLevel0IteratorEnd = level0IteratorEnd;
+}
+
 //------------------------------------------------------------------------------
 bool vtkSMProxyDefinitionsIterator::operator==(const vtkSMProxyDefinitionsIterator& other) const
 {
-  return this->InternalLevel0IteratorCurrent == other.InternalLevel0IteratorCurrent &&
-    this->InternalLevel1Iterator == other.InternalLevel1Iterator;
+  const bool test0 = (this->InternalLevel0IteratorCurrent == other.InternalLevel0IteratorCurrent);
+  if(test0 && this->FullyInitialized && other.FullyInitialized)
+  {
+    return this->InternalLevel1Iterator == other.InternalLevel1Iterator;
+  }
+  return test0;
 }
 
 //------------------------------------------------------------------------------
 bool vtkSMProxyDefinitionsIterator::operator!=(const vtkSMProxyDefinitionsIterator& other) const
 {
-  return this->InternalLevel0IteratorCurrent != other.InternalLevel0IteratorCurrent ||
-    this->InternalLevel1Iterator != other.InternalLevel1Iterator;
+  const bool test0 = (this->InternalLevel0IteratorCurrent != other.InternalLevel0IteratorCurrent);
+  if(!test0 && this->FullyInitialized && other.FullyInitialized)
+  {
+    return this->InternalLevel1Iterator != other.InternalLevel1Iterator;
+  }
+
+  return test0;
 }
 
 //------------------------------------------------------------------------------
@@ -54,6 +74,7 @@ vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsIterator::operator*()
 //------------------------------------------------------------------------------
 vtkSMProxyDefinitionsIterator& vtkSMProxyDefinitionsIterator::operator++()
 {
+  assert(this->FullyInitialized);
   ++(this->InternalLevel1Iterator);
   if (this->InternalLevel1Iterator == this->InternalLevel0IteratorCurrent->second.end())
   {
@@ -70,6 +91,7 @@ vtkSMProxyDefinitionsIterator& vtkSMProxyDefinitionsIterator::operator++()
 //------------------------------------------------------------------------------
 vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsIterator::operator++(int)
 {
+  assert(this->FullyInitialized);
   auto result = vtkSMProxyDefinitionsIterator(this->InternalLevel0IteratorCurrent,
     this->InternalLevel0IteratorEnd, this->InternalLevel1Iterator);
   ++(*this);

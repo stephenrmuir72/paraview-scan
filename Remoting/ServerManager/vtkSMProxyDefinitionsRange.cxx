@@ -24,7 +24,11 @@ vtkSMProxyDefinitionsRange::vtkSMProxyDefinitionsRange(MapType& map, const std::
 //------------------------------------------------------------------------------
 vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsRange::begin() const
 {
-  if (this->GroupName.empty())
+  if(this->Map.empty())
+  {
+      return vtkSMProxyDefinitionsIterator(this->Map.begin(),this->Map.end());
+  }
+  else if (this->GroupName.empty())
   {
     return vtkSMProxyDefinitionsIterator(
       this->Map.begin(), this->Map.end(), this->Map.begin()->second.begin());
@@ -32,6 +36,10 @@ vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsRange::begin() const
   else
   {
     auto iterator = this->Map.find(this->GroupName);
+    if(iterator == this->Map.end())
+    {
+      return vtkSMProxyDefinitionsIterator(iterator, iterator);
+    }
     auto end = iterator;
     ++end;
     return vtkSMProxyDefinitionsIterator(iterator, end, iterator->second.begin());
@@ -41,14 +49,21 @@ vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsRange::begin() const
 //------------------------------------------------------------------------------
 vtkSMProxyDefinitionsIterator vtkSMProxyDefinitionsRange::end() const
 {
-  if (this->GroupName.empty())
+  if(this->Map.empty())
   {
-    return vtkSMProxyDefinitionsIterator(
-      this->Map.end(), this->Map.end(), (--this->Map.end())->second.end());
+      return vtkSMProxyDefinitionsIterator(this->Map.end(),this->Map.end());
+  }
+  else if (this->GroupName.empty())
+  {
+    return vtkSMProxyDefinitionsIterator(this->Map.end(), this->Map.end());
   }
   else
   {
     auto iterator = this->Map.find(this->GroupName);
+    if(iterator == this->Map.end())
+    {
+      return vtkSMProxyDefinitionsIterator(iterator, iterator);
+    }
     auto end = iterator;
     ++end;
     return vtkSMProxyDefinitionsIterator(end, end, iterator->second.end());
