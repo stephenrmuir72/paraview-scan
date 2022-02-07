@@ -68,7 +68,7 @@ public:
   /**
    * Returns state for all information properties.
    */
-  vtkJson UpdateInformation() const;
+  vtkJson UpdateInformation(vtkRemoteObjectProvider* provider) const;
 
   /**
    * Update pipeline.

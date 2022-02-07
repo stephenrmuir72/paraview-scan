@@ -1,3 +1,7 @@
+vtk_module_test_data(
+      Data/can.ex2
+)
+
 vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   --client
   TestClientApplication,TestPVApplication.cxx,NO_VALID)
@@ -6,11 +10,13 @@ vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   --server
   TestServerApplication,TestPVApplication.cxx,NO_VALID)
 
-vtk_test_cxx_executable(vtkRemotingServerManagerCxxTests tests)
+vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
+  TestDataArraySelectionWrapping.cxx, NO_VALID)
 # TODO
 #vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
 #  --batch
 #  TestBatchApplication,TestPVApplication.cxx,NO_VALID)
+vtk_test_cxx_executable(vtkRemotingServerManagerCxxTests tests)
 
 
 if (FALSE) # FIXME: ASYNC
