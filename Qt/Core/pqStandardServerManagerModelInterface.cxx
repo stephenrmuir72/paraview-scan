@@ -31,35 +31,37 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqStandardServerManagerModelInterface.h"
 
-#include "pqAnimationCue.h"
-#include "pqAnimationScene.h"
-#include "pqBoxChartView.h"
-#include "pqComparativeRenderView.h"
-#include "pqComparativeXYBarChartView.h"
-#include "pqComparativeXYChartView.h"
-#include "pqExtractor.h"
-#include "pqMultiSliceView.h"
-#include "pqParallelCoordinatesChartView.h"
+//#include "pqAnimationCue.h"
+//#include "pqAnimationScene.h"
+//#include "pqBoxChartView.h"
+//#include "pqComparativeRenderView.h"
+//#include "pqComparativeXYBarChartView.h"
+//#include "pqComparativeXYChartView.h"
+//#include "pqExtractor.h"
+//#include "pqMultiSliceView.h"
+//#include "pqParallelCoordinatesChartView.h"
 #include "pqPipelineFilter.h"
-#include "pqPipelineRepresentation.h"
-#include "pqPlotMatrixView.h"
-#include "pqRenderView.h"
-#include "pqScalarBarRepresentation.h"
-#include "pqScalarsToColors.h"
+//#include "pqPipelineRepresentation.h"
+//#include "pqPlotMatrixView.h"
+//#include "pqRenderView.h"
+//#include "pqScalarBarRepresentation.h"
+//#include "pqScalarsToColors.h"
+#include "pqDataRepresentation.h"
 #include "pqServer.h"
-#include "pqSpreadSheetView.h"
-#include "pqTimeKeeper.h"
-#include "pqXYBarChartView.h"
-#include "pqXYChartView.h"
-#include "pqXYHistogramChartView.h"
-#include "vtkSMComparativeViewProxy.h"
-#include "vtkSMContextViewProxy.h"
-#include "vtkSMProxy.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMRenderViewProxy.h"
-#include "vtkSMRepresentationProxy.h"
+//#include "pqSpreadSheetView.h"
+//#include "pqTimeKeeper.h"
+//#include "pqXYBarChartView.h"
+//#include "pqXYChartView.h"
+//#include "pqXYHistogramChartView.h"
+//#include "vtkSMComparativeViewProxy.h"
+//#include "vtkSMContextViewProxy.h"
+#include "pqView.h"
+#include "vtkSMViewProxy.h"
+//#include "vtkSMRenderViewProxy.h"
+//#include "vtkSMRepresentationProxy.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMSpreadSheetViewProxy.h"
+//#include "vtkSMSpreadSheetViewProxy.h"
+#include "vtkSMViewProxy.h"
 
 #if PARAVIEW_PQCORE_ENABLE_PYTHON
 #include "pqPythonView.h"
@@ -73,6 +75,7 @@ namespace
 inline pqProxy* CreatePQView(
   const QString& group, const QString& name, vtkSMViewProxy* proxy, pqServer* server)
 {
+#if 0 // FIXME: ASYNC
   QObject* parent = nullptr;
   QString xmlname = proxy->GetXMLName();
   if (vtkSMSpreadSheetViewProxy::SafeDownCast(proxy))
@@ -145,6 +148,7 @@ inline pqProxy* CreatePQView(
     return new pqXYChartView(
       group, name, vtkSMContextViewProxy::SafeDownCast(proxy), server, parent);
   }
+#endif
   return nullptr;
 }
 }
@@ -162,7 +166,29 @@ pqStandardServerManagerModelInterface::~pqStandardServerManagerModelInterface() 
 pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
   const QString& group, const QString& name, vtkSMProxy* proxy, pqServer* server) const
 {
-  QString xml_type = proxy->GetXMLName();
+  const QString xml_type = proxy->GetXMLName();
+#if 1
+  if (group == "views")
+  {
+    return new pqView(group, name, vtkSMViewProxy::SafeDownCast(proxy), server, nullptr);
+  }
+  else if (group == "sources")
+  {
+    if (pqPipelineFilter::getInputPorts(proxy).empty())
+    {
+      return new pqPipelineSource(name, proxy, server, nullptr);
+    }
+    else
+    {
+      return new pqPipelineFilter(name, proxy, server, nullptr);
+    }
+  }
+  else if (group == "representations" && !pqPipelineFilter::getInputPorts(proxy).empty())
+  {
+    return new pqDataRepresentation(group, name, proxy, server, nullptr);
+  }
+
+#else // FIXME: ASYNC
   if (group == "views" && vtkSMViewProxy::SafeDownCast(proxy))
   {
     return CreatePQView(group, name, vtkSMViewProxy::SafeDownCast(proxy), server);
@@ -225,5 +251,6 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
       return new pqAnimationCue(group, name, proxy, server, nullptr);
     }
   }
+#endif
   return nullptr;
 }

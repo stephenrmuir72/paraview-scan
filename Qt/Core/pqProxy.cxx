@@ -75,6 +75,14 @@ pqServer* pqProxy::server() const
 }
 
 //-----------------------------------------------------------------------------
+void pqProxy::setRegistrationName(const QString& name)
+{
+  auto& internals = (*this->Internals);
+  internals.RegistrationName = name;
+  Q_EMIT this->nameChanged(this);
+}
+
+//-----------------------------------------------------------------------------
 void pqProxy::rename(const QString& newname)
 {
   auto& internals = (*this->Internals);
@@ -86,8 +94,8 @@ void pqProxy::rename(const QString& newname)
       qUtf8Printable(internals.RegistrationGroup), qUtf8Printable(newname), internals.Proxy);
     pxm->UnRegisterProxy(qUtf8Printable(internals.RegistrationGroup),
       qUtf8Printable(internals.RegistrationName), internals.Proxy);
-    internals.RegistrationName = newname;
-    Q_EMIT this->nameChanged(this);
+    // this will cause pqProxy::setRegistrationName(..) to be called.
+    Q_ASSERT(internals.RegistrationName == newname);
   }
 }
 

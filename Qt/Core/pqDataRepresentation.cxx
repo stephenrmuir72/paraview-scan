@@ -37,20 +37,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
-#include "vtkPVGeneralSettings.h"
-#include "vtkPVProminentValuesInformation.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMRepresentationProxy.h"
+// #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
-#include "vtkSMTransferFunctionManager.h"
+// #include "vtkSMTransferFunctionManager.h"
 
 #include <QColor>
 #include <QPointer>
 #include <QtDebug>
 
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
 #include "pqSMAdaptor.h"
@@ -101,6 +98,8 @@ pqDataRepresentation::pqDataRepresentation(
   {
     vtkconnector->Connect(prop, vtkCommand::ModifiedEvent, this, SIGNAL(attrArrayNameModified()));
   }
+
+  this->onInputChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -145,6 +144,7 @@ void pqDataRepresentation::onInputChanged()
   }
   else if (new_proxes_count == 1)
   {
+#if 0 // FIXME: ASYNC
     pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
     pqPipelineSource* input = smModel->findItem<pqPipelineSource*>(ivp->GetProxy(0));
     if (ivp->GetProxy(0) && !input)
@@ -157,6 +157,7 @@ void pqDataRepresentation::onInputChanged()
       int portnumber = ivp->GetOutputPortForConnection(0);
       this->Internal->InputPort = input->getOutputPort(portnumber);
     }
+#endif
   }
   else if (new_proxes_count > 1)
   {
@@ -187,10 +188,14 @@ vtkSMProxy* pqDataRepresentation::getLookupTableProxy()
 //-----------------------------------------------------------------------------
 pqScalarsToColors* pqDataRepresentation::getLookupTable()
 {
+#if 0 // FIXME: ASYNC
   pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
   vtkSMProxy* lut = this->getLookupTableProxy();
 
   return (lut ? smmodel->findItem<pqScalarsToColors*>(lut) : 0);
+#else
+  return nullptr;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -220,11 +225,13 @@ bool pqDataRepresentation::getDataBounds(double bounds[6])
 vtkPVDataInformation* pqDataRepresentation::getRepresentedDataInformation(
   bool vtkNotUsed(update) /*=true*/) const
 {
+#if 0 // FIXME: ASYNC
   vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(this->getProxy());
   if (repr)
   {
     return repr->GetRepresentedDataInformation();
   }
+#endif
   return nullptr;
 }
 
@@ -312,6 +319,7 @@ void pqDataRepresentation::updateLookupTable()
 //-----------------------------------------------------------------------------
 void pqDataRepresentation::resetAllTransferFunctionRangesUsingCurrentData()
 {
+#if 0 // FIXME: ASYNC
   vtkSMProxy* representationProxy = this->getProxy();
   vtkSMProxy* lut = vtkSMPropertyHelper(representationProxy, "LookupTable").GetAsProxy();
   if (lut)
@@ -319,4 +327,5 @@ void pqDataRepresentation::resetAllTransferFunctionRangesUsingCurrentData()
     vtkNew<vtkSMTransferFunctionManager> tfmgr;
     tfmgr->ResetAllTransferFunctionRangesUsingCurrentData(this->getServer()->proxyManager(), false);
   }
+#endif
 }

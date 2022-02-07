@@ -32,9 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOutputWidget.h"
 #include "ui_pqOutputWidget.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqFileDialog.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqFileDialog.h"
 #include "pqSettings.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -352,7 +352,7 @@ public:
     this->SettingsKey = key;
     if (!key.isEmpty())
     {
-      pqSettings* settings = pqApplicationCore::instance()->settings();
+      pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
       this->Parent->showFullMessages(
         settings->value(QString("%1.ShowFullMessages").arg(key), false).toBool());
     }
@@ -362,7 +362,7 @@ public:
   {
     if (!this->SettingsKey.isEmpty())
     {
-      pqSettings* settings = pqApplicationCore::instance()->settings();
+      pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
       settings->setValue(QString("%1.ShowFullMessages").arg(this->SettingsKey),
         this->Ui.showFullMessagesCheckBox->isChecked());
     }
@@ -448,6 +448,7 @@ void pqOutputWidget::suppress(const QStringList& substrs)
 //-----------------------------------------------------------------------------
 void pqOutputWidget::saveToFile()
 {
+#if 0 // FIXME: ASYNC
   QString text = this->Internals->Ui.consoleWidget->text();
   pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), "Save output", QString(),
     "Text Files (*.txt);;All Files (*)");
@@ -467,6 +468,7 @@ void pqOutputWidget::saveToFile()
     fileStream << text.toStdString();
     fileStream.close();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

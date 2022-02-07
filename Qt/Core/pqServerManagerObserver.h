@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqServerManagerObserver_h
 
 #include "pqCoreModule.h"
-#include "vtkType.h" // needed for vtkIdType
+#include "vtkType.h" // needed for vtkTypeUInt32
 #include <QObject>
 
 class pqMultiView;
@@ -79,12 +79,12 @@ Q_SIGNALS:
   /**
    * Fired when a server connection is created by the vtkProcessModule.
    */
-  void connectionCreated(vtkIdType connectionId);
+  void connectionCreated(vtkTypeUInt32 connectionId);
 
   /**
    * Fired when a server connection is closed by  the vtkProcessModule.
    */
-  void connectionClosed(vtkIdType connectionId);
+  void connectionClosed(vtkTypeUInt32 connectionId);
 
   /**
    * Fired when a state file is loaded successfully.

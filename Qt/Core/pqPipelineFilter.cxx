@@ -42,8 +42,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMDomainIterator.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMOrderedPropertyIterator.h"
-#include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 #include "vtkSmartPointer.h"
 
 // Qt includes.
@@ -54,7 +54,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 
 // ParaView includes.
-#include "pqApplicationCore.h"
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
 #include "pqServerManagerModel.h"
@@ -92,6 +91,12 @@ pqPipelineFilter::pqPipelineFilter(
     // Listen to proxy events to get input changes.
     this->Internal->VTKConnect->Connect(inputProp, vtkCommand::ModifiedEvent, this,
       SLOT(inputChanged(vtkObject*, unsigned long, void*)), const_cast<char*>(pname));
+  }
+
+  // Now update the input connections.
+  Q_FOREACH (QString portname, this->Internal->Inputs.keys())
+  {
+    this->inputChanged(portname);
   }
 }
 
@@ -165,18 +170,6 @@ QList<const char*> pqPipelineFilter::getRequiredInputPorts(vtkSMProxy* proxy)
   QList<const char*> list;
   pqPipelineFilterGetInputProperties(list, proxy, true);
   return list;
-}
-
-//-----------------------------------------------------------------------------
-void pqPipelineFilter::initialize()
-{
-  this->Superclass::initialize();
-
-  // Now update the input connections.
-  Q_FOREACH (QString portname, this->Internal->Inputs.keys())
-  {
-    this->inputChanged(portname);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -343,6 +336,7 @@ void pqPipelineFilter::inputChanged(vtkObject*, unsigned long, void* client_data
 //-----------------------------------------------------------------------------
 static void pqPipelineFilterBuildInputList(vtkSMInputProperty* ivp, QSet<pqOutputPort*>& set)
 {
+#if 0 // FIXME: ASYNC
   pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
 
   unsigned int max = ivp->GetNumberOfProxies();
@@ -362,6 +356,7 @@ static void pqPipelineFilterBuildInputList(vtkSMInputProperty* ivp, QSet<pqOutpu
     }
     set.insert(pqSrc->getOutputPort(ivp->GetOutputPortForConnection(cc)));
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

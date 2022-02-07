@@ -69,6 +69,7 @@ public:
    * Get the server on which this proxy exists.
    */
   pqServer* server() const;
+  pqServer* getServer() const { return this->server(); }
 
   /**
    * This is a convenience method. It re-registers the underlying proxy with
@@ -92,6 +93,7 @@ public:
    * Server Manager proxy.
    */
   vtkSMProxy* proxy() const;
+  vtkSMProxy* getProxy() const { return this->proxy(); }
 
   /**
    * \brief
@@ -141,6 +143,12 @@ Q_SIGNALS:
 private:
   class pqInternals;
   std::unique_ptr<pqInternals> Internals;
+
+  /**
+   * used when proxy is renamed.
+   */
+  void setRegistrationName(const QString& name);
+  friend class pqServerManagerModel;
 };
 
 #endif

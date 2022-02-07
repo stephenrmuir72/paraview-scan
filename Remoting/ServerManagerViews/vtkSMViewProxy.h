@@ -34,6 +34,8 @@ public:
   vtkTypeMacro(vtkSMViewProxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  void StillRender();
+
   /**
    * Provides access to the render window.
    */

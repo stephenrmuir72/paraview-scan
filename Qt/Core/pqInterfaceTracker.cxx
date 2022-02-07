@@ -32,21 +32,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqInterfaceTracker.h"
 
 #include "pqAutoStartInterface.h"
-#include "vtkCommand.h"
-#include "vtkPVGUIPluginInterface.h"
-#include "vtkPVPlugin.h"
-#include "vtkPVPluginTracker.h"
+// #include "vtkCommand.h"
+// #include "vtkPVGUIPluginInterface.h"
+// #include "vtkPVPlugin.h"
+// #include "vtkPVPluginTracker.h"
 
 //-----------------------------------------------------------------------------
 pqInterfaceTracker::pqInterfaceTracker(QObject* parentObject)
   : Superclass(parentObject)
 {
+#if 0
   vtkPVPluginTracker* tracker = vtkPVPluginTracker::GetInstance();
 
   // Register with vtkPVPluginTracker so that when new plugin is loaded, we can
   // locate and load any Qt-interface implementations provided by the plugin.
   this->ObserverID =
     tracker->AddObserver(vtkCommand::RegisterEvent, this, &pqInterfaceTracker::onPluginLoaded);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -71,12 +73,15 @@ pqInterfaceTracker::~pqInterfaceTracker()
     }
   }
 
+#if 0
   vtkPVPluginTracker::GetInstance()->RemoveObserver(this->ObserverID);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqInterfaceTracker::initialize()
 {
+#if 0
   vtkPVPluginTracker* tracker = vtkPVPluginTracker::GetInstance();
 
   // Process any already loaded plugins. These are typically the plugins that
@@ -85,11 +90,13 @@ void pqInterfaceTracker::initialize()
   {
     this->onPluginLoaded(nullptr, 0, tracker->GetPlugin(cc));
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqInterfaceTracker::onPluginLoaded(vtkObject*, unsigned long, void* calldata)
 {
+#if 0
   vtkPVPlugin* plugin = reinterpret_cast<vtkPVPlugin*>(calldata);
   vtkPVGUIPluginInterface* guiplugin = dynamic_cast<vtkPVGUIPluginInterface*>(plugin);
   if (guiplugin != nullptr)
@@ -107,6 +114,7 @@ void pqInterfaceTracker::onPluginLoaded(vtkObject*, unsigned long, void* calldat
       }
     }
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

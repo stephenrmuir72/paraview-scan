@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqServerManagerModel.h"
 
-#include "pqApplicationCore.h"
 #include "pqExtractor.h"
 #include "pqInterfaceTracker.h"
 #include "pqOutputPort.h"
@@ -41,22 +40,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServer.h"
 #include "pqServerManagerModelInterface.h"
 #include "pqServerManagerObserver.h"
+#include "pqServerResource.h"
 #include "pqSettings.h"
 #include "pqView.h"
-
+#include "vtkClientSession.h"
 #include "vtkNew.h"
-#include "vtkPVProxyDefinitionIterator.h"
-#include "vtkProcessModule.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMOutputPort.h"
-#include "vtkSMParaViewPipelineController.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
-#include "vtkSMProxyDefinitionManager.h"
-#include "vtkSMSession.h"
-#include "vtkSMSessionClient.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
@@ -75,7 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class pqServerManagerModel::pqInternal
 {
 public:
-  typedef QMap<vtkIdType, QPointer<pqServer>> ServerMap;
+  typedef QMap<vtkTypeUInt32, QPointer<pqServer>> ServerMap;
   ServerMap Servers;
 
   typedef QMap<vtkSMProxy*, QPointer<pqProxy>> ProxyMap;
@@ -100,10 +96,10 @@ pqServerManagerModel::pqServerManagerModel(
   QObject::connect(observer, SIGNAL(proxyUnRegistered(const QString&, const QString&, vtkSMProxy*)),
     this, SLOT(onProxyUnRegistered(const QString&, const QString&, vtkSMProxy*)));
 
-  QObject::connect(
-    observer, SIGNAL(connectionCreated(vtkIdType)), this, SLOT(onConnectionCreated(vtkIdType)));
-  QObject::connect(
-    observer, SIGNAL(connectionClosed(vtkIdType)), this, SLOT(onConnectionClosed(vtkIdType)));
+  QObject::connect(observer, SIGNAL(connectionCreated(vtkTypeUInt32)), this,
+    SLOT(onConnectionCreated(vtkTypeUInt32)));
+  QObject::connect(observer, SIGNAL(connectionClosed(vtkTypeUInt32)), this,
+    SLOT(onConnectionClosed(vtkTypeUInt32)));
   QObject::connect(observer, SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)), this,
     SLOT(onStateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)));
 }
@@ -121,21 +117,14 @@ void pqServerManagerModel::setActiveResource(const pqServerResource& resource)
 }
 
 //-----------------------------------------------------------------------------
-pqServer* pqServerManagerModel::findServer(vtkSession* session) const
+pqServer* pqServerManagerModel::findServer(vtkClientSession* session) const
 {
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  return this->findServer(pm->GetSessionID(session));
+  auto* pvapp = vtkPVApplication::GetInstance();
+  return this->findServer(pvapp->GetSessionID(session));
 }
 
 //-----------------------------------------------------------------------------
-pqServer* pqServerManagerModel::findServer(vtkSMSession* session) const
-{
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  return this->findServer(pm->GetSessionID(session));
-}
-
-//-----------------------------------------------------------------------------
-pqServer* pqServerManagerModel::findServer(vtkIdType cid) const
+pqServer* pqServerManagerModel::findServer(vtkTypeUInt32 cid) const
 {
   pqInternal::ServerMap::iterator iter = this->Internal->Servers.find(cid);
   if (iter != this->Internal->Servers.end())
@@ -151,7 +140,7 @@ pqServer* pqServerManagerModel::findServer(const pqServerResource& resource) con
 {
   Q_FOREACH (pqServer* server, this->Internal->Servers)
   {
-    if (server && server->getResource() == resource)
+    if (server && server->resource() == resource)
     {
       return server;
     }
@@ -217,7 +206,7 @@ pqServerManagerModelItem* pqServerManagerModel::findItemHelper(
     if (item && mo.cast(item))
     {
       pqProxy* proxy = qobject_cast<pqProxy*>(item);
-      if (proxy && proxy->getSMName() == name)
+      if (proxy && proxy->registrationName() == name)
       {
         return proxy;
       }
@@ -292,7 +281,7 @@ void pqServerManagerModel::onProxyRegistered(
 
   pqProxy* item = nullptr;
 
-  QObjectList ifaces = pqApplicationCore::instance()->interfaceTracker()->interfaces();
+  QObjectList ifaces = vtkPVGUIApplication::GetInstance()->GetInterfaceTracker()->interfaces();
   Q_FOREACH (QObject* iface, ifaces)
   {
     pqServerManagerModelInterface* smi = qobject_cast<pqServerManagerModelInterface*>(iface);
@@ -385,15 +374,6 @@ void pqServerManagerModel::onProxyRegistered(
   {
     Q_EMIT this->extractorAdded(extrator);
   }
-
-  // It is essential to let the world know of the addition of pqProxy
-  // before we start emitting signals as we update the initial state
-  // of the pqProxy from its underlying proxy. Hence we Q_EMIT this->proxyAdded()
-  // before we do a pqSource->initialize();
-  item->initialize();
-
-  // FIXME: I think item->initialize() must happen before these signals are
-  // fired.
 }
 
 //-----------------------------------------------------------------------------
@@ -402,7 +382,7 @@ void pqServerManagerModel::onProxyUnRegistered(
 {
   // Handle proxy renaming.
   pqProxy* item = this->findItem<pqProxy*>(proxy);
-  if (!item || item->getSMName() != name || item->getSMGroup() != group)
+  if (!item || item->registrationName() != name || item->registrationGroup() != group)
   {
     // Proxy is unknown or being registered from a group/name for which we
     // didn't create any pq object.
@@ -421,7 +401,7 @@ void pqServerManagerModel::onProxyUnRegistered(
       continue;
     }
     // Change the name of the pqsource.
-    item->setSMName(names->GetString(cc));
+    item->setRegistrationName(names->GetString(cc));
     return;
   }
 
@@ -478,7 +458,7 @@ void pqServerManagerModel::onProxyUnRegistered(
 }
 
 //-----------------------------------------------------------------------------
-void pqServerManagerModel::onConnectionCreated(vtkIdType id)
+void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
 {
   // Avoid duplicate server creations.
   if (this->findServer(id))
@@ -486,15 +466,17 @@ void pqServerManagerModel::onConnectionCreated(vtkIdType id)
     return; // server already exists.
   }
 
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  pqServer* server = new pqServer(id, this);
+  auto* pvapp = vtkPVApplication::GetInstance();
+  pqServer* server = new pqServer(pvapp->GetSession(id), this);
 
   // Make sure the server resource is valid otherwise use session URL information
   // (this is used when we connect from Python in multi-server mode)
   if (this->Internal->ActiveResource.scheme().isEmpty())
   {
-    vtkSMSession* session = vtkSMSession::SafeDownCast(pm->GetSession(id));
+#if 0
+    vtkSMSession* session = vtkSMSession::SafeDownCast(pvapp->GetSession(id));
     server->setResource(pqServerResource(session->GetURI()));
+#endif
   }
   else
   {
@@ -513,6 +495,7 @@ void pqServerManagerModel::onConnectionCreated(vtkIdType id)
   this->connect(server, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SIGNAL(nameChanged(pqServerManagerModelItem*)));
 
+#if 0
   // The session must be initialized here as ParaView expects that the essential
   // proxies are created when following signals are fired. Also, registering
   // those proxies before pqServer is setup can result in those pqProxy classes
@@ -520,6 +503,7 @@ void pqServerManagerModel::onConnectionCreated(vtkIdType id)
   // here.
   vtkNew<vtkSMParaViewPipelineController> controller;
   controller->InitializeSession(server->session());
+#endif
 
   Q_EMIT this->serverReady(server);
   Q_EMIT this->itemAdded(server);
@@ -542,14 +526,13 @@ void pqServerManagerModel::updateSettingsFromQSettings(pqServer* server)
     return;
   }
 
-  pqApplicationCore* applicationCore = pqApplicationCore::instance();
-  pqSettings* settings = applicationCore->settings();
+  auto* pdm = pxm->GetProxyDefinitionManager();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pqSettings* settings = pvapp->GetSettings();
 
-  vtkSMProxyDefinitionManager* pdm = pxm->GetProxyDefinitionManager();
-  vtkPVProxyDefinitionIterator* iter = pdm->NewSingleGroupIterator("settings");
-  for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  for (auto item : pdm->GetDefinitions("settings"))
   {
-    vtkSMProxy* proxy = pxm->GetProxy(iter->GetGroupName(), iter->GetProxyName());
+    vtkSMProxy* proxy = pxm->GetProxy(item.GetGroup().c_str(), item.GetName().c_str());
     if (!proxy)
     {
       continue;
@@ -597,11 +580,10 @@ void pqServerManagerModel::updateSettingsFromQSettings(pqServer* server)
 
     proxy->UpdateVTKObjects();
   }
-  iter->Delete();
 }
 
 //-----------------------------------------------------------------------------
-void pqServerManagerModel::onConnectionClosed(vtkIdType id)
+void pqServerManagerModel::onConnectionClosed(vtkTypeUInt32 id)
 {
   pqServer* server = this->findServer(id);
   if (!server)
@@ -613,7 +595,7 @@ void pqServerManagerModel::onConnectionClosed(vtkIdType id)
   Q_EMIT this->preServerRemoved(server);
   Q_EMIT this->preItemRemoved(server);
 
-  this->Internal->Servers.remove(server->GetConnectionID());
+  this->Internal->Servers.remove(server->sessionID());
   this->Internal->ItemList.removeAll(server);
 
   Q_EMIT this->serverRemoved(server);

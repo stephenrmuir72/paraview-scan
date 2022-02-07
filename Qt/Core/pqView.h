@@ -55,8 +55,19 @@ class PQCORE_EXPORT pqView : public pqProxy
 {
   Q_OBJECT
   typedef pqProxy Superclass;
-
 public:
+  /**
+   * Constructor:
+   * \c type  :- view type.
+   * \c group :- SManager registration group.
+   * \c name  :- SManager registration name.
+   * \c view  :- View proxy.
+   * \c server:- server on which the proxy is created.
+   * \c parent:- QObject parent.
+   */
+  pqView(const QString& group, const QString& name, vtkSMViewProxy* view, pqServer* server,
+    QObject* parent = nullptr);
+
   enum SelectionModifier
   {
     PV_SELECTION_DEFAULT = 0,
@@ -71,12 +82,6 @@ public:
    * Returns the internal render Module proxy associated with this object.
    */
   vtkSMViewProxy* getViewProxy() const;
-
-  /**
-   * Return the client-side vtkView encapsulated by this view (if any),
-   * or return nullptr.
-   */
-  virtual vtkView* getClientSideView() const;
 
   /**
    * Return a widget associated with this view. Every view in ParaView Qt
@@ -102,11 +107,6 @@ public:
    * default. Subclassess must override if that's not the case.
    */
   virtual bool supportsCapture() const { return false; }
-
-  /**
-   * Returns the type of this view module.
-   */
-  QString getViewType() const { return this->ViewType; }
 
 public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   /**
@@ -218,20 +218,6 @@ Q_SIGNALS:
   void representationRemoved(pqRepresentation*);
 
   /**
-   * Fired when the render module fires a vtkCommand::StartEvent
-   * signalling the beginning of rendering. Subclasses must fire
-   * these signals at appropriate times.
-   */
-  void beginRender();
-
-  /**
-   * Fired when the render module fires a vtkCommand::EndEvent
-   * signalling the end of rendering.
-   * Subclasses must fire these signals at appropriate times.
-   */
-  void endRender();
-
-  /**
    * Fired when any representation visibility changes.
    */
   void representationVisibilityChanged(pqRepresentation* repr, bool visible);
@@ -267,25 +253,6 @@ Q_SIGNALS:
   void picked(pqOutputPort* opport);
 
   /**
-   * Fired before doing any actions that may result in progress events that
-   * must be reported by the client.
-   */
-  void beginProgress();
-
-  /**
-   * Fired after performing any actions that may result in progress events.
-   * Must match beginProgress() calls.
-   */
-  void endProgress();
-
-  /**
-   * Fired to notify the current execution progress. This will be generally
-   * have any effect only if beginProgress() has been fired before firing this
-   * signal.
-   */
-  void progress(const QString& message, int percent_progress);
-
-  /**
    * Fired when UseMultipleRepresentationSelection is set to on and
    * selection on multiple representations is made in this view.
    * \c opports is a list of opport, and opport is the output port for
@@ -312,54 +279,16 @@ private Q_SLOTS:
    */
   void representationCreated(pqRepresentation* repr);
 
-  /**
-   * This is called when the timer in render() times out. We test if the
-   * current moment is a reasonable moment to render and if so, call
-   * forceRender(). If there are any pending progress events, then we treat the
-   * moment as not a "reasonable moment" to render and defer the render again.
-   */
-  void tryRender();
-
-  /**
-   * These slots help use avoid the undo stack being modified during rendering.
-   * A few views (e.g. vtkSMContextViewProxy) may change some of its properties
-   * during a render. We don't want those to get captured in the undo/redo
-   * stack.
-   */
-  void onBeginRender();
-  void onEndRender();
-
 protected:
-  /**
-   * Constructor:
-   * \c type  :- view type.
-   * \c group :- SManager registration group.
-   * \c name  :- SManager registration name.
-   * \c view  :- View proxy.
-   * \c server:- server on which the proxy is created.
-   * \c parent:- QObject parent.
-   */
-  pqView(const QString& type, const QString& group, const QString& name, vtkSMViewProxy* view,
-    pqServer* server, QObject* parent = nullptr);
-
-  /**
-   * Use this method to initialize the pqObject state using the
-   * underlying vtkSMProxy. This needs to be done only once,
-   * after the object has been created.
-   * Overridden to update the list of representations currently available.
-   */
-  void initialize() override;
 
   /**
    * Subclasses must override this method to create a widget for the view.
    */
-  virtual QWidget* createWidget() = 0;
+  virtual QWidget* createWidget();
 
 private:
   Q_DISABLE_COPY(pqView)
-
   pqViewInternal* Internal;
-  QString ViewType;
 };
 
 #endif

@@ -14,7 +14,11 @@
 =========================================================================*/
 #include "vtkPVGUIApplication.h"
 
+#include "pqInterfaceTracker.h"
+#include "pqServerManagerModel.h"
+#include "pqServerManagerObserver.h"
 #include "pqSettings.h"
+#include "pqStandardServerManagerModelInterface.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVGUIOptions.h"
 #include "vtkPVLogger.h"
@@ -61,6 +65,9 @@ class vtkPVGUIApplication::vtkInternals
 public:
   std::unique_ptr<rxqt::run_loop> RxQtRunLoop;
   QScopedPointer<pqSettings> Settings;
+  QScopedPointer<pqInterfaceTracker> InterfaceTracker;
+  QScopedPointer<pqServerManagerObserver> ServerManagerObserver;
+  QScopedPointer<pqServerManagerModel> ServerManagerModel;
 };
 
 vtkStandardNewMacro(vtkPVGUIApplication);
@@ -114,6 +121,13 @@ bool vtkPVGUIApplication::InitializeInternal()
   vtkSMViewProxy::SetUseGenericOpenGLRenderWindow(true);
 
   internals.Settings.reset(::CreateSettings(this));
+  internals.InterfaceTracker.reset(new pqInterfaceTracker());
+  internals.InterfaceTracker->addInterface(
+    new pqStandardServerManagerModelInterface(internals.InterfaceTracker.get()));
+
+  internals.ServerManagerObserver.reset(new pqServerManagerObserver());
+  internals.ServerManagerModel.reset(
+    new pqServerManagerModel(internals.ServerManagerObserver.get()));
   return true;
 }
 
@@ -125,6 +139,20 @@ pqSettings* vtkPVGUIApplication::GetSettings() const
 {
   const auto& internals = (*this->Internals);
   return internals.Settings.get();
+}
+
+//----------------------------------------------------------------------------
+pqInterfaceTracker* vtkPVGUIApplication::GetInterfaceTracker() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.InterfaceTracker.get();
+}
+
+//----------------------------------------------------------------------------
+pqServerManagerModel* vtkPVGUIApplication::GetServerManagerModel() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ServerManagerModel.get();
 }
 
 //----------------------------------------------------------------------------
