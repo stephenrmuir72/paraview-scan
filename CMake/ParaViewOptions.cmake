@@ -59,6 +59,7 @@ if (PARAVIEW_BUILD_EDITION STREQUAL "ASYNC")
   # modules are explicitly enabled as we add support for them.
   set(PARAVIEW_BUILD_ASYNC ON)
   set(PARAVIEW_ENABLE_RENDERING ON)
+  set(PARAVIEW_ENABLE_NONESSENTIAL ON)
 elseif (PARAVIEW_BUILD_EDITION STREQUAL "CORE")
   # all are OFF.
   set(PARAVIEW_BUILD_CORE ON)
@@ -350,6 +351,7 @@ paraview_require_module(
             ParaView::RemotingApplication
             ParaView::pqWidgets
             ParaView::pqCore
+            VTK::IOIOSS
   )
 
 

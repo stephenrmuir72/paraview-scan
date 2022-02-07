@@ -1294,7 +1294,7 @@ const char* vtkSMPropertyHelper::GetStatus(const char* key, const char* default_
 
     if (!svp->GetRepeatCommand())
     {
-      vtkSMPropertyHelperWarningMacro("Property is non-repeatable.");
+      vtkSMPropertyHelperWarningMacro("Property '" << svp->GetXMLName() << "' is non-repeatable.");
       return default_value;
     }
 
