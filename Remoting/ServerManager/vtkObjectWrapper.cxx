@@ -228,8 +228,9 @@ void vtkObjectWrapper::InvokeCommand(const std::string& command)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkObjectWrapper::UpdateInformation() const
+vtkJson vtkObjectWrapper::UpdateInformation(vtkRemoteObjectProvider* provider) const
 {
+  const auto& internals = (*this->Internals);
   auto* object = this->GetVTKObject();
   if (auto* algorithm = vtkAlgorithm::SafeDownCast(object))
   {
@@ -239,7 +240,93 @@ vtkJson vtkObjectWrapper::UpdateInformation() const
 
   // TODO: ASYNC
   // scan all information properties and return their state.
-  return vtkJson{ { "status", true } };
+  vtkJson json = vtkJson::object();
+  json["status"] = true;
+  vtkJson properties = vtkJson::object();
+  std::vector<vtkVariant> args;
+  for (const auto& item : internals.Properties)
+  {
+    const PropertyInformation propertyInfo = item.second;
+    if (propertyInfo.InformationOnly)
+    {
+      vtkJson property = vtkJson::object();
+      const std::string& propertyName = item.first;
+      args.clear();
+      property["name"] = propertyName;
+      property["type"] = propertyInfo.Type;
+      bool success = vtkReflection::Get(object, propertyInfo.Method, args);
+      vtkJson elements = vtkJson::array();
+      if (!success)
+      {
+        vtkLogF(WARNING, "Error getting values of property '%s' using '%s::%s' ",
+          propertyName.c_str(), object->GetClassName(), propertyInfo.Method.c_str());
+      }
+      else
+      {
+        switch (propertyInfo.Type)
+        {
+          case vtkSMProperty::INT:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [](const vtkVariant& v) { return vtk::variant_cast<int>(v); });
+          }
+          break;
+
+          case vtkSMProperty::DOUBLE:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [](const vtkVariant& v) { return vtk::variant_cast<double>(v); });
+          }
+          break;
+
+          case vtkSMProperty::ID_TYPE:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [](const vtkVariant& v) { return vtk::variant_cast<int>(v); });
+          }
+          break;
+
+          case vtkSMProperty::STRING:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [](const vtkVariant& v) { return vtk::variant_cast<std::string>(v); });
+          }
+          break;
+
+          case vtkSMProperty::PROXY:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [&provider](const vtkVariant& v) {
+                auto* object = vtk::variant_cast_to_VTKObject<vtkObject*>(v);
+                return provider->GetObjectStore()->GetID(object);
+              });
+          }
+          break;
+
+          case vtkSMProperty::INPUT:
+          {
+            std::transform(args.begin(), args.end(), std::back_inserter(elements),
+              [&provider](const vtkVariant& v) {
+                vtkJson value = vtkJson::object();
+                auto* output = vtk::variant_cast_to_VTKObject<vtkAlgorithmOutput*>(v);
+                assert(output != nullptr);
+                value["producer"] = provider->GetObjectStore()->GetID(output->GetProducer());
+                value["index"] = output->GetIndex();
+                return value;
+              });
+          }
+          break;
+          default:
+            abort();
+        }
+      }
+      property["elements"] = elements;
+      properties[propertyName] = property;
+    }
+  }
+  json["properties"] = properties;
+
+  return json;
 }
 
 //----------------------------------------------------------------------------

@@ -35,6 +35,7 @@
 #include "vtkSMProxyManager.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
+#include "vtkRemotingCoreUtilities.h"
 
 #include <algorithm>
 #include <cassert>
@@ -296,8 +297,8 @@ void vtkSMProxy::AddProperty(const char* name, vtkSMProperty* prop)
 //---------------------------------------------------------------------------
 void vtkSMProxy::InvokeCommand(const char* name)
 {
-  // const auto& internals = (*this->Internals);
-  // vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  const auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
   auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
   this->GetSession()->SendMessage(this->GetLocation(), std::move(packet));
 }
@@ -382,35 +383,33 @@ void vtkSMProxy::ResetPropertiesToDefault(ResetPropertiesMode mode)
 //----------------------------------------------------------------------------
 rxcpp::observable<bool> vtkSMProxy::UpdateInformation()
 {
-  // FIXME:
-  //  auto& internals = (*this->Internals);
-  //  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  //  const vtkTypeUInt32 tag = ++internals.UpdateInformationTag;
-  //
-  //  auto subscriber = internals.UpdateInformationSubject.get_subscriber();
-  //
-  //  auto packet = vtkRemoteObjectProvider::UpdateInformation(this->GetGlobalID());
-  //  auto coordination = this->GetSession()->GetCoordination();
-  //  auto eventual = internals.Session->SendRequest(internals.Location, std::move(packet));
-  //  eventual.GetObservable()
-  //    .observe_on(coordination)
-  //    .subscribe([this, subscriber, tag](const vtkPacket& packet) {
-  //      vtkLogF(INFO, "handle UpdateInformation response");
-  //
-  //      const auto mtime = this->GetMTime();
-  //      // TODO: ASYNC
-  //      // this->LoadState(packet.GetJSON());
-  //
-  //      const bool propertiesUpdated = mtime != this->GetMTime();
-  //      subscriber.on_next(std::make_pair(tag, false));
-  //    });
-  //
-  //  return internals.UpdateInformationSubject.get_observable()
-  //    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
-  //    .take(1)
-  //    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
-  //    .observe_on(coordination);
-  return rxcpp::sources::never<bool>();
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  const vtkTypeUInt32 tag = ++internals.UpdateInformationTag;
+
+  auto subscriber = internals.UpdateInformationSubject.get_subscriber();
+
+  auto packet = vtkRemoteObjectProvider::UpdateInformation(this->GetGlobalID());
+  auto coordination = this->GetSession()->GetCoordination();
+  auto eventual = this->GetSession()->SendRequest(this->GetLocation(), std::move(packet));
+  eventual.GetObservable()
+    .observe_on(coordination)
+    .subscribe([this, subscriber, tag](const vtkPacket& packet) {
+      vtkLogF(INFO, "handle UpdateInformation response");
+
+      const auto mtime = this->GetMTime();
+      this->LoadState(packet.GetJSON(), nullptr);
+
+      // TODO: ASYNC
+      const bool propertiesUpdated = true; // mtime != this->GetMTime();
+      subscriber.on_next(std::make_pair(tag, propertiesUpdated));
+    });
+
+  return internals.UpdateInformationSubject.get_observable()
+    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
+    .take(1)
+    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
+    .observe_on(coordination);
 }
 
 //---------------------------------------------------------------------------
@@ -454,7 +453,6 @@ void vtkSMProxy::UpdateVTKObjects()
 
   this->InvokeEvent(vtkCommand::UpdateEvent, nullptr);
 }
-
 
 //----------------------------------------------------------------------------
 bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
@@ -504,7 +502,6 @@ bool vtkSMProxy::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
 
   return true;
 }
-
 
 //---------------------------------------------------------------------------
 bool vtkSMProxy::GatherInformation(vtkPVInformation* information)
@@ -1837,7 +1834,6 @@ const char* vtkSMProxy::GetAnnotationKeyAt(int index)
   }
   return nullptr;
 }
-
 
 //---------------------------------------------------------------------------
 void vtkSMProxy::RecreateVTKObjects()

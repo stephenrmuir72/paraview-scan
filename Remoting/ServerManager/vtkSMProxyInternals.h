@@ -16,6 +16,7 @@
 #ifndef vtkSMProxyInternals_h
 #define vtkSMProxyInternals_h
 
+#include "vtkClientSession.h"   // for ClientSession::DATA_SERVER
 #include "vtkSMProperty.h"      // for vtkSMProperty
 #include "vtkSMPropertyGroup.h" // for vtkSMPropertyGroup
 #include "vtkSMProxy.h"         // for vtkSMProxy
@@ -36,12 +37,11 @@
 // observer.
 struct vtkSMProxyInternals
 {
+  const std::thread::id OwnerTID{ std::this_thread::get_id() };
+
   struct PropertyInfo
   {
-    PropertyInfo()
-    {
-      this->ObserverTag = 0;
-    };
+    PropertyInfo() { this->ObserverTag = 0; };
     vtkSmartPointer<vtkSMProperty> Property;
     unsigned int ObserverTag;
   };
@@ -93,6 +93,10 @@ struct vtkSMProxyInternals
   AnnotationMap Annotations;
 
   vtkTimeStamp UpdateVTKObjectsTimeStamp;
+  vtkTypeUInt32 UpdateInformationTag{ 0 };
+  rxcpp::subjects::behavior<std::pair<vtkTypeUInt32, bool>> UpdateInformationSubject{
+    std::make_pair(0, false)
+  };
 };
 
 #endif

@@ -162,7 +162,7 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 g
     return vtkJson();
   }
 
-  return objWrapper->UpdateInformation();
+  return objWrapper->UpdateInformation(this->Self);
 }
 
 //----------------------------------------------------------------------------
