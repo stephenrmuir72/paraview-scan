@@ -33,35 +33,56 @@ set(classes
   pqCoreConfiguration
   pqCoreInit
   pqCoreUtilities
+  pqDataRepresentation
+  pqExtractor
   pqImageUtil
+  pqInterfaceTracker
   pqKeySequences
   pqModalShortcut
+  pqNonEditableStyledItemDelegate
+  pqOutputPort
+  pqOutputWidget
+  pqPipelineFilter
+  pqPipelineSource
+  pqPropertyLinks
+  pqPropertyLinksConnection
+  pqProxy
+  pqProxySelection
+  pqQVTKWidget
+  pqRecentlyUsedResourceLoaderInterface
+  pqRecentlyUsedResourcesList
+  pqRepresentation
+  pqServer
   pqServerConfiguration
   pqServerConfigurationCollection
+  pqServerManagerModel
+  pqServerManagerModelInterface
   pqServerManagerModelItem
-  vtkPVGUIApplication
+  pqServerManagerObserver
   pqServerResource
   pqSettings
+  pqSignalsBlocker
+  pqSMAdaptor
+  pqSMProxy
+  pqStandardServerManagerModelInterface
+  pqTextLinker
+  pqView
+  vtkPVGUIApplication
   vtkPVGUIOptions
-  pqQVTKWidget
-
 )
+
 set(old_classes
   pqAnimationCue
   pqAnimationScene
   pqApplicationCore
   pqBoxChartView
   pqCheckBoxDelegate
-  pqCollaborationEventPlayer
-  pqCollaborationManager
   pqComparativeContextView
   pqComparativeRenderView
   pqComparativeXYBarChartView
   pqComparativeXYChartView
   pqContextView
   pqCoreTestUtility
-  pqDataRepresentation
-  pqExtractor
   pqFileDialog
   pqFileDialogEventPlayer
   pqFileDialogEventTranslator
@@ -74,7 +95,6 @@ set(old_classes
   pqFlatTreeViewEventTranslator
   pqGraphLayoutStrategyInterface
   pqInteractiveViewLink
-  pqInterfaceTracker
   pqLinkedObjectInterface
   pqLinkedObjectQTextEdit
   pqLinkViewWidget
@@ -83,53 +103,28 @@ set(old_classes
   pqMainWindowEventManager
   pqMultiSliceAxisWidget
   pqMultiSliceView
-  pqNonEditableStyledItemDelegate
   pqObjectBuilder
-  pqOptions
-  pqOutputPort
-  pqOutputWidget
   pqParallelCoordinatesChartView
-  pqPipelineFilter
   pqPipelineRepresentation
-  pqPipelineSource
   pqPlotMatrixView
   pqPluginLocationInterface
   pqPluginManager
   pqProgressManager
-  pqPropertyLinks
-  pqPropertyLinksConnection
-  pqPropertyManager
-  pqProxy
   pqProxyModifiedStateUndoElement
-  pqProxySelection
   pqQVTKWidgetEventPlayer
   pqQVTKWidgetEventTranslator
-  pqRecentlyUsedResourceLoaderInterface
-  pqRecentlyUsedResourcesList
   pqRenderView
   pqRenderViewBase
-  pqRepresentation
-  pqSMAdaptor
-  pqSMProxy
   pqScalarBarRepresentation
   pqScalarsToColors
-  pqServer
-  pqServerManagerModelInterface
-  pqServerManagerObserver
-  pqSignalsBlocker
   pqSpreadSheetView
   pqSpreadSheetViewModel
   pqSpreadSheetViewSelectionModel
   pqSpreadSheetViewWidget
-  pqStandardServerManagerModelInterface
-  pqTextLinker
   pqTimeKeeper
-  pqTreeLayoutStrategyInterface
   pqUndoStack
-  pqView
   pqXMLEventObserver
   pqXMLEventSource
-  pqXMLUtil
   pqXYBarChartView
   pqXYChartView
   pqXYHistogramChartView

@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqServerManagerModel_h
 
 #include "pqCoreModule.h"
-#include "vtkType.h" // for vtkIdType.
+#include "vtkType.h" // for vtkTypeUInt32.
 #include <QList>
 #include <QObject>
 
@@ -47,7 +47,7 @@ class pqServerManagerObserver;
 class pqServerResource;
 class pqView;
 class vtkPVXMLElement;
-class vtkSession;
+class vtkClientSession;
 class vtkSMProxy;
 class vtkSMProxyLocator;
 class vtkSMSession;
@@ -95,14 +95,13 @@ public:
    * Given a session Id, returns the pqServer instance for that session,
    * if any.
    */
-  pqServer* findServer(vtkIdType cid) const;
+  pqServer* findServer(vtkTypeUInt32 cid) const;
 
   /**
-   * Given a vtkSession*, returns the pqServer instance for that session, if
+   * Given a vtkClientSession*, returns the pqServer instance for that session, if
    * any.
    */
-  pqServer* findServer(vtkSession*) const;
-  pqServer* findServer(vtkSMSession*) const;
+  pqServer* findServer(vtkClientSession*) const;
 
   /**
    * Given a server resource, locates the pqServer instance for it, if any.
@@ -365,12 +364,12 @@ protected Q_SLOTS:
   /**
    * Called when a new server connection is created.
    */
-  virtual void onConnectionCreated(vtkIdType id);
+  virtual void onConnectionCreated(vtkTypeUInt32 id);
 
   /**
    * Called when a server connection is closed.
    */
-  virtual void onConnectionClosed(vtkIdType id);
+  virtual void onConnectionClosed(vtkTypeUInt32 id);
 
   /**
    * Called when state file is loaded. We need to discover "helper proxies" and

@@ -32,19 +32,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 
 // ParaView Server Manager includes.
-#include "vtkErrorCode.h"
 #include "vtkEventQtSlotConnect.h"
-#include "vtkMath.h"
-#include "vtkNew.h"
-#include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
-#include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProxyProperty.h"
-#include "vtkSMSession.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
-#include "vtkView.h"
 
 // Qt includes.
 #include <QList>
@@ -53,7 +45,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 
 // ParaView includes.
-#include "pqApplicationCore.h"
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
@@ -61,9 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqQVTKWidget.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
-#include "pqTimeKeeper.h"
 #include "pqTimer.h"
-#include "pqUndoStack.h"
 
 #include <cmath>
 
@@ -95,21 +84,15 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-pqView::pqView(const QString& type, const QString& group, const QString& name, vtkSMViewProxy* view,
-  pqServer* server, QObject* _parent /*=nullptr*/)
+pqView::pqView(const QString& group, const QString& name, vtkSMViewProxy* view, pqServer* server,
+  QObject* _parent /*=nullptr*/)
   : pqProxy(group, name, view, server, _parent)
 {
-  this->ViewType = type;
   this->Internal = new pqViewInternal();
 
   // Listen to updates on the Representations property.
   this->Internal->VTKConnect->Connect(view->GetProperty("Representations"),
     vtkCommand::ModifiedEvent, this, SLOT(onRepresentationsChanged()));
-
-  // Fire start/end render signals when the underlying proxy
-  // fires appropriate events.
-  this->Internal->VTKConnect->Connect(view, vtkCommand::StartEvent, this, SLOT(onBeginRender()));
-  this->Internal->VTKConnect->Connect(view, vtkCommand::EndEvent, this, SLOT(onEndRender()));
 
   // Fire updateDataEvent
   this->Internal->VTKConnect->Connect(
@@ -117,20 +100,18 @@ pqView::pqView(const QString& type, const QString& group, const QString& name, v
 
   this->Internal->RenderTimer.setSingleShot(true);
   this->Internal->RenderTimer.setInterval(1);
-  QObject::connect(&this->Internal->RenderTimer, SIGNAL(timeout()), this, SLOT(tryRender()));
+  QObject::connect(&this->Internal->RenderTimer, SIGNAL(timeout()), this, SLOT(forceRender()));
 
+#if 0 // FIXME: ASYNC
   pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
   QObject::connect(smModel, SIGNAL(representationAdded(pqRepresentation*)), this,
     SLOT(representationCreated(pqRepresentation*)));
+#endif
 
-  pqProgressManager* pmManager = pqApplicationCore::instance()->getProgressManager();
-  if (pmManager)
-  {
-    QObject::connect(this, SIGNAL(beginProgress()), pmManager, SLOT(beginProgress()));
-    QObject::connect(this, SIGNAL(endProgress()), pmManager, SLOT(endProgress()));
-    QObject::connect(this, SIGNAL(progress(const QString&, int)), pmManager,
-      SLOT(setProgress(const QString&, int)));
-  }
+  // If the render module already has some representations in it when it is
+  // registered, this method will detect them and sync the GUI state with the
+  // SM state.
+  this->onRepresentationsChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -151,30 +132,6 @@ pqView::~pqView()
 vtkSMViewProxy* pqView::getViewProxy() const
 {
   return vtkSMViewProxy::SafeDownCast(this->getProxy());
-}
-
-//-----------------------------------------------------------------------------
-vtkView* pqView::getClientSideView() const
-{
-  auto vproxy = this->getViewProxy();
-  return vproxy ? vtkView::SafeDownCast(vproxy->GetClientSideObject()) : nullptr;
-}
-
-//-----------------------------------------------------------------------------
-void pqView::initialize()
-{
-  this->Superclass::initialize();
-
-  // If the render module already has some representations in it when it is
-  // registered, this method will detect them and sync the GUI state with the
-  // SM state.
-  this->onRepresentationsChanged();
-
-  // Create the widget.
-  if (this->widget() == nullptr)
-  {
-    qWarning("This view doesn't have a QWidget. May not work as expected.");
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -211,20 +168,6 @@ void pqView::render()
 }
 
 //-----------------------------------------------------------------------------
-void pqView::tryRender()
-{
-  if (this->getProxy()->GetSession()->GetPendingProgress() ||
-    this->getServer()->isProcessingPending())
-  {
-    this->render();
-  }
-  else
-  {
-    this->forceRender();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void pqView::forceRender()
 {
   // avoid calling render if the widget isn't valid, i.e. if the context isn't
@@ -241,9 +184,7 @@ void pqView::forceRender()
   vtkSMViewProxy* view = this->getViewProxy();
   if (view)
   {
-    view->GetSession()->PrepareProgress();
     view->StillRender();
-    view->GetSession()->CleanupPendingProgress();
   }
 }
 
@@ -319,6 +260,7 @@ QList<pqRepresentation*> pqView::getRepresentations() const
 //-----------------------------------------------------------------------------
 void pqView::onRepresentationsChanged()
 {
+#if 0 // FIXME: ASYNC
   // Determine what changed. Add the new Representations and remove the old
   // ones. Make sure new Representations have a reference to this render module.
   // Remove the reference to this render module in the removed Representations.
@@ -371,6 +313,7 @@ void pqView::onRepresentationsChanged()
       ++iter;
     }
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -406,8 +349,20 @@ QSize pqView::getSize()
 }
 
 //-----------------------------------------------------------------------------
+QWidget* pqView::createWidget()
+{
+  pqQVTKWidget* vtkwidget = new pqQVTKWidget();
+  vtkwidget->setViewProxy(this->proxy());
+  vtkwidget->setRenderWindow(this->getViewProxy()->GetRenderWindow());
+  vtkwidget->setContextMenuPolicy(Qt::NoContextMenu);
+  vtkwidget->installEventFilter(this);
+  return vtkwidget;
+}
+
+//-----------------------------------------------------------------------------
 bool pqView::canDisplay(pqOutputPort* opPort) const
 {
+#if 0 // FIXME: ASYNC
   pqPipelineSource* source = opPort ? opPort->getSource() : nullptr;
   vtkSMSourceProxy* sourceProxy =
     source ? vtkSMSourceProxy::SafeDownCast(source->getProxy()) : nullptr;
@@ -417,18 +372,6 @@ bool pqView::canDisplay(pqOutputPort* opPort) const
   }
 
   return this->getViewProxy()->CanDisplayData(sourceProxy, opPort->getPortNumber());
-}
-
-//-----------------------------------------------------------------------------
-void pqView::onBeginRender()
-{
-  BEGIN_UNDO_EXCLUDE();
-  Q_EMIT this->beginRender();
-}
-
-//-----------------------------------------------------------------------------
-void pqView::onEndRender()
-{
-  Q_EMIT this->endRender();
-  END_UNDO_EXCLUDE();
+#endif
+  return false;
 }

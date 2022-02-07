@@ -36,18 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 
 // ParaView Server Manager.
-#include "vtkClientServerStream.h"
 #include "vtkEventQtSlotConnect.h"
-#include "vtkPVDataInformation.h"
-#include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
-#include "vtkSMPropertyHelper.h"
-#include "vtkSMPropertyIterator.h"
-#include "vtkSMPropertyLink.h"
-#include "vtkSMProxyListDomain.h"
-#include "vtkSMProxyProperty.h"
-#include "vtkSMSession.h"
-#include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSmartPointer.h"
 
@@ -59,30 +48,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ParaView
 #include "pqDataRepresentation.h"
 #include "pqOutputPort.h"
-#include "pqPipelineFilter.h"
-#include "pqSMAdaptor.h"
-#include "pqServer.h"
-#include "pqTimeKeeper.h"
-#include "pqUndoStack.h"
-#include "pqXMLUtil.h"
 
 //-----------------------------------------------------------------------------
 class pqPipelineSourceInternal
 {
 public:
-  vtkSmartPointer<vtkSMProxy> Proxy;
-
-  QString Name;
   QList<pqOutputPort*> OutputPorts;
-
-  QList<vtkSmartPointer<vtkSMPropertyLink>> Links;
-  QList<vtkSmartPointer<vtkSMProxy>> ProxyListDomainProxies;
-
-  pqPipelineSourceInternal(QString name, vtkSMProxy* proxy)
-  {
-    this->Name = name;
-    this->Proxy = proxy;
-  }
 };
 
 //-----------------------------------------------------------------------------
@@ -90,7 +61,7 @@ pqPipelineSource::pqPipelineSource(
   const QString& name, vtkSMProxy* proxy, pqServer* server, QObject* _parent /*=nullptr*/)
   : pqProxy("sources", name, proxy, server, _parent)
 {
-  this->Internal = new pqPipelineSourceInternal(name, proxy);
+  this->Internal = new pqPipelineSourceInternal();
   vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(this->getProxy());
   if (source)
   {
@@ -149,9 +120,12 @@ vtkSMSourceProxy* pqPipelineSource::getSourceProxy()
 //-----------------------------------------------------------------------------
 void pqPipelineSource::updatePipeline()
 {
+#if 0 // FIXME: ASYNC
   pqTimeKeeper* timekeeper = this->getServer()->getTimeKeeper();
   double time = timekeeper->getTime();
   vtkSMSourceProxy::SafeDownCast(this->getProxy())->UpdatePipeline(time);
+#endif
+  vtkSMSourceProxy::SafeDownCast(this->proxy())->UpdatePipeline(0.0);
 }
 
 //-----------------------------------------------------------------------------

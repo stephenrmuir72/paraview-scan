@@ -17,11 +17,13 @@
 
 #include "pqProgressWidget.h"
 #include "pqQVTKWidget.h"
+#include "pqServerManagerModel.h"
+#include "pqView.h"
 #include "vtkClientSession.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
-#include "vtkPVApplication.h"
 #include "vtkPVDataInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMOutputPort.h"
@@ -32,20 +34,23 @@
 #include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
 
+#include <QVBoxLayout>
+
 class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
-  void setupSession(pqQVTKWidget* renderWidget, pqProgressWidget* progressWidget);
+  void setupSession(QWidget* centralWidget, pqProgressWidget* progressWidget);
 };
 
 void TestBasicQtAppMainWindow::QInternals::setupSession(
-  pqQVTKWidget* renderWidget, pqProgressWidget* progressWidget)
+  QWidget* centralWidget, pqProgressWidget* progressWidget)
 {
-  auto* pvapp = vtkPVApplication::GetInstance();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
   auto sessionId = pvapp->CreateBuiltinSession();
   auto* session = pvapp->GetSession(sessionId);
   auto* pxm = session->GetProxyManager();
+  auto* smmodel = pvapp->GetServerManagerModel();
 
   auto sphere =
     vtk::TakeSmartPointer(vtkSMSourceProxy::SafeDownCast(pxm->NewProxy("sources", "SphereSource")));
@@ -72,16 +77,17 @@ void TestBasicQtAppMainWindow::QInternals::setupSession(
     vtk::TakeSmartPointer(vtkSMViewProxy::SafeDownCast(pxm->NewProxy("views", "RenderView")));
   vtkSMPropertyHelper(viewProxy, "Representations").Add(repr);
   viewProxy->UpdateVTKObjects();
+  pxm->RegisterProxy("views", viewProxy);
 
-  renderWidget->setRenderWindow(viewProxy->GetRenderWindow());
+  auto* pqview = smmodel->findItem<pqView*>(viewProxy);
+  Q_ASSERT(pqview);
+  centralWidget->layout()->addWidget(pqview->widget());
 
   viewProxy->InvokeCommand("Update");
-  pxm->RegisterProxy("views", viewProxy);
 
   auto observable = session->GetProgressObservable().subscribe(
     rxcpp::util::apply_to([progressWidget](const std::string& serviceName,
                             const vtkRemoteObjectProvider::vtkProgressItem& item) {
-      vtkLogF(INFO, "progress: ");
       if (item.Progress == 100)
       {
         progressWidget->enableProgress(false);
@@ -104,9 +110,10 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);
 
-  pqQVTKWidget* qtRenderWidget = new pqQVTKWidget(this);
-  internals.setupSession(qtRenderWidget, progressWidget);
-  this->setCentralWidget(qtRenderWidget);
+  QWidget* centerWidget = new QWidget(this);
+  new QVBoxLayout(centerWidget);
+  internals.setupSession(centerWidget, progressWidget);
+  this->setCentralWidget(centerWidget);
 }
 
 //-----------------------------------------------------------------------------

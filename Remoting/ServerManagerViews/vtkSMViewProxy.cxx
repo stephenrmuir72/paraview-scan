@@ -231,6 +231,9 @@ bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMViewProxy::StillRender() {}
+
+//----------------------------------------------------------------------------
 void vtkSMViewProxy::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

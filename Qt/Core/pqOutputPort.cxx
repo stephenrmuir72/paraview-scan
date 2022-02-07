@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOutputPort.h"
 
 // Server Manager Includes.
-#include "vtkPVClassNameInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMSourceProxy.h"
@@ -88,7 +87,7 @@ vtkSMOutputPort* pqOutputPort::getOutputPortProxy() const
 {
   vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(this->getSource()->getProxy());
 
-  if (!source || !source->GetOutputPortsCreated())
+  if (!source)
   {
     return nullptr;
   }
@@ -135,21 +134,6 @@ vtkPVDataInformation* pqOutputPort::getSelectedDataInformation(int es_port) cons
   source->CreateSelectionProxies();
   auto esfilter = source->GetSelectionOutput(this->PortNumber);
   return esfilter->GetDataInformation(es_port);
-}
-
-//-----------------------------------------------------------------------------
-const char* pqOutputPort::getDataClassName() const
-{
-  vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(this->getSource()->getProxy());
-
-  if (!source)
-  {
-    return nullptr;
-  }
-
-  vtkPVClassNameInformation* ciInfo =
-    source->GetOutputPort(this->PortNumber)->GetClassNameInformation();
-  return ciInfo ? ciInfo->GetVTKClassName() : nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -340,10 +324,10 @@ QString pqOutputPort::prettyName() const
   Q_ASSERT(source);
   if (source->getNumberOfOutputPorts() > 1)
   {
-    return QString("%1: %2").arg(source->getSMName()).arg(this->getPortName());
+    return QString("%1: %2").arg(source->registrationName()).arg(this->getPortName());
   }
   else
   {
-    return source->getSMName();
+    return source->registrationName();
   }
 }

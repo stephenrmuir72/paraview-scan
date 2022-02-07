@@ -31,11 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqProxySelection.h"
 
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqProxy.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMProxySelectionModel.h"
 
@@ -47,7 +47,8 @@ bool pqProxySelectionUtilities::copy(vtkSMProxySelectionModel* source, pqProxySe
 {
   assert(source != nullptr);
 
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pqServerManagerModel* smmodel = pvapp->GetServerManagerModel();
 
   pqProxySelection new_selection;
   vtkSMProxySelectionModel::SelectionType::const_iterator iter;

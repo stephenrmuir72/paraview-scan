@@ -32,18 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqQVTKWidget_h
 #define pqQVTKWidget_h
 
-#include "QVTKInteractor.h"
 #include "pqCoreModule.h"
 #include "pqQVTKWidgetBase.h"
-#include "vtkEventQtSlotConnect.h"
-#include "vtkNew.h"
-#include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
-#include "vtkWeakPointer.h"
 
-#include <QVariant>
 #include <QWidget>
 
+class QVTKInteractor;
+class vtkRenderWindow;
 class vtkSMProxy;
 
 /**
@@ -108,16 +104,6 @@ public:
    */
   QWidget* renderWidget() const;
 
-public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
-  void paintMousePointer(int x, int y);
-
-private Q_SLOTS:
-  void prepareContextForRendering();
-
-protected:
-  bool renderVTK();
-  bool canRender();
-
 #if PARAVIEW_USING_QVTKOPENGLSTEREOWIDGET
   void resizeEvent(QResizeEvent* evt) override;
 #endif
@@ -126,7 +112,6 @@ private:
   Q_DISABLE_COPY(pqQVTKWidget)
   vtkSmartPointer<vtkSMProxy> ViewProxy;
   QString SizePropertyName;
-  vtkNew<vtkEventQtSlotConnect> VTKConnect;
 
   bool useStereo;
   QVariant baseClass;

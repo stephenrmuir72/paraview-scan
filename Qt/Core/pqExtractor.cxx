@@ -31,14 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqExtractor.h"
 
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqServerManagerModel.h"
 #include "pqView.h"
 #include "vtkCommand.h"
 #include "vtkEventQtSlotConnect.h"
 #include "vtkNew.h"
-#include "vtkSMExtractsController.h"
+// #include "vtkSMExtractsController.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxy.h"
 
@@ -63,17 +63,12 @@ pqExtractor::pqExtractor(const QString& group, const QString& name, vtkSMProxy* 
     smproxy->GetProperty("Producer"), vtkCommand::ModifiedEvent, this, SLOT(producerChanged()));
   qtconnector->Connect(
     smproxy->GetProperty("Enable"), vtkCommand::ModifiedEvent, this, SIGNAL(enabledStateChanged()));
+
+  this->producerChanged();
 }
 
 //-----------------------------------------------------------------------------
 pqExtractor::~pqExtractor() = default;
-
-//-----------------------------------------------------------------------------
-void pqExtractor::initialize()
-{
-  this->Superclass::initialize();
-  this->producerChanged();
-}
 
 //-----------------------------------------------------------------------------
 pqServerManagerModelItem* pqExtractor::producer() const
@@ -99,14 +94,19 @@ bool pqExtractor::isDataExtractor() const
 //-----------------------------------------------------------------------------
 bool pqExtractor::isEnabled() const
 {
+#if 0 // FIXME: ASYNC
   return vtkSMExtractsController::IsExtractorEnabled(this->getProxy());
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqExtractor::producerChanged()
 {
+#if 0 // FIXME: ASYNC
   auto& internals = (*this->Internals);
-  auto smmmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   vtkNew<vtkSMExtractsController> controller;
 
   auto pproxy = controller->GetInputForExtractor(this->getProxy());
@@ -126,11 +126,13 @@ void pqExtractor::producerChanged()
     Q_EMIT this->producerRemoved(olditem, this);
     Q_EMIT this->producerAdded(smitem, this);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqExtractor::toggleEnabledState(pqView* view)
 {
+#if 0 // FIXME: ASYNC
   if (view != nullptr && this->isImageExtractor() && this->producer() != view)
   {
     // view is not the producer, can't toggle enabled state.
@@ -138,4 +140,5 @@ void pqExtractor::toggleEnabledState(pqView* view)
   }
 
   vtkSMExtractsController::SetExtractorEnabled(this->getProxy(), !this->isEnabled());
+#endif
 }

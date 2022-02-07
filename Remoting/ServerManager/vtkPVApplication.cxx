@@ -15,6 +15,7 @@
 #include "vtkPVApplication.h"
 
 #include "vtkClientSession.h"
+#include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkServerSession.h"
@@ -63,6 +64,9 @@ bool vtkPVApplication::InitializeInternal()
 //----------------------------------------------------------------------------
 void vtkPVApplication::CloseSession(vtkTypeUInt32 id)
 {
+  // fire connection closed event
+  this->InvokeEvent(vtkCommand::ConnectionClosedEvent, &id);
+
   auto& internals = (*this->Internals);
   auto iter = internals.Sessions.find(id);
   if (iter != internals.Sessions.end())
@@ -84,7 +88,7 @@ vtkTypeUInt32 vtkPVApplication::CreateBuiltinSession()
 {
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  const auto id = internals.NextSessionID++;
+  auto id = internals.NextSessionID++;
 
   SessionInfo info;
   info.Server = vtk::TakeSmartPointer(vtkServerSession::New());
@@ -93,6 +97,9 @@ vtkTypeUInt32 vtkPVApplication::CreateBuiltinSession()
   info.Client = vtk::TakeSmartPointer(vtkClientSession::New());
   info.Client->Connect();
   internals.Sessions.emplace(id, std::move(info));
+
+  // fire connection created event
+  this->InvokeEvent(vtkCommand::ConnectionCreatedEvent, &id);
   return id;
 }
 
@@ -101,12 +108,15 @@ vtkTypeUInt32 vtkPVApplication::CreateRemoteSession(const std::string& url)
 {
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  const auto id = internals.NextSessionID++;
+  auto id = internals.NextSessionID++;
 
   SessionInfo info;
   info.Client = vtk::TakeSmartPointer(vtkClientSession::New());
   info.Client->Connect(url);
   internals.Sessions.emplace(id, std::move(info));
+
+  // fire connection created event
+  this->InvokeEvent(vtkCommand::ConnectionCreatedEvent, &id);
   return id;
 }
 

@@ -155,11 +155,6 @@ public:
   vtkPVDataInformation* getSelectedDataInformation(int es_port = 0) const;
 
   /**
-   * Returns the class name of the output data.
-   */
-  const char* getDataClassName() const;
-
-  /**
    * Calls vtkSMSourceProxy::GetSelectionInput() on the underlying source
    * proxy.
    */

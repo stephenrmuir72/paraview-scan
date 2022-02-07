@@ -147,13 +147,6 @@ protected Q_SLOTS:
 
 protected: // NOLINT(readability-redundant-access-specifiers)
   /**
-   * Use this method to initialize the pqObject state using the underlying
-   * vtkSMProxy. This needs to be done only once, after the object has been
-   * created.
-   */
-  void initialize() override;
-
-  /**
    * Called when a input property changes. \c portname is the name of the input
    * port represented by the property.
    */

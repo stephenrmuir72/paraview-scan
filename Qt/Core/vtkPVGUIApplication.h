@@ -24,6 +24,8 @@
 #include "pqCoreModule.h" //  for exports
 #include "vtkPVApplication.h"
 
+class pqInterfaceTracker;
+class pqServerManagerModel;
 class pqSettings;
 class vtkPVGUIOptions;
 
@@ -55,6 +57,17 @@ public:
    * the application has been been successfully initialized.
    */
   pqSettings* GetSettings() const;
+
+  /**
+   * Access the interface tracker. Interface tracker holds references to all
+   * plugin interface implementations known to the application.
+   */
+  pqInterfaceTracker* GetInterfaceTracker() const;
+
+  /**
+   * Provides access to the server manager model.
+   */
+  pqServerManagerModel* GetServerManagerModel() const;
 
 protected:
   vtkPVGUIApplication();

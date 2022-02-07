@@ -51,7 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMArraySelectionDomain.h"
 #include "vtkSMBooleanDomain.h"
 #include "vtkSMBoundsDomain.h"
-#include "vtkSMChartSeriesSelectionDomain.h"
+// #include "vtkSMChartSeriesSelectionDomain.h"
 #include "vtkSMCompositeTreeDomain.h"
 #include "vtkSMDomainIterator.h"
 #include "vtkSMDoubleRangeDomain.h"
@@ -147,7 +147,9 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
     vtkSMFileListDomain* fileListDomain = nullptr;
     vtkSMStringListDomain* stringListDomain = nullptr;
     vtkSMCompositeTreeDomain* compositeTreeDomain = nullptr;
+#if 0 // FIXME: ASYNC
     vtkSMChartSeriesSelectionDomain* chartSeriesSelectionDomain = nullptr;
+#endif
 
     vtkSMDomainIterator* iter = Property->NewDomainIterator();
     for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
@@ -176,11 +178,13 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
       {
         compositeTreeDomain = vtkSMCompositeTreeDomain::SafeDownCast(iter->GetDomain());
       }
+#if 0 // FIXME: ASYNC
       if (!chartSeriesSelectionDomain)
       {
         chartSeriesSelectionDomain =
           vtkSMChartSeriesSelectionDomain::SafeDownCast(iter->GetDomain());
       }
+#endif
     }
     iter->Delete();
 
@@ -192,10 +196,12 @@ pqSMAdaptor::PropertyType pqSMAdaptor::getPropertyType(vtkSMProperty* Property)
     {
       type = pqSMAdaptor::COMPOSITE_TREE;
     }
+#if 0 // FIXME: ASYNC
     else if (chartSeriesSelectionDomain)
     {
       type = pqSMAdaptor::MULTIPLE_ELEMENTS;
     }
+#endif
     else if (VectorProperty && VectorProperty->GetRepeatable() &&
       (stringListDomain || enumerationDomain))
     {

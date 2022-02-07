@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QPushButton>
 
 #include "pqPropertiesPanel.h"
-#include "pqPropertyManager.h"
 #include "pqProxy.h"
 #include "pqRenderView.h"
 #include "pqTextureSelectorPropertyWidget.h"

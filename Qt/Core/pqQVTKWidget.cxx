@@ -36,7 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVBoxLayout>
 
 #include "QVTKOpenGLNativeWidget.h"
-#include "pqEventDispatcher.h"
 #include "pqQVTKWidgetBase.h"
 #include "vtkPVApplicationOptions.h"
 #include "vtkPVCoreApplication.h"
@@ -117,49 +116,7 @@ pqQVTKWidget::~pqQVTKWidget() = default;
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setViewProxy(vtkSMProxy* view)
 {
-  if (view != this->ViewProxy)
-  {
-    this->VTKConnect->Disconnect();
-    this->ViewProxy = view;
-#if 0 // FIXME: ASYNC
-    // this should not be needed anymore...rendering and display are two
-    // different things.
-    if (view)
-    {
-      this->VTKConnect->Connect(
-        view, vtkSMViewProxy::PrepareContextForRendering, this, SLOT(prepareContextForRendering()));
-    }
-#endif
-  }
-}
-
-//----------------------------------------------------------------------------
-bool pqQVTKWidget::renderVTK()
-{
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool pqQVTKWidget::canRender()
-{
-#if 0 // FIXME: ASYNC -- this should not be necessary anymore!
-  // despite our best efforts, it's possible that the paint event happens while
-  // the server manager is busy processing some other request that yields
-  // progress (e.g. pvcrs.UndoRedo2 test).
-  // Triggering renders in that case is hazardous. So we skip calling
-  // rendering in those cases.
-  if (this->ViewProxy && this->ViewProxy->GetSession()->GetPendingProgress())
-  {
-    return false;
-  }
-
-  if (this->Session && this->Session->GetPendingProgress())
-  {
-    return false;
-  }
-#endif
-
-  return true;
+  this->ViewProxy = view;
 }
 
 //----------------------------------------------------------------------------
@@ -194,71 +151,6 @@ void pqQVTKWidget::resizeEvent(QResizeEvent* evt)
   }
 }
 #endif
-
-//----------------------------------------------------------------------------
-void pqQVTKWidget::prepareContextForRendering()
-{
-  if (!this->isVisible())
-  {
-    // if not visible, waiting for a bit isn't going to help with the context
-    // creation at all.
-    return;
-  }
-
-  auto start = std::chrono::system_clock::now();
-  bool ret = false;
-
-  if (this->useStereo)
-  {
-    ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
-  }
-  else
-  {
-    ret = baseClass.value<QVTKOpenGLNativeWidget*>()->isValid();
-  }
-
-  while (!ret)
-  {
-    pqEventDispatcher::processEventsAndWait(10);
-    auto end = std::chrono::system_clock::now();
-    const std::chrono::duration<double> diff = end - start;
-    if (diff.count() >= 5)
-    {
-      break;
-    }
-
-    if (this->useStereo)
-    {
-      ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
-    }
-    else
-    {
-      ret = baseClass.value<QVTKOpenGLNativeWidget*>()->isValid();
-    }
-  }
-
-  if (this->useStereo)
-  {
-    ret = baseClass.value<pqQVTKWidgetBase*>()->isValid();
-  }
-  else
-  {
-    ret = baseClass.value<QVTKOpenGLNativeWidget*>()->isValid();
-  }
-
-  if (!ret)
-  {
-    qCritical("Failed to create a valid OpenGL context for 5 seconds....giving up!");
-  }
-}
-
-//----------------------------------------------------------------------------
-void pqQVTKWidget::paintMousePointer(int xLocation, int yLocation)
-{
-  Q_UNUSED(xLocation);
-  Q_UNUSED(yLocation);
-  // TODO: need to add support to paint collaboration mouse pointer in Qt 5.
-}
 
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setRenderWindow(vtkRenderWindow* win)
