@@ -69,6 +69,7 @@ set(classes
   pqView
   vtkPVGUIApplication
   vtkPVGUIOptions
+  pqUndoStack
 )
 
 set(old_classes
@@ -122,7 +123,6 @@ set(old_classes
   pqSpreadSheetViewSelectionModel
   pqSpreadSheetViewWidget
   pqTimeKeeper
-  pqUndoStack
   pqXMLEventObserver
   pqXMLEventSource
   pqXYBarChartView
