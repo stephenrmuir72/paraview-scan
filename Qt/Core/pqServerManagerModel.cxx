@@ -374,6 +374,15 @@ void pqServerManagerModel::onProxyRegistered(
   {
     Q_EMIT this->extractorAdded(extrator);
   }
+
+  // It is essential to let the world know of the addition of pqProxy
+  // before we start emitting signals as we update the initial state
+  // of the pqProxy from its underlying proxy. Hence we Q_EMIT this->proxyAdded()
+  // before we do a pqSource->initialize();
+  item->initialize();
+
+  // FIXME: I think item->initialize() must happen before these signals are
+  // fired.
 }
 
 //-----------------------------------------------------------------------------

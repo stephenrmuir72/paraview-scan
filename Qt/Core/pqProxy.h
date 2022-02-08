@@ -140,6 +140,14 @@ Q_SIGNALS:
    */
   void modifiedStateChanged(pqServerManagerModelItem*);
 
+protected:
+  /**
+   * Use this method to initialize the pqObject state using the
+   * underlying vtkSMProxy. This needs to be done only once,
+   * after the object has been created.
+   */
+  virtual void initialize();
+
 private:
   class pqInternals;
   std::unique_ptr<pqInternals> Internals;

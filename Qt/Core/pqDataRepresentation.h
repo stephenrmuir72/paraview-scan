@@ -176,6 +176,18 @@ protected Q_SLOTS:
    */
   virtual void onInputChanged();
 
+protected: // NOLINT(readability-redundant-access-specifiers)
+  /**
+   * Use this method to initialize the pqObject state using the
+   * underlying vtkSMProxy. This needs to be done only once,
+   * after the object has been created.
+   */
+  void initialize() override
+  {
+    this->Superclass::initialize();
+    this->onInputChanged();
+  }
+
 private:
   Q_DISABLE_COPY(pqDataRepresentation)
   pqDataRepresentationInternal* Internal;

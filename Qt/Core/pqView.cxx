@@ -108,10 +108,6 @@ pqView::pqView(const QString& group, const QString& name, vtkSMViewProxy* view, 
     SLOT(representationCreated(pqRepresentation*)));
 #endif
 
-  // If the render module already has some representations in it when it is
-  // registered, this method will detect them and sync the GUI state with the
-  // SM state.
-  this->onRepresentationsChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -132,6 +128,23 @@ pqView::~pqView()
 vtkSMViewProxy* pqView::getViewProxy() const
 {
   return vtkSMViewProxy::SafeDownCast(this->getProxy());
+}
+
+//-----------------------------------------------------------------------------
+void pqView::initialize()
+{
+  this->Superclass::initialize();
+
+  // If the render module already has some representations in it when it is
+  // registered, this method will detect them and sync the GUI state with the
+  // SM state.
+  this->onRepresentationsChanged();
+
+  // Create the widget.
+  if (this->widget() == nullptr)
+  {
+    qWarning("This view doesn't have a QWidget. May not work as expected.");
+  }
 }
 
 //-----------------------------------------------------------------------------

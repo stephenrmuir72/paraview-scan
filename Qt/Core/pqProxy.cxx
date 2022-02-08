@@ -153,6 +153,9 @@ vtkSMSessionProxyManager* pqProxy::proxyManager() const
 }
 
 //-----------------------------------------------------------------------------
+void pqProxy::initialize() {}
+
+//-----------------------------------------------------------------------------
 QString pqProxy::rstToHtml(const QString& rstStr)
 {
   return QString::fromStdString(pqProxy::rstToHtml(rstStr.toUtf8().data()));

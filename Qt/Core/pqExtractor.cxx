@@ -63,12 +63,17 @@ pqExtractor::pqExtractor(const QString& group, const QString& name, vtkSMProxy* 
     smproxy->GetProperty("Producer"), vtkCommand::ModifiedEvent, this, SLOT(producerChanged()));
   qtconnector->Connect(
     smproxy->GetProperty("Enable"), vtkCommand::ModifiedEvent, this, SIGNAL(enabledStateChanged()));
-
-  this->producerChanged();
 }
 
 //-----------------------------------------------------------------------------
 pqExtractor::~pqExtractor() = default;
+
+//-----------------------------------------------------------------------------
+void pqExtractor::initialize()
+{
+  this->Superclass::initialize();
+  this->producerChanged();
+}
 
 //-----------------------------------------------------------------------------
 pqServerManagerModelItem* pqExtractor::producer() const
