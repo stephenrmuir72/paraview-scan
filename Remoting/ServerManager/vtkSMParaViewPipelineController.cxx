@@ -14,29 +14,28 @@
 =========================================================================*/
 #include "vtkSMParaViewPipelineController.h"
 
-#include "vtkClientServerStreamInstantiator.h"
+#include "vtkReflection.h"
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
-#include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMPropertyLink.h"
-#include "vtkSMProxyDefinitionManager.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxyInitializationHelper.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMProxySelectionModel.h"
-#include "vtkSMSession.h"
+#include "vtkClientSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMSettings.h"
-#include "vtkSMSettingsProxy.h"
+// #include "vtkSMSettings.h"
+// #include "vtkSMSettingsProxy.h"
 #include "vtkSMSourceProxy.h"
-#include "vtkSMTimeKeeperProxy.h"
+// #include "vtkSMTimeKeeperProxy.h"
 #include "vtkSMTrace.h"
 #include "vtkSmartPointer.h"
 #include "vtkWeakPointer.h"
@@ -162,7 +161,7 @@ std::string vtkSMParaViewPipelineController::GetHelperProxyGroupName(vtkSMProxy*
 {
   assert(proxy != nullptr);
   std::ostringstream groupnamestr;
-  groupnamestr << "pq_helper_proxies." << proxy->GetGlobalIDAsString();
+  groupnamestr << "pq_helper_proxies." << proxy->GetGlobalID();
   return groupnamestr.str();
 }
 
@@ -199,7 +198,9 @@ bool vtkSMParaViewPipelineController::CreateProxiesForProxyListDomains(vtkSMProx
             "Location for proxy (%s) in proxy list domain for property '%s' "
             "on proxy (%s) has been changed.",
             proxy->GetLogNameOrDefault(), iter->GetKey(), dproxy->GetLogNameOrDefault());
+#if 0 // FIXME: ASYNC
           dproxy->SetLocation(location);
+#endif
           this->PreInitializeProxy(dproxy);
         }
       }
@@ -246,8 +247,10 @@ void vtkSMParaViewPipelineController::RegisterProxiesForProxyListDomains(vtkSMPr
 //----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::SetupGlobalPropertiesLinks(vtkSMProxy* proxy)
 {
+#if 0 // FIXME: ASYNC
   assert(proxy != nullptr);
   vtkSMSettingsProxy::ProcessPropertyLinks(proxy);
+#endif
   return true;
 }
 
@@ -290,18 +293,12 @@ void vtkSMParaViewPipelineController::DoMaterialSetup(vtkSMProxy* vtkNotUsed(pro
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
+bool vtkSMParaViewPipelineController::InitializeSession(vtkClientSession* session)
 {
   assert(session != nullptr);
 
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
-
-  //---------------------------------------------------------------------------
-  // If the session is a collaborative session, we need to fetch the state from
-  // server before we start creating "essential" proxies. This is a no-op if not
-  // a collaborative session.
-  pxm->UpdateFromRemote();
 
   //---------------------------------------------------------------------------
   // Setup selection models used to track active view/active proxy.
@@ -321,6 +318,7 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
     selmodel->FastDelete();
   }
 
+#if 0 // FIXME: ASYNC
   //---------------------------------------------------------------------------
   // Create the timekeeper if none exists.
   vtkSmartPointer<vtkSMProxy> timeKeeper = this->FindTimeKeeper(session);
@@ -337,6 +335,7 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
 
     pxm->RegisterProxy("timekeeper", timeKeeper);
   }
+#endif
 
   //---------------------------------------------------------------------------
   // Create the materiallibrary
@@ -371,44 +370,44 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkSMSession* session)
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxy* vtkSMParaViewPipelineController::FindTimeKeeper(vtkSMSession* session)
+vtkSMProxy* vtkSMParaViewPipelineController::FindTimeKeeper(vtkClientSession* session)
 {
   assert(session != nullptr);
 
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
 
   return this->FindProxy(pxm, "timekeeper", "misc", "TimeKeeper");
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxy* vtkSMParaViewPipelineController::FindMaterialLibrary(vtkSMSession* session)
+vtkSMProxy* vtkSMParaViewPipelineController::FindMaterialLibrary(vtkClientSession* session)
 {
   assert(session != nullptr);
 
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
 
   return this->FindProxy(pxm, "materiallibrary", "materials", "MaterialLibrary");
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxy* vtkSMParaViewPipelineController::FindAnimationScene(vtkSMSession* session)
+vtkSMProxy* vtkSMParaViewPipelineController::FindAnimationScene(vtkClientSession* session)
 {
   assert(session != nullptr);
 
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
 
   return this->FindProxy(pxm, "animation", "animation", "AnimationScene");
 }
 
 //----------------------------------------------------------------------------
-vtkSMProxy* vtkSMParaViewPipelineController::GetAnimationScene(vtkSMSession* session)
+vtkSMProxy* vtkSMParaViewPipelineController::GetAnimationScene(vtkClientSession* session)
 {
   assert(session != nullptr);
 
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
 
   vtkSMProxy* timeKeeper = this->FindTimeKeeper(session);
@@ -538,12 +537,14 @@ bool vtkSMParaViewPipelineController::RegisterPipelineProxy(
     proxy->SetLogName(proxyname);
   }
 
+#if 0 // FIXME: ASYNC
   // Register proxy with TimeKeeper.
   vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
   vtkSMTimeKeeperProxy::AddTimeSource(timeKeeper, proxy,
     // suppress_input
     (proxy->GetProperty("TimestepValues") != nullptr ||
       proxy->GetProperty("TimeRange") != nullptr));
+#endif
 
   // Make the proxy active.
   vtkSMProxySelectionModel* selmodel =
@@ -578,12 +579,14 @@ bool vtkSMParaViewPipelineController::UnRegisterPipelineProxy(vtkSMProxy* proxy)
     selmodel->SetCurrentProxy(nullptr, vtkSMProxySelectionModel::CLEAR_AND_SELECT);
   }
 
+#if 0 // FIXME: ASYNC
   // remove proxy from TimeKeeper.
   vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
   vtkSMTimeKeeperProxy::RemoveTimeSource(timeKeeper, proxy,
     // unsuppress_input
     (proxy->GetProperty("TimestepValues") != nullptr ||
       proxy->GetProperty("TimeRange") != nullptr));
+#endif
 
   // unregister dependencies.
   this->UnRegisterDependencies(proxy);
@@ -1013,28 +1016,29 @@ bool vtkSMParaViewPipelineController::RegisterExtractorProxy(
 }
 
 //----------------------------------------------------------------------------
-void vtkSMParaViewPipelineController::UpdateSettingsProxies(vtkSMSession* session)
+void vtkSMParaViewPipelineController::UpdateSettingsProxies(vtkClientSession* session)
 {
   // Set up the settings proxies
-  vtkSMSessionProxyManager* pxm = session->GetSessionProxyManager();
-  vtkSMProxyDefinitionManager* pdm = pxm->GetProxyDefinitionManager();
-  vtkPVProxyDefinitionIterator* iter = pdm->NewSingleGroupIterator("settings");
-  for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  vtkSMSessionProxyManager* pxm = session->GetProxyManager();
+  vtkProxyDefinitionManager* pdm = pxm->GetProxyDefinitionManager();
+
+  for (const auto& item : pdm->GetDefinitions("settings"))
   {
-    vtkSMProxy* proxy = pxm->GetProxy(iter->GetGroupName(), iter->GetProxyName());
+    const auto group = item.GetGroup();
+    const auto name = item.GetName();
+    vtkSMProxy* proxy = pxm->GetProxy(group.c_str(), name.c_str());
     if (!proxy)
     {
-      proxy = vtkSafeNewProxy(pxm, iter->GetGroupName(), iter->GetProxyName());
+      proxy = vtkSafeNewProxy(pxm, group.c_str(), name.c_str());
       if (proxy)
       {
         this->InitializeProxy(proxy);
-        pxm->RegisterProxy(iter->GetGroupName(), iter->GetProxyName(), proxy);
+        pxm->RegisterProxy(group.c_str(), name.c_str(), proxy);
         proxy->UpdateVTKObjects();
         proxy->Delete();
       }
     }
   }
-  iter->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -1060,9 +1064,11 @@ bool vtkSMParaViewPipelineController::PreInitializeProxy(vtkSMProxy* proxy)
     return false;
   }
 
+#if 0 // FIXME: ASYNC
   // 4. Load property values from Settings.
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   settings->GetProxySettings(proxy);
+#endif
 
   // Now, update the initialization time.
   this->Internals->InitializationTimeStamps[proxy].Modified();
@@ -1118,7 +1124,7 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
       if (sourceProxy->GetNumberOfOutputPorts() > 0)
       {
         // This is only done for non-writers, or non-sinks.
-        sourceProxy->UpdatePipelineInformation();
+        sourceProxy->UpdateInformation();
       }
     }
 
@@ -1341,10 +1347,7 @@ void vtkSMParaViewPipelineController::ProcessInitializationHelper(
       child->GetAttribute("class") != nullptr)
     {
       const char* className = child->GetAttribute("class");
-      vtkSmartPointer<vtkObjectBase> obj;
-      obj.TakeReference(vtkClientServerStreamInstantiator::CreateInstance(className));
-      if (vtkSMProxyInitializationHelper* helper =
-            vtkSMProxyInitializationHelper::SafeDownCast(obj))
+      if (auto helper = vtkReflection::CreateInstance<vtkSMProxyInitializationHelper>(className))
       {
         helper->PostInitializeProxy(proxy, child, initializationTimeStamp);
       }
@@ -1363,10 +1366,7 @@ void vtkSMParaViewPipelineController::ProcessInitializationHelperRegistration(vt
       child->GetAttribute("class") != nullptr)
     {
       const char* className = child->GetAttribute("class");
-      vtkSmartPointer<vtkObjectBase> obj;
-      obj.TakeReference(vtkClientServerStreamInstantiator::CreateInstance(className));
-      if (vtkSMProxyInitializationHelper* helper =
-            vtkSMProxyInitializationHelper::SafeDownCast(obj))
+      if (auto helper = vtkReflection::CreateInstance<vtkSMProxyInitializationHelper>(className))
       {
         helper->RegisterProxy(proxy, child);
       }

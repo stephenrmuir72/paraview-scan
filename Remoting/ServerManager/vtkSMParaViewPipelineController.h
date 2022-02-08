@@ -41,36 +41,37 @@
 #ifndef vtkSMParaViewPipelineController_h
 #define vtkSMParaViewPipelineController_h
 
-#include "vtkSMObject.h"
+#include "vtkObject.h"
+#include "vtkRemotingServerManagerModule.h" // for exports
 
 #include <string> // for std::string
 
 class vtkSMProxy;
-class vtkSMSession;
+class vtkClientSession;
 class vtkSMSessionProxyManager;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMParaViewPipelineController : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMParaViewPipelineController : public vtkObject
 {
 public:
   static vtkSMParaViewPipelineController* New();
-  vtkTypeMacro(vtkSMParaViewPipelineController, vtkSMObject);
+  vtkTypeMacro(vtkSMParaViewPipelineController, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Call this method to setup a branch new session with state considered
    * essential for ParaView session. Returns true on success.
    */
-  virtual bool InitializeSession(vtkSMSession* session);
+  virtual bool InitializeSession(vtkClientSession* session);
 
   /**
    * Returns the TimeKeeper proxy associated with the session.
    */
-  virtual vtkSMProxy* FindTimeKeeper(vtkSMSession* session);
+  virtual vtkSMProxy* FindTimeKeeper(vtkClientSession* session);
 
   /**
    * Returns the MaterialLibrary proxy associated with the session.
    */
-  virtual vtkSMProxy* FindMaterialLibrary(vtkSMSession* session);
+  virtual vtkSMProxy* FindMaterialLibrary(vtkClientSession* session);
 
   //---------------------------------------------------------------------------
   /**
@@ -239,14 +240,14 @@ public:
   /**
    * Returns the animation scene, if any. Returns nullptr if none exists.
    */
-  virtual vtkSMProxy* FindAnimationScene(vtkSMSession* session);
+  virtual vtkSMProxy* FindAnimationScene(vtkClientSession* session);
 
   /**
    * Returns the animation scene for the session. If none exists, a new one will
    * be created. This may returns nullptr if animation scene proxy is not available
    * in the session.
    */
-  virtual vtkSMProxy* GetAnimationScene(vtkSMSession* session);
+  virtual vtkSMProxy* GetAnimationScene(vtkClientSession* session);
 
   /**
    * Return the animation track for time, if any. Returns nullptr if none exists.
@@ -282,7 +283,7 @@ public:
    * haven't been already. This may be called whenever a new settings
    * proxy definition becomes available, say, after loading a plugin.
    */
-  virtual void UpdateSettingsProxies(vtkSMSession* session);
+  virtual void UpdateSettingsProxies(vtkClientSession* session);
 
   //---------------------------------------------------------------------------
   // ****** Methods for cleanup/finalization/deleting ******

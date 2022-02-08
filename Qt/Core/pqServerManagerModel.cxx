@@ -45,18 +45,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 #include "vtkClientSession.h"
 #include "vtkNew.h"
-#include "vtkPVGUIApplication.h"
 #include "vtkProxyDefinitionManager.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkSmartPointer.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMOutputPort.h"
+#include "vtkSMParaViewPipelineController.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
-#include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 
 // Qt Includes.
@@ -503,7 +504,6 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   this->connect(server, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SIGNAL(nameChanged(pqServerManagerModelItem*)));
 
-#if 0
   // The session must be initialized here as ParaView expects that the essential
   // proxies are created when following signals are fired. Also, registering
   // those proxies before pqServer is setup can result in those pqProxy classes
@@ -511,7 +511,6 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   // here.
   vtkNew<vtkSMParaViewPipelineController> controller;
   controller->InitializeSession(server->session());
-#endif
 
   Q_EMIT this->serverReady(server);
   Q_EMIT this->itemAdded(server);
