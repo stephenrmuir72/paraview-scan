@@ -57,6 +57,12 @@ public:
   rxcpp::observable<bool> Connect(const std::string& url = std::string{});
 
   /**
+   * Returns the URL the client is connected to. This will be empty when
+   * connected to services on the same process aka "builtin".
+   */
+  const std::string& GetURL() const;
+
+  /**
    * Provides access to the session's proxy-manager.
    */
   vtkSMSessionProxyManager* GetProxyManager() const;

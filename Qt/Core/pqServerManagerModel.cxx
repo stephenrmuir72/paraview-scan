@@ -482,10 +482,9 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   // (this is used when we connect from Python in multi-server mode)
   if (this->Internal->ActiveResource.scheme().isEmpty())
   {
-#if 0
-    vtkSMSession* session = vtkSMSession::SafeDownCast(pvapp->GetSession(id));
-    server->setResource(pqServerResource(session->GetURI()));
-#endif
+    auto* session = pvapp->GetSession(id);
+    const auto& url = session->GetURL();
+    server->setResource(pqServerResource(url.empty() ? "builtin:" : url.c_str()));
   }
   else
   {
