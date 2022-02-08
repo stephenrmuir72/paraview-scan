@@ -29,12 +29,11 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqPopOutWidget.h"
 
-#include "pqApplicationCore.h"
 #include "pqDialog.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QIcon>
 #include <QLayout>
@@ -65,7 +64,7 @@ public:
     , Index(-1)
     , WidgetIsInDialog(false)
   {
-    Settings = pqApplicationCore::instance()->settings();
+    Settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   }
 };
 

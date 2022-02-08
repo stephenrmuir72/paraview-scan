@@ -45,18 +45,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 #include "vtkClientSession.h"
 #include "vtkNew.h"
-#include "vtkPVGUIApplication.h"
 #include "vtkProxyDefinitionManager.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkSmartPointer.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMOutputPort.h"
+#include "vtkSMParaViewPipelineController.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
-#include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 
 // Qt Includes.
@@ -374,6 +375,15 @@ void pqServerManagerModel::onProxyRegistered(
   {
     Q_EMIT this->extractorAdded(extrator);
   }
+
+  // It is essential to let the world know of the addition of pqProxy
+  // before we start emitting signals as we update the initial state
+  // of the pqProxy from its underlying proxy. Hence we Q_EMIT this->proxyAdded()
+  // before we do a pqSource->initialize();
+  item->initialize();
+
+  // FIXME: I think item->initialize() must happen before these signals are
+  // fired.
 }
 
 //-----------------------------------------------------------------------------
@@ -473,10 +483,9 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   // (this is used when we connect from Python in multi-server mode)
   if (this->Internal->ActiveResource.scheme().isEmpty())
   {
-#if 0
-    vtkSMSession* session = vtkSMSession::SafeDownCast(pvapp->GetSession(id));
-    server->setResource(pqServerResource(session->GetURI()));
-#endif
+    auto* session = pvapp->GetSession(id);
+    const auto& url = session->GetURL();
+    server->setResource(pqServerResource(url.empty() ? "builtin:" : url.c_str()));
   }
   else
   {
@@ -495,7 +504,6 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   this->connect(server, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SIGNAL(nameChanged(pqServerManagerModelItem*)));
 
-#if 0
   // The session must be initialized here as ParaView expects that the essential
   // proxies are created when following signals are fired. Also, registering
   // those proxies before pqServer is setup can result in those pqProxy classes
@@ -503,7 +511,6 @@ void pqServerManagerModel::onConnectionCreated(vtkTypeUInt32 id)
   // here.
   vtkNew<vtkSMParaViewPipelineController> controller;
   controller->InitializeSession(server->session());
-#endif
 
   Q_EMIT this->serverReady(server);
   Q_EMIT this->itemAdded(server);

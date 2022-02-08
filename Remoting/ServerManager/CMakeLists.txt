@@ -93,12 +93,14 @@ set(classes
   vtkSMNumberOfComponentsDomain
   vtkSMOrderedPropertyIterator
   vtkSMOutputPort
+  vtkSMParaViewPipelineController
   vtkSMProperty
   vtkSMPropertyGroup
   vtkSMPropertyHelper
   vtkSMPropertyIterator
   vtkSMPropertyLink
   vtkSMProxy
+  vtkSMProxyClipboard
   vtkSMProxyDefinitionsIterator
   vtkSMProxyDefinitionsRange
   vtkSMProxyGroupDomain
@@ -144,7 +146,6 @@ set(old_classes
   vtkSMLoadStateOptionsProxy
   vtkSMMultiplexerSourceProxy
   vtkSMMultiplexerInputDomain
-  vtkSMParaViewPipelineController
   vtkSMPluginLoaderProxy
   vtkSMPluginManager
   vtkSMPropertyModificationUndoElement

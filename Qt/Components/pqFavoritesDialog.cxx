@@ -29,22 +29,18 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
-// self
 #include "pqFavoritesDialog.h"
 #include "pqQtDeprecated.h"
 #include "ui_pqFavoritesDialog.h"
 
-// Qt
 #include <QDropEvent>
 #include <QHeaderView>
 #include <QSet>
 #include <QShortcut>
 #include <QStringList>
 
-// pqCore
-#include "pqApplicationCore.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 
 namespace
 {
@@ -265,7 +261,7 @@ bool pqFavoritesDialog::eventFilter(QObject* object, QEvent* event)
 void pqFavoritesDialog::populateFavoritesTree()
 {
   this->Ui->favorites->clear();
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QStringLiteral("favorites.ParaViewFilters/");
   if (settings->contains(key))
   {
@@ -441,7 +437,7 @@ void pqFavoritesDialog::onAccepted()
   QTreeWidgetItem* item = this->Ui->favorites->invisibleRootItem();
   QString value;
   value = this->populateSettingsValue(value, item);
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QStringLiteral("favorites.ParaViewFilters/");
   settings->setValue(key, value);
 }

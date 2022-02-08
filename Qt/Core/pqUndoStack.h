@@ -176,60 +176,71 @@ private: // NOLINT(readability-redundant-access-specifiers)
   pqImplementation* Implementation;
 };
 
-#include "pqApplicationCore.h"
 
 inline void BEGIN_UNDO_SET(const QString& name)
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->beginUndoSet(name);
   }
+#endif
 }
 
 inline void END_UNDO_SET()
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->endUndoSet();
   }
+#endif
 }
 
 inline void CLEAR_UNDO_STACK()
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->clear();
   }
+#endif
 }
 
 inline void ADD_UNDO_ELEM(vtkUndoElement* elem)
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->addToActiveUndoSet(elem);
   }
+#endif
 }
 
 inline void BEGIN_UNDO_EXCLUDE()
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->beginNonUndoableChanges();
   }
+#endif
 }
 
 inline void END_UNDO_EXCLUDE()
 {
+#if 0 // FIXME: ASYNC
   pqUndoStack* usStack = pqApplicationCore::instance()->getUndoStack();
   if (usStack)
   {
     usStack->endNonUndoableChanges();
   }
+#endif
 }
 
 class PQCORE_EXPORT pqScopedUndoExclude

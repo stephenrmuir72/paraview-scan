@@ -37,17 +37,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMRenderViewProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTrace.h"
+#include "vtkSMViewProxy.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqLightsEditor.h"
 #include "pqPropertiesPanel.h"
 #include "pqPropertyWidget.h"
 #include "pqProxyWidget.h"
-#include "pqRenderView.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
 
@@ -58,7 +56,7 @@ public:
   Ui::LightsInspector Ui;
   pqLightsInspector* self;
   int observerTag;
-  vtkSMRenderViewProxy* rview;
+  vtkWeakPointer<vtkSMViewProxy> rview;
 
   pqInternals(pqLightsInspector* inSelf)
     : self(inSelf)
@@ -95,7 +93,7 @@ public:
     }
   }
 
-  vtkSMRenderViewProxy* getActiveView()
+  vtkSMViewProxy* getActiveView()
   {
     // returns nullptr if the active view is incompatible,
     // otherwise returns the corresponding SMViewProxy
@@ -104,8 +102,8 @@ public:
     {
       return nullptr;
     }
-    vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast(pv->getViewProxy());
-    return view;
+    auto* view = pv->getViewProxy();
+    return view && view->GetProperty("AdditionalLights") ? view : nullptr;
   }
 
   void updateLightWidgets()
@@ -136,7 +134,7 @@ public:
       this->rview->GetProperty("AdditionalLights")->RemoveObserver(this->observerTag);
       this->observerTag = 0;
     }
-    vtkSMRenderViewProxy* view = this->getActiveView();
+    auto* view = this->getActiveView();
     if (!view || !view->GetProperty("AdditionalLights"))
     {
       // disable the 'add light' button
@@ -273,7 +271,7 @@ void pqLightsInspector::setActiveView(pqView*)
 //-----------------------------------------------------------------------------
 void pqLightsInspector::addLight()
 {
-  vtkSMRenderViewProxy* view = this->Internals->getActiveView();
+  auto* view = this->Internals->getActiveView();
   if (!view)
   {
     return;
@@ -308,18 +306,16 @@ void pqLightsInspector::addLight()
 //-----------------------------------------------------------------------------
 void pqLightsInspector::render()
 {
-  pqRenderView* renderView = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
-  if (!renderView)
+  if (auto* view = pqActiveObjects::instance().activeView())
   {
-    return;
+    view->render();
   }
-  renderView->render();
 }
 
 //-----------------------------------------------------------------------------
 void pqLightsInspector::updateAndRender()
 {
-  vtkSMRenderViewProxy* view = this->Internals->getActiveView();
+  auto* view = this->Internals->getActiveView();
   if (!view)
   {
     return;
@@ -337,7 +333,7 @@ void pqLightsInspector::updateAndRender()
 //-----------------------------------------------------------------------------
 void pqLightsInspector::removeLight(vtkSMProxy* lightProxy)
 {
-  vtkSMRenderViewProxy* view = this->Internals->getActiveView();
+  auto* view = this->Internals->getActiveView();
   if (!view)
   {
     return;
@@ -384,7 +380,7 @@ void pqLightsInspector::removeLight(vtkSMProxy* lightProxy)
 //-----------------------------------------------------------------------------
 void pqLightsInspector::resetLight(vtkSMProxy* lightProxy)
 {
-  vtkSMRenderViewProxy* view = this->Internals->getActiveView();
+  auto* view = this->Internals->getActiveView();
   if (!view)
   {
     return;
@@ -406,7 +402,7 @@ void pqLightsInspector::resetLight(vtkSMProxy* lightProxy)
 //-----------------------------------------------------------------------------
 void pqLightsInspector::syncLightToCamera(vtkSMProxy* lightProxy)
 {
-  vtkSMRenderViewProxy* view = this->Internals->getActiveView();
+  auto* view = this->Internals->getActiveView();
   if (!view)
   {
     return;
@@ -436,12 +432,16 @@ void pqLightsInspector::syncLightToCamera(vtkSMProxy* lightProxy)
   }
   else if (type == VTK_LIGHT_TYPE_SCENE_LIGHT)
   {
+#if 0 // FIXME: ASYNC
     vtkCamera* camera = view->GetActiveCamera();
     camera->GetPosition(position);
     camera->GetFocalPoint(focal);
 
     vtkSMPropertyHelper(lightProxy, "LightPosition").Modified().Set(position, 3);
     vtkSMPropertyHelper(lightProxy, "FocalPoint").Modified().Set(focal, 3);
+#else
+    abort();
+#endif
   }
   lightProxy->UpdateVTKObjects();
   this->render();

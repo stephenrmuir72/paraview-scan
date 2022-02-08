@@ -6,7 +6,6 @@ LIBRARY_NAME
   vtkRemotingSettings
 DEPENDS
   VTK::CommonCore
-  ParaView::RemotingCore
 KIT
   ParaView::ServerManagerKit
 PRIVATE_DEPENDS

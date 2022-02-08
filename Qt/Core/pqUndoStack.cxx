@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "pqUndoStack.h"
 
-#include "pqApplicationCore.h"
+#if 0 // FIXME: ASYNC
 #include "pqProxyModifiedStateUndoElement.h"
 #include "pqServer.h"
 #include "vtkEventQtSlotConnect.h"
@@ -46,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSessionIterator.h"
 #include "vtkSmartPointer.h"
 #include "vtkUndoSet.h"
+#endif
 
 #include <QPointer>
 #include <QtDebug>
@@ -54,10 +55,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class pqUndoStack::pqImplementation
 {
 public:
+#if 0
   pqImplementation() { this->NestedCount = 0; }
   vtkSmartPointer<vtkSMUndoStack> UndoStack;
   vtkSmartPointer<vtkSMUndoStackBuilder> UndoStackBuilder;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKConnector;
+#endif
 
   QList<bool> IgnoreAllChangesStack;
   int NestedCount;
@@ -68,6 +71,7 @@ pqUndoStack::pqUndoStack(vtkSMUndoStackBuilder* builder, QObject* _parent /*=nul
   : QObject(_parent)
 {
   this->Implementation = new pqImplementation();
+#if 0
   this->Implementation->UndoStack = vtkSmartPointer<vtkSMUndoStack>::New();
 
   if (builder)
@@ -87,6 +91,7 @@ pqUndoStack::pqUndoStack(vtkSMUndoStackBuilder* builder, QObject* _parent /*=nul
   this->Implementation->VTKConnector = vtkSmartPointer<vtkEventQtSlotConnect>::New();
   this->Implementation->VTKConnector->Connect(this->Implementation->UndoStack,
     vtkCommand::ModifiedEvent, this, SLOT(onStackChanged()), nullptr, 1.0);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -98,51 +103,68 @@ pqUndoStack::~pqUndoStack()
 //-----------------------------------------------------------------------------
 vtkSMUndoStackBuilder* pqUndoStack::GetUndoStackBuilder()
 {
+#if 0
   return this->Implementation->UndoStackBuilder;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqUndoStack::canUndo()
 {
+#if 0
   return this->Implementation->UndoStack->CanUndo();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqUndoStack::canRedo()
 {
+#if 0
   return this->Implementation->UndoStack->CanRedo();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QString pqUndoStack::undoLabel()
 {
+#if 0
   return this->Implementation->UndoStack->CanUndo()
     ? this->Implementation->UndoStack->GetUndoSetLabel(0)
     : QString();
+#else
+  return "todo";
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QString pqUndoStack::redoLabel()
 {
+#if 0
   return this->Implementation->UndoStack->CanRedo()
     ? this->Implementation->UndoStack->GetRedoSetLabel(0)
     : QString();
+#else
+  return "todo";
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::addToActiveUndoSet(vtkUndoElement* element)
 {
+#if 0
   if (this->ignoreAllChanges())
   {
     return;
   }
 
   this->Implementation->UndoStackBuilder->Add(element);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::onStackChanged()
 {
+#if 0
   bool can_undo = false;
   bool can_redo = false;
   QString undo_label;
@@ -163,22 +185,26 @@ void pqUndoStack::onStackChanged()
   Q_EMIT this->canRedoChanged(can_redo);
   Q_EMIT this->undoLabelChanged(undo_label);
   Q_EMIT this->redoLabelChanged(redo_label);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::beginUndoSet(QString label)
 {
+#if 0
   if (this->Implementation->NestedCount == 0)
   {
     this->Implementation->UndoStackBuilder->Begin(label.toUtf8().data());
   }
 
   this->Implementation->NestedCount++;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::endUndoSet()
 {
+#if 0
   if (this->Implementation->NestedCount == 0)
   {
     qDebug() << "endUndoSet called without a beginUndoSet.";
@@ -190,11 +216,13 @@ void pqUndoStack::endUndoSet()
   {
     this->Implementation->UndoStackBuilder->EndAndPushToStack();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::undo()
 {
+#if 0
   this->beginNonUndoableChanges();
   this->Implementation->UndoStack->Undo();
   this->updateAllModifiedProxies();
@@ -203,11 +231,13 @@ void pqUndoStack::undo()
   pqApplicationCore::instance()->render();
 
   Q_EMIT this->undone();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::redo()
 {
+#if 0
   this->beginNonUndoableChanges();
   this->Implementation->UndoStack->Redo();
   this->updateAllModifiedProxies();
@@ -216,10 +246,13 @@ void pqUndoStack::redo()
   pqApplicationCore::instance()->render();
 
   Q_EMIT this->redone();
+#endif
 }
+
 //-----------------------------------------------------------------------------
 void pqUndoStack::updateAllModifiedProxies()
 {
+#if 0
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
   vtkSessionIterator* iter = pm->NewSessionIterator();
@@ -241,49 +274,68 @@ void pqUndoStack::updateAllModifiedProxies()
     iter->GoToNextItem();
   }
   iter->Delete();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::clear()
 {
+#if 0
   this->Implementation->UndoStack->Clear();
   this->Implementation->UndoStackBuilder->Clear();
   this->Implementation->IgnoreAllChangesStack.clear();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::beginNonUndoableChanges()
 {
+#if 0
   this->Implementation->IgnoreAllChangesStack.push_back(this->ignoreAllChanges());
 
   this->Implementation->UndoStackBuilder->SetIgnoreAllChanges(true);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUndoStack::endNonUndoableChanges()
 {
+#if 0
   bool ignore = false;
   if (!this->Implementation->IgnoreAllChangesStack.empty())
   {
     ignore = this->Implementation->IgnoreAllChangesStack.takeLast();
   }
   this->Implementation->UndoStackBuilder->SetIgnoreAllChanges(ignore);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqUndoStack::ignoreAllChanges() const
 {
+#if 0
   return this->Implementation->UndoStackBuilder->GetIgnoreAllChanges();
+#else
+  return false;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqUndoStack::getInUndo() const
 {
+#if 0
   return this->Implementation->UndoStack->GetInUndo();
+#else
+  return false;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqUndoStack::getInRedo() const
 {
+#if 0
   return this->Implementation->UndoStack->GetInRedo();
+#else
+  return false;
+#endif
 }

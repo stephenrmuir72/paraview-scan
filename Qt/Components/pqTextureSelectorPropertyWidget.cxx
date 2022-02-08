@@ -29,21 +29,17 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqTextureSelectorPropertyWidget.h"
 
-// ParaView Includes
-#include "pqApplicationCore.h"
 #include "pqDataRepresentation.h"
 #include "pqServerManagerModel.h"
 #include "pqTextureComboBox.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
-
-// Server Manager Includes
 #include "vtkDataSetAttributes.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyGroupDomain.h"
@@ -84,7 +80,7 @@ pqTextureSelectorPropertyWidget::pqTextureSelectorPropertyWidget(
   this->VTKConnector->Connect(
     smProperty, vtkCommand::ModifiedEvent, this, SLOT(onPropertyChanged()));
 
-  pqServerManagerModel* smm = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smm = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   // If check_tcoords="1" is specified, we enabled the widget only if tcoords are available
   // Valid only for a RepresentationProxy

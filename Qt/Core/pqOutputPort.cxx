@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOutputPort.h"
 
 // Server Manager Includes.
+#include "vtkEventQtSlotConnect.h"
 #include "vtkPVDataInformation.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMSourceProxy.h"
@@ -68,6 +69,11 @@ pqOutputPort::pqOutputPort(pqPipelineSource* source, int portno)
     SIGNAL(visibilityChanged(pqOutputPort*, pqDataRepresentation*)));
   QObject::connect(this, SIGNAL(representationRemoved(pqOutputPort*, pqDataRepresentation*)), this,
     SIGNAL(visibilityChanged(pqOutputPort*, pqDataRepresentation*)));
+
+  auto* port = this->getOutputPortProxy();
+  auto* connector = this->getConnector();
+  connector->Connect(
+    port, vtkCommand::UpdateInformationEvent, this, SIGNAL(dataInformationUpdated()));
 }
 
 //-----------------------------------------------------------------------------

@@ -39,6 +39,7 @@ set(classes
   vtkPVDataRepresentation
   vtkPVDataRepresentationPipeline
   vtkPVGeometryFilter
+  vtkPVLight
   vtkPVLODActor
   vtkPVProcessWindow
   vtkPVRecoverGeometryWireframe

@@ -29,56 +29,27 @@
 #
 #==========================================================================
 set(classes
-  pqAboutDialog
   pqAbstractItemSelectionModel
-  pqActionGroupInterface
   pqActiveObjects
-  pqAnimatablePropertiesComboBox
-  pqAnimatableProxyComboBox
-  pqAnimationManager
-  pqAnimationProgressDialog
-  pqAnimationTimeWidget
-  pqAnimationViewWidget
   pqArrayListDomain
   pqArraySelectionWidget
   pqArraySelectorPropertyWidget
   pqArrayStatusPropertyWidget
   pqCalculatorWidget
-  pqCameraDialog
-  pqCameraKeyFrameWidget
-  pqChangeInputDialog
-  pqCollaborationPanel
-  pqColorChooserButtonWithPalettes
   pqColorOverlay
   pqComboBoxDomain
   pqCommandPropertyWidget
-  pqComparativeCueWidget
-  pqComparativeVisPanel
   pqComponentsInit
-  pqComponentsTestUtility
   pqCompositePropertyWidgetDecorator
-  pqContextMenuInterface
-  pqCustomFilterDefinitionModel
-  pqCustomFilterDefinitionWizard
-  pqCustomFilterManager
-  pqCustomFilterManagerModel
-  pqCustomViewpointButtonDialog
   pqDataAssemblyTreeModel
   pqDataInformationModel
   pqDataInformationWidget
   pqDialog
-  pqDisplayColorWidget
-  pqDisplayPanel
-  pqDisplayPanelInterface
-  pqDisplayPanelPropertyWidget
-  pqDisplayRepresentationWidget
   pqDockWindowInterface
   pqDoubleVectorPropertyWidget
   pqFavoritesDialog
   pqFavoritesTreeWidget
   pqFileChooserWidget
-  pqFindDataCurrentSelectionFrame
-  pqFindDataSelectionDisplayFrame
   pqHighlightItemDelegate
   pqImageTip
   pqIndexSelectionWidget
@@ -88,35 +59,15 @@ set(classes
   pqIntVectorPropertyWidget
   pqItemViewSearchWidget
   pqItemViewSearchWidgetEventPlayer
-  pqKeyFrameEditor
-  pqKeyFrameTimeValidator
-  pqKeyFrameTypeWidget
   pqLabel
   pqLightsEditor
   pqLightsInspector
-  pqLinksEditor
-  pqLinksManager
-  pqLiveInsituManager
-  pqLiveInsituVisualizationManager
-  pqLockViewSizeCustomDialog
-  pqLogViewerDialog
-  pqMemoryInspectorPanel
   pqMultiBlockInspectorWidget
-  pqMultiViewWidget
-  pqOrbitCreatorDialog
-  pqOutputPortComboBox
   pqPipelineAnnotationFilterModel
   pqPipelineBrowserWidget
   pqPipelineModel
   pqPipelineModelSelectionAdaptor
-  pqPipelineTimeKeyFrameEditor
-  pqPluginDialog
-  pqPluginTreeWidgetEventPlayer
-  pqPluginTreeWidgetEventTranslator
   pqPopOutWidget
-  pqPresetDialog
-  pqPresetGroupsManager
-  pqPresetToPixmap
   pqPropertiesPanel
   pqPropertyGroupWidget
   pqPropertyWidget
@@ -129,17 +80,74 @@ set(classes
   pqProxySelectionWidget
   pqProxyWidget
   pqProxyWidgetDialog
+  pqScalarValueListPropertyWidget
+  pqSearchBox
+  pqSelectionAdaptor
+  pqShortcutDecorator
+  pqSignalAdaptorSelectionTreeWidget
+  pqSignalAdaptorTreeWidget
+  pqStringVectorPropertyWidget
+  pqToolBarInterface
+  pqToolTipTrapper
+  pqTriggerOnIdleHelper
+  pqViewFrame
+  pqViewFrameActionsInterface
+  pqWidgetRangeDomain
+  pqRescaleRange
+  pqContextMenuInterface
+)
+
+set(old_classes
+  pqAboutDialog
+  pqActionGroupInterface
+  pqAnimatablePropertiesComboBox
+  pqAnimatableProxyComboBox
+  pqAnimationManager
+  pqAnimationProgressDialog
+  pqAnimationTimeWidget
+  pqAnimationViewWidget
+  pqCameraDialog
+  pqCameraKeyFrameWidget
+  pqChangeInputDialog
+  pqCollaborationPanel
+  pqColorChooserButtonWithPalettes
+  pqComparativeCueWidget
+  pqComparativeVisPanel
+  pqComponentsTestUtility
+  pqCustomFilterDefinitionModel
+  pqCustomFilterDefinitionWizard
+  pqCustomFilterManager
+  pqCustomFilterManagerModel
+  pqCustomViewpointButtonDialog
+  pqDisplayColorWidget
+  pqDisplayRepresentationWidget
+  pqFindDataCurrentSelectionFrame
+  pqFindDataSelectionDisplayFrame
+  pqKeyFrameEditor
+  pqKeyFrameTimeValidator
+  pqKeyFrameTypeWidget
+  pqLinksEditor
+  pqLinksManager
+  pqLiveInsituManager
+  pqLiveInsituVisualizationManager
+  pqLogViewerDialog
+  pqLockViewSizeCustomDialog
+  pqMemoryInspectorPanel
+  pqMultiViewWidget
+  pqOrbitCreatorDialog
+  pqOutputPortComboBox
+  pqPipelineTimeKeyFrameEditor
+  pqPluginDialog
+  pqPluginTreeWidgetEventPlayer
+  pqPluginTreeWidgetEventTranslator
+  pqPresetDialog
+  pqPresetGroupsManager
+  pqPresetToPixmap
   pqRecentFilesMenu
   pqRemoteCommandDialog
   pqRemoteCommandTemplateDialog
-  pqRescaleRange
   pqSingleLogViewerWidget
-  pqSMSignalAdaptors
-  pqScalarSetModel
-  pqScalarValueListPropertyWidget
-  pqSearchBox
   pqSelectReaderDialog
-  pqSelectionAdaptor
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
@@ -150,25 +158,15 @@ set(classes
   pqSettingsDialog
   pqShaderReplacementsComboBox
   pqShaderReplacementsSelectorPropertyWidget
-  pqShortcutDecorator
   pqSignalAdaptorKeyFrameType
-  pqSignalAdaptorSelectionTreeWidget
-  pqSignalAdaptorTreeWidget
-  pqStringVectorPropertyWidget
   pqTabbedMultiViewWidget
   pqTextureComboBox
   pqTextureSelectorPropertyWidget
   pqTimerLogDisplay
-  pqToolBarInterface
-  pqToolTipTrapper
   pqTransferFunctionWidget
-  pqTriggerOnIdleHelper
   pqUndoStackBuilder
   pqVCRController
-  pqViewFrame
-  pqViewFrameActionsInterface
-  pqViewManager
-  pqWidgetRangeDomain)
+)
 
 set_property(SOURCE pqComponentsInit.cxx APPEND
   PROPERTY

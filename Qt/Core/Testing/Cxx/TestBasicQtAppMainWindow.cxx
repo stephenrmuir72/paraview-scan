@@ -98,6 +98,12 @@ void TestBasicQtAppMainWindow::QInternals::setupSession(
         progressWidget->setProgress(QString::fromStdString(item.Message), item.Progress);
       }
     }));
+
+  QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
+    [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
+
+  QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied),
+    [viewProxy]() { viewProxy->InvokeCommand("Update"); });
 }
 
 //-----------------------------------------------------------------------------

@@ -40,6 +40,7 @@ set(classes
   pqKeySequences
   pqModalShortcut
   pqNonEditableStyledItemDelegate
+  pqObjectBuilder
   pqOutputPort
   pqOutputWidget
   pqPipelineFilter
@@ -66,6 +67,7 @@ set(classes
   pqSMProxy
   pqStandardServerManagerModelInterface
   pqTextLinker
+  pqUndoStack
   pqView
   vtkPVGUIApplication
   vtkPVGUIOptions
@@ -103,7 +105,6 @@ set(old_classes
   pqMainWindowEventManager
   pqMultiSliceAxisWidget
   pqMultiSliceView
-  pqObjectBuilder
   pqParallelCoordinatesChartView
   pqPipelineRepresentation
   pqPlotMatrixView
@@ -122,7 +123,6 @@ set(old_classes
   pqSpreadSheetViewSelectionModel
   pqSpreadSheetViewWidget
   pqTimeKeeper
-  pqUndoStack
   pqXMLEventObserver
   pqXMLEventSource
   pqXYBarChartView

@@ -654,7 +654,7 @@ vtkPacket vtkPVView::GetRenderedResult() const
   if (auto* window = this->GetRenderWindow())
   {
     auto* renderer = window->GetRenderers()->GetFirstRenderer();
-    vtkLogStartScope(INFO, "capture");
+    vtkLogStartScope(TRACE, "capture");
     buffer.Capture(renderer);
     vtkLogEndScope("capture");
 

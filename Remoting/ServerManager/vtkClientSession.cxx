@@ -33,6 +33,7 @@ class vtkClientSession::vtkInternals
 public:
   const std::thread::id OwnerTID{ std::this_thread::get_id() };
   bool IsRemote{ false };
+  std::string URL;
   vtkSmartPointer<vtkServiceEndpoint> DSEndpoint;
   vtkSmartPointer<vtkServiceEndpoint> RSEndpoint;
   vtkSmartPointer<vtkSMSessionProxyManager> ProxyManager;
@@ -101,6 +102,7 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   assert(pvapp != nullptr);
   auto* engine = pvapp->GetServicesEngine();
   internals.IsRemote = engine->GetUrl() != url; // FIXME: confirm
+  internals.URL = url;
   if (pvapp->GetRank() == 0)
   {
     // FIXME: ASYNC
@@ -122,6 +124,13 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   }
 
   return rxcpp::sources::never<bool>();
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkClientSession::GetURL() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.URL;
 }
 
 //----------------------------------------------------------------------------

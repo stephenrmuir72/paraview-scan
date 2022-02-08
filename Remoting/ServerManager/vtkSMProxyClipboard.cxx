@@ -23,6 +23,7 @@
 #include "vtkSMProxy.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyLocator.h"
+
 #include <cassert>
 #include <map>
 #include <sstream>
@@ -135,7 +136,7 @@ class vtkSMProxyClipboardInternals
     }
     vtkNew<vtkSMProxyLocator> locator;
     locator->UseSessionToLocateProxy(true);
-    locator->SetSession(target->GetSession());
+    locator->SetSessionProxyManager(target->GetSessionProxyManager());
     if (!target->LoadXMLState(targetState, locator.GetPointer()))
     {
       return false;

@@ -29,14 +29,9 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqPipelineAnnotationFilterModel.h"
 
-#include "pqApplicationCore.h"
 #include "pqPipelineModel.h"
-#include "pqPipelineSource.h"
-#include "pqServer.h"
-#include "pqServerManagerModel.h"
 
 #include <QApplication>
 #include <QString>

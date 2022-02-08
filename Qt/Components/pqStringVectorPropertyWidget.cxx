@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqStringVectorPropertyWidget.h"
 
+#include "vtkPVGUIApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMArrayListDomain.h"
@@ -46,7 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMStringListDomain.h"
 #include "vtkSMStringVectorProperty.h"
 
-#include "pqApplicationCore.h"
 #include "pqArrayListDomain.h"
 #include "pqArraySelectionWidget.h"
 #include "pqArraySelectorPropertyWidget.h"
@@ -184,7 +184,7 @@ pqStringVectorPropertyWidget::pqStringVectorPropertyWidget(
     chooser->setExtension(filter);
     if (!browseLocalFileSystem)
     {
-      pqServerManagerModel* smm = pqApplicationCore::instance()->getServerManagerModel();
+      pqServerManagerModel* smm = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
       chooser->setServer(smm->findServer(smProxy->GetSession()));
     }
     else

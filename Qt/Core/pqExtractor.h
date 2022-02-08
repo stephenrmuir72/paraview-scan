@@ -103,6 +103,9 @@ Q_SIGNALS:
    */
   void enabledStateChanged();
 
+protected:
+  void initialize() override;
+
 private Q_SLOTS:
   void producerChanged();
 

@@ -31,28 +31,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "pqPipelineModel.h"
 
-#include "pqBoxChartView.h"
+// #include "pqBoxChartView.h"
 #include "pqExtractor.h"
-#include "pqLiveInsituManager.h"
-#include "pqLiveInsituVisualizationManager.h"
+// #include "pqLiveInsituManager.h"
+// #include "pqLiveInsituVisualizationManager.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
 #include "pqPipelineSource.h"
-#include "pqPlotMatrixView.h"
+// #include "pqPlotMatrixView.h"
 #include "pqServer.h"
 #include "pqServerConfiguration.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
-#include "pqSpreadSheetView.h"
-#include "pqUndoStack.h"
-#include "pqXYBarChartView.h"
-#include "pqXYChartView.h"
-#include "pqXYHistogramChartView.h"
+// #include "pqSpreadSheetView.h"
+// #include "pqUndoStack.h"
+// #include "pqXYBarChartView.h"
+// #include "pqXYChartView.h"
+// #include "pqXYHistogramChartView.h"
+#include "pqTimer.h"
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMLiveInsituLinkProxy.h"
-#include "vtkSMParaViewPipelineControllerWithRendering.h"
+// #include "vtkSMLiveInsituLinkProxy.h"
+// #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
@@ -89,12 +90,14 @@ static const QString SERVER = "SERVER";
 static const QString SECURE_SERVER = "SECURE_SERVER";
 static const QString LINK = "LINK";
 static const QString GEOMETRY = "GEOMETRY";
+#if 0 // FIXME: ASYNC
 static const QString BARCHART = pqXYBarChartView::XYBarChartViewType();
 static const QString BOXCHART = pqBoxChartView::chartViewType();
 static const QString HISTOGRAMCHART = pqXYHistogramChartView::XYHistogramChartViewType();
 static const QString LINECHART = pqXYChartView::XYChartViewType();
 static const QString PLOTMATRIX = pqPlotMatrixView::viewType();
 static const QString TABLE = pqSpreadSheetView::spreadsheetViewType();
+#endif
 static const QString INDETERMINATE = "INDETERMINATE";
 static const QString NONE = "None";
 static const QString EYEBALL = "EYEBALL";
@@ -116,7 +119,9 @@ class pqPipelineModelDataItem : public QObject
   bool InConstructor;
 
 public:
+#if 0 // FIXME: ASYNC
   static vtkNew<vtkSMParaViewPipelineControllerWithRendering> Controller;
+#endif
 
   pqPipelineModel* Model;
   pqPipelineModelDataItem* Parent;
@@ -217,16 +222,19 @@ public:
       case pqPipelineModel::Server:
       {
         pqServer* server = qobject_cast<pqServer*>(this->Object);
-        if (server->getResource().configuration().isPortForwarding())
+        if (server->resource().configuration().isPortForwarding())
         {
           return PipelineModelIconType::SECURE_SERVER;
         }
-
+#if 0 // FIXME: ASYNC
         vtkSMLiveInsituLinkProxy* proxy = pqLiveInsituManager::linkProxy(server);
         return proxy ? ((vtkSMPropertyHelper(proxy, "SimulationPaused").GetAs<int>() == 1)
                            ? PipelineModelIconType::INSITU_SERVER_PAUSED
                            : PipelineModelIconType::INSITU_SERVER_RUNNING)
                      : PipelineModelIconType::SERVER;
+#else
+        return PipelineModelIconType::SERVER;
+#endif
       }
 
       case pqPipelineModel::Proxy:
@@ -315,8 +323,10 @@ public:
       case pqPipelineModel::Server:
       {
         pqServer* server = qobject_cast<pqServer*>(this->Object);
+#if 0 // FIXME: ASYNC
         newIcon = (pqLiveInsituManager::isInsituServer(server) ? this->getBreakpointVisibilityIcon()
                                                                : PipelineModelIconType::LAST);
+#endif
       }
       break;
 
@@ -360,9 +370,13 @@ public:
 private:
   QString getBreakpointVisibilityIcon() const
   {
+#if 0 // FIXME: ASYNC
     pqLiveInsituManager* server = pqLiveInsituManager::instance();
     return (server->hasBreakpoint() ? PipelineModelIconType::INSITU_BREAKPOINT
                                     : PipelineModelIconType::LAST);
+#else
+    return PipelineModelIconType::LAST;
+#endif
   }
 
   QString getVisibilityIcon(pqOutputPort* port, pqView* view) const
@@ -372,6 +386,7 @@ private:
       return PipelineModelIconType::LAST;
     }
 
+#if 0 // FIXME: ASYNC
     // I'm not a huge fan of this hacky way we are dealing with catalyst. We'll
     // have to come back and cleanly address how the pqPipelineModel deals with
     // "visibility" in a more generic, session-centric way.
@@ -390,6 +405,7 @@ private:
       }
       return PipelineModelIconType::LAST;
     }
+#endif
 
     if (!view)
     {
@@ -397,6 +413,7 @@ private:
       // will be created.
       return PipelineModelIconType::EYEBALL_GRAY;
     }
+#if 0 // FIXME: ASYNC
     if (this->Controller->GetVisibility(
           port->getSourceProxy(), port->getPortNumber(), view->getViewProxy()))
     {
@@ -405,6 +422,9 @@ private:
     return view->getViewProxy()->CanDisplayData(port->getSourceProxy(), port->getPortNumber())
       ? PipelineModelIconType::EYEBALL_GRAY
       : PipelineModelIconType::LAST;
+#else
+    return PipelineModelIconType::LAST;
+#endif
   }
 
   QString getVisibilityIcon(pqExtractor* extractor, pqView* view) const
@@ -435,6 +455,7 @@ private:
     {
       return PipelineModelIconType::CINEMA_MARK;
     }
+#if 0 // FIXME: ASYNC
     else if (pqLiveInsituManager::isWriterParametersProxy(port->getSourceProxy()))
     {
       return PipelineModelIconType::DATA_EXTRACTOR;
@@ -446,12 +467,15 @@ private:
     {
       return iconType;
     }
+#endif
 
     return PipelineModelIconType::GEOMETRY;
   }
 };
 
+#if 0 // FIXME: ASYNC
 vtkNew<vtkSMParaViewPipelineControllerWithRendering> pqPipelineModelDataItem::Controller;
+#endif
 
 //-----------------------------------------------------------------------------
 class pqPipelineModelInternal
@@ -481,14 +505,17 @@ void pqPipelineModel::constructor()
   this->Editable = true;
   this->View = nullptr;
 
+#if 0 // FIXME: ASYNC
   QObject::connect(pqLiveInsituManager::instance(), SIGNAL(connectionInitiated(pqServer*)), this,
     SLOT(onInsituConnectionInitiated(pqServer*)));
+#endif
 
   this->PixmapMap[PipelineModelIconType::SERVER].load(":/pqWidgets/Icons/pqServer16.png");
   this->PixmapMap[PipelineModelIconType::SECURE_SERVER].load(
     ":/pqWidgets/Icons/pqSecureServer16.png");
   this->PixmapMap[PipelineModelIconType::LINK].load(":/pqWidgets/Icons/pqLinkBack16.png");
   this->PixmapMap[PipelineModelIconType::GEOMETRY].load(":/pqWidgets/Icons/pq3DView16.png");
+#if 0 // FIXME: ASYNC
   this->PixmapMap[PipelineModelIconType::BARCHART].load(":/pqWidgets/Icons/pqHistogram16.png");
   this->PixmapMap[PipelineModelIconType::BOXCHART].load(":/pqWidgets/Icons/pqBoxChart16.png");
   this->PixmapMap[PipelineModelIconType::HISTOGRAMCHART].load(
@@ -496,6 +523,7 @@ void pqPipelineModel::constructor()
   this->PixmapMap[PipelineModelIconType::LINECHART].load(":/pqWidgets/Icons/pqLineChart16.png");
   this->PixmapMap[PipelineModelIconType::PLOTMATRIX].load(":/pqWidgets/Icons/pqLineChart16.png");
   this->PixmapMap[PipelineModelIconType::TABLE].load(":/pqWidgets/Icons/pqSpreadsheet.svg");
+#endif
   this->PixmapMap[PipelineModelIconType::INDETERMINATE].load(":/pqWidgets/Icons/pq3DView16.png");
   this->PixmapMap[PipelineModelIconType::NONE].load(":/pqWidgets/Icons/pq3DView16.png");
   this->PixmapMap[PipelineModelIconType::EYEBALL].load(":/pqWidgets/Icons/pqEyeball.svg");
@@ -595,6 +623,7 @@ pqPipelineModel::~pqPipelineModel()
 //-----------------------------------------------------------------------------
 void pqPipelineModel::onInsituConnectionInitiated(pqServer* displaySession)
 {
+#if 0 // FIXME: ASYNC
   pqLiveInsituVisualizationManager* manager =
     pqLiveInsituManager::instance()->managerFromDisplay(displaySession);
   vtkSMLiveInsituLinkProxy* proxy = pqLiveInsituManager::linkProxy(manager->insituSession());
@@ -611,6 +640,7 @@ void pqPipelineModel::onInsituConnectionInitiated(pqServer* displaySession)
     QObject::connect(pqLiveInsituManager::instance(), SIGNAL(breakpointRemoved(pqServer*)), this,
       SLOT(updateDataServer(pqServer*)));
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -810,16 +840,20 @@ QVariant pqPipelineModel::data(const QModelIndex& idx, int role) const
       {
         if (server)
         {
-          const pqServerResource& resource = server->getResource();
+          const pqServerResource& resource = server->resource();
           const bool is_configuration_default = resource.configuration().isNameDefault();
           const auto name =
             is_configuration_default ? resource.toURI() : resource.configuration().name();
+#if 0 // FIXME: ASYNC
           int time = server->getRemainingLifeTime();
           QString timeLeft =
             time > -1 ? QString(" (%1min left)").arg(QString::number(time)) : QString();
           return is_configuration_default
             ? QString("%1 %3").arg(name).arg(timeLeft)
             : QString("%1 (%2)%3").arg(name).arg(resource.configuration().URI()).arg(timeLeft);
+#else
+          return name;
+#endif
         }
         else if (port)
         {
@@ -827,7 +861,7 @@ QVariant pqPipelineModel::data(const QModelIndex& idx, int role) const
         }
         else if (proxy)
         {
-          return QVariant(proxy->getSMName());
+          return QVariant(proxy->registrationName());
         }
         else
         {
@@ -838,11 +872,13 @@ QVariant pqPipelineModel::data(const QModelIndex& idx, int role) const
 
     case Qt::ForegroundRole:
     {
+#if 0 // FIXME: ASYNC
       if (idx.column() == 0 && server && server->getRemainingLifeTime() > -1 &&
         server->getRemainingLifeTime() <= 5)
       {
         return QVariant::fromValue<QColor>(QColor(Qt::red));
       }
+#endif
       break;
     }
 
@@ -897,11 +933,15 @@ bool pqPipelineModel::setData(const QModelIndex& idx, const QVariant& value, int
     return false;
   }
   auto proxy = qobject_cast<pqProxy*>(this->getItemFor(idx));
-  if (proxy && proxy->getSMName() != name)
+  if (proxy && proxy->registrationName() != name)
   {
-    BEGIN_UNDO_SET(QString("Rename %1 to %2").arg(proxy->getSMName()).arg(name));
+#if 0 // FIXME: ASYNC
+    BEGIN_UNDO_SET(QString("Rename %1 to %2").arg(proxy->registrationName()).arg(name));
     proxy->rename(name);
     END_UNDO_SET();
+#else
+    proxy->rename(name);
+#endif
     return true;
   }
 

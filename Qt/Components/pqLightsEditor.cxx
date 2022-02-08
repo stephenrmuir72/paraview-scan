@@ -32,10 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLightsEditor.h"
 #include "ui_pqLightsEditor.h"
 
-#include "pqApplicationCore.h"
 #include "pqPropertyGroupWidget.h"
 #include "pqUndoStack.h"
-#include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"

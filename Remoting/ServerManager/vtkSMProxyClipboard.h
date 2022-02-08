@@ -35,19 +35,19 @@
 #ifndef vtkSMProxyClipboard_h
 #define vtkSMProxyClipboard_h
 
-#include "vtkRemotingMiscModule.h" //needed for exports
-#include "vtkSMObject.h"
-#include "vtkSmartPointer.h" // for vtkSmartPointer.
+#include "vtkObject.h"
+#include "vtkRemotingServerManagerModule.h" //needed for exports
+#include "vtkSmartPointer.h"                // for vtkSmartPointer.
 
 class vtkPVXMLElement;
 class vtkSMProxy;
 class vtkSMProxyClipboardInternals;
 
-class VTKREMOTINGMISC_EXPORT vtkSMProxyClipboard : public vtkSMObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMProxyClipboard : public vtkObject
 {
 public:
   static vtkSMProxyClipboard* New();
-  vtkTypeMacro(vtkSMProxyClipboard, vtkSMObject);
+  vtkTypeMacro(vtkSMProxyClipboard, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

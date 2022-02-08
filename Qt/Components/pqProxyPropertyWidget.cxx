@@ -29,13 +29,12 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqProxyPropertyWidget.h"
 
 #include <QVBoxLayout>
 
 #include "pqProxySelectionWidget.h"
-#include "pqSelectionInputWidget.h"
+// #include "pqSelectionInputWidget.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
@@ -53,6 +52,7 @@ pqProxyPropertyWidget::pqProxyPropertyWidget(
     (smProperty->GetHints() && smProperty->GetHints()->FindNestedElementByName("SelectionInput"));
   if (selection_input)
   {
+#if 0 // FIXME: ASYNC
     vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "use `pqSelectionInputWidget`.");
     pqSelectionInputWidget* siw = new pqSelectionInputWidget(this);
     siw->setObjectName(smProxy->GetPropertyName(smProperty));
@@ -65,6 +65,9 @@ pqProxyPropertyWidget::pqProxyPropertyWidget(
 
     // don't show label for the proxy selection widget
     this->setShowLabel(false);
+#else
+    abort();
+#endif
   }
   else if (smProperty->FindDomain<vtkSMProxyListDomain>())
   {
@@ -93,6 +96,7 @@ pqProxyPropertyWidget::pqProxyPropertyWidget(
 //-----------------------------------------------------------------------------
 void pqProxyPropertyWidget::apply()
 {
+#if 0 // FIXME: ASYNC
   if (this->SelectionInputWidget)
   {
     this->SelectionInputWidget->preAccept();
@@ -109,6 +113,15 @@ void pqProxyPropertyWidget::apply()
   {
     this->SelectionInputWidget->postAccept();
   }
+#else
+  this->Superclass::apply();
+
+  // apply properties for the proxy selection widget
+  if (this->ProxySelectionWidget)
+  {
+    this->ProxySelectionWidget->apply();
+  }
+#endif
 }
 
 //-----------------------------------------------------------------------------

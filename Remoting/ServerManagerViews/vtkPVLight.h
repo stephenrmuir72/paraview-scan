@@ -24,7 +24,7 @@
 #define vtkPVLight_h
 
 #include "vtkLight.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
 #include <string> //needed for std::string
 
@@ -32,7 +32,7 @@ class vtkInformationStringKey;
 
 #define VTK_LIGHT_TYPE_AMBIENT_LIGHT 4
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVLight : public vtkLight
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVLight : public vtkLight
 {
 public:
   static vtkPVLight* New();

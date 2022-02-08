@@ -123,8 +123,7 @@ protected:
   void UpdatePipelineInternal(double time, bool doTime);
 
   // The index of the port the output is obtained from.
-  vtkSetMacro(PortIndex, int);
-  int PortIndex;
+  void SetPortIndex(int index);
 
   vtkWeakPointer<vtkSMSourceProxy> SourceProxy;
   // vtkWeakPointer<vtkSMCompoundSourceProxy> CompoundSourceProxy;
@@ -147,6 +146,7 @@ private:
 
   friend class vtkSMSourceProxy;
   friend class vtkSMCompoundSourceProxy;
+  int PortIndex;
 };
 
 #endif

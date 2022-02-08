@@ -93,10 +93,11 @@ struct pqSourceInfo
       pqPipelineSource* source = this->OutputPort->getSource();
       if (source->getNumberOfOutputPorts() > 1)
       {
-        return QVariant(
-          QString("%1 (%2)").arg(source->getSMName()).arg(this->OutputPort->getPortNumber()));
+        return QVariant(QString("%1 (%2)")
+                          .arg(source->registrationName())
+                          .arg(this->OutputPort->getPortNumber()));
       }
-      return QVariant(source->getSMName());
+      return QVariant(source->registrationName());
     }
     return QVariant("Unknown");
   }

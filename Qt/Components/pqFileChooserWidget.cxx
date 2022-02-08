@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView
 #include "pqCoreUtilities.h"
-#include "pqFileDialog.h"
+// #include "pqFileDialog.h"
 
 //-----------------------------------------------------------------------------
 pqFileChooserWidget::pqFileChooserWidget(QWidget* p)
@@ -182,7 +182,7 @@ void pqFileChooserWidget::chooseFile()
       title = tr("Open File:");
     }
   }
-
+#if 0 // FIXME: ASYNC
   pqFileDialog dialog(this->Server, this, title, QString(), filters);
 
   if (this->UseDirectoryMode)
@@ -217,6 +217,9 @@ void pqFileChooserWidget::chooseFile()
       this->setFilenames(files);
     }
   }
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------

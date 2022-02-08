@@ -33,11 +33,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqMultiBlockInspectorWidget.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqProxyWidget.h"
 #include "pqServer.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"
@@ -70,8 +70,10 @@ class pqMultiBlockInspectorWidget::pqInternals : public QObject
       Q_ASSERT(pxm != nullptr);
 
       this->HelperProxy.TakeReference(pxm->NewProxy("misc", "MultiBlockInspectorHelper"));
+#if 0 // FIXME: ASYNC
       this->HelperProxy->SetLocation(0);
       this->HelperProxy->SetPrototype(true);
+#endif
     }
     return this->HelperProxy;
   };
@@ -108,7 +110,7 @@ public:
     , LastRepresentation(nullptr)
   {
     this->Ui.setupUi(self);
-    if (auto settings = pqApplicationCore::instance()->settings())
+    if (auto* settings = vtkPVGUIApplication::GetInstance()->GetSettings())
     {
       bool checked = settings->value("pqMultiBlockInspectorWidget/ShowHints", true).toBool();
       this->Ui.showHints->setChecked(checked);
@@ -116,7 +118,7 @@ public:
   }
   ~pqInternals() override
   {
-    if (auto settings = pqApplicationCore::instance()->settings())
+    if (auto* settings = vtkPVGUIApplication::GetInstance()->GetSettings())
     {
       settings->setValue("pqMultiBlockInspectorWidget/ShowHints", this->Ui.showHints->isChecked());
     }

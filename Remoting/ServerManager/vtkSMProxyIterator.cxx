@@ -123,8 +123,8 @@ void vtkSMProxyIterator::Next()
   auto& registeredProxies = pm->Internals->RegisteredProxies;
   const std::string currentGroup = this->GetGroup();
 
-  internals.Iterator =
-    internals.NextUntil(internals.Iterator, registeredProxies.end(), [&](const std::string& group) {
+  internals.Iterator = internals.NextUntil(
+    std::next(internals.Iterator), registeredProxies.end(), [&](const std::string& group) {
       switch (this->Mode)
       {
         case GROUPS_ONLY:

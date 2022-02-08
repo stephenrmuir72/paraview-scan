@@ -31,56 +31,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqObjectBuilder.h"
 
-#include "vtkDebugLeaksManager.h"
-#include "vtkNew.h"
-#include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
-#include "vtkSMCoreUtilities.h"
-#include "vtkSMDomain.h"
-#include "vtkSMDomainIterator.h"
-#include "vtkSMInputProperty.h"
-#include "vtkSMParaViewPipelineControllerWithRendering.h"
-#include "vtkSMPropertyHelper.h"
-#include "vtkSMPropertyIterator.h"
-#include "vtkSMRenderViewProxy.h"
-#include "vtkSMRepresentationProxy.h"
-#include "vtkSMSession.h"
-#include "vtkSMSessionProxyManager.h"
-#include "vtkSMSettings.h"
-#include "vtkSMSourceProxy.h"
-#include "vtkSMStringVectorProperty.h"
-#include "vtkSMTransferFunctionManager.h"
-#include "vtkSMViewLayoutProxy.h"
-#include "vtkSmartPointer.h"
-
-#include <QApplication>
-#include <QFileInfo>
-#include <QtDebug>
-
-#include "pqAnimationCue.h"
-#include "pqApplicationCore.h"
+// #include "pqAnimationCue.h"
 #include "pqDataRepresentation.h"
 #include "pqInterfaceTracker.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
 #include "pqPipelineSource.h"
-#include "pqProxyModifiedStateUndoElement.h"
-#include "pqRenderView.h"
+// #include "pqProxyModifiedStateUndoElement.h"
+// #include "pqScalarBarRepresentation.h"
+// #include "pqScalarsToColors.h"
 #include "pqSMAdaptor.h"
-#include "pqScalarBarRepresentation.h"
-#include "pqScalarsToColors.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
-#include "vtkSMAnimationSceneProxy.h"
+#include "vtkClientSession.h"
+#include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVXMLElement.h"
+// #include "vtkSMAnimationSceneProxy.h"
+#include "vtkSMCoreUtilities.h"
+#include "vtkSMInputProperty.h"
+#include "vtkSMParaViewPipelineController.h"
+#include "vtkSmartPointer.h"
+// #include "vtkSMParaViewPipelineControllerWithRendering.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMPropertyIterator.h"
+#include "vtkSMSessionProxyManager.h"
+#include "vtkSMSourceProxy.h"
+#include "vtkSMStringVectorProperty.h"
+// #include "vtkSMViewLayoutProxy.h"
+#include "vtkSMViewProxy.h"
+
+#include <QApplication>
+#include <QFileInfo>
+#include <QtDebug>
+#include <cassert>
+#include <chrono>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include <cassert>
-#include <chrono>
 
 namespace pqObjectBuilderNS
 {
@@ -113,9 +104,10 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
   }
 
   pqPipelineSource* source =
-    pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(proxy);
+    vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqPipelineSource*>(proxy);
   source->setModifiedState(pqProxy::UNINITIALIZED);
 
+#if 0 // FIXME: ASYNC
   // Manage Modified state in Undo/Redo only if not a collaborative server
   if (!server->session()->IsMultiClients())
   {
@@ -129,6 +121,7 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
   // Update animation scene.
   vtkSMAnimationSceneProxy::UpdateAnimationUsingDataTimeSteps(
     controller->GetAnimationScene(server->session()));
+#endif
 
   return source;
 }
@@ -359,7 +352,7 @@ pqView* pqObjectBuilder::createView(const QString& type, pqServer* server)
   controller->PostInitializeProxy(proxy);
   controller->RegisterViewProxy(proxy);
 
-  pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* model = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqView* view = model->findItem<pqView*>(proxy);
   if (view)
   {
@@ -389,76 +382,14 @@ void pqObjectBuilder::destroy(pqView* view)
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::addToLayout(pqView* view, pqProxy* layout)
 {
+#if 0 // FIXME: ASYNC
   if (view)
   {
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
     controller->AssignViewToLayout(view->getViewProxy(),
       vtkSMViewLayoutProxy::SafeDownCast(layout ? layout->getProxy() : nullptr));
   }
-}
-
-//-----------------------------------------------------------------------------
-pqDataRepresentation* pqObjectBuilder::createDataRepresentation(
-  pqOutputPort* opPort, pqView* view, const QString& representationType)
-{
-  if (!opPort || !view)
-  {
-    qCritical() << "Missing required attribute.";
-    return nullptr;
-  }
-
-  if (!view->canDisplay(opPort))
-  {
-    // View cannot display this source, nothing to do here.
-    return nullptr;
-  }
-
-  vtkSmartPointer<vtkSMProxy> reprProxy;
-
-  pqPipelineSource* source = opPort->getSource();
-  vtkSMSessionProxyManager* pxm = source->proxyManager();
-
-  // HACK to create correct representation for text sources/filters.
-  QString srcProxyName = source->getProxy()->GetXMLName();
-  if (representationType != "")
-  {
-    reprProxy.TakeReference(pxm->NewProxy("representations", representationType.toUtf8().data()));
-  }
-  else
-  {
-    reprProxy.TakeReference(view->getViewProxy()->CreateDefaultRepresentation(
-      source->getProxy(), opPort->getPortNumber()));
-  }
-
-  // Could not determine representation proxy to create.
-  if (!reprProxy)
-  {
-    return nullptr;
-  }
-
-  vtkNew<vtkSMParaViewPipelineController> controller;
-  controller->PreInitializeProxy(reprProxy);
-
-  // Set the reprProxy's input.
-  pqSMAdaptor::setInputProperty(
-    reprProxy->GetProperty("Input"), source->getProxy(), opPort->getPortNumber());
-  controller->PostInitializeProxy(reprProxy);
-  controller->RegisterRepresentationProxy(reprProxy);
-
-  // Add the reprProxy to render module.
-  vtkSMProxy* viewModuleProxy = view->getProxy();
-  vtkSMPropertyHelper(viewModuleProxy, "Representations").Add(reprProxy);
-  viewModuleProxy->UpdateVTKObjects();
-
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqDataRepresentation* repr =
-    core->getServerManagerModel()->findItem<pqDataRepresentation*>(reprProxy);
-  if (repr)
-  {
-    Q_EMIT this->dataRepresentationCreated(repr);
-    Q_EMIT this->proxyCreated(repr);
-  }
-  return repr;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -484,12 +415,14 @@ vtkSMProxy* pqObjectBuilder::createProxy(
     qCritical() << "Failed to create proxy: " << sm_group << ", " << sm_name;
     return nullptr;
   }
+#if 0 // FIXME: ASYNC
   else if (reg_group.contains("prototypes"))
   {
     // Mark as prototype to prevent them from being saved in undo stack and
     // managed through the state
     proxy->SetPrototype(true);
   }
+#endif
 
   pxm->RegisterProxy(reg_group.toUtf8().data(), proxy);
   return proxy;
@@ -515,6 +448,7 @@ void pqObjectBuilder::destroy(pqRepresentation* repr)
     view->getProxy()->UpdateVTKObjects();
   }
 
+#if 0 // FIXME: ASYNC
   // If this repr has a lookuptable, we hide all scalar bars for that
   // lookup table unless there is some other repr that's using it.
   pqScalarsToColors* stc = nullptr;
@@ -522,9 +456,11 @@ void pqObjectBuilder::destroy(pqRepresentation* repr)
   {
     stc = dataRepr->getLookupTable();
   }
+#endif
 
   this->destroyProxyInternal(repr);
 
+#if 0 // FIXME: ASYNC
   if (stc)
   {
     // this hides scalar bars only if the LUT is not used by
@@ -532,6 +468,7 @@ void pqObjectBuilder::destroy(pqRepresentation* repr)
     // been deleted.
     stc->hideUnusedScalarBars();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -545,9 +482,7 @@ void pqObjectBuilder::destroy(pqProxy* proxy)
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::destroySources(pqServer* server)
 {
-  pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-
+  pqServerManagerModel* model = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QList<pqPipelineSource*> sources = model->findItems<pqPipelineSource*>(server);
   while (!sources.isEmpty())
   {
@@ -555,7 +490,7 @@ void pqObjectBuilder::destroySources(pqServer* server)
     {
       if (sources[i]->getAllConsumers().empty())
       {
-        builder->destroy(sources[i]);
+        this->destroy(sources[i]);
         sources[i] = nullptr;
       }
     }
@@ -566,6 +501,7 @@ void pqObjectBuilder::destroySources(pqServer* server)
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::destroyLookupTables(pqServer* server)
 {
+#if 0 // FIXME: ASYNC
   pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
   pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
 
@@ -581,6 +517,7 @@ void pqObjectBuilder::destroyLookupTables(pqServer* server)
   {
     builder->destroy(sb);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -608,8 +545,8 @@ void pqObjectBuilder::destroyProxyInternal(pqProxy* proxy)
   if (proxy)
   {
     vtkSMSessionProxyManager* pxm = proxy->proxyManager();
-    pxm->UnRegisterProxy(
-      proxy->getSMGroup().toUtf8().data(), proxy->getSMName().toUtf8().data(), proxy->getProxy());
+    pxm->UnRegisterProxy(qUtf8Printable(proxy->registrationGroup()),
+      qUtf8Printable(proxy->registrationName()), proxy->getProxy());
   }
 }
 
@@ -634,6 +571,7 @@ void pqObjectBuilder::abortPendingConnections()
 }
 
 //-----------------------------------------------------------------------------
+#if 0 // FIXME: ASYNC
 pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int connectionTimeout,
   vtkNetworkAccessManager::ConnectionResult& result)
 {
@@ -725,10 +663,12 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
   this->WaitingForConnection = false;
   return server;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::removeServer(pqServer* server)
 {
+#if 0 // FIXME: ASYNC
   if (!server)
   {
     qDebug() << "No server to remove.";
@@ -740,11 +680,13 @@ void pqObjectBuilder::removeServer(pqServer* server)
   sModel->beginRemoveServer(server);
   vtkSMSession::Disconnect(server->sessionId());
   sModel->endRemoveServer();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 pqServer* pqObjectBuilder::resetServer(pqServer* server)
 {
+#if 0 // FIXME: ASYNC
   assert(server);
 
   // save the current remaining lifetime to restore it
@@ -789,23 +731,7 @@ pqServer* pqObjectBuilder::resetServer(pqServer* server)
     Q_EMIT this->finishedAddingServer(newServer);
   }
   return newServer;
-}
-
-//-----------------------------------------------------------------------------
-void pqObjectBuilder::destroy(pqAnimationCue* cue)
-{
-  if (!cue)
-  {
-    return;
-  }
-
-  vtkSMSessionProxyManager* pxm = cue->proxyManager();
-
-  QList<vtkSMProxy*> keyframes = cue->getKeyFrames();
-  // unregister all the keyframes.
-  Q_FOREACH (vtkSMProxy* kf, keyframes)
-  {
-    pxm->UnRegisterProxy("animation", pxm->GetProxyName("animation", kf), kf);
-  }
-  this->destroy(static_cast<pqProxy*>(cue));
+#else
+  abort();
+#endif
 }

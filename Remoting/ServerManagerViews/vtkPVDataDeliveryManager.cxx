@@ -15,6 +15,7 @@
 #include "vtkPVDataDeliveryManager.h"
 
 #include "vtkAlgorithmOutput.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataObject.h"
 #include "vtkInformation.h"
 #include "vtkNew.h"
@@ -32,6 +33,24 @@
 
 namespace
 {
+vtkSmartPointer<vtkDataObject> Clone(vtkDataObject* source)
+{
+  if (!source)
+  {
+    return nullptr;
+  }
+  auto clone = vtk::TakeSmartPointer(source->NewInstance());
+
+  if (auto* cd = vtkCompositeDataSet::SafeDownCast(clone))
+  {
+    cd->RecursiveShallowCopy(source);
+  }
+  else
+  {
+    clone->ShallowCopy(source);
+  }
+  return clone;
+}
 
 struct vtkItem
 {
@@ -126,7 +145,7 @@ void vtkPVDataDeliveryManager::SetPiece(
   auto& internals = (*this->Internals);
   auto& item = internals.GetItem(repr, port);
   item.TimeStamp.Modified();
-  item.Data = data;
+  item.Data = ::Clone(data);
 
   // erase LOD to avoid using obsolete data.
   item.LODTimeStamp = vtkTimeStamp();

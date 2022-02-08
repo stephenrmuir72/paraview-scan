@@ -12,16 +12,9 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-
-// Hide PARAVIEW_DEPRECATED_IN_5_10_0() warnings for this class.
-#define PARAVIEW_DEPRECATION_LEVEL 0
-
 #include "vtkPVGeneralSettings.h"
 
-#include "vtkLegacy.h"
 #include "vtkObjectFactory.h"
-#include "vtkProcessModule.h"
-#include "vtkSISourceProxy.h"
 #include "vtkSMArraySelectionDomain.h"
 #include "vtkSMInputArrayDomain.h"
 #include "vtkSMTrace.h"
@@ -112,32 +105,6 @@ void vtkPVGeneralSettings::SetAutoConvertProperties(bool val)
 bool vtkPVGeneralSettings::GetAutoConvertProperties()
 {
   return vtkSMInputArrayDomain::GetAutomaticPropertyConversion();
-}
-
-//----------------------------------------------------------------------------
-void vtkPVGeneralSettings::SetEnableAutoMPI(bool)
-{
-  VTK_LEGACY_BODY(vtkPVGeneralSettings::SetEnableAutoMPI, "ParaView 5.10");
-}
-
-//----------------------------------------------------------------------------
-bool vtkPVGeneralSettings::GetEnableAutoMPI()
-{
-  VTK_LEGACY_BODY(vtkPVGeneralSettings::GetEnableAutoMPI, "ParaView 5.10");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVGeneralSettings::SetAutoMPILimit(int)
-{
-  VTK_LEGACY_BODY(vtkPVGeneralSettings::SetAutoMPILimit, "ParaView 5.10");
-}
-
-//----------------------------------------------------------------------------
-int vtkPVGeneralSettings::GetAutoMPILimit()
-{
-  VTK_LEGACY_BODY(vtkPVGeneralSettings::GetAutoMPILimit, "ParaView 5.10");
-  return 1;
 }
 
 //----------------------------------------------------------------------------

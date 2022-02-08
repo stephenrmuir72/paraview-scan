@@ -65,7 +65,7 @@ public:
   {
     if (this->Image.IsValid())
     {
-      vtkLogF(INFO, "PushToViewport");
+      vtkLogF(TRACE, "PushToViewport");
       this->Image.PushToViewport(this->Renderer);
     }
   }
@@ -107,7 +107,7 @@ private:
     auto* camera = this->Renderer->GetActiveCamera();
     if (force || this->LastCameraMTime != camera->GetMTime())
     {
-      vtkLogF(INFO, "push camera");
+      vtkLogF(TRACE, "push camera");
       this->LastCameraMTime = camera->GetMTime();
       auto packet = vtkInteractionProvider::Render(this->Self->GetGlobalID(), camera);
       this->Self->GetSession()->SendMessage(vtkClientSession::RENDER_SERVER, std::move(packet));
@@ -118,7 +118,7 @@ private:
   {
     auto& window = this->RenderWindow;
     vtkSMPropertyHelper(this->Self, "ViewSize").Set(window->GetSize(), 2);
-    vtkLogF(INFO, "UpdateSize(%d,%d)", window->GetSize()[0], window->GetSize()[1]);
+    vtkLogF(TRACE, "UpdateSize(%d,%d)", window->GetSize()[0], window->GetSize()[1]);
     this->Self->UpdateVTKObjects();
     this->UpdateCameraIfNeeded(true);
   }
@@ -198,7 +198,7 @@ vtkRenderWindow* vtkSMViewProxy::GetRenderWindow() const
 void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
 {
   auto& internals = (*this->Internals);
-  vtkLogF(INFO, "got image");
+  vtkLogF(TRACE, "got image");
   const auto& json = packet.GetJSON();
 #if 0
   auto& binary = json.at("image").get_binary();

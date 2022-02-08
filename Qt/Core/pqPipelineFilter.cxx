@@ -29,14 +29,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
-/// \file pqPipelineFilter.cxx
-/// \date 4/17/2006
-
 #include "pqPipelineFilter.h"
 
-// ParaView Server Manager includes.
+#include "pqDataRepresentation.h"
+#include "pqOutputPort.h"
+#include "pqServerManagerModel.h"
 #include "vtkEventQtSlotConnect.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDomain.h"
 #include "vtkSMDomainIterator.h"
@@ -53,10 +52,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QSet>
 #include <QtDebug>
 
-// ParaView includes.
-#include "pqDataRepresentation.h"
-#include "pqOutputPort.h"
-#include "pqServerManagerModel.h"
 
 uint qHash(QPair<QPointer<pqPipelineSource>, int> arg)
 {
@@ -91,12 +86,6 @@ pqPipelineFilter::pqPipelineFilter(
     // Listen to proxy events to get input changes.
     this->Internal->VTKConnect->Connect(inputProp, vtkCommand::ModifiedEvent, this,
       SLOT(inputChanged(vtkObject*, unsigned long, void*)), const_cast<char*>(pname));
-  }
-
-  // Now update the input connections.
-  Q_FOREACH (QString portname, this->Internal->Inputs.keys())
-  {
-    this->inputChanged(portname);
   }
 }
 
@@ -170,6 +159,18 @@ QList<const char*> pqPipelineFilter::getRequiredInputPorts(vtkSMProxy* proxy)
   QList<const char*> list;
   pqPipelineFilterGetInputProperties(list, proxy, true);
   return list;
+}
+
+//-----------------------------------------------------------------------------
+void pqPipelineFilter::initialize()
+{
+  this->Superclass::initialize();
+
+  // Now update the input connections.
+  Q_FOREACH (QString portname, this->Internal->Inputs.keys())
+  {
+    this->inputChanged(portname);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -336,8 +337,7 @@ void pqPipelineFilter::inputChanged(vtkObject*, unsigned long, void* client_data
 //-----------------------------------------------------------------------------
 static void pqPipelineFilterBuildInputList(vtkSMInputProperty* ivp, QSet<pqOutputPort*>& set)
 {
-#if 0 // FIXME: ASYNC
-  pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   unsigned int max = ivp->GetNumberOfProxies();
   for (unsigned int cc = 0; cc < max; cc++)
@@ -347,7 +347,7 @@ static void pqPipelineFilterBuildInputList(vtkSMInputProperty* ivp, QSet<pqOutpu
     {
       continue;
     }
-    pqPipelineSource* pqSrc = model->findItem<pqPipelineSource*>(proxy);
+    pqPipelineSource* pqSrc = smmodel->findItem<pqPipelineSource*>(proxy);
     if (!pqSrc)
     {
       qCritical() << "Some proxy is added as input but was not registered with"
@@ -356,7 +356,6 @@ static void pqPipelineFilterBuildInputList(vtkSMInputProperty* ivp, QSet<pqOutpu
     }
     set.insert(pqSrc->getOutputPort(ivp->GetOutputPortForConnection(cc)));
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------

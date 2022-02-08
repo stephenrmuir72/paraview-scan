@@ -66,12 +66,5 @@ void pqTriggerOnIdleHelper::trigger()
 //-----------------------------------------------------------------------------
 void pqTriggerOnIdleHelper::triggerInternal()
 {
-  if (this->Server && this->Server->isProgressPending())
-  {
-    this->trigger();
-  }
-  else
-  {
-    Q_EMIT this->triggered();
-  }
+  Q_EMIT this->triggered();
 }

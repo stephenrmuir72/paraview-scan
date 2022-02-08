@@ -98,8 +98,6 @@ pqDataRepresentation::pqDataRepresentation(
   {
     vtkconnector->Connect(prop, vtkCommand::ModifiedEvent, this, SIGNAL(attrArrayNameModified()));
   }
-
-  this->onInputChanged();
 }
 
 //-----------------------------------------------------------------------------

@@ -40,8 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QSettings>
 
 // ParaView Includes.
-#include "pqApplicationCore.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 
 #include <cassert>
 
@@ -150,7 +150,7 @@ void pqSearchBox::setAdvancedSearchEnabled(bool enable)
 //-----------------------------------------------------------------------------
 QSettings* pqSearchBox::settings() const
 {
-  return pqApplicationCore::instance()->settings();
+  return vtkPVGUIApplication::GetInstance()->GetSettings();
 }
 
 //-----------------------------------------------------------------------------

@@ -351,6 +351,7 @@ paraview_require_module(
             ParaView::RemotingApplication
             ParaView::pqWidgets
             ParaView::pqCore
+            ParaView::pqComponents
             VTK::IOIOSS
   )
 
