@@ -239,10 +239,17 @@ void vtkSMOutputPort::PipelineUpdated()
   eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
     vtkLogF(INFO, "received updated data information for %s",
       this->GetSourceProxy()->GetLogNameOrDefault());
+    // Initialize, once we have updated information.
+    this->DataInformation->Initialize();
     if (vtkInformationProvider::ParseResponse(packet, this->DataInformation))
     {
+      this->DataInformation->SetIsObsolete(false);
       // FIXME: need better named events
       this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
     }
   });
+
+  // Fired since data information has become obsolete.
+  // FIXME: need better named events
+  this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
 }

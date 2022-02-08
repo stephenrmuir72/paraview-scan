@@ -697,12 +697,12 @@ void pqProxyInformationWidget::setOutputPort(pqOutputPort* port)
   }
   if (internals.Port)
   {
-    this->disconnect(internals.Port->getSource());
+    this->disconnect(internals.Port);
   }
   internals.Port = port;
   if (port)
   {
-    this->connect(port->getSource(), SIGNAL(dataUpdated(pqPipelineSource*)), SLOT(updateUI()));
+    this->connect(port, SIGNAL(dataInformationUpdated()), SLOT(updateUI()));
   }
   this->updateUI();
 }

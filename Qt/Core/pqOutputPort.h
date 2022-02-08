@@ -214,6 +214,12 @@ Q_SIGNALS:
    */
   void visibilityChanged(pqOutputPort* source, pqDataRepresentation* repr);
 
+  /**
+   * Fired when updated data information is available (or current data
+   * information becomes obsolete.
+   */
+  void dataInformationUpdated();
+
 protected Q_SLOTS:
   void onRepresentationVisibilityChanged();
 
