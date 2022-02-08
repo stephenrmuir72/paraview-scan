@@ -100,6 +100,7 @@ set(classes
   vtkSMPropertyIterator
   vtkSMPropertyLink
   vtkSMProxy
+  vtkSMProxyClipboard
   vtkSMProxyDefinitionsIterator
   vtkSMProxyDefinitionsRange
   vtkSMProxyGroupDomain
