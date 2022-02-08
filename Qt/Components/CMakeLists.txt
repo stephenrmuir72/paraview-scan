@@ -29,10 +29,20 @@
 #
 #==========================================================================
 set(classes
+  pqActiveObjects
+  pqComponentsInit
+  pqPipelineAnnotationFilterModel
+  pqPipelineBrowserWidget
+  pqPipelineModel
+  pqPipelineModelSelectionAdaptor
+  pqSelectionAdaptor
+
+)
+
+set(old_classes
   pqAboutDialog
   pqAbstractItemSelectionModel
   pqActionGroupInterface
-  pqActiveObjects
   pqAnimatablePropertiesComboBox
   pqAnimatableProxyComboBox
   pqAnimationManager
@@ -54,7 +64,6 @@ set(classes
   pqCommandPropertyWidget
   pqComparativeCueWidget
   pqComparativeVisPanel
-  pqComponentsInit
   pqComponentsTestUtility
   pqCompositePropertyWidgetDecorator
   pqContextMenuInterface
@@ -105,10 +114,6 @@ set(classes
   pqMultiViewWidget
   pqOrbitCreatorDialog
   pqOutputPortComboBox
-  pqPipelineAnnotationFilterModel
-  pqPipelineBrowserWidget
-  pqPipelineModel
-  pqPipelineModelSelectionAdaptor
   pqPipelineTimeKeyFrameEditor
   pqPluginDialog
   pqPluginTreeWidgetEventPlayer
@@ -139,7 +144,6 @@ set(classes
   pqScalarValueListPropertyWidget
   pqSearchBox
   pqSelectReaderDialog
-  pqSelectionAdaptor
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager

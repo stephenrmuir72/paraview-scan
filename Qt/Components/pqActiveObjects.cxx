@@ -31,16 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqActiveObjects.h"
 
-#include "pqApplicationCore.h"
-#include "pqMultiViewWidget.h"
 #include "pqServerManagerModel.h"
-#include "pqTabbedMultiViewWidget.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqTabbedMultiViewWidget.h"
 #include "vtkEventQtSlotConnect.h"
 #include "vtkSMOutputPort.h"
-#include "vtkSMProxyManager.h"
 #include "vtkSMProxySelectionModel.h"
-#include "vtkSMSession.h"
-#include "vtkSMViewLayoutProxy.h"
+// #include "vtkSMViewLayoutProxy.h"
 
 #include <QSignalBlocker>
 #include <algorithm>
@@ -77,7 +74,7 @@ pqActiveObjects::pqActiveObjects()
   , CachedView(nullptr)
   , CachedRepresentation(nullptr)
 {
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QObject::connect(smmodel, SIGNAL(serverAdded(pqServer*)), this, SLOT(serverAdded(pqServer*)));
   QObject::connect(smmodel, SIGNAL(serverRemoved(pqServer*)), this, SLOT(serverRemoved(pqServer*)));
   QObject::connect(smmodel, SIGNAL(preItemRemoved(pqServerManagerModelItem*)), this,
@@ -86,8 +83,10 @@ pqActiveObjects::pqActiveObjects()
   QObject::connect(this, SIGNAL(viewChanged(pqView*)), this, SLOT(updateRepresentation()));
   QObject::connect(this, SIGNAL(portChanged(pqOutputPort*)), this, SLOT(updateRepresentation()));
 
+#if 0 // FIXME: ASYNC
   this->VTKConnector->Connect(vtkSMProxyManager::GetProxyManager(),
     vtkSMProxyManager::ActiveSessionChanged, this, SLOT(onActiveServerChanged()));
+#endif
 
   QList<pqServer*> servers = smmodel->findItems<pqServer*>();
   if (servers.size() == 1)
@@ -252,8 +251,8 @@ void pqActiveObjects::viewSelectionChanged()
     }
   }
 
-  pqView* view =
-    pqApplicationCore::instance()->getServerManagerModel()->findItem<pqView*>(selectedProxy);
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+  pqView* view = smmodel->findItem<pqView*>(selectedProxy);
 
   if (this->ActiveView)
   {
@@ -304,7 +303,7 @@ void pqActiveObjects::sourceSelectionChanged()
 
   // Get the pqProxy for the current selected item.
 
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   vtkSMProxySelectionModel* selModel = server->activeSourcesSelectionModel();
 
   vtkSMProxy* currentProxy = selModel->GetCurrentProxy();
@@ -330,22 +329,24 @@ void pqActiveObjects::sourceSelectionChanged()
 //-----------------------------------------------------------------------------
 void pqActiveObjects::onActiveServerChanged()
 {
+#if 0 // FIXME: ASYNC
   vtkSMSession* activeSession = vtkSMProxyManager::GetProxyManager()->GetActiveSession();
   if (activeSession == nullptr)
   {
     return;
   }
 
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqServer* newActiveServer = smmodel->findServer(activeSession);
 
   if (newActiveServer)
   {
     this->setActiveServer(newActiveServer);
   }
+#endif
 }
-//-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
 void pqActiveObjects::setActiveServer(pqServer* server)
 {
   // Make sure the active server has the proper listener setup
@@ -357,15 +358,7 @@ void pqActiveObjects::setActiveServer(pqServer* server)
   }
 
   QSignalBlocker blocker(this);
-
-  this->VTKConnector->Disconnect();
   this->ActiveServer = server;
-  vtkSMProxyManager::GetProxyManager()->SetActiveSession(server ? server->session() : nullptr);
-
-  // Need to connect it back to know if python is changing the active one
-  this->VTKConnector->Connect(vtkSMProxyManager::GetProxyManager(),
-    vtkSMProxyManager::ActiveSessionChanged, this, SLOT(onActiveServerChanged()));
-
   if (server && server->activeSourcesSelectionModel() && server->activeViewSelectionModel())
   {
     this->VTKConnector->Connect(server->activeSourcesSelectionModel(),
@@ -540,6 +533,7 @@ vtkSMSessionProxyManager* pqActiveObjects::proxyManager() const
 //-----------------------------------------------------------------------------
 vtkSMViewLayoutProxy* pqActiveObjects::activeLayout() const
 {
+#if 0 // FIXME: ASYNC
   if (pqView* view = this->activeView())
   {
     if (auto l = vtkSMViewLayoutProxy::FindLayout(view->getViewProxy()))
@@ -564,11 +558,15 @@ vtkSMViewLayoutProxy* pqActiveObjects::activeLayout() const
   auto tmvwidget = qobject_cast<pqTabbedMultiViewWidget*>(core->manager("MULTIVIEW_WIDGET"));
   auto layoutProxy = tmvwidget ? tmvwidget->layoutProxy() : nullptr;
   return (layoutProxy && server->session() == layoutProxy->GetSession()) ? layoutProxy : nullptr;
+#else
+  return nullptr;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 int pqActiveObjects::activeLayoutLocation() const
 {
+#if 0 // FIXME: ASYNC
   if (auto layout = this->activeLayout())
   {
     auto core = pqApplicationCore::instance();
@@ -580,6 +578,7 @@ int pqActiveObjects::activeLayoutLocation() const
       }
     }
   }
+#endif
   return 0;
 }
 

@@ -32,6 +32,15 @@
    <addaction name="menu_File"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="windowTitle">
+    <string>Pipeline</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="pqPipelineBrowserWidget" name="pipelineBrowser"/>
+  </widget>
   <action name="actionExit">
    <property name="text">
     <string>E&amp;xit</string>
@@ -41,6 +50,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>pqPipelineBrowserWidget</class>
+   <extends>QWidget</extends>
+   <header>pqPipelineBrowserWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -50,8 +67,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>399</x>
-     <y>299</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>

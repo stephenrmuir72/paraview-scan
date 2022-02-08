@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineBrowserWidget.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqExtractor.h"
 #include "pqLiveInsituManager.h"
 #include "pqLiveInsituVisualizationManager.h"
@@ -41,18 +40,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineModel.h"
 #include "pqPipelineModelSelectionAdaptor.h"
 #include "pqPipelineSource.h"
-#include "pqRenderView.h"
+// #include "pqRenderView.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
-#include "vtkSMPVRepresentationProxy.h"
-#include "vtkSMParaViewPipelineControllerWithRendering.h"
+// #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMScalarBarWidgetRepresentationProxy.h"
-#include "vtkSMTransferFunctionManager.h"
+// #include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMScalarBarWidgetRepresentationProxy.h"
+// #include "vtkSMTransferFunctionManager.h"
 #include "vtkSMViewProxy.h"
 
 #include <QHeaderView>
@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 pqPipelineBrowserWidget::pqPipelineBrowserWidget(QWidget* parentObject)
   : Superclass(parentObject)
   , PipelineModel(
-      new pqPipelineModel(*pqApplicationCore::instance()->getServerManagerModel(), this))
+      new pqPipelineModel(*vtkPVGUIApplication::GetInstance()->GetServerManagerModel(), this))
   , FilteredPipelineModel(new pqPipelineAnnotationFilterModel(this))
   , ContextMenu(new QMenu(this))
 {
@@ -97,7 +97,7 @@ void pqPipelineBrowserWidget::configureModel()
   this->FilteredPipelineModel->setSourceModel(this->PipelineModel);
 
   // Connect the model to the ServerManager model.
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   // We connect to `preServerAdded` instead of `serverAdded` signal.
   // This makes it possible for the pqPipelineModel to become aware of a new
@@ -181,6 +181,7 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
   // we make sure we are only clicking on an eye
   if (index_.column() == 1)
   {
+#if 0 // FIXME: ASYNC
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
 
     // Get object relative to pqPipelineModel
@@ -241,6 +242,7 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
       auto activeView = pqActiveObjects::instance().activeView();
       extractor->toggleEnabledState(activeView);
     }
+#endif
   }
 }
 
@@ -275,7 +277,8 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, const QModelIndexList&
         if (indexes.size() == 1)
         {
           source = port->getSource();
-          BEGIN_UNDO_SET(QString("%1 %2").arg(visible ? "Show" : "Hide").arg(source->getSMName()));
+          BEGIN_UNDO_SET(
+            QString("%1 %2").arg(visible ? "Show" : "Hide").arg(source->registrationName()));
         }
         else
         {
@@ -313,6 +316,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
 {
   if (port)
   {
+#if 0 // FIXME: ASYNC
     auto& activeObjects = pqActiveObjects::instance();
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
     pqView* activeView = activeObjects.activeView();
@@ -354,7 +358,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
         viewProxy = vtkSMViewProxy::FindView(repr);
         controller->AssignViewToLayout(viewProxy, activeLayout, location);
         activeView =
-          pqApplicationCore::instance()->getServerManagerModel()->findItem<pqView*>(viewProxy);
+          vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqView*>(viewProxy);
       }
 
       // assign to layout, in case a new view is created.
@@ -397,6 +401,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
         rview->updateInteractionMode(port);
       }
     }
+#endif
   }
 }
 

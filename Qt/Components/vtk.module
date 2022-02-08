@@ -11,12 +11,11 @@ DEPENDS
   ParaView::qttesting
   VTK::jsoncpp
 PRIVATE_DEPENDS
-  ParaView::RemotingAnimation
-  ParaView::RemotingApplication
-  ParaView::RemotingLive
-  ParaView::RemotingMisc
+  #ParaView::RemotingAnimation
+  #ParaView::RemotingApplication
+  #ParaView::RemotingLive
+  #ParaView::RemotingMisc
   ParaView::RemotingSettings
-  ParaView::RemotingViews
   VTK::ChartsCore
   VTK::CommonSystem
   VTK::IOImage
@@ -28,7 +27,7 @@ OPTIONAL_DEPENDS
   # These affect the public API.
   ParaView::pqPython
 TEST_DEPENDS
-  ParaView::RemotingViews
+  VTK::TestingCore
 TEST_LABELS
   ParaView
 EXCLUDE_WRAP
