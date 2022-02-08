@@ -25,6 +25,7 @@
 #include "vtkPVApplication.h"
 
 class pqInterfaceTracker;
+class pqRecentlyUsedResourcesList;
 class pqServerManagerModel;
 class pqSettings;
 class vtkPVGUIOptions;
@@ -68,6 +69,11 @@ public:
    * Provides access to the server manager model.
    */
   pqServerManagerModel* GetServerManagerModel() const;
+
+  /**
+   * List of recently used resources.
+   */
+  pqRecentlyUsedResourcesList* GetRecentlyUsedResourcesList() const;
 
 protected:
   vtkPVGUIApplication();

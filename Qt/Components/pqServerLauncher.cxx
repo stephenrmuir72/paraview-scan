@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqConnectIdDialog.h"
 #include "ui_pqServerLauncherDialog.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileChooserWidget.h"
 #include "pqObjectBuilder.h"
@@ -43,11 +42,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSettings.h"
 #include "vtkCommand.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkNetworkAccessManager.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVGUIOptions.h"
 #include "vtkPVVersion.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkTimerLog.h"
 
 #include <QCheckBox>
@@ -247,7 +245,7 @@ bool createWidgets(QMap<QString, pqWidget*>& widgets, QDialog& dialog,
   dialog.setLayout(formLayout);
   dialog.setWindowTitle(QString("Connection Options for \"%1\"").arg(configuration.name()));
 
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
 
   // Process the <Options/> to create dialog with widgets.
   for (unsigned int cc = 0; cc < optionsXML->GetNumberOfNestedElements(); cc++)
@@ -421,7 +419,7 @@ bool createWidgets(QMap<QString, pqWidget*>& widgets, QDialog& dialog,
 void updateEnvironment(const QMap<QString, pqWidget*>& widgets,
   pqServerConfiguration& configuration, QProcessEnvironment& options)
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   pqServerResource resource = configuration.resource();
   Q_FOREACH (const pqWidget* item, widgets)
   {
@@ -589,7 +587,7 @@ bool pqServerLauncher::connectToServer(bool showConnectionDialog)
       }
     }
   }
-
+#if 0 // FIXME: ASYNC
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkNetworkAccessManager* nam = pm->GetNetworkAccessManager();
   vtkRemotingCoreConfiguration* config = vtkRemotingCoreConfiguration::GetInstance();
@@ -609,11 +607,15 @@ bool pqServerLauncher::connectToServer(bool showConnectionDialog)
   }
   builder->forceWaitingForConnection(force);
   return launched;
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqServerLauncher::connectToPrelaunchedServer(bool showConnectionDialog)
 {
+#if 0 // FIXME: ASYNC
   pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
 
   vtkNetworkAccessManager::ConnectionResult result;
@@ -662,6 +664,9 @@ bool pqServerLauncher::connectToPrelaunchedServer(bool showConnectionDialog)
         .arg(this->Internals->Configuration.connectionTimeout())) == QMessageBox::Yes);
 
   return this->Internals->Server != nullptr;
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -703,11 +708,11 @@ bool pqServerLauncher::promptOptions()
   this->updateOptionsUsingUserSelections();
 
   // if options contains PV_CONNECT_ID. We need to update the
-  // vtkRemotingCoreConfiguration to give it the correct connection-id.
+  // vtkPVApplicationOptions to give it the correct connection-id.
   if (options.contains("PV_CONNECT_ID"))
   {
-    vtkRemotingCoreConfiguration* config = vtkRemotingCoreConfiguration::GetInstance();
-    config->SetConnectID(options.value("PV_CONNECT_ID").toInt());
+    auto* pvoptions = vtkPVGUIApplication::GetInstance()->GetOptions();
+    pvoptions->SetConnectID(options.value("PV_CONNECT_ID").toInt());
   }
 
   widgets.clear();
@@ -736,10 +741,12 @@ void pqServerLauncher::launchServerForReverseConnection()
 {
   if (!this->launchServer(false))
   {
+#if 0 // FIXME: ASYNC
     // server-launch failed, abort the "waiting for the server to connect" part
     // by letting the pqObjectBuilder know.
     pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
     builder->abortPendingConnections();
+#endif
   }
 }
 
@@ -787,7 +794,7 @@ bool pqServerLauncher::launchServer(bool show_status_dialog)
 bool pqServerLauncher::processCommand(
   QString command, double processWait, double delay, const QProcessEnvironment* options)
 {
-  QProcess* process = new QProcess(pqApplicationCore::instance());
+  QProcess* process = new QProcess(pqCoreUtilities::mainWidget());
 
   if (options != nullptr)
   {

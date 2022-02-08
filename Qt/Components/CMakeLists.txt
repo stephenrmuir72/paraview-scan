@@ -41,6 +41,7 @@ set(classes
   pqCommandPropertyWidget
   pqComponentsInit
   pqCompositePropertyWidgetDecorator
+  pqContextMenuInterface
   pqDataAssemblyTreeModel
   pqDataInformationModel
   pqDataInformationWidget
@@ -80,9 +81,13 @@ set(classes
   pqProxySelectionWidget
   pqProxyWidget
   pqProxyWidgetDialog
+  pqRecentFilesMenu
+  pqRescaleRange
   pqScalarValueListPropertyWidget
   pqSearchBox
   pqSelectionAdaptor
+  pqServerConfigurationImporter
+  pqServerLauncher
   pqShortcutDecorator
   pqSignalAdaptorSelectionTreeWidget
   pqSignalAdaptorTreeWidget
@@ -93,8 +98,6 @@ set(classes
   pqViewFrame
   pqViewFrameActionsInterface
   pqWidgetRangeDomain
-  pqRescaleRange
-  pqContextMenuInterface
 )
 
 set(old_classes
@@ -143,7 +146,6 @@ set(old_classes
   pqPresetDialog
   pqPresetGroupsManager
   pqPresetToPixmap
-  pqRecentFilesMenu
   pqRemoteCommandDialog
   pqRemoteCommandTemplateDialog
   pqSingleLogViewerWidget
@@ -151,11 +153,9 @@ set(old_classes
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
-  pqServerConfigurationImporter
-  pqServerConnectDialog
-  pqServerLauncher
   pqSetBreakpointDialog
   pqSettingsDialog
+  pqServerConnectDialog
   pqShaderReplacementsComboBox
   pqShaderReplacementsSelectorPropertyWidget
   pqSignalAdaptorKeyFrameType
