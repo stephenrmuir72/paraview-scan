@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqInputSelectorWidget.h"
 
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqPropertiesPanel.h"
@@ -39,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPropertyLinksConnection.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
@@ -107,7 +107,7 @@ pqInputSelectorWidget::pqInputSelectorWidget(
   /**
    * Populate combo-box when sources change.
    */
-  auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   Q_ASSERT(smmodel != nullptr);
   this->UpdateComboBoxTimer.connect(smmodel, SIGNAL(sourceAdded(pqPipelineSource*)), SLOT(start()));
   this->UpdateComboBoxTimer.connect(
@@ -155,7 +155,7 @@ void pqInputSelectorWidget::updateComboBox()
   this->ComboBox->clear();
   this->ComboBox->addItem("(none)", QVariant::fromValue<void*>(nullptr));
 
-  auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   auto smproxy = this->proxy();
   auto smproperty = this->property();
 
@@ -192,13 +192,13 @@ void pqInputSelectorWidget::updateComboBox()
         if (source->getNumberOfOutputPorts() > 1)
         {
           this->ComboBox->addItem(
-            QString("%1:%2").arg(source->getSMName()).arg(port->getPortName()),
+            QString("%1:%2").arg(source->registrationName()).arg(port->getPortName()),
             QVariant::fromValue<void*>(port->getOutputPortProxy()));
         }
         else
         {
           this->ComboBox->addItem(
-            source->getSMName(), QVariant::fromValue<void*>(port->getOutputPortProxy()));
+            source->registrationName(), QVariant::fromValue<void*>(port->getOutputPortProxy()));
         }
       }
     }

@@ -31,11 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqPropertyWidgetDecorator.h"
 
-#include "pqApplicationCore.h"
 #include "pqInterfaceTracker.h"
 #include "pqPropertyWidget.h"
 #include "pqPropertyWidgetDecorator.h"
 #include "pqPropertyWidgetInterface.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 
@@ -71,7 +71,7 @@ pqPropertyWidgetDecorator* pqPropertyWidgetDecorator::create(
     return nullptr;
   }
 
-  auto tracker = pqApplicationCore::instance()->interfaceTracker();
+  auto* tracker = vtkPVGUIApplication::GetInstance()->GetInterfaceTracker();
   auto interfaces = tracker->interfaces<pqPropertyWidgetInterface*>();
 
   const QString type = xmlconfig->GetAttribute("type");

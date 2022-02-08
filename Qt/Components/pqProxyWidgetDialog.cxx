@@ -32,10 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxyWidgetDialog.h"
 #include "ui_pqProxyWidgetDialog.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqProxyWidget.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxy.h"
@@ -235,7 +235,7 @@ public:
   {
     QString old = this->SettingsKey;
     this->SettingsKey = key;
-    pqSettings* settings = pqApplicationCore::instance()->settings();
+    pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
     if (!key.isEmpty() && settings->value(this->KEY_VALID(), false).toBool())
     {
       this->Ui.SearchBox->setSettingKey(this->KEY_SEARCHBOX());
@@ -254,7 +254,7 @@ public:
   {
     if (!this->SettingsKey.isEmpty())
     {
-      pqSettings* settings = pqApplicationCore::instance()->settings();
+      pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
       settings->setValue(this->KEY_VALID(), true);
       settings->setValue(this->KEY_GEOMETRY(), self->saveGeometry());
     }

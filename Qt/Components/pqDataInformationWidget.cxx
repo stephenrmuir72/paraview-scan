@@ -40,7 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView includes.
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqDataInformationModel.h"
 #include "pqNonEditableStyledItemDelegate.h"
 #include "pqOutputPort.h"
@@ -49,6 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSelectionAdaptor.h"
 #include "pqServerManagerModel.h"
 #include "pqSetName.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMOutputPort.h"
 
 namespace
@@ -121,7 +121,7 @@ pqDataInformationWidget::pqDataInformationWidget(QWidget* _parent /*=0*/)
     _layout->addWidget(this->View);
   }
 
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QObject::connect(smModel, SIGNAL(sourceAdded(pqPipelineSource*)), this->Model,
     SLOT(addSource(pqPipelineSource*)));
   QObject::connect(smModel, SIGNAL(sourceRemoved(pqPipelineSource*)), this->Model,

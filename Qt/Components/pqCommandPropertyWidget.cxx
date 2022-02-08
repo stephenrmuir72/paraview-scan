@@ -77,15 +77,7 @@ void pqCommandPropertyWidget::buttonClicked()
 
       // Update pipeline information, if possible, otherwise, simple update
       // information properties.
-      vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(smproxy);
-      if (source)
-      {
-        source->UpdatePipelineInformation();
-      }
-      else
-      {
-        smproxy->UpdatePropertyInformation();
-      }
+      smproxy->UpdateInformation();
     }
   }
 }

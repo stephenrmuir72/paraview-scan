@@ -33,11 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqPropertiesPanel.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqExtractor.h"
-#include "pqLiveInsituManager.h"
+// #include "pqLiveInsituManager.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqProxyWidget.h"
@@ -50,6 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkCommand.h"
 #include "vtkEventQtSlotConnect.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
 #include "vtkPVLogger.h"
 #include "vtkSMProperty.h"
@@ -70,10 +70,12 @@ namespace
 {
 bool isDeletable(pqProxy* proxy)
 {
+#if 0 // FIXME: ASYNC
   if (proxy && pqLiveInsituManager::isInsitu(proxy))
   {
     return false;
   }
+#endif
 
   if (auto source = qobject_cast<pqPipelineSource*>(proxy))
   {
@@ -243,14 +245,7 @@ public:
     {
       // this->Source->updatePipeline();
       vtkSMProxy* proxy = this->Source->getProxy();
-      if (vtkSMSourceProxy* sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy))
-      {
-        sourceProxy->UpdatePipelineInformation();
-      }
-      else
-      {
-        proxy->UpdatePropertyInformation();
-      }
+      proxy->UpdateInformation();
     }
   }
 };
@@ -272,17 +267,16 @@ pqPropertiesPanel::pqPropertiesPanel(QWidget* parentObject)
     SLOT(setRepresentation(pqDataRepresentation*)));
 
   // listen to server manager changes
-  pqServerManagerModel* smm = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smm = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   this->connect(smm, SIGNAL(proxyRemoved(pqProxy*)), SLOT(proxyDeleted(pqProxy*)));
   // this connection ensures that the button state is updated everytime any
   // item's state changes.
   this->connect(
     smm, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), SLOT(updateButtonState()));
-  this->connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(connectionRemoved(pqPipelineSource*, pqPipelineSource*, int)),
+  this->connect(smm, SIGNAL(connectionRemoved(pqPipelineSource*, pqPipelineSource*, int)),
     SLOT(updateButtonState()));
-  this->connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(connectionAdded(pqPipelineSource*, pqPipelineSource*, int)), SLOT(updateButtonState()));
+  this->connect(smm, SIGNAL(connectionAdded(pqPipelineSource*, pqPipelineSource*, int)),
+    SLOT(updateButtonState()));
 
   // Listen to UI signals.
   QObject::connect(this->Internals->Ui.Accept, SIGNAL(clicked()), this, SLOT(apply()));
@@ -502,7 +496,7 @@ void pqPropertiesPanel::updatePropertiesPanel(pqProxy* source)
   if (source)
   {
     this->Internals->Ui.PropertiesButton->setText(
-      tr("Properties") + QString(" (%1)").arg(source->getSMName()));
+      tr("Properties") + QString(" (%1)").arg(source->registrationName()));
     this->Internals->SourceWidgets[source]->showWidgets(
       this->Internals->Ui.SearchBox->isAdvancedSearchActive(),
       this->Internals->Ui.SearchBox->text());
@@ -616,7 +610,7 @@ void pqPropertiesPanel::updateViewPanel(pqView* argView)
     vtkSMViewProxy* proxy = _view->getViewProxy();
     const char* label = proxy->GetXMLLabel();
     this->Internals->Ui.ViewButton->setText(
-      tr("View") + QString(" (%1)").arg(label != nullptr ? label : _view->getViewType()));
+      tr("View") + QString(" (%1)").arg(label != nullptr ? label : proxy->GetXMLLabel()));
     this->Internals->ViewWidgets->showWidgets(
       this->Internals->Ui.SearchBox->isAdvancedSearchActive(),
       this->Internals->Ui.SearchBox->text());
@@ -860,7 +854,7 @@ void pqPropertiesPanel::deleteProxy()
 {
   if (auto source = this->Internals->Source.data())
   {
-    BEGIN_UNDO_SET(tr("Delete") + " " + source->getSMName());
+    BEGIN_UNDO_SET(tr("Delete") + " " + source->registrationName());
     Q_EMIT this->deleteRequested(source);
     END_UNDO_SET();
   }

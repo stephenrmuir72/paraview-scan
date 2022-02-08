@@ -161,7 +161,7 @@ void pqViewFrame::onViewNameChanged(pqServerManagerModelItem* item)
   pqView* view = dynamic_cast<pqView*>(item);
   if (view)
   {
-    this->setTitle(view->getSMName());
+    this->setTitle(view->registrationName());
   }
 }
 

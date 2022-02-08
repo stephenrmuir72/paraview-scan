@@ -38,8 +38,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QToolButton>
 
-#include "pqColorChooserButtonWithPalettes.h"
+// #include "pqColorChooserButtonWithPalettes.h"
 #include "pqComboBoxDomain.h"
 #include "pqDoubleSliderWidget.h"
 #include "pqSignalAdaptors.h"
@@ -59,6 +60,7 @@ pqPropertyGroupWidget::pqPropertyGroupWidget(
 void pqPropertyGroupWidget::addPropertyLink(
   pqColorChooserButton* color, const char* propertyName, int smindex)
 {
+#if 0 // FIXME: ASYNC
   vtkSMProperty* smProperty = this->PropertyGroup->GetProperty(propertyName);
   if (smProperty)
   {
@@ -74,6 +76,7 @@ void pqPropertyGroupWidget::addPropertyLink(
   {
     color->hide();
   }
+#endif
 }
 
 void pqPropertyGroupWidget::addPropertyLink(QComboBox* cb, const char* propertyName, int smindex)

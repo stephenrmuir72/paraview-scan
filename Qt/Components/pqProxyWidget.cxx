@@ -31,11 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqProxyWidget.h"
 
-#include "pqApplicationCore.h"
 #include "pqCommandPropertyWidget.h"
-#include "pqDisplayPanel.h"
-#include "pqDisplayPanelInterface.h"
-#include "pqDisplayPanelPropertyWidget.h"
 #include "pqDoubleVectorPropertyWidget.h"
 #include "pqIntVectorPropertyWidget.h"
 #include "pqInterfaceTracker.h"
@@ -51,9 +47,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqTimer.h"
 #include "vtkCollection.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMCompoundSourceProxy.h"
+#include "vtkSmartPointer.h"
+// #include "vtkSMCompoundSourceProxy.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMDomainIterator.h"
 #include "vtkSMDoubleVectorProperty.h"
@@ -66,10 +64,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
-#include "vtkSMSettings.h"
+// #include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
-#include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 #include "vtkWeakPointer.h"
 
@@ -719,14 +716,6 @@ pqProxyWidget::pqProxyWidget(vtkSMProxy* smproxy, const QStringList& properties,
   this->createWidgets(properties);
   this->hideEvent(nullptr);
 
-  // In collaboration setup any pqProxyWidget should be disable
-  // when the user lose its MASTER role. And enable back when
-  // user became MASTER again.
-  // This is achieved by adding a PV_MUST_BE_MASTER property
-  // to the current container.
-  this->setProperty("PV_MUST_BE_MASTER", QVariant(true));
-  this->setEnabled(pqApplicationCore::instance()->getActiveServer()->isMaster());
-
   // This is here to keep behaviour consistent with earlier versions of the
   // code. If an explicit lists of properties is provided, we update the panel
   // in the constructor itself.
@@ -1006,7 +995,7 @@ void pqProxyWidget::createPropertyWidgets(const QStringList& properties)
 
   // step 3: now iterate over the `ordered_properties` list and create widgets
   // as needed.
-  pqInterfaceTracker* interfaceTracker = pqApplicationCore::instance()->interfaceTracker();
+  auto* interfaceTracker = vtkPVGUIApplication::GetInstance()->GetInterfaceTracker();
   const QList<pqPropertyWidgetInterface*> interfaces =
     interfaceTracker->interfaces<pqPropertyWidgetInterface*>();
 
@@ -1126,8 +1115,11 @@ void pqProxyWidget::createPropertyWidgets(const QStringList& properties)
     }
 
     assert(smgroup == nullptr || group_widget_status[smgroup] == EnumState::Collection);
-
+#if 0 // FIXME: ASYNC
     const bool isCompoundProxy = vtkSMCompoundSourceProxy::SafeDownCast(smproxy) != nullptr;
+#else
+    const bool isCompoundProxy = false;
+#endif
     const char* xmllabel =
       (smproperty->GetXMLLabel() && !isCompoundProxy) ? smproperty->GetXMLLabel() : smkey.c_str();
 
@@ -1199,7 +1191,7 @@ pqPropertyWidget* pqProxyWidget::createWidgetForProperty(
 {
   // check for custom widgets
   pqPropertyWidget* widget = nullptr;
-  pqInterfaceTracker* interfaceTracker = pqApplicationCore::instance()->interfaceTracker();
+  auto* interfaceTracker = vtkPVGUIApplication::GetInstance()->GetInterfaceTracker();
   QList<pqPropertyWidgetInterface*> interfaces =
     interfaceTracker->interfaces<pqPropertyWidgetInterface*>();
   Q_FOREACH (pqPropertyWidgetInterface* interface, interfaces)
@@ -1322,6 +1314,7 @@ void pqProxyWidget::updatePanel()
 //-----------------------------------------------------------------------------
 bool pqProxyWidget::restoreDefaults()
 {
+#if 0 // FIXME: ASYNC
   bool anyReset = false;
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   if (this->Internals->Proxy)
@@ -1368,11 +1361,15 @@ bool pqProxyWidget::restoreDefaults()
     Q_EMIT changeFinished();
   }
   return anyReset;
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqProxyWidget::saveAsDefaults()
 {
+#if 0 // FIXME: ASYNC
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   vtkSMNamedPropertyIterator* propertyIt = nullptr;
   if (this->Internals->Properties)
@@ -1385,6 +1382,9 @@ void pqProxyWidget::saveAsDefaults()
   {
     propertyIt->Delete();
   }
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
