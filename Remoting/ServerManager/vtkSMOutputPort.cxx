@@ -51,6 +51,14 @@ vtkSMOutputPort::~vtkSMOutputPort()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMOutputPort::SetPortIndex(int index)
+{
+  this->PortIndex = index;
+  this->DataInformation->SetPortNumber(this->PortIndex);
+  this->TemporalDataInformation->SetPortNumber(this->PortIndex);
+}
+
+//----------------------------------------------------------------------------
 vtkPVDataInformation* vtkSMOutputPort::GetDataInformation()
 {
   return this->DataInformation;
@@ -229,7 +237,8 @@ void vtkSMOutputPort::PipelineUpdated()
   auto eventual = session->SendRequest(
     /** FIXME**/ producer->GetLocation(), std::move(packet));
   eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
-    vtkLogF(INFO, "received updated data information");
+    vtkLogF(INFO, "received updated data information for %s",
+      this->GetSourceProxy()->GetLogNameOrDefault());
     if (vtkInformationProvider::ParseResponse(packet, this->DataInformation))
     {
       // FIXME: need better named events
