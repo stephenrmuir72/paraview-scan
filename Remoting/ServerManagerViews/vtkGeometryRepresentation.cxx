@@ -30,6 +30,7 @@
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkPVLogger.h"
 
 class vtkGeometryRepresentation::vtkDataProcessingInternals
 {
@@ -163,6 +164,7 @@ bool vtkGeometryRepresentation::RequestDataToRender(
 {
   assert(this->DInternals);
 
+  vtkLogScopeF(INFO, "vtkGeometryRepresentation::RequestDataToRender");
   auto& dinternals = (*this->DInternals);
   auto* input = vtkDataObject::GetData(inputVector[0], 0);
   dinternals.GeometryFilter->SetInputDataObject(input);
