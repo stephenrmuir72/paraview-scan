@@ -33,13 +33,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqObjectBuilder_h
 
 #include "pqCoreModule.h"
-#include "vtkNetworkAccessManager.h" // needed for vtkNetworkAccessManager::ConnectionResult.
 
 #include <QMap>
 #include <QObject>
 #include <QVariant>
 
-class pqAnimationCue;
 class pqDataRepresentation;
 class pqOutputPort;
 class pqPipelineSource;
@@ -75,7 +73,7 @@ class PQCORE_EXPORT pqObjectBuilder : public QObject
 public:
   pqObjectBuilder(QObject* parent = nullptr);
   ~pqObjectBuilder() override;
-
+#if 0
   //@{
   /**
    * Create a server connection give a server resource.
@@ -100,6 +98,7 @@ public:
   pqServer* createServer(const pqServerResource& resource, int connectionTimeout,
     vtkNetworkAccessManager::ConnectionResult& result);
   //@}
+#endif
 
   /**
    * Destroy a server connection
@@ -162,13 +161,6 @@ public:
   virtual void addToLayout(pqView* view, pqProxy* layout = nullptr);
 
   /**
-   * Creates a representation to show the data from the given output port of a
-   * source in the given \c view.
-   */
-  virtual pqDataRepresentation* createDataRepresentation(
-    pqOutputPort* source, pqView* view, const QString& representationType = "");
-
-  /**
    * Convenience method to create a proxy of any type on the given server.
    * One can alternatively use the vtkSMProxyManager to create new proxies
    * directly. This method additionally set the connection ID on
@@ -192,11 +184,6 @@ public:
   // Note that the source must have no consumers, otherwise,
   // one cannot delete the source.
   virtual void destroy(pqPipelineSource* source);
-
-  /**
-   * Destroys an animation cue and all keyframe objects, if any in that cue.
-   */
-  virtual void destroy(pqAnimationCue* cue);
 
   /**
    * Convenience method, simply unregisters the Server Manager proxy which the
