@@ -27,6 +27,7 @@
 #include "vtkPVXMLElement.h"
 #include "vtkReflection.h"
 #include "vtkRemoteObjectProvider.h"
+#include "vtkRemotingCoreUtilities.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyIterator.h"
@@ -35,7 +36,6 @@
 #include "vtkSMProxyManager.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
-#include "vtkRemotingCoreUtilities.h"
 
 #include <algorithm>
 #include <cassert>
@@ -118,6 +118,7 @@ vtkSMProxy::vtkSMProxy()
 //---------------------------------------------------------------------------
 vtkSMProxy::~vtkSMProxy()
 {
+  this->DeleteRemoteObject();
   this->RemoveAllObservers();
 
   // ensure that the properties are destroyed before we delete this->Internals.
@@ -1927,4 +1928,17 @@ vtkSMSessionProxyManager* vtkSMProxy::GetProxyManager() const
 vtkClientSession* vtkSMProxy::GetSession() const
 {
   return this->ProxyManager ? this->ProxyManager->GetSession() : nullptr;
+}
+
+//---------------------------------------------------------------------------
+void vtkSMProxy::DeleteRemoteObject()
+{
+  if (this->ObjectsCreated)
+  {
+    if (auto* session = this->GetSession())
+    {
+      auto packet = vtkRemoteObjectProvider::DeleteObject(this->GetGlobalID());
+      session->SendMessage(this->GetLocation(), std::move(packet));
+    }
+  }
 }

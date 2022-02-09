@@ -130,10 +130,10 @@
 #ifndef vtkSMProxy_h
 #define vtkSMProxy_h
 
+#include "vtkJsonFwd.h" // needed for vtkJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkWeakPointer.h"                 // for vtkWeakPointer
-#include "vtkJsonFwd.h" // needed for vtkJson
 
 #include "vtk_rxcpp.h" // for rxcpp
 // clang-format off
@@ -837,6 +837,11 @@ protected:
   vtkSMProxyObserver* SubProxyObserver;
   vtkSMProxy(const vtkSMProxy&) = delete;
   void operator=(const vtkSMProxy&) = delete;
+
+  /**
+   * Send a request for the corresponding remote object to be deleted
+   */
+  void DeleteRemoteObject();
 
 private:
   vtkSMProperty* SetupExposedProperty(vtkPVXMLElement* propertyElement, const char* subproxy_name);
