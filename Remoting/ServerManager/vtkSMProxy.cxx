@@ -1942,3 +1942,14 @@ void vtkSMProxy::DeleteRemoteObject()
     }
   }
 }
+//---------------------------------------------------------------------------
+void vtkSMProxy::UpdateConsumerDomains()
+{
+  for (auto& consumer : this->Internals->Consumers)
+  {
+    if (consumer.Property)
+    {
+      consumer.Property->UpdateDomains();
+    }
+  }
+}

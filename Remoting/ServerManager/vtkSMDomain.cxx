@@ -18,7 +18,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
-// #include "vtkSMSourceProxy.h"
+#include "vtkSMSourceProxy.h"
 #include "vtkSMUncheckedPropertyHelper.h"
 #include "vtkWeakPointer.h"
 
@@ -191,13 +191,11 @@ vtkPVDataInformation* vtkSMDomain::GetInputDataInformation(const char* function,
   vtkSMUncheckedPropertyHelper helper(inputProperty);
   if (helper.GetNumberOfElements() > index)
   {
-#if 0 // FIXME: ASYNC
     vtkSMSourceProxy* sp = vtkSMSourceProxy::SafeDownCast(helper.GetAsProxy(index));
     if (sp)
     {
       return sp->GetDataInformation(helper.GetOutputPort());
     }
-#endif
   }
 
   return nullptr;
