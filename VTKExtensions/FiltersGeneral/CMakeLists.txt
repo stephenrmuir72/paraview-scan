@@ -28,6 +28,8 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
+#FIX ASYNC disable classes that depenent on other VTKExtensions::Filters*
+# or on the old ProcessModule
 set(classes
   vtkAnnotateGlobalDataFilter
   vtkCellIntegrator
@@ -37,38 +39,39 @@ set(classes
   vtkEquivalenceSet
   vtkExtractScatterPlot
   vtkFlashContour
-  vtkHierarchicalFractal
-  vtkHybridProbeFilter
+  #vtkHierarchicalFractal
+  #vtkHybridProbeFilter
   vtkImageSimpleSource
   vtkIntegrateFlowThroughSurface
-  vtkIsoVolume
+  #vtkIsoVolume
   vtkOMETIFFChannelCalculator
   vtkPEquivalenceSet
-  vtkPlotEdges
-  vtkPVArrayCalculator
-  vtkPVClipClosedSurface
-  vtkPVClipDataSet
+  #vtkPlotEdges
+  #vtkPVArrayCalculator
+  #vtkPVClipClosedSurface
+  #vtkPVClipDataSet
   vtkPVConnectivityFilter
-  vtkPVContourFilter
-  vtkPVCutter
-  vtkPVDataSetAlgorithmSelectorFilter
+  #vtkPVContourFilter
+  #vtkPVCutter
+  #vtkPVDataSetAlgorithmSelectorFilter
   vtkPVExtractComponent
   vtkPVExtractVOI
   vtkPVGlyphFilter
   vtkPVGlyphFilterLegacy
   vtkPVGradientFilter
   vtkPVLinearExtrusionFilter
-  vtkPVMetaClipDataSet
-  vtkPVMetaSliceDataSet
+  #vtkPVMetaClipDataSet
+  #vtkPVMetaSliceDataSet
   vtkPVTextSource
   vtkPVThreshold
   vtkPVTransposeTable
   vtkRectilinearGridConnectivity
   vtkRulerLineForInput
-  vtkSliceAlongPolyPlane
+  #vtkSliceAlongPolyPlane
   vtkSurfaceVectors
   vtkTimeStepProgressFilter
-  vtkTimeToTextConvertor)
+  #vtkTimeToTextConvertor
+  )
 
 vtk_module_add_module(ParaView::VTKExtensionsFiltersGeneral
   CLASSES ${classes})

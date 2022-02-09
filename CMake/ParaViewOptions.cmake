@@ -353,6 +353,7 @@ paraview_require_module(
             ParaView::pqCore
             ParaView::pqComponents
             ParaView::pqApplicationComponents
+            ParaView::VTKExtensionsFiltersGeneral
             VTK::IOIOSS
   )
 
