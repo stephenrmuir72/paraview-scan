@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqPopoutPlaceholder.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
 #include "pqHierarchicalGridLayout.h"
 #include "pqHierarchicalGridWidget.h"
@@ -51,11 +50,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkImageData.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
-#include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSaveScreenshotProxy.h"
-#include "vtkSMSession.h"
+// #include "vtkSMSaveScreenshotProxy.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTrace.h"
 #include "vtkSMUtilities.h"
@@ -224,11 +222,15 @@ public:
       vtkVector2i tsize(size.width(), size.height());
       const QRect crect = this->Container->parentWidget()->contentsRect();
       vtkVector2i csize(crect.width(), crect.height());
+#if 0 // FIXE: ASYNC
       const int magnification = vtkSMSaveScreenshotProxy::ComputeMagnification(tsize, csize);
       this->setCustomDevicePixelRatio(magnification);
       this->Container->setMaximumSize(csize[0], csize[1]);
       vtkLogF(
         TRACE, "cur=(%d, %d), new=(%d, %d)", crect.width(), crect.height(), csize[0], csize[1]);
+#else
+      abort();
+#endif
     }
     this->updateDecorations();
   }
@@ -302,7 +304,7 @@ pqView* getPQView(vtkSMProxy* view)
 {
   if (view)
   {
-    pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+    pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
     return smmodel->findItem<pqView*>(view);
   }
   return nullptr;
@@ -334,8 +336,7 @@ pqMultiViewWidget::pqMultiViewWidget(QWidget* parentObject, Qt::WindowFlags f)
   QObject::connect(
     &pqActiveObjects::instance(), SIGNAL(viewChanged(pqView*)), this, SLOT(markActive(pqView*)));
 
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QObject::connect(smmodel, SIGNAL(proxyRemoved(pqProxy*)), this, SLOT(proxyRemoved(pqProxy*)));
   QObject::connect(smmodel, SIGNAL(viewAdded(pqView*)), this, SLOT(viewAdded(pqView*)));
 }
@@ -594,7 +595,7 @@ pqViewFrame* pqMultiViewWidget::newFrame(vtkSMProxy* view)
   QObject::connect(frame, SIGNAL(swapPositions(const QString&)), this,
     SLOT(swapPositions(const QString&)), Qt::QueuedConnection);
 
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqView* pqview = smmodel->findItem<pqView*>(view);
   // it's possible that pqview is nullptr, if the view proxy hasn't been registered
   // yet. This happens often when initialization state is being loaded in
@@ -603,7 +604,7 @@ pqViewFrame* pqMultiViewWidget::newFrame(vtkSMProxy* view)
 
   // Search for view frame actions plugins and allow them to decide
   // whether to add their actions to this view type's frame or not.
-  pqInterfaceTracker* tracker = pqApplicationCore::instance()->interfaceTracker();
+  pqInterfaceTracker* tracker = vtkPVGUIApplication::GetInstance()->GetInterfaceTracker();
   Q_FOREACH (pqViewFrameActionsInterface* vfai, tracker->interfaces<pqViewFrameActionsInterface*>())
   {
     vfai->frameConnected(frame, pqview);
@@ -781,6 +782,7 @@ void pqMultiViewWidget::standardButtonPressed(int button)
     case pqViewFrame::Close:
     {
       BEGIN_UNDO_SET("Close View");
+#if 0 // FIXME: ASYNC
       vtkSmartPointer<vtkSMViewProxy> viewProxy = this->layoutManager()->GetView(index.toInt());
       if (viewProxy)
       {
@@ -802,6 +804,9 @@ void pqMultiViewWidget::standardButtonPressed(int button)
         this->makeActive(frameToActivate);
       }
       END_UNDO_SET();
+#else
+      abort();
+#endif
     }
     break;
   }
@@ -810,6 +815,7 @@ void pqMultiViewWidget::standardButtonPressed(int button)
 //-----------------------------------------------------------------------------
 void pqMultiViewWidget::destroyAllViews()
 {
+#if 0 // FIXME: ASYNC
   BEGIN_UNDO_SET("Destroy all views");
   pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
   QList<vtkSMViewProxy*> views = this->viewProxies();
@@ -821,6 +827,7 @@ void pqMultiViewWidget::destroyAllViews()
     }
   }
   END_UNDO_SET();
+#endif
 }
 
 //-----------------------------------------------------------------------------

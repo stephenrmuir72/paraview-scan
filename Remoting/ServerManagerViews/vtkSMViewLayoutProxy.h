@@ -40,7 +40,7 @@
 #ifndef vtkSMViewLayoutProxy_h
 #define vtkSMViewLayoutProxy_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSMProxy.h"
 #include "vtkVector.h" // needed for vtkVector2i
 #include <vector>      // needed for std::vector.
@@ -48,7 +48,7 @@
 class vtkSMViewProxy;
 class vtkImageData;
 
-class VTKREMOTINGVIEWS_EXPORT vtkSMViewLayoutProxy : public vtkSMProxy
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMViewLayoutProxy : public vtkSMProxy
 {
 public:
   static vtkSMViewLayoutProxy* New();
@@ -296,11 +296,6 @@ public:
 protected:
   vtkSMViewLayoutProxy();
   ~vtkSMViewLayoutProxy() override;
-
-  /**
-   * Called to load state from protobuf message.
-   */
-  void LoadState(const vtkSMMessage* message, vtkSMProxyLocator* locator) override;
 
   /**
    * Although this class is a proxy, it's not really a proxy in the traditional

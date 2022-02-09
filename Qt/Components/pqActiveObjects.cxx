@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkEventQtSlotConnect.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMProxySelectionModel.h"
-// #include "vtkSMViewLayoutProxy.h"
+#include "vtkSMViewLayoutProxy.h"
 
 #include <QSignalBlocker>
 #include <algorithm>

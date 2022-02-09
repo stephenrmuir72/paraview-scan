@@ -48,7 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
-// #include "vtkSMParaViewPipelineControllerWithRendering.h"
+#include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
 // #include "vtkSMPVRepresentationProxy.h"
 // #include "vtkSMScalarBarWidgetRepresentationProxy.h"
@@ -86,6 +86,8 @@ pqPipelineBrowserWidget::pqPipelineBrowserWidget(QWidget* parentObject)
     &pqActiveObjects::instance(), SIGNAL(viewChanged(pqView*)), this, SLOT(setActiveView(pqView*)));
 
   new pqPipelineModelSelectionAdaptor(this->getSelectionModel());
+
+  this->setActiveView(pqActiveObjects::instance().activeView());
 }
 
 //-----------------------------------------------------------------------------
@@ -181,7 +183,6 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
   // we make sure we are only clicking on an eye
   if (index_.column() == 1)
   {
-#if 0 // FIXME: ASYNC
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
 
     // Get object relative to pqPipelineModel
@@ -242,7 +243,6 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
       auto activeView = pqActiveObjects::instance().activeView();
       extractor->toggleEnabledState(activeView);
     }
-#endif
   }
 }
 
@@ -316,13 +316,12 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
 {
   if (port)
   {
-#if 0 // FIXME: ASYNC
     auto& activeObjects = pqActiveObjects::instance();
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
     pqView* activeView = activeObjects.activeView();
     vtkSMViewProxy* viewProxy = activeView ? activeView->getViewProxy() : nullptr;
     int scalarBarMode = vtkPVGeneralSettings::GetInstance()->GetScalarBarMode();
-
+#if 0 // FIXME: ASYNC
     if (pqLiveInsituManager::isInsituServer(port->getServer()))
     {
       // we don't need to add an extract for writer parameters proxies.
@@ -337,6 +336,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
       }
     }
     else
+#endif
     {
       if (visible)
       {
@@ -361,6 +361,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
           vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqView*>(viewProxy);
       }
 
+#if 0 // FIXME: ASYNC
       // assign to layout, in case a new view is created.
       // update scalar bars: show new ones if needed. Hiding of scalar bars is
       // taken care of by vtkSMParaViewPipelineControllerWithRendering (I still
@@ -400,8 +401,8 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
       {
         rview->updateInteractionMode(port);
       }
-    }
 #endif
+    }
   }
 }
 

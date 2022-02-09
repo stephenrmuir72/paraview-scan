@@ -34,14 +34,14 @@
 #ifndef vtkSMParaViewPipelineControllerWithRendering_h
 #define vtkSMParaViewPipelineControllerWithRendering_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSMParaViewPipelineController.h"
 
 class vtkSMSourceProxy;
 class vtkSMViewLayoutProxy;
 class vtkSMViewProxy;
 
-class VTKREMOTINGVIEWS_EXPORT vtkSMParaViewPipelineControllerWithRendering
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMParaViewPipelineControllerWithRendering
   : public vtkSMParaViewPipelineController
 {
 public:

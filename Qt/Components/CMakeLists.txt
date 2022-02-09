@@ -64,6 +64,7 @@ set(classes
   pqLightsEditor
   pqLightsInspector
   pqMultiBlockInspectorWidget
+  pqMultiViewWidget
   pqPipelineAnnotationFilterModel
   pqPipelineBrowserWidget
   pqPipelineModel
@@ -92,6 +93,7 @@ set(classes
   pqSignalAdaptorSelectionTreeWidget
   pqSignalAdaptorTreeWidget
   pqStringVectorPropertyWidget
+  pqTabbedMultiViewWidget
   pqToolBarInterface
   pqToolTipTrapper
   pqTriggerOnIdleHelper
@@ -136,7 +138,6 @@ set(old_classes
   pqLogViewerDialog
   pqLockViewSizeCustomDialog
   pqMemoryInspectorPanel
-  pqMultiViewWidget
   pqOrbitCreatorDialog
   pqOutputPortComboBox
   pqPipelineTimeKeyFrameEditor
@@ -159,7 +160,6 @@ set(old_classes
   pqShaderReplacementsComboBox
   pqShaderReplacementsSelectorPropertyWidget
   pqSignalAdaptorKeyFrameType
-  pqTabbedMultiViewWidget
   pqTextureComboBox
   pqTextureSelectorPropertyWidget
   pqTimerLogDisplay
