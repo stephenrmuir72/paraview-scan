@@ -14,7 +14,6 @@
 =========================================================================*/
 #include "vtkPVOpenGLInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVView.h"
@@ -27,7 +26,7 @@ vtkStandardNewMacro(vtkPVOpenGLInformation);
 //----------------------------------------------------------------------------
 vtkPVOpenGLInformation::vtkPVOpenGLInformation()
 {
-  this->RootOnly = 1;
+  this->SetRootOnly(true);
   this->Vendor = this->Version = this->Renderer = this->Capabilities = "Information Unavailable";
 }
 
@@ -35,7 +34,7 @@ vtkPVOpenGLInformation::vtkPVOpenGLInformation()
 vtkPVOpenGLInformation::~vtkPVOpenGLInformation() = default;
 
 //-----------------------------------------------------------------------------
-void vtkPVOpenGLInformation::CopyFromObject(vtkObject* obj)
+bool vtkPVOpenGLInformation::GatherInformation(vtkObject* obj)
 {
   this->Vendor = this->Version = this->Renderer = this->Capabilities = "Information Unavailable";
 
@@ -73,6 +72,7 @@ void vtkPVOpenGLInformation::CopyFromObject(vtkObject* obj)
 
     this->Capabilities = opengl_capabilities;
   }
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -96,30 +96,24 @@ void vtkPVOpenGLInformation::AddInformation(vtkPVInformation* pvinfo)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPVOpenGLInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVOpenGLInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply << this->Vendor << this->Version << this->Renderer
-       << this->Capabilities << vtkClientServerStream::End;
+  vtkJson json;
+  VTK_JSON_SAVE_MEMBER(json, Vendor);
+  VTK_JSON_SAVE_MEMBER(json, Version);
+  VTK_JSON_SAVE_MEMBER(json, Renderer);
+  VTK_JSON_SAVE_MEMBER(json, Capabilities);
+  return json;
 }
 
 //-----------------------------------------------------------------------------
-void vtkPVOpenGLInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVOpenGLInformation::LoadInformation(const vtkJson& json)
 {
-#define PARSE_NEXT_VALUE(_ivarName)                                                                \
-  if (!css->GetArgument(0, i++, &this->_ivarName))                                                 \
-  {                                                                                                \
-    vtkErrorMacro("Error parsing " #_ivarName " from message.");                                   \
-    return;                                                                                        \
-  }
-
-  int i = 0;
-  PARSE_NEXT_VALUE(Vendor);
-  PARSE_NEXT_VALUE(Version);
-  PARSE_NEXT_VALUE(Renderer);
-  PARSE_NEXT_VALUE(Capabilities);
-  this->Modified();
-#undef PARSE_NEXT_VALUE
+  VTK_JSON_LOAD_MEMBER(json, Vendor);
+  VTK_JSON_LOAD_MEMBER(json, Version);
+  VTK_JSON_LOAD_MEMBER(json, Renderer);
+  VTK_JSON_LOAD_MEMBER(json, Capabilities);
+  return true;
 }
 
 //----------------------------------------------------------------------------

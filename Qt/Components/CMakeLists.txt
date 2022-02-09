@@ -29,6 +29,7 @@
 #
 #==========================================================================
 set(classes
+  pqAboutDialog
   pqAbstractItemSelectionModel
   pqActiveObjects
   pqArrayListDomain
@@ -105,7 +106,6 @@ set(classes
 )
 
 set(old_classes
-  pqAboutDialog
   pqActionGroupInterface
   pqAnimatablePropertiesComboBox
   pqAnimatableProxyComboBox

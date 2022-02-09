@@ -29,15 +29,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqAboutDialog.h"
 #include "ui_pqAboutDialog.h"
 
-#include "QtTestingConfigure.h"
-#include "pqApplicationCore.h"
-#include "pqCoreConfiguration.h"
 #include "pqCoreUtilities.h"
-#include "pqFileDialog.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVGUIOptions.h"
+// #include "pqFileDialog.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqServerResource.h"
@@ -45,13 +43,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVOpenGLInformation.h"
 #include "vtkPVPythonInformation.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
-#include "vtkPVServerInformation.h"
+// #include "vtkPVServerInformation.h"
 #include "vtkPVVersion.h"
-#include "vtkProcessModule.h"
-#include "vtkRemotingCoreConfiguration.h"
 #include "vtkSMPTools.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMSession.h"
 #include "vtkSMViewProxy.h"
 #include "vtkVersion.h"
 #include <QOpenGLContext>
@@ -116,7 +110,7 @@ void pqAboutDialog::AddClientInformation()
   ::addItem(tree, "vtkIdType size", QString("%1bits").arg(8 * sizeof(vtkIdType)));
 
   vtkNew<vtkPVPythonInformation> pythonInfo;
-  pythonInfo->CopyFromObject(nullptr);
+  pythonInfo->GatherInformation(nullptr);
 
   ::addItem(tree, "Embedded Python", pythonInfo->GetPythonSupport() ? "On" : "Off");
   if (pythonInfo->GetPythonSupport())
@@ -159,11 +153,11 @@ void pqAboutDialog::AddClientInformation()
   ::addItem(tree, "ParaView Build ID", PARAVIEW_BUILD_ID);
 #endif
 
-  auto coreConfig = vtkRemotingCoreConfiguration::GetInstance();
-  auto pqConfig = pqCoreConfiguration::instance();
-  ::addItem(tree, "Disable Registry", coreConfig->GetDisableRegistry() ? "On" : "Off");
-  ::addItem(tree, "Test Directory", QString::fromStdString(pqConfig->testDirectory()));
-  ::addItem(tree, "Data Directory", QString::fromStdString(pqConfig->dataDirectory()));
+  auto* options = vtkPVGUIApplication::GetInstance()->GetOptions();
+  ::addItem(tree, "Disable Registry", options->GetDisableRegistry() ? "On" : "Off");
+
+  ::addItem(tree, "Test Directory", QString::fromStdString(options->GetTestDirectory()));
+  ::addItem(tree, "Data Directory", QString::fromStdString(options->GetDataDirectory()));
 
   ::addItem(tree, "SMP Backend", vtkSMPTools::GetBackend());
   ::addItem(tree, "SMP Max Number of Threads", vtkSMPTools::GetEstimatedNumberOfThreads());
@@ -186,7 +180,7 @@ void pqAboutDialog::AddClientInformation()
 void pqAboutDialog::AddServerInformation()
 {
   QTreeWidget* tree = this->Ui->ServerInformation;
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QList<pqServer*> servers = smmodel->findItems<pqServer*>();
   if (!servers.empty())
   {
@@ -198,6 +192,7 @@ void pqAboutDialog::AddServerInformation()
 //-----------------------------------------------------------------------------
 void pqAboutDialog::AddServerInformation(pqServer* server, QTreeWidget* tree)
 {
+#if 0 // FIXME: ASYNC
   vtkPVServerInformation* serverInfo = server->getServerInformation();
   if (!server->isRemote())
   {
@@ -235,7 +230,9 @@ void pqAboutDialog::AddServerInformation(pqServer* server, QTreeWidget* tree)
 
   vtkSMSession* session = server->session();
   vtkNew<vtkPVPythonInformation> pythonInfo;
+#if 0 // FIXME: ASYNC
   session->GatherInformation(vtkPVSession::SERVERS, pythonInfo.GetPointer(), 0);
+#endif
   ::addItem(tree, "Embedded Python", pythonInfo->GetPythonSupport() ? "On" : "Off");
   if (pythonInfo->GetPythonSupport())
   {
@@ -262,10 +259,14 @@ void pqAboutDialog::AddServerInformation(pqServer* server, QTreeWidget* tree)
   }
 
   vtkNew<vtkPVRenderingCapabilitiesInformation> renInfo;
+#if 0 // FIXME: ASYNC
   session->GatherInformation(vtkPVSession::RENDER_SERVER, renInfo.GetPointer(), 0);
+#endif
   if (renInfo->Supports(vtkPVRenderingCapabilitiesInformation::RENDERING))
   {
+#if 0 // FIXME: ASYNC
     vtkNew<vtkPVOpenGLInformation> OpenGLInfo;
+#endif
     session->GatherInformation(vtkPVSession::RENDER_SERVER, OpenGLInfo.GetPointer(), 0);
     ::addItem(tree, "OpenGL Vendor", QString::fromStdString(OpenGLInfo->GetVendor()));
     ::addItem(tree, "OpenGL Version", QString::fromStdString(OpenGLInfo->GetVersion()));
@@ -293,6 +294,7 @@ void pqAboutDialog::AddServerInformation(pqServer* server, QTreeWidget* tree)
   {
     ::addItem(tree, "OpenGL", "Not supported");
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -323,6 +325,7 @@ QString pqAboutDialog::formatToText()
 //-----------------------------------------------------------------------------
 void pqAboutDialog::saveToFile()
 {
+#if 0 // FIXME: ASYNC
   pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), tr("Save to File"), QString(),
     "Text Files (*.txt);;All Files (*)");
   fileDialog.setFileMode(pqFileDialog::AnyFile);
@@ -341,6 +344,7 @@ void pqAboutDialog::saveToFile()
     fileStream << this->formatToText().toStdString();
     fileStream.close();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

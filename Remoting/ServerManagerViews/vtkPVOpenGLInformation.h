@@ -23,38 +23,16 @@
 #define vtkPVOpenGLInformation_h
 
 #include "vtkPVInformation.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
 #include <string> // for string type
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVOpenGLInformation : public vtkPVInformation
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVOpenGLInformation : public vtkPVInformation
 {
 public:
   static vtkPVOpenGLInformation* New();
   vtkTypeMacro(vtkPVOpenGLInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  /**
-   * Collects OpenGL information from the \c object. \c object must be
-   * either a vtkPVView or a vtkRenderWindow. If not, this call will create a
-   * vtkRenderWindow temporarily and use it to obtain OpenGL capabilities
-   * information (see
-   * vtkPVRenderingCapabilitiesInformation::NewOffscreenRenderWindow()).
-   */
-  void CopyFromObject(vtkObject* object) override;
-
-  /**
-   * Merge another information object.
-   */
-  void AddInformation(vtkPVInformation*) override;
-
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
-  //@}
 
   //@{
   /**
@@ -65,6 +43,13 @@ public:
   const std::string& GetRenderer() const { return this->Renderer; }
   const std::string& GetCapabilities() const { return this->Capabilities; }
   //@}
+
+  ///@{
+  bool GatherInformation(vtkObject* target) override;
+  void AddInformation(vtkPVInformation* other) override;
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
 protected:
   vtkPVOpenGLInformation();

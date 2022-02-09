@@ -12,7 +12,6 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-
 // Include vtkPython.h first to avoid warnings:
 #if VTK_MODULE_ENABLE_VTK_PythonInterpreter && VTK_MODULE_ENABLE_VTK_WrappingPythonCore
 #include "vtkPython.h"
@@ -23,8 +22,6 @@
 #include "vtkStringOutputWindow.h"
 #endif
 
-#include "vtkClientServerStream.h"
-#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVPythonInformation.h"
 
@@ -154,7 +151,7 @@ std::string chopFilename(const std::string& path)
 #endif
 
 //----------------------------------------------------------------------------
-void vtkPVPythonInformation::CopyFromObject(vtkObject* vtkNotUsed(obj))
+bool vtkPVPythonInformation::GatherInformation(vtkObject* vtkNotUsed(obj))
 {
 #if VTK_MODULE_ENABLE_VTK_PythonInterpreter && VTK_MODULE_ENABLE_VTK_WrappingPythonCore
   this->SetPythonSupport(true);
@@ -204,6 +201,7 @@ void vtkPVPythonInformation::CopyFromObject(vtkObject* vtkNotUsed(obj))
   this->SetMatplotlibPath("");
   this->SetMatplotlibVersion("");
 #endif
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -216,36 +214,33 @@ void vtkPVPythonInformation::AddInformation(vtkPVInformation* i)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVPythonInformation::CopyToStream(vtkClientServerStream* css)
+vtkJson vtkPVPythonInformation::SaveInformation() const
 {
-  css->Reset();
-  *css << vtkClientServerStream::Reply << this->PythonSupport << this->PythonPath
-       << this->PythonVersion << this->NumpySupport << this->NumpyPath << this->NumpyVersion
-       << this->MatplotlibSupport << this->MatplotlibPath << this->MatplotlibVersion
-       << vtkClientServerStream::End;
+  vtkJson json;
+  VTK_JSON_SAVE_MEMBER(json, this->PythonSupport);
+  VTK_JSON_SAVE_MEMBER(json, this->PythonPath);
+  VTK_JSON_SAVE_MEMBER(json, this->PythonVersion);
+  VTK_JSON_SAVE_MEMBER(json, this->NumpySupport);
+  VTK_JSON_SAVE_MEMBER(json, this->NumpyPath);
+  VTK_JSON_SAVE_MEMBER(json, this->NumpyVersion);
+  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibSupport);
+  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibPath);
+  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibVersion);
+  return json;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVPythonInformation::CopyFromStream(const vtkClientServerStream* css)
+bool vtkPVPythonInformation::LoadInformation(const vtkJson& json)
 {
-#define PARSE_NEXT_VALUE(_ivarName)                                                                \
-  if (!css->GetArgument(0, i++, &this->_ivarName))                                                 \
-  {                                                                                                \
-    vtkErrorMacro("Error parsing " #_ivarName " from message.");                                   \
-    return;                                                                                        \
-  }
-
-  int i = 0;
-  PARSE_NEXT_VALUE(PythonSupport);
-  PARSE_NEXT_VALUE(PythonPath);
-  PARSE_NEXT_VALUE(PythonVersion);
-  PARSE_NEXT_VALUE(NumpySupport);
-  PARSE_NEXT_VALUE(NumpyPath);
-  PARSE_NEXT_VALUE(NumpyVersion);
-  PARSE_NEXT_VALUE(MatplotlibSupport);
-  PARSE_NEXT_VALUE(MatplotlibPath);
-  PARSE_NEXT_VALUE(MatplotlibVersion);
-
+  VTK_JSON_LOAD_MEMBER(json, this->PythonSupport);
+  VTK_JSON_LOAD_MEMBER(json, this->PythonPath);
+  VTK_JSON_LOAD_MEMBER(json, this->PythonVersion);
+  VTK_JSON_LOAD_MEMBER(json, this->NumpySupport);
+  VTK_JSON_LOAD_MEMBER(json, this->NumpyPath);
+  VTK_JSON_LOAD_MEMBER(json, this->NumpyVersion);
+  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibSupport);
+  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibPath);
+  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibVersion);
   this->Modified();
-#undef PARSE_NEXT_VALUE
+  return true;
 }
