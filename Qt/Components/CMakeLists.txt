@@ -36,6 +36,7 @@ set(classes
   pqArraySelectorPropertyWidget
   pqArrayStatusPropertyWidget
   pqCalculatorWidget
+  pqChangeInputDialog
   pqColorOverlay
   pqComboBoxDomain
   pqCommandPropertyWidget
@@ -65,6 +66,7 @@ set(classes
   pqLightsInspector
   pqMultiBlockInspectorWidget
   pqMultiViewWidget
+  pqOutputPortComboBox
   pqPipelineAnnotationFilterModel
   pqPipelineBrowserWidget
   pqPipelineModel
@@ -113,7 +115,6 @@ set(old_classes
   pqAnimationViewWidget
   pqCameraDialog
   pqCameraKeyFrameWidget
-  pqChangeInputDialog
   pqCollaborationPanel
   pqColorChooserButtonWithPalettes
   pqComparativeCueWidget
@@ -139,7 +140,6 @@ set(old_classes
   pqLockViewSizeCustomDialog
   pqMemoryInspectorPanel
   pqOrbitCreatorDialog
-  pqOutputPortComboBox
   pqPipelineTimeKeyFrameEditor
   pqPluginDialog
   pqPluginTreeWidgetEventPlayer
