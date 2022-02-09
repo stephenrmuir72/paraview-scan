@@ -31,16 +31,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "pqRecentFilesMenu.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqInterfaceTracker.h"
 #include "pqRecentlyUsedResourceLoaderInterface.h"
 #include "pqRecentlyUsedResourcesList.h"
 #include "pqServerConfiguration.h"
-#include "pqServerConnectDialog.h"
+// #include "pqServerConnectDialog.h"
 #include "pqServerLauncher.h"
 #include "pqServerManagerModel.h"
 #include "pqServerResource.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QMap>
 #include <QMenu>
@@ -125,13 +125,14 @@ void pqRecentFilesMenu::buildMenu()
 
   this->Menu->clear();
 
-  pqInterfaceTracker* itk = pqApplicationCore::instance()->interfaceTracker();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pqInterfaceTracker* itk = pvapp->GetInterfaceTracker();
   QList<pqRecentlyUsedResourceLoaderInterface*> ifaces =
     itk->interfaces<pqRecentlyUsedResourceLoaderInterface*>();
 
   // Get the set of all resources in most-recently-used order ...
   const pqRecentlyUsedResourcesList::ListT& resources =
-    pqApplicationCore::instance()->recentlyUsedResources().list();
+    pvapp->GetRecentlyUsedResourcesList()->list();
 
   // Sort resources to cluster them by servers.
   typedef QMap<QString, QList<pqServerResource>> ClusteredResourcesType;
@@ -212,7 +213,7 @@ void pqRecentFilesMenu::onOpenResource(const pqServerResource& resource)
     ? resource.sessionServer().schemeHostsPorts()
     : resource.schemeHostsPorts();
 
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqServer* pq_server = smModel->findServer(server);
   if (!pq_server)
   {
@@ -227,6 +228,7 @@ void pqRecentFilesMenu::onOpenResource(const pqServerResource& resource)
       return;
     }
     pqServerConfiguration config_to_connect;
+#if 0 // FIXME: ASYNC
     if (pqServerConnectDialog::selectServer(
           config_to_connect, pqCoreUtilities::mainWidget(), server))
     {
@@ -236,6 +238,9 @@ void pqRecentFilesMenu::onOpenResource(const pqServerResource& resource)
         pq_server = launcher->connectedServer();
       }
     }
+#else
+    abort();
+#endif
   }
 
   if (pq_server)
@@ -247,14 +252,15 @@ void pqRecentFilesMenu::onOpenResource(const pqServerResource& resource)
 //-----------------------------------------------------------------------------
 bool pqRecentFilesMenu::open(pqServer* server, const pqServerResource& resource) const
 {
-  pqInterfaceTracker* itk = pqApplicationCore::instance()->interfaceTracker();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pqInterfaceTracker* itk = pvapp->GetInterfaceTracker();
   QList<pqRecentlyUsedResourceLoaderInterface*> ifaces =
     itk->interfaces<pqRecentlyUsedResourceLoaderInterface*>();
   if (rfm::load(ifaces, resource, server))
   {
-    pqRecentlyUsedResourcesList& mruList = pqApplicationCore::instance()->recentlyUsedResources();
-    mruList.add(resource);
-    mruList.save(*pqApplicationCore::instance()->settings());
+    auto* mruList = pvapp->GetRecentlyUsedResourcesList();
+    mruList->add(resource);
+    mruList->save(*pvapp->GetSettings());
     return true;
   }
   return false;

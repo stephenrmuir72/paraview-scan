@@ -48,7 +48,9 @@ set(classes
   vtkPVView
   vtkPVViewProvider
   vtkServerSessionViews
+  vtkSMParaViewPipelineControllerWithRendering
   vtkSMUtilities
+  vtkSMViewLayoutProxy
   vtkSMViewProxy
   vtkTilesHelper
   vtkViewLayout
@@ -64,6 +66,10 @@ vtk_object_factory_declare(
 vtk_object_factory_declare(
   BASE "vtkClientSession"
   OVERRIDE "vtkClientSessionViews")
+
+vtk_object_factory_declare(
+  BASE "vtkSMParaViewPipelineController"
+  OVERRIDE "vtkSMParaViewPipelineControllerWithRendering")
 
 vtk_object_factory_configure(
   SOURCE_FILE vtk_object_factory_source

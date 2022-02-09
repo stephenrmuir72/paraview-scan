@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqChangeInputDialog.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqPipelineFilter.h"
 #include "pqPipelineModel.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
@@ -76,7 +76,7 @@ pqChangeInputDialog::pqChangeInputDialog(vtkSMProxy* filterProxy, QWidget* paren
 
   this->Internals->setupUi(this);
 
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   this->Internals->PipelineModel = new pqPipelineModel(*smModel, this);
   this->Internals->PipelineModel->setEditable(false);
   this->Internals->pipelineView->setModel(this->Internals->PipelineModel);
@@ -207,7 +207,7 @@ void pqChangeInputDialog::inputPortToggled(bool checked)
 
   // update selectability i.e. what sources in the pipelines are acceptable as
   // inputs for the current input port.
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   this->Internals->PipelineModel->setSubtreeSelectable(
     pqActiveObjects::instance().activeServer(), true);
   pqPipelineSource* pqproxy = smModel->findItem<pqPipelineSource*>(this->Internals->Proxy);

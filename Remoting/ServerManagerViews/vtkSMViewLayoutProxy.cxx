@@ -14,21 +14,18 @@
 =========================================================================*/
 #include "vtkSMViewLayoutProxy.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkCommand.h"
 #include "vtkImageData.h"
-#include "vtkMemberFunctionCommand.h"
+// #include "vtkMemberFunctionCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkRect.h"
-#include "vtkSMComparativeViewProxy.h"
-#include "vtkSMMessage.h"
+// #include "vtkSMComparativeViewProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMProxyProperty.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTrace.h"
 #include "vtkSMUtilities.h"
@@ -178,7 +175,7 @@ public:
       {
         int pos[2] = { posx, posy };
         vtkSMPropertyHelper(cell.ViewProxy, "ViewPosition").Set(pos, 2);
-        cell.ViewProxy->UpdateProperty("ViewPosition");
+        cell.ViewProxy->UpdateVTKObjects();
       }
       // cout << "View Position: " << cell.ViewProxy  << " = "
       //  << posx << "," << posy << endl;
@@ -214,7 +211,7 @@ public:
       if (cell.ViewProxy)
       {
         vtkSMPropertyHelper(cell.ViewProxy, "ViewSize").Set(new_size.GetData(), 2);
-        cell.ViewProxy->UpdateProperty("ViewSize");
+        cell.ViewProxy->UpdateVTKObjects();
       }
     }
     else
@@ -299,9 +296,10 @@ vtkSMViewLayoutProxy::vtkSMViewLayoutProxy()
   , BlockUpdate(false)
   , BlockUpdateViewPositions(false)
 {
+#if 0 // FIXME: ASYNC
   this->Internals->Observer =
     vtkMakeMemberFunctionCommand(*this, &vtkSMViewLayoutProxy::UpdateViewPositions);
-
+#endif
   // Push the root element.
   this->Internals->KDTree.resize(1);
 }
@@ -309,9 +307,11 @@ vtkSMViewLayoutProxy::vtkSMViewLayoutProxy()
 //----------------------------------------------------------------------------
 vtkSMViewLayoutProxy::~vtkSMViewLayoutProxy()
 {
+#if 0 // FIXME: ASYNC
   vtkMemberFunctionCommand<vtkSMViewLayoutProxy>::SafeDownCast(this->Internals->Observer)->Reset();
   this->Internals->Observer->Delete();
   this->Internals->Observer = nullptr;
+#endif
   delete this->Internals;
   this->Internals = nullptr;
 }
@@ -325,75 +325,6 @@ void vtkSMViewLayoutProxy::Reset()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMViewLayoutProxy::LoadState(const vtkSMMessage* message, vtkSMProxyLocator* locator)
-{
-  this->Superclass::LoadState(message, locator);
-
-  if (message->ExtensionSize(ProxyState::user_data) != 1)
-  {
-    // vtkWarningMacro("Missing ViewLayoutState");
-    return;
-  }
-
-  const ProxyState_UserData& user_data = message->GetExtension(ProxyState::user_data, 0);
-  if (user_data.key() != "ViewLayoutState")
-  {
-    // vtkWarningMacro("Unexpected user_data. Expecting ViewLayoutState.");
-    return;
-  }
-
-  const bool prev = this->SetBlockUpdateViewPositions(true);
-
-  this->Internals->KDTree.clear();
-  this->Internals->KDTree.resize(user_data.variant_size());
-
-  for (int cc = 0; cc < user_data.variant_size(); cc++)
-  {
-    vtkInternals::Cell& cell = this->Internals->KDTree[cc];
-    const Variant& value = user_data.variant(cc);
-
-    cell.SplitFraction = value.float64(0);
-
-    switch (value.integer(0))
-    {
-      case HORIZONTAL:
-        cell.Direction = HORIZONTAL;
-        break;
-
-      case VERTICAL:
-        cell.Direction = VERTICAL;
-        break;
-
-      case NONE:
-      default:
-        cell.Direction = NONE;
-    }
-
-    if (locator && vtkSMProxyProperty::CanCreateProxy())
-    {
-      cell.ViewProxy = vtkSMViewProxy::SafeDownCast(locator->LocateProxy(value.proxy_global_id(0)));
-    }
-    else
-    {
-      cell.ViewProxy =
-        vtkSMViewProxy::SafeDownCast(this->GetSession()->GetRemoteObject(value.proxy_global_id(0)));
-    }
-    if (cell.ViewProxy && cell.ViewProxy->GetProperty("ViewSize"))
-    {
-      // every time view-size changes, we update the view positions for all views.
-      cell.ViewProxy->GetProperty("ViewSize")
-        ->AddObserver(vtkCommand::ModifiedEvent, this->Internals->Observer);
-    }
-  }
-
-  this->SetBlockUpdateViewPositions(prev);
-  this->UpdateViewPositions();
-
-  // let the world know that the layout has been reconfigured.
-  this->InvokeEvent(vtkCommand::ConfigureEvent);
-}
-
-//----------------------------------------------------------------------------
 void vtkSMViewLayoutProxy::UpdateState()
 {
   if (this->BlockUpdate)
@@ -401,6 +332,7 @@ void vtkSMViewLayoutProxy::UpdateState()
     return;
   }
 
+#if 0 // FIXME: ASYNC
   // ensure that the state is created correctly.
   this->CreateVTKObjects();
 
@@ -441,7 +373,7 @@ void vtkSMViewLayoutProxy::UpdateState()
     }
   }
   this->ExecuteStream(stream);
-
+#endif
   this->InvokeEvent(vtkCommand::ConfigureEvent);
 }
 
@@ -651,12 +583,14 @@ bool vtkSMViewLayoutProxy::AssignView(int location, vtkSMViewProxy* view)
 
   cell.ViewProxy = view;
 
+#if 0 // FIXME: ASYNC
   if (view->GetProperty("ViewSize"))
   {
     // every time view-size changes, we update the view positions for all views.
     view->GetProperty("ViewSize")
       ->AddObserver(vtkCommand::ModifiedEvent, this->Internals->Observer);
   }
+#endif
 
   this->UpdateState();
   return true;
@@ -753,10 +687,12 @@ int vtkSMViewLayoutProxy::RemoveView(vtkSMViewProxy* view)
   {
     if (iter->ViewProxy == view)
     {
+#if 0 // FIXME: ASYNC
       if (iter->ViewProxy->GetProperty("ViewSize"))
       {
         iter->ViewProxy->GetProperty("ViewSize")->RemoveObserver(this->Internals->Observer);
       }
+#endif
       iter->ViewProxy = nullptr;
       this->UpdateState();
       return index;
@@ -987,6 +923,7 @@ void vtkSMViewLayoutProxy::UpdateViewPositions()
     return;
   }
 
+#if 0 // FIXME: ASYNC
   if (this->MaximizedCell == -1)
   {
     auto vlayout = vtkViewLayout::SafeDownCast(this->GetClientSideObject());
@@ -1005,11 +942,12 @@ void vtkSMViewLayoutProxy::UpdateViewPositions()
       {
         int pos[2] = { 0, 0 };
         vtkSMPropertyHelper(iter->ViewProxy, "ViewPosition").Set(pos, 2);
-        iter->ViewProxy->UpdateProperty("ViewPosition");
+        iter->ViewProxy->UpdateVTKObjects();
         iter->Viewport = vtkVector4d(0, 0, 1, 1);
       }
     }
   }
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1048,6 +986,7 @@ void vtkSMViewLayoutProxy::GetLayoutExtent(int extent[4])
 //----------------------------------------------------------------------------
 void vtkSMViewLayoutProxy::SetSize(const int size[2])
 {
+#if 0 // FIXME: ASYNC
   const bool prev = this->SetBlockUpdateViewPositions(true);
 
   // recursively distribute space available among views.
@@ -1057,16 +996,19 @@ void vtkSMViewLayoutProxy::SetSize(const int size[2])
   this->SetBlockUpdateViewPositions(prev);
 
   this->UpdateViewPositions();
+#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkSMViewLayoutProxy::ShowViewsOnTileDisplay()
 {
+#if 0 // FIXME: ASYNC
   this->CreateVTKObjects();
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "ShowOnTileDisplay"
          << vtkClientServerStream::End;
   this->ExecuteStream(stream);
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1095,6 +1037,7 @@ void vtkSMViewLayoutProxy::RestoreMaximizedState()
 //----------------------------------------------------------------------------
 vtkImageData* vtkSMViewLayoutProxy::CaptureWindow(int magX, int magY)
 {
+#if 0 // FIXME: ASYNC
   if (this->MaximizedCell != -1)
   {
     vtkSMViewProxy* view = this->GetView(this->MaximizedCell);
@@ -1144,6 +1087,9 @@ vtkImageData* vtkSMViewLayoutProxy::CaptureWindow(int magX, int magY)
     img->Register(this);
   }
   return img.GetPointer();
+#else
+  abort();
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1197,12 +1143,14 @@ std::vector<vtkSMViewProxy*> vtkSMViewLayoutProxy::GetViews()
 //----------------------------------------------------------------------------
 void vtkSMViewLayoutProxy::SaveAsPNG(int rank, const char* fname)
 {
+#if 0 // FIXME: ASYNC
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "SaveAsPNG" << rank << fname
          << vtkClientServerStream::End;
   this->ExecuteStream(stream, false, vtkPVSession::RENDER_SERVER);
   // ensure that the server is done saving the image before proceeding.
   this->GetLastResult(vtkPVSession::RENDER_SERVER_ROOT);
+#endif
 }
 
 //----------------------------------------------------------------------------

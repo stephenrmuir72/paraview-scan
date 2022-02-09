@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
 // #include "vtkSMRepresentationProxy.h"
@@ -142,8 +143,7 @@ void pqDataRepresentation::onInputChanged()
   }
   else if (new_proxes_count == 1)
   {
-#if 0 // FIXME: ASYNC
-    pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+    pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
     pqPipelineSource* input = smModel->findItem<pqPipelineSource*>(ivp->GetProxy(0));
     if (ivp->GetProxy(0) && !input)
     {
@@ -155,7 +155,6 @@ void pqDataRepresentation::onInputChanged()
       int portnumber = ivp->GetOutputPortForConnection(0);
       this->Internal->InputPort = input->getOutputPort(portnumber);
     }
-#endif
   }
   else if (new_proxes_count > 1)
   {
@@ -188,8 +187,8 @@ pqScalarsToColors* pqDataRepresentation::getLookupTable()
 {
 #if 0 // FIXME: ASYNC
   pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+    pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   vtkSMProxy* lut = this->getLookupTableProxy();
-
   return (lut ? smmodel->findItem<pqScalarsToColors*>(lut) : 0);
 #else
   return nullptr;

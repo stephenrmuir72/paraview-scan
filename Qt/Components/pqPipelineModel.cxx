@@ -44,7 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
 // #include "pqSpreadSheetView.h"
-// #include "pqUndoStack.h"
+#include "pqUndoStack.h"
 // #include "pqXYBarChartView.h"
 // #include "pqXYChartView.h"
 // #include "pqXYHistogramChartView.h"
@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkPVXMLElement.h"
 // #include "vtkSMLiveInsituLinkProxy.h"
-// #include "vtkSMParaViewPipelineControllerWithRendering.h"
+#include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
@@ -119,9 +119,7 @@ class pqPipelineModelDataItem : public QObject
   bool InConstructor;
 
 public:
-#if 0 // FIXME: ASYNC
   static vtkNew<vtkSMParaViewPipelineControllerWithRendering> Controller;
-#endif
 
   pqPipelineModel* Model;
   pqPipelineModelDataItem* Parent;
@@ -413,7 +411,6 @@ private:
       // will be created.
       return PipelineModelIconType::EYEBALL_GRAY;
     }
-#if 0 // FIXME: ASYNC
     if (this->Controller->GetVisibility(
           port->getSourceProxy(), port->getPortNumber(), view->getViewProxy()))
     {
@@ -422,9 +419,6 @@ private:
     return view->getViewProxy()->CanDisplayData(port->getSourceProxy(), port->getPortNumber())
       ? PipelineModelIconType::EYEBALL_GRAY
       : PipelineModelIconType::LAST;
-#else
-    return PipelineModelIconType::LAST;
-#endif
   }
 
   QString getVisibilityIcon(pqExtractor* extractor, pqView* view) const
@@ -460,6 +454,7 @@ private:
     {
       return PipelineModelIconType::DATA_EXTRACTOR;
     }
+#endif
 
     QString iconType =
       this->Controller->GetPipelineIcon(port->getSourceProxy(), port->getPortNumber());
@@ -467,15 +462,12 @@ private:
     {
       return iconType;
     }
-#endif
 
     return PipelineModelIconType::GEOMETRY;
   }
 };
 
-#if 0 // FIXME: ASYNC
 vtkNew<vtkSMParaViewPipelineControllerWithRendering> pqPipelineModelDataItem::Controller;
-#endif
 
 //-----------------------------------------------------------------------------
 class pqPipelineModelInternal
@@ -935,13 +927,9 @@ bool pqPipelineModel::setData(const QModelIndex& idx, const QVariant& value, int
   auto proxy = qobject_cast<pqProxy*>(this->getItemFor(idx));
   if (proxy && proxy->registrationName() != name)
   {
-#if 0 // FIXME: ASYNC
     BEGIN_UNDO_SET(QString("Rename %1 to %2").arg(proxy->registrationName()).arg(name));
     proxy->rename(name);
     END_UNDO_SET();
-#else
-    proxy->rename(name);
-#endif
     return true;
   }
 

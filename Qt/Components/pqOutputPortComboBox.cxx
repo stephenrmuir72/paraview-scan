@@ -33,27 +33,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView Includes.
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 
 //-----------------------------------------------------------------------------
 pqOutputPortComboBox::pqOutputPortComboBox(QWidget* _parent)
   : Superclass(_parent)
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   QObject::connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort*)), this,
     SLOT(portChanged(pqOutputPort*)));
 
   QObject::connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentIndexChanged(int)));
 
-  QObject::connect(core->getServerManagerModel(), SIGNAL(sourceAdded(pqPipelineSource*)), this,
-    SLOT(addSource(pqPipelineSource*)));
+  QObject::connect(
+    smmodel, SIGNAL(sourceAdded(pqPipelineSource*)), this, SLOT(addSource(pqPipelineSource*)));
+  QObject::connect(
+    smmodel, SIGNAL(sourceRemoved(pqPipelineSource*)), this, SLOT(removeSource(pqPipelineSource*)));
 
-  QObject::connect(core->getServerManagerModel(), SIGNAL(sourceRemoved(pqPipelineSource*)), this,
-    SLOT(removeSource(pqPipelineSource*)));
   this->AutoUpdateIndex = true;
 }
 
@@ -63,9 +63,7 @@ pqOutputPortComboBox::~pqOutputPortComboBox() = default;
 //-----------------------------------------------------------------------------
 void pqOutputPortComboBox::fillExistingPorts()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
-
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QList<pqPipelineSource*> sources = smmodel->findItems<pqPipelineSource*>(nullptr);
   Q_FOREACH (pqPipelineSource* source, sources)
   {
@@ -90,13 +88,14 @@ void pqOutputPortComboBox::addSource(pqPipelineSource* source)
       for (int cc = 0; cc < numPorts; cc++)
       {
         pqOutputPort* port = source->getOutputPort(cc);
-        this->addItem(QString("%1 (%2)").arg(source->getSMName()).arg(port->getPortName()),
+        this->addItem(QString("%1 (%2)").arg(source->registrationName()).arg(port->getPortName()),
           QVariant::fromValue((void*)port));
       }
     }
     else
     {
-      this->addItem(source->getSMName(), QVariant::fromValue((void*)(source->getOutputPort(0))));
+      this->addItem(
+        source->registrationName(), QVariant::fromValue((void*)(source->getOutputPort(0))));
     }
 
     QObject::connect(source, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
@@ -135,10 +134,10 @@ void pqOutputPortComboBox::nameChanged(pqServerManagerModelItem* item)
     int index = this->findData(QVariant::fromValue((void*)port));
     if (index != -1)
     {
-      QString text = source->getSMName();
+      QString text = source->registrationName();
       if (numPorts > 1)
       {
-        text = QString("%1 (%2)").arg(source->getSMName()).arg(port->getPortName());
+        text = QString("%1 (%2)").arg(source->registrationName()).arg(port->getPortName());
       }
       bool prev = this->blockSignals(true);
       this->insertItem(index, text, QVariant::fromValue((void*)port));

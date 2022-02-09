@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>TestBasicQtApp - a ParaView Application</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="pqTabbedMultiViewWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -85,6 +85,12 @@
    <class>pqProxyInformationWidget</class>
    <extends>QWidget</extends>
    <header>pqProxyInformationWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqTabbedMultiViewWidget</class>
+   <extends>QWidget</extends>
+   <header>pqTabbedMultiViewWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

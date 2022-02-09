@@ -2707,38 +2707,6 @@
 
   <!-- ==================================================================== -->
   <ProxyGroup name="misc">
-    <!-- ================================================================== -->
-    <ViewLayoutProxy name="ViewLayout"
-                     class="vtkViewLayout"
-                     processes="client|renderserver">
-      <Documentation>Proxy used to manage layout for multiple views.</Documentation>
-      <IntVectorProperty name="PreviewMode"
-        number_of_elements="2"
-        default_values="0 0">
-        <Documentation>
-          Set the target resolution for the preview mode to display,
-          [0, 0] is interpreted as exiting preview.
-        </Documentation>
-      </IntVectorProperty>
-      <IntVectorProperty name="SeparatorWidth"
-        command="SetSeparatorWidth"
-        number_of_elements="1"
-        default_values="1">
-        <IntRangeDomain name="range" min="0" max="10" />
-        <Documentation>
-          The width of the separator (in pixels) to be displayed in preview mode.
-        </Documentation>
-      </IntVectorProperty>
-      <DoubleVectorProperty name="SeparatorColor"
-        command="SetSeparatorColor"
-        number_of_elements="3"
-        default_values="0.937 0.922 0.906">
-        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
-        <Documentation>
-          The color of the separator to be displayed in preview mode.
-        </Documentation>
-      </DoubleVectorProperty>
-    </ViewLayoutProxy>
 
     <!-- ================================================================== -->
     <Proxy class="vtkPVRayCastPickingHelper"

@@ -631,10 +631,12 @@ bool vtkSMParaViewPipelineController::RegisterViewProxy(vtkSMProxy* proxy, const
     proxy->SetLogName(proxyname);
   }
 
+#if 0 // FIXME: ASYNC
   // Register proxy with TimeKeeper.
   vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
   vtkSMPropertyHelper(timeKeeper, "Views").Add(proxy);
   timeKeeper->UpdateVTKObjects();
+#endif
 
   // Register proxy with AnimationScene (optional)
   vtkSMProxy* scene = this->GetAnimationScene(proxy->GetSession());
@@ -692,10 +694,12 @@ bool vtkSMParaViewPipelineController::UnRegisterViewProxy(
     scene->UpdateVTKObjects();
   }
 
+#if 0 // FIXME: ASYNC
   // remove proxy from TimeKeeper.
   vtkSMProxy* timeKeeper = this->FindTimeKeeper(proxy->GetSession());
   vtkSMPropertyHelper(timeKeeper, "Views").Remove(proxy);
   timeKeeper->UpdateVTKObjects();
+#endif
 
   // remove all representation proxies. Always unregister lights.
   const char* pnames[] = { "AdditionalLights", "Representations", "HiddenRepresentations", "Props",

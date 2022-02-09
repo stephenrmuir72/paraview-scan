@@ -53,15 +53,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMParaViewPipelineController.h"
-#include "vtkSmartPointer.h"
-// #include "vtkSMParaViewPipelineControllerWithRendering.h"
+#include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
-// #include "vtkSMViewLayoutProxy.h"
+#include "vtkSMViewLayoutProxy.h"
 #include "vtkSMViewProxy.h"
+#include "vtkSmartPointer.h"
 
 #include <QApplication>
 #include <QFileInfo>
@@ -382,14 +382,12 @@ void pqObjectBuilder::destroy(pqView* view)
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::addToLayout(pqView* view, pqProxy* layout)
 {
-#if 0 // FIXME: ASYNC
   if (view)
   {
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
     controller->AssignViewToLayout(view->getViewProxy(),
       vtkSMViewLayoutProxy::SafeDownCast(layout ? layout->getProxy() : nullptr));
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -36,11 +36,13 @@ set(classes
   pqArraySelectorPropertyWidget
   pqArrayStatusPropertyWidget
   pqCalculatorWidget
+  pqChangeInputDialog
   pqColorOverlay
   pqComboBoxDomain
   pqCommandPropertyWidget
   pqComponentsInit
   pqCompositePropertyWidgetDecorator
+  pqContextMenuInterface
   pqDataAssemblyTreeModel
   pqDataInformationModel
   pqDataInformationWidget
@@ -63,6 +65,8 @@ set(classes
   pqLightsEditor
   pqLightsInspector
   pqMultiBlockInspectorWidget
+  pqMultiViewWidget
+  pqOutputPortComboBox
   pqPipelineAnnotationFilterModel
   pqPipelineBrowserWidget
   pqPipelineModel
@@ -80,21 +84,24 @@ set(classes
   pqProxySelectionWidget
   pqProxyWidget
   pqProxyWidgetDialog
+  pqRecentFilesMenu
+  pqRescaleRange
   pqScalarValueListPropertyWidget
   pqSearchBox
   pqSelectionAdaptor
+  pqServerConfigurationImporter
+  pqServerLauncher
   pqShortcutDecorator
   pqSignalAdaptorSelectionTreeWidget
   pqSignalAdaptorTreeWidget
   pqStringVectorPropertyWidget
+  pqTabbedMultiViewWidget
   pqToolBarInterface
   pqToolTipTrapper
   pqTriggerOnIdleHelper
   pqViewFrame
   pqViewFrameActionsInterface
   pqWidgetRangeDomain
-  pqRescaleRange
-  pqContextMenuInterface
 )
 
 set(old_classes
@@ -108,7 +115,6 @@ set(old_classes
   pqAnimationViewWidget
   pqCameraDialog
   pqCameraKeyFrameWidget
-  pqChangeInputDialog
   pqCollaborationPanel
   pqColorChooserButtonWithPalettes
   pqComparativeCueWidget
@@ -133,9 +139,7 @@ set(old_classes
   pqLogViewerDialog
   pqLockViewSizeCustomDialog
   pqMemoryInspectorPanel
-  pqMultiViewWidget
   pqOrbitCreatorDialog
-  pqOutputPortComboBox
   pqPipelineTimeKeyFrameEditor
   pqPluginDialog
   pqPluginTreeWidgetEventPlayer
@@ -143,7 +147,6 @@ set(old_classes
   pqPresetDialog
   pqPresetGroupsManager
   pqPresetToPixmap
-  pqRecentFilesMenu
   pqRemoteCommandDialog
   pqRemoteCommandTemplateDialog
   pqSingleLogViewerWidget
@@ -151,15 +154,12 @@ set(old_classes
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
-  pqServerConfigurationImporter
-  pqServerConnectDialog
-  pqServerLauncher
   pqSetBreakpointDialog
   pqSettingsDialog
+  pqServerConnectDialog
   pqShaderReplacementsComboBox
   pqShaderReplacementsSelectorPropertyWidget
   pqSignalAdaptorKeyFrameType
-  pqTabbedMultiViewWidget
   pqTextureComboBox
   pqTextureSelectorPropertyWidget
   pqTimerLogDisplay

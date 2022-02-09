@@ -21,19 +21,17 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
 #include "vtkSMDomain.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
-#include "vtkSMProxyManager.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMTrace.h"
-#include "vtkSMTransferFunctionManager.h"
-#include "vtkSMTransferFunctionProxy.h"
+// #include "vtkSMTransferFunctionManager.h"
+// #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMUtilities.h"
 #include "vtkSMVectorProperty.h"
 #include "vtkSMViewLayoutProxy.h"
@@ -41,7 +39,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 
-#include "vtkSMMaterialLibraryProxy.h"
+// #include "vtkSMMaterialLibraryProxy.h"
 
 #include <cassert>
 #include <sstream>
@@ -130,7 +128,7 @@ bool vtkIsOutputTypeNonStandard(vtkPVXMLElement* hints, const int outputPort)
 }
 
 //---------------------------------------------------------------------------
-void vtkInheritRepresentationProperties(vtkSMRepresentationProxy* repr, vtkSMSourceProxy* producer,
+void vtkInheritRepresentationProperties(vtkSMProxy* repr, vtkSMSourceProxy* producer,
   unsigned int producerPort, vtkSMViewProxy* view, const unsigned long initTimeStamp)
 {
   if (producer->GetProperty("Input") == nullptr)
@@ -148,6 +146,7 @@ void vtkInheritRepresentationProperties(vtkSMRepresentationProxy* repr, vtkSMSou
     return;
   }
 
+#if 0 // FIXME: ASYNC
   // Irrespective of other properties, scalar coloring is inherited if
   // possible.
   if (vtkSMPVRepresentationProxy::GetUsingScalarColoring(inputRepr) &&
@@ -164,6 +163,7 @@ void vtkInheritRepresentationProperties(vtkSMRepresentationProxy* repr, vtkSMSou
         colorArrayHelper.GetInputArrayNameToProcess(), colorArrayHelper.GetInputArrayAssociation());
     }
   }
+#endif
 
   // always copy over ospray material name
   vtkSMPropertyIterator* iter = inputRepr->NewPropertyIterator();
@@ -256,9 +256,10 @@ void vtkInheritRepresentationProperties(vtkSMRepresentationProxy* repr, vtkSMSou
 }
 
 //---------------------------------------------------------------------------
-void vtkPickRepresentationType(vtkSMRepresentationProxy* repr, vtkSMSourceProxy* producer,
-  unsigned int outputPort, vtkSMViewProxy* view)
+void vtkPickRepresentationType(
+  vtkSMProxy* repr, vtkSMSourceProxy* producer, unsigned int outputPort, vtkSMViewProxy* view)
 {
+#if 0 // FIXME: ASYNC
   (void)producer;
   (void)outputPort;
 
@@ -281,6 +282,7 @@ void vtkPickRepresentationType(vtkSMRepresentationProxy* repr, vtkSMSourceProxy*
   {
     repr->SetRepresentationType(vtkSMPropertyHelper(smproperty).GetAsString());
   }
+#endif
 }
 }
 
@@ -359,6 +361,7 @@ bool vtkSMParaViewPipelineControllerWithRendering::RegisterRepresentationProxy(v
     return false;
   }
 
+#if 0 // FIXME: ASYNC
   if (vtkSMPVRepresentationProxy::GetUsingScalarColoring(proxy))
   {
     // If representation has been initialized to use scalar coloring and no
@@ -388,6 +391,7 @@ bool vtkSMParaViewPipelineControllerWithRendering::RegisterRepresentationProxy(v
       }
     }
   }
+#endif
   return true;
 }
 
@@ -432,7 +436,7 @@ vtkSMProxy* vtkSMParaViewPipelineControllerWithRendering::Show(
     this->UpdatePipelineBeforeDisplay(producer, outputPort, view);
   }
 
-  vtkSMRepresentationProxy* repr = nullptr;
+  vtkSMProxy* repr = nullptr;
 
   // Since no representation exists, create a new one if possible
   if (representationType)
@@ -441,7 +445,7 @@ vtkSMProxy* vtkSMParaViewPipelineControllerWithRendering::Show(
     vtkSMSessionProxyManager* pxm = producer->GetSessionProxyManager();
     vtkSmartPointer<vtkSMProxy> p;
     p.TakeReference(pxm->NewProxy("representations", representationType));
-    repr = vtkSMRepresentationProxy::SafeDownCast(p);
+    repr = vtkSMProxy::SafeDownCast(p);
     if (!repr)
     {
       vtkWarningMacro("Failed to create requested representation (representations,"
@@ -572,10 +576,12 @@ void vtkSMParaViewPipelineControllerWithRendering::Hide(vtkSMProxy* repr, vtkSMV
     repr->UpdateVTKObjects();
     vtkSMViewProxy::RepresentationVisibilityChanged(view, repr, false);
 
+#if 0 // FIXME: ASYNC
     if (vtkSMParaViewPipelineControllerWithRendering::HideScalarBarOnHide)
     {
       vtkSMPVRepresentationProxy::HideScalarBarIfNotNeeded(repr, view);
     }
+#endif
   }
 }
 
@@ -613,7 +619,7 @@ bool vtkSMParaViewPipelineControllerWithRendering::GetVisibility(
   {
     return false;
   }
-  if (vtkSMRepresentationProxy* repr = view->FindRepresentation(producer, outputPort))
+  if (vtkSMProxy* repr = view->FindRepresentation(producer, outputPort))
   {
     return vtkSMPropertyHelper(repr, "Visibility").GetAsInt() != 0;
   }
@@ -812,9 +818,9 @@ bool vtkSMParaViewPipelineControllerWithRendering::RegisterLayoutProxy(
   std::string pname;
   if (proxyname == nullptr)
   {
+    // FIXME: ASYNC
     // get a unique name across all sessions (for multi-server sessions).
-    vtkSMProxyManager* gpxm = vtkSMProxyManager::GetProxyManager();
-    pname = gpxm->GetUniqueProxyName("layouts", "Layout #", /*alwaysAppend=*/true);
+    pname = pxm->GetUniqueProxyName("layouts", "Layout #", /*alwaysAppend=*/true);
   }
   else
   {
@@ -833,9 +839,11 @@ void vtkSMParaViewPipelineControllerWithRendering::PrintSelf(ostream& os, vtkInd
 //----------------------------------------------------------------------------
 void vtkSMParaViewPipelineControllerWithRendering::DoMaterialSetup(vtkSMProxy* prox)
 {
+#if 0 // FIXME: ASYNC
   vtkSMMaterialLibraryProxy* mlp = vtkSMMaterialLibraryProxy::SafeDownCast(prox);
   mlp->LoadDefaultMaterials();
   mlp->Synchronize();
+#endif
 }
 
 //----------------------------------------------------------------------------

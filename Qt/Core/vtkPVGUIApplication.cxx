@@ -15,6 +15,7 @@
 #include "vtkPVGUIApplication.h"
 
 #include "pqInterfaceTracker.h"
+#include "pqRecentlyUsedResourcesList.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
 #include "pqSettings.h"
@@ -68,6 +69,7 @@ public:
   QScopedPointer<pqInterfaceTracker> InterfaceTracker;
   QScopedPointer<pqServerManagerObserver> ServerManagerObserver;
   QScopedPointer<pqServerManagerModel> ServerManagerModel;
+  QScopedPointer<pqRecentlyUsedResourcesList> RecentlyUsedResourcesList;
 };
 
 vtkStandardNewMacro(vtkPVGUIApplication);
@@ -124,6 +126,8 @@ bool vtkPVGUIApplication::InitializeInternal()
   internals.InterfaceTracker.reset(new pqInterfaceTracker());
   internals.InterfaceTracker->addInterface(
     new pqStandardServerManagerModelInterface(internals.InterfaceTracker.get()));
+  internals.RecentlyUsedResourcesList.reset(new pqRecentlyUsedResourcesList());
+  internals.RecentlyUsedResourcesList->load(*internals.Settings.get());
 
   internals.ServerManagerObserver.reset(new pqServerManagerObserver());
   internals.ServerManagerModel.reset(
@@ -153,6 +157,13 @@ pqServerManagerModel* vtkPVGUIApplication::GetServerManagerModel() const
 {
   const auto& internals = (*this->Internals);
   return internals.ServerManagerModel.get();
+}
+
+//----------------------------------------------------------------------------
+pqRecentlyUsedResourcesList* vtkPVGUIApplication::GetRecentlyUsedResourcesList() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.RecentlyUsedResourcesList.get();
 }
 
 //----------------------------------------------------------------------------

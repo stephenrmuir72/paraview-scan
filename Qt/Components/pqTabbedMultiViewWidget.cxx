@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqTabbedMultiViewWidget.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqMultiViewWidget.h"
 #include "pqObjectBuilder.h"
 #include "pqServer.h"
@@ -44,11 +43,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkErrorCode.h"
 #include "vtkImageData.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
-#include "vtkSMSaveScreenshotProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTrace.h"
 #include "vtkSMUtilities.h"
@@ -117,9 +116,9 @@ int pqTabbedMultiViewWidget::pqTabWidget::addAsTab(
     tab_count++;
   }
   vtkSMViewLayoutProxy* proxy = wdg->layoutManager();
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqProxy* item = smmodel->findItem<pqProxy*>(proxy);
-  int tab_index = this->insertTab(tab_count - 1, wdg, item->getSMName());
+  int tab_index = this->insertTab(tab_count - 1, wdg, item->registrationName());
   this->connect(item, SIGNAL(nameChanged(pqServerManagerModelItem*)), self,
     SLOT(onLayoutNameChanged(pqServerManagerModelItem*)));
 
@@ -259,8 +258,8 @@ public:
     QObject::connect(widget, &pqMultiViewWidget::frameActivated,
       [this, widget]() { this->TabWidget->setCurrentWidget(widget); });
 
-    auto server =
-      pqApplicationCore::instance()->getServerManagerModel()->findServer(vlayout->GetSession());
+    pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+    auto server = smmodel->findServer(vlayout->GetSession());
 
     this->TabWidgets[server].push_back(widget);
 
@@ -322,8 +321,8 @@ public:
       this->TabWidget->removeTab(index);
     }
 
-    auto server =
-      pqApplicationCore::instance()->getServerManagerModel()->findServer(vlayout->GetSession());
+    pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+    auto server = smmodel->findServer(vlayout->GetSession());
     this->TabWidgets[server].removeOne(widget);
     delete widget;
   }
@@ -463,11 +462,12 @@ pqTabbedMultiViewWidget::pqTabbedMultiViewWidget(QWidget* parentObject)
   glayout->setSpacing(0);
   glayout->addWidget(this->Internals->TabWidget, 0, 0);
 
+#if 0 // FIXME: ASYNC
   pqApplicationCore* core = pqApplicationCore::instance();
-
   core->registerManager("MULTIVIEW_WIDGET", this);
+#endif
 
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   QObject::connect(smmodel, SIGNAL(proxyAdded(pqProxy*)), this, SLOT(proxyAdded(pqProxy*)));
   QObject::connect(smmodel, SIGNAL(proxyRemoved(pqProxy*)), this, SLOT(proxyRemoved(pqProxy*)));
@@ -478,10 +478,12 @@ pqTabbedMultiViewWidget::pqTabbedMultiViewWidget(QWidget* parentObject)
   QObject::connect(
     this->Internals->TabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
+#if 0 // FIXME: ASYNC
   // we need to ensure that all views loaded from the state do get assigned to
   // some layout correctly.
   QObject::connect(
     core, SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)), this, SLOT(onStateLoaded()));
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -562,7 +564,7 @@ void pqTabbedMultiViewWidget::toggleFullScreen()
 //-----------------------------------------------------------------------------
 void pqTabbedMultiViewWidget::proxyAdded(pqProxy* proxy)
 {
-  if (proxy->getSMGroup() == "layouts" && proxy->getProxy()->IsA("vtkSMViewLayoutProxy"))
+  if (proxy->registrationGroup() == "layouts" && proxy->getProxy()->IsA("vtkSMViewLayoutProxy"))
   {
     auto vlayout = vtkSMViewLayoutProxy::SafeDownCast(proxy->getProxy());
     this->createTab(vlayout);
@@ -573,7 +575,7 @@ void pqTabbedMultiViewWidget::proxyAdded(pqProxy* proxy)
 void pqTabbedMultiViewWidget::proxyRemoved(pqProxy* proxy)
 {
   auto& internals = (*this->Internals);
-  if (proxy->getSMGroup() == "layouts" && proxy->getProxy()->IsA("vtkSMViewLayoutProxy"))
+  if (proxy->registrationGroup() == "layouts" && proxy->getProxy()->IsA("vtkSMViewLayoutProxy"))
   {
     internals.removeTab(proxy->getProxy());
   }
@@ -612,6 +614,7 @@ void pqTabbedMultiViewWidget::closeTab(int index)
   vtkSMProxy* vlayout = widget ? widget->layoutManager() : nullptr;
   if (vlayout)
   {
+#if 0
     pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
     pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
 
@@ -623,6 +626,9 @@ void pqTabbedMultiViewWidget::closeTab(int index)
 
     builder->destroy(smmodel->findItem<pqProxy*>(vlayout));
     END_UNDO_SET();
+#else
+    abort();
+#endif
   }
 
   // The '+' tab is missing if in readOnly mode. Account for that here.
@@ -649,7 +655,6 @@ int pqTabbedMultiViewWidget::createTab(pqServer* server)
     auto pxm = server->proxyManager();
     auto vlayout = pxm->NewProxy("misc", "ViewLayout");
     Q_ASSERT(vlayout != nullptr);
-
     vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
     controller->InitializeProxy(vlayout);
     controller->RegisterLayoutProxy(vlayout);
@@ -831,7 +836,7 @@ void pqTabbedMultiViewWidget::contextMenuRequested(const QPoint& point)
   {
     return;
   }
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqProxy* proxy = smmodel->findItem<pqProxy*>(vlayout);
 
   QMenu* menu = new QMenu(this);
@@ -847,7 +852,7 @@ void pqTabbedMultiViewWidget::contextMenuRequested(const QPoint& point)
   else if (action == renameAction)
   {
     bool ok;
-    QString oldName = proxy->getSMName();
+    QString oldName = proxy->registrationName();
     QString newName = QInputDialog::getText(
       this, tr("Rename Layout..."), tr("New name:"), QLineEdit::Normal, oldName, &ok);
     if (ok && !newName.isEmpty() && newName != oldName)
@@ -873,7 +878,7 @@ void pqTabbedMultiViewWidget::onLayoutNameChanged(pqServerManagerModelItem* item
       dynamic_cast<pqMultiViewWidget*>(this->Internals->TabWidget->widget(i));
     if (wdg && wdg->layoutManager() == proxy->getProxy())
     {
-      this->Internals->TabWidget->setTabText(i, proxy->getSMName());
+      this->Internals->TabWidget->setTabText(i, proxy->registrationName());
       return;
     }
   }

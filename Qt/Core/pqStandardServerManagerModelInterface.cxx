@@ -187,6 +187,10 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
   {
     return new pqDataRepresentation(group, name, proxy, server, nullptr);
   }
+  else if (group == "layouts")
+  {
+    return new pqProxy(group, name, proxy, server, nullptr);
+  }
 
 #else // FIXME: ASYNC
   if (group == "views" && vtkSMViewProxy::SafeDownCast(proxy))
