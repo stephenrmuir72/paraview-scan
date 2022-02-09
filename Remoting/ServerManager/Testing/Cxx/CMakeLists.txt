@@ -12,6 +12,7 @@ vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
 
 vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   TestProxyDefinitionsIterator.cxx,NO_VALID
+  TestSMInputProperty.cxx,NO_VALID
   TestDataArraySelectionWrapping.cxx, NO_VALID)
 # TODO
 #vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests

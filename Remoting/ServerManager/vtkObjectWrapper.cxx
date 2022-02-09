@@ -166,7 +166,13 @@ void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider
       case vtkSMProperty::STRING:
       {
         auto values = value.at("elements").get<std::vector<std::string>>();
-        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+        bool isEmptyVector =
+          std::all_of(values.begin(), values.end(), [](const std::string& v) { return v.empty(); });
+        // FIXME wrapper generated code should handle this case
+        if (!isEmptyVector)
+        {
+          vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
+        }
       }
       break;
 
