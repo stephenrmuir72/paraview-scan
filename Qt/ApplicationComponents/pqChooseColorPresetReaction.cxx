@@ -33,27 +33,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqCoreUtilities.h"
-#include "pqDataRepresentation.h"
-#include "pqPresetDialog.h"
+// #include "pqDataRepresentation.h"
+// #include "pqPresetDialog.h"
 #include "pqUndoStack.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMTransferFunctionProxy.h"
+// #include "vtkSMTransferFunctionProxy.h"
 
 #include "vtk_jsoncpp.h"
 
 #include <cassert>
 
+#if 0 // FIXME: ASYNC
 QPointer<pqPresetDialog> pqChooseColorPresetReaction::PresetDialog;
+#endif
 
 namespace pvInternals
 {
 vtkSMProxy* lutProxy(vtkSMProxy* reprProxy)
 {
+#if 0 // FIXME: ASYNC
   if (vtkSMPVRepresentationProxy::GetUsingScalarColoring(reprProxy))
   {
     return vtkSMPropertyHelper(reprProxy, "LookupTable", true).GetAsProxy();
   }
+#endif
   return nullptr;
 }
 }
@@ -106,8 +110,10 @@ void pqChooseColorPresetReaction::updateTransferFunction()
 //-----------------------------------------------------------------------------
 void pqChooseColorPresetReaction::setTransferFunction(vtkSMProxy* lut)
 {
+#if 0 // FIXME: ASYNC
   this->TransferFunctionProxy = lut;
   this->updateEnableState();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -125,6 +131,7 @@ void pqChooseColorPresetReaction::onTriggered()
 //-----------------------------------------------------------------------------
 bool pqChooseColorPresetReaction::choosePreset(const char* presetName)
 {
+#if 0 // FIXME: ASYNC
   vtkSMProxy* lut = this->TransferFunctionProxy;
   if (!lut)
   {
@@ -157,12 +164,14 @@ bool pqChooseColorPresetReaction::choosePreset(const char* presetName)
   this->connect(PresetDialog.data(), &pqPresetDialog::applyPreset, this,
     &pqChooseColorPresetReaction::applyCurrentPreset);
   PresetDialog->show();
+#endif
   return true;
 }
 
 //-----------------------------------------------------------------------------
 void pqChooseColorPresetReaction::applyCurrentPreset()
 {
+#if 0 // FIXME: ASYNC
   pqPresetDialog* dialog = qobject_cast<pqPresetDialog*>(this->sender());
   assert(dialog);
   assert(dialog == PresetDialog);
@@ -222,16 +231,25 @@ void pqChooseColorPresetReaction::applyCurrentPreset()
 
   Q_EMIT this->presetApplied(
     QString(dialog->currentPreset().get("Name", "Preset").asString().c_str()));
+#endif
 }
 
 //-----------------------------------------------------------------------------
 QRegularExpression pqChooseColorPresetReaction::regularExpression()
 {
+#if 0 // FIXME: ASYNC
   return this->PresetDialog ? this->PresetDialog->regularExpression() : QRegularExpression();
+#else
+  return {};
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqChooseColorPresetReaction::loadAnnotations()
 {
+#if 0 // FIXME: ASYNC
   return this->PresetDialog ? this->PresetDialog->loadAnnotations() : false;
+#else
+  return false;
+#endif
 }

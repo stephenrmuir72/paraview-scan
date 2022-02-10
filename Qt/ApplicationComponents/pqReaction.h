@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * @defgroup Reactions ParaView Reactions
  * ParaView client relies on a collection of reactions that are autonomous
- * entities that use pqApplicationCore and other core components to get their
+ * entities that use vtkPVGUIApplication and other core components to get their
  * work done. To use, simply attach an instance of pqReaction subclass to a
  * QAction. The reaction then monitors events from the QAction. Additionally, the
  * reaction can monitor the ParaView application state to update things like
@@ -74,10 +74,6 @@ protected Q_SLOTS:
   virtual void onTriggered() {}
 
   virtual void updateEnableState() {}
-  virtual void updateMasterEnableState(bool);
-
-protected: // NOLINT(readability-redundant-access-specifiers)
-  bool IsMaster;
 
 private:
   Q_DISABLE_COPY(pqReaction)

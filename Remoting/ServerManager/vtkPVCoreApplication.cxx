@@ -22,6 +22,7 @@
 #include "vtkPVVersion.h" // for PARAVIEW_VERSION_*
 #include "vtkReflectionInitializer.h"
 #include "vtkRemotingCoreUtilities.h"
+#include "vtkResourceFileLocator.h"
 #include "vtkServicesEngine.h"
 #include "vtkSmartPointer.h"
 
@@ -36,6 +37,35 @@
 
 #define PARAVIEW_SOURCE_VERSION "paraview version " PARAVIEW_VERSION_FULL
 
+namespace
+{
+std::string GetSharedResourcesDirectory(const std::string& vtkNotUsed(appDir))
+{
+  // Look for where the function "GetVTKVersion." lives.
+  auto vtk_libs = vtkGetLibraryPathForSymbol(GetVTKVersion);
+
+  // Where docs might be in relation to the executable
+  std::vector<std::string> prefixes = {
+#if defined(_WIN32) || defined(__APPLE__)
+    ".."
+#else
+    "share/paraview-" PARAVIEW_VERSION
+#endif
+  };
+
+  // Search for the docs directory
+  vtkNew<vtkResourceFileLocator> locator;
+  auto resource_dir = locator->Locate(vtk_libs, prefixes, "doc");
+  if (!resource_dir.empty())
+  {
+    resource_dir = vtksys::SystemTools::CollapseFullPath(resource_dir);
+  }
+
+  return resource_dir;
+}
+
+}
+
 class vtkPVCoreApplication::vtkInternals
 {
 public:
@@ -47,6 +77,10 @@ public:
   std::string ApplicationName;
   std::string ApplicationDirPath;
   std::string ApplicationFilePath;
+  std::string SharedResourcesDirectory;
+  std::string ExampleFilesDirectory;
+  std::string DocDirectory;
+
   bool Initialized{ false };
   int Rank{ 0 };
   int NumberOfRanks{ 1 };
@@ -76,6 +110,10 @@ public:
     this->ApplicationName = vtksys::SystemTools::GetFilenameName(this->ApplicationFilePath);
     this->ApplicationName =
       vtksys::SystemTools::GetFilenameWithoutLastExtension(this->ApplicationName);
+
+    this->SharedResourcesDirectory = ::GetSharedResourcesDirectory(this->ApplicationDirPath);
+    this->ExampleFilesDirectory = this->SharedResourcesDirectory = "/examples";
+    this->DocDirectory = this->SharedResourcesDirectory = "/doc";
   }
 
   std::string GetRankAnnotatedName(const std::string& name) const
@@ -386,6 +424,27 @@ int vtkPVCoreApplication::GetVersionMinor()
 int vtkPVCoreApplication::GetVersionPatch()
 {
   return PARAVIEW_VERSION_PATCH;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVCoreApplication::GetSharedResourcesDirectory() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.SharedResourcesDirectory;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVCoreApplication::GetExampleFilesDirectory() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ExampleFilesDirectory;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPVCoreApplication::GetDocDirectory() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.DocDirectory;
 }
 
 //----------------------------------------------------------------------------

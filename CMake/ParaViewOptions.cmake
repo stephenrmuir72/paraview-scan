@@ -352,6 +352,7 @@ paraview_require_module(
             ParaView::pqWidgets
             ParaView::pqCore
             ParaView::pqComponents
+            ParaView::pqApplicationComponents
             VTK::IOIOSS
   )
 

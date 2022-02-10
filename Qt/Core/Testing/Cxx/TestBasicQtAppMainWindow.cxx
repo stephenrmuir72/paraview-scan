@@ -15,8 +15,10 @@
 #include "TestBasicQtAppMainWindow.h"
 #include "ui_TestBasicQtAppMainWindow.h"
 
+#include "pqProgressManager.h"
 #include "pqProgressWidget.h"
 #include "pqProxy.h"
+#include "pqProxyGroupMenuManager.h"
 #include "vtkClientSession.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
@@ -78,19 +80,10 @@ void TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWidget* progre
   controller->AssignViewToLayout(view);
   controller->Show(shrink, 0, view, "GeometryRepresentation");
 
-  auto observable = session->GetProgressObservable().subscribe(
-    rxcpp::util::apply_to([progressWidget](const std::string& serviceName,
-                            const vtkRemoteObjectProvider::vtkProgressItem& item) {
-      if (item.Progress == 100)
-      {
-        progressWidget->enableProgress(false);
-      }
-      else
-      {
-        progressWidget->enableProgress(true);
-        progressWidget->setProgress(QString::fromStdString(item.Message), item.Progress);
-      }
-    }));
+  auto* pgm = pvapp->GetProgressManager();
+  QObject::connect(pgm, SIGNAL(enableProgress(bool)), progressWidget, SLOT(enableProgress(bool)));
+  QObject::connect(pgm, SIGNAL(progress(const QString&, int)), progressWidget,
+    SLOT(setProgress(const QString&, int)));
 
   QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
     [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
@@ -108,6 +101,10 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
 {
   auto& internals = (*this->Internals);
   internals.Ui.setupUi(this);
+
+  auto* menuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
+  menuMgr->addProxyDefinitionUpdateListener("sources");
+  menuMgr->addProxy("sources", "SphereSource");
 
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);

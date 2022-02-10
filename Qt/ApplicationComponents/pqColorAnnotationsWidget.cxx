@@ -49,18 +49,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkNumberToString.h"
 #include "vtkPVArrayInformation.h"
-#include "vtkPVProminentValuesInformation.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkPVProminentValuesInformation.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMTransferFunctionPresets.h"
-#include "vtkSMTransferFunctionProxy.h"
+// #include "vtkSMTransferFunctionPresets.h"
+// #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSmartPointer.h"
 #include "vtkVariant.h"
 #include "vtkVariantArray.h"
 
-#include <vtk_jsoncpp.h>
+// #include <vtk_jsoncpp.h>
 
 #include <QColorDialog>
 #include <QItemSelection>
@@ -207,7 +207,9 @@ public:
   pqAnnotationsModel* Model;
   QScopedPointer<QAction> TempAction;
   QScopedPointer<pqChooseColorPresetReaction> ChoosePresetReaction;
+#if 0 // FIXME: ASYNC
   vtkSmartPointer<vtkSMTransferFunctionProxy> LookupTableProxy;
+#endif
   std::string CurrentPresetName;
 
   void SetCurrentPresetName(std::string newName) { this->CurrentPresetName = newName; }
@@ -350,12 +352,15 @@ pqColorAnnotationsWidget::~pqColorAnnotationsWidget()
 //-----------------------------------------------------------------------------
 void pqColorAnnotationsWidget::setLookupTableProxy(vtkSMProxy* proxy)
 {
+#if 0 // FIXME: ASYNC
   this->Internals->LookupTableProxy = vtkSMTransferFunctionProxy::SafeDownCast(proxy);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqColorAnnotationsWidget::applyPreset(const char* presetName)
 {
+#if 0
   auto presets = vtkSMTransferFunctionPresets::GetInstance();
   const Json::Value& preset = presets->GetFirstPresetWithName(presetName);
   const Json::Value& indexedColors = preset[INDEXED_COLORS];
@@ -379,6 +384,7 @@ void pqColorAnnotationsWidget::applyPreset(const char* presetName)
 
     this->setIndexedColors(defaultPresetVariant);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -691,7 +697,7 @@ bool pqColorAnnotationsWidget::addActiveAnnotations(bool force)
   {
     return false;
   }
-
+#if 0 // FIXME: ASYNC
   vtkPVProminentValuesInformation* info =
     vtkSMPVRepresentationProxy::GetProminentValuesInformationForColorArray(
       repr->getProxy(), 1e-3, 1e-6, force);
@@ -726,6 +732,9 @@ bool pqColorAnnotationsWidget::addActiveAnnotations(bool force)
     Q_EMIT this->annotationsChanged();
   }
   return true;
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -769,6 +778,7 @@ void pqColorAnnotationsWidget::addActiveAnnotationsFromVisibleSources()
 //-----------------------------------------------------------------------------
 bool pqColorAnnotationsWidget::addActiveAnnotationsFromVisibleSources(bool force)
 {
+#if 0 // FIXME: ASYNC
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (!server)
   {
@@ -864,6 +874,9 @@ bool pqColorAnnotationsWidget::addActiveAnnotationsFromVisibleSources(bool force
   }
 
   return !missingValues;
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -877,8 +890,10 @@ void pqColorAnnotationsWidget::removeAllAnnotations()
 //-----------------------------------------------------------------------------
 void pqColorAnnotationsWidget::choosePreset(const char* presetName)
 {
+#if 0 // FIXME: ASYNC
   this->Internals->ChoosePresetReaction->setTransferFunction(this->Internals->LookupTableProxy);
   this->Internals->ChoosePresetReaction->choosePreset(presetName);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -913,6 +928,7 @@ void pqColorAnnotationsWidget::saveAsNewPreset()
 void pqColorAnnotationsWidget::saveAsPreset(
   const char* defaultName, bool removeAnnotations, bool allowOverride)
 {
+#if 0 // FIXME: ASYNC
   Json::Value cpreset =
     vtkSMTransferFunctionProxy::GetStateAsPreset(this->Internals->LookupTableProxy);
 
@@ -988,6 +1004,7 @@ void pqColorAnnotationsWidget::saveAsPreset(
   this->applyPreset(presetName.c_str());
   this->onPresetApplied(QString(presetName.c_str()));
   this->choosePreset(presetName.c_str());
+#endif
 }
 
 //-----------------------------------------------------------------------------

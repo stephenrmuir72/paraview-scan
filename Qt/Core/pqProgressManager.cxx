@@ -31,134 +31,143 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqProgressManager.h"
 
-#include <QApplication>
-#include <QEvent>
-
-#include "pqApplicationCore.h"
-#include "pqCoreUtilities.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
-#include "vtkOutputWindow.h"
-#include "vtkPVProgressHandler.h"
-#include "vtkSMSession.h"
-#include "vtkTimerLog.h"
+#include "vtkPVGUIApplication.h"
+
+#include <QPointer>
+#include <QScopedValueRollback>
+
+class pqProgressManager::pqInternals
+{
+public:
+  QPointer<QObject> ObjectWithLock;
+  int ProgressCount{ 0 };
+  bool InProgressEvent{ false };
+};
 
 //-----------------------------------------------------------------------------
 pqProgressManager::pqProgressManager(QObject* _parent)
   : QObject(_parent)
+  , Internals(new pqProgressManager::pqInternals())
 {
-  this->ProgressCount = 0;
-  this->InUpdate = false;
-  QApplication::instance()->installEventFilter(this);
+  auto* smmmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
-  this->EnableProgress = false;
-  this->UnblockEvents = false;
-  QObject::connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(serverAdded(pqServer*)), this, SLOT(onServerAdded(pqServer*)));
+  // this is very basic right now, need to figure out how to handle progress
+  // from different services and different session properly.
+  QObject::connect(smmmodel, &pqServerManagerModel::serverAdded, [this](pqServer* server) {
+    auto* session = server->session();
+    session->GetProgressObservable().subscribe(rxcpp::util::apply_to(
+      [this](const std::string& serviceName, const vtkRemoteObjectProvider::vtkProgressItem& item) {
+        if (item.Progress == 100)
+        {
+          this->setProgress(QString::fromStdString(item.Message), item.Progress);
+          this->setEnableProgress(false);
+        }
+        else if (item.Progress == 0)
+        {
+          this->setEnableProgress(true);
+          this->setProgress(QString::fromStdString(item.Message), item.Progress);
+        }
+        else
+        {
+          this->setProgress(QString::fromStdString(item.Message), item.Progress);
+        }
+      }));
+  });
 }
 
 //-----------------------------------------------------------------------------
 pqProgressManager::~pqProgressManager() = default;
 
 //-----------------------------------------------------------------------------
-void pqProgressManager::onServerAdded(pqServer* server)
-{
-  vtkPVProgressHandler* progressHandler = server->session()->GetProgressHandler();
-
-  pqCoreUtilities::connect(progressHandler, vtkCommand::StartEvent, this, SLOT(onStartProgress()));
-  pqCoreUtilities::connect(progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()));
-  pqCoreUtilities::connect(
-    progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)));
-}
-
-//-----------------------------------------------------------------------------
-bool pqProgressManager::eventFilter(QObject* obj, QEvent* evt)
-{
-  bool skipEvent = false;
-  bool skippableEvent = evt->type() == QEvent::KeyPress || evt->type() == QEvent::MouseButtonPress;
-  if (this->ProgressCount > 0 && skippableEvent && !this->UnblockEvents)
-  {
-    skipEvent = (this->NonBlockableObjects.contains(obj) == false);
-  }
-  return skipEvent ? true : this->QObject::eventFilter(obj, evt);
-}
-
-//-----------------------------------------------------------------------------
-bool pqProgressManager::unblockEvents(bool val)
-{
-  bool prev = this->UnblockEvents;
-  this->UnblockEvents = val;
-  return prev;
-}
-
-//-----------------------------------------------------------------------------
 void pqProgressManager::lockProgress(QObject* object)
 {
+  auto& internals = (*this->Internals);
+  if (internals.ObjectWithLock && internals.ObjectWithLock != object)
+  {
+    // already locked! cannot lock again.
+    return;
+  }
+
   if (!object)
   {
     return;
   }
 
-  if (this->Lock)
-  {
-    return;
-  }
-  this->Lock = object;
+  internals.ObjectWithLock = object;
 }
 
 //-----------------------------------------------------------------------------
 void pqProgressManager::unlockProgress(QObject* object)
 {
-  if (!object)
+  auto& internals = (*this->Internals);
+  if (internals.ObjectWithLock == object)
   {
-    return;
-  }
-
-  if (this->Lock == object)
-  {
-    this->Lock = nullptr;
+    internals.ObjectWithLock = nullptr;
   }
 }
 
 //-----------------------------------------------------------------------------
 bool pqProgressManager::isLocked() const
 {
-  return (this->Lock != nullptr);
+  const auto& internals = (*this->Internals);
+  return (internals.ObjectWithLock != nullptr);
 }
 
 //-----------------------------------------------------------------------------
 void pqProgressManager::setProgress(const QString& message, int progress_val)
 {
-  if (this->Lock && this->Lock != this->sender())
+  auto& internals = (*this->Internals);
+  if (internals.ObjectWithLock && internals.ObjectWithLock != this->sender())
   {
     // When locked, ignore all other senders.
     return;
   }
-  if (this->InUpdate)
+
+  if (internals.InProgressEvent)
   {
     return;
   }
-  this->InUpdate = true;
-  Q_EMIT this->progress(message, progress_val);
-  if (progress_val > 0)
-  {
-    // we don't want to call a processEvents on zero progress
-    // since that breaks numerous other classes currently in ParaView
-    // mainly because of subtle timing issues from QTimers that are expected
-    // to expire in a certain order
 
-    // we are disabling this for the 3.12 release so we are sure we don't
-    // get tag mismatches in the release product
-    // pqCoreUtilities::processEvents(QEventLoop::ExcludeUserInputEvents);
+  QScopedValueRollback<bool> rollback(internals.InProgressEvent, true);
+  Q_ASSERT(progress_val >= 0 && progress_val <= 100);
+  Q_EMIT this->progress(message, progress_val);
+}
+
+//-----------------------------------------------------------------------------
+void pqProgressManager::setEnableProgress(bool enable)
+{
+  auto& internals = (*this->Internals);
+  if (internals.ObjectWithLock && internals.ObjectWithLock != this->sender())
+  {
+    // When locked, ignore all other senders.
+    return;
   }
-  this->InUpdate = false;
+
+  if (enable)
+  {
+    if (internals.ProgressCount++ == 0)
+    {
+      Q_EMIT this->enableProgress(true);
+    }
+  }
+  else
+  {
+    if (--internals.ProgressCount == 0)
+    {
+      Q_EMIT this->enableProgress(false);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 void pqProgressManager::setEnableAbort(bool enable)
 {
-  if (this->Lock && this->Lock != this->sender())
+  auto& internals = (*this->Internals);
+  if (internals.ObjectWithLock && internals.ObjectWithLock != this->sender())
   {
     // When locked, ignore all other senders.
     return;
@@ -167,68 +176,7 @@ void pqProgressManager::setEnableAbort(bool enable)
 }
 
 //-----------------------------------------------------------------------------
-void pqProgressManager::setEnableProgress(bool enable)
-{
-  if (this->Lock && this->Lock != this->sender())
-  {
-    // When locked, ignore all other senders.
-    return;
-  }
-
-  if (enable)
-  {
-    if (this->ProgressCount++ == 0)
-    {
-      this->EnableProgress = true;
-      Q_EMIT this->enableProgress(true);
-    }
-  }
-  else
-  {
-    if (--this->ProgressCount == 0)
-    {
-      this->EnableProgress = false;
-      Q_EMIT this->enableProgress(false);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
 void pqProgressManager::triggerAbort()
 {
   Q_EMIT this->abort();
-}
-
-//-----------------------------------------------------------------------------
-void pqProgressManager::onStartProgress()
-{
-  Q_EMIT progressStartEvent();
-  this->setEnableProgress(true);
-}
-
-//-----------------------------------------------------------------------------
-void pqProgressManager::onEndProgress()
-{
-  this->setEnableProgress(false);
-  Q_EMIT progressEndEvent();
-}
-
-//-----------------------------------------------------------------------------
-void pqProgressManager::onProgress(vtkObject* caller)
-{
-  vtkPVProgressHandler* handler = vtkPVProgressHandler::SafeDownCast(caller);
-  int oldProgress = handler->GetLastProgress();
-  QString text = handler->GetLastProgressText();
-
-  if (!this->EnableProgress)
-  {
-    return;
-  }
-
-  // chop of "vtk" prefix
-  if (text.startsWith("vtk"))
-  {
-    text = text.mid(3);
-  }
-  this->setProgress(text, oldProgress);
 }

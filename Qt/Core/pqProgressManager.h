@@ -32,13 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqProgressManager_h
 #define pqProgressManager_h
 
-#include "pqCoreModule.h"
-#include <QList>
+#include "pqCoreModule.h" // for exports
 #include <QObject>
-#include <QPointer>
+#include <memory> // for std::unique_ptr
 
-class vtkObject;
-class pqServer;
 /**
  * pqProgressManager is progress manager. It centralizes progress raising/
  * handling. Provides ability for any object to lock progress so that
@@ -69,25 +66,6 @@ public:
    */
   bool isLocked() const;
 
-  /**
-   * When progress is enabled, the manager eats all mouse and key events fired
-   * except for those objects which are in the non-blockable list.
-   * This is the API to add/remove non-blockable objects.
-   */
-  void addNonBlockableObject(QObject* o) { this->NonBlockableObjects.push_back(o); }
-  void removeNonBlockableObject(QObject* o) { this->NonBlockableObjects.removeAll(o); }
-
-  /**
-   * Returns the list of non-blockable objects.
-   */
-  const QList<QPointer<QObject>>& nonBlockableObjects() const { return this->NonBlockableObjects; }
-
-protected:
-  /**
-   * Filter QApplication events.
-   */
-  bool eventFilter(QObject* obj, QEvent* event) override;
-
 public Q_SLOTS:
   /**
    * Update progress. The progress must be enbled by calling
@@ -117,58 +95,25 @@ public Q_SLOTS:
    */
   void triggerAbort();
 
-  /**
-   * While progress is enabled, pqProgressManager blocks key/mouse events,
-   * except for objects added using `addNonBlockableObject`. Sometimes it's not
-   * possible to add objects explicitly and we may want to temporarily skip
-   * blocking of events. This methods can be used for that e.g.
-   *
-   * @code{cpp}
-   *  bool prev = progressManager->unblockEvents(true);
-   *  QMessageBox::question(....);
-   *  progressManager->unblockEvents(prev);
-   * @endcode
-   *
-   * @returns previous value.
-   */
-  bool unblockEvents(bool val);
-
 Q_SIGNALS:
   /**
    * Emitted to trigger an abort.
    */
   void abort();
 
+  /**
+   * Fired for each progress message. \c progress is in range [0, 100].
+   */
   void progress(const QString& message, int progress);
 
   void enableProgress(bool);
 
   void enableAbort(bool);
 
-  void progressStartEvent();
-  void progressEndEvent();
-
-protected Q_SLOTS:
-  /**
-   * callbacks for signals fired from vtkProcessModule.
-   */
-  void onStartProgress();
-  void onEndProgress();
-  void onProgress(vtkObject*);
-  void onServerAdded(pqServer*);
-
-protected: // NOLINT(readability-redundant-access-specifiers)
-  QPointer<QObject> Lock;
-  QList<QPointer<QObject>> NonBlockableObjects;
-  int ProgressCount;
-  bool InUpdate; // used to avoid recursive updates.
-
-  bool EnableProgress;
-  bool ReadyEnableProgress;
-  bool UnblockEvents;
-
 private:
-  Q_DISABLE_COPY(pqProgressManager)
+  Q_DISABLE_COPY(pqProgressManager);
+  class pqInternals;
+  std::unique_ptr<pqInternals> Internals;
 };
 
 #endif

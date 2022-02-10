@@ -36,8 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QtDebug>
 #include <algorithm>
 
-#include "pqApplicationCore.h"
-#include "pqFileDialog.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqFileDialog.h"
 #include "pqServerManagerModel.h"
 #include "pqStringVectorPropertyWidget.h"
 #include "vtkPVLogger.h"
@@ -68,9 +68,10 @@ public:
     pqStringVectorPropertyWidget::processFileChooserHints(
       hints, directoryMode, anyFile, filter, browseLocalFileSystem);
 
-    pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+    pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
     auto server = browseLocalFileSystem ? nullptr : smModel->findServer(session);
 
+#if 0 // FIXME: ASYNC
     pqFileDialog dialog(
       server, self, QString("Select %1").arg(property->GetXMLLabel()), QString(), filter);
     if (directoryMode)
@@ -92,6 +93,9 @@ public:
       auto filesNames = dialog.getSelectedFiles();
       return filesNames.isEmpty() ? QString() : filesNames[0];
     }
+#else
+    abort();
+#endif
 
     return QString();
   }

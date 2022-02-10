@@ -32,15 +32,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSourcesMenuReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqCollaborationManager.h"
 #include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqServer.h"
 #include "pqUndoStack.h"
-#include "vtkPVServerInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMCollaborationManager.h"
 #include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
 
@@ -55,8 +53,6 @@ pqSourcesMenuReaction::pqSourcesMenuReaction(pqProxyGroupMenuManager* menuManage
   QObject::connect(
     activeObjects, SIGNAL(serverChanged(pqServer*)), this, SLOT(updateEnableState()));
   QObject::connect(menuManager, SIGNAL(menuPopulated()), this, SLOT(updateEnableState()));
-  QObject::connect(pqApplicationCore::instance(), SIGNAL(updateMasterEnableState(bool)), this,
-    SLOT(updateEnableState()));
   this->updateEnableState();
 }
 
@@ -64,9 +60,9 @@ pqSourcesMenuReaction::pqSourcesMenuReaction(pqProxyGroupMenuManager* menuManage
 void pqSourcesMenuReaction::updateEnableState()
 {
   pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-  this->updateEnableState(
-    activeObjects->activeServer() != nullptr && activeObjects->activeServer()->isMaster());
+  this->updateEnableState(activeObjects->activeServer() != nullptr);
 }
+
 //-----------------------------------------------------------------------------
 void pqSourcesMenuReaction::updateEnableState(bool enabled)
 {
@@ -117,8 +113,7 @@ pqPipelineSource* pqSourcesMenuReaction::createSource(const QString& group, cons
 {
   if (pqSourcesMenuReaction::warnOnCreate(group, name))
   {
-    pqApplicationCore* core = pqApplicationCore::instance();
-    pqObjectBuilder* builder = core->getObjectBuilder();
+    auto* builder = vtkPVGUIApplication::GetInstance()->GetObjectBuilder();
     BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
     pqPipelineSource* source =
       builder->createSource(group, name, pqActiveObjects::instance().activeServer());

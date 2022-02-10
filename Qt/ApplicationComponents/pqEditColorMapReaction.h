@@ -79,7 +79,9 @@ protected:
 
 private:
   Q_DISABLE_COPY(pqEditColorMapReaction)
+#if 0 // FIXME: ASYNC
   QPointer<pqPipelineRepresentation> Representation;
+#endif
 };
 
 #endif

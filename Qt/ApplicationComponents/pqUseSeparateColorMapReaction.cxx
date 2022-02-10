@@ -32,9 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUseSeparateColorMapReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqDataRepresentation.h"
+// #include "pqDataRepresentation.h"
 #include "pqDisplayColorWidget.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 
 //-----------------------------------------------------------------------------
@@ -58,9 +58,11 @@ pqUseSeparateColorMapReaction::~pqUseSeparateColorMapReaction() = default;
 //-----------------------------------------------------------------------------
 void pqUseSeparateColorMapReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   pqDataRepresentation* cachedRepr = this->CachedRepresentation;
   this->setRepresentation(
     this->TrackActiveObjects ? pqActiveObjects::instance().activeRepresentation() : cachedRepr);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -72,6 +74,7 @@ pqDataRepresentation* pqUseSeparateColorMapReaction::representation() const
 //-----------------------------------------------------------------------------
 void pqUseSeparateColorMapReaction::setRepresentation(pqDataRepresentation* repr)
 {
+#if 0 // FIXME: ASYNC
   this->Links.clear();
   if (this->CachedRepresentation)
   {
@@ -100,11 +103,13 @@ void pqUseSeparateColorMapReaction::setRepresentation(pqDataRepresentation* repr
     this->Links.addPropertyLink(
       parent_action, "checked", SIGNAL(toggled(bool)), reprProxy, colorProp);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqUseSeparateColorMapReaction::onTriggered()
 {
+#if 0 // FIXME: ASYNC
   // Disable Multi Components Mapping
   pqDataRepresentation* repr = this->CachedRepresentation.data();
   vtkSMPVRepresentationProxy* proxy = vtkSMPVRepresentationProxy::SafeDownCast(repr->getProxy());
@@ -120,4 +125,5 @@ void pqUseSeparateColorMapReaction::onTriggered()
 
   // Force color widget to update representation and color map
   Q_EMIT this->ColorWidget->arraySelectionChanged();
+#endif
 }

@@ -45,6 +45,7 @@ set(classes
   pqOutputWidget
   pqPipelineFilter
   pqPipelineSource
+  pqProgressManager
   pqPropertyLinks
   pqPropertyLinksConnection
   pqProxy
@@ -110,7 +111,6 @@ set(old_classes
   pqPlotMatrixView
   pqPluginLocationInterface
   pqPluginManager
-  pqProgressManager
   pqProxyModifiedStateUndoElement
   pqQVTKWidgetEventPlayer
   pqQVTKWidgetEventTranslator

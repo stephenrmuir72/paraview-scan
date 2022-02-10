@@ -36,8 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSetName.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMPropertyIterator.h"
+#include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMSettingsProxy.h"
+// #include "vtkSMSettingsProxy.h"
 
 // Qt Includes.
 #include <QAction>
@@ -72,10 +73,14 @@ pqColorChooserButtonWithPalettes::~pqColorChooserButtonWithPalettes() = default;
 //-----------------------------------------------------------------------------
 vtkSMSettingsProxy* pqColorChooserButtonWithPalettes::colorPalette() const
 {
+#if 0 // FIXME: ASYNC
   pqServer* server = pqActiveObjects::instance().activeServer();
   auto pxm = server ? server->proxyManager() : nullptr;
   return (
     pxm ? vtkSMSettingsProxy::SafeDownCast(pxm->GetProxy("settings", "ColorPalette")) : nullptr);
+#else
+  return nullptr;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -86,6 +91,7 @@ void pqColorChooserButtonWithPalettes::updateMenu()
 
   popupMenu->clear();
 
+#if 0 // FIXME: ASYNC
   delete this->ActionGroup;
   this->ActionGroup = new QActionGroup(popupMenu);
 
@@ -134,11 +140,13 @@ void pqColorChooserButtonWithPalettes::updateMenu()
   popupMenu->addAction(this->renderColorSwatch(white), tr("White"))->setData(white);
 
   iter->Delete();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqColorChooserButtonWithPalettes::actionTriggered(QAction* action)
 {
+#if 0 // FIXME: ASYNC
   QColor color;
   if (action->data().type() == QVariant::String)
   {
@@ -161,6 +169,7 @@ void pqColorChooserButtonWithPalettes::actionTriggered(QAction* action)
   }
 
   this->setChosenColor(color);
+#endif
 }
 
 //============================================================================
@@ -186,7 +195,7 @@ void pqColorPaletteLinkHelper::setSelectedPaletteColor(const QString& colorName)
   pqColorChooserButtonWithPalettes* button =
     qobject_cast<pqColorChooserButtonWithPalettes*>(this->parent());
   assert(button);
-
+#if 0 // FIXME: ASYNC
   vtkSMSettingsProxy* palette = button->colorPalette();
   if (palette && this->SMProxy)
   {
@@ -199,6 +208,7 @@ void pqColorPaletteLinkHelper::setSelectedPaletteColor(const QString& colorName)
     palette->AddLink(colorName.toUtf8().data(), this->SMProxy, this->SMPropertyName.toUtf8().data(),
       /*unlink_if_modified=*/true);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -208,11 +218,12 @@ QString pqColorPaletteLinkHelper::selectedPaletteColor() const
     qobject_cast<pqColorChooserButtonWithPalettes*>(this->parent());
   assert(button);
 
+#if 0 // FIXME: ASYNC
   vtkSMSettingsProxy* palette = button->colorPalette();
   if (palette && this->SMProxy)
   {
     return palette->GetSourcePropertyName(this->SMProxy, this->SMPropertyName.toUtf8().data());
   }
-
+#endif
   return QString();
 }

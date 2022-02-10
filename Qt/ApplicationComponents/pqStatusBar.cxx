@@ -32,13 +32,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqStatusBar.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqProgressManager.h"
 #include "pqProgressWidget.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVMemoryUseInformation.h"
-#include "vtkPVSystemConfigInformation.h"
-#include "vtkSMSession.h"
 
 #include <QProgressBar>
 #include <QStyleFactory>
@@ -50,12 +48,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 pqStatusBar::pqStatusBar(QWidget* parentObject)
   : Superclass(parentObject)
 {
-  pqProgressManager* progress_manager = pqApplicationCore::instance()->getProgressManager();
+  pqProgressManager* progress_manager = vtkPVGUIApplication::GetInstance()->GetProgressManager();
 
   // Progress bar/button management
   pqProgressWidget* const progress_bar = new pqProgressWidget(this);
-  progress_manager->addNonBlockableObject(progress_bar);
-  progress_manager->addNonBlockableObject(progress_bar->abortButton());
 
   QObject::connect(
     progress_manager, SIGNAL(enableProgress(bool)), progress_bar, SLOT(enableProgress(bool)));
@@ -107,6 +103,7 @@ pqStatusBar::~pqStatusBar() = default;
 //-----------------------------------------------------------------------------
 void pqStatusBar::updateServerConfigInfo()
 {
+#if 0 // FIXME: ASYNC
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (!server)
   {
@@ -119,11 +116,13 @@ void pqStatusBar::updateServerConfigInfo()
   }
   session->GatherInformation(vtkPVSession::SERVERS, this->ServerConfigsInfo, 0);
   this->updateMemoryProgressBar();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqStatusBar::updateMemoryProgressBar()
 {
+#if 0 // FIXME: ASYNC
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (!server)
   {
@@ -195,4 +194,5 @@ void pqStatusBar::updateMemoryProgressBar()
     pqCoreUtilities::setPaletteHighlightToOk(palette);
   }
   this->MemoryProgressBar->setPalette(palette);
+#endif
 }

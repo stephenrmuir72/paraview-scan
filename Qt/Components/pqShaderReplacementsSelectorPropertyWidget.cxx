@@ -41,16 +41,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "pqApplicationCore.h"
-#include "pqFileDialog.h"
-#include "pqPipelineRepresentation.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqFileDialog.h"
+#include "pqDataRepresentation.h"
 #include "pqServerManagerModel.h"
 #include "pqShaderReplacementsComboBox.h"
 #include "pqTextEdit.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
 
-#include "vtkSMSettings.h"
+// #include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
 
@@ -131,8 +131,8 @@ pqShaderReplacementsSelectorPropertyWidget::~pqShaderReplacementsSelectorPropert
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::refreshView()
 {
-  pqServerManagerModel* smm = pqApplicationCore::instance()->getServerManagerModel();
-  pqPipelineRepresentation* repr = smm->findItem<pqPipelineRepresentation*>(proxy());
+  pqServerManagerModel* smm = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+  pqDataRepresentation* repr = smm->findItem<pqDataRepresentation*>(proxy());
   if (repr)
   {
     pqView* view = repr->getView();
@@ -191,6 +191,7 @@ void pqShaderReplacementsSelectorPropertyWidget::onPresetChanged(int index)
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::onLoad()
 {
+#if 0 // FIXME: ASYNC
   dynamic_cast<QToolButton*>(this->sender())->setChecked(false);
   // Popup load texture dialog.
   QString filters = "Shader replacements files (*.json);;All files (*)";
@@ -225,6 +226,7 @@ void pqShaderReplacementsSelectorPropertyWidget::onLoad()
       return;
     }
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -246,6 +248,7 @@ bool pqShaderReplacementsSelectorPropertyWidget::loadShaderReplacements(const QS
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::onDelete()
 {
+#if 0 // FIXME: ASYNC
   QVariant presetPath =
     this->Internal->ComboBox->itemData(this->Internal->ComboBox->currentIndex()).toString();
 
@@ -282,4 +285,5 @@ void pqShaderReplacementsSelectorPropertyWidget::onDelete()
   // Update the combobox
   this->Internal->ComboBox->populate();
   this->Internal->ComboBox->setCurrentIndex(0);
+#endif
 }

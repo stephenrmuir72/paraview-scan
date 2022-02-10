@@ -28,6 +28,7 @@ PRIVATE_DEPENDS
   VTK::vtksys
 TEST_DEPENDS
   ParaView::pqComponents
+  ParaView::pqApplicationComponents
   VTK::TestingCore
 OPTIONAL_DEPENDS
   # fixme: affects public API

@@ -33,10 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqQtDeprecated.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqPipelineFilter.h"
 #include "pqSettings.h"
-
+#include "vtkPVGUIApplication.h"
 #include "vtkSMProxy.h"
 
 #include <QDebug>
@@ -78,7 +77,7 @@ void pqAddToFavoritesReaction::addToFavorites(QAction* parent)
     return;
   }
 
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QString("favorites.%1/").arg("ParaViewFilters");
 
   vtkSMProxy* proxy = filter->getProxy();

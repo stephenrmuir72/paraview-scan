@@ -45,8 +45,5 @@ pqMasterOnlyReaction::pqMasterOnlyReaction(QAction* parentObject, Qt::Connection
 //-----------------------------------------------------------------------------
 void pqMasterOnlyReaction::updateEnableState()
 {
-  if (this->parentAction())
-  {
-    this->parentAction()->setEnabled(this->IsMaster);
-  }
+  this->parentAction()->setEnabled(true);
 }

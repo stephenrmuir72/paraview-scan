@@ -32,16 +32,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqColorEditorPropertyWidget.h"
 #include "ui_pqColorEditorPropertyWidget.h"
 
-#include "pqApplicationCore.h"
 #include "pqChooseColorPresetReaction.h"
 #include "pqDataRepresentation.h"
 #include "pqEditColorMapReaction.h"
 #include "pqEditScalarBarReaction.h"
 #include "pqPropertiesPanel.h"
-#include "pqResetScalarRangeReaction.h"
+// #include "pqResetScalarRangeReaction.h"
 #include "pqScalarBarVisibilityReaction.h"
 #include "pqServerManagerModel.h"
 #include "pqUseSeparateColorMapReaction.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMPropertyHelper.h"
 
 class pqColorEditorPropertyWidget::pqInternals
@@ -67,7 +67,7 @@ pqColorEditorPropertyWidget::pqColorEditorPropertyWidget(vtkSMProxy* smProxy, QW
   Ui.gridLayout->setVerticalSpacing(pqPropertiesPanel::suggestedVerticalSpacing());
 
   // Setup various widget properties.
-  pqServerManagerModel* smm = pqApplicationCore::instance()->getServerManagerModel();
+  pqServerManagerModel* smm = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqProxy* pqproxy = smm->findItem<pqProxy*>(smProxy);
   pqDataRepresentation* representation = qobject_cast<pqDataRepresentation*>(pqproxy);
   Ui.DisplayColorWidget->setRepresentation(representation);
@@ -106,7 +106,7 @@ pqColorEditorPropertyWidget::pqColorEditorPropertyWidget(vtkSMProxy* smProxy, QW
     new pqUseSeparateColorMapReaction(useSeparateColorMapAction, Ui.DisplayColorWidget, false);
   uscmr->setRepresentation(representation);
   this->connect(useSeparateColorMapAction, SIGNAL(changed()), SLOT(updateEnableState()));
-
+#if 0 // FIXME: ASYNC
   // reset range button
   QAction* resetRangeAction = new QAction(this);
   QObject::connect(Ui.Rescale, SIGNAL(clicked()), resetRangeAction, SLOT(trigger()));
@@ -126,6 +126,7 @@ pqColorEditorPropertyWidget::pqColorEditorPropertyWidget(vtkSMProxy* smProxy, QW
   rsrr = new pqResetScalarRangeReaction(
     resetTemporalRangeAction, false, pqResetScalarRangeReaction::TEMPORAL);
   rsrr->setRepresentation(representation);
+#endif
 
   // choose preset button.
   QAction* choosePresetAction = new QAction(this);

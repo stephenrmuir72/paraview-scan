@@ -35,13 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMessageBox>
 
-#include "pqApplicationCore.h"
-#include "pqLiveInsituManager.h"
+// #include "pqLiveInsituManager.h"
 #include "pqPipelineSource.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 
-#include "vtkSMLiveInsituLinkProxy.h"
+// #include "vtkSMLiveInsituLinkProxy.h"
 
 //-----------------------------------------------------------------------------
 pqSetBreakpointDialog::pqSetBreakpointDialog(QWidget* Parent)
@@ -51,8 +50,10 @@ pqSetBreakpointDialog::pqSetBreakpointDialog(QWidget* Parent)
   this->Ui->setupUi(this);
   this->setObjectName("pqSetBreakpointDialog");
   QObject::connect(this->Ui->ButtonBox, SIGNAL(accepted()), this, SLOT(onAccepted()));
+#if 0 // FIXME: ASYNC
   QObject::connect(
     pqLiveInsituManager::instance(), SIGNAL(timeUpdated()), this, SLOT(onTimeUpdated()));
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -64,6 +65,7 @@ pqSetBreakpointDialog::~pqSetBreakpointDialog()
 //-----------------------------------------------------------------------------
 void pqSetBreakpointDialog::onAccepted()
 {
+#if 0 // FIXME: ASYNC
   pqLiveInsituManager* server = pqLiveInsituManager::instance();
   QString timeString = this->Ui->BreakpointTime->text();
   bool ok = false;
@@ -92,14 +94,17 @@ void pqSetBreakpointDialog::onAccepted()
   message.setText("Breakpoint time is invalid or "
                   "it is smaller than current time");
   message.exec();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqSetBreakpointDialog::onTimeUpdated()
 {
+#if 0 // FIXME: ASYNC
   QString timeString = QString("%1").arg(pqLiveInsituManager::instance()->time());
   this->Ui->Time->setText(timeString);
 
   QString timeStepString = QString("%1").arg(pqLiveInsituManager::instance()->timeStep());
   this->Ui->TimeStep->setText(timeStepString);
+#endif
 }

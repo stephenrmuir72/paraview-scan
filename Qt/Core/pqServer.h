@@ -139,6 +139,11 @@ Q_SIGNALS:
    */
   void serverSideDisconnected();
 
+  /**
+   * Fired when proxy definitions are updated.
+   */
+  void proxyDefinitionsUpdated();
+
 protected Q_SLOTS:
   /**
    * Called by vtkSMSessionClient is any communication error occurred with the

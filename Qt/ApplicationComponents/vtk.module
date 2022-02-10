@@ -11,14 +11,14 @@ DEPENDS
   ParaView::qttesting
   VTK::GUISupportQt
 PRIVATE_DEPENDS
-  ParaView::RemotingAnimation
+  # ParaView::RemotingAnimation
   ParaView::RemotingApplication
-  ParaView::RemotingExport
-  ParaView::RemotingLive
-  ParaView::RemotingMisc
+  # ParaView::RemotingExport
+  # ParaView::RemotingLive
+  # ParaView::RemotingMisc
   ParaView::RemotingSettings
-  ParaView::RemotingViews
-  ParaView::VTKExtensionsFiltersRendering
+  ParaView::RemotingServerManagerViews
+  # ParaView::VTKExtensionsFiltersRendering
   VTK::IOCore
 OPTIONAL_DEPENDS
   ParaView::nvpipe
