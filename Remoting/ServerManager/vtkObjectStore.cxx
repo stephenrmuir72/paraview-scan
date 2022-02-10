@@ -92,6 +92,26 @@ vtkTypeUInt32 vtkObjectStore::GetID(const vtkObject* obj) const
 }
 
 //----------------------------------------------------------------------------
+void vtkObjectStore::UnregisterObjects()
+{
+  auto& internals = (*this->Internals);
+
+  std::unique_lock<std::mutex> lk(internals.ObjectMapMutex);
+  std::vector<vtkTypeUInt32> ids;
+  ids.reserve(internals.ObjectMap.size());
+  for (const auto& item : internals.ObjectMap)
+  {
+    ids.push_back(item.first);
+  }
+  lk.unlock();
+
+  for (auto id : ids)
+  {
+    this->UnregisterObject(id);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkObjectStore::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

@@ -51,6 +51,13 @@ public:
   void UnregisterObject(vtkTypeUInt32 gid);
 
   /**
+   * Unregister all objects
+   *
+   * This method is thread safe.
+   */
+  void UnregisterObjects();
+
+  /**
    * Find an object, given the id.
    *
    * This method is thread safe.

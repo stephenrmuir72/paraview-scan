@@ -42,7 +42,20 @@ public:
   {
   }
 
-  ~vtkInternals() { this->Subscription.unsubscribe(); }
+  ~vtkInternals()
+  {
+
+    // Employ the service's RunLoop to destroy all objects created by this
+    // service.  This is done in order to ensure that the (service) thread that
+    // created the objects is also the one to delete it.
+    auto* service = this->Self->GetService();
+    rxcpp::observable<>::just(1)
+      .observe_on(service->GetRunLoopScheduler())
+      .as_blocking()
+      .subscribe([this](int) { this->ObjectStore->UnregisterObjects(); });
+
+    this->Subscription.unsubscribe();
+  }
 
   void Preview(const vtkPacket& packet) {}
 
