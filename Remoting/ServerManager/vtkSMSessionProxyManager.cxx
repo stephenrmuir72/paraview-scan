@@ -50,7 +50,6 @@
 #include <sstream>
 #include <vector>
 
-
 //*****************************************************************************
 vtkStandardNewMacro(vtkSMSessionProxyManager);
 //---------------------------------------------------------------------------
@@ -79,7 +78,7 @@ void vtkSMSessionProxyManager::InstantiateGroupPrototypes(const char* groupName)
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
 
   auto* pdm = this->GetProxyDefinitionManager();
-  assert(pdm != 0);
+  assert(pdm != nullptr);
 
   // Find the XML elements from which the proxies can be instantiated and
   // initialized
