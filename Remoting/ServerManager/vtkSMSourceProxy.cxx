@@ -120,8 +120,8 @@ vtkSMSourceProxy::vtkSMSourceProxy()
   this->PInternals = new vtkSMSourceProxyInternals;
   this->DisableSelectionProxies = false;
   this->SelectionProxiesCreated = false;
-  this->NumberOfAlgorithmOutputPorts = VTK_UNSIGNED_INT_MAX;
-  this->NumberOfAlgorithmRequiredInputPorts = VTK_UNSIGNED_INT_MAX;
+  this->NumberOfAlgorithmOutputPorts = 0;
+  this->NumberOfAlgorithmRequiredInputPorts = 0;
   this->ProcessSupport = vtkSMSourceProxy::BOTH;
   this->MPIRequired = false;
 }
