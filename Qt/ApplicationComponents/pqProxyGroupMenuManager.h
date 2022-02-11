@@ -155,6 +155,7 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    * pqApplicationCore::loadXML()
    */
   void loadConfiguration(vtkPVXMLElement*);
+  void loadConfiguration(const QString& filename);
 
   /**
    * Look for new proxy definition to add inside the menu

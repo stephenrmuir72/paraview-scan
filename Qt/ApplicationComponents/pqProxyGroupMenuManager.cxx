@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
+#include "vtkPVXMLParser.h"
 #include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
@@ -216,6 +217,23 @@ void pqProxyGroupMenuManagerConvertLegacyXML(vtkPVXMLElement* root)
   }
 }
 };
+
+//-----------------------------------------------------------------------------
+void pqProxyGroupMenuManager::loadConfiguration(const QString& filename)
+{
+  QFile file(filename);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    return;
+  }
+
+  QTextStream in(&file);
+  const auto contents = in.readAll();
+  if (auto xml = vtkPVXMLParser::ParseXML(qPrintable(contents)))
+  {
+    this->loadConfiguration(xml);
+  }
+}
 
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::loadConfiguration(vtkPVXMLElement* root)

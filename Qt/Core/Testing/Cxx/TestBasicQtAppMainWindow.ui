@@ -34,8 +34,14 @@
      <string>&amp;Sources</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menu_Filters">
+    <property name="title">
+     <string>&amp;Filters</string>
+    </property>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Sources"/>
+   <addaction name="menu_Filters"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">

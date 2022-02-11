@@ -19,6 +19,7 @@
 #include "pqProgressWidget.h"
 #include "pqProxy.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqSourcesMenuReaction.h"
 #include "vtkCamera.h"
 #include "vtkClientSession.h"
 #include "vtkLogger.h"
@@ -104,9 +105,18 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   auto& internals = (*this->Internals);
   internals.Ui.setupUi(this);
 
-  auto* menuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
-  menuMgr->addProxyDefinitionUpdateListener("sources");
-  menuMgr->addProxy("sources", "SphereSource");
+  auto* sourceMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
+  sourceMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Sources.xml");
+  sourceMenuMgr->addProxyDefinitionUpdateListener("sources");
+  sourceMenuMgr->setRecentlyUsedMenuSize(10);
+  new pqSourcesMenuReaction(sourceMenuMgr);
+
+#if 0
+  auto* filtersMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Filters, "ParaViewFilters");
+  filtersMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Filters.xml");
+  filtersMenuMgr->addProxyDefinitionUpdateListener("filters");
+  filtersMenuMgr->setRecentlyUsedMenuSize(10);
+#endif
 
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);

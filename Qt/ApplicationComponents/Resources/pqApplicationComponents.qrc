@@ -12,5 +12,7 @@
     <file>Thumbnails/HotGasAnalysisExample.png</file>
     <file>Thumbnails/TosExample.png</file>
     <file>Thumbnails/WaveletExample.png</file>
+    <file>Menus/Sources.xml</file>
+    <file>Menus/Filters.xml</file>
   </qresource>
 </RCC>
