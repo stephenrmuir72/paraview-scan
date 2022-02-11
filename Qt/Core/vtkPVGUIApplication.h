@@ -25,8 +25,11 @@
 #include "vtkPVApplication.h"
 
 class pqInterfaceTracker;
+class pqObjectBuilder;
+class pqProgressManager;
 class pqRecentlyUsedResourcesList;
 class pqServerManagerModel;
+class pqServerManagerObserver;
 class pqSettings;
 class vtkPVGUIOptions;
 
@@ -71,9 +74,24 @@ public:
   pqServerManagerModel* GetServerManagerModel() const;
 
   /**
+   * Provides access to the server manager observer.
+   */
+  pqServerManagerObserver* GetServerManagerObserver() const;
+
+  /**
    * List of recently used resources.
    */
   pqRecentlyUsedResourcesList* GetRecentlyUsedResourcesList() const;
+
+  /**
+   * Provides access to the progress manager.
+   */
+  pqProgressManager* GetProgressManager() const;
+
+  /**
+   * Provides access to the object builder.
+   */
+  pqObjectBuilder* GetObjectBuilder() const;
 
 protected:
   vtkPVGUIApplication();

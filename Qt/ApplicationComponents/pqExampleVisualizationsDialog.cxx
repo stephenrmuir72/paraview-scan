@@ -2,10 +2,9 @@
 #include "ui_pqExampleVisualizationsDialog.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
-#include "pqLoadStateReaction.h"
-#include "vtkPVFileInformation.h"
+// #include "pqLoadStateReaction.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -43,7 +42,7 @@ pqExampleVisualizationsDialog::~pqExampleVisualizationsDialog()
 //-----------------------------------------------------------------------------
 void pqExampleVisualizationsDialog::onButtonPressed()
 {
-  QString dataPath(vtkPVFileInformation::GetParaViewExampleFilesDirectory().c_str());
+  QString dataPath(vtkPVGUIApplication::GetInstance()->GetExampleFilesDirectory().c_str());
   QPushButton* button = qobject_cast<QPushButton*>(sender());
   if (button)
   {
@@ -118,11 +117,13 @@ void pqExampleVisualizationsDialog::onButtonPressed()
 
       QString xmldata(qfile.readAll());
       xmldata.replace("$PARAVIEW_EXAMPLES_DATA", dataPath);
+#if 0 // FIXME: ASYNC
       pqApplicationCore::instance()->loadStateFromString(
         xmldata.toUtf8().data(), pqActiveObjects::instance().activeServer());
 
       // This is needed since XML state currently does not save active view.
       pqLoadStateReaction::activateView();
+#endif
     }
     else
     {

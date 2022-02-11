@@ -33,9 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqServer.h"
-#include "vtkPVProxyDefinitionIterator.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMSessionProxyManager.h"
 
 #include <QComboBox>
@@ -63,19 +62,16 @@ pqViewTypePropertyWidget::pqViewTypePropertyWidget(
   QMap<QString, QString> valuesMap; // <-- used to sort the entries.
   if (pxm)
   {
-    vtkPVProxyDefinitionIterator* iter =
-      pxm->GetProxyDefinitionManager()->NewSingleGroupIterator("views");
-    for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+    for (const auto& item : pxm->GetProxyDefinitionManager()->GetDefinitions("views"))
     {
       // add label instead of proxy name to make this more user friendly.
-      const char* proxyName = iter->GetProxyName();
-      vtkSMProxy* prototype = pxm->GetPrototypeProxy("views", proxyName);
+      const auto& proxyName = item.GetName();
+      vtkSMProxy* prototype = pxm->GetPrototypeProxy("views", proxyName.c_str());
       if (prototype)
       {
-        valuesMap.insert(prototype->GetXMLLabel(), iter->GetProxyName());
+        valuesMap.insert(prototype->GetXMLLabel(), prototype->GetXMLName());
       }
     }
-    iter->Delete();
 
     for (QMap<QString, QString>::iterator viter = valuesMap.begin(); viter != valuesMap.end();
          ++viter)

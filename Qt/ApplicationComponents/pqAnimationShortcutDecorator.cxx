@@ -33,12 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqAnimationShortcutWidget.h"
 #include "pqCoreUtilities.h"
-#include "pqDoubleVectorPropertyWidget.h"
-
 #include "vtkPVGeneralSettings.h"
 #include "vtkSMDoubleRangeDomain.h"
 #include "vtkSMIntRangeDomain.h"
-#include "vtkSMRepresentationProxy.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMVectorProperty.h"
 
@@ -74,10 +71,10 @@ bool pqAnimationShortcutDecorator::accept(pqPropertyWidget* parentWidget)
     // Test the property widget
     vtkSMVectorProperty* vp = vtkSMVectorProperty::SafeDownCast(parentWidget->property());
     vtkSMSourceProxy* source = vtkSMSourceProxy::SafeDownCast(parentWidget->proxy());
-    vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(parentWidget->proxy());
     // Its proxy should be a source, but not a representation.
     // Its property should be a VectorProperty of a single element
-    if (source && !repr && vp && vp->GetNumberOfElements() == 1 && vp->GetAnimateable())
+    if (source && strcmp(source->GetXMLGroup(), "sources") == 0 && vp &&
+      vp->GetNumberOfElements() == 1 && vp->GetAnimateable())
     {
       bool hasRange = true;
       vtkSMDomain* domain = vp->FindDomain<vtkSMDoubleRangeDomain>();

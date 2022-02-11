@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "pqDisplayColorWidget.h"
 
-#include "pqDataRepresentation.h"
+// #include "pqDataRepresentation.h"
 #include "pqPropertiesPanel.h"
 #include "pqPropertyLinks.h"
 #include "pqScalarsToColors.h"
@@ -44,12 +44,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVDataInformation.h"
 #include "vtkPVGeneralSettings.h"
 #include "vtkSMArrayListDomain.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMTrace.h"
-#include "vtkSMTransferFunctionManager.h"
-#include "vtkSMTransferFunctionProxy.h"
+// #include "vtkSMTransferFunctionManager.h"
+// #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkWeakPointer.h"
 
@@ -132,6 +132,7 @@ protected:
   /// Called to update the ServerManager Property due to UI change.
   void setServerManagerValue(bool use_unchecked, const QVariant& value) override
   {
+#if 0 // FIXME: ASYNC
     assert(use_unchecked == false);
     Q_UNUSED(use_unchecked);
 
@@ -183,11 +184,13 @@ protected:
       }
     }
     END_UNDO_SET();
+#endif
   }
 
   /// called to get the current value for the ServerManager Property.
   QVariant currentServerManagerValue(bool use_unchecked) const override
   {
+#if 0 // FIXME: ASYNC
     assert(use_unchecked == false);
     Q_UNUSED(use_unchecked);
     ValueType val;
@@ -199,6 +202,9 @@ protected:
       val.second = helper.GetInputArrayNameToProcess();
     }
     return this->convert(val);
+#else
+    return {};
+#endif
   }
 
   /// called to set the UI due to a ServerManager Property change.
@@ -285,25 +291,30 @@ pqDisplayColorWidget::~pqDisplayColorWidget()
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::renderActiveView()
 {
+#if 0 // FIXME: ASYNC
   if (this->Representation)
   {
     this->Representation->renderViewEventually();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 vtkSMViewProxy* pqDisplayColorWidget::viewProxy() const
 {
+#if 0 // FIXME: ASYNC
   if (this->Representation)
   {
     return this->Representation->getViewProxy();
   }
+#endif
   return nullptr;
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
 {
+#if 0 // FIXME: ASYNC
   if (this->CachedRepresentation == repr)
   {
     return;
@@ -362,6 +373,7 @@ void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
     this, "notused", SIGNAL(arraySelectionChanged()), proxy, prop);
 
   this->updateColorTransferFunction();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -544,6 +556,7 @@ void pqDisplayColorWidget::setComponentNumber(int val)
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::componentNumberChanged()
 {
+#if 0 // FIXME: ASYNC
   if (this->ColorTransferFunction)
   {
     BEGIN_UNDO_SET("Change color component");
@@ -578,11 +591,13 @@ void pqDisplayColorWidget::componentNumberChanged()
     // render all views since this could affect multiple views.
     pqApplicationCore::instance()->render();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::refreshComponents()
 {
+#if 0 // FIXME: ASYNC
   if (!this->Representation)
   {
     return;
@@ -635,11 +650,13 @@ void pqDisplayColorWidget::refreshComponents()
   }
   this->Components->blockSignals(prev);
   this->Components->setEnabled(this->Components->count() > 0);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::updateColorTransferFunction()
 {
+#if 0 // FIXME: ASYNC
   if (!this->Representation)
   {
     return;
@@ -659,6 +676,7 @@ void pqDisplayColorWidget::updateColorTransferFunction()
     this->connect(lut, SIGNAL(componentOrModeChanged()), SLOT(updateColorTransferFunction()),
       Qt::UniqueConnection);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

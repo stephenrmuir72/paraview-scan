@@ -35,20 +35,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAddToFavoritesReaction.h"
 #include "pqCoreUtilities.h"
 #include "pqManageFavoritesReaction.h"
-#include "pqPVApplicationCore.h"
 #include "pqQtDeprecated.h"
-#include "pqServerManagerModel.h"
 #include "pqSetData.h"
 #include "pqSetName.h"
 #include "pqSettings.h"
-#include "vtkPVProxyDefinitionIterator.h"
-#include "vtkPVXMLElement.h"
-#include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
-#include "vtkSMProxyManager.h"
-#include "vtkSMSessionProxyManager.h"
-
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVXMLElement.h"
+#include "vtkProxyDefinitionManager.h"
+#include "vtkSMProxy.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
 
 #include <QApplication>
@@ -92,8 +88,6 @@ public:
 
   typedef QMap<QString, CategoryInfo> CategoryInfoMap;
 
-  pqInternal() { this->LocalActiveSession = nullptr; }
-
   void addProxy(const QString& pgroup, const QString& pname, const QString& icon,
     const QString& omitFromToolbar = QString())
   {
@@ -128,11 +122,9 @@ public:
   // is the category path to access the favorite: category1;category2;...;filterName
   QList<QPair<QString, QString>> Favorites;
   QSet<QString> ProxyDefinitionGroupToListen;
-  QSet<unsigned long> CallBackIDs;
   QWidget Widget;
   QPointer<QAction> SearchAction;
-  unsigned long ProxyManagerCallBackId;
-  void* LocalActiveSession;
+  QPointer<pqServer> ActiveSession;
 
   QPointer<QMenu> RecentMenu;
   QPointer<QMenu> FavoritesMenu;
@@ -150,40 +142,29 @@ pqProxyGroupMenuManager::pqProxyGroupMenuManager(
   this->Enabled = true;
   this->EnableFavorites = false;
 
+#if 0 // FIXME: ASYNC
   QObject::connect(pqApplicationCore::instance(), SIGNAL(loadXML(vtkPVXMLElement*)), this,
     SLOT(loadConfiguration(vtkPVXMLElement*)));
-
-  QObject::connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(serverRemoved(pqServer*)), this, SLOT(removeProxyDefinitionUpdateObservers()));
-
-  QObject::connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(serverAdded(pqServer*)), this, SLOT(addProxyDefinitionUpdateObservers()));
+#endif
 
   QObject::connect(&pqActiveObjects::instance(), SIGNAL(serverChanged(pqServer*)), this,
-    SLOT(lookForNewDefinitions()));
-
-  this->Internal->ProxyManagerCallBackId =
-    pqCoreUtilities::connect(vtkSMProxyManager::GetProxyManager(),
-      vtkSMProxyManager::ActiveSessionChanged, this, SLOT(switchActiveServer()));
+    SLOT(switchActiveServer(pqServer*)));
 
   QObject::connect(this->menu(), SIGNAL(aboutToShow()), this, SLOT(updateMenuStyle()));
 
+#if 0 // FIXME: ASYNC
   // register with pqPVApplicationCore for quicklaunch, if enabled.
   auto* pvappcore = pqPVApplicationCore::instance();
   if (quickLaunchable && pvappcore)
   {
     pvappcore->registerForQuicklaunch(this->widgetActionsHolder());
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 pqProxyGroupMenuManager::~pqProxyGroupMenuManager()
 {
-  this->removeProxyDefinitionUpdateObservers();
-  if (vtkSMProxyManager::IsInitialized())
-  {
-    vtkSMProxyManager::GetProxyManager()->RemoveObserver(this->Internal->ProxyManagerCallBackId);
-  }
   delete this->Internal;
   this->Internal = nullptr;
 }
@@ -357,7 +338,7 @@ void pqProxyGroupMenuManager::populateRecentlyUsedMenu()
 void pqProxyGroupMenuManager::loadRecentlyUsedItems()
 {
   this->Internal->RecentlyUsed.clear();
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QString("recent.%1/").arg(this->ResourceTagName);
   if (settings->contains(key))
   {
@@ -378,7 +359,7 @@ void pqProxyGroupMenuManager::loadRecentlyUsedItems()
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::saveRecentlyUsedItems()
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QString("recent.%1/").arg(this->ResourceTagName);
   QString value;
   for (int cc = 0; cc < this->Internal->RecentlyUsed.size(); cc++)
@@ -485,7 +466,7 @@ QAction* pqProxyGroupMenuManager::getAddToCategoryAction(const QString& path)
 void pqProxyGroupMenuManager::loadFavoritesItems()
 {
   this->Internal->Favorites.clear();
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   QString key = QString("favorites.%1/").arg(this->ResourceTagName);
   if (settings->contains(key))
   {
@@ -625,7 +606,7 @@ void pqProxyGroupMenuManager::populateMenu()
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::updateMenuStyle()
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   bool sc = settings->value("GeneralSettings.ForceSingleColumnMenus", false).toBool();
   this->menu()->setStyleSheet(QString("QMenu { menu-scrollable: %1; }").arg(sc ? 1 : 0));
 
@@ -668,7 +649,7 @@ QAction* pqProxyGroupMenuManager::getAction(const QString& pgroup, const QString
   }
 
   vtkSMSessionProxyManager* pxm =
-    vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
+    this->Internal->ActiveSession ? this->Internal->ActiveSession->proxyManager() : nullptr;
   if (!pxm)
   {
     return nullptr;
@@ -760,10 +741,12 @@ void pqProxyGroupMenuManager::triggered()
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::quickLaunch()
 {
+#if 0 // FIXME: ASYNC
   if (this->supportsQuickLaunch() && pqPVApplicationCore::instance())
   {
     pqPVApplicationCore::instance()->quickLaunch();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -804,8 +787,7 @@ vtkSMProxy* pqProxyGroupMenuManager::getPrototype(QAction* action) const
   }
 
   QPair<QString, QString> key(data_list[0], data_list[1]);
-  vtkSMSessionProxyManager* pxm =
-    vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
+  vtkSMSessionProxyManager* pxm = this->Internal->ActiveSession->proxyManager();
   return pxm->GetPrototypeProxy(key.first.toUtf8().data(), key.second.toUtf8().data());
 }
 
@@ -903,75 +885,41 @@ void pqProxyGroupMenuManager::setEnabled(bool enable)
 void pqProxyGroupMenuManager::addProxyDefinitionUpdateListener(const QString& proxyGroupName)
 {
   this->Internal->ProxyDefinitionGroupToListen.insert(proxyGroupName);
-  this->removeProxyDefinitionUpdateObservers();
-  this->addProxyDefinitionUpdateObservers();
 }
 
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::removeProxyDefinitionUpdateListener(const QString& proxyGroupName)
 {
   this->Internal->ProxyDefinitionGroupToListen.remove(proxyGroupName);
-  this->removeProxyDefinitionUpdateObservers();
-  this->addProxyDefinitionUpdateObservers();
-}
-
-//-----------------------------------------------------------------------------
-void pqProxyGroupMenuManager::removeProxyDefinitionUpdateObservers()
-{
-  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-  Q_FOREACH (unsigned long callbackID, this->Internal->CallBackIDs)
-  {
-    pxm->RemoveObserver(callbackID);
-  }
-  this->Internal->CallBackIDs.clear();
-}
-//-----------------------------------------------------------------------------
-void pqProxyGroupMenuManager::addProxyDefinitionUpdateObservers()
-{
-  vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-
-  // Regular proxy
-  unsigned long callbackID = pxm->AddObserver(vtkSMProxyDefinitionManager::ProxyDefinitionsUpdated,
-    this, &pqProxyGroupMenuManager::lookForNewDefinitions);
-  this->Internal->CallBackIDs.insert(callbackID);
-
-  // compound proxy
-  callbackID = pxm->AddObserver(vtkSMProxyDefinitionManager::CompoundProxyDefinitionsUpdated, this,
-    &pqProxyGroupMenuManager::lookForNewDefinitions);
-  this->Internal->CallBackIDs.insert(callbackID);
-
-  // Look inside the definition
-  this->lookForNewDefinitions();
 }
 
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::lookForNewDefinitions()
 {
+  auto& internals = (*this->Internal);
+
   // Look inside the group name that are tracked
   vtkSMSessionProxyManager* pxm =
-    vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager();
+    internals.ActiveSession ? internals.ActiveSession->proxyManager() : nullptr;
 
-  if (this->Internal->ProxyDefinitionGroupToListen.empty() || pxm == nullptr)
+  if (internals.ProxyDefinitionGroupToListen.empty() || pxm == nullptr)
   {
     return; // Nothing to look into...
   }
-  vtkSMProxyDefinitionManager* pxdm = pxm->GetProxyDefinitionManager();
-
-  // Setup definition iterator
-  vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
-  iter.TakeReference(pxdm->NewIterator());
-  Q_FOREACH (QString groupName, this->Internal->ProxyDefinitionGroupToListen)
-  {
-    iter->AddTraversalGroupName(groupName.toUtf8().data());
-  }
+  auto* pxdm = pxm->GetProxyDefinitionManager();
 
   // Loop over proxy that should be inserted inside the UI
   QSet<QPair<QString, QString>> definitionSet;
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  for (const auto& item : pxdm->GetDefinitions())
   {
-    const char* group = iter->GetGroupName();
-    const char* name = iter->GetProxyName();
-    vtkPVXMLElement* hints = iter->GetProxyHints();
+    const std::string& group = item.GetGroup();
+    if (!internals.ProxyDefinitionGroupToListen.contains(group.c_str()))
+    {
+      continue;
+    }
+    const std::string& name = item.GetName();
+    auto* prototype = pxm->GetPrototypeProxy(group.c_str(), name.c_str());
+    vtkPVXMLElement* hints = prototype ? prototype->GetHints() : nullptr;
     if (hints != nullptr)
     {
       if (hints->FindNestedElementByName("ReaderFactory") != nullptr)
@@ -988,8 +936,8 @@ void pqProxyGroupMenuManager::lookForNewDefinitions()
           continue;
         }
 
-        definitionSet.insert(QPair<QString, QString>(group, name));
-        this->Internal->addProxy(group, name, showInMenu->GetAttribute("icon"));
+        definitionSet.insert(QPair<QString, QString>(group.c_str(), name.c_str()));
+        this->Internal->addProxy(group.c_str(), name.c_str(), showInMenu->GetAttribute("icon"));
         if (const char* categoryName = showInMenu->GetAttribute("category"))
         {
           pqInternal::CategoryInfo& category = this->Internal->Categories[categoryName];
@@ -1003,34 +951,41 @@ void pqProxyGroupMenuManager::lookForNewDefinitions()
           {
             category.ShowInToolbar = category.ShowInToolbar || (show_in_toolbar == 1);
           }
-          if (!category.Proxies.contains(QPair<QString, QString>(group, name)))
+          if (!category.Proxies.contains(QPair<QString, QString>(group.c_str(), name.c_str())))
           {
-            category.Proxies.push_back(QPair<QString, QString>(group, name));
+            category.Proxies.push_back(QPair<QString, QString>(group.c_str(), name.c_str()));
           }
         }
       }
     }
   }
+
   // Update the menu with the current definition
   this->populateMenu();
 }
-//-----------------------------------------------------------------------------
-void pqProxyGroupMenuManager::switchActiveServer()
-{
-  void* newActiveSession = vtkSMProxyManager::IsInitialized()
-    ? vtkSMProxyManager::GetProxyManager()->GetActiveSession()
-    : nullptr;
 
-  if (newActiveSession && newActiveSession != this->Internal->LocalActiveSession)
+//-----------------------------------------------------------------------------
+void pqProxyGroupMenuManager::switchActiveServer(pqServer* server)
+{
+  auto& internals = (*this->Internal);
+  if (internals.ActiveSession != server)
   {
-    // Make sure we don't clear the menu twice for the same server
-    this->Internal->LocalActiveSession = newActiveSession;
+    if (internals.ActiveSession)
+    {
+      this->disconnect(internals.ActiveSession);
+    }
+    internals.ActiveSession = server;
+    if (server)
+    {
+      this->connect(server, SIGNAL(proxyDefinitionsUpdated()), SLOT(lookForNewDefinitions()),
+        Qt::UniqueConnection);
+    }
 
     // Clear the QuickSearch QAction pool...
-    QList<QAction*> action_list = this->Internal->Widget.actions();
+    QList<QAction*> action_list = internals.Widget.actions();
     Q_FOREACH (QAction* action, action_list)
     {
-      this->Internal->Widget.removeAction(action);
+      internals.Widget.removeAction(action);
     }
 
     // Fill is back by updating the menu

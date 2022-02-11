@@ -32,16 +32,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystRemoveBreakpointReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqLiveInsituManager.h"
-#include "pqLiveInsituVisualizationManager.h"
+// #include "pqLiveInsituManager.h"
+// #include "pqLiveInsituVisualizationManager.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
-#include "vtkProcessModule.h"
-#include "vtkSMLiveInsituLinkProxy.h"
+// #include "vtkSMLiveInsituLinkProxy.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSession.h"
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -56,14 +53,18 @@ pqCatalystRemoveBreakpointReaction::pqCatalystRemoveBreakpointReaction(QAction* 
 //-----------------------------------------------------------------------------
 void pqCatalystRemoveBreakpointReaction::onTriggered()
 {
+#if 0 // FIXME: ASYNC
   pqLiveInsituManager::instance()->removeBreakpoint();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqCatalystRemoveBreakpointReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   pqLiveInsituManager* server = pqLiveInsituManager::instance();
   this->parentAction()->setEnabled(
     (server->linkProxy() && server->breakpointTime() != pqLiveInsituManager::INVALID_TIME) ? true
                                                                                            : false);
+#endif
 }

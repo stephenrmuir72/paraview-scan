@@ -46,6 +46,7 @@ set(classes
   vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation
+  vtkPVPythonInformation
   vtkPVServerApplication
   vtkPVServerOptions
   vtkPVSystemConfigInformation

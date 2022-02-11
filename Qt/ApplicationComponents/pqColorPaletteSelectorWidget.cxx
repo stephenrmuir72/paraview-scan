@@ -32,9 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqColorPaletteSelectorWidget.h"
 
 #include "vtkLogger.h"
-#include "vtkPVProxyDefinitionIterator.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSmartPointer.h"
@@ -58,7 +57,7 @@ pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
   vbox->setMargin(0);
 
   vtkSMSessionProxyManager* pxm = smproxy->GetSessionProxyManager();
-  vtkSMProxyDefinitionManager* pdmgr = pxm->GetProxyDefinitionManager();
+  auto* pdmgr = pxm->GetProxyDefinitionManager();
 
   QComboBox* cbbox = new QComboBox(this);
   cbbox->setObjectName("ComboBox");
@@ -81,14 +80,12 @@ pqColorPaletteSelectorWidget::pqColorPaletteSelectorWidget(
   }
 
   assert(pdmgr);
-  vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
-  iter.TakeReference(pdmgr->NewSingleGroupIterator("palettes"));
 
   // If there were any other available palettes, we append them in alphabetical order.
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  for (const auto& item : pdmgr->GetDefinitions("palettes"))
   {
-    vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", iter->GetProxyName());
-    if (std::find(mainPalettes.cbegin(), mainPalettes.cend(), iter->GetProxyName()) ==
+    vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", item.GetName().c_str());
+    if (std::find(mainPalettes.cbegin(), mainPalettes.cend(), item.GetName().c_str()) ==
       mainPalettes.cend())
     {
       cbbox->addItem(prototype->GetXMLLabel(), prototype->GetXMLName());

@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationComponentsModule.h"
 #include <QMenu>
 
+class pqServer;
 class vtkPVXMLElement;
 class vtkSMProxy;
 
@@ -161,16 +162,6 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void lookForNewDefinitions();
 
   /**
-   * Remove all ProxyDefinitionUpdate observers to active server
-   */
-  void removeProxyDefinitionUpdateObservers();
-
-  /**
-   * Update the list of ProxyDefinitionUpdate observers to  server
-   */
-  void addProxyDefinitionUpdateObservers();
-
-  /**
    * Enable/disable the menu and the actions.
    */
   void setEnabled(bool enable);
@@ -193,7 +184,7 @@ Q_SIGNALS:
 protected Q_SLOTS:
   void triggered();
   void quickLaunch();
-  void switchActiveServer();
+  void switchActiveServer(pqServer*);
   void updateMenuStyle();
 
   /**

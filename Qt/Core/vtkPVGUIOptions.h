@@ -62,6 +62,32 @@ public:
   void SetServerResourceName(const std::string& name);
   ///@}
 
+  ///@{
+  /**
+   * The baseline directory to use for image regression tests.
+   */
+  const std::string& GetBaselineDirectory() const;
+  void SetBaselineDirectory(const std::string& name);
+  ///@}
+
+  ///@{
+  /**
+   * The temporary directory to use for generating temporary files or test
+   * results.
+   */
+  const std::string& GetTestDirectory() const;
+  void SetTestDirectory(const std::string& name);
+  ///@}
+
+  ///@{
+  /**
+   * The data directory to use for generating temporary files or test
+   * results.
+   */
+  const std::string& GetDataDirectory() const;
+  void SetDataDirectory(const std::string& name);
+  ///@}
+
   void Populate(CLI::App& app) override;
 
 protected:

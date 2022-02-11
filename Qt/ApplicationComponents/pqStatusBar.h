@@ -61,7 +61,9 @@ protected Q_SLOTS:
   void updateMemoryProgressBar();
 
 protected:
+#if 0 // FIXME: ASYNC
   vtkNew<vtkPVSystemConfigInformation> ServerConfigsInfo;
+#endif
   QProgressBar* MemoryProgressBar;
 
 private:

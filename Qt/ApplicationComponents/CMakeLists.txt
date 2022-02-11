@@ -31,45 +31,85 @@
 set(classes
   pqAboutDialogReaction
   pqAddToFavoritesReaction
-  pqAlwaysConnectedBehavior
   pqAnimationShortcutDecorator
   pqAnimationShortcutWidget
-  pqAnimationTimeToolbar
   pqAnnotationsModel
   pqApplicationComponentsInit
-  pqApplicationSettingsReaction
-  pqApplyBehavior
   pqApplyPropertiesReaction
-  pqAutoApplyReaction
-  pqAutoLoadPluginXMLBehavior
-  pqAxesToolbar
   pqBackgroundEditorWidget
-  pqBlockContextMenu
   pqBoolPropertyWidgetDecorator
-  pqBoxPropertyWidget
-  pqCTHArraySelectionDecorator
-  pqCameraLinkReaction
   pqCameraManipulatorWidget
-  pqCameraReaction
-  pqCameraToolbar
-  pqCameraUndoRedoReaction
   pqCatalystConnectReaction
   pqCatalystExportReaction
   pqCatalystPauseSimulationReaction
   pqCatalystRemoveBreakpointReaction
   pqCatalystSetBreakpointReaction
-  pqCategoryToolbarsBehavior
-  pqChangePipelineInputReaction
-  pqChartSelectionReaction
+  pqCheckableProperty
   pqChooseColorPresetReaction
-  pqCollaborationBehavior
   pqColorAnnotationsPropertyWidget
   pqColorAnnotationsWidget
   pqColorEditorPropertyWidget
-  pqColorMapEditor
-  pqColorOpacityEditorWidget
   pqColorPaletteSelectorWidget
   pqColorSelectorPropertyWidget
+  pqCTHArraySelectionDecorator
+  pqDataAssemblyPropertyWidget
+  pqDesktopServicesReaction
+  pqDoubleRangeSliderPropertyWidget
+  pqEditColorMapReaction
+  pqEditScalarBarReaction
+  pqEnableWidgetDecorator
+  pqExampleVisualizationsDialog
+  pqExampleVisualizationsDialogReaction
+  pqFileListPropertyWidget
+  pqFileNamePropertyWidget
+  pqFontPropertyWidget
+  pqGenericPropertyWidgetDecorator
+  pqGlyphScaleFactorPropertyWidget
+  pqImageCompressorWidget
+  pqInputDataTypeDecorator
+  pqListPropertyWidget
+  pqManageFavoritesReaction
+  pqMasterOnlyReaction
+  pqMoleculePropertyWidget
+  pqOSPRayHidingDecorator
+  pqProxyGroupMenuManager
+  pqReaction
+  pqScalarBarVisibilityReaction
+  pqSelectionQueryPropertyWidget
+  pqSessionTypeDecorator
+  pqShowWidgetDecorator
+  pqSourcesMenuReaction
+  pqStandardPropertyWidgetInterface
+  pqStatusBar
+  pqTextLocationWidget
+  pqUseSeparateColorMapReaction
+  pqViewResolutionPropertyWidget
+  pqViewTypePropertyWidget
+  pqWelcomeDialog
+  pqYoungsMaterialPropertyWidget
+
+)
+
+set(old_classes
+  pqAlwaysConnectedBehavior
+  pqAnimationTimeToolbar
+  pqApplicationSettingsReaction
+  pqApplyBehavior
+  pqAutoApplyReaction
+  pqAutoLoadPluginXMLBehavior
+  pqAxesToolbar
+  pqBlockContextMenu
+  pqBoxPropertyWidget
+  pqCameraLinkReaction
+  pqCameraReaction
+  pqCameraToolbar
+  pqCameraUndoRedoReaction
+  pqCategoryToolbarsBehavior
+  pqChangePipelineInputReaction
+  pqChartSelectionReaction
+  pqCollaborationBehavior
+  pqColorOpacityEditorWidget
+  pqColorMapEditor
   pqColorTableModel
   pqColorToolbar
   pqCommandButtonPropertyWidget
@@ -80,45 +120,27 @@ set(classes
   pqCustomShortcutBehavior
   pqCustomizeShortcutsReaction
   pqCustomizeShortcutsDialog
-  pqCheckableProperty
   pqCoordinateFramePropertyWidget
   pqCustomViewpointsToolbar
   pqCylinderPropertyWidget
-  pqDataAssemblyPropertyWidget
   pqDataQueryReaction
   pqDataTimeStepBehavior
   pqDefaultContextMenu
-  pqDefaultMainWindow
   pqDefaultViewBehavior
   pqDeleteReaction
-  pqDesktopServicesReaction
   pqDisplaySizedImplicitPlanePropertyWidget
-  pqDoubleRangeSliderPropertyWidget
   pqEditCameraReaction
-  pqEditColorMapReaction
-  pqEditScalarBarReaction
-  pqEnableWidgetDecorator
-  pqExampleVisualizationsDialog
-  pqExampleVisualizationsDialogReaction
   pqExportReaction
   pqExtractorsMenuReaction
-  pqFileListPropertyWidget
-  pqFileNamePropertyWidget
   pqFiltersMenuReaction
   pqFindDataWidget
-  pqFontPropertyWidget
-  pqGenericPropertyWidgetDecorator
-  pqGlyphScaleFactorPropertyWidget
   pqHandlePropertyWidget
   pqIgnoreSourceTimeReaction
-  pqImageCompressorWidget
   pqImplicitPlanePropertyWidget
-  pqInputDataTypeDecorator
   pqInteractivePropertyWidget
   pqLightPropertyWidget
   pqLinePropertyWidget
   pqLinkSelectionReaction
-  pqListPropertyWidget
   pqLiveSourceBehavior
   pqLoadDataReaction
   pqLoadMaterialsReaction
@@ -131,18 +153,14 @@ set(classes
   pqMainControlsToolbar
   pqMainWindowEventBehavior
   pqManageCustomFiltersReaction
-  pqManageFavoritesReaction
   pqManageLinksReaction
   pqManagePluginsReaction
-  pqMasterOnlyReaction
   pqMenuReactionUtils
   pqModelTransformSupportBehavior
-  pqMoleculePropertyWidget
   pqMultiComponentsDecorator
   pqObjectPickingBehavior
   pqOMETransferFunctionsPropertyWidget
   pqOpacityTableModel
-  pqOSPRayHidingDecorator
   pqPVAnimationWidget
   pqPVApplicationCore
   pqParaViewBehaviors
@@ -157,8 +175,6 @@ set(classes
   pqPointPickingHelper
   pqPreviewMenuManager
   pqPropertyCollectionWidget
-  pqProxyGroupMenuManager
-  pqReaction
   pqReloadFilesReaction
   pqRenameProxyReaction
   pqRenderViewSelectionReaction
@@ -172,30 +188,22 @@ set(classes
   pqSaveExtractsReaction
   pqSaveScreenshotReaction
   pqSaveStateReaction
-  pqScalarBarVisibilityReaction
   pqSearchItemReaction
-  pqSelectionQueryPropertyWidget
   pqSelectionReaction
   pqSeriesEditorPropertyWidget
   pqServerConnectReaction
   pqServerDisconnectReaction
-  pqSessionTypeDecorator
   pqSetMainWindowTitleReaction
   pqShowHideAllReaction
-  pqShowWidgetDecorator
-  pqSourcesMenuReaction
   pqSpherePropertyWidget
   pqSplinePropertyWidget
   pqSpreadSheetViewDecorator
   pqSpreadSheetVisibilityBehavior
-  pqStandardPropertyWidgetInterface
   pqStandardRecentlyUsedResourceLoaderImplementation
   pqStandardViewFrameActionsImplementation
-  pqStatusBar
   pqStreamingTestingEventPlayer
   pqTemporalExportReaction
   pqTestingReaction
-  pqTextLocationWidget
   pqTimeInspectorWidget
   pqTimerLogReaction
   pqToggleInteractionViewMode
@@ -204,15 +212,11 @@ set(classes
   pqUndoRedoBehavior
   pqUndoRedoReaction
   pqUsageLoggingBehavior
-  pqUseSeparateColorMapReaction
   pqVCRToolbar
   pqVerifyRequiredPluginBehavior
   pqViewMenuManager
-  pqViewResolutionPropertyWidget
   pqViewStreamingBehavior
-  pqViewTypePropertyWidget
-  pqWelcomeDialog
-  pqYoungsMaterialPropertyWidget)
+)
 
 set_property(SOURCE pqApplicationComponentsInit.cxx APPEND
   PROPERTY
@@ -305,7 +309,7 @@ if (PARAVIEW_USE_QTHELP)
 
   # TODO: Split these into a separate module so that there isn't a public
   # optional dependency.
-  list(APPEND classes
+  list(APPEND old_classes
     pqHelpReaction
     pqPluginDocumentationBehavior)
 endif ()

@@ -29,7 +29,6 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
 #include "pqAnimationShortcutWidget.h"
 
 #include "pqActiveObjects.h"
@@ -39,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreUtilities.h"
 #include "pqKeyFrameEditor.h"
 #include "pqLineEdit.h"
-#include "pqPVApplicationCore.h"
 #include "pqSetName.h"
 #include "pqUndoStack.h"
 
@@ -74,11 +72,12 @@ pqAnimationShortcutWidget::pqAnimationShortcutWidget(
 
   QObject::connect(
     &pqActiveObjects::instance(), SIGNAL(serverChanged(pqServer*)), this, SLOT(updateMenu()));
-
+#if 0
   pqAnimationManager* mgr = pqPVApplicationCore::instance()->animationManager();
   QObject::connect(
     mgr, SIGNAL(activeSceneChanged(pqAnimationScene*)), this, SLOT(setScene(pqAnimationScene*)));
   this->setScene(mgr->getActiveScene());
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -87,6 +86,7 @@ pqAnimationShortcutWidget::~pqAnimationShortcutWidget() = default;
 //-----------------------------------------------------------------------------
 void pqAnimationShortcutWidget::setScene(pqAnimationScene* scene)
 {
+#if 0
   if (this->Scene)
   {
     QObject::disconnect(this->Scene, nullptr, this, nullptr);
@@ -97,11 +97,13 @@ void pqAnimationShortcutWidget::setScene(pqAnimationScene* scene)
     QObject::connect(scene, SIGNAL(cuesChanged()), this, SLOT(updateMenu()));
   }
   this->updateMenu();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqAnimationShortcutWidget::updateMenu()
 {
+#if 0
   QMenu* popupMenu = this->menu();
   assert(popupMenu);
 
@@ -130,11 +132,13 @@ void pqAnimationShortcutWidget::updateMenu()
     popupMenu->addAction(deleteAction);
     this->setIcon(QIcon(":/pqWidgets/Icons/pqRamp24.png"));
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqAnimationShortcutWidget::onTriggered(QAction* action)
 {
+#if 0
   if (!this->Scene)
   {
     return;
@@ -211,12 +215,13 @@ void pqAnimationShortcutWidget::onTriggered(QAction* action)
   {
     vtkSMPropertyHelper(this->Scene->getProxy(), "NumberOfFrames")
       .Set(animationLineEdit->text().toInt());
-    this->Scene->getProxy()->UpdateProperty("NumberOfFrames");
+    this->Scene->getProxy()->UpdateVTKObjects();
   }
   else if (mode == "Real Time")
   {
     vtkSMPropertyHelper(this->Scene->getProxy(), "Duration").Set(animationLineEdit->text().toInt());
-    this->Scene->getProxy()->UpdateProperty("Duration");
+    this->Scene->getProxy()->UpdateVTKObjects();
   }
   delete dialog;
+#endif
 }

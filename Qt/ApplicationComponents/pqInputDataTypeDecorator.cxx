@@ -31,15 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqInputDataTypeDecorator.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqPropertyWidget.h"
 #include "pqServerManagerModel.h"
-
 #include "vtkCommand.h"
 #include "vtkPVDataInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxy.h"
@@ -118,7 +117,7 @@ bool pqInputDataTypeDecorator::processState() const
   if (prop)
   {
     pqPipelineSource* source =
-      pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(
+      vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqPipelineSource*>(
         vtkSMUncheckedPropertyHelper(prop).GetAsProxy());
 
     if (!source)

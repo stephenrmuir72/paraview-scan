@@ -41,6 +41,7 @@ set(classes
   vtkPVGeometryFilter
   vtkPVLight
   vtkPVLODActor
+  vtkPVOpenGLInformation
   vtkPVProcessWindow
   vtkPVRecoverGeometryWireframe
   vtkPVRenderingCapabilitiesInformation

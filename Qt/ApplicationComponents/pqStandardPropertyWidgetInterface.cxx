@@ -34,23 +34,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAnimationShortcutDecorator.h"
 #include "pqArrayStatusPropertyWidget.h"
 #include "pqBackgroundEditorWidget.h"
-#include "pqBoxPropertyWidget.h"
+// #include "pqBoxPropertyWidget.h"
 #include "pqCTHArraySelectionDecorator.h"
 #include "pqCalculatorWidget.h"
 #include "pqCameraManipulatorWidget.h"
 #include "pqCheckableProperty.h"
 #include "pqColorAnnotationsPropertyWidget.h"
 #include "pqColorEditorPropertyWidget.h"
-#include "pqColorOpacityEditorWidget.h"
+// #include "pqColorOpacityEditorWidget.h"
 #include "pqColorPaletteSelectorWidget.h"
 #include "pqColorSelectorPropertyWidget.h"
-#include "pqCommandButtonPropertyWidget.h"
+// #include "pqCommandButtonPropertyWidget.h"
 #include "pqCompositePropertyWidgetDecorator.h"
-#include "pqCoordinateFramePropertyWidget.h"
-#include "pqCylinderPropertyWidget.h"
+// #include "pqCoordinateFramePropertyWidget.h"
+// #include "pqCylinderPropertyWidget.h"
 #include "pqDataAssemblyPropertyWidget.h"
-#include "pqDisplayRepresentationWidget.h"
-#include "pqDisplaySizedImplicitPlanePropertyWidget.h"
+// #include "pqDisplayRepresentationWidget.h"
+// #include "pqDisplaySizedImplicitPlanePropertyWidget.h"
 #include "pqDoubleRangeSliderPropertyWidget.h"
 #include "pqEnableWidgetDecorator.h"
 #include "pqFileListPropertyWidget.h"
@@ -58,33 +58,33 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqFontPropertyWidget.h"
 #include "pqGenericPropertyWidgetDecorator.h"
 #include "pqGlyphScaleFactorPropertyWidget.h"
-#include "pqHandlePropertyWidget.h"
+// #include "pqHandlePropertyWidget.h"
 #include "pqImageCompressorWidget.h"
-#include "pqImplicitPlanePropertyWidget.h"
+// #include "pqImplicitPlanePropertyWidget.h"
 #include "pqIndexSelectionWidget.h"
 #include "pqInputDataTypeDecorator.h"
 #include "pqInputSelectorWidget.h"
 #include "pqIntMaskPropertyWidget.h"
-#include "pqLightPropertyWidget.h"
-#include "pqLinePropertyWidget.h"
+// #include "pqLightPropertyWidget.h"
+// #include "pqLinePropertyWidget.h"
 #include "pqListPropertyWidget.h"
 #include "pqMoleculePropertyWidget.h"
-#include "pqMultiComponentsDecorator.h"
-#include "pqOMETransferFunctionsPropertyWidget.h"
+// #include "pqMultiComponentsDecorator.h"
+// #include "pqOMETransferFunctionsPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
-#include "pqPauseLiveSourcePropertyWidget.h"
-#include "pqPropertyCollectionWidget.h"
+// #include "pqPauseLiveSourcePropertyWidget.h"
+// #include "pqPropertyCollectionWidget.h"
 #include "pqProxyEditorPropertyWidget.h"
 #include "pqSelectionQueryPropertyWidget.h"
-#include "pqSeriesEditorPropertyWidget.h"
+// #include "pqSeriesEditorPropertyWidget.h"
 #include "pqSessionTypeDecorator.h"
 #include "pqShaderReplacementsSelectorPropertyWidget.h"
 #include "pqShowWidgetDecorator.h"
-#include "pqSpherePropertyWidget.h"
-#include "pqSplinePropertyWidget.h"
+// #include "pqSpherePropertyWidget.h"
+// #include "pqSplinePropertyWidget.h"
 #include "pqTextLocationWidget.h"
 #include "pqTextureSelectorPropertyWidget.h"
-#include "pqTransferFunctionWidgetPropertyWidget.h"
+// #include "pqTransferFunctionWidgetPropertyWidget.h"
 #include "pqViewResolutionPropertyWidget.h"
 #include "pqViewTypePropertyWidget.h"
 #include "pqYoungsMaterialPropertyWidget.h"
@@ -137,7 +137,11 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   }
   else if (name == "display_representation_selector")
   {
+#if 0 // FIXME: ASYNC
     return new pqDisplayRepresentationPropertyWidget(smProxy, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (name == "texture_selector")
   {
@@ -153,11 +157,19 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   }
   else if (name == "command_button")
   {
+#if 0 // FIXME: ASYNC
     return new pqCommandButtonPropertyWidget(smProxy, smProperty, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (name == "transfer_function_editor")
   {
+#if 0
     return new pqTransferFunctionWidgetPropertyWidget(smProxy, smProperty, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (name == "list")
   {
@@ -209,7 +221,11 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   }
   else if (name == "pause_livesource")
   {
+#if 0 // FIXME: ASYNC
     return new pqPauseLiveSourcePropertyWidget(smProxy, smProperty, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (name == "data_assembly_editor")
   {
@@ -257,7 +273,11 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   }
   else if (panelWidget == "ColorOpacityEditor")
   {
+#if 0 // FIXME: ASYNC
     return new pqColorOpacityEditorWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "AnnotationsEditor")
   {
@@ -269,7 +289,11 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   }
   else if (panelWidget == "SeriesEditor")
   {
+#if 0 // FIXME: ASYNC
     return new pqSeriesEditorPropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "MoleculeParameters")
   {
@@ -281,39 +305,75 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   }
   else if (panelWidget == "InteractivePlane")
   {
+#if 0
     return new pqDisplaySizedImplicitPlanePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractivePlane2")
   {
+#if 0 // FIXME: ASYNC
     return new pqImplicitPlanePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveFrame")
   {
+#if 0 // FIXME: ASYNC
     return new pqCoordinateFramePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveBox")
   {
+#if 0 // FIXME: ASYNC
     return new pqBoxPropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveHandle")
   {
+#if 0 // FIXME: ASYNC
     return new pqHandlePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveLine")
   {
+#if 0 // FIXME: ASYNC
     return new pqLinePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveSpline")
   {
+#if 0 // FIXME: ASYNC
     return new pqSplinePropertyWidget(proxy, group, pqSplinePropertyWidget::SPLINE, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveSphere")
   {
+#if 0 // FIXME: ASYNC
     return new pqSpherePropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractivePolyLine")
   {
+#if 0 // FIXME: ASYNC
     return new pqSplinePropertyWidget(proxy, group, pqSplinePropertyWidget::POLYLINE, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "YoungsMaterial")
   {
@@ -321,19 +381,35 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   }
   else if (panelWidget == "InteractiveCylinder")
   {
+#if 0 // FIXME: ASYNC
     return new pqCylinderPropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "InteractiveLight")
   {
+#if 0 // FIXME: ASYNC
     return new pqLightPropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "OMETransferFunctions")
   {
+#if 0 // FIMXE: ASYNC
     return new pqOMETransferFunctionsPropertyWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "PropertyCollection")
   {
+#if 0 // FIMXE: ASYNC
     return new pqPropertyCollectionWidget(proxy, group, parentWidget);
+#else
+    abort();
+#endif
   }
   else if (panelWidget == "DataAssemblyEditor")
   {
@@ -379,7 +455,11 @@ pqPropertyWidgetDecorator* pqStandardPropertyWidgetInterface::createWidgetDecora
   }
   if (type == "MultiComponentsDecorator")
   {
+#if 0 // FIXME: ASYNC
     return new pqMultiComponentsDecorator(config, widget);
+#else
+    abort();
+#endif
   }
   if (type == "CompositeDecorator")
   {

@@ -31,17 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqTextureComboBox.h"
 
-// ParaView Includes.
-#include "pqApplicationCore.h"
-#include "pqFileDialog.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqFileDialog.h"
 #include "pqServerManagerObserver.h"
-
-// Server Manager Includes.
 #include "vtkEventQtSlotConnect.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyGroupDomain.h"
-#include "vtkSMProxyManager.h"
 #include "vtkSMSessionProxyManager.h"
 
 // Qt Includes
@@ -60,7 +56,7 @@ pqTextureComboBox::pqTextureComboBox(vtkSMProxyGroupDomain* domain, QWidget* par
   // DomainModifiedEvent is never invoked by ProxyGroupDomain
   // https://gitlab.kitware.com/paraview/paraview/-/issues/19062
   // We have to monitor proxy creation
-  pqServerManagerObserver* observer = pqApplicationCore::instance()->getServerManagerObserver();
+  auto* observer = vtkPVGUIApplication::GetInstance()->GetServerManagerObserver();
   QObject::connect(observer, SIGNAL(proxyRegistered(const QString&, const QString&, vtkSMProxy*)),
     this, SLOT(proxyRegistered(const QString&, const QString&, vtkSMProxy*)));
   QObject::connect(observer, SIGNAL(proxyUnRegistered(const QString&, const QString&, vtkSMProxy*)),
@@ -140,6 +136,7 @@ void pqTextureComboBox::onCurrentIndexChanged(int index)
 //-----------------------------------------------------------------------------
 void pqTextureComboBox::loadTexture()
 {
+#if 0 // FIXME: ASYNC
   QString filters = "Image files (*.png *.jpg *.bmp *.ppm *.tiff *.hdr);;All files (*)";
   pqFileDialog dialog(nullptr, this, tr("Open Texture:"), QString(), filters);
   dialog.setObjectName("LoadTextureDialog");
@@ -156,6 +153,9 @@ void pqTextureComboBox::loadTexture()
     }
   }
   this->setCurrentIndex(0);
+#else
+  abort();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -166,6 +166,7 @@ bool pqTextureComboBox::loadTexture(const QString& filename)
   {
     return false;
   }
+#if 0 // FIXME: ASYNC
 
   // We must use the vtkSMProxyManager directly so the proxy has correct
   // registered names
@@ -180,4 +181,7 @@ bool pqTextureComboBox::loadTexture(const QString& filename)
   texture->Delete();
   this->updateFromTexture(texture);
   return true;
+#else
+  abort();
+#endif
 }

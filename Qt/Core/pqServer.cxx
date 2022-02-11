@@ -35,7 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "vtkPVServerInformation.h"
 #include "pqServerResource.h"
 #include "vtkClientSession.h"
+#include "vtkEventQtSlotConnect.h"
 #include "vtkPVApplication.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMSessionProxyManager.h"
 
 // Qt includes.
@@ -62,6 +64,10 @@ pqServer::pqServer(vtkClientSession* session, QObject* parentObject)
   auto& internals = *(this->Internals);
   internals.Session = session;
   internals.SessionID = vtkPVApplication::GetInstance()->GetSessionID(session);
+
+  auto* connector = this->getConnector();
+  connector->Connect(session->GetProxyManager(), vtkProxyDefinitionManager::ProxyDefinitionsUpdated,
+    this, SIGNAL(proxyDefinitionsUpdated()), nullptr, 0.0, Qt::QueuedConnection);
 
   // FIXME: ASYNC
   // how do we monitor when the connection termintes

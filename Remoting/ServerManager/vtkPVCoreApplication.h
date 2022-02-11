@@ -173,6 +173,22 @@ public:
    */
   static const char* GetParaViewSourceVersion();
 
+  /**
+   * Returns the path to the base data directory path holding various files
+   * packaged with ParaView.
+   */
+  virtual const std::string& GetSharedResourcesDirectory() const;
+
+  /**
+   * Return the path of the example data packaged with ParaView.
+   */
+  virtual const std::string& GetExampleFilesDirectory() const;
+
+  /**
+   * Return the path of the documents packaged with ParaView.
+   */
+  virtual const std::string& GetDocDirectory() const;
+
 protected:
   vtkPVCoreApplication(ApplicationTypes type);
   ~vtkPVCoreApplication() override;

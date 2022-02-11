@@ -32,17 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystSetBreakpointReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqLiveInsituManager.h"
-#include "pqLiveInsituVisualizationManager.h"
+// #include "pqLiveInsituManager.h"
+// #include "pqLiveInsituVisualizationManager.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqSetBreakpointDialog.h"
-#include "vtkProcessModule.h"
-#include "vtkSMLiveInsituLinkProxy.h"
+// #include "vtkSMLiveInsituLinkProxy.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSession.h"
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -75,5 +72,7 @@ void pqCatalystSetBreakpointReaction::onTriggered()
 //-----------------------------------------------------------------------------
 void pqCatalystSetBreakpointReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   this->parentAction()->setEnabled(pqLiveInsituManager::instance()->linkProxy() ? true : false);
+#endif
 }

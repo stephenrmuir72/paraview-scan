@@ -95,21 +95,19 @@ protected:
     pbstyle.initFrom(this);
     pbstyle.minimum = 0;
     pbstyle.progress = this->ShowProgress ? this->ProgressPercentage : 0;
-    pbstyle.maximum = 100;
+    pbstyle.maximum = 0;
     pbstyle.text = this->ShowProgress
       ? QString("%1 (%2%)").arg(this->text()).arg(this->ProgressPercentage)
       : this->text();
     pbstyle.textAlignment = this->alignment();
     pbstyle.rect = this->rect();
 
-    if (this->ShowProgress && this->ProgressPercentage > 0)
+    if (this->ShowProgress && this->ProgressPercentage >= 0)
     {
       // let's print the frame border etc.
       // note we're skipping QLabel code to avoid overlapping label text.
       this->QFrame::paintEvent(evt);
 
-      // we deliberately don't draw the progress bar groove to avoid a dramatic
-      // change in the progress bar.
       QPainter painter(this);
       pbstyle.textVisible = false;
       this->astyle()->drawControl(QStyle::CE_ProgressBarContents, &pbstyle, &painter, this);
@@ -150,6 +148,11 @@ pqProgressWidget::pqProgressWidget(QWidget* _parent /*=0*/)
   this->ProgressBar->setAlignment(Qt::AlignCenter);
   this->ProgressBar->setText(this->readyText());
   hbox->addWidget(this->ProgressBar, 1);
+
+  this->Timer.setSingleShot(false);
+  this->Timer.setInterval(250);
+
+  QObject::connect(&this->Timer, &QTimer::timeout, [this]() { this->updateUI(); });
 }
 
 //-----------------------------------------------------------------------------
@@ -204,6 +207,14 @@ void pqProgressWidget::enableProgress(bool enabled)
     if (changed)
     {
       this->updateUI();
+    }
+    if (enabled)
+    {
+      this->Timer.start();
+    }
+    else
+    {
+      this->Timer.stop();
     }
   }
 }

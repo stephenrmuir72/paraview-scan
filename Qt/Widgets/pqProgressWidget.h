@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef pqProgressWidget_h
 #define pqProgressWidget_h
 
-#include <QScopedPointer>
+#include <QTimer>
 #include <QWidget>
 
 #include "pqWidgetsModule.h"
@@ -125,6 +125,7 @@ Q_SIGNALS:
 protected:
   pqProgressWidgetLabel* ProgressBar;
   QToolButton* AbortButton;
+  QTimer Timer;
 
   /**
    * request Qt to paint the widgets.

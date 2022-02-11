@@ -29,6 +29,7 @@
 #
 #==========================================================================
 set(classes
+  pqAboutDialog
   pqAbstractItemSelectionModel
   pqActiveObjects
   pqArrayListDomain
@@ -37,6 +38,7 @@ set(classes
   pqArrayStatusPropertyWidget
   pqCalculatorWidget
   pqChangeInputDialog
+  pqColorChooserButtonWithPalettes
   pqColorOverlay
   pqComboBoxDomain
   pqCommandPropertyWidget
@@ -47,6 +49,7 @@ set(classes
   pqDataInformationModel
   pqDataInformationWidget
   pqDialog
+  pqDisplayColorWidget
   pqDockWindowInterface
   pqDoubleVectorPropertyWidget
   pqFavoritesDialog
@@ -91,11 +94,16 @@ set(classes
   pqSelectionAdaptor
   pqServerConfigurationImporter
   pqServerLauncher
+  pqSetBreakpointDialog
+  pqShaderReplacementsComboBox
+  pqShaderReplacementsSelectorPropertyWidget
   pqShortcutDecorator
   pqSignalAdaptorSelectionTreeWidget
   pqSignalAdaptorTreeWidget
   pqStringVectorPropertyWidget
   pqTabbedMultiViewWidget
+  pqTextureComboBox
+  pqTextureSelectorPropertyWidget
   pqToolBarInterface
   pqToolTipTrapper
   pqTriggerOnIdleHelper
@@ -105,7 +113,6 @@ set(classes
 )
 
 set(old_classes
-  pqAboutDialog
   pqActionGroupInterface
   pqAnimatablePropertiesComboBox
   pqAnimatableProxyComboBox
@@ -116,7 +123,6 @@ set(old_classes
   pqCameraDialog
   pqCameraKeyFrameWidget
   pqCollaborationPanel
-  pqColorChooserButtonWithPalettes
   pqComparativeCueWidget
   pqComparativeVisPanel
   pqComponentsTestUtility
@@ -125,7 +131,6 @@ set(old_classes
   pqCustomFilterManager
   pqCustomFilterManagerModel
   pqCustomViewpointButtonDialog
-  pqDisplayColorWidget
   pqDisplayRepresentationWidget
   pqFindDataCurrentSelectionFrame
   pqFindDataSelectionDisplayFrame
@@ -154,14 +159,9 @@ set(old_classes
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
-  pqSetBreakpointDialog
   pqSettingsDialog
   pqServerConnectDialog
-  pqShaderReplacementsComboBox
-  pqShaderReplacementsSelectorPropertyWidget
   pqSignalAdaptorKeyFrameType
-  pqTextureComboBox
-  pqTextureSelectorPropertyWidget
   pqTimerLogDisplay
   pqTransferFunctionWidget
   pqUndoStackBuilder

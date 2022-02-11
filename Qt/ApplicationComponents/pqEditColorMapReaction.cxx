@@ -32,11 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqEditColorMapReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqPipelineRepresentation.h"
+// #include "pqPipelineRepresentation.h"
 #include "pqUndoStack.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMTrace.h"
@@ -61,25 +60,32 @@ pqEditColorMapReaction::pqEditColorMapReaction(QAction* parentObject, bool track
 //-----------------------------------------------------------------------------
 void pqEditColorMapReaction::setRepresentation(pqDataRepresentation* repr)
 {
+#if 0 // FIXME: ASYNC
   this->Representation = qobject_cast<pqPipelineRepresentation*>(repr);
   this->updateEnableState();
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqEditColorMapReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   this->parentAction()->setEnabled(this->Representation != nullptr);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqEditColorMapReaction::onTriggered()
 {
+#if 0 // FIXME: ASYNC
   pqEditColorMapReaction::editColorMap(this->Representation);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqEditColorMapReaction::editColorMap(pqPipelineRepresentation* repr)
 {
+#if 0 // FIXME: ASYNC
   if (repr == nullptr)
   {
     repr =
@@ -144,4 +150,5 @@ void pqEditColorMapReaction::editColorMap(pqPipelineRepresentation* repr)
       qDebug("Failed to find 'COLOR_EDITOR_PANEL'.");
     }
   }
+#endif
 }

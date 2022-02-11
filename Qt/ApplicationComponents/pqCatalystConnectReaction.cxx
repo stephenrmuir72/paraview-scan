@@ -32,13 +32,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystConnectReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
+// #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqLiveInsituManager.h"
-#include "pqLiveInsituVisualizationManager.h"
+// #include "pqLiveInsituManager.h"
+// #include "pqLiveInsituVisualizationManager.h"
 #include "pqServer.h"
-#include "vtkProcessModule.h"
-#include "vtkSMSession.h"
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -58,6 +56,7 @@ pqCatalystConnectReaction::~pqCatalystConnectReaction() = default;
 //-----------------------------------------------------------------------------
 bool pqCatalystConnectReaction::connect()
 {
+#if 0 // FIXME: ASYNC
   pqLiveInsituManager* cs = pqLiveInsituManager::instance();
   pqServer* server = pqActiveObjects::instance().activeServer();
   pqLiveInsituVisualizationManager* mgr = cs->connect(server);
@@ -67,11 +66,15 @@ bool pqCatalystConnectReaction::connect()
     QObject::connect(mgr, SIGNAL(insituDisconnected()), this, SLOT(updateEnableState()));
   }
   return mgr;
+#else
+  return false;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqCatalystConnectReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (server && !pqLiveInsituManager::isInsituServer(server) &&
     !server->session()->IsMultiClients() &&
@@ -83,4 +86,5 @@ void pqCatalystConnectReaction::updateEnableState()
   {
     this->parentAction()->setEnabled(false);
   }
+#endif
 }

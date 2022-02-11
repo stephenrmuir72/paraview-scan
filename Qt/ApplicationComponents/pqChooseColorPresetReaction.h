@@ -144,7 +144,9 @@ private:
   Q_DISABLE_COPY(pqChooseColorPresetReaction)
   QPointer<pqDataRepresentation> Representation;
   vtkWeakPointer<vtkSMProxy> TransferFunctionProxy;
+#if 0 // FIXME: ASYNC
   static QPointer<pqPresetDialog> PresetDialog;
+#endif
   bool AllowsRegexpMatching;
 };
 

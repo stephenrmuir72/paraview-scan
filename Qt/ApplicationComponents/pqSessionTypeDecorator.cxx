@@ -32,10 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSessionTypeDecorator.h"
 
 #include "pqPropertyWidget.h"
+#include "vtkClientSession.h"
 #include "vtkLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProxy.h"
-#include "vtkSMSessionClient.h"
 
 //-----------------------------------------------------------------------------
 pqSessionTypeDecorator::pqSessionTypeDecorator(
@@ -54,20 +54,32 @@ pqSessionTypeDecorator::pqSessionTypeDecorator(
   const char* requires = config->GetAttributeOrEmpty("requires");
   if (strcmp(requires, "remote") == 0)
   {
-    condition_met = vtkSMSessionClient::SafeDownCast(session) != nullptr;
+    condition_met = session->GetIsRemote();
   }
   else if (strcmp(requires, "parallel") == 0)
   {
+#if 0 // FIXME: ASYNC
     condition_met =
       session->GetNumberOfProcesses(vtkPVSession::DATA_SERVER | vtkPVSession::RENDER_SERVER) > 1;
+#else
+    abort();
+#endif
   }
   else if (strcmp(requires, "parallel_data_server") == 0)
   {
+#if 0 // FIXME: ASYNC
     condition_met = session->GetNumberOfProcesses(vtkPVSession::DATA_SERVER) > 1;
+#else
+    abort();
+#endif
   }
   else if (strcmp(requires, "parallel_render_server") == 0)
   {
+#if 0 // FIXME: ASYNC
     condition_met = session->GetNumberOfProcesses(vtkPVSession::RENDER_SERVER) > 1;
+#else
+    abort();
+#endif
   }
   else
   {

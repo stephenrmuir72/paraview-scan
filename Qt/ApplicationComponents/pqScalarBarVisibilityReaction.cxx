@@ -32,14 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqScalarBarVisibilityReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqDataRepresentation.h"
-#include "pqRenderViewBase.h"
+// #include "pqDataRepresentation.h"
+// #include "pqRenderViewBase.h"
 #include "pqTimer.h"
 #include "pqUndoStack.h"
 #include "vtkAbstractArray.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMTransferFunctionProxy.h"
+// #include "vtkSMTransferFunctionProxy.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -76,9 +76,11 @@ pqScalarBarVisibilityReaction::~pqScalarBarVisibilityReaction()
 //-----------------------------------------------------------------------------
 void pqScalarBarVisibilityReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   pqDataRepresentation* cachedRepr = this->CachedRepresentation;
   this->setRepresentation(
     this->TrackActiveObjects ? pqActiveObjects::instance().activeRepresentation() : cachedRepr);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -90,6 +92,7 @@ pqDataRepresentation* pqScalarBarVisibilityReaction::representation() const
 //-----------------------------------------------------------------------------
 void pqScalarBarVisibilityReaction::setRepresentation(pqDataRepresentation* repr)
 {
+#if 0 // FIXME: ASYNC
   if (this->CachedRepresentation)
   {
     this->CachedRepresentation->disconnect(this->Timer);
@@ -134,11 +137,13 @@ void pqScalarBarVisibilityReaction::setRepresentation(pqDataRepresentation* repr
   parent_action->setEnabled(can_show_sb);
   parent_action->setChecked(is_shown);
   this->BlockSignals = false;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 vtkSMProxy* pqScalarBarVisibilityReaction::scalarBarProxy() const
 {
+#if 0 // FIXME: ASYNC
   pqDataRepresentation* repr = this->CachedRepresentation;
   vtkSMProxy* reprProxy = repr ? repr->getProxy() : nullptr;
   pqView* view = repr ? repr->getView() : nullptr;
@@ -147,6 +152,7 @@ vtkSMProxy* pqScalarBarVisibilityReaction::scalarBarProxy() const
     return vtkSMTransferFunctionProxy::FindScalarBarRepresentation(
       repr->getLookupTableProxy(), view->getProxy());
   }
+#endif
   return nullptr;
 }
 
@@ -157,6 +163,7 @@ void pqScalarBarVisibilityReaction::setScalarBarVisibility(bool visible)
   {
     return;
   }
+#if 0 // FIXME: ASYNC
 
   pqDataRepresentation* repr = this->CachedRepresentation;
   if (!repr)
@@ -189,4 +196,5 @@ void pqScalarBarVisibilityReaction::setScalarBarVisibility(bool visible)
     repr->getProxy(), repr->getView()->getProxy(), visible);
   END_UNDO_SET();
   repr->renderViewEventually();
+#endif
 }

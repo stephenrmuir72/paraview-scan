@@ -32,16 +32,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystPauseSimulationReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
-#include "pqLiveInsituManager.h"
-#include "pqLiveInsituVisualizationManager.h"
+// #include "pqLiveInsituManager.h"
+// #include "pqLiveInsituVisualizationManager.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
-#include "vtkProcessModule.h"
-#include "vtkSMLiveInsituLinkProxy.h"
+// #include "vtkSMLiveInsituLinkProxy.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSession.h"
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -56,6 +53,7 @@ pqCatalystPauseSimulationReaction::pqCatalystPauseSimulationReaction(QAction* pa
 //-----------------------------------------------------------------------------
 void pqCatalystPauseSimulationReaction::setPauseSimulation(bool pause)
 {
+#if 0 // FIXME: ASYNC
   vtkSMLiveInsituLinkProxy* proxy = pqLiveInsituManager::instance()->linkProxy();
   if (proxy)
   {
@@ -66,11 +64,13 @@ void pqCatalystPauseSimulationReaction::setPauseSimulation(bool pause)
       proxy->InvokeCommand("LiveChanged");
     }
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqCatalystPauseSimulationReaction::updateEnableState(Type type)
 {
+#if 0 // FIXME: ASYNC
   bool enabled = false;
   vtkSMLiveInsituLinkProxy* proxy = pqLiveInsituManager::instance()->linkProxy();
   if (proxy &&
@@ -79,4 +79,5 @@ void pqCatalystPauseSimulationReaction::updateEnableState(Type type)
     enabled = true;
   }
   this->parentAction()->setEnabled(enabled);
+#endif
 }

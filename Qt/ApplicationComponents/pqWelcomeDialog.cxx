@@ -1,12 +1,12 @@
 #include "pqWelcomeDialog.h"
 #include "ui_pqWelcomeDialog.h"
 
-#include "pqApplicationCore.h"
+#include "pqActiveObjects.h"
 #include "pqDesktopServicesReaction.h"
 #include "pqExampleVisualizationsDialog.h"
 #include "pqServer.h"
 #include "pqSettings.h"
-#include "vtkPVFileInformation.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSessionProxyManager.h"
 
@@ -39,7 +39,7 @@ pqWelcomeDialog::~pqWelcomeDialog()
 //-----------------------------------------------------------------------------
 void pqWelcomeDialog::onGettingStartedGuideClicked()
 {
-  QString documentationPath(vtkPVFileInformation::GetParaViewDocDirectory().c_str());
+  QString documentationPath(vtkPVGUIApplication::GetInstance()->GetDocDirectory().c_str());
   QString paraViewGettingStartedFile = documentationPath + "/GettingStarted.pdf";
   QUrl gettingStartedURL = QUrl::fromLocalFile(paraViewGettingStartedFile);
   if (pqDesktopServicesReaction::openUrl(gettingStartedURL))
@@ -62,10 +62,10 @@ void pqWelcomeDialog::onDoNotShowAgainStateChanged(int state)
 {
   bool showDialog = (state != Qt::Checked);
 
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   settings->setValue("GeneralSettings.ShowWelcomeDialog", showDialog ? 1 : 0);
 
-  pqServer* server = pqApplicationCore::instance()->getActiveServer();
+  pqServer* server = pqActiveObjects::instance().activeServer();
   if (!server)
   {
     qCritical("No active server available!");

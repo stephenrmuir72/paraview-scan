@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDataAssemblyTreeModel.h"
 #include "pqDoubleRangeDialog.h"
 #include "pqOutputPort.h"
-#include "pqPVApplicationCore.h"
 #include "pqPropertyLinks.h"
 #include "pqSelectionManager.h"
 #include "pqServerManagerModel.h"
@@ -55,7 +54,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSelectionHelper.h"
+// #include "vtkSMSelectionHelper.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSelection.h"
@@ -656,6 +656,7 @@ void hookupTableView(QTableView* view, TableModel* model, QAbstractButton* addBu
 // specified selectors.
 void selectBlocks(vtkSMOutputPort* producerPort, const std::set<std::string>& selectors)
 {
+#if 0 // FIXME: ASYNC
   auto producer = producerPort->GetSourceProxy();
 
   vtkNew<vtkSelection> selection;
@@ -679,10 +680,11 @@ void selectBlocks(vtkSMOutputPort* producerPort, const std::set<std::string>& se
     producer->SetSelectionInput(
       producerPort->GetPortIndex(), vtkSMSourceProxy::SafeDownCast(source), 0);
 
-    auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+    auto smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
     auto selManager = pqPVApplicationCore::instance()->selectionManager();
     selManager->select(smmodel->findItem<pqOutputPort*>(producerPort));
   }
+#endif
 }
 
 //=================================================================================
@@ -714,6 +716,8 @@ std::vector<std::string> getSelectors(vtkSMProxy* selectionSource, vtkDataAssemb
 void hookupActiveSelection(
   vtkSMProxy* repr, QItemSelectionModel* selectionModel, pqDataAssemblyTreeModel* model)
 {
+
+#if 0 // FIXME: ASYNC
   // This function handles hooking up the selectionModel to follow active selection
   // and vice-versa.
   selectionModel->setProperty("PQ_IGNORE_SELECTION_CHANGES", false);
@@ -797,6 +801,7 @@ void hookupActiveSelection(
   // ensure that the connection is destroyed with the selectionModel dies.
   QObject::connect(selectionModel, &QObject::destroyed,
     [connection, selManager]() { selManager->disconnect(connection); });
+#endif
 }
 
 //=================================================================================
@@ -1410,7 +1415,7 @@ void pqDataAssemblyPropertyWidget::updateDataAssembly(vtkObject* sender)
     auto port = inputHelper.GetOutputPort(0);
     if (proxy && proxy)
     {
-      auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+      auto smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
       auto pqport = smmodel->findItem<pqOutputPort*>(proxy->GetOutputPort(port));
       if (pqport)
       {

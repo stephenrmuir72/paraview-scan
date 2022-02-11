@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMDocumentation.h"
 #include "vtkSMDoubleRangeDomain.h"
 #include "vtkSMEnumerationDomain.h"
-#include "vtkSMPVMoleculeRepresentationProxy.h"
+// #include "vtkSMPVMoleculeRepresentationProxy.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"
@@ -113,12 +113,17 @@ pqMoleculePropertyWidget::pqMoleculePropertyWidget(
   this->addPropertyLink(ui.atomicRadiusArrayName, "AtomicRadiusArrayName");
   this->setDocumentationAsTooltip(prop, ui.atomicRadiusArrayName);
 
+#if 0 // FIXME: ASYNC
   auto molproxy = vtkSMPVMoleculeRepresentationProxy::SafeDownCast(smproxy);
   for (int i = vtkSMPVMoleculeRepresentationProxy::Preset::None;
        i < vtkSMPVMoleculeRepresentationProxy::Preset::NbOfPresets; i++)
   {
     ui.preset->addItem(molproxy->GetPresetDisplayName(i));
   }
+#else
+  abort();
+#endif
+
   QObject::connect(ui.preset, SIGNAL(currentIndexChanged(int)), this, SLOT(onPresetChanged(int)));
   ui.preset->setToolTip("Apply a preset to display properties, including advanced ones.");
 
@@ -191,12 +196,16 @@ void pqMoleculePropertyWidget::updateWidget(bool showing_advanced_properties)
 void pqMoleculePropertyWidget::onPresetChanged(int preset)
 {
   this->Internals->updatingFromPreset = true;
+#if 0 // FIXME: ASYNC
   auto molProxy = vtkSMPVMoleculeRepresentationProxy::SafeDownCast(this->proxy());
   if (molProxy)
   {
     molProxy->SetPreset(preset);
     Q_EMIT this->changeAvailable();
   }
+#else
+  abort();
+#endif
 
   this->Internals->updatingFromPreset = false;
 }
@@ -265,9 +274,11 @@ void pqMoleculePropertyWidget::resetPreset()
 {
   if (!this->Internals->updatingFromPreset)
   {
+#if 0 // FIXME: ASYNC
     auto molProxy = vtkSMPVMoleculeRepresentationProxy::SafeDownCast(this->proxy());
     int index = molProxy ? molProxy->GetCurrentPreset() : 0;
     this->Internals->Ui.preset->setCurrentIndex(index);
+#endif
   }
 }
 

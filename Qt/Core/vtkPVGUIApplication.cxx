@@ -15,6 +15,8 @@
 #include "vtkPVGUIApplication.h"
 
 #include "pqInterfaceTracker.h"
+#include "pqObjectBuilder.h"
+#include "pqProgressManager.h"
 #include "pqRecentlyUsedResourcesList.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
@@ -70,6 +72,8 @@ public:
   QScopedPointer<pqServerManagerObserver> ServerManagerObserver;
   QScopedPointer<pqServerManagerModel> ServerManagerModel;
   QScopedPointer<pqRecentlyUsedResourcesList> RecentlyUsedResourcesList;
+  QScopedPointer<pqProgressManager> ProgressManager;
+  QScopedPointer<pqObjectBuilder> ObjectBuilder;
 };
 
 vtkStandardNewMacro(vtkPVGUIApplication);
@@ -132,6 +136,9 @@ bool vtkPVGUIApplication::InitializeInternal()
   internals.ServerManagerObserver.reset(new pqServerManagerObserver());
   internals.ServerManagerModel.reset(
     new pqServerManagerModel(internals.ServerManagerObserver.get()));
+  internals.ObjectBuilder.reset(new pqObjectBuilder());
+
+  internals.ProgressManager.reset(new pqProgressManager());
   return true;
 }
 
@@ -160,10 +167,31 @@ pqServerManagerModel* vtkPVGUIApplication::GetServerManagerModel() const
 }
 
 //----------------------------------------------------------------------------
+pqServerManagerObserver* vtkPVGUIApplication::GetServerManagerObserver() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ServerManagerObserver.get();
+}
+
+//----------------------------------------------------------------------------
 pqRecentlyUsedResourcesList* vtkPVGUIApplication::GetRecentlyUsedResourcesList() const
 {
   const auto& internals = (*this->Internals);
   return internals.RecentlyUsedResourcesList.get();
+}
+
+//----------------------------------------------------------------------------
+pqProgressManager* vtkPVGUIApplication::GetProgressManager() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ProgressManager.get();
+}
+
+//----------------------------------------------------------------------------
+pqObjectBuilder* vtkPVGUIApplication::GetObjectBuilder() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ObjectBuilder.get();
 }
 
 //----------------------------------------------------------------------------

@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqShaderReplacementsComboBox.h"
 
 // Server Manager Includes.
-#include "vtkSMSettings.h"
+// #include "vtkSMSettings.h"
 
 // Qt Includes.
 #include <QDir>
@@ -75,6 +75,7 @@ void pqShaderReplacementsComboBox::populate()
   // Refresh the whole content of the combobox
   this->blockSignals(true);
   this->clear();
+#if 0 // FIXME: ASYNC
 
   // Get and process the preset paths saved in the user settings
   QString paths(
@@ -99,6 +100,9 @@ void pqShaderReplacementsComboBox::populate()
       }
     }
   }
+#else
+  abort();
+#endif
 
   this->blockSignals(false);
 }
