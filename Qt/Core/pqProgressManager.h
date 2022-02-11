@@ -37,11 +37,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory> // for std::unique_ptr
 
 /**
- * pqProgressManager is progress manager. It centralizes progress raising/
- * handling. Provides ability for any object to lock progress so that
- * only progress fired by itself will be notified to the rest of the world.
- * Also, when progress is enabled, it disables handling of mouse/key events
- * except on those objects in the NonBlockableObjects list.
+ * @class pqProgressManager
+ * @brief helper class to consolidate various progress notifications
+ *
+ * A ParaView client can receive a multitude of progress notifications. Each
+ * service can reports execution progress for algorithms executing on that
+ * service. Each session is connected to multiple services and there can be
+ * multiple sessions. This class makes it easy to consolidate progress events
+ * from various sources.
+ *
  */
 class PQCORE_EXPORT pqProgressManager : public QObject
 {

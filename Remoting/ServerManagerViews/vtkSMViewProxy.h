@@ -24,6 +24,7 @@
 #include "vtkRemotingServerManagerViewsModule.h" // for exports
 #include "vtkSMProxy.h"
 
+class vtkCamera;
 class vtkPacket;
 class vtkRenderWindow;
 class vtkSMSourceProxy;
@@ -41,6 +42,11 @@ public:
    * Provides access to the render window.
    */
   vtkRenderWindow* GetRenderWindow() const;
+
+  /**
+   * Return the camera.
+   */
+  vtkCamera* GetCamera() const;
 
   /**
    * Called by vtkProcessInitializer when a rendering result is available.
