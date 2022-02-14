@@ -21,11 +21,11 @@
 #ifndef vtkReflection_h
 #define vtkReflection_h
 
-#include "vtkLogger.h"                        // for vtkLogger
+#include "vtkLogger.h" // for vtkLogger
 #include "vtkObject.h"
 #include "vtkRemotingReflectionModule.h" // for exports
-#include "vtkSmartPointer.h"                  // for vtkSmartPointer
-#include "vtkVariant.h"                       // for vtkVariant
+#include "vtkSmartPointer.h"             // for vtkSmartPointer
+#include "vtkVariant.h"                  // for vtkVariant
 
 #include <algorithm>   //for std::transform
 #include <functional>  // for std::function
@@ -124,7 +124,7 @@ inline double variant_cast<double>(const vtkVariant& variant)
   double result = variant.ToDouble(&valid);
   if (!valid)
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast<double> : Invalid cast");
   }
   return result;
 }
@@ -137,7 +137,7 @@ inline bool variant_cast<bool>(const vtkVariant& variant)
   bool result = static_cast<bool>(variant.ToInt(&valid));
   if (!valid)
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast<bool> : Invalid cast");
   }
   return result;
 }
@@ -149,7 +149,7 @@ inline int32_t variant_cast<int32_t>(const vtkVariant& variant)
   int32_t result = variant.ToInt(&valid);
   if (!valid)
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast<int32_t> : invalid cast");
   }
   return result;
 }
@@ -161,7 +161,7 @@ inline int64_t variant_cast<int64_t>(const vtkVariant& variant)
   int64_t result = variant.ToTypeInt64(&valid);
   if (!valid)
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast<int64_t> :invalid cast");
   }
   return result;
 }
@@ -172,7 +172,7 @@ inline std::string variant_cast<std::string>(const vtkVariant& variant)
   std::string result = variant.ToString();
   if (result.empty())
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast<std::string> : invalid cast");
   }
   return result;
 }
@@ -187,7 +187,7 @@ inline T variant_cast_to_VTKObject(const vtkVariant& variant)
 
   if (!variant.IsVTKObject())
   {
-    throw std::runtime_error("invalid cast");
+    throw std::runtime_error("variant_cast_to_VTKObject : invalid cast");
   }
   using VTK_TYPE = typename std::remove_pointer<T>::type;
   return VTK_TYPE::SafeDownCast(variant.ToVTKObject());

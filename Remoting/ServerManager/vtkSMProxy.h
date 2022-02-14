@@ -799,6 +799,11 @@ protected:
   virtual void SetLogNameInternal(
     const char* name, bool propagate_to_subproxies, bool propagate_to_proxylistdomains);
 
+  /**
+   * Trigger an update for the domains of Proxies consuming data of this Proxy
+   */
+  void UpdateConsumerDomains();
+
   char* VTKClassName;
   char* XMLGroup;
   char* XMLName;

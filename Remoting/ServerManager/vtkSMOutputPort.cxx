@@ -246,6 +246,7 @@ void vtkSMOutputPort::PipelineUpdated()
       this->DataInformation->SetIsObsolete(false);
       // FIXME: need better named events
       this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
+      this->GetSourceProxy()->UpdateConsumerDomains();
     }
   });
 
