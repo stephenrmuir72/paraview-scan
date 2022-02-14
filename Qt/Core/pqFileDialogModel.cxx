@@ -41,22 +41,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMessageBox>
 #include <QStyle>
 
-#include <pqApplicationCore.h>
 #include <pqServer.h>
-#include <vtkClientServerStream.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkDirectory.h>
 #include <vtkPVFileInformation.h>
 #include <vtkPVFileInformationHelper.h>
-#include <vtkPVSession.h>
-#include <vtkSMDirectoryProxy.h>
+//#include <vtkSMDirectoryProxy.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
 #include <vtkSMSessionProxyManager.h>
-#include <vtkSMSettings.h>
+//#include <vtkSMSettings.h>
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringList.h>
@@ -281,6 +278,8 @@ private:
 
 bool getShowDetailedInformationSetting()
 {
+// FIX ASYNC see async/paraview#20
+#if 0
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   pqServer* server = pqApplicationCore::instance()->getActiveServer();
   vtkSMSessionProxyManager* pxm = server->proxyManager();
@@ -289,10 +288,14 @@ bool getShowDetailedInformationSetting()
   bool result = vtkSMPropertyHelper(helperProxy, "ReadDetailedFileInformation").GetAsInt() == 1;
   helperProxy->Delete();
   return result;
+#endif
+  return false;
 }
 
 void setShowDetailedInformationSetting(pqServer* server, bool show)
 {
+// FIX ASYNC see async/paraview#20
+#if 0
   if (!server)
   {
     server = pqApplicationCore::instance()->getActiveServer();
@@ -304,6 +307,7 @@ void setShowDetailedInformationSetting(pqServer* server, bool show)
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   settings->SetProxySettings(helperProxy);
   helperProxy->Delete();
+#endif
 }
 
 } // namespace
@@ -328,7 +332,7 @@ public:
       this->FileInformationHelperProxy = helper;
       helper->Delete();
       helper->UpdateVTKObjects();
-      helper->UpdatePropertyInformation();
+      helper->UpdateInformation();
       QString separator =
         pqSMAdaptor::getElementProperty(helper->GetProperty("PathSeparator")).toString();
       this->Separator = separator.toUtf8().data()[0];
@@ -700,6 +704,8 @@ bool pqFileDialogModel::fileExists(const QString& file, QString& fullpath)
 
 bool pqFileDialogModel::mkdir(const QString& dirName)
 {
+// FIX ASYNC
+#if 0
   QString path;
   QString dirPath = this->absoluteFilePath(dirName);
   if (this->dirExists(dirPath, path))
@@ -731,10 +737,14 @@ bool pqFileDialogModel::mkdir(const QString& dirName)
   this->endResetModel();
 
   return ret;
+#endif
+  return false;
 }
 
 bool pqFileDialogModel::rmdir(const QString& dirName)
 {
+// FIX ASYNC
+#if 0
   QString path;
   QString dirPath = this->absoluteFilePath(dirName);
   if (!this->dirExists(dirPath, path))
@@ -766,10 +776,14 @@ bool pqFileDialogModel::rmdir(const QString& dirName)
   this->endResetModel();
 
   return ret;
+#endif
+  return false;
 }
 
 bool pqFileDialogModel::rename(const QString& oldname, const QString& newname)
 {
+// FIX ASYNC
+#if 0
   QString oldPath = this->absoluteFilePath(oldname);
   QString newPath = this->absoluteFilePath(newname);
 
@@ -820,6 +834,8 @@ bool pqFileDialogModel::rename(const QString& oldname, const QString& newname)
   this->endResetModel();
 
   return ret;
+#endif
+  return false;
 }
 
 bool pqFileDialogModel::dirExists(const QString& path, QString& fullpath)

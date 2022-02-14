@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 
 #include "pqFileDialog.h"
-#include "pqApplicationCore.h"
 #include "pqFileDialogFavoriteModel.h"
 #include "pqFileDialogFilter.h"
 #include "pqFileDialogModel.h"
@@ -1443,6 +1442,8 @@ QString pqFileDialog::getSaveFileName(pqServer* server, QWidget* parentWdg, cons
 //-----------------------------------------------------------------------------
 void pqFileDialog::saveState()
 {
+// FIX ASYNC see async/paraview#20
+#if 0 
   auto& impl = *this->Implementation;
   pqApplicationCore* core = pqApplicationCore::instance();
   if (core)
@@ -1457,11 +1458,14 @@ void pqFileDialog::saveState()
     settings->setValue("Splitter", impl.Ui.splitter->saveState());
     settings->endGroup();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqFileDialog::restoreState()
 {
+// FIX ASYNC see async/paraview#20
+#if 0 
   auto& impl = *this->Implementation;
   pqApplicationCore* core = pqApplicationCore::instance();
   if (core)
@@ -1485,6 +1489,7 @@ void pqFileDialog::restoreState()
     }
     settings->endGroup();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -14,18 +14,13 @@
 =========================================================================*/
 #include "vtkPVFileInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkCollection.h"
 #include "vtkCollectionIterator.h"
 #include "vtkFileSequenceParser.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVFileInformationHelper.h"
-#include "vtkPVVersion.h"
-#include "vtkProcessModule.h"
-#include "vtkResourceFileLocator.h"
 #include "vtkSmartPointer.h"
-#include "vtkVersion.h"
 
 #if defined(_WIN32)
 #include <cstring>   // for strcasecmp
@@ -355,7 +350,7 @@ class vtkPVFileInformationSet : public std::set<vtkSmartPointer<vtkPVFileInforma
 //-----------------------------------------------------------------------------
 vtkPVFileInformation::vtkPVFileInformation()
 {
-  this->RootOnly = 1;
+  // this->RootOnly = 1;
   this->Contents = vtkCollection::New();
   this->SequenceParser = vtkFileSequenceParser::New();
   this->Type = INVALID;
@@ -1087,91 +1082,91 @@ void vtkPVFileInformation::OrganizeCollection(vtkPVFileInformationSet& info_set)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyToStream(vtkClientServerStream* stream)
-{
-  *stream << vtkClientServerStream::Reply << this->Name << this->FullPath << this->Type
-          << this->Hidden << this->Contents->GetNumberOfItems() << this->Extension << this->Size
-          << this->ModificationTime;
-
-  vtkSmartPointer<vtkCollectionIterator> iter;
-  iter.TakeReference(this->Contents->NewIterator());
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
-  {
-    vtkClientServerStream childStream;
-    vtkPVFileInformation* child = vtkPVFileInformation::SafeDownCast(iter->GetCurrentObject());
-    child->CopyToStream(&childStream);
-    *stream << childStream;
-  }
-  *stream << vtkClientServerStream::End;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyFromStream(const vtkClientServerStream* css)
-{
-  this->Initialize();
-  const char* temp = nullptr;
-  if (!css->GetArgument(0, 0, &temp))
-  {
-    vtkErrorMacro("Error parsing Name.");
-    return;
-  }
-  this->SetName(temp);
-
-  if (!css->GetArgument(0, 1, &temp))
-  {
-    vtkErrorMacro("Error parsing FullPath.");
-    return;
-  }
-  this->SetFullPath(temp);
-
-  if (!css->GetArgument(0, 2, &this->Type))
-  {
-    vtkErrorMacro("Error parsing Type.");
-    return;
-  }
-
-  if (!css->GetArgument(0, 3, &this->Hidden))
-  {
-    vtkErrorMacro("Error parsing Hidden.");
-    return;
-  }
-
-  int num_of_children = 0;
-  if (!css->GetArgument(0, 4, &num_of_children))
-  {
-    vtkErrorMacro("Error parsing Number of children.");
-    return;
-  }
-  if (!css->GetArgument(0, 5, &temp))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  this->SetExtension(temp);
-  if (!css->GetArgument(0, 6, &this->Size))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  if (!css->GetArgument(0, 7, &this->ModificationTime))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  for (int cc = 0; cc < num_of_children; cc++)
-  {
-    vtkPVFileInformation* child = vtkPVFileInformation::New();
-    vtkClientServerStream childStream;
-    if (!css->GetArgument(0, 8 + cc, &childStream))
-    {
-      vtkErrorMacro("Error parsing child #" << cc);
-      return;
-    }
-    child->CopyFromStream(&childStream);
-    this->Contents->AddItem(child);
-    child->Delete();
-  }
-}
+// void vtkPVFileInformation::CopyToStream(vtkClientServerStream* stream)
+//{
+//  *stream << vtkClientServerStream::Reply << this->Name << this->FullPath << this->Type
+//          << this->Hidden << this->Contents->GetNumberOfItems() << this->Extension << this->Size
+//          << this->ModificationTime;
+//
+//  vtkSmartPointer<vtkCollectionIterator> iter;
+//  iter.TakeReference(this->Contents->NewIterator());
+//  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+//  {
+//    vtkClientServerStream childStream;
+//    vtkPVFileInformation* child = vtkPVFileInformation::SafeDownCast(iter->GetCurrentObject());
+//    child->CopyToStream(&childStream);
+//    *stream << childStream;
+//  }
+//  *stream << vtkClientServerStream::End;
+//}
+//
+////-----------------------------------------------------------------------------
+// void vtkPVFileInformation::CopyFromStream(const vtkClientServerStream* css)
+//{
+//  this->Initialize();
+//  const char* temp = nullptr;
+//  if (!css->GetArgument(0, 0, &temp))
+//  {
+//    vtkErrorMacro("Error parsing Name.");
+//    return;
+//  }
+//  this->SetName(temp);
+//
+//  if (!css->GetArgument(0, 1, &temp))
+//  {
+//    vtkErrorMacro("Error parsing FullPath.");
+//    return;
+//  }
+//  this->SetFullPath(temp);
+//
+//  if (!css->GetArgument(0, 2, &this->Type))
+//  {
+//    vtkErrorMacro("Error parsing Type.");
+//    return;
+//  }
+//
+//  if (!css->GetArgument(0, 3, &this->Hidden))
+//  {
+//    vtkErrorMacro("Error parsing Hidden.");
+//    return;
+//  }
+//
+//  int num_of_children = 0;
+//  if (!css->GetArgument(0, 4, &num_of_children))
+//  {
+//    vtkErrorMacro("Error parsing Number of children.");
+//    return;
+//  }
+//  if (!css->GetArgument(0, 5, &temp))
+//  {
+//    vtkErrorMacro("Error parsing File extension.");
+//    return;
+//  }
+//  this->SetExtension(temp);
+//  if (!css->GetArgument(0, 6, &this->Size))
+//  {
+//    vtkErrorMacro("Error parsing File extension.");
+//    return;
+//  }
+//  if (!css->GetArgument(0, 7, &this->ModificationTime))
+//  {
+//    vtkErrorMacro("Error parsing File extension.");
+//    return;
+//  }
+//  for (int cc = 0; cc < num_of_children; cc++)
+//  {
+//    vtkPVFileInformation* child = vtkPVFileInformation::New();
+//    vtkClientServerStream childStream;
+//    if (!css->GetArgument(0, 8 + cc, &childStream))
+//    {
+//      vtkErrorMacro("Error parsing child #" << cc);
+//      return;
+//    }
+//    child->CopyFromStream(&childStream);
+//    this->Contents->AddItem(child);
+//    child->Delete();
+//  }
+//}
 
 //-----------------------------------------------------------------------------
 void vtkPVFileInformation::Initialize()
@@ -1192,41 +1187,37 @@ void vtkPVFileInformation::Initialize()
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewSharedResourcesDirectory()
+vtkJson vtkPVFileInformation::SaveState() const
 {
-  // Look for where the function "GetVTKVersion." lives.
-  auto vtk_libs = vtkGetLibraryPathForSymbol(GetVTKVersion);
 
-  // Where docs might be in relation to the executable
-  std::vector<std::string> prefixes = {
-#if defined(_WIN32) || defined(__APPLE__)
-    ".."
-#else
-    "share/paraview-" PARAVIEW_VERSION
-#endif
-  };
-
-  // Search for the docs directory
-  vtkNew<vtkResourceFileLocator> locator;
-  auto resource_dir = locator->Locate(vtk_libs, prefixes, "doc");
-  if (!resource_dir.empty())
-  {
-    resource_dir = vtksys::SystemTools::CollapseFullPath(resource_dir);
-  }
-
-  return resource_dir;
+  return vtkJson();
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewExampleFilesDirectory()
+bool vtkPVFileInformation::LoadState(const vtkJson& state)
 {
-  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/examples";
+  return false;
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewDocDirectory()
+bool vtkPVFileInformation::GatherInformation(vtkObject* target)
 {
-  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/doc";
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVFileInformation::AddInformation(vtkPVInformation* other) {}
+
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::LoadInformation(const vtkJson& json)
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+vtkJson vtkPVFileInformation::SaveInformation() const
+{
+  return vtkJson();
 }
 
 //-----------------------------------------------------------------------------

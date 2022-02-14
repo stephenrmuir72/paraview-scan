@@ -28,7 +28,7 @@
 #define vtkPVFileInformation_h
 
 #include "vtkPVInformation.h"
-#include "vtkRemotingCoreModule.h" //needed for exports
+#include "vtkRemotingServerManagerModule.h" //needed for exports
 
 #include <string> // Needed for std::string
 
@@ -36,7 +36,7 @@ class vtkCollection;
 class vtkPVFileInformationSet;
 class vtkFileSequenceParser;
 
-class VTKREMOTINGCORE_EXPORT vtkPVFileInformation : public vtkPVInformation
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkPVFileInformation : public vtkPVInformation
 {
 public:
   static vtkPVFileInformation* New();
@@ -47,14 +47,42 @@ public:
    * Transfer information about a single object into this object.
    * The object must be a vtkPVFileInformationHelper.
    */
-  void CopyFromObject(vtkObject* object) override;
+  void CopyFromObject(vtkObject* object);
+
+  ///@{
+  /**
+   * Save/load state of the information object. This is not the meta-data
+   * gather, but the options that dictate how the meta-data is gather,
+   * if any.
+   */
+  vtkJson SaveState() const override;
+  bool LoadState(const vtkJson& state) override;
+  ///@}
+
+  /**
+   * Gather information from the target.
+   */
+  bool GatherInformation(vtkObject* target) override;
+
+  /**
+   * Used to merge information between ranks in a distributed configuration.
+   */
+  void AddInformation(vtkPVInformation* other) override;
+
+  ///@{
+  /**
+   * Save/load information / meta-data gathered.
+   */
+  bool LoadInformation(const vtkJson& json) override;
+  vtkJson SaveInformation() const override;
+  ///@}
 
   //@{
   /**
    * Manage a serialized version of the information.
    */
-  void CopyToStream(vtkClientServerStream*) override;
-  void CopyFromStream(const vtkClientServerStream*) override;
+  // void CopyToStream(vtkClientServerStream*) override;
+  // void CopyFromStream(const vtkClientServerStream*) override;
   //@}
 
   enum FileTypes
@@ -162,22 +190,6 @@ public:
   vtkGetMacro(Size, long long);
   vtkGetMacro(ModificationTime, time_t);
   //@}
-
-  /**
-   * Returns the path to the base data directory path holding various files
-   * packaged with ParaView.
-   */
-  static std::string GetParaViewSharedResourcesDirectory();
-
-  /**
-   * Return the path of the example data packaged with ParaView.
-   */
-  static std::string GetParaViewExampleFilesDirectory();
-
-  /**
-   * Return the path of the documents packaged with ParaView.
-   */
-  static std::string GetParaViewDocDirectory();
 
 protected:
   vtkPVFileInformation();

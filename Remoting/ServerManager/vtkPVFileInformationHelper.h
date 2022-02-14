@@ -29,11 +29,11 @@
 #define vtkPVFileInformationHelper_h
 
 #include "vtkObject.h"
-#include "vtkRemotingCoreModule.h" //needed for exports
+#include "vtkRemotingServerManagerModule.h" //needed for exports
 
 #include <string> // needed for std::string
 
-class VTKREMOTINGCORE_EXPORT vtkPVFileInformationHelper : public vtkObject
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkPVFileInformationHelper : public vtkObject
 {
 public:
   static vtkPVFileInformationHelper* New();

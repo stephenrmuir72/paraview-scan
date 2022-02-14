@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QObject>
 
 #include "vtkPVFileInformation.h"
-class vtkProcessModule;
 class pqServer;
 class QModelIndex;
 

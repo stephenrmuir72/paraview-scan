@@ -37,19 +37,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDir>
 #include <QFont>
 #include <QStyle>
-#include <pqApplicationCore.h>
 #include <pqCoreConfiguration.h>
 #include <pqFileDialogModel.h>
 #include <pqServer.h>
 #include <pqServerConfiguration.h>
 #include <pqServerResource.h>
 #include <pqSettings.h>
-#include <vtkClientServerStream.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkPVFileInformation.h>
 #include <vtkPVFileInformationHelper.h>
-#include <vtkProcessModule.h>
+#include <vtkPVGUIApplication.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMProxy.h>
 #include <vtkSMSessionProxyManager.h>
@@ -73,11 +71,11 @@ pqFileDialogFavoriteModel::pqFileDialogFavoriteModel(pqServer* server, QObject* 
   this->Server = server;
   // We need to determine the URI for this server to get the list of favorites directories
   // from the pqSettings. If server==nullptr, we use the "builtin:" resource.
-  pqServerResource resource = server ? server->getResource() : pqServerResource("builtin:");
+  pqServerResource resource = server ? server->resource() : pqServerResource("builtin:");
 
   QString uri = resource.configuration().URI();
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqSettings* settings = core->settings();
+  vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+  pqSettings* settings = core->GetSettings();
 
   QString key = QString("UserFavorites/%1").arg(uri);
   if (settings->contains(key))
@@ -101,8 +99,8 @@ pqFileDialogFavoriteModel::pqFileDialogFavoriteModel(pqServer* server, QObject* 
 //-----------------------------------------------------------------------------
 pqFileDialogFavoriteModel::~pqFileDialogFavoriteModel()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqSettings* settings = core->settings();
+  vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+  pqSettings* settings = core->GetSettings();
   if (settings)
   {
     QVariantList favoriteListVariant;
@@ -142,6 +140,7 @@ QVariant pqFileDialogFavoriteModel::data(const QModelIndex& idx, int role) const
     return QVariant();
   }
 
+  const auto* app = vtkPVCoreApplication::GetInstance();
   const pqFileDialogFavoriteModelFileInfo& file = this->FavoriteList[idx.row()];
   auto filePath = file.FilePath;
   // If it is the Examples dir placeholder, replace it with the real path to the examples.
@@ -150,7 +149,7 @@ QVariant pqFileDialogFavoriteModel::data(const QModelIndex& idx, int role) const
     // FIXME when the shared resources dir is not found, this is equal to `/examples`. This might be
     // confusing for people without the `Examples` directory (mostly ParaView devs). This directory
     // can be hidden by setting the `AddExamplesInFavoritesBehavior` to `false`.
-    filePath = QString::fromStdString(vtkPVFileInformation::GetParaViewExampleFilesDirectory());
+    filePath = QString::fromStdString(app->GetExampleFilesDirectory());
   }
   switch (role)
   {
@@ -263,10 +262,10 @@ void pqFileDialogFavoriteModel::addToFavorites(QString const& dirPath)
 //-----------------------------------------------------------------------------
 void pqFileDialogFavoriteModel::removeFromFavorites(QString const& dirPath)
 {
+  const auto* app = vtkPVCoreApplication::GetInstance();
   QString cleanDirPath = QDir::cleanPath(QFileInfo(dirPath).absoluteFilePath());
   // Check if this is the Examples directory, because it is not stored like the other directories
-  if (cleanDirPath ==
-    QString::fromStdString(vtkPVFileInformation::GetParaViewExampleFilesDirectory()))
+  if (cleanDirPath == QString::fromStdString(app->GetExampleFilesDirectory()))
   {
     cleanDirPath = "_examples_path_";
   }
