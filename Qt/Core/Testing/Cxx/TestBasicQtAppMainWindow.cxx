@@ -15,10 +15,13 @@
 #include "TestBasicQtAppMainWindow.h"
 #include "ui_TestBasicQtAppMainWindow.h"
 
+#include "pqFileDialog.h"
 #include "pqProgressManager.h"
 #include "pqProgressWidget.h"
 #include "pqProxy.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqServer.h"
+#include "pqServerManagerModel.h"
 #include "pqSourcesMenuReaction.h"
 #include "vtkCamera.h"
 #include "vtkClientSession.h"
@@ -35,6 +38,10 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
+#include <vtk_rxqt.h>
+// clang-format off
+#include VTK_REMOTING_RXQT(rxqt.hpp)
+// clang-format on
 
 #include <QVBoxLayout>
 
@@ -54,6 +61,8 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWid
   auto* session = pvapp->GetSession(sessionId);
   auto* pxm = session->GetProxyManager();
   auto* smmodel = pvapp->GetServerManagerModel();
+  pqServer* pqserver = smmodel->findServer(sessionId);
+  assert(pqserver);
 
   // initialize the session.
   controller->InitializeSession(session);
@@ -93,6 +102,27 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWid
   QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied),
     [view]() { view->InvokeCommand("Update"); });
 
+  // Hookup file-open dialog
+  rxqt::from_signal(this->Ui.actionOpenFile, &QAction::triggered)
+    .map([this, pqserver](bool /*unused*/) {
+      pqFileDialog dialog(pqserver, this->Ui.dockWidget);
+      if (pqFileDialog::Accepted != dialog.exec())
+      {
+        vtkLogF(ERROR, "Selected file was not accepted");
+      }
+
+      QString file;
+      QStringList fileList = dialog.getSelectedFiles();
+      if (!fileList.empty())
+      {
+        file = fileList.front();
+      }
+      return file;
+    })
+    .filter([](const QString& fname) { return !fname.isEmpty(); })
+    .subscribe([](const QString& fname) {
+      vtkLogF(INFO, "filname picked %s", fname.toStdString().c_str());
+    });
   // Update the view.
   view->InvokeCommand("Update");
   return view;
