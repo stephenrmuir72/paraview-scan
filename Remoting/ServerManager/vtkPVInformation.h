@@ -40,7 +40,7 @@ public:
   ///@{
   /**
    * Save/load state of the information object. This is not the meta-data
-   * gather, but the options that dictate how the meta-data is gather,
+   * gather, but the options that dictate how the meta-data is gathered,
    * if any.
    */
   virtual vtkJson SaveState() const;

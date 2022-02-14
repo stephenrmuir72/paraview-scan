@@ -29,6 +29,7 @@
 
 #include "vtkPVInformation.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
+#include "vtkSetGet.h"
 
 #include <string> // Needed for std::string
 
@@ -49,41 +50,29 @@ public:
    */
   void CopyFromObject(vtkObject* object);
 
+  //@{
+  /**
+   * vtkPVInformation API implementation.
+   */
+
+  bool LoadInformation(const vtkJson& state) override;
+  vtkJson SaveInformation() const override;
+  void AddInformation(vtkPVInformation* oinfo) override;
+  //@}
+
   ///@{
   /**
    * Save/load state of the information object. This is not the meta-data
-   * gather, but the options that dictate how the meta-data is gather,
+   * gather, but the options that dictate how the meta-data is gathered,
    * if any.
    */
   vtkJson SaveState() const override;
   bool LoadState(const vtkJson& state) override;
-  ///@}
 
   /**
    * Gather information from the target.
    */
   bool GatherInformation(vtkObject* target) override;
-
-  /**
-   * Used to merge information between ranks in a distributed configuration.
-   */
-  void AddInformation(vtkPVInformation* other) override;
-
-  ///@{
-  /**
-   * Save/load information / meta-data gathered.
-   */
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
-  ///@}
-
-  //@{
-  /**
-   * Manage a serialized version of the information.
-   */
-  // void CopyToStream(vtkClientServerStream*) override;
-  // void CopyFromStream(const vtkClientServerStream*) override;
-  //@}
 
   enum FileTypes
   {
@@ -177,6 +166,22 @@ public:
   vtkBooleanMacro(GroupFileSequences, bool);
   ///@}
 
+  vtkSetMacro(FastFileTypeDetection, bool);
+  vtkSetMacro(ReadDetailedFileInformation, bool);
+  vtkGetMacro(ReadDetailedFileInformation, bool);
+  vtkSetMacro(ListDirectories, bool);
+  vtkSetMacro(ListSpecialDirectories, bool);
+  void SetPath(const std::string& path)
+  {
+    this->Path = path;
+    this->Modified();
+  };
+  void SetWorkingDirectory(const std::string& path)
+  {
+    this->WorkingDirectory = path;
+    this->Modified();
+  };
+
   //@{
   /**
    * Get the Contents for this directory.
@@ -220,9 +225,17 @@ protected:
   bool DetectType();
   void GetSpecialDirectories();
   void SetHiddenFlag();
-  int FastFileTypeDetection;
+
+  // These flags describe how to get the data.
+  //@{
+  bool FastFileTypeDetection;
   bool ReadDetailedFileInformation;
   bool GroupFileSequences;
+  bool ListSpecialDirectories;
+  bool ListDirectories;
+  std::string Path;
+  std::string WorkingDirectory;
+  //@}
 
 private:
   vtkPVFileInformation(const vtkPVFileInformation&) = delete;
