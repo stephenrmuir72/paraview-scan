@@ -36,7 +36,7 @@ public:
     vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = 0);
   ~pqEqualizerPropertyWidget() override;
 
-protected slots:
+protected Q_SLOTS:
   /**
    * Places the interactive widget using current data source information.
    */
@@ -45,7 +45,7 @@ protected slots:
   void onInteraction();
   void onEndInteraction();
 
-private slots:
+private Q_SLOTS:
   void saveEqualizer();
   void loadEqualizer();
   void resetEqualizer();

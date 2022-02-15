@@ -136,7 +136,7 @@ void pqEqualizerPropertyWidget::loadEqualizer()
     this->Internals->EqualizerItem->SetPoints(points.toStdString());
     this->proxy()->UpdateVTKObjects();
     this->proxy()->Modified();
-    emit changeAvailable();
+    Q_EMIT changeAvailable();
   }
 }
 
@@ -161,7 +161,7 @@ void pqEqualizerPropertyWidget::resetEqualizer()
   this->Internals->pointsLE->setText(init_points);
   auto points = init_points.toStdString();
   this->Internals->EqualizerItem->SetPoints(points);
-  emit changeAvailable();
+  Q_EMIT changeAvailable();
 }
 
 void pqEqualizerPropertyWidget::Init(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup)
