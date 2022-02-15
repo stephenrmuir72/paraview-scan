@@ -165,6 +165,7 @@ void pqPythonManager::addWidgetForDeleteMacros(QWidget* widget)
   this->Internal->MacroSupervisor->addWidgetForDeleteMacros(widget);
 }
 
+//-----------------------------------------------------------------------------
 void pqPythonManager::executeCode(
   const QByteArray& code, const QVector<QByteArray>& pre_push, const QVector<QByteArray>& post_push)
 {
