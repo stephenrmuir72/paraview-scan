@@ -91,14 +91,10 @@ void pqInteractiveProperty2DWidget::setWidgetVisible(bool val)
 {
   if (this->WidgetVisibility != val)
   {
-    // TODO: Adapt python API to actually reflects what it's doing
-    // with 2D widgets. if `Show3DWidgets` / `Hide3DWidgets` also works for 2D widgets
-    // then we'll have to update the paraview.simple API.
-
-    // SM_SCOPED_TRACE(CallFunction)
-    //   .arg(val ? "Show3DWidgets" : "Hide3DWidgets")
-    //   .arg("proxy", this->proxy())
-    //   .arg("comment", "toggle 3D widget visibility (only when running from the GUI)");
+    SM_SCOPED_TRACE(CallFunction)
+      .arg(val ? "Show2DWidgets" : "Hide2DWidgets")
+      .arg("proxy", this->proxy())
+      .arg("comment", "toggle 2D widget visibility (only when running from the GUI)");
 
     this->WidgetVisibility = val;
     this->updateWidgetVisibility();
