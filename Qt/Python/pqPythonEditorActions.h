@@ -134,9 +134,6 @@ struct pqPythonEditorActions
     Exit,
     Run,
 
-    // Run Actions
-    Run,
-
     END
   };
 
