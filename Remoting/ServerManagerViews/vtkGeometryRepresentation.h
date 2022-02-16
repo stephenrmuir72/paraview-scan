@@ -33,6 +33,7 @@
 
 class vtkProperty;
 class vtkPVLODActor;
+class vtkScalarsToColors;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkGeometryRepresentation
   : public vtkPVDataRepresentation
@@ -119,6 +120,16 @@ public:
    */
   void SetActor(vtkPVLODActor* actor);
   vtkPVLODActor* GetActor() const;
+  ///@}
+
+  ///@{
+  /**
+   * API affecting scalar coloring.
+   */
+  void SetColorArray(int fieldAssociation, const char* arrayname);
+  void SetLookupTable(vtkScalarsToColors* val);
+  void SetInterpolateScalarsBeforeMapping(bool val);
+  void SetMapScalars(bool val);
   ///@}
 
   vtkMTimeType GetMTime() override;

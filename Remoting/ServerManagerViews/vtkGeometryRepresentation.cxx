@@ -179,6 +179,66 @@ vtkPVLODActor* vtkGeometryRepresentation::GetActor() const
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetColorArray(int fieldAssociation, const char* arrayName)
+{
+  if (!this->RInternals)
+  {
+    return;
+  }
+
+  auto& rinternals = (*this->RInternals);
+  const bool usingScalarColoring = arrayName != nullptr && arrayName[0] != 0;
+  rinternals.Mapper->SetScalarVisibility(usingScalarColoring ? 1 : 0);
+  rinternals.Mapper->SelectColorArray(arrayName);
+  rinternals.Mapper->SetUseLookupTableScalarRange(1);
+  switch (fieldAssociation)
+  {
+    case vtkDataObject::FIELD_ASSOCIATION_CELLS:
+      rinternals.Mapper->SetScalarMode(VTK_SCALAR_MODE_USE_CELL_FIELD_DATA);
+      break;
+
+    case vtkDataObject::FIELD_ASSOCIATION_NONE:
+      rinternals.Mapper->SetScalarMode(VTK_SCALAR_MODE_USE_FIELD_DATA);
+      // Color entire block by zeroth tuple in the field data
+      rinternals.Mapper->SetFieldDataTupleId(0);
+      break;
+
+    case vtkDataObject::FIELD_ASSOCIATION_POINTS:
+    default:
+      rinternals.Mapper->SetScalarMode(VTK_SCALAR_MODE_USE_POINT_FIELD_DATA);
+      break;
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetLookupTable(vtkScalarsToColors* val)
+{
+  if (this->RInternals)
+  {
+    this->RInternals->Mapper->SetLookupTable(val);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetInterpolateScalarsBeforeMapping(bool val)
+{
+  if (this->RInternals)
+  {
+    this->RInternals->Mapper->SetInterpolateScalarsBeforeMapping(val ? 1 : 0);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetMapScalars(bool val)
+{
+  if (this->RInternals)
+  {
+    this->RInternals->Mapper->SetColorMode(
+      val ? VTK_COLOR_MODE_DIRECT_SCALARS : VTK_COLOR_MODE_MAP_SCALARS);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::InitializeForDataProcessing()
 {
   this->Superclass::InitializeForDataProcessing();
