@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkSMNewWidgetRepresentationProxyAbstract.h
+  Module:    vtkSMNewWidgetRepresentationProxyAbstract.cxx
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -190,5 +190,5 @@ void vtkSMNewWidgetRepresentationProxyAbstract::ProcessLinkedPropertyEvent(
 //----------------------------------------------------------------------------
 void vtkSMNewWidgetRepresentationProxyAbstract::PrintSelf(ostream& os, vtkIndent indent)
 {
-  return this->Superclass::PrintSelf(os, indent);
+  this->Superclass::PrintSelf(os, indent);
 }

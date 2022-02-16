@@ -18,15 +18,22 @@
 #include "vtkRemotingViewsModule.h" //needed for exports
 #include "vtkSMProxy.h"
 
-#include "vtkCommand.h"
-#include "vtkSmartPointer.h"
-#include "vtkWeakPointer.h"
+#include "vtkCommand.h"      // for vtkCommand
+#include "vtkSmartPointer.h" // for vtkSmartPointer
+#include "vtkWeakPointer.h"  // for vtkWeakPointer
 
-#include <list>
+#include <list> // for std::list
 
 class vtkSMLink;
 class vtkSMPropertyGroup;
 
+/**
+ * @class   vtkSMNewWidgetRepresentationProxyAbstract
+ * @brief   Abstract class for proxies for 2D and 3D widgets.
+ *
+ * vtkSMNewWidgetRepresentationProxyAbstract is an abstract class for
+ * proxies representing 2D or 3D widgets.
+ */
 class VTKREMOTINGVIEWS_EXPORT vtkSMNewWidgetRepresentationProxyAbstract : public vtkSMProxy
 {
 public:
