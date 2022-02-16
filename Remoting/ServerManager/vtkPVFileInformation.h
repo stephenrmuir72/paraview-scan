@@ -74,6 +74,11 @@ public:
    */
   bool GatherInformation(vtkObject* target) override;
 
+  /**
+   * We want all vtkPVFileInformation objects to be gathered on the RPC thread.
+   */
+  bool CanRunOnRPC() const override { return true; }
+
   enum FileTypes
   {
     INVALID = 0,

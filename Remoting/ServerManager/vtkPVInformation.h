@@ -72,6 +72,14 @@ public:
    */
   bool GetRootOnly() const;
   ///@}
+
+  /**
+   * Returns whether this information can/should be collected on the RPC
+   * thread instead of the main thread of the service. By default it is false.
+   * Derived classes should override this function to change the default behavior.
+   */
+  virtual bool CanRunOnRPC() const;
+
 protected:
   vtkPVInformation();
   ~vtkPVInformation() override;
