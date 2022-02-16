@@ -106,6 +106,11 @@ public:
   vtkTypeBool ProcessRequest(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
+  ///@{
+  virtual void InitializeForDataProcessing();
+  virtual void InitializeForRendering();
+  ///@}
+
 protected:
   vtkPVDataRepresentation();
   ~vtkPVDataRepresentation() override;
@@ -121,12 +126,6 @@ protected:
   virtual bool AddToView(vtkPVView* view);
   virtual bool RemoveFromView(vtkPVView* view);
   bool ProcessViewRequest(vtkInformation* request);
-  ///@}
-
-  ///@{
-  friend class vtkPVViewProvider;
-  virtual void InitializeForDataProcessing();
-  virtual void InitializeForRendering();
   ///@}
 
   ///@{

@@ -86,33 +86,15 @@ void vtkPVViewProvider::HandleObjectStoreEvent(
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for data processing (%s)",
           vtkLogIdentifier(view));
-        view->InitializeForDataProcessing();
         view->AddObserver(vtkCommand::UpdateEvent, this, &vtkPVViewProvider::PushViewData);
       }
       else
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for rendering (%s)",
           vtkLogIdentifier(view));
-        view->InitializeForRendering();
         view->AddObserver(vtkCommand::RenderEvent, this, &vtkPVViewProvider::PushViewImage);
       }
       internals.PushTimeStamps[view->GetGlobalID()].Modified();
-    }
-    else if (auto* repr =
-               wrapper ? vtkPVDataRepresentation::SafeDownCast(wrapper->GetVTKObject()) : nullptr)
-    {
-      if (internals.DataProcessing)
-      {
-        vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for data processing (%s)",
-          vtkLogIdentifier(repr));
-        repr->InitializeForDataProcessing();
-      }
-      else
-      {
-        vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for rendering (%s)",
-          vtkLogIdentifier(repr));
-        repr->InitializeForRendering();
-      }
     }
   }
 }
