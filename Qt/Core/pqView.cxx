@@ -173,6 +173,16 @@ void pqView::emitSelectionSignals(bool frustum)
 }
 
 //-----------------------------------------------------------------------------
+void pqView::update()
+{
+  if (vtkSMViewProxy* view = this->getViewProxy())
+  {
+    view->InvokeCommand("Update");
+    this->render();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqView::render()
 {
   this->Internal->RenderTimer.start();
