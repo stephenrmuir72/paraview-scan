@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // ParaView Server Manager includes.
 #include "vtkEventQtSlotConnect.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
@@ -102,12 +103,9 @@ pqView::pqView(const QString& group, const QString& name, vtkSMViewProxy* view, 
   this->Internal->RenderTimer.setInterval(1);
   QObject::connect(&this->Internal->RenderTimer, SIGNAL(timeout()), this, SLOT(forceRender()));
 
-#if 0 // FIXME: ASYNC
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   QObject::connect(smModel, SIGNAL(representationAdded(pqRepresentation*)), this,
     SLOT(representationCreated(pqRepresentation*)));
-#endif
-
 }
 
 //-----------------------------------------------------------------------------
@@ -273,14 +271,13 @@ QList<pqRepresentation*> pqView::getRepresentations() const
 //-----------------------------------------------------------------------------
 void pqView::onRepresentationsChanged()
 {
-#if 0 // FIXME: ASYNC
   // Determine what changed. Add the new Representations and remove the old
   // ones. Make sure new Representations have a reference to this render module.
   // Remove the reference to this render module in the removed Representations.
   QList<QPointer<pqRepresentation>> currentReprs;
   vtkSMProxyProperty* prop =
     vtkSMProxyProperty::SafeDownCast(this->getProxy()->GetProperty("Representations"));
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
 
   unsigned int max = prop->GetNumberOfProxies();
   for (unsigned int cc = 0; cc < max; ++cc)
@@ -326,7 +323,6 @@ void pqView::onRepresentationsChanged()
       ++iter;
     }
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
