@@ -196,6 +196,12 @@ public:
   vtkGetMacro(ModificationTime, time_t);
   //@}
 
+  std::string RetrieveAbsolutePath(const std::string& path);
+  bool FileExists(const std::string& path, std::string& fullpath);
+  bool DirectoryExists(const std::string& path, std::string& fullpath);
+
+  vtkGetMacro(PathSeparator, char);
+
 protected:
   vtkPVFileInformation();
   ~vtkPVFileInformation() override;
@@ -210,6 +216,7 @@ protected:
   char* Extension;         // File extension
   long long Size;          // File size
   time_t ModificationTime; // File modification time
+  char PathSeparator;      // Character used as path separator for the server.
 
   vtkSetStringMacro(Extension);
   vtkSetStringMacro(Name);

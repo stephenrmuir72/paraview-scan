@@ -45,6 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkDirectory.h>
+#include <vtkLogger.h>
 #include <vtkPVFileInformation.h>
 #include <vtkPVFileInformationHelper.h>
 //#include <vtkSMDirectoryProxy.h>
@@ -54,6 +55,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSMProxyManager.h>
 #include <vtkSMSessionProxyManager.h>
 //#include <vtkSMSettings.h>
+#include <vtkClientSession.h>
+#include <vtkInformationProvider.h>
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringList.h>
@@ -318,42 +321,15 @@ void setShowDetailedInformationSetting(pqServer* server, bool show)
 class pqFileDialogModel::pqImplementation
 {
 public:
-  pqImplementation(pqServer* server)
-    : Separator(0)
-    , Server(server)
+  pqImplementation(pqServer* server, pqFileDialogModel* model)
+    : Server(server)
+    , Model(model)
   {
 
-    // if we are doing remote browsing
-    if (server)
-    {
-      vtkSMSessionProxyManager* pxm = server->proxyManager();
-
-      vtkSMProxy* helper = pxm->NewProxy("misc", "FileInformationHelper");
-      this->FileInformationHelperProxy = helper;
-      helper->Delete();
-      helper->UpdateVTKObjects();
-      helper->UpdateInformation();
-      QString separator =
-        pqSMAdaptor::getElementProperty(helper->GetProperty("PathSeparator")).toString();
-      this->Separator = separator.toUtf8().data()[0];
-      // Since this isn't going through the proxy widget we have to manually restore the setting
-      vtkSMPropertyHelper(helper, "ReadDetailedFileInformation")
-        .Set(getShowDetailedInformationSetting());
-    }
-    else
-    {
-      vtkPVFileInformationHelper* helper = vtkPVFileInformationHelper::New();
-      this->FileInformationHelper = helper;
-      helper->Delete();
-      helper->SetReadDetailedFileInformation(getShowDetailedInformationSetting());
-      this->Separator = helper->GetPathSeparator()[0];
-    }
-
+    // FIXME ASYNC see async/paraview#20
+    // this->ReadDetailedFileInformation = getShowDetailedInformationSetting();
+    this->ReadDetailedFileInformation = true;
     this->FileInformation.TakeReference(vtkPVFileInformation::New());
-
-    // current path
-    vtkPVFileInformation* info = this->GetData(false, "", ".", false);
-    this->CurrentPath = info->GetFullPath();
   }
 
   ~pqImplementation() = default;
@@ -367,42 +343,41 @@ public:
   }
 
   /// query the file system for information
-  vtkPVFileInformation* GetData(
-    bool dirListing, const QString& path, bool specialDirs, bool groupFiles = true)
+  void UpdateData(bool dirListing, const QString& path, bool specialDirs, bool groupFiles = true)
   {
-    return this->GetData(dirListing, this->CurrentPath, path, specialDirs, groupFiles);
+    this->UpdateData(dirListing, this->CurrentPath, path, specialDirs, groupFiles);
   }
 
   /// query the file system for information
-  vtkPVFileInformation* GetData(bool dirListing, const QString& workingDir, const QString& path,
-    bool specialDirs, bool groupFiles = true)
+  void UpdateData(bool dirListing, const QString& workingDir, const QString& path, bool specialDirs,
+    bool groupFiles = true)
   {
-    if (this->FileInformationHelperProxy)
-    {
-      // send data to server
-      vtkSMProxy* helper = this->FileInformationHelperProxy;
-      pqSMAdaptor::setElementProperty(helper->GetProperty("WorkingDirectory"), workingDir.toUtf8());
-      pqSMAdaptor::setElementProperty(helper->GetProperty("DirectoryListing"), dirListing);
-      pqSMAdaptor::setElementProperty(helper->GetProperty("Path"), path.toUtf8());
-      pqSMAdaptor::setElementProperty(helper->GetProperty("SpecialDirectories"), specialDirs);
-      pqSMAdaptor::setElementProperty(helper->GetProperty("GroupFileSequences"), groupFiles);
-      helper->UpdateVTKObjects();
+    this->FileInformation->Initialize();
+    this->FileInformation->SetListDirectories(dirListing);
+    this->FileInformation->SetPath(path.toStdString());
+    this->FileInformation->SetWorkingDirectory(workingDir.toStdString());
+    this->FileInformation->SetListSpecialDirectories(specialDirs);
+    this->FileInformation->SetGroupFileSequences(groupFiles);
+    this->FileInformation->SetReadDetailedFileInformation(this->isShowingDetailedInformation());
 
-      // get data from server
-      this->FileInformation->Initialize();
-      this->FileInformationHelperProxy->GatherInformation(this->FileInformation);
-    }
-    else
-    {
-      vtkPVFileInformationHelper* helper = this->FileInformationHelper;
-      helper->SetDirectoryListing(dirListing);
-      helper->SetPath(path.toUtf8().data());
-      helper->SetSpecialDirectories(specialDirs);
-      helper->SetWorkingDirectory(workingDir.toUtf8().data());
-      helper->SetGroupFileSequences(groupFiles);
-      this->FileInformation->CopyFromObject(helper);
-    }
-    return this->FileInformation;
+    auto* session = this->Server->session();
+    auto packet = vtkInformationProvider::GatherInformation(
+      this->FileInformation, /* no corresponding remote Object*/ 0);
+    auto coordination = session->GetCoordination();
+    auto eventual = session->SendRequest(
+      /** FIXME**/ vtkClientSession::ServiceTypes::DATA_SERVER, std::move(packet));
+    eventual.GetObservable()
+      .observe_on(coordination)
+      .subscribe([this, workingDir, path](const vtkPacket& packet) {
+        if (vtkInformationProvider::ParseResponse(packet, this->FileInformation))
+        {
+          vtkLogF(INFO, "Update path %s", workingDir.toStdString().c_str());
+          QString cPath = this->cleanPath(path);
+          this->Model->beginResetModel();
+          this->Update(cPath, this->FileInformation);
+          this->Model->endResetModel();
+        }
+      });
   }
 
   /// put queried information into our model
@@ -531,9 +506,6 @@ public:
 
   pqServer* getServer() { return this->Server; }
 
-  /// Path separator for the connected server's filesystem.
-  char Separator;
-
   /// Current path being displayed (server's filesystem).
   QString CurrentPath;
   /// Caches information about the set of files within the current path.
@@ -559,42 +531,37 @@ public:
     return nullptr;
   }
 
-  void setShowDetailedInformation(bool show)
+  void setShowDetailedInformation(bool show) { this->ReadDetailedFileInformation = show; }
+
+  bool isShowingDetailedInformation() const { return this->ReadDetailedFileInformation; }
+
+  std::string absolutePath(std::string path)
   {
-    if (this->FileInformationHelperProxy)
-    {
-      vtkSMPropertyHelper(this->FileInformationHelperProxy, "ReadDetailedFileInformation")
-        .Set(show);
-    }
-    else if (this->FileInformationHelper)
-    {
-      this->FileInformationHelper->SetReadDetailedFileInformation(show);
-    }
-    setShowDetailedInformationSetting(this->Server, show);
+    return this->FileInformation->RetrieveAbsolutePath(path);
   }
 
-  bool isShowingDetailedInformation() const
+  bool dirExists(const QString& path, QString& fullpath)
   {
-    bool currentValue = false;
-    if (this->FileInformationHelperProxy)
-    {
-      currentValue =
-        vtkSMPropertyHelper(this->FileInformationHelperProxy, "ReadDetailedFileInformation")
-          .GetAsInt() == 1;
-    }
-    else if (this->FileInformationHelper)
-    {
-      currentValue = this->FileInformationHelper->GetReadDetailedFileInformation();
-    }
-    return currentValue;
+    std::string returnValue;
+    bool exists = this->FileInformation->DirectoryExists(path.toStdString(), returnValue);
+    fullpath.fromStdString(returnValue);
+    return exists;
   }
+
+  bool fileExists(const QString& path, QString& fullpath)
+  {
+    std::string returnValue;
+    bool exists = this->FileInformation->FileExists(path.toStdString(), returnValue);
+    fullpath.fromStdString(returnValue);
+    return exists;
+  }
+
+  char separator() const { return this->FileInformation->GetPathSeparator(); }
 
 private:
-  // server vs. local implementation private
   pqServer* Server;
-
-  vtkSmartPointer<vtkPVFileInformationHelper> FileInformationHelper;
-  vtkSmartPointer<vtkSMProxy> FileInformationHelperProxy;
+  pqFileDialogModel* Model;
+  bool ReadDetailedFileInformation;
   vtkSmartPointer<vtkPVFileInformation> FileInformation;
 };
 
@@ -602,7 +569,7 @@ private:
 // pqFileDialogModel
 pqFileDialogModel::pqFileDialogModel(pqServer* _server, QObject* Parent)
   : base(Parent)
-  , Implementation(new pqImplementation(_server))
+  , Implementation(new pqImplementation(_server, this))
 {
 }
 
@@ -629,12 +596,8 @@ pqServer* pqFileDialogModel::server() const
 
 void pqFileDialogModel::setCurrentPath(const QString& path, bool groupFiles)
 {
-  this->beginResetModel();
   QString cPath = this->Implementation->cleanPath(path);
-  vtkPVFileInformation* info;
-  info = this->Implementation->GetData(true, cPath, false, groupFiles);
-  this->Implementation->Update(cPath, info);
-  this->endResetModel();
+  this->Implementation->UpdateData(true, cPath, false, groupFiles);
 }
 
 QString pqFileDialogModel::getCurrentPath()
@@ -649,9 +612,8 @@ QString pqFileDialogModel::absoluteFilePath(const QString& path)
     return QString();
   }
 
-  vtkPVFileInformation* info;
-  info = this->Implementation->GetData(false, path, false);
-  return this->Implementation->cleanPath(QString::fromUtf8(info->GetFullPath()));
+  auto absoluteFilePath = this->Implementation->absolutePath(path.toStdString());
+  return this->Implementation->cleanPath(QString::fromStdString(absoluteFilePath));
 }
 
 QStringList pqFileDialogModel::getFilePaths(const QModelIndex& localIndex)
@@ -684,22 +646,19 @@ bool pqFileDialogModel::isDir(const QModelIndex& localIndex)
 
 bool pqFileDialogModel::fileExists(const QString& file, QString& fullpath)
 {
+
   QString filePath = this->Implementation->cleanPath(file);
-  vtkPVFileInformation* info;
-  info = this->Implementation->GetData(false, filePath, false);
+
+  bool fileExists = this->Implementation->fileExists(filePath, fullpath);
 
   // try again for shortcut
-  if (info->GetType() != vtkPVFileInformation::SINGLE_FILE)
+  if (!fileExists)
   {
-    info = this->Implementation->GetData(false, filePath + ".lnk", false);
+    filePath += ".lnk";
+    fileExists = this->Implementation->fileExists(filePath, fullpath);
   }
 
-  if (info->GetType() == vtkPVFileInformation::SINGLE_FILE)
-  {
-    fullpath = info->GetFullPath();
-    return true;
-  }
-  return false;
+  return fileExists;
 }
 
 bool pqFileDialogModel::mkdir(const QString& dirName)
@@ -743,7 +702,7 @@ bool pqFileDialogModel::mkdir(const QString& dirName)
 
 bool pqFileDialogModel::rmdir(const QString& dirName)
 {
-// FIX ASYNC
+// FIX ASYNC : vtkSMDirectoryProxy is missing
 #if 0
   QString path;
   QString dirPath = this->absoluteFilePath(dirName);
@@ -782,7 +741,7 @@ bool pqFileDialogModel::rmdir(const QString& dirName)
 
 bool pqFileDialogModel::rename(const QString& oldname, const QString& newname)
 {
-// FIX ASYNC
+// FIX ASYNC : vtkSMDirectoryProxy is missing
 #if 0
   QString oldPath = this->absoluteFilePath(oldname);
   QString newPath = this->absoluteFilePath(newname);
@@ -841,26 +800,13 @@ bool pqFileDialogModel::rename(const QString& oldname, const QString& newname)
 bool pqFileDialogModel::dirExists(const QString& path, QString& fullpath)
 {
   QString dir = this->Implementation->cleanPath(path);
-  vtkPVFileInformation* info;
-  info = this->Implementation->GetData(false, dir, false);
 
-  // try again for shortcuts
-  if (!vtkPVFileInformation::IsDirectory(info->GetType()))
-  {
-    info = this->Implementation->GetData(false, dir + ".lnk", false);
-  }
-
-  if (vtkPVFileInformation::IsDirectory(info->GetType()))
-  {
-    fullpath = info->GetFullPath();
-    return true;
-  }
-  return false;
+  return this->Implementation->dirExists(dir, fullpath);
 }
 
 QChar pqFileDialogModel::separator() const
 {
-  return this->Implementation->Separator;
+  return this->Implementation->separator();
 }
 
 int pqFileDialogModel::columnCount(const QModelIndex& idx) const

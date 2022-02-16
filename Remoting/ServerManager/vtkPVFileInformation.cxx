@@ -68,6 +68,15 @@ inline void vtkPVFileInformationAddTerminatingSlash(std::string& name)
   }
 }
 
+static char vtkPVFileInformationPathSeparator()
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return '\\';
+#else
+  return '/';
+#endif
+}
+
 #if defined(_WIN32)
 
 static std::string WindowsNetworkRoot = "Windows Network";
@@ -363,6 +372,7 @@ vtkPVFileInformation::~vtkPVFileInformation()
   this->SequenceParser->Delete();
 }
 
+//-----------------------------------------------------------------------------
 bool vtkPVFileInformation::IsDirectory(int t)
 {
   return t == DIRECTORY || t == DIRECTORY_LINK || t == DRIVE || t == NETWORK_ROOT ||
@@ -1193,8 +1203,6 @@ bool vtkPVFileInformation::LoadState(const vtkJson& state)
 //-----------------------------------------------------------------------------
 bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
 {
-  // vtkLogF(WARNING,"%s",__PRETTY_FUNCTION__);
-
   this->SetRootOnly(state.at("root_only").get<bool>());
 
   auto name = state.at("name").get<std::string>();
@@ -1210,6 +1218,7 @@ bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
 
   this->Size = state.at("size").get<long long>();
   this->ModificationTime = state.at("modification_time").get<time_t>();
+  this->PathSeparator = state.at("path_separator").get<char>();
 
   int cc = 0;
   for (auto& childState : state.at("children"))
@@ -1231,7 +1240,6 @@ bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
 //-----------------------------------------------------------------------------
 vtkJson vtkPVFileInformation::SaveInformation() const
 {
-  // vtkLogF(WARNING,"%s",__PRETTY_FUNCTION__);
   vtkJson json;
   json["root_only"] = this->GetRootOnly();
   json["name"] = std::string(this->Name ? this->Name : "");
@@ -1242,6 +1250,7 @@ vtkJson vtkPVFileInformation::SaveInformation() const
   json["extension"] = std::string(this->Extension ? this->Extension : "");
   json["size"] = this->Size;
   json["modification_time"] = this->ModificationTime;
+  json["path_separator"] = vtkPVFileInformationPathSeparator();
   auto children = vtkJson::array();
 
   vtkSmartPointer<vtkCollectionIterator> iter;
@@ -1287,4 +1296,91 @@ void vtkPVFileInformation::PrintSelf(ostream& os, vtkIndent indent)
     os << endl;
     this->Contents->GetItemAsObject(cc)->PrintSelf(os, indent.GetNextIndent());
   }
+}
+//-----------------------------------------------------------------------------
+std::string vtkPVFileInformation::RetrieveAbsolutePath(const std::string& path)
+{
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path || fullPath == path)
+  {
+    return this->FullPath;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    const std::string name = child->Name ? child->Name : "";
+    const std::string fullPath = child->FullPath ? child->FullPath : "";
+    if (name == path || fullPath == path)
+    {
+
+      return child->GetFullPath();
+    }
+  }
+  return "";
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::FileExists(const std::string& path, std::string& fullpath)
+{
+  // make comparisons easier
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path && this->Type == vtkPVFileInformation::FileTypes::SINGLE_FILE)
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  if (fullPath == path && this->Type == vtkPVFileInformation::FileTypes::SINGLE_FILE)
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    if (child->FileExists(path, fullpath))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::DirectoryExists(const std::string& path, std::string& fullpath)
+{
+  // make comparisons easier
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path && this->IsDirectory())
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  if (fullPath == path && this->IsDirectory())
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    if (child->DirectoryExists(path, fullpath))
+    {
+      return true;
+    }
+  }
+  return false;
 }
