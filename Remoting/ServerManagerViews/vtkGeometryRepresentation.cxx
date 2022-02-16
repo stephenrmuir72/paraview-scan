@@ -46,6 +46,8 @@ public:
     this->GeometryFilter->SetPassThroughCellIds(1);
     this->GeometryFilter->SetPassThroughPointIds(1);
   }
+
+  vtkMTimeType GetMTime() const { return this->GeometryFilter->GetMTime(); }
 };
 
 class vtkGeometryRepresentation::vtkRenderingInternals
@@ -53,15 +55,20 @@ class vtkGeometryRepresentation::vtkRenderingInternals
 public:
   // Rendering
   vtkNew<vtkCompositePolyDataMapper2> Mapper;
-  vtkNew<vtkProperty> Property;
-  vtkNew<vtkPVLODActor> Actor;
+  vtkSmartPointer<vtkProperty> Property;
+  vtkSmartPointer<vtkPVLODActor> Actor;
 
   vtkRenderingInternals()
+    : Property(vtk::TakeSmartPointer(vtkProperty::New()))
+    , Actor(vtk::TakeSmartPointer(vtkPVLODActor::New()))
   {
     this->Actor->SetMapper(this->Mapper);
     this->Actor->SetProperty(this->Property);
   }
+
+  vtkMTimeType GetMTime() const { return 0; }
 };
+
 int vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForUnstructuredPipelines = 1;
 int vtkGeometryRepresentation::DefaultMinimumGhostLevelsToRequestForStructuredPipelines = 0;
 vtkStandardNewMacro(vtkGeometryRepresentation);
@@ -107,6 +114,70 @@ int vtkGeometryRepresentation::RequestUpdateExtent(
 
   return 1;
 }
+
+//----------------------------------------------------------------------------
+vtkMTimeType vtkGeometryRepresentation::GetMTime()
+{
+  const auto mtime = this->Superclass::GetMTime();
+  if (this->DInternals)
+  {
+    return std::max(mtime, this->DInternals->GetMTime());
+  }
+  else if (this->RInternals)
+  {
+    return std::max(mtime, this->RInternals->GetMTime());
+  }
+  return mtime;
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetProperty(vtkProperty* property)
+{
+  if (this->RInternals)
+  {
+    auto& rinternals = (*this->RInternals);
+    rinternals.Property = property;
+    rinternals.Actor->SetProperty(property);
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkProperty* vtkGeometryRepresentation::GetProperty() const
+{
+  if (this->RInternals)
+  {
+    auto& rinternals = (*this->RInternals);
+    return rinternals.Property;
+  }
+
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetActor(vtkPVLODActor* actor)
+{
+  if (this->RInternals)
+  {
+    auto& rinternals = (*this->RInternals);
+    rinternals.Actor = actor;
+    rinternals.Actor->SetProperty(rinternals.Property);
+    rinternals.Actor->SetMapper(rinternals.Mapper);
+    assert(this->GetView() == nullptr);
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkPVLODActor* vtkGeometryRepresentation::GetActor() const
+{
+  if (this->RInternals)
+  {
+    auto& rinternals = (*this->RInternals);
+    return rinternals.Actor;
+  }
+
+  return nullptr;
+}
+
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::InitializeForDataProcessing()
 {
@@ -249,6 +320,88 @@ int vtkGeometryRepresentation::GetNumberOfGhostLevelsToRequest(vtkInformation* i
     return 0;
   }
 }
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetRepresentation(const char* type)
+{
+  if (type && strcmp(type, "Feature Edges") == 0)
+  {
+    this->SetRepresentation(FEATURE_EDGES);
+  }
+  else if (type && strcmp(type, "Outline") == 0)
+  {
+    this->SetRepresentation(OUTLINE);
+  }
+  else if (type && strcmp(type, "Points") == 0)
+  {
+    this->SetRepresentation(POINTS);
+  }
+  else if (type && strcmp(type, "Surface") == 0)
+  {
+    this->SetRepresentation(SURFACE);
+  }
+  else if (type && strcmp(type, "Surface With Edges") == 0)
+  {
+    this->SetRepresentation(SURFACE_WITH_EDGES);
+  }
+  else if (type && strcmp(type, "Wireframe") == 0)
+  {
+    this->SetRepresentation(WIREFRAME);
+  }
+  else
+  {
+    vtkLogF(ERROR, "Unsupported type '%s'", type);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetRepresentation(int type)
+{
+  if (this->DInternals)
+  {
+    auto& dinternals = (*this->DInternals);
+    dinternals.GeometryFilter->SetUseOutline(type == OUTLINE);
+    dinternals.GeometryFilter->SetGenerateFeatureEdges(type == FEATURE_EDGES);
+  }
+  else if (this->RInternals)
+  {
+    auto& rinternals = (*this->RInternals);
+    rinternals.Property->SetEdgeVisibility(type == SURFACE_WITH_EDGES);
+    switch (type)
+    {
+      case FEATURE_EDGES:
+      case OUTLINE:
+      case WIREFRAME:
+        rinternals.Property->SetRepresentation(VTK_WIREFRAME);
+        break;
+      case POINTS:
+        rinternals.Property->SetRepresentation(VTK_POINTS);
+        break;
+      default:
+        rinternals.Property->SetRepresentation(VTK_SURFACE);
+        break;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetTriangulate(bool value)
+{
+  if (this->DInternals)
+  {
+    this->DInternals->GeometryFilter->SetTriangulate(value);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int value)
+{
+  if (this->DInternals)
+  {
+    this->DInternals->GeometryFilter->SetNonlinearSubdivisionLevel(value);
+  }
+}
+
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {

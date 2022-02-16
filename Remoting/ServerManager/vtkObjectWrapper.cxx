@@ -24,6 +24,7 @@
 #include "vtkReflection.h"
 #include "vtkRemoteObjectProvider.h"
 #include "vtkSMProperty.h" // for vtkSMProperty::PropertyTypes
+#include "vtkService.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringUtilities.h"
 
@@ -53,6 +54,7 @@ public:
   vtkSmartPointer<vtkObject> VTKObject;
   std::map<std::string, PropertyInformation> Properties;
   std::map<std::string, std::string> Commands;
+  std::map<std::string, std::string> SubproxyCommands;
 };
 
 vtkStandardNewMacro(vtkObjectWrapper);
@@ -88,6 +90,14 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
       auto name = child.attribute("name").as_string();
       internals.Commands.emplace(name, child.attribute("method").as_string(name));
     }
+    else if (strcmp(child.name(), "SubProxy") == 0)
+    {
+      auto* name = child.attribute("name").as_string();
+      if (auto* command = child.attribute("command").as_string(nullptr))
+      {
+        internals.SubproxyCommands.emplace(name, command);
+      }
+    }
   }
   return true;
 }
@@ -119,6 +129,31 @@ bool vtkObjectWrapper::Initialize(
     vtkReflection::Set(internals.VTKObject, "SetController", std::vector<vtkObject*>{ controller });
     internals.Rank = controller->GetLocalProcessId();
     internals.NumberOfRanks = controller->GetNumberOfProcesses();
+
+    auto* service = provider->GetService();
+    if (service->GetName() == "ds")
+    {
+      vtkReflection::Set(
+        internals.VTKObject, "InitializeForDataProcessing", std::vector<vtkVariant>{});
+    }
+    else
+    {
+      vtkReflection::Set(internals.VTKObject, "InitializeForRendering", std::vector<vtkVariant>{});
+    }
+
+    // Handle subproxy "command"s.
+    auto objectStore = provider->GetObjectStore();
+    for (const auto& el : state.at("subproxies").items())
+    {
+      const auto& name = el.key();
+      const auto id = el.value().get<vtkTypeUInt32>();
+      auto iter = internals.SubproxyCommands.find(name);
+      if (id != 0 && iter != internals.SubproxyCommands.end())
+      {
+        vtkReflection::Set(internals.VTKObject, iter->second,
+          std::vector<vtkObject*>{ objectStore->FindVTKObject<vtkObject>(id).GetPointer() });
+      }
+    }
   }
 
   return true;

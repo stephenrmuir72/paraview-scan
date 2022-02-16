@@ -19,6 +19,8 @@
 #include "pqProgressWidget.h"
 #include "pqProxy.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqSourcesMenuReaction.h"
+#include "vtkCamera.h"
 #include "vtkClientSession.h"
 #include "vtkLogger.h"
 #include "vtkNew.h"
@@ -40,10 +42,10 @@ class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
-  void setupSession(pqProgressWidget* progressWidget);
+  vtkSMViewProxy* setupSession(pqProgressWidget* progressWidget);
 };
 
-void TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWidget* progressWidget)
+vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWidget* progressWidget)
 {
   vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
 
@@ -93,6 +95,7 @@ void TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWidget* progre
 
   // Update the view.
   view->InvokeCommand("Update");
+  return view;
 }
 
 //-----------------------------------------------------------------------------
@@ -102,14 +105,41 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   auto& internals = (*this->Internals);
   internals.Ui.setupUi(this);
 
-  auto* menuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
-  menuMgr->addProxyDefinitionUpdateListener("sources");
-  menuMgr->addProxy("sources", "SphereSource");
+  auto* sourceMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
+  sourceMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Sources.xml");
+  sourceMenuMgr->addProxyDefinitionUpdateListener("sources");
+  sourceMenuMgr->setRecentlyUsedMenuSize(10);
+  new pqSourcesMenuReaction(sourceMenuMgr);
+
+#if 0
+  auto* filtersMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Filters, "ParaViewFilters");
+  filtersMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Filters.xml");
+  filtersMenuMgr->addProxyDefinitionUpdateListener("filters");
+  filtersMenuMgr->setRecentlyUsedMenuSize(10);
+#endif
 
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);
 
-  internals.setupSession(progressWidget);
+  auto* view = internals.setupSession(progressWidget);
+  auto* timer = new QTimer(this);
+  timer->setSingleShot(false);
+
+  QObject::connect(timer, &QTimer::timeout, [view]() {
+    view->GetCamera()->Azimuth(1);
+    view->StillRender();
+  });
+
+  QObject::connect(internals.Ui.actionSpin, &QAction::toggled, [timer](bool checked) {
+    if (checked)
+    {
+      timer->start(10);
+    }
+    else
+    {
+      timer->stop();
+    }
+  });
 }
 
 //-----------------------------------------------------------------------------

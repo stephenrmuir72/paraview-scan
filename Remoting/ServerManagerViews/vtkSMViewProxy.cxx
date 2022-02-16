@@ -251,6 +251,13 @@ vtkRenderWindow* vtkSMViewProxy::GetRenderWindow() const
 }
 
 //----------------------------------------------------------------------------
+vtkCamera* vtkSMViewProxy::GetCamera() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Renderer->GetActiveCamera();
+}
+
+//----------------------------------------------------------------------------
 void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
 {
   auto& internals = (*this->Internals);

@@ -628,7 +628,7 @@ void pqPropertiesPanel::renderActiveView()
 {
   if (this->view())
   {
-    this->view()->render();
+    this->view()->update();
   }
 }
 

@@ -32,9 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 
 #include "pqServerManagerModel.h"
-#include "vtkPVGUIApplication.h"
-// #include "pqTabbedMultiViewWidget.h"
+#include "pqTabbedMultiViewWidget.h"
 #include "vtkEventQtSlotConnect.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMViewLayoutProxy.h"

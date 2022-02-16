@@ -480,6 +480,11 @@ bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
     }
   }
   state["properties"] = std::move(properties);
+  vtkJson& subproxies = state["subproxies"];
+  for (const auto& pair : internals.SubProxies)
+  {
+    subproxies[pair.first] = pair.second->GetGlobalID();
+  }
   return true;
 }
 

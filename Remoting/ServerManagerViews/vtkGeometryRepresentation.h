@@ -31,6 +31,9 @@
 #include "vtkPVDataRepresentation.h"
 #include "vtkRemotingServerManagerViewsModule.h" // needed for exports
 
+class vtkProperty;
+class vtkPVLODActor;
+
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkGeometryRepresentation
   : public vtkPVDataRepresentation
 {
@@ -73,6 +76,52 @@ public:
    * the pipelines.
    */
   static int GetNumberOfGhostLevelsToRequest(vtkInformation* outInfo);
+
+  enum RepresentationTypes
+  {
+    FEATURE_EDGES,
+    OUTLINE,
+    POINTS,
+    SURFACE,
+    SURFACE_WITH_EDGES,
+    WIREFRAME
+  };
+
+  ///@{
+  /**
+   * Set the representation type. vtkGeometryRepresentation support multiple
+   * sub-representation types.
+   */
+  void SetRepresentation(const char* type);
+  void SetRepresentation(int type);
+  ///@}
+
+  ///@{
+  /**
+   * These affect the geometry generated for rendering.
+   */
+  void SetTriangulate(bool value);
+  void SetNonlinearSubdivisionLevel(int value);
+  ///@}
+
+  ///@{
+  /**
+   * Get/Set the vtkProperty. This is non-null only on render-service and
+   * client.
+   */
+  void SetProperty(vtkProperty* property);
+  vtkProperty* GetProperty() const;
+  ///@}
+
+  ///@{
+  /**
+   * Get/Set the vtkPVLODActor. This is non-null only on rendering services.
+   */
+  void SetActor(vtkPVLODActor* actor);
+  vtkPVLODActor* GetActor() const;
+  ///@}
+
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkGeometryRepresentation();

@@ -110,6 +110,11 @@ public:
 
 public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   /**
+   * Causes the view to update.
+   */
+  void update();
+
+  /**
    * Request a StillRender on idle. Multiple calls are collapsed into one.
    */
   virtual void render();
