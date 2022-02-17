@@ -43,6 +43,7 @@ set(classes
   vtkPVDataAssemblyInformation
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
+  vtkPVFileInformation
   vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation

@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqFileDialogFavoriteModel_h
 
 #include "pqCoreModule.h"
+#include "vtkSmartPointer.h"
 #include <QAbstractListModel>
 #include <QList>
 #include <QObject>
@@ -41,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class vtkProcessModule;
 class pqServer;
 class QModelIndex;
+class vtkPVFileInformation;
 
 /**
 pqFileDialogFavoriteModel allows remote browsing of a connected ParaView server's
@@ -125,11 +127,21 @@ protected:
     int Type;
   };
 
+  /**
+   * Query the server about Favorite Directories
+   */
+  void RetrieveFavoritesFromSystem();
+
+  /**
+   * Update the Model based on information retrieved from `RetrieveFavoritesFromSystem`
+   */
   void LoadFavoritesFromSystem();
 
   pqServer* Server = nullptr;
   QList<pqFileDialogFavoriteModelFileInfo> FavoriteList;
   QString SettingsKey;
+
+  vtkSmartPointer<vtkPVFileInformation> FileInformation;
 };
 
 #endif // !pqFileDialogFavoriteModel_h

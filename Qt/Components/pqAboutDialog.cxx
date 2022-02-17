@@ -33,13 +33,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqAboutDialog.h"
 
 #include "pqCoreUtilities.h"
-#include "vtkPVGUIApplication.h"
-#include "vtkPVGUIOptions.h"
-// #include "pqFileDialog.h"
+#include "pqFileDialog.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqServerResource.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkPVGUIOptions.h"
 #include "vtkPVOpenGLInformation.h"
 #include "vtkPVPythonInformation.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
@@ -325,7 +325,6 @@ QString pqAboutDialog::formatToText()
 //-----------------------------------------------------------------------------
 void pqAboutDialog::saveToFile()
 {
-#if 0 // FIXME: ASYNC
   pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), tr("Save to File"), QString(),
     "Text Files (*.txt);;All Files (*)");
   fileDialog.setFileMode(pqFileDialog::AnyFile);
@@ -344,7 +343,6 @@ void pqAboutDialog::saveToFile()
     fileStream << this->formatToText().toStdString();
     fileStream.close();
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------

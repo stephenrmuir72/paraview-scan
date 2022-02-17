@@ -35,12 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt Includes.
 
 // ParaView Includes.
-#include "pqApplicationCore.h"
 #include "pqFileDialogModel.h"
 #include "pqServer.h"
 #include "pqServerConfiguration.h"
 #include "pqServerResource.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 
 #include <string>
 #include <vtksys/SystemTools.hxx>
@@ -59,11 +59,11 @@ pqFileDialogRecentDirsModel::pqFileDialogRecentDirsModel(
 
   // We need to determine the URI for this server to get the list of recent dirs
   // from the pqSettings. If server==nullptr, we use the "builtin:" resource.
-  pqServerResource resource = server ? server->getResource() : pqServerResource("builtin:");
+  pqServerResource resource = server ? server->resource() : pqServerResource("builtin:");
 
   QString uri = resource.configuration().URI();
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqSettings* settings = core->settings();
+  vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+  pqSettings* settings = core->GetSettings();
 
   QString key = QString("RecentDirs/%1").arg(uri);
   if (settings->contains(key))
@@ -85,8 +85,8 @@ pqFileDialogRecentDirsModel::pqFileDialogRecentDirsModel(
 //-----------------------------------------------------------------------------
 pqFileDialogRecentDirsModel::~pqFileDialogRecentDirsModel()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqSettings* settings = core->settings();
+  vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+  pqSettings* settings = core->GetSettings();
   if (settings)
   {
     settings->setValue(this->SettingsKey, QVariant(this->Directories));

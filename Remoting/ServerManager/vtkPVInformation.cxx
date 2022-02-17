@@ -54,6 +54,12 @@ bool vtkPVInformation::GetRootOnly() const
 }
 
 //----------------------------------------------------------------------------
+bool vtkPVInformation::CanRunOnRPC() const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 vtkJson vtkPVInformation::SaveState() const
 {
   return vtkJson();

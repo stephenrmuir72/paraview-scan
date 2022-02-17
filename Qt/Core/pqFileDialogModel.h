@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QObject>
 
 #include "vtkPVFileInformation.h"
-class vtkProcessModule;
 class pqServer;
 class QModelIndex;
 
@@ -79,7 +78,8 @@ public:
   /**
    * Sets the path that the file dialog will display.
    * If groupFiles is true, then file sequences are grouped into a file name where the sequence
-   * numbers are replaced by `..`
+   * numbers are replaced by `..`.
+   * The update will occur once the server responds to the file request.
    */
   void setCurrentPath(const QString&, bool groupFiles = true);
 

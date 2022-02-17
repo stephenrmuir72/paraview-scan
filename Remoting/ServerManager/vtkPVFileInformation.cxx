@@ -14,18 +14,12 @@
 =========================================================================*/
 #include "vtkPVFileInformation.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkCollection.h"
 #include "vtkCollectionIterator.h"
 #include "vtkFileSequenceParser.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVFileInformationHelper.h"
-#include "vtkPVVersion.h"
-#include "vtkProcessModule.h"
-#include "vtkResourceFileLocator.h"
 #include "vtkSmartPointer.h"
-#include "vtkVersion.h"
 
 #if defined(_WIN32)
 #include <cstring>   // for strcasecmp
@@ -71,6 +65,15 @@ inline void vtkPVFileInformationAddTerminatingSlash(std::string& name)
 #endif
     }
   }
+}
+
+static char vtkPVFileInformationPathSeparator()
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return '\\';
+#else
+  return '/';
+#endif
 }
 
 #if defined(_WIN32)
@@ -355,124 +358,24 @@ class vtkPVFileInformationSet : public std::set<vtkSmartPointer<vtkPVFileInforma
 //-----------------------------------------------------------------------------
 vtkPVFileInformation::vtkPVFileInformation()
 {
-  this->RootOnly = 1;
   this->Contents = vtkCollection::New();
   this->SequenceParser = vtkFileSequenceParser::New();
-  this->Type = INVALID;
-  this->Name = nullptr;
-  this->FullPath = nullptr;
-  this->FastFileTypeDetection = 0;
-  this->ReadDetailedFileInformation = false;
-  this->Hidden = false;
-  this->Extension = nullptr;
-  this->Size = 0;
-  this->GroupFileSequences = true;
-#ifdef _WIN32
-  this->ModificationTime = _time64(nullptr);
-#else
-  this->ModificationTime = time(nullptr);
-#endif
+  this->Initialize();
 }
 
 //-----------------------------------------------------------------------------
 vtkPVFileInformation::~vtkPVFileInformation()
 {
+  this->Initialize();
   this->Contents->Delete();
   this->SequenceParser->Delete();
-  this->SetName(nullptr);
-  this->SetFullPath(nullptr);
-  this->SetExtension(nullptr);
-  this->Size = 0;
-#ifdef _WIN32
-  this->ModificationTime = _time64(nullptr);
-#else
-  this->ModificationTime = time(nullptr);
-#endif
 }
 
+//-----------------------------------------------------------------------------
 bool vtkPVFileInformation::IsDirectory(int t)
 {
   return t == DIRECTORY || t == DIRECTORY_LINK || t == DRIVE || t == NETWORK_ROOT ||
     t == NETWORK_DOMAIN || t == NETWORK_SERVER || t == NETWORK_SHARE;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyFromObject(vtkObject* object)
-{
-  this->Initialize();
-
-  vtkPVFileInformationHelper* helper = vtkPVFileInformationHelper::SafeDownCast(object);
-  if (!helper)
-  {
-    vtkErrorMacro("Can collect information only from a vtkPVFileInformationHelper.");
-    return;
-  }
-
-  this->GroupFileSequences = helper->GetGroupFileSequences();
-
-  if (helper->GetSpecialDirectories())
-  {
-    this->GetSpecialDirectories();
-    return;
-  }
-
-  this->FastFileTypeDetection = helper->GetFastFileTypeDetection();
-  this->ReadDetailedFileInformation = helper->GetReadDetailedFileInformation();
-
-  std::string path = helper->GetPath();
-  this->SetName(path.c_str());
-
-  if (!vtksys::SystemTools::FileIsFullPath(path))
-  {
-    char* dir = helper->GetWorkingDirectory();
-    std::string working_directory =
-      (dir && dir[0]) ? dir : vtksys::SystemTools::GetCurrentWorkingDirectory();
-    path = MakeAbsolutePath(path, working_directory);
-  }
-
-  bool isLink = false;
-
-#if defined(_WIN32)
-  std::string::size_type idx;
-  for (idx = path.find('/', 0); idx != std::string::npos; idx = path.find('/', idx))
-  {
-    path.replace(idx, 1, 1, '\\');
-  }
-
-  size_t len = path.length();
-  if (len > 4 && path.compare(len - 4, 4, ".lnk") == 0)
-  {
-    WIN32_FIND_DATAW data;
-    path = vtkPVFileInformationResolveLink(path, data);
-    isLink = true;
-  }
-#endif
-
-  this->SetFullPath(path.c_str());
-
-  this->Type = vtkPVFileInformationGetType(this->FullPath);
-  if (isLink && this->Type == SINGLE_FILE)
-  {
-    this->Type = SINGLE_FILE_LINK;
-  }
-  else if (isLink && this->Type == DIRECTORY)
-  {
-    this->Type = DIRECTORY_LINK;
-  }
-
-  // determine if this is a hidden directory/file
-  this->SetHiddenFlag();
-
-  if (this->IsDirectory(this->Type) && helper->GetDirectoryListing())
-  {
-// Since we want a directory listing, we now to platform specific listing
-// with intelligent pattern matching hee-haa.
-#if defined(_WIN32)
-    this->GetWindowsDirectoryListing();
-#else
-    this->GetDirectoryListing();
-#endif
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1087,146 +990,195 @@ void vtkPVFileInformation::OrganizeCollection(vtkPVFileInformationSet& info_set)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyToStream(vtkClientServerStream* stream)
-{
-  *stream << vtkClientServerStream::Reply << this->Name << this->FullPath << this->Type
-          << this->Hidden << this->Contents->GetNumberOfItems() << this->Extension << this->Size
-          << this->ModificationTime;
-
-  vtkSmartPointer<vtkCollectionIterator> iter;
-  iter.TakeReference(this->Contents->NewIterator());
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
-  {
-    vtkClientServerStream childStream;
-    vtkPVFileInformation* child = vtkPVFileInformation::SafeDownCast(iter->GetCurrentObject());
-    child->CopyToStream(&childStream);
-    *stream << childStream;
-  }
-  *stream << vtkClientServerStream::End;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyFromStream(const vtkClientServerStream* css)
-{
-  this->Initialize();
-  const char* temp = nullptr;
-  if (!css->GetArgument(0, 0, &temp))
-  {
-    vtkErrorMacro("Error parsing Name.");
-    return;
-  }
-  this->SetName(temp);
-
-  if (!css->GetArgument(0, 1, &temp))
-  {
-    vtkErrorMacro("Error parsing FullPath.");
-    return;
-  }
-  this->SetFullPath(temp);
-
-  if (!css->GetArgument(0, 2, &this->Type))
-  {
-    vtkErrorMacro("Error parsing Type.");
-    return;
-  }
-
-  if (!css->GetArgument(0, 3, &this->Hidden))
-  {
-    vtkErrorMacro("Error parsing Hidden.");
-    return;
-  }
-
-  int num_of_children = 0;
-  if (!css->GetArgument(0, 4, &num_of_children))
-  {
-    vtkErrorMacro("Error parsing Number of children.");
-    return;
-  }
-  if (!css->GetArgument(0, 5, &temp))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  this->SetExtension(temp);
-  if (!css->GetArgument(0, 6, &this->Size))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  if (!css->GetArgument(0, 7, &this->ModificationTime))
-  {
-    vtkErrorMacro("Error parsing File extension.");
-    return;
-  }
-  for (int cc = 0; cc < num_of_children; cc++)
-  {
-    vtkPVFileInformation* child = vtkPVFileInformation::New();
-    vtkClientServerStream childStream;
-    if (!css->GetArgument(0, 8 + cc, &childStream))
-    {
-      vtkErrorMacro("Error parsing child #" << cc);
-      return;
-    }
-    child->CopyFromStream(&childStream);
-    this->Contents->AddItem(child);
-    child->Delete();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void vtkPVFileInformation::Initialize()
 {
-  this->SetName(nullptr);
-  this->SetFullPath(nullptr);
+  this->Superclass::SetRootOnly(true);
+  this->Name = nullptr;
+  this->FullPath = nullptr;
   this->Type = INVALID;
   this->Hidden = false;
   this->Contents->RemoveAllItems();
-  this->SetExtension(nullptr);
+  this->Extension = nullptr;
   this->Size = 0;
   this->GroupFileSequences = true;
+
 #ifdef _WIN32
   this->ModificationTime = _time64(nullptr);
 #else
   this->ModificationTime = time(nullptr);
 #endif
+
+  this->FastFileTypeDetection = true;
+  // FIXME ASYNC
+  this->GroupFileSequences = true;
+  this->ListSpecialDirectories = false;
+  this->ListDirectories = false;
+  this->WorkingDirectory.clear();
+  this->Path = ".";
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewSharedResourcesDirectory()
+bool vtkPVFileInformation::GatherInformation(vtkObject* /*target*/)
 {
-  // Look for where the function "GetVTKVersion." lives.
-  auto vtk_libs = vtkGetLibraryPathForSymbol(GetVTKVersion);
-
-  // Where docs might be in relation to the executable
-  std::vector<std::string> prefixes = {
-#if defined(_WIN32) || defined(__APPLE__)
-    ".."
-#else
-    "share/paraview-" PARAVIEW_VERSION
-#endif
-  };
-
-  // Search for the docs directory
-  vtkNew<vtkResourceFileLocator> locator;
-  auto resource_dir = locator->Locate(vtk_libs, prefixes, "doc");
-  if (!resource_dir.empty())
+  if (this->ListSpecialDirectories)
   {
-    resource_dir = vtksys::SystemTools::CollapseFullPath(resource_dir);
+    this->GetSpecialDirectories();
+    return true;
   }
 
-  return resource_dir;
+  std::string path = this->Path;
+  this->SetName(path.c_str());
+
+  if (!vtksys::SystemTools::FileIsFullPath(path))
+  {
+    if (this->WorkingDirectory.empty())
+    {
+      this->WorkingDirectory = vtksys::SystemTools::GetCurrentWorkingDirectory();
+    }
+    path = MakeAbsolutePath(path, this->WorkingDirectory);
+  }
+
+  bool isLink = false;
+
+#if defined(_WIN32)
+  std::string::size_type idx;
+  for (idx = path.find('/', 0); idx != std::string::npos; idx = path.find('/', idx))
+  {
+    path.replace(idx, 1, 1, '\\');
+  }
+
+  size_t len = path.length();
+  if (len > 4 && path.compare(len - 4, 4, ".lnk") == 0)
+  {
+    WIN32_FIND_DATAW data;
+    path = vtkPVFileInformationResolveLink(path, data);
+    isLink = true;
+  }
+#endif
+
+  this->SetFullPath(path.c_str());
+
+  this->Type = vtkPVFileInformationGetType(this->FullPath);
+  if (isLink && this->Type == SINGLE_FILE)
+  {
+    this->Type = SINGLE_FILE_LINK;
+  }
+  else if (isLink && this->Type == DIRECTORY)
+  {
+    this->Type = DIRECTORY_LINK;
+  }
+
+  // determine if this is a hidden directory/file
+  this->SetHiddenFlag();
+
+  if (this->IsDirectory(this->Type) && this->ListDirectories)
+  {
+// Since we want a directory listing, we now to platform specific listing
+// with intelligent pattern matching hee-haa.
+#if defined(_WIN32)
+    this->GetWindowsDirectoryListing();
+#else
+    this->GetDirectoryListing();
+#endif
+  }
+  return true;
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewExampleFilesDirectory()
+void vtkPVFileInformation::AddInformation(vtkPVInformation* other) {}
+
+//-----------------------------------------------------------------------------
+vtkJson vtkPVFileInformation::SaveState() const
 {
-  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/examples";
+  vtkJson state;
+
+  VTK_JSON_SAVE_MEMBER(state, FastFileTypeDetection);
+  VTK_JSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
+  VTK_JSON_SAVE_MEMBER(state, GroupFileSequences);
+  VTK_JSON_SAVE_MEMBER(state, ListDirectories);
+  VTK_JSON_SAVE_MEMBER(state, ListSpecialDirectories);
+  VTK_JSON_SAVE_MEMBER(state, Path);
+  VTK_JSON_SAVE_MEMBER(state, WorkingDirectory);
+
+  return state;
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPVFileInformation::GetParaViewDocDirectory()
+bool vtkPVFileInformation::LoadState(const vtkJson& state)
 {
-  return vtkPVFileInformation::GetParaViewSharedResourcesDirectory() + "/doc";
+  this->Initialize();
+  VTK_JSON_LOAD_MEMBER(state, FastFileTypeDetection);
+  VTK_JSON_LOAD_MEMBER(state, ReadDetailedFileInformation);
+  VTK_JSON_LOAD_MEMBER(state, GroupFileSequences);
+  VTK_JSON_LOAD_MEMBER(state, ListDirectories);
+  VTK_JSON_LOAD_MEMBER(state, ListSpecialDirectories);
+  VTK_JSON_LOAD_MEMBER(state, Path);
+  VTK_JSON_LOAD_MEMBER(state, WorkingDirectory);
+
+  return true;
+}
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
+{
+  this->SetRootOnly(state.at("root_only").get<bool>());
+
+  auto name = state.at("name").get<std::string>();
+  auto fullpath = state.at("full_path").get<std::string>();
+  this->SetName(name.empty() ? nullptr : name.c_str());
+  this->SetFullPath(fullpath.empty() ? nullptr : fullpath.c_str());
+
+  this->Type = state.at("type").get<int>();
+  this->Hidden = state.at("hidden").get<bool>();
+
+  auto extension = state.at("extension").get<std::string>();
+  this->SetExtension(extension.empty() ? nullptr : extension.c_str());
+
+  this->Size = state.at("size").get<long long>();
+  this->ModificationTime = state.at("modification_time").get<time_t>();
+  this->PathSeparator = state.at("path_separator").get<char>();
+
+  int cc = 0;
+  for (auto& childState : state.at("children"))
+  {
+    vtkNew<vtkPVFileInformation> child;
+    if (child->LoadInformation(childState))
+    {
+      this->Contents->AddItem(child);
+    }
+    else
+    {
+      vtkErrorMacro("Error parsing child #" << cc);
+    }
+    cc++;
+  }
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+vtkJson vtkPVFileInformation::SaveInformation() const
+{
+  vtkJson json;
+  json["root_only"] = this->GetRootOnly();
+  json["name"] = std::string(this->Name ? this->Name : "");
+  json["full_path"] = std::string(this->FullPath ? this->FullPath : "");
+  json["type"] = this->Type;
+  json["hidden"] = this->Hidden;
+  json["number_of_items"] = this->Contents->GetNumberOfItems();
+  json["extension"] = std::string(this->Extension ? this->Extension : "");
+  json["size"] = this->Size;
+  json["modification_time"] = this->ModificationTime;
+  json["path_separator"] = vtkPVFileInformationPathSeparator();
+  auto children = vtkJson::array();
+
+  vtkSmartPointer<vtkCollectionIterator> iter;
+  iter.TakeReference(this->Contents->NewIterator());
+  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  {
+    vtkPVFileInformation* child = vtkPVFileInformation::SafeDownCast(iter->GetCurrentObject());
+    children.push_back(child->SaveInformation());
+  }
+  json["children"] = children;
+  return json;
 }
 
 //-----------------------------------------------------------------------------
@@ -1261,4 +1213,91 @@ void vtkPVFileInformation::PrintSelf(ostream& os, vtkIndent indent)
     os << endl;
     this->Contents->GetItemAsObject(cc)->PrintSelf(os, indent.GetNextIndent());
   }
+}
+//-----------------------------------------------------------------------------
+std::string vtkPVFileInformation::RetrieveAbsolutePath(const std::string& path)
+{
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path || fullPath == path)
+  {
+    return this->FullPath;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    const std::string name = child->Name ? child->Name : "";
+    const std::string fullPath = child->FullPath ? child->FullPath : "";
+    if (name == path || fullPath == path)
+    {
+
+      return child->GetFullPath();
+    }
+  }
+  return "";
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::FileExists(const std::string& path, std::string& fullpath)
+{
+  // make comparisons easier
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path && this->Type == vtkPVFileInformation::FileTypes::SINGLE_FILE)
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  if (fullPath == path && this->Type == vtkPVFileInformation::FileTypes::SINGLE_FILE)
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    if (child->FileExists(path, fullpath))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPVFileInformation::DirectoryExists(const std::string& path, std::string& fullpath)
+{
+  // make comparisons easier
+  const std::string name = this->Name ? this->Name : "";
+  const std::string fullPath = this->FullPath ? this->FullPath : "";
+  if (name == path && this->IsDirectory())
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  if (fullPath == path && this->IsDirectory())
+  {
+    fullpath = this->FullPath;
+    return true;
+  }
+
+  for (int cc = 0; cc < this->Contents->GetNumberOfItems(); cc++)
+  {
+
+    vtkPVFileInformation* child =
+      vtkPVFileInformation::SafeDownCast(this->Contents->GetItemAsObject(cc));
+    if (child->DirectoryExists(path, fullpath))
+    {
+      return true;
+    }
+  }
+  return false;
 }

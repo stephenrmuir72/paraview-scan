@@ -78,6 +78,7 @@ vtkPVFileInformation* vtkFindFileGroupFor(vtkPVFileInformation* info, const std:
 // Returns empty to indicate nothing found or don't bother updating.
 std::vector<std::string> vtkGetFilesInSeries(vtkSMSessionProxyManager* pxm, const char* fname)
 {
+  #if 0 // FIX ASYNC calls to FileInformationProvider are non blocking
   std::string dir = vtksys::SystemTools::GetFilenamePath(fname);
 
   // We use unix-slashes so we can consistently compare filenames in
@@ -109,6 +110,9 @@ std::vector<std::string> vtkGetFilesInSeries(vtkSMSessionProxyManager* pxm, cons
   }
 
   return std::vector<std::string>();
+  #endif 
+  abort();
+  return {};
 }
 }
 

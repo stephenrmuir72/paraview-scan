@@ -382,28 +382,6 @@
     </Proxy>
   </ProxyGroup>
 
-  <ProxyGroup name="file_listing">
-    <Proxy class="vtkPVFileInformationHelper"
-           name="ServerFileListing">
-      <IntVectorProperty command="GetActiveFileIsDirectory"
-                         information_only="1"
-                         name="ActiveFileIsDirectory">
-        <SimpleIntInformationHelper />
-      </IntVectorProperty>
-      <IntVectorProperty command="GetActiveFileIsReadable"
-                         information_only="1"
-                         name="ActiveFileIsReadable">
-        <SimpleIntInformationHelper />
-      </IntVectorProperty>
-      <StringVectorProperty command="SetPath"
-                            name="ActiveFileName"
-                            number_of_elements="1">
-        <Documentation>Set the filename whose information we
-        need.</Documentation>
-      </StringVectorProperty>
-    </Proxy>
-  </ProxyGroup>
-
   <ProxyGroup name="selection_helpers">
     <Proxy class="vtkSelection"
            name="Selection"></Proxy>
@@ -458,52 +436,6 @@
       <StringVectorProperty name="FileList"      information_only="1"/>
       <StringVectorProperty name="DirectoryList" information_only="1"/>
     </DirectoryProxy>
-    <Proxy class="vtkPVFileInformationHelper"
-           name="FileInformationHelper">
-      <StringVectorProperty command="SetPath"
-                            name="Path" />
-      <IntVectorProperty command="SetDirectoryListing"
-                         default_values="0"
-                         name="DirectoryListing"
-                         number_of_elements="1">
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-      <IntVectorProperty command="SetSpecialDirectories"
-                         default_values="0"
-                         name="SpecialDirectories"
-                         number_of_elements="1">
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-      <IntVectorProperty command="SetGroupFileSequences"
-                         default_values="1"
-                         name="GroupFileSequences"
-                         panel_visibility="never"
-                         number_of_elements="1">
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-      <StringVectorProperty command="GetPathSeparator"
-                            information_only="1"
-                            name="PathSeparator"
-                            number_of_elements="1">
-        <SimpleStringInformationHelper />
-      </StringVectorProperty>
-      <StringVectorProperty command="SetWorkingDirectory"
-                            default_values=""
-                            name="WorkingDirectory"
-                            number_of_elements="1">
-        <Documentation>Override the working directory used to resolve relative
-        paths.</Documentation>
-      </StringVectorProperty>
-      <IntVectorProperty command="SetReadDetailedFileInformation"
-                         name="ReadDetailedFileInformation"
-                         number_of_elements="1"
-                         default_values="0">
-        <Documentation>Whether to read full file information.  This is slow when there are many files
-        in a directory so this defaults to false.</Documentation>
-        <BooleanDomain name="bool"/>
-      </IntVectorProperty>
-      <!-- End of FileInformationHelper -->
-    </Proxy>
     <Proxy class="vtkPVFilePathEncodingHelper"
            name="FilePathEncodingHelper">
       <IntVectorProperty command="MakeDirectory"

@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqOutputWidget.h"
 
 #include "pqCoreUtilities.h"
-#include "vtkPVGUIApplication.h"
-// #include "pqFileDialog.h"
+#include "pqFileDialog.h"
 #include "pqSettings.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOutputWindow.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QClipboard>
 #include <QMutexLocker>
@@ -448,7 +448,6 @@ void pqOutputWidget::suppress(const QStringList& substrs)
 //-----------------------------------------------------------------------------
 void pqOutputWidget::saveToFile()
 {
-#if 0 // FIXME: ASYNC
   QString text = this->Internals->Ui.consoleWidget->text();
   pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), "Save output", QString(),
     "Text Files (*.txt);;All Files (*)");
@@ -468,7 +467,6 @@ void pqOutputWidget::saveToFile()
     fileStream << text.toStdString();
     fileStream.close();
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------

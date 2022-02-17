@@ -142,6 +142,7 @@ vtkPacket vtkInformationProvider::GatherInformation(
   json["class"] = information->GetClassName();
   json["target_gid"] = targetGID;
   json["state"] = information->SaveState();
+  json["run_on_rpc"] = information->CanRunOnRPC();
   return { json };
 }
 
@@ -162,6 +163,17 @@ void vtkInformationProvider::InitializeInternal(vtkService* service)
         const auto& json = receiver.GetPacket().GetJSON();
         auto iter = json.find("type");
         return (iter != json.end() && iter.value().get<std::string>() == "vtk-information-collect");
+      })
+      // Filters requests marked as "run_on_rpc"
+      .filter([&internals](const vtkServiceReceiver& receiver) {
+        const auto& json = receiver.GetPacket().GetJSON();
+        auto iter = json.find("run_on_rpc");
+        if (iter != json.end() && iter.value().get<bool>())
+        {
+          receiver.Respond(internals.GatherInformation(json));
+          return false;
+        }
+        return true;
       })
       .observe_on(service->GetRunLoopScheduler())
       .subscribe([&internals](const vtkServiceReceiver& receiver) {

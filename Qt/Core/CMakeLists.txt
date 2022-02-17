@@ -35,6 +35,11 @@ set(classes
   pqCoreUtilities
   pqDataRepresentation
   pqExtractor
+  pqFileDialog
+  pqFileDialogFavoriteModel
+  pqFileDialogFilter
+  pqFileDialogModel
+  pqFileDialogRecentDirsModel
   pqImageUtil
   pqInterfaceTracker
   pqKeySequences
@@ -86,13 +91,8 @@ set(old_classes
   pqComparativeXYChartView
   pqContextView
   pqCoreTestUtility
-  pqFileDialog
   pqFileDialogEventPlayer
   pqFileDialogEventTranslator
-  pqFileDialogFavoriteModel
-  pqFileDialogFilter
-  pqFileDialogModel
-  pqFileDialogRecentDirsModel
   pqFileUtilitiesEventPlayer
   pqFlatTreeViewEventPlayer
   pqFlatTreeViewEventTranslator

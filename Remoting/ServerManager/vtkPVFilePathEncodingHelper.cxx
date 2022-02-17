@@ -18,7 +18,6 @@
 #include "vtkClientServerInterpreterInitializer.h"
 #include "vtkClientServerStream.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVFileInformationHelper.h"
 #include "vtkPVSessionBase.h"
 #include "vtkPVSessionCore.h"
 #include "vtkProcessModule.h"
