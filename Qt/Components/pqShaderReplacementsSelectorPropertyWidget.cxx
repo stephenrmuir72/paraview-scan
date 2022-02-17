@@ -41,14 +41,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "vtkPVGUIApplication.h"
-// #include "pqFileDialog.h"
 #include "pqDataRepresentation.h"
+#include "pqFileDialog.h"
 #include "pqServerManagerModel.h"
 #include "pqShaderReplacementsComboBox.h"
 #include "pqTextEdit.h"
 #include "pqUndoStack.h"
 #include "pqView.h"
+#include "vtkPVGUIApplication.h"
 
 // #include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
@@ -191,7 +191,7 @@ void pqShaderReplacementsSelectorPropertyWidget::onPresetChanged(int index)
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::onLoad()
 {
-#if 0 // FIXME: ASYNC
+#if 0 // FIXME: ASYNC see async/paraview#20
   dynamic_cast<QToolButton*>(this->sender())->setChecked(false);
   // Popup load texture dialog.
   QString filters = "Shader replacements files (*.json);;All files (*)";

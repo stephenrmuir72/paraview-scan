@@ -31,10 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqTextureComboBox.h"
 
-#include "vtkPVGUIApplication.h"
-// #include "pqFileDialog.h"
+#include "pqFileDialog.h"
 #include "pqServerManagerObserver.h"
 #include "vtkEventQtSlotConnect.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyGroupDomain.h"
@@ -136,7 +136,6 @@ void pqTextureComboBox::onCurrentIndexChanged(int index)
 //-----------------------------------------------------------------------------
 void pqTextureComboBox::loadTexture()
 {
-#if 0 // FIXME: ASYNC
   QString filters = "Image files (*.png *.jpg *.bmp *.ppm *.tiff *.hdr);;All files (*)";
   pqFileDialog dialog(nullptr, this, tr("Open Texture:"), QString(), filters);
   dialog.setObjectName("LoadTextureDialog");
@@ -153,9 +152,6 @@ void pqTextureComboBox::loadTexture()
     }
   }
   this->setCurrentIndex(0);
-#else
-  abort();
-#endif
 }
 
 //-----------------------------------------------------------------------------

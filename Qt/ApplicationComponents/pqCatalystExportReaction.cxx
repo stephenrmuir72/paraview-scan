@@ -41,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqCoreUtilities.h"
-// #include "pqFileDialog.h"
+#include "pqFileDialog.h"
 #include "pqProxyWidgetDialog.h"
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMProxy.h"
@@ -69,7 +69,6 @@ pqCatalystExportReaction::~pqCatalystExportReaction() = default;
 //-----------------------------------------------------------------------------
 QString pqCatalystExportReaction::exportScript()
 {
-#if 0 // FIXME: ASYNC
   pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), tr("Save Catalyst State:"),
     QString(), "Python file (*.py);;All files (*)");
   fileDialog.setObjectName("SaveCatalystStateFileDialog");
@@ -81,9 +80,6 @@ QString pqCatalystExportReaction::exportScript()
 
   auto fname = fileDialog.getSelectedFiles()[0];
   return pqCatalystExportReaction::exportScript(fname) ? fname : QString();
-#else
-  return {};
-#endif
 }
 
 //-----------------------------------------------------------------------------
