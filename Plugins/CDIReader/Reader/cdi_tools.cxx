@@ -1,8 +1,8 @@
 #include "cdi_tools.h"
 #include "vtk_netcdf.h"
+#include "vtksys/SystemTools.hxx"
 
 #include "cdi.h"
-#include "helpers.h"
 
 #include <cstring>
 
@@ -13,10 +13,12 @@ std::string GuessGridFileFromUri(const std::string& FileName)
   std::string guess;
   // NETCDF-CALL:
   std::string uri_filename =
-    helpers::GetBasenameFromUri(get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
+    vtksys::SystemTools::GetFilenameName(get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
   if (!uri_filename.empty())
   {
-    guess = helpers::GetPathName(FileName) + "/" + uri_filename;
+    std::string dir = vtksys::SystemTools::GetParentDirectory(FileName);
+    // guess = vtksys::SystemTools::JoinPath({dir, uri_filename});
+    guess = dir + "/" + uri_filename;
   }
   return guess;
 }
@@ -53,8 +55,8 @@ std::string get_att_str(const std::string& filename, const std::string& var, con
 
 std::string ParseTimeUnits(const int& vdate, const int& vtime)
 {
-  std::string date = helpers::ConvertInt(vdate);
-  std::string time = helpers::ConvertInt(vtime);
+  std::string date = std::to_string(vdate);
+  std::string time = std::to_string(vtime);
   std::string time_units;
   if (strlen(date.c_str()) < 8)
   {

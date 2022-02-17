@@ -55,9 +55,9 @@
 #include "vtkUnstructuredGrid.h"
 
 #include "vtksys/FStream.hxx"
+#include "vtksys/SystemTools.hxx"
 
 #include "cdi_tools.h"
-#include "helpers.h"
 
 #include <set>
 #include <sstream>
@@ -862,7 +862,7 @@ int vtkCDIReader::OpenFile()
 //----------------------------------------------------------------------------
 void vtkCDIReader::GuessGridFile()
 {
-  std::string fallback = helpers::GetPathName(this->FileName) + "/grid.nc";
+  std::string fallback = vtksys::SystemTools::GetParentDirectory(this->FileName) + "/grid.nc";
 
   std::string guess;
   if (!this->Grib)
@@ -870,7 +870,7 @@ void vtkCDIReader::GuessGridFile()
 
   if (!guess.empty())
   {
-    if (helpers::CheckFileAccess(guess))
+    if (vtksys::SystemTools::TestFileAccess(guess, vtksys::TEST_FILE_READ))
     {
       this->FileNameGrid = guess;
       return;
@@ -3108,19 +3108,19 @@ int vtkCDIReader::LoadDomainVarData(int variableIndex)
     std::string filename;
     if (i < 10)
     {
-      filename = this->PerformanceDataFile + "000" + helpers::ConvertInt(i);
+      filename = this->PerformanceDataFile + "000" + std::to_string(i);
     }
     else if (i < 100)
     {
-      filename = this->PerformanceDataFile + "00" + helpers::ConvertInt(i);
+      filename = this->PerformanceDataFile + "00" + std::to_string(i);
     }
     else if (i < 1000)
     {
-      filename = this->PerformanceDataFile + "0" + helpers::ConvertInt(i);
+      filename = this->PerformanceDataFile + "0" + std::to_string(i);
     }
     else
     {
-      filename = this->PerformanceDataFile + helpers::ConvertInt(i);
+      filename = this->PerformanceDataFile + std::to_string(i);
     }
 
     std::vector<std::string> wordVec;
@@ -3138,7 +3138,13 @@ int vtkCDIReader::LoadDomainVarData(int variableIndex)
     while (ss.good())
     {
       ss >> word;
-      helpers::Strip(word);
+
+      word.erase(word.begin(),
+        std::find_if(word.begin(), word.end(), [](int c) { return !std::ispunct(c); }));
+      word.erase(
+        std::find_if(word.rbegin(), word.rend(), [](int c) { return !std::ispunct(c); }).base(),
+        word.end());
+
       wordVec.push_back(word);
     }
     //  0    1      	2     		3      	4       	5      	6 7		  8

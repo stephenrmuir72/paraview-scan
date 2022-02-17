@@ -10,7 +10,7 @@
 # )
 
 if (NOT PARAVIEW_USE_QT)
-  message(STATUS "CDI tests require Qt. Skipping.")
+  return()
 endif()
 
 set (xml_tests_no_final_verif

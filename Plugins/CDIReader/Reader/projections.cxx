@@ -1,5 +1,4 @@
 #include "projections.h"
-#include "helpers.h"
 
 #include "vtkMath.h"
 

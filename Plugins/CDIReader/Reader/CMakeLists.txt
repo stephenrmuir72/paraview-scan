@@ -4,8 +4,6 @@ set(classes
 set (sources
     cdi_tools.cxx
     cdi_tools.h
-    helpers.cxx
-    helpers.h
     projections.cxx
     projections.h
     )
