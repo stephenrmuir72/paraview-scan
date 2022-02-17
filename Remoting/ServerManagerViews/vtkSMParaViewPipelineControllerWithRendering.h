@@ -202,11 +202,6 @@ public:
   //@}
 
   /**
-   * Overridden to handle default ColorArrayName for representations correctly.
-   */
-  bool PostInitializeProxy(vtkSMProxy* proxy) override;
-
-  /**
    * Register layout proxy. If `proxyname` is nullptr, a new name will be
    * assigned.
    */
@@ -243,6 +238,11 @@ protected:
    * Overridden here where the library has link access to rendering classes.
    */
   void DoMaterialSetup(vtkSMProxy* proxy) override;
+
+  /**
+   * Overridden to handle default ColorArrayName for representations correctly.
+   */
+  bool DoPostInitializeProxy(vtkSMProxy* proxy, vtkMTimeType ts) override;
 
 private:
   vtkSMParaViewPipelineControllerWithRendering(

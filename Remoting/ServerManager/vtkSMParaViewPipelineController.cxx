@@ -1053,6 +1053,8 @@ bool vtkSMParaViewPipelineController::PreInitializeProxy(vtkSMProxy* proxy)
     return false;
   }
 
+  proxy->SetAnnotation("UNDER_INITIALIZATION", "TRUE");
+
   // 1. Load XML defaults
   //    (already done by NewProxy() call).
 
@@ -1090,11 +1092,11 @@ vtkMTimeType vtkSMParaViewPipelineController::GetInitializationTime(vtkSMProxy* 
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
+rxcpp::observable<bool> vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
 {
   if (!proxy)
   {
-    return false;
+    return rxcpp::observable<>::just(false);
   }
 
   vtkInternals::TimeStampsMap::iterator titer =
@@ -1102,7 +1104,7 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
   if (titer == this->Internals->InitializationTimeStamps.end())
   {
     vtkErrorMacro("PostInitializeProxy must only be called after PreInitializeProxy");
-    return false;
+    return rxcpp::observable<>::just(false);
   }
 
   assert(titer != this->Internals->InitializationTimeStamps.end());
@@ -1113,6 +1115,35 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
   // ensure everything is up-to-date.
   proxy->UpdateVTKObjects();
 
+  using BehaviorT = rxcpp::subjects::behavior<vtkVariant>;
+  auto behavior = std::make_shared<BehaviorT>(vtkVariant());
+
+  auto observable = proxy->UpdateInformation();
+  observable.subscribe([behavior, proxy, ts](bool) {
+    vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "Setting up proxy defaults for '%s'!",
+      proxy->GetLogNameOrDefault());
+    vtkNew<vtkSMParaViewPipelineController> controller;
+
+    const bool status = controller->DoPostInitializeProxy(proxy, ts);
+    proxy->UpdateVTKObjects();
+    vtkLogF(INFO, "remove annotation: %s", proxy->GetLogNameOrDefault());
+    proxy->RemoveAnnotation("UNDER_INITIALIZATION");
+    behavior->get_subscriber().on_next(vtkVariant(status ? 1 : 0));
+  });
+
+  return behavior->get_observable()
+    .filter([](const vtkVariant& variant) { return variant.IsValid(); })
+    .take(1)
+    .map([behavior](const vtkVariant& variant) {
+      // capture behavior to ensure it hangs around until the returned value hangs around.
+      (void)behavior;
+      return variant.ToInt() != 0;
+    });
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::DoPostInitializeProxy(vtkSMProxy* proxy, vtkMTimeType ts)
+{
   // If InitializationHelper is specified for the proxy. Use it
   // for extra initialization.
   this->ProcessInitializationHelper(proxy, ts);
@@ -1121,17 +1152,6 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
   // We don't reset properties on custom filter.
   if (!proxy->IsA("vtkSMCompoundSourceProxy"))
   {
-    if (vtkSMSourceProxy* sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy))
-    {
-      // Since domains depend on information properties, it's essential we update
-      // property information first.
-      if (sourceProxy->GetNumberOfOutputPorts() > 0)
-      {
-        // This is only done for non-writers, or non-sinks.
-        sourceProxy->UpdateInformation();
-      }
-    }
-
     // Reset property values using domains. However, this should only be done for
     // properties that were not modified between the PreInitializePipelineProxy and
     // PostInitializePipelineProxy calls.
@@ -1176,7 +1196,19 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
     }
     proxy->UpdateVTKObjects();
   }
+
   return true;
+}
+
+//----------------------------------------------------------------------------
+rxcpp::observable<bool> vtkSMParaViewPipelineController::InitializeProxy(vtkSMProxy* proxy)
+{
+  if (this->PreInitializeProxy(proxy))
+  {
+    return this->PostInitializeProxy(proxy);
+  }
+
+  return rxcpp::observable<>::just(false);
 }
 
 //----------------------------------------------------------------------------
@@ -1376,6 +1408,12 @@ void vtkSMParaViewPipelineController::ProcessInitializationHelperRegistration(vt
       }
     }
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::IsProxyInitialized(vtkSMProxy* proxy)
+{
+  return proxy && !proxy->HasAnnotation("UNDER_INITIALIZATION");
 }
 
 //----------------------------------------------------------------------------

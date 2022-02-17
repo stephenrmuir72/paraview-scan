@@ -46,6 +46,12 @@
 
 #include <string> // for std::string
 
+#include "vtk_rxcpp.h" // for rxcpp
+// clang-format off
+// ideally, we include rx-lite.hpp here.
+#include VTK_REMOTING_RXCPP(rx.hpp)
+// clang-format on
+
 class vtkSMProxy;
 class vtkClientSession;
 class vtkSMSessionProxyManager;
@@ -91,15 +97,12 @@ public:
    * NOTE: This method does not register the proxy with the proxy manager. It
    * may, however register any helper proxies created for this proxy.
    */
-  virtual bool PostInitializeProxy(vtkSMProxy* proxy);
+  virtual rxcpp::observable<bool> PostInitializeProxy(vtkSMProxy* proxy);
 
   /**
    * Convenience method to call PreInitializeProxy and PostInitializeProxy.
    */
-  bool InitializeProxy(vtkSMProxy* proxy)
-  {
-    return this->PreInitializeProxy(proxy) && this->PostInitializeProxy(proxy);
-  }
+  rxcpp::observable<bool> InitializeProxy(vtkSMProxy* proxy);
 
   /**
    * Cleans up any helper proxies registered for the proxy in
@@ -302,6 +305,11 @@ public:
    */
   static std::string GetHelperProxyGroupName(vtkSMProxy*);
 
+  /**
+   * Returns true if proxy is not currently pending an initialization.
+   */
+  static bool IsProxyInitialized(vtkSMProxy* proxy);
+
 protected:
   vtkSMParaViewPipelineController();
   ~vtkSMParaViewPipelineController() override;
@@ -364,6 +372,12 @@ protected:
    * An entry point to load a catalog of OSPRay rendering materials.
    */
   virtual void DoMaterialSetup(vtkSMProxy* proxy);
+
+  /**
+   * Called in `PostInitializeProxy(vtkSMProxy*)` once the information properties are
+   * updated.
+   */
+  virtual bool DoPostInitializeProxy(vtkSMProxy* proxy, vtkMTimeType initializationTimeStamp);
 
 private:
   vtkSMParaViewPipelineController(const vtkSMParaViewPipelineController&) = delete;

@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 // #include "vtkSMAnimationSceneProxy.h"
+#include "vtkPVLogger.h"
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMParaViewPipelineController.h"
@@ -93,7 +94,7 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
   vtkSMProxy* proxy, pqServer* server, const QString& regName = QString())
 {
   // since there are no properties to set, nothing to do here.
-  controller->PostInitializeProxy(proxy);
+  auto observable = controller->PostInitializeProxy(proxy);
   if (regName.isEmpty())
   {
     controller->RegisterPipelineProxy(proxy);
@@ -106,6 +107,7 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
   pqPipelineSource* source =
     vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqPipelineSource*>(proxy);
   source->setModifiedState(pqProxy::UNINITIALIZED);
+  observable.subscribe([source](bool) { source->setModifiedState(pqProxy::MODIFIED); });
 
 #if 0 // FIXME: ASYNC
   // Manage Modified state in Undo/Redo only if not a collaborative server

@@ -319,17 +319,19 @@ bool vtkSMParaViewPipelineControllerWithRendering::GetInheritRepresentationPrope
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMParaViewPipelineControllerWithRendering::PostInitializeProxy(vtkSMProxy* proxy)
+bool vtkSMParaViewPipelineControllerWithRendering::DoPostInitializeProxy(
+  vtkSMProxy* proxy, vtkMTimeType initTimeStamp)
 {
   // save current time, we can check is a property is modified by the superclass
   // call.
   vtkTimeStamp ts;
   ts.Modified();
 
-  if (!this->Superclass::PostInitializeProxy(proxy))
+  if (!this->Superclass::DoPostInitializeProxy(proxy, initTimeStamp))
   {
     return false;
   }
+
   // BUG #14773: The domains for ColorArrayName and Representation properties
   // come up with a good default separately. In reality, we need the
   // ColorArrayName to depend on Representation and not pick any value when

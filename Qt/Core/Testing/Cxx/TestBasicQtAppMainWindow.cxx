@@ -38,6 +38,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
+
 #include <vtk_rxqt.h>
 // clang-format off
 #include VTK_REMOTING_RXQT(rxqt.hpp)
