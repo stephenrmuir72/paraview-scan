@@ -124,7 +124,7 @@ pqPythonEditorActions::pqPythonEditorActions()
 }
 
 //-----------------------------------------------------------------------------
-void pqPythonEditorActions::updateScriptsList(pqPythonManager* const python_mng)
+void pqPythonEditorActions::updateScriptsList(pqPythonManager* const python_mgr)
 {
   auto scripts = details::ListFiles(pqPythonScriptEditor::getScriptsDir());
 
@@ -168,10 +168,10 @@ void pqPythonEditorActions::updateScriptsList(pqPythonManager* const python_mng)
 
     QAction* runAction = &actions[ScriptAction::Type::Run];
     runAction->setText(filename);
-    QObject::connect(runAction, &QAction::triggered, [runAction, python_mng]() {
+    QObject::connect(runAction, &QAction::triggered, [runAction, python_mgr]() {
       const QString runFilename =
         pqPythonScriptEditor::getScriptsDir() + "/" + runAction->text() + ".py";
-      python_mng->executeScriptAndRender(runFilename);
+      python_mgr->executeScriptAndRender(runFilename);
       auto scriptEditor = pqPythonScriptEditor::getUniqueInstance();
       scriptEditor->open(runFilename);
     });
