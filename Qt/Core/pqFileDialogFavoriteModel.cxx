@@ -43,8 +43,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pqServerConfiguration.h>
 #include <pqServerResource.h>
 #include <pqSettings.h>
+#include <vtkClientSession.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
+#include <vtkInformationProvider.h>
 #include <vtkPVFileInformation.h>
 #include <vtkPVGUIApplication.h>
 #include <vtkSMIntVectorProperty.h>
@@ -76,6 +78,8 @@ pqFileDialogFavoriteModel::pqFileDialogFavoriteModel(pqServer* server, QObject* 
   vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
   pqSettings* settings = core->GetSettings();
 
+  this->FileInformation = vtkSmartPointer<vtkPVFileInformation>::New();
+
   QString key = QString("UserFavorites/%1").arg(uri);
   if (settings->contains(key))
   {
@@ -90,7 +94,7 @@ pqFileDialogFavoriteModel::pqFileDialogFavoriteModel(pqServer* server, QObject* 
   }
   else
   {
-    this->LoadFavoritesFromSystem();
+    this->RetrieveFavoritesFromSystem();
   }
   this->SettingsKey = key;
 }
@@ -288,9 +292,7 @@ void pqFileDialogFavoriteModel::removeFromFavorites(QString const& dirPath)
 //-----------------------------------------------------------------------------
 void pqFileDialogFavoriteModel::resetFavoritesToDefault()
 {
-  this->beginResetModel();
-  this->LoadFavoritesFromSystem();
-  this->endResetModel();
+  this->RetrieveFavoritesFromSystem();
 }
 
 //-----------------------------------------------------------------------------
@@ -322,27 +324,6 @@ Qt::ItemFlags pqFileDialogFavoriteModel::flags(const QModelIndex& index) const
 //-----------------------------------------------------------------------------
 void pqFileDialogFavoriteModel::LoadFavoritesFromSystem()
 {
-  #if 0
-  vtkPVFileInformation* information = vtkPVFileInformation::New();
-
-  if (this->Server)
-  {
-    vtkSMSessionProxyManager* pxm = this->Server->proxyManager();
-
-    vtkSMProxy* helper = pxm->NewProxy("misc", "FileInformationHelper");
-    pqSMAdaptor::setElementProperty(helper->GetProperty("SpecialDirectories"), true);
-    helper->UpdateVTKObjects();
-    helper->GatherInformation(information);
-    helper->Delete();
-  }
-  else
-  {
-    vtkPVFileInformationHelper* helper = vtkPVFileInformationHelper::New();
-    helper->SetSpecialDirectories(1);
-    information->CopyFromObject(helper);
-    helper->Delete();
-  }
-
   this->FavoriteList.clear();
   if (pqFileDialogFavoriteModel::AddExamplesInFavorites)
   {
@@ -354,7 +335,7 @@ void pqFileDialogFavoriteModel::LoadFavoritesFromSystem()
     this->FavoriteList.push_back(pqFileDialogFavoriteModelFileInfo{
       "Examples", "_examples_path_", vtkPVFileInformation::DIRECTORY });
   }
-  vtkCollectionIterator* iter = information->GetContents()->NewIterator();
+  vtkCollectionIterator* iter = this->FileInformation->GetContents()->NewIterator();
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
     vtkPVFileInformation* cur_info = vtkPVFileInformation::SafeDownCast(iter->GetCurrentObject());
@@ -365,8 +346,26 @@ void pqFileDialogFavoriteModel::LoadFavoritesFromSystem()
     this->FavoriteList.push_back(pqFileDialogFavoriteModelFileInfo{
       cur_info->GetName(), QDir::cleanPath(cur_info->GetFullPath()), cur_info->GetType() });
   }
+}
 
-  iter->Delete();
-  information->Delete();
-#endif
+//-----------------------------------------------------------------------------
+void pqFileDialogFavoriteModel::RetrieveFavoritesFromSystem()
+{
+  this->FileInformation->Initialize();
+  this->FileInformation->SetListSpecialDirectories(true);
+
+  auto* session = this->Server->session();
+  auto packet = vtkInformationProvider::GatherInformation(
+    this->FileInformation, /* no corresponding remote Object*/ 0);
+  auto coordination = session->GetCoordination();
+  auto eventual = session->SendRequest(
+    /** FIXME**/ vtkClientSession::ServiceTypes::DATA_SERVER, std::move(packet));
+  eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
+    if (vtkInformationProvider::ParseResponse(packet, this->FileInformation))
+    {
+      this->beginResetModel();
+      this->LoadFavoritesFromSystem();
+      this->endResetModel();
+    }
+  });
 }
