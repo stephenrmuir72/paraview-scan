@@ -200,13 +200,16 @@ vtkTypeUInt32 vtkClientSession::GetRootDestination(vtkTypeUInt32 destination)
       return DATA_SERVER;
 
     case (CLIENT | DATA_SERVER):
-      return CLIENT;
+      // return CLIENT; // FIXME: ASYNC
+      return DATA_SERVER;
 
     case (CLIENT | RENDER_SERVER):
-      return CLIENT;
+      // return CLIENT; FIXME:ASYNC
+      return RENDER_SERVER;
 
     case (CLIENT | DATA_SERVER | RENDER_SERVER):
-      return CLIENT;
+      // return CLIENT; // FIXME: ASYNC
+      return DATA_SERVER;
 
     case DATA_SERVER:
     case RENDER_SERVER:
