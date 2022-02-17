@@ -44,7 +44,6 @@ set(classes
   vtkPVDataInformation
   vtkPVDataSetAttributesInformation
   vtkPVFileInformation
-  vtkPVFileInformationHelper
   vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation

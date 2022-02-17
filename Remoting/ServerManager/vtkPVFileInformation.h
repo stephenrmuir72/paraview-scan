@@ -18,10 +18,7 @@
  * be used to obtain information about a file/directory.
  *
  * vtkPVFileInformation can be used to collect information about file
- * or directory. vtkPVFileInformation can collect information
- * from a vtkPVFileInformationHelper object alone.
- * @sa
- * vtkPVFileInformationHelper
+ * or directory.
  */
 
 #ifndef vtkPVFileInformation_h
@@ -43,12 +40,6 @@ public:
   static vtkPVFileInformation* New();
   vtkTypeMacro(vtkPVFileInformation, vtkPVInformation);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  /**
-   * Transfer information about a single object into this object.
-   * The object must be a vtkPVFileInformationHelper.
-   */
-  void CopyFromObject(vtkObject* object);
 
   //@{
   /**

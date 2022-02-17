@@ -50,7 +50,6 @@ set(classes
   vtkPVEnvironmentInformation
   vtkPVEnvironmentInformationHelper
   vtkPVFileInformation
-  vtkPVFileInformationHelper
   vtkPVInformation
   vtkPVLogInformation
   vtkPVMemoryUseInformation

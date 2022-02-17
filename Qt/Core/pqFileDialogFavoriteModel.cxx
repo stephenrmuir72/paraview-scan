@@ -46,7 +46,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
 #include <vtkPVFileInformation.h>
-#include <vtkPVFileInformationHelper.h>
 #include <vtkPVGUIApplication.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMProxy.h>
@@ -323,6 +322,7 @@ Qt::ItemFlags pqFileDialogFavoriteModel::flags(const QModelIndex& index) const
 //-----------------------------------------------------------------------------
 void pqFileDialogFavoriteModel::LoadFavoritesFromSystem()
 {
+  #if 0
   vtkPVFileInformation* information = vtkPVFileInformation::New();
 
   if (this->Server)
@@ -368,4 +368,5 @@ void pqFileDialogFavoriteModel::LoadFavoritesFromSystem()
 
   iter->Delete();
   information->Delete();
+#endif
 }

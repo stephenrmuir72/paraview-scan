@@ -19,7 +19,6 @@
 #include "vtkFileSequenceParser.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVFileInformationHelper.h"
 #include "vtkSmartPointer.h"
 
 #if defined(_WIN32)
@@ -377,88 +376,6 @@ bool vtkPVFileInformation::IsDirectory(int t)
 {
   return t == DIRECTORY || t == DIRECTORY_LINK || t == DRIVE || t == NETWORK_ROOT ||
     t == NETWORK_DOMAIN || t == NETWORK_SERVER || t == NETWORK_SHARE;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVFileInformation::CopyFromObject(vtkObject* object)
-{
-#if 0
-  this->Initialize();
-
-  vtkPVFileInformationHelper* helper = vtkPVFileInformationHelper::SafeDownCast(object);
-  if (!helper)
-  {
-    vtkErrorMacro("Can collect information only from a vtkPVFileInformationHelper.");
-    return;
-  }
-
-  this->GroupFileSequences = helper->GetGroupFileSequences();
-
-  if (helper->GetSpecialDirectories())
-  {
-    this->GetSpecialDirectories();
-    return;
-  }
-
-  this->FastFileTypeDetection = helper->GetFastFileTypeDetection();
-  this->ReadDetailedFileInformation = helper->GetReadDetailedFileInformation();
-
-  std::string path = helper->GetPath();
-  this->SetName(path.c_str());
-
-  if (!vtksys::SystemTools::FileIsFullPath(path))
-  {
-    char* dir = helper->GetWorkingDirectory();
-    std::string working_directory =
-      (dir && dir[0]) ? dir : vtksys::SystemTools::GetCurrentWorkingDirectory();
-    path = MakeAbsolutePath(path, working_directory);
-  }
-
-  bool isLink = false;
-
-#if defined(_WIN32)
-  std::string::size_type idx;
-  for (idx = path.find('/', 0); idx != std::string::npos; idx = path.find('/', idx))
-  {
-    path.replace(idx, 1, 1, '\\');
-  }
-
-  size_t len = path.length();
-  if (len > 4 && path.compare(len - 4, 4, ".lnk") == 0)
-  {
-    WIN32_FIND_DATAW data;
-    path = vtkPVFileInformationResolveLink(path, data);
-    isLink = true;
-  }
-#endif
-
-  this->SetFullPath(path.c_str());
-
-  this->Type = vtkPVFileInformationGetType(this->FullPath);
-  if (isLink && this->Type == SINGLE_FILE)
-  {
-    this->Type = SINGLE_FILE_LINK;
-  }
-  else if (isLink && this->Type == DIRECTORY)
-  {
-    this->Type = DIRECTORY_LINK;
-  }
-
-  // determine if this is a hidden directory/file
-  this->SetHiddenFlag();
-
-  if (this->IsDirectory(this->Type) && helper->GetDirectoryListing())
-  {
-// Since we want a directory listing, we now to platform specific listing
-// with intelligent pattern matching hee-haa.
-#if defined(_WIN32)
-    this->GetWindowsDirectoryListing();
-#else
-    this->GetDirectoryListing();
-#endif
-  }
-#endif
-  abort();
 }
 
 //-----------------------------------------------------------------------------

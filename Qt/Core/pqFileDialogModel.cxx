@@ -47,7 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkDirectory.h>
 #include <vtkLogger.h>
 #include <vtkPVFileInformation.h>
-#include <vtkPVFileInformationHelper.h>
 //#include <vtkSMDirectoryProxy.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMPropertyHelper.h>
