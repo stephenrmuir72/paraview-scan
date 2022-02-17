@@ -111,7 +111,8 @@ void pqPythonScriptEditor::runCurrentTab()
   if (!this->TabWidget->getCurrentTextArea()->isEmpty())
   {
     const QString& code{ this->TabWidget->getCurrentTextArea()->getTextEdit()->toPlainText() };
-    this->PythonManager->executeCodeAndRender(code);
+    this->PythonManager->executeCode(code.toUtf8());
+    pqApplicationCore::instance()->render();
   }
 }
 

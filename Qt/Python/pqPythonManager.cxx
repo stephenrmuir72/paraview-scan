@@ -209,13 +209,6 @@ void pqPythonManager::executeCode(
 }
 
 //-----------------------------------------------------------------------------
-void pqPythonManager::executeCodeAndRender(const QString& code)
-{
-  this->executeCode(code.toUtf8());
-  pqApplicationCore::instance()->render();
-}
-
-//-----------------------------------------------------------------------------
 void pqPythonManager::executeScript(const QString& filename)
 {
   QFile file(filename);
