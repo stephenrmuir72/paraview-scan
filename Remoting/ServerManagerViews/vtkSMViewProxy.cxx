@@ -430,9 +430,6 @@ const char* vtkSMViewProxy::GetRepresentationType(vtkSMSourceProxy* producer, in
 //----------------------------------------------------------------------------
 bool vtkSMViewProxy::CanDisplayData(vtkSMSourceProxy* producer, int outputPort)
 {
-  // FIXME: ASYNC
-  return true;
-
   if (producer == nullptr || outputPort < 0 ||
     static_cast<int>(producer->GetNumberOfOutputPorts()) <= outputPort ||
     producer->GetSession() != this->GetSession())

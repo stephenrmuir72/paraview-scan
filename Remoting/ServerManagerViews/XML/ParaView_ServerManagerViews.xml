@@ -131,7 +131,7 @@
   </ProxyGroup>
 
   <ProxyGroup name="views">
-    <ViewProxy class="vtkPVRenderView"
+    <RenderViewProxy class="vtkPVRenderView"
                name="RenderView"
                processes="client dataserver renderserver">
 
@@ -153,20 +153,24 @@
       </ProxyProperty>
 
       <Command name="Update" command="Update" />
-    </ViewProxy>
+    </RenderViewProxy>
   </ProxyGroup>
 
   <ProxyGroup name="representations">
     <Proxy class="vtkGeometryRepresentation"
            name="GeometryRepresentation"
            processes="client dataserver renderserver">
+      <Documentation>
+        A representation that uses a geometry filter to convert any input dataset into
+        a polygonal mesh and renders it.
+      </Documentation>
+
       <InputProperty command="SetInputConnection"
                      name="Input">
         <DataTypeDomain name="input_type">
           <DataType value="vtkDataSet" />
         </DataTypeDomain>
-        <InputArrayDomain attribute_type="any" name="input_array_any">
-        </InputArrayDomain>
+        <InputArrayDomain attribute_type="any" name="input_array_any" />
       </InputProperty>
 
       <IntVectorProperty name="Visibility"

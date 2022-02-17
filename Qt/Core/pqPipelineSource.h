@@ -202,6 +202,10 @@ Q_SIGNALS:
    */
   void selectionChanged(pqOutputPort* port);
 
+  /**
+   * Fired when a port's data information is updated.
+   */
+  void dataInformationUpdated(pqOutputPort* port);
 protected Q_SLOTS:
   /**
    * Called when the visibility of any representation for this source changes.

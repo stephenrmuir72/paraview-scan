@@ -50,6 +50,7 @@ set(classes
   vtkPVViewProvider
   vtkServerSessionViews
   vtkSMParaViewPipelineControllerWithRendering
+  vtkSMRenderViewProxy
   vtkSMUtilities
   vtkSMViewLayoutProxy
   vtkSMViewProxy

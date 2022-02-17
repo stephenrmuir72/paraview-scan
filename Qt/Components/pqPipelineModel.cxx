@@ -1176,7 +1176,8 @@ void pqPipelineModel::addSource(pqPipelineSource* source)
 
   QObject::connect(source, SIGNAL(visibilityChanged(pqPipelineSource*, pqDataRepresentation*)),
     this, SLOT(delayedUpdateVisibility(pqPipelineSource*)));
-
+  QObject::connect(source, &pqPipelineSource::dataInformationUpdated,
+    [this](pqOutputPort* port) { this->delayedUpdateVisibility(port->getSource()); });
   QObject::connect(source, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
   QObject::connect(source, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), this,
