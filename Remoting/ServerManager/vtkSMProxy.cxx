@@ -1781,7 +1781,12 @@ void vtkSMProxy::SetAnnotation(const char* key, const char* value)
   assert("We expect a valid key for proxy annotation." && key);
   if (value)
   {
-    this->Internals->Annotations[key] = value;
+    auto& internals = (*this->Internals);
+    if (internals.Annotations[key] != value)
+    {
+      internals.Annotations[key] = value;
+      this->InvokeEvent(vtkSMProxy::AnnotationsChangedEvent, const_cast<char*>(key));
+    }
   }
   else
   {
@@ -1803,13 +1808,22 @@ const char* vtkSMProxy::GetAnnotation(const char* key)
 //---------------------------------------------------------------------------
 void vtkSMProxy::RemoveAnnotation(const char* key)
 {
-  this->Internals->Annotations.erase(key);
+  auto& internals = (*this->Internals);
+  if (key && internals.Annotations.erase(key) > 0)
+  {
+    this->InvokeEvent(vtkSMProxy::AnnotationsChangedEvent, const_cast<char*>(key));
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkSMProxy::RemoveAllAnnotations()
 {
-  this->Internals->Annotations.clear();
+  auto& internals = (*this->Internals);
+  if (!internals.Annotations.empty())
+  {
+    internals.Annotations.clear();
+    this->InvokeEvent(vtkSMProxy::AnnotationsChangedEvent);
+  }
 }
 
 //---------------------------------------------------------------------------

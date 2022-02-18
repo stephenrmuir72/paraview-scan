@@ -130,6 +130,7 @@
 #ifndef vtkSMProxy_h
 #define vtkSMProxy_h
 
+#include "vtkCommand.h" // for vtkCommand
 #include "vtkJsonFwd.h" // needed for vtkJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
@@ -555,6 +556,11 @@ public:
    * A helper that makes up an default name if none is provided.
    */
   const char* GetLogNameOrDefault();
+
+  enum
+  {
+    AnnotationsChangedEvent = vtkCommand::UserEvent + 900,
+  };
 
 protected:
   vtkSMProxy();

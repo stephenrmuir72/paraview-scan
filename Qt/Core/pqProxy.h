@@ -140,6 +140,11 @@ Q_SIGNALS:
    */
   void modifiedStateChanged(pqServerManagerModelItem*);
 
+  /**
+   * Fired when annotations on the proxy change.
+   */
+  void annotationsChanged(pqServerManagerModelItem*);
+
 protected:
   /**
    * Use this method to initialize the pqObject state using the
@@ -147,6 +152,9 @@ protected:
    * after the object has been created.
    */
   virtual void initialize();
+
+private Q_SLOTS:
+  void onAnnotationsChanged();
 
 private:
   class pqInternals;
