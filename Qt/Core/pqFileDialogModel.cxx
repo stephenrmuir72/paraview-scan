@@ -55,7 +55,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSMSessionProxyManager.h>
 //#include <vtkSMSettings.h>
 #include <vtkClientSession.h>
-#include <vtkInformationProvider.h>
+#include <vtkRemoteObjectProvider.h>
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringList.h>
@@ -360,7 +360,7 @@ public:
     this->FileInformation->SetReadDetailedFileInformation(this->isShowingDetailedInformation());
 
     auto* session = this->Server->session();
-    auto packet = vtkInformationProvider::GatherInformation(
+    auto packet = vtkRemoteObjectProvider::GatherInformation(
       this->FileInformation, /* no corresponding remote Object*/ 0);
     auto coordination = session->GetCoordination();
     auto eventual = session->SendRequest(
@@ -368,7 +368,7 @@ public:
     eventual.GetObservable()
       .observe_on(coordination)
       .subscribe([this, workingDir, path](const vtkPacket& packet) {
-        if (vtkInformationProvider::ParseResponse(packet, this->FileInformation))
+        if (vtkRemoteObjectProvider::ParseResponse(packet, this->FileInformation))
         {
           vtkLogF(INFO, "Update path %s", workingDir.toStdString().c_str());
           QString cPath = this->cleanPath(path);

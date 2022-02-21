@@ -18,11 +18,11 @@
 #include "vtkCommand.h"
 #include "vtkDataAssembly.h"
 #include "vtkDataAssemblyUtilities.h"
-#include "vtkInformationProvider.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVTemporalDataInformation.h"
+#include "vtkRemoteObjectProvider.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkTimerLog.h"
 
@@ -232,7 +232,7 @@ void vtkSMOutputPort::PipelineUpdated()
   auto* session = producer->GetSession();
 
   auto packet =
-    vtkInformationProvider::GatherInformation(this->DataInformation, producer->GetGlobalID());
+    vtkRemoteObjectProvider::GatherInformation(this->DataInformation, producer->GetGlobalID());
   auto coordination = session->GetCoordination();
   auto eventual = session->SendRequest(
     /** FIXME**/ producer->GetLocation(), std::move(packet));
@@ -241,7 +241,7 @@ void vtkSMOutputPort::PipelineUpdated()
       this->GetSourceProxy()->GetLogNameOrDefault());
     // Initialize, once we have updated information.
     this->DataInformation->Initialize();
-    if (vtkInformationProvider::ParseResponse(packet, this->DataInformation))
+    if (vtkRemoteObjectProvider::ParseResponse(packet, this->DataInformation))
     {
       this->DataInformation->SetIsObsolete(false);
       // FIXME: need better named events

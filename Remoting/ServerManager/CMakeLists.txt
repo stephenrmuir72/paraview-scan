@@ -32,7 +32,6 @@ set(classes
   vtkClientSession
   vtkDisplayConfiguration
   vtkDistributedEnvironment
-  vtkInformationProvider
   vtkObjectStore
   vtkObjectWrapper
   vtkProxyDefinitionManager
