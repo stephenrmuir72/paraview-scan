@@ -94,7 +94,7 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
   vtkSMProxy* proxy, pqServer* server, const QString& regName = QString())
 {
   // since there are no properties to set, nothing to do here.
-  auto observable = controller->PostInitializeProxy(proxy);
+  controller->PostInitializeProxy(proxy);
   if (regName.isEmpty())
   {
     controller->RegisterPipelineProxy(proxy);
@@ -106,8 +106,6 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
 
   pqPipelineSource* source =
     vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqPipelineSource*>(proxy);
-  source->setModifiedState(pqProxy::UNINITIALIZED);
-  observable.subscribe([source](bool) { source->setModifiedState(pqProxy::MODIFIED); });
 
 #if 0 // FIXME: ASYNC
   // Manage Modified state in Undo/Redo only if not a collaborative server

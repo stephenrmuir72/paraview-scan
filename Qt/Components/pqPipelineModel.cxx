@@ -362,7 +362,9 @@ public:
   bool isModified() const
   {
     pqProxy* proxy = qobject_cast<pqProxy*>(this->Object);
-    return (proxy && (proxy->modifiedState() != pqProxy::UNMODIFIED));
+    return (proxy &&
+      (!proxy->annotation("SHOW_ON_APPLY").isEmpty() ||
+        !proxy->annotation("PROPERTIES_PENDING_APPLY").isEmpty()));
   }
 
   bool isInitialized() const
@@ -1191,10 +1193,6 @@ void pqPipelineModel::addSource(pqPipelineSource* source)
     [this](pqOutputPort* port) { this->delayedUpdateVisibility(port->getSource()); });
   QObject::connect(source, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
-  QObject::connect(source, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), this,
-    SLOT(updateData(pqServerManagerModelItem*)));
-  QObject::connect(source, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), this,
-    SLOT(updateData(pqServerManagerModelItem*)));
   QObject::connect(source, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
 }
@@ -1426,7 +1424,7 @@ void pqPipelineModel::addExtractor(pqExtractor* egenerator)
   // monitor common signals.
   this->connect(egenerator, SIGNAL(nameChanged(pqServerManagerModelItem*)),
     SLOT(updateData(pqServerManagerModelItem*)));
-  this->connect(egenerator, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)),
+  QObject::connect(egenerator, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
 
   // ensure the "enabled" icon is updated when enabled-state changes.

@@ -49,6 +49,7 @@ set(classes
   vtkPVView
   vtkPVViewProvider
   vtkServerSessionViews
+  vtkSMApplyController
   vtkSMParaViewPipelineControllerWithRendering
   vtkSMRenderViewProxy
   vtkSMUtilities

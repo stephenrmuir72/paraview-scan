@@ -132,6 +132,34 @@ vtkSMProxy* pqProxy::proxy() const
 }
 
 //-----------------------------------------------------------------------------
+void pqProxy::setAnnotation(const QString& key, const QString& value)
+{
+  const auto& internals = (*this->Internals);
+  internals.Proxy->SetAnnotation(qUtf8Printable(key), qUtf8Printable(value));
+}
+
+//-----------------------------------------------------------------------------
+QString pqProxy::annotation(const QString& key) const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->GetAnnotation(qUtf8Printable(key));
+}
+
+//-----------------------------------------------------------------------------
+bool pqProxy::hasAnnotation(const QString& key)
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->HasAnnotation(qUtf8Printable(key));
+}
+
+//-----------------------------------------------------------------------------
+void pqProxy::removeAnnotation(const QString& key)
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->RemoveAnnotation(qUtf8Printable(key));
+}
+
+//-----------------------------------------------------------------------------
 vtkPVXMLElement* pqProxy::xmlHints() const
 {
   const auto& internals = (*this->Internals);

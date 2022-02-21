@@ -20,7 +20,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkObjectWrapper.h"
-#include "vtkPVInformation.h"
+#include "vtkPVDataInformation.h"
 #include "vtkPVLogger.h"
 #include "vtkProxyDefinitionManager.h"
 #include "vtkReactiveCommand.h"
@@ -99,6 +99,8 @@ private:
    * Find (or create) object.
    */
   vtkSmartPointer<vtkObjectWrapper> GetObject(vtkTypeUInt32 gid, const vtkJson& state);
+
+  vtkJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
 
   void SetupObservers(vtkObjectWrapper* wrapper) const;
 };
@@ -191,15 +193,39 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid,
 {
   vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdatePipeline(%u, %f)", gid, time);
 
+  vtkJson reply;
+  reply["status"] = false;
+
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
     vtkObjectWrapper::SafeDownCast(this->ObjectStore->FindObject(gid));
   if (!objWrapper)
   {
     // TODO: ASYNC send error?
-    return vtkJson(false);
+    return reply;
   }
 
-  return objWrapper->UpdatePipeline(time);
+  // TODO: ensure we don't send update notification for this since this request
+  // came from the client itself.
+  if (!objWrapper->UpdatePipeline(time))
+  {
+    return reply;
+  }
+
+  reply["status"] = true;
+
+  // UpdatePipeline has implicit gather information since that's the most
+  // typical way UpdatePipeline is used.
+  if (auto* algo = vtkAlgorithm::SafeDownCast(objWrapper->GetVTKObject()))
+  {
+    for (int cc = 0, max = algo->GetNumberOfOutputPorts(); cc < max; ++cc)
+    {
+      vtkNew<vtkPVDataInformation> dataInfo;
+      dataInfo->SetPortNumber(cc);
+      reply["data_information"].push_back(this->GatherInformation(dataInfo, algo));
+    }
+  }
+
+  return reply;
 }
 
 //----------------------------------------------------------------------------
@@ -242,8 +268,19 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(const vtkJson& 
   // gather information.
   auto target = this->ObjectStore->FindObject(request.at("target_gid").get<vtkTypeUInt32>());
   auto* targetWrapper = vtkObjectWrapper::SafeDownCast(target);
-  info->GatherInformation(targetWrapper ? targetWrapper->GetVTKObject() : nullptr);
+  return this->GatherInformation(info, targetWrapper ? targetWrapper->GetVTKObject() : nullptr);
+}
+
+//-----------------------------------------------------------------------------
+vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
+  vtkPVInformation* info, vtkObject* target) const
+{
+  info->GatherInformation(target);
   auto state = info->SaveInformation();
+
+  auto* controller = this->Self->GetController();
+  const auto rank = controller->GetLocalProcessId();
+  const auto numRanks = controller->GetNumberOfProcesses();
   if (numRanks > 1)
   {
     vtkMultiProcessStream stream;
@@ -476,6 +513,12 @@ vtkRemoteObjectProvider::vtkProgressItem vtkRemoteObjectProvider::ParseProgress(
 bool vtkRemoteObjectProvider::ParseResponse(const vtkPacket& packet, vtkPVInformation* information)
 {
   return information->LoadInformation(packet.GetJSON());
+}
+
+//----------------------------------------------------------------------------
+bool vtkRemoteObjectProvider::ParseResponse(const vtkJson& json, vtkPVInformation* information)
+{
+  return information->LoadInformation(json);
 }
 
 //----------------------------------------------------------------------------

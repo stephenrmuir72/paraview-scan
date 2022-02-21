@@ -52,6 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
 #include "vtkPVLogger.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxyClipboard.h"
 #include "vtkSMSourceProxy.h"
@@ -273,6 +274,8 @@ pqPropertiesPanel::pqPropertiesPanel(QWidget* parentObject)
   // item's state changes.
   this->connect(
     smm, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), SLOT(updateButtonState()));
+  this->connect(
+    smm, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), SLOT(updateButtonState()));
   this->connect(smm, SIGNAL(connectionRemoved(pqPipelineSource*, pqPipelineSource*, int)),
     SLOT(updateButtonState()));
   this->connect(smm, SIGNAL(connectionAdded(pqPipelineSource*, pqPipelineSource*, int)),
@@ -690,7 +693,8 @@ void pqPropertiesPanel::updateButtonState()
       continue;
     }
 
-    if (proxy->modifiedState() == pqProxy::UNINITIALIZED)
+    if (proxy->modifiedState() == pqProxy::UNINITIALIZED ||
+      vtkSMApplyController::IsMarkedShowOnApply(proxy->proxy()))
     {
       vtkVLogIfF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), previous_apply_state == false,
         "`Apply` button enabled since `%s` became uninitialized.",

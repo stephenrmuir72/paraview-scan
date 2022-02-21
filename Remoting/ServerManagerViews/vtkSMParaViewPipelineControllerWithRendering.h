@@ -224,9 +224,6 @@ protected:
   vtkSMParaViewPipelineControllerWithRendering();
   ~vtkSMParaViewPipelineControllerWithRendering() override;
 
-  virtual void UpdatePipelineBeforeDisplay(
-    vtkSMSourceProxy* producer, int outputPort, vtkSMViewProxy* view);
-
   /**
    * Checks if the output from producer needs to be shown in the current view
    * also.
@@ -250,7 +247,6 @@ private:
   void operator=(const vtkSMParaViewPipelineControllerWithRendering&) = delete;
   static bool HideScalarBarOnHide;
   static bool InheritRepresentationProperties;
-  bool SkipUpdatePipelineBeforeDisplay;
 };
 
 #endif

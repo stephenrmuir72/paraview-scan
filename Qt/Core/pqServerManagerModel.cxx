@@ -312,6 +312,8 @@ void pqServerManagerModel::onProxyRegistered(
   pqRepresentation* repr = qobject_cast<pqRepresentation*>(item);
   auto extrator = qobject_cast<pqExtractor*>(item);
 
+  QObject::connect(source, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
+    SIGNAL(annotationsChanged(pqServerManagerModelItem*)));
   if (view)
   {
     Q_EMIT this->preViewAdded(view);

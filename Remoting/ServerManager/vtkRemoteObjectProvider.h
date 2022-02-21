@@ -88,10 +88,13 @@ public:
   static vtkProgressItem ParseProgress(const vtkPacket& packet);
   ///@}
 
+  ///@{
   /**
    * Parse GatherInformation response.
    */
   static bool ParseResponse(const vtkPacket& packet, vtkPVInformation* information);
+  static bool ParseResponse(const vtkJson& json, vtkPVInformation* information);
+  ///@}
 
 protected:
   vtkRemoteObjectProvider();
