@@ -75,7 +75,7 @@ class vtkSession;
  * This class is the model for the PipelineLine browser tree view.
  * pqServerManagerModel models the vtkSMProxyManager for the GUI. The
  * vtkSMProxyManager maintains all proxies and hence it is difficult
- * to detect/trasvers pipelines etc etc. The pqServerManagerModel
+ * to detect/tranverse pipelines etc etc. The pqServerManagerModel
  * provides a simplified view of the Server Manager. This class
  * takes that simplified "model" and transforms it into hierarchical
  * tables which can be represented by the Tree View.

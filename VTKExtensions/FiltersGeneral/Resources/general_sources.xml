@@ -223,5 +223,130 @@
       </Hints>
       <!-- End of TimeToTextConvertorSource -->
     </SourceProxy>
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkDelayedSphereSource"
+                 label="SphereSource with Custom Delay"
+                 name="DelayedSphereSource"
+                 number_of_output_ports="1">
+      <DoubleVectorProperty command="SetDataDelay"
+                            default_values="0"
+                            name="Data Delay"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <Documentation>Add delay to the execution time of the `Request Data` call of the filter. Value is in seconds.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetInformationDelay"
+                            default_values="0"
+                            name="Information Delay"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <Documentation>Add delay to the execution of the `Request Information` call of the filter. Value is in seconds.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetCenter"
+                            default_values="0.0 0.0 0.0"
+                            name="Center"
+                            number_of_elements="3"
+                            panel_visibility="default">
+        <DoubleRangeDomain name="range" />
+        <Documentation>This property specifies the 3D coordinates for the
+        center of the sphere.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetRadius"
+                            default_values="0.5"
+                            name="Radius"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>This property specifies the radius of the
+        sphere.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetThetaResolution"
+                         default_values="8"
+                         name="ThetaResolution"
+                         number_of_elements="1"
+                         panel_visibility="default">
+        <IntRangeDomain min="3"
+                        name="range" />
+        <Documentation>The value of this property represents the number of
+        divisions between Start Theta and End Theta around the sphere. (See the
+        Start Theta and End Theta properties.) The theta divisions are similar
+        to longitude lines on the earth. The higher the resolution, the closer
+        the approximation will come to a sphere, and the more polygons there
+        will be.</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetStartTheta"
+                            default_values="0"
+                            name="StartTheta"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <DoubleRangeDomain max="360"
+                           min="0"
+                           name="range" />
+        <Documentation>To form a complete sphere, the value of this property
+        should be 0 degrees, and the value of the End Theta property should be
+        360 degrees. The value of this property can be adjusted to form only a
+        portion of a sphere.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetEndTheta"
+                            default_values="360"
+                            name="EndTheta"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <DoubleRangeDomain max="360"
+                           min="0"
+                           name="range" />
+        <Documentation>The value of this property can be adjusted to form only
+        a portion of a sphere. This value is measured in
+        degrees.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetPhiResolution"
+                         default_values="8"
+                         name="PhiResolution"
+                         number_of_elements="1"
+                         panel_visibility="default">
+        <IntRangeDomain min="3"
+                        name="range" />
+        <Documentation>The value of this property represents the number of
+        divisions between Start Phi and End Phi on the sphere. (See the Start
+        Phi and End Phi properties.) The phi divisions are similar to latitude
+        lines on the earth.</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetStartPhi"
+                            default_values="0"
+                            name="StartPhi"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <DoubleRangeDomain max="180"
+                           min="0"
+                           name="range" />
+        <Documentation>To form a complete sphere, the value of this property
+        should be 0 degrees, and the value of the End Phi property should be
+        180 degrees. The value of this property can be adjusted to form only a
+        portion of a sphere. Set the starting angle (in degrees) in the
+        latitudinal direction.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetEndPhi"
+                            default_values="180"
+                            name="EndPhi"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <DoubleRangeDomain max="180"
+                           min="0"
+                           name="range" />
+        <Documentation>The value of this property can be adjusted to form only
+        a portion of a sphere. The value is measured in
+        degrees.</Documentation>
+      </DoubleVectorProperty>
+      <!-- End of DelayedSphereSource -->
+    </SourceProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>

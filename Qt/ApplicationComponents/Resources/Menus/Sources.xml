@@ -53,6 +53,7 @@
   <Proxy group="sources" name="CubeSource" />
   <Proxy group="sources" name="CylinderSource" />
   <Proxy group="sources" name="DataObjectGenerator" />
+  <Proxy group="sources" name="DelayedSphereSource" />
   <Proxy group="sources" name="DiskSource" />
   <Proxy group="sources" name="EllipseSource" />
   <Proxy group="sources" name="FastUniformGrid" />
