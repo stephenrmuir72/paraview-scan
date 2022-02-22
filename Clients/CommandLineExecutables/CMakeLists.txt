@@ -62,7 +62,7 @@ endif ()
 include("${CMAKE_CURRENT_SOURCE_DIR}/ParaViewCommandLineExecutables.cmake")
 
 set(paraview_tools)
-foreach (exe IN ITEMS pvserver pvdataserver pvrenderserver)
+foreach (exe IN ITEMS pvserver)
   paraview_add_executable("${exe}" "${exe}.cxx")
   list(APPEND paraview_tools
     "${exe}")

@@ -827,7 +827,7 @@ if (PARAVIEW_ENABLE_WEB)
     @ONLY)
 endif ()
 
-if (PARAVIEW_BUILD_CORE)
+if (PARAVIEW_BUILD_CORE OR PARAVIEW_BUILD_ASYNC)
   add_subdirectory(Clients)
 endif()
 
