@@ -23,6 +23,8 @@ public:
   TestBasicQtAppMainWindow();
   ~TestBasicQtAppMainWindow();
 
+  void connect(const QString& url);
+
 private:
   Q_DISABLE_COPY(TestBasicQtAppMainWindow);
 
