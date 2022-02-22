@@ -202,11 +202,6 @@ public:
   //@}
 
   /**
-   * Overridden to handle default ColorArrayName for representations correctly.
-   */
-  bool PostInitializeProxy(vtkSMProxy* proxy) override;
-
-  /**
    * Register layout proxy. If `proxyname` is nullptr, a new name will be
    * assigned.
    */
@@ -229,9 +224,6 @@ protected:
   vtkSMParaViewPipelineControllerWithRendering();
   ~vtkSMParaViewPipelineControllerWithRendering() override;
 
-  virtual void UpdatePipelineBeforeDisplay(
-    vtkSMSourceProxy* producer, int outputPort, vtkSMViewProxy* view);
-
   /**
    * Checks if the output from producer needs to be shown in the current view
    * also.
@@ -244,13 +236,17 @@ protected:
    */
   void DoMaterialSetup(vtkSMProxy* proxy) override;
 
+  /**
+   * Overridden to handle default ColorArrayName for representations correctly.
+   */
+  bool DoPostInitializeProxy(vtkSMProxy* proxy, vtkMTimeType ts) override;
+
 private:
   vtkSMParaViewPipelineControllerWithRendering(
     const vtkSMParaViewPipelineControllerWithRendering&) = delete;
   void operator=(const vtkSMParaViewPipelineControllerWithRendering&) = delete;
   static bool HideScalarBarOnHide;
   static bool InheritRepresentationProperties;
-  bool SkipUpdatePipelineBeforeDisplay;
 };
 
 #endif

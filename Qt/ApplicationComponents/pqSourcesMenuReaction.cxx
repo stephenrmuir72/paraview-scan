@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUndoStack.h"
 #include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
 
@@ -117,6 +118,10 @@ pqPipelineSource* pqSourcesMenuReaction::createSource(const QString& group, cons
     BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
     pqPipelineSource* source =
       builder->createSource(group, name, pqActiveObjects::instance().activeServer());
+    if (source)
+    {
+      vtkSMApplyController::MarkShowOnApply(source->proxy());
+    }
     END_UNDO_SET();
     return source;
   }

@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxy.h"
 
 #include "pqServer.h"
+#include "vtkEventQtSlotConnect.h"
 #include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTrace.h"
@@ -62,10 +63,20 @@ pqProxy::pqProxy(const QString& group, const QString& name, vtkSMProxy* aproxy, 
   internals.Server = aserver;
   internals.RegistrationGroup = group;
   internals.RegistrationName = name;
+
+  auto* connector = this->getConnector();
+  connector->Connect(
+    aproxy, vtkSMProxy::AnnotationsChangedEvent, this, SLOT(onAnnotationsChanged()));
 }
 
 //-----------------------------------------------------------------------------
 pqProxy::~pqProxy() = default;
+
+//-----------------------------------------------------------------------------
+void pqProxy::onAnnotationsChanged()
+{
+  Q_EMIT this->annotationsChanged(this);
+}
 
 //-----------------------------------------------------------------------------
 pqServer* pqProxy::server() const
@@ -118,6 +129,34 @@ vtkSMProxy* pqProxy::proxy() const
 {
   const auto& internals = (*this->Internals);
   return internals.Proxy;
+}
+
+//-----------------------------------------------------------------------------
+void pqProxy::setAnnotation(const QString& key, const QString& value)
+{
+  const auto& internals = (*this->Internals);
+  internals.Proxy->SetAnnotation(qUtf8Printable(key), qUtf8Printable(value));
+}
+
+//-----------------------------------------------------------------------------
+QString pqProxy::annotation(const QString& key) const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->GetAnnotation(qUtf8Printable(key));
+}
+
+//-----------------------------------------------------------------------------
+bool pqProxy::hasAnnotation(const QString& key)
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->HasAnnotation(qUtf8Printable(key));
+}
+
+//-----------------------------------------------------------------------------
+void pqProxy::removeAnnotation(const QString& key)
+{
+  const auto& internals = (*this->Internals);
+  return internals.Proxy->RemoveAnnotation(qUtf8Printable(key));
 }
 
 //-----------------------------------------------------------------------------

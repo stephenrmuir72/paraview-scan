@@ -299,7 +299,7 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, const QModelIndexList&
     {
       view->resetDisplay();
     }
-    pqActiveObjects::instance().activeView()->render();
+    pqActiveObjects::instance().activeView()->update();
   }
 }
 

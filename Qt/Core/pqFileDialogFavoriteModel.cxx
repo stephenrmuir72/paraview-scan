@@ -46,9 +46,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkClientSession.h>
 #include <vtkCollection.h>
 #include <vtkCollectionIterator.h>
-#include <vtkInformationProvider.h>
 #include <vtkPVFileInformation.h>
 #include <vtkPVGUIApplication.h>
+#include <vtkRemoteObjectProvider.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMProxy.h>
 #include <vtkSMSessionProxyManager.h>
@@ -355,13 +355,13 @@ void pqFileDialogFavoriteModel::RetrieveFavoritesFromSystem()
   this->FileInformation->SetListSpecialDirectories(true);
 
   auto* session = this->Server->session();
-  auto packet = vtkInformationProvider::GatherInformation(
+  auto packet = vtkRemoteObjectProvider::GatherInformation(
     this->FileInformation, /* no corresponding remote Object*/ 0);
   auto coordination = session->GetCoordination();
   auto eventual = session->SendRequest(
     /** FIXME**/ vtkClientSession::ServiceTypes::DATA_SERVER, std::move(packet));
   eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
-    if (vtkInformationProvider::ParseResponse(packet, this->FileInformation))
+    if (vtkRemoteObjectProvider::ParseResponse(packet, this->FileInformation))
     {
       this->beginResetModel();
       this->LoadFavoritesFromSystem();

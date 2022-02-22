@@ -324,6 +324,11 @@ Q_SIGNALS:
   void modifiedStateChanged(pqServerManagerModelItem* item);
 
   /**
+   * Fired when annotations associated with a pqProxy change.
+   */
+  void annotationsChanged(pqServerManagerModelItem* item);
+
+  /**
    * Fired when a connection between two pqPipelineSources is created.
    */
   void connectionAdded(pqPipelineSource* source, pqPipelineSource* consumer, int srcOutputPort);

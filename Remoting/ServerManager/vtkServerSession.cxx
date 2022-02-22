@@ -14,7 +14,6 @@
 =========================================================================*/
 #include "vtkServerSession.h"
 
-#include "vtkInformationProvider.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkPVCoreApplication.h"
@@ -52,12 +51,7 @@ void vtkServerSession::vtkInternals::StartService(const std::string& name, vtkSe
   remoteObjectProvider->SetObjectStore(info.ObjectStore);
   remoteObjectProvider->SetProxyDefinitionManager(self->GetProxyDefinitionManager());
   remoteObjectProvider->Initialize(info.Service);
-
-  auto informationProvider = vtk::TakeSmartPointer(vtkInformationProvider::New());
-  informationProvider->SetObjectStore(info.ObjectStore);
-  informationProvider->Initialize(info.Service);
   info.Providers.push_back(remoteObjectProvider);
-  info.Providers.push_back(informationProvider);
 
   // let sub-classes initialize services.
   self->InitializeService(info.Service, info.ObjectStore);

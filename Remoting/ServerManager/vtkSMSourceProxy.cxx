@@ -18,6 +18,7 @@
 #include "vtkCommand.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVDataInformation.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
 #include "vtkRemoteObjectProvider.h"
@@ -297,7 +298,19 @@ rxcpp::observable<bool> vtkSMSourceProxy::UpdatePipeline(double time)
   auto eventual = session->SendRequest(this->GetLocation(), std::move(packet));
   eventual.GetObservable().subscribe([this, subscriber, tag](const vtkPacket& reply) {
     vtkLogF(INFO, "handle UpdatePipeline response");
-    const bool status = reply.GetJSON().get<bool>();
+
+    const auto& json = reply.GetJSON();
+    const bool status = json.at("status").get<bool>();
+    const bool hasDataInformation = json.count("data_information") > 0;
+    // update data information.
+    for (int cc = 0; hasDataInformation && cc < this->GetNumberOfOutputPorts(); ++cc)
+    {
+      auto* port = this->GetOutputPort(cc);
+      auto* dinfo = port->GetDataInformation();
+      dinfo->Initialize();
+      dinfo->SetIsObsolete(false);
+      vtkRemoteObjectProvider::ParseResponse(json["data_information"].at(cc), dinfo);
+    }
     subscriber.on_next(std::make_pair(tag, status));
   });
 

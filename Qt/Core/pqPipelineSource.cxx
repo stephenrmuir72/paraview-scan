@@ -93,6 +93,9 @@ pqPipelineSource::pqPipelineSource(
       QObject::connect(op, SIGNAL(visibilityChanged(pqOutputPort*, pqDataRepresentation*)), this,
         SLOT(portVisibilityChanged(pqOutputPort*, pqDataRepresentation*)));
 
+      QObject::connect(op, &pqOutputPort::dataInformationUpdated,
+        [this, op]() { Q_EMIT this->dataInformationUpdated(op); });
+
       this->Internal->OutputPorts.push_back(op);
     }
     this->getConnector()->Connect(source, vtkCommand::UpdateDataEvent, this, SLOT(dataUpdated()));

@@ -29,6 +29,7 @@
 #include "vtkNew.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVGUIApplication.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
@@ -38,6 +39,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkSmartPointer.h"
+
 #include <vtk_rxqt.h>
 // clang-format off
 #include VTK_REMOTING_RXQT(rxqt.hpp)
@@ -99,8 +101,12 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWid
   QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
     [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
 
-  QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied),
-    [view]() { view->InvokeCommand("Update"); });
+  QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied), [pxm]() {
+    vtkNew<vtkSMApplyController> applyController;
+    applyController->Apply(pxm);
+
+    // view->InvokeCommand("Update");
+  });
 
   // Hookup file-open dialog
   rxqt::from_signal(this->Ui.actionOpenFile, &QAction::triggered)

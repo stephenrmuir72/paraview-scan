@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 // #include "vtkSMAnimationSceneProxy.h"
+#include "vtkPVLogger.h"
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMParaViewPipelineController.h"
@@ -105,7 +106,6 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
 
   pqPipelineSource* source =
     vtkPVGUIApplication::GetInstance()->GetServerManagerModel()->findItem<pqPipelineSource*>(proxy);
-  source->setModifiedState(pqProxy::UNINITIALIZED);
 
 #if 0 // FIXME: ASYNC
   // Manage Modified state in Undo/Redo only if not a collaborative server

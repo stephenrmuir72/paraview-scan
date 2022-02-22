@@ -55,7 +55,8 @@ public:
 
   /**
    * Calls Update() on all sources with the given time request.
-   * It also creates output ports if they are not already created.
+   * On successful completion of the request, all data information for each of
+   * the output ports will also be up-to-date.
    */
   rxcpp::observable<bool> UpdatePipeline(double time);
 

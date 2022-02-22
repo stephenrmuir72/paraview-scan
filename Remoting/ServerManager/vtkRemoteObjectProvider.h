@@ -29,6 +29,7 @@
 
 class vtkObjectStore;
 class vtkProxyDefinitionManager;
+class vtkPVInformation;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkRemoteObjectProvider : public vtkProvider
 {
@@ -62,6 +63,7 @@ public:
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
   static vtkPacket DeleteObject(vtkTypeUInt32 gid);
   static vtkPacket InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
+  static vtkPacket GatherInformation(vtkPVInformation* information, vtkTypeUInt32 targetGID);
   ///@}
 
   ///@{
@@ -84,6 +86,14 @@ public:
   };
   static const std::string CHANNEL_PROGRESS() { return "pipeline::progress"; }
   static vtkProgressItem ParseProgress(const vtkPacket& packet);
+  ///@}
+
+  ///@{
+  /**
+   * Parse GatherInformation response.
+   */
+  static bool ParseResponse(const vtkPacket& packet, vtkPVInformation* information);
+  static bool ParseResponse(const vtkJson& json, vtkPVInformation* information);
   ///@}
 
 protected:

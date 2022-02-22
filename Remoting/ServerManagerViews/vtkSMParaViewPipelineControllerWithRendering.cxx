@@ -47,21 +47,7 @@
 
 namespace
 {
-template <typename T>
-class vtkScopedSet
-{
-  T& Ref;
-  const T OldVal;
 
-public:
-  vtkScopedSet(T& var, const T val)
-    : Ref(var)
-    , OldVal(var)
-  {
-    var = val;
-  }
-  ~vtkScopedSet() { this->Ref = this->OldVal; }
-};
 //---------------------------------------------------------------------------
 vtkPVXMLElement* vtkFindChildFromHints(vtkPVXMLElement* hints, const int outputPort,
   const char* xmlTag, const char* xmlAttributeName = nullptr,
@@ -291,10 +277,8 @@ bool vtkSMParaViewPipelineControllerWithRendering::InheritRepresentationProperti
 
 vtkObjectFactoryNewMacro(vtkSMParaViewPipelineControllerWithRendering);
 //----------------------------------------------------------------------------
-vtkSMParaViewPipelineControllerWithRendering::vtkSMParaViewPipelineControllerWithRendering()
-{
-  this->SkipUpdatePipelineBeforeDisplay = false;
-}
+vtkSMParaViewPipelineControllerWithRendering::vtkSMParaViewPipelineControllerWithRendering() =
+  default;
 
 //----------------------------------------------------------------------------
 vtkSMParaViewPipelineControllerWithRendering::~vtkSMParaViewPipelineControllerWithRendering() =
@@ -319,17 +303,19 @@ bool vtkSMParaViewPipelineControllerWithRendering::GetInheritRepresentationPrope
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMParaViewPipelineControllerWithRendering::PostInitializeProxy(vtkSMProxy* proxy)
+bool vtkSMParaViewPipelineControllerWithRendering::DoPostInitializeProxy(
+  vtkSMProxy* proxy, vtkMTimeType initTimeStamp)
 {
   // save current time, we can check is a property is modified by the superclass
   // call.
   vtkTimeStamp ts;
   ts.Modified();
 
-  if (!this->Superclass::PostInitializeProxy(proxy))
+  if (!this->Superclass::DoPostInitializeProxy(proxy, initTimeStamp))
   {
     return false;
   }
+
   // BUG #14773: The domains for ColorArrayName and Representation properties
   // come up with a good default separately. In reality, we need the
   // ColorArrayName to depend on Representation and not pick any value when
@@ -426,14 +412,6 @@ vtkSMProxy* vtkSMParaViewPipelineControllerWithRendering::Show(
     vtkSMViewProxy::RepresentationVisibilityChanged(view, repr, true);
     vtkSMViewProxy::HideOtherRepresentationsIfNeeded(view, repr);
     return repr;
-  }
-
-  // `Show` gets called in `ShowInPreferredView` and then we end up calling
-  // UpdatePipeline twice. Let's avoid that.
-  if (this->SkipUpdatePipelineBeforeDisplay == false)
-  {
-    // update pipeline to create correct representation type.
-    this->UpdatePipelineBeforeDisplay(producer, outputPort, view);
   }
 
   vtkSMProxy* repr = nullptr;
@@ -644,9 +622,6 @@ vtkSMViewProxy* vtkSMParaViewPipelineControllerWithRendering::ShowInPreferredVie
     return nullptr;
   }
 
-  vtkScopedSet<bool> scoped_setter(this->SkipUpdatePipelineBeforeDisplay, true);
-  this->UpdatePipelineBeforeDisplay(producer, outputPort, view);
-
   vtkSMSessionProxyManager* pxm = producer->GetSessionProxyManager();
 
   std::string preferredViewType;
@@ -773,34 +748,6 @@ bool vtkSMParaViewPipelineControllerWithRendering::AlsoShowInCurrentView(
   }
 
   return false;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMParaViewPipelineControllerWithRendering::UpdatePipelineBeforeDisplay(
-  vtkSMSourceProxy* producer, int outputPort, vtkSMViewProxy* view)
-{
-  (void)outputPort;
-  if (!producer)
-  {
-    return;
-  }
-
-  // Update using view time, or timekeeper time.
-  vtkTimerLogScope scopeTimer(
-    "ParaViewPipelineControllerWithRendering::UpdatePipelineBeforeDisplay");
-  double time = view
-    ? vtkSMPropertyHelper(view, "ViewTime").GetAsDouble()
-    : vtkSMPropertyHelper(this->FindTimeKeeper(producer->GetSession()), "Time").GetAsDouble();
-
-  if (vtkSMTrace::GetActiveTracer() && vtkSMTrace::GetActiveTracer()->GetSkipRenderingComponents())
-  {
-    SM_SCOPED_TRACE(CallFunction).arg("UpdatePipeline").arg("time", time).arg("proxy", producer);
-    producer->UpdatePipeline(time);
-  }
-  else
-  {
-    producer->UpdatePipeline(time);
-  }
 }
 
 //----------------------------------------------------------------------------

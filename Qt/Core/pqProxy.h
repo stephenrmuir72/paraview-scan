@@ -129,6 +129,16 @@ public:
    */
   vtkSMSessionProxyManager* proxyManager() const;
 
+  ///@{
+  /**
+   * API to access/modify annotations associated with the underlying proxy.
+   */
+  void setAnnotation(const QString& key, const QString& value);
+  QString annotation(const QString& key) const;
+  bool hasAnnotation(const QString& key);
+  void removeAnnotation(const QString& key);
+  ///@}
+
 Q_SIGNALS:
   /**
    * Fired when the name of the proxy is changed.
@@ -140,6 +150,11 @@ Q_SIGNALS:
    */
   void modifiedStateChanged(pqServerManagerModelItem*);
 
+  /**
+   * Fired when annotations on the proxy change.
+   */
+  void annotationsChanged(pqServerManagerModelItem*);
+
 protected:
   /**
    * Use this method to initialize the pqObject state using the
@@ -147,6 +162,9 @@ protected:
    * after the object has been created.
    */
   virtual void initialize();
+
+private Q_SLOTS:
+  void onAnnotationsChanged();
 
 private:
   class pqInternals;

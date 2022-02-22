@@ -362,7 +362,16 @@ public:
   bool isModified() const
   {
     pqProxy* proxy = qobject_cast<pqProxy*>(this->Object);
-    return (proxy && (proxy->modifiedState() != pqProxy::UNMODIFIED));
+    return (proxy &&
+      (!proxy->annotation("SHOW_ON_APPLY").isEmpty() ||
+        !proxy->annotation("PROPERTIES_PENDING_APPLY").isEmpty()));
+  }
+
+  bool isInitialized() const
+  {
+    pqProxy* proxy = qobject_cast<pqProxy*>(this->Object);
+    return (
+      proxy == nullptr || vtkSMParaViewPipelineController::IsProxyInitialized(proxy->proxy()));
   }
 
 private:
@@ -871,6 +880,10 @@ QVariant pqPipelineModel::data(const QModelIndex& idx, int role) const
         return QVariant::fromValue<QColor>(QColor(Qt::red));
       }
 #endif
+      if (idx.column() == 0 && !item->isInitialized())
+      {
+        return QVariant::fromValue<QColor>(Qt::gray);
+      }
       break;
     }
 
@@ -1176,10 +1189,11 @@ void pqPipelineModel::addSource(pqPipelineSource* source)
 
   QObject::connect(source, SIGNAL(visibilityChanged(pqPipelineSource*, pqDataRepresentation*)),
     this, SLOT(delayedUpdateVisibility(pqPipelineSource*)));
-
+  QObject::connect(source, &pqPipelineSource::dataInformationUpdated,
+    [this](pqOutputPort* port) { this->delayedUpdateVisibility(port->getSource()); });
   QObject::connect(source, SIGNAL(nameChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
-  QObject::connect(source, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)), this,
+  QObject::connect(source, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
 }
 
@@ -1410,7 +1424,7 @@ void pqPipelineModel::addExtractor(pqExtractor* egenerator)
   // monitor common signals.
   this->connect(egenerator, SIGNAL(nameChanged(pqServerManagerModelItem*)),
     SLOT(updateData(pqServerManagerModelItem*)));
-  this->connect(egenerator, SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)),
+  QObject::connect(egenerator, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
     SLOT(updateData(pqServerManagerModelItem*)));
 
   // ensure the "enabled" icon is updated when enabled-state changes.
