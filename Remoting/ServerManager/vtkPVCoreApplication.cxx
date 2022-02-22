@@ -338,7 +338,7 @@ vtkSmartPointer<vtkPVApplicationOptions> vtkPVCoreApplication::CreateOptions() c
 //----------------------------------------------------------------------------
 std::string vtkPVCoreApplication::GetEngineURL() const
 {
-  return "tcp://";
+  return "sockets://";
 }
 
 //-----------------------------------------------------------------------------
