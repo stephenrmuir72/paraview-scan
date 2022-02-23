@@ -243,6 +243,8 @@ void vtkGeometryRepresentation::InitializeForDataProcessing()
 {
   this->Superclass::InitializeForDataProcessing();
   this->DInternals.reset(new vtkGeometryRepresentation::vtkDataProcessingInternals());
+  auto& dinternals = (*this->DInternals);
+  dinternals.GeometryFilter->SetController(this->GetController());
 }
 
 //----------------------------------------------------------------------------
