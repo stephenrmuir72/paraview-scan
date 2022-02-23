@@ -357,6 +357,11 @@ paraview_require_module(
             VTK::IOIOSS
   )
 
+paraview_require_module(
+  CONDITION PARAVIEW_BUILD_ASYNC AND PARAVIEW_USE_MPI
+  MODULES   ParaView::icet
+  )
+
 
 # ensures that VTK::mpi module is rejected when MPI is not enabled.
 paraview_require_module(

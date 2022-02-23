@@ -12,6 +12,7 @@ IMPLEMENTS
   ParaView::RemotingServerManager
 DEPENDS
   ParaView::RemotingServerManager
+  VTK::RenderingParallel
   VTK::ViewsCore
 PRIVATE_DEPENDS
   ParaView::RemotingReflection
@@ -25,9 +26,11 @@ PRIVATE_DEPENDS
   VTK::jsoncpp
   VTK::RenderingFreeType
   VTK::RenderingOpenGL2
-  VTK::RenderingParallel
   VTK::RenderingVolume
   VTK::FiltersParallel
+OPTIONAL_DEPENDS
+  ParaView::icet
+  VTK::ParallelMPI
 TEST_DEPENDS
   ParaView::RemotingApplication
   VTK::InteractionStyle

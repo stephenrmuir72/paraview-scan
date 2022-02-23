@@ -25,14 +25,14 @@
 
 #include "vtkBoundingBox.h" // needed for ivar
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
 #include <vector> // for std::vector
 
 class vtkBoundingBox;
 class vtkCamera;
 
-class VTKREMOTINGVIEWS_EXPORT vtkOrderedCompositingHelper : public vtkObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkOrderedCompositingHelper : public vtkObject
 {
 public:
   static vtkOrderedCompositingHelper* New();

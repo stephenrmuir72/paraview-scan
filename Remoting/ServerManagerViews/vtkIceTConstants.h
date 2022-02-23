@@ -41,9 +41,10 @@
 
 #ifndef vtkIceTConstants_h
 #define vtkIceTConstants_h
-#include "vtkRemotingViewsModule.h" //needed for exports
 
-class VTKREMOTINGVIEWS_EXPORT vtkIceTConstants
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
+
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkIceTConstants
 {
 public:
   enum StrategyType

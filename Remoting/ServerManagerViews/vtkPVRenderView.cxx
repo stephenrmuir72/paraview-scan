@@ -18,6 +18,7 @@
 #include "vtkCamera.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVAxesWidget.h"
+#include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -29,6 +30,7 @@ public:
   vtkSmartPointer<vtkRenderer> Renderers[2];
   vtkSmartPointer<vtkCamera> Camera;
   vtkSmartPointer<vtkPVAxesWidget> OrientationWidget;
+  vtkSmartPointer<vtkPVSynchronizedRenderer> SynchronizedRenderers;
 };
 
 vtkStandardNewMacro(vtkPVRenderView);
@@ -72,6 +74,12 @@ void vtkPVRenderView::InitializeForRendering()
 
   internals.RenderWindow->AddRenderer(internals.Renderers[0]);
   internals.RenderWindow->AddRenderer(internals.Renderers[1]);
+
+  // Setup distributed rendering, if needed.
+  auto* controller = this->GetController();
+  internals.SynchronizedRenderers = vtk::TakeSmartPointer(vtkPVSynchronizedRenderer::New());
+  internals.SynchronizedRenderers->Initialize(controller);
+  internals.SynchronizedRenderers->SetRenderer(internals.Renderers[0]);
 
   // Setup OrientationWidget
   internals.OrientationWidget = vtk::TakeSmartPointer(vtkPVAxesWidget::New());
