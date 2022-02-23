@@ -38,8 +38,8 @@
 #ifndef vtkIceTCompositePass_h
 #define vtkIceTCompositePass_h
 
-#include "vtkNew.h"                 // needed for vtkWeakPointer.
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkNew.h"                              // needed for vtkWeakPointer.
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 #include "vtkRenderPass.h"
 #include "vtkSynchronizedRenderers.h" //  needed for vtkRawImage.
 #include <memory>                     // for std::unique_pt
@@ -55,7 +55,7 @@ class vtkPixelBufferObject;
 class vtkTextureObject;
 class vtkUnsignedCharArray;
 
-class VTKREMOTINGVIEWS_EXPORT vtkIceTCompositePass : public vtkRenderPass
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkIceTCompositePass : public vtkRenderPass
 {
 public:
   static vtkIceTCompositePass* New();

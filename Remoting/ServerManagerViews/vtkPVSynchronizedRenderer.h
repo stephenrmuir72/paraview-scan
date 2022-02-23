@@ -21,28 +21,27 @@
  * split across multiple ranks. It internally uses other
  * vtkSynchronizedRenderers subclasses based on the operation mode to do the
  * actual coordination such as vtkCaveSynchronizedRenderers,
- * vtkIceTSynchronizedRenderers, vtkPVClientServerSynchronizedRenderers and
- * vtkCompositedSynchronizedRenderers.
- *
+ * vtkIceTSynchronizedRenderers, and vtkCompositedSynchronizedRenderers.
  */
 
 #ifndef vtkPVSynchronizedRenderer_h
 #define vtkPVSynchronizedRenderer_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
 class vtkFXAAOptions;
 class vtkIceTSynchronizedRenderers;
 class vtkImageProcessingPass;
+class vtkMultiProcessController;
 class vtkOpenGLRenderer;
 class vtkOrderedCompositingHelper;
 class vtkPVSession;
-class vtkRenderPass;
 class vtkRenderer;
+class vtkRenderPass;
 class vtkSynchronizedRenderers;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVSynchronizedRenderer : public vtkObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVSynchronizedRenderer : public vtkObject
 {
 public:
   static vtkPVSynchronizedRenderer* New();
@@ -61,10 +60,9 @@ public:
 
   /**
    * Must be called once to initialize the instance. This will create
-   * appropriate internal vtkSynchronizedRenderers subclasses based on the
-   * process type and session provided.
+   * appropriate internal vtkSynchronizedRenderers.
    */
-  void Initialize(vtkPVSession* session);
+  void Initialize(vtkMultiProcessController* controller);
 
   /**
    * Used to determine sorting order and use ordered compositing. Set to nullptr
@@ -127,18 +125,6 @@ public:
   vtkGetObjectMacro(RenderPass, vtkRenderPass);
   //@}
 
-  //@{
-  /**
-   * Passes the compressor configuration to the client-server synchronizer, if
-   * any. This affects the image compression used to relay images back to the
-   * client.
-   * See vtkPVClientServerSynchronizedRenderers::ConfigureCompressor() for
-   * details.
-   */
-  void ConfigureCompressor(const char* configuration);
-  void SetLossLessCompression(bool);
-  //@}
-
   /**
    * Activates or de-activated the use of Depth Buffer in an ImageProcessingPass
    */
@@ -148,11 +134,6 @@ public:
    * Enable/Disable empty images optimization.
    */
   void SetRenderEmptyImages(bool);
-
-  /**
-   * Enable/Disable NVPipe
-   */
-  void SetNVPipeSupport(bool);
 
   //@{
   /**
@@ -173,11 +154,8 @@ public:
    * ParallelSynchronizer is the vtkSynchronizedRenderers used to synchronize
    * rendering between processes in an MPI group -- typically
    * vtkIceTSynchronizedRenderers when available.
-   * CSSynchronizer is the client-server vtkSynchronizedRenderers used in
-   * client-server configurations.
    */
   vtkGetObjectMacro(ParallelSynchronizer, vtkSynchronizedRenderers);
-  vtkGetObjectMacro(CSSynchronizer, vtkSynchronizedRenderers);
   //@}
 
   //@{
@@ -207,7 +185,6 @@ protected:
    */
   virtual void SetupPasses();
 
-  vtkSynchronizedRenderers* CSSynchronizer;
   vtkSynchronizedRenderers* ParallelSynchronizer;
   vtkImageProcessingPass* ImageProcessingPass;
   vtkRenderPass* RenderPass;

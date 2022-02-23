@@ -42,13 +42,13 @@
 #define vtkIceTContext_h
 
 #include "vtkObject.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 
 class vtkMultiProcessController;
 
 class vtkIceTContextOpaqueHandle;
 
-class VTKREMOTINGVIEWS_EXPORT vtkIceTContext : public vtkObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkIceTContext : public vtkObject
 {
 public:
   vtkTypeMacro(vtkIceTContext, vtkObject);

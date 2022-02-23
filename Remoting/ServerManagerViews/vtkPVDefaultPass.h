@@ -24,10 +24,10 @@
 #ifndef vtkPVDefaultPass_h
 #define vtkPVDefaultPass_h
 
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 #include "vtkRenderPass.h"
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDefaultPass : public vtkRenderPass
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVDefaultPass : public vtkRenderPass
 {
 public:
   static vtkPVDefaultPass* New();

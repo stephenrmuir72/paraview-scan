@@ -32,12 +32,14 @@ set(classes
   vtkClientSessionViews
   vtkGeometryRepresentation
   vtkInteractionProvider
+  vtkOrderedCompositingHelper
   vtkPVAxesActor
   vtkPVAxesWidget
   vtkPVCenterAxesActor
   vtkPVDataDeliveryManager
   vtkPVDataRepresentation
   vtkPVDataRepresentationPipeline
+  vtkPVDefaultPass
   vtkPVGeometryFilter
   vtkPVLight
   vtkPVLODActor
@@ -46,6 +48,7 @@ set(classes
   vtkPVRecoverGeometryWireframe
   vtkPVRenderingCapabilitiesInformation
   vtkPVRenderView
+  vtkPVSynchronizedRenderer
   vtkPVView
   vtkPVViewProvider
   vtkServerSessionViews
@@ -61,6 +64,30 @@ set(classes
 
 set(private_headers
 )
+
+set(sources
+)
+
+if (TARGET ParaView::icet)
+  list(APPEND classes
+    vtkIceTCompositePass
+    vtkIceTContext
+    vtkIceTSynchronizedRenderers)
+
+  # Encode glsl files.
+  foreach (file vtkIceTCompositeZPassShader_fs.glsl)
+    get_filename_component(file_we ${file} NAME_WE)
+    vtk_encode_string(
+      INPUT         "${file}"
+      NAME          "${file_we}"
+      EXPORT_SYMBOL "VTKREMOTINGSERVERMANAGERVIEWS_EXPORT"
+      EXPORT_HEADER "vtkRemotingServerManagerViewsModule.h"
+      HEADER_OUTPUT header
+      SOURCE_OUTPUT source)
+    list(APPEND sources ${source})
+    list(APPEND private_headers ${header})
+  endforeach ()
+endif()
 
 vtk_object_factory_declare(
   BASE "vtkServerSession"
@@ -81,7 +108,7 @@ vtk_object_factory_configure(
 
 vtk_module_add_module(ParaView::RemotingServerManagerViews
   CLASSES         ${classes}
-  SOURCES         ${vtk_object_factory_source}
+  SOURCES         ${sources} ${vtk_object_factory_source}
   PRIVATE_HEADERS ${private_headers} ${vtk_object_factory_header}
 )
 

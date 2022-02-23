@@ -30,15 +30,16 @@
 #ifndef vtkIceTSynchronizedRenderers_h
 #define vtkIceTSynchronizedRenderers_h
 
-#include "vtkIceTCompositePass.h"   // needed for inline methods.
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkIceTCompositePass.h"                // needed for inline methods.
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSynchronizedRenderers.h"
 
 class vtkCameraPass;
 class vtkImageProcessingPass;
 class vtkOrderedCompositingHelper;
 
-class VTKREMOTINGVIEWS_EXPORT vtkIceTSynchronizedRenderers : public vtkSynchronizedRenderers
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkIceTSynchronizedRenderers
+  : public vtkSynchronizedRenderers
 {
 public:
   static vtkIceTSynchronizedRenderers* New();

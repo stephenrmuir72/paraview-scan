@@ -20,6 +20,14 @@
 
 #include <chrono>
 #include <thread>
+namespace
+{
+std::string GetProtocol(const std::string& url)
+{
+  auto pos = url.find(':');
+  return url.substr(0, pos);
+}
+}
 
 //----------------------------------------------------------------------------
 vtkThalliumServicesEngineInternals::vtkThalliumServicesEngineInternals(
@@ -51,8 +59,8 @@ vtkThalliumServicesEngineInternals::vtkThalliumServicesEngineInternals(
   {
     // on satellites, simply create a client-engine to simply things.
     // we don't really even use the engine on satellites.
-    this->Engine.reset(
-      new thallium::engine("sockets", THALLIUM_CLIENT_MODE, *this->ProgressPool, *this->RPCPool));
+    this->Engine.reset(new thallium::engine(
+      ::GetProtocol(url), THALLIUM_CLIENT_MODE, *this->ProgressPool, *this->RPCPool));
   }
 
   this->ProgressPool
