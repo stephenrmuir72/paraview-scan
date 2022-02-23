@@ -78,8 +78,7 @@ std::string vtkPVServerApplication::GetEngineURL() const
 {
   auto* options = this->GetOptions();
   // FIXME: this doesn't work as expected.
-  // return fmt::format("tcp://{}:{}", options->GetLocalHostname(), options->GetPort());
-  return this->Superclass::GetEngineURL();
+  return fmt::format("sockets://{}:{}", options->GetLocalHostname(), options->GetPort());
 }
 
 //----------------------------------------------------------------------------

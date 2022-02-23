@@ -55,6 +55,10 @@ int TestBasicQtApp(int argc, char* argv[])
   vtkPVApplicationOptions::SetupDefaults(cli);
 
   vtkNew<vtkPVGUIApplication> pvApp;
+
+  std::string url;
+  cli.add_option("-u,--url", url, "Server url to connect to, if any.");
+
   pvApp->GetOptions()->Populate(cli);
 
   // Qt app can directly use this macro since we never execute in distributed
@@ -66,6 +70,7 @@ int TestBasicQtApp(int argc, char* argv[])
 
   // Create MainWindow.
   TestBasicQtAppMainWindow window;
+  window.connect(url.c_str());
   window.show();
 
   pvApp->Exit(qtApp.exec());

@@ -36,6 +36,8 @@
 #include "vtkTuple.h"                            // needed for vtkTuple.
 #include "vtkWeakPointer.h"                      // needed for iVar.
 
+#include <map> // for std::map
+
 class vtkAlgorithmOutput;
 class vtkDataObject;
 class vtkExtentTranslator;
@@ -94,11 +96,13 @@ public:
    */
   vtkTypeUInt64 GetVisibleDataSize(bool useLOD) const;
 
+  ///@{
   /**
-   * Publishes data for rendering.
+   * Get/Set data for rendering. Internal methods used by vtkPVViewProvider.
    */
-  vtkJson GetData(vtkMTimeType timestamp) const;
-  void SetData(const vtkJson& json);
+  std::map<std::string, vtkSmartPointer<vtkObject>> GetData(vtkMTimeType timestamp) const;
+  void SetData(const std::map<std::string, vtkSmartPointer<vtkObject>>& data);
+  ///@}
 
 protected:
   vtkPVDataDeliveryManager();

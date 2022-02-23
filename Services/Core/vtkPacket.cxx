@@ -42,6 +42,22 @@ vtkPacket::vtkPacket(vtkJson&& json)
 }
 
 //----------------------------------------------------------------------------
+vtkPacket::vtkPacket(
+  const vtkJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
+  : vtkPacket(json)
+{
+  this->Payload = payload;
+}
+
+//----------------------------------------------------------------------------
+vtkPacket::vtkPacket(
+  vtkJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
+  : vtkPacket(std::move(json))
+{
+  this->Payload = payload;
+}
+
+//----------------------------------------------------------------------------
 const vtkJson& vtkPacket::GetJSON() const
 {
   return *this->JSON;
@@ -81,6 +97,7 @@ void vtkPacket::SetBinary(const std::vector<uint8_t>& buffer)
 void to_json(nlohmann::json& json, const vtkPacket& packet)
 {
   json = packet.GetJSON();
+  assert(packet.GetPayload().empty());
 }
 
 //----------------------------------------------------------------------------

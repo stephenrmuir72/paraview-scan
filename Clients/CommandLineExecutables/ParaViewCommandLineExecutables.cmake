@@ -17,11 +17,19 @@ function (paraview_add_executable name)
 
   target_link_libraries("${name}"
     PRIVATE
+      ParaView::RemotingServerManagerViews
       ParaView::RemotingApplication)
 
   target_link_libraries("${name}"
     PRIVATE
       ParaView::paraview_plugins)
+
+  vtk_module_autoinit(
+    TARGETS "${name}"
+    MODULES
+      ParaView::RemotingServerManager
+      ParaView::RemotingServerManagerViews
+      ParaView::RemotingApplication)
 
   if (PARAVIEW_USE_PYTHON)
     target_compile_definitions("${name}"

@@ -51,15 +51,16 @@ class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
-  vtkSMViewProxy* setupSession(pqProgressWidget* progressWidget);
+  vtkSMViewProxy* setupSession(const QString& url);
 };
 
-vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWidget* progressWidget)
+vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString& url)
 {
   vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
 
   auto* pvapp = vtkPVGUIApplication::GetInstance();
-  auto sessionId = pvapp->CreateBuiltinSession();
+  auto sessionId =
+    url.isEmpty() ? pvapp->CreateBuiltinSession() : pvapp->CreateRemoteSession(url.toStdString());
   auto* session = pvapp->GetSession(sessionId);
   auto* pxm = session->GetProxyManager();
   auto* smmodel = pvapp->GetServerManagerModel();
@@ -93,10 +94,6 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(pqProgressWid
   controller->AssignViewToLayout(view);
   controller->Show(shrink, 0, view, "GeometryRepresentation");
 
-  auto* pgm = pvapp->GetProgressManager();
-  QObject::connect(pgm, SIGNAL(enableProgress(bool)), progressWidget, SLOT(enableProgress(bool)));
-  QObject::connect(pgm, SIGNAL(progress(const QString&, int)), progressWidget,
-    SLOT(setProgress(const QString&, int)));
 
   QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
     [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
@@ -157,7 +154,22 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);
 
-  auto* view = internals.setupSession(progressWidget);
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* pgm = pvapp->GetProgressManager();
+  QObject::connect(pgm, SIGNAL(enableProgress(bool)), progressWidget, SLOT(enableProgress(bool)));
+  QObject::connect(pgm, SIGNAL(progress(const QString&, int)), progressWidget,
+    SLOT(setProgress(const QString&, int)));
+}
+
+//-----------------------------------------------------------------------------
+TestBasicQtAppMainWindow::~TestBasicQtAppMainWindow() = default;
+
+//-----------------------------------------------------------------------------
+void TestBasicQtAppMainWindow::connect(const QString& url)
+{
+  auto& internals = (*this->Internals);
+  auto* view = internals.setupSession(url);
+
   auto* timer = new QTimer(this);
   timer->setSingleShot(false);
 
@@ -177,6 +189,3 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
     }
   });
 }
-
-//-----------------------------------------------------------------------------
-TestBasicQtAppMainWindow::~TestBasicQtAppMainWindow() = default;

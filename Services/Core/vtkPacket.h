@@ -32,18 +32,43 @@
 #define vtkPacket_h
 
 #include "vtkJson.h"               // for vtkJson
+#include "vtkLogger.h"             // for vtkLogger.
 #include "vtkServicesCoreModule.h" // for exports
+#include "vtkSmartPointer.h"       // for vtkSmartPointer
+#include "vtkUnsignedCharArray.h"  // for vtkUnsignedCharArray
 
 #include <map>
 #include <memory>
 #include <string>
 
+class vtkUnsignedCharArray;
+
 class VTKSERVICESCORE_EXPORT vtkPacket
 {
 public:
+  /**
+   * Default constructor to create an empty packet.
+   */
   vtkPacket();
+
+  ///@{
+  /**
+   * Constructors to create a packet from a vtkJson object.
+   */
   vtkPacket(const vtkJson& json);
   vtkPacket(vtkJson&& json);
+  ///@}
+
+  ///@{
+  /**
+   * Constructor overloads that enabling adding VTK-objects as payload.
+   * Currently, only vtkUnsignedCharArray is supported if across wire exchange
+   * is required.
+   */
+  vtkPacket(const vtkJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
+  vtkPacket(vtkJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
+  ///@}
+
   ~vtkPacket() = default;
   vtkPacket(const vtkPacket&) = default;
   vtkPacket(vtkPacket&&) = default;
@@ -54,6 +79,24 @@ public:
    * Provides access to internal Json.
    */
   const vtkJson& GetJSON() const;
+
+  ///@{
+  /**
+   * Provides access to payload.
+   */
+  const std::map<std::string, vtkSmartPointer<vtkObject>> GetPayload() const
+  {
+    return this->Payload;
+  }
+
+  template <typename T>
+  vtkSmartPointer<T> GetPayload(const std::string& key) const
+  {
+    auto iter = this->Payload.find(key);
+    return iter != this->Payload.end() ? T::SafeDownCast(iter->second.GetPointer()) : nullptr;
+  }
+
+  ///@}
 
   /**
    * Print the contents of the packet. This is not not meant for serialization
@@ -67,24 +110,57 @@ public:
   void save(Ar& archive) const
   {
     archive & this->GetBinary();
+    archive & this->Payload.size();
+    for (auto& pair : this->Payload)
+    {
+      archive& pair.first;
+      auto* ucArray = vtkUnsignedCharArray::SafeDownCast(pair.second);
+      vtkLogIfF(
+        ERROR, ucArray == nullptr, "Currently, only vtkUnsignedCharArray can be serialized.");
+      assert(ucArray != nullptr);
+      archive & ucArray->GetNumberOfTuples();
+      archive & ucArray->GetNumberOfComponents();
+      archive.write(
+        ucArray->GetPointer(0), ucArray->GetNumberOfComponents() * ucArray->GetNumberOfTuples());
+    }
   }
 
   template <typename Ar>
   void load(Ar& archive)
   {
+    this->Payload.clear();
+
     std::vector<uint8_t> data;
     archive& data;
     this->SetBinary(data);
+
+    size_t count = 0;
+    archive& count;
+    for (size_t cc = 0; cc < count; ++cc)
+    {
+      std::string key;
+      vtkIdType numTuples;
+      int numComponents;
+
+      archive& key;
+      archive& numTuples;
+      archive& numComponents;
+      auto ucArray = vtk::TakeSmartPointer(vtkUnsignedCharArray::New());
+      ucArray->SetNumberOfComponents(numComponents);
+      ucArray->SetNumberOfTuples(numTuples);
+      archive.read(ucArray->GetPointer(0), numTuples * numComponents);
+      this->Payload[key] = ucArray;
+    }
   }
 
   bool operator==(const vtkPacket& other) const { return *this == other.GetJSON(); }
   bool operator==(const vtkJson& json) const { return this->GetJSON() == json; }
-
   bool operator!=(const vtkPacket& other) const { return *this != other.GetJSON(); }
   bool operator!=(const vtkJson& json) const { return this->GetJSON() != json; }
 
 private:
   std::shared_ptr<vtkJson> JSON;
+  std::map<std::string, vtkSmartPointer<vtkObject>> Payload;
 
   ///@{
   /**

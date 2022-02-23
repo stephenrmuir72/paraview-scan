@@ -121,19 +121,6 @@ public:
     return name.empty() || this->NumberOfRanks <= 1 ? name
                                                     : name + "." + std::to_string(this->Rank);
   }
-
-  std::string GetCSURL() const
-  {
-    const std::string url = this->Engine->GetUrl();
-    vtksys::RegularExpression regEx("^[^:]+://(.*)$");
-    if (!regEx.find(url))
-    {
-      vtkLogF(INFO, "URL in unrecognized form ('%s'). Using default.", url.c_str());
-      abort();
-    }
-
-    return fmt::format("cs://{}", regEx.match(1));
-  }
 };
 
 vtkPVCoreApplication* vtkPVCoreApplication::Singleton;
@@ -292,7 +279,8 @@ bool vtkPVCoreApplication::Initialize(const std::string& executable,
   if (internals.Rank == 0 && internals.Type == vtkPVCoreApplication::SERVER &&
     !internals.ExitCodeSet)
   {
-    cout << "Accepting connection: " << internals.GetCSURL() << endl;
+    cout << "Accepting connection: " << vtkPVCoreApplication::GetCSURL(internals.Engine->GetUrl())
+         << endl;
   }
   return true;
 }
@@ -338,7 +326,7 @@ vtkSmartPointer<vtkPVApplicationOptions> vtkPVCoreApplication::CreateOptions() c
 //----------------------------------------------------------------------------
 std::string vtkPVCoreApplication::GetEngineURL() const
 {
-  return "tcp://";
+  return "sockets://";
 }
 
 //-----------------------------------------------------------------------------
@@ -445,6 +433,32 @@ const std::string& vtkPVCoreApplication::GetDocDirectory() const
 {
   const auto& internals = (*this->Internals);
   return internals.DocDirectory;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPVCoreApplication::GetCSURL(const std::string& engineURL)
+{
+  vtksys::RegularExpression regEx("^[^:]+://(.*)$");
+  if (!regEx.find(engineURL))
+  {
+    vtkLogF(ERROR, "URL in unrecognized form ('%s'). Aborting.", engineURL.c_str());
+    abort();
+  }
+
+  return fmt::format("cs://{}", regEx.match(1));
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPVCoreApplication::GetEngineURL(const std::string& csURL)
+{
+  vtksys::RegularExpression regEx("^cs://(.*)$");
+  if (!regEx.find(csURL))
+  {
+    vtkLogF(ERROR, "URL in unrecognized form ('%s'). Aborting.", csURL.c_str());
+    abort();
+  }
+
+  return fmt::format("sockets://{}", regEx.match(1));
 }
 
 //----------------------------------------------------------------------------

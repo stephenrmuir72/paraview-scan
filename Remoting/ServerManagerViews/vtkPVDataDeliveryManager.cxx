@@ -25,11 +25,17 @@
 #include "vtkPVView.h"
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringUtilities.h"
 #include "vtkWeakPointer.h"
 
 #include <algorithm>
 #include <map>
 #include <numeric>
+
+// clang-format off
+#include <vtk_fmt.h> // needed for `fmt`
+#include VTK_FMT(fmt/core.h)
+// clang-format on
 
 namespace
 {
@@ -84,7 +90,15 @@ public:
 
   const vtkItem& GetItem(vtkTypeUInt32 gid, int port) const { return this->Items.at(gid).at(port); }
 
-  vtkItem& GetItem(vtkTypeUInt32 gid, int port) { return this->Items.at(gid).at(port); }
+  vtkItem& GetItem(vtkTypeUInt32 gid, int port)
+  {
+    auto& vector = this->Items[gid];
+    if (port >= static_cast<int>(vector.size()))
+    {
+      vector.resize(port + 1);
+    }
+    return vector.at(port);
+  }
 };
 
 //*****************************************************************************
@@ -204,11 +218,12 @@ vtkTypeUInt64 vtkPVDataDeliveryManager::GetVisibleDataSize(bool useLOD) const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataDeliveryManager::GetData(vtkMTimeType timestamp) const
+std::map<std::string, vtkSmartPointer<vtkObject>> vtkPVDataDeliveryManager::GetData(
+  vtkMTimeType timestamp) const
 {
   const auto& internals = (*this->Internals);
 
-  vtkJson json = vtkJson::array();
+  std::map<std::string, vtkSmartPointer<vtkObject>> dataMap;
   for (const auto& pair : internals.Items)
   {
     const auto* repr =
@@ -224,36 +239,31 @@ vtkJson vtkPVDataDeliveryManager::GetData(vtkMTimeType timestamp) const
     {
       if (item.TimeStamp > timestamp)
       {
-        vtkJson node;
-        node["gid"] = repr->GetGlobalID();
-        node["port"] = port;
-
-        auto* data = item.Data.GetPointer();
-        data->Register(nullptr);
-        node["data"] = reinterpret_cast<uintptr_t>(data);
-
-        json.push_back(std::move(node));
+        dataMap[fmt::format("{}:{}", repr->GetGlobalID(), port)] = item.Data;
       }
       ++port;
     }
   }
 
-  return !json.empty() ? json : vtkJson();
+  return dataMap;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVDataDeliveryManager::SetData(const vtkJson& json)
+void vtkPVDataDeliveryManager::SetData(
+  const std::map<std::string, vtkSmartPointer<vtkObject>>& dataMap)
 {
   auto& internals = (*this->Internals);
-  for (const auto& node : json)
+  for (const auto& pair : dataMap)
   {
-    const auto gid = node.at("gid").get<vtkTypeUInt32>();
-    const auto port = node.at("port").get<int>();
-    auto& item = internals.GetItem(gid, port);
+    std::vector<int> idx;
+    vtkStringUtilities::Parse(pair.first, idx, ':');
 
-    auto ptr = node.at("data").get<uintptr_t>();
+    const auto gid = static_cast<vtkTypeUInt32>(idx[0]);
+    const auto port = idx[1];
+
+    auto& item = internals.GetItem(gid, port);
     item.TimeStamp.Modified();
-    item.Data.TakeReference(reinterpret_cast<vtkDataObject*>(ptr));
+    item.Data = vtkDataObject::SafeDownCast(pair.second);
 
     // erase LOD to avoid using obsolete data.
     item.LODTimeStamp = vtkTimeStamp();
