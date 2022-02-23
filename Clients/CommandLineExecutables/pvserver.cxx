@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
-  app->WaitForExit(runLoop, std::chrono::minutes(3));
+  app->WaitForExit(runLoop, std::chrono::minutes(30));
   app->Finalize();
   return app->GetExitCode();
 }

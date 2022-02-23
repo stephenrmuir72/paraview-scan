@@ -52,7 +52,7 @@ vtkThalliumServicesEngineInternals::vtkThalliumServicesEngineInternals(
     // on satellites, simply create a client-engine to simply things.
     // we don't really even use the engine on satellites.
     this->Engine.reset(
-      new thallium::engine(url, THALLIUM_CLIENT_MODE, *this->ProgressPool, *this->RPCPool));
+      new thallium::engine("sockets", THALLIUM_CLIENT_MODE, *this->ProgressPool, *this->RPCPool));
   }
 
   this->ProgressPool
