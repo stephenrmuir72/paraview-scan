@@ -109,17 +109,16 @@ void vtkPVViewProvider::PushViewData(vtkObject* caller, unsigned long eventId, v
   auto& tstamp = internals.PushTimeStamps.at(view->GetGlobalID());
 
   auto* dmanager = view->GetDataDeliveryManager();
-  auto jsonDataSets = dmanager->GetData(tstamp);
+  auto dataMap = dmanager->GetData(tstamp);
   tstamp.Modified();
 
-  if (!jsonDataSets.is_null())
+  if (!dataMap.empty())
   {
     vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "Pushing rendering data");
     vtkJson json;
     json["gid"] = view->GetGlobalID();
-    json["datasets"] = std::move(jsonDataSets);
     this->GetService()->Publish(
-      vtkPVViewProvider::GetDataChannelName(), vtkPacket{ std::move(json) });
+      vtkPVViewProvider::GetDataChannelName(), vtkPacket{ std::move(json), dataMap });
   }
 }
 
@@ -151,7 +150,7 @@ void vtkPVViewProvider::InitializeInternal(vtkService* service)
         if (view)
         {
           auto* dmanager = view->GetDataDeliveryManager();
-          dmanager->SetData(json.at("datasets"));
+          dmanager->SetData(data.GetPayload());
           view->UpdateForRendering();
           view->StillRender();
         }

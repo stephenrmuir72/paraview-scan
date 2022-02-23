@@ -263,18 +263,8 @@ void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
   auto& internals = (*this->Internals);
   vtkLogF(TRACE, "got image");
   const auto& json = packet.GetJSON();
-#if 0
-  auto& binary = json.at("image").get_binary();
-
-  vtkNew<vtkUnsignedCharArray> array;
-  array->SetNumberOfComponents(4);
-  array->SetNumberOfTuples(binary.size() / 4);
-  std::copy(binary.begin(), binary.end(), array->GetPointer(0));
-#else
-  auto ptr = json.at("image").get<uintptr_t>();
-  auto array = vtk::TakeSmartPointer(reinterpret_cast<vtkUnsignedCharArray*>(ptr));
-#endif
-
+  auto array = packet.GetPayload<vtkUnsignedCharArray>("image");
+  assert(array);
   vtkSynchronizedRenderers::vtkRawImage image;
   image.Initialize(json.at("width").get<int>(), json.at("height").get<int>(), array);
   image.MarkValid();

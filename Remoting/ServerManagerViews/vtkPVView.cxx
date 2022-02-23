@@ -659,21 +659,13 @@ vtkPacket vtkPVView::GetRenderedResult() const
     vtkLogEndScope("capture");
 
     vtkJson result;
-#if 0
-    std::vector<std::uint8_t> copy;
-    copy.resize(buffer.GetRawPtr()->GetNumberOfValues());
-    std::copy_n(buffer.GetRawPtr()->GetPointer(0), copy.size(), copy.begin());
-    result["image"] = vtkJson::binary(std::move(copy));
-#else
-    auto* data = buffer.GetRawPtr();
-    data->Register(nullptr);
-    result["image"] = reinterpret_cast<uintptr_t>(data);
-#endif
     result["gid"] = this->GetGlobalID();
     result["width"] = buffer.GetWidth();
     result["height"] = buffer.GetHeight();
 
-    return vtkPacket(std::move(result));
+    std::map<std::string, vtkSmartPointer<vtkObject>> payload;
+    payload["image"] = buffer.GetRawPtr();
+    return vtkPacket(result, payload);
   }
 
   return vtkPacket();
