@@ -189,6 +189,15 @@ public:
    */
   virtual const std::string& GetDocDirectory() const;
 
+  ///@{
+  /**
+   * API to convert a ParaView URL to implementation specific engine URL and
+   * vice-versa.
+   */
+  static std::string GetCSURL(const std::string& engineURL);
+  static std::string GetEngineURL(const std::string& csURL);
+  ///@}
+
 protected:
   vtkPVCoreApplication(ApplicationTypes type);
   ~vtkPVCoreApplication() override;

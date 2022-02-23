@@ -98,19 +98,20 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
 
+  const auto engineURL = vtkPVCoreApplication::GetEngineURL(url);
   auto* pvapp = vtkPVCoreApplication::GetInstance();
   assert(pvapp != nullptr);
   auto* engine = pvapp->GetServicesEngine();
-  internals.IsRemote = engine->GetUrl() != url; // FIXME: confirm
+  internals.IsRemote = engine->GetUrl() != engineURL; // FIXME: confirm
   internals.URL = url;
   if (pvapp->GetRank() == 0)
   {
     // FIXME: ASYNC
     // These should not "wait"
-    internals.DSEndpoint = engine->CreateServiceEndpoint("ds", url);
+    internals.DSEndpoint = engine->CreateServiceEndpoint("ds", engineURL);
     internals.DSEndpoint->Connect().Wait();
 
-    internals.RSEndpoint = engine->CreateServiceEndpoint("rs", url);
+    internals.RSEndpoint = engine->CreateServiceEndpoint("rs", engineURL);
     internals.RSEndpoint->Connect().Wait();
 
     // auto o2 = internals.RSEndpoint->Connect().GetObservable();
