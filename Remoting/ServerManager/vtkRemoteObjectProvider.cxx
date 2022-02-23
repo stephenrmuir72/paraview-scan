@@ -307,7 +307,7 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
         mpStream.Pop(ptr, size);
 
         auto clone = vtk::TakeSmartPointer(info->NewInstance());
-        clone->LoadState(vtkJson::from_bson(bson));
+        clone->LoadInformation(vtkJson::from_bson(bson));
         info->AddInformation(clone);
       }
       state = info->SaveInformation();
