@@ -45,6 +45,19 @@ vtkSMInputArrayDomain::vtkSMInputArrayDomain()
 vtkSMInputArrayDomain::~vtkSMInputArrayDomain() = default;
 
 //---------------------------------------------------------------------------
+int vtkSMInputArrayDomain::GetAttributeType(const char* text)
+{
+  for (int cc = 0; text && vtkSMInputArrayDomainAttributeTypes[cc]; ++cc)
+  {
+    if (strcmp(text, vtkSMInputArrayDomainAttributeTypes[cc]) == 0)
+    {
+      return cc;
+    }
+  }
+  return -1;
+}
+
+//---------------------------------------------------------------------------
 int vtkSMInputArrayDomain::IsInDomain(vtkSMProperty* property)
 {
   if (this->IsOptional)

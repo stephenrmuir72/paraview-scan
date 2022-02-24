@@ -104,6 +104,7 @@ public:
    */
   vtkGetMacro(AttributeType, int);
   const char* GetAttributeTypeAsString();
+  static int GetAttributeType(const char* text);
   //@}
 
   /**
