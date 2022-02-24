@@ -25,7 +25,7 @@
 #ifndef vtkPVInformation_h
 #define vtkPVInformation_h
 
-#include "vtkJson.h" // for vtkJson
+#include "vtkNJson.h" // for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 
@@ -43,8 +43,8 @@ public:
    * gather, but the options that dictate how the meta-data is gathered,
    * if any.
    */
-  virtual vtkJson SaveState() const;
-  virtual bool LoadState(const vtkJson& state);
+  virtual vtkNJson SaveState() const;
+  virtual bool LoadState(const vtkNJson& state);
   ///@}
 
   /**
@@ -61,8 +61,8 @@ public:
   /**
    * Save/load information / meta-data gathered.
    */
-  virtual bool LoadInformation(const vtkJson& json) = 0;
-  virtual vtkJson SaveInformation() const = 0;
+  virtual bool LoadInformation(const vtkNJson& json) = 0;
+  virtual vtkNJson SaveInformation() const = 0;
   ///@}
 
   ///@{

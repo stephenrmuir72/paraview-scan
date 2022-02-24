@@ -21,7 +21,7 @@
 #ifndef vtkEventualImplementation_h
 #define vtkEventualImplementation_h
 
-#include "vtkJsonFwd.h" // for vtkJson
+#include "vtkNJsonFwd.h" // for vtkNJson
 #include "vtkObject.h"
 #include "vtkServicesCoreModule.h" // for exports
 
@@ -34,7 +34,7 @@
 class VTKSERVICESCORE_EXPORT vtkEventualImplementation
 {
 public:
-  vtkEventualImplementation(const vtkJson& value);
+  vtkEventualImplementation(const vtkNJson& value);
   virtual ~vtkEventualImplementation();
   vtkEventualImplementation(const vtkEventualImplementation&) = delete;
   void operator=(const vtkEventualImplementation&) = delete;
@@ -47,20 +47,20 @@ public:
   /**
    * Returns value. This may block if value is not available yet.
    */
-  virtual vtkJson Wait() const;
+  virtual vtkNJson Wait() const;
 
   /**
    * Returns an observable.
    */
-  rxcpp::observable<vtkJson> GetObservable() const;
+  rxcpp::observable<vtkNJson> GetObservable() const;
 
   /**
    * Set value.
    */
-  virtual void SetValue(const vtkJson& value) const;
+  virtual void SetValue(const vtkNJson& value) const;
 
 private:
-  rxcpp::subjects::behavior<vtkJson> ValueBehavior;
+  rxcpp::subjects::behavior<vtkNJson> ValueBehavior;
 };
 
 #endif

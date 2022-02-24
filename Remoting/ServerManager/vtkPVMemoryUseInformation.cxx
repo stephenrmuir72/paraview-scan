@@ -50,12 +50,12 @@ void vtkPVMemoryUseInformation::AddInformation(vtkPVInformation* pvinfo)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVMemoryUseInformation::SaveInformation() const
+vtkNJson vtkPVMemoryUseInformation::SaveInformation() const
 {
-  vtkJson json = vtkJson::array();
+  vtkNJson json = vtkNJson::array();
   for (const auto& info : MemInfos)
   {
-    vtkJson item;
+    vtkNJson item;
     VTK_JSON_SAVE_MEMBER(item, info.ProcessType);
     VTK_JSON_SAVE_MEMBER(item, info.Rank);
     VTK_JSON_SAVE_MEMBER(item, info.ProcMemUse);
@@ -66,7 +66,7 @@ vtkJson vtkPVMemoryUseInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVMemoryUseInformation::LoadInformation(const vtkJson& json)
+bool vtkPVMemoryUseInformation::LoadInformation(const vtkNJson& json)
 {
   this->MemInfos.clear();
   for (const auto& item : json)

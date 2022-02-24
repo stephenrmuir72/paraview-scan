@@ -46,8 +46,8 @@ public:
    * vtkPVInformation API implementation.
    */
 
-  bool LoadInformation(const vtkJson& state) override;
-  vtkJson SaveInformation() const override;
+  bool LoadInformation(const vtkNJson& state) override;
+  vtkNJson SaveInformation() const override;
   void AddInformation(vtkPVInformation* oinfo) override;
   //@}
 
@@ -57,8 +57,8 @@ public:
    * gather, but the options that dictate how the meta-data is gathered,
    * if any.
    */
-  vtkJson SaveState() const override;
-  bool LoadState(const vtkJson& state) override;
+  vtkNJson SaveState() const override;
+  bool LoadState(const vtkNJson& state) override;
 
   /**
    * Gather information from the target.

@@ -112,7 +112,7 @@
 #ifndef vtkSMSessionProxyManager_h
 #define vtkSMSessionProxyManager_h
 
-#include "vtkJsonFwd.h" // needed for vtkJson
+#include "vtkNJsonFwd.h" // needed for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" // needed for exports
 #include "vtkSmartPointer.h"                // needed for vtkSmartPointer

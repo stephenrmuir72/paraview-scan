@@ -220,8 +220,8 @@ protected:
   // Save concrete property values into the XML state property declaration
   void SaveStateValues(vtkPVXMLElement* propElement) override;
 
-  bool SaveState(vtkJson& element) override;
-  bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator) override;
+  bool SaveState(vtkNJson& element) override;
+  bool LoadState(const vtkNJson& element, vtkSMProxyLocator* locator) override;
 
 private:
   vtkSMStringVectorProperty(const vtkSMStringVectorProperty&) = delete;

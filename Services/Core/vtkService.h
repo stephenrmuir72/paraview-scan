@@ -221,12 +221,12 @@ private:
 class VTKSERVICESCORE_EXPORT vtkServiceReceiver
 {
   vtkSmartPointer<vtkService> Service;
-  mutable vtkEventual<vtkJson> Response;
+  mutable vtkEventual<vtkNJson> Response;
   vtkPacket Packet;
 
 public:
   vtkServiceReceiver(
-    vtkService* service, const vtkPacket& packet, const vtkEventual<vtkJson>& response);
+    vtkService* service, const vtkPacket& packet, const vtkEventual<vtkNJson>& response);
   vtkServiceReceiver(const vtkServiceReceiver&) = default;
   vtkServiceReceiver& operator=(const vtkServiceReceiver&) = default;
   ~vtkServiceReceiver() = default;
@@ -234,7 +234,7 @@ public:
   /**
    * Send a response back.
    */
-  void Respond(const vtkJson& packet) const;
+  void Respond(const vtkNJson& packet) const;
   void Respond(const vtkPacket& packet) const;
 
   /**

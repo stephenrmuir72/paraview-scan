@@ -91,13 +91,13 @@ void vtkPVSystemConfigInformation::AddInformation(vtkPVInformation* pvinfo)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVSystemConfigInformation::SaveInformation() const
+vtkNJson vtkPVSystemConfigInformation::SaveInformation() const
 {
-  vtkJson json;
-  vtkJson configs = vtkJson::array();
+  vtkNJson json;
+  vtkNJson configs = vtkNJson::array();
   for (const auto& config : this->Configs)
   {
-    vtkJson item;
+    vtkNJson item;
     VTK_JSON_SAVE_MEMBER(item, config.OSDescriptor);
     VTK_JSON_SAVE_MEMBER(item, config.CPUDescriptor);
     VTK_JSON_SAVE_MEMBER(item, config.MemDescriptor);
@@ -116,7 +116,7 @@ vtkJson vtkPVSystemConfigInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVSystemConfigInformation::LoadInformation(const vtkJson& json)
+bool vtkPVSystemConfigInformation::LoadInformation(const vtkNJson& json)
 {
   this->Configs.clear();
   for (const auto& item : json.at("configs"))

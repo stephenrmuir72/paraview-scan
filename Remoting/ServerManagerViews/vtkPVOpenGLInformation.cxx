@@ -96,9 +96,9 @@ void vtkPVOpenGLInformation::AddInformation(vtkPVInformation* pvinfo)
 }
 
 //-----------------------------------------------------------------------------
-vtkJson vtkPVOpenGLInformation::SaveInformation() const
+vtkNJson vtkPVOpenGLInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   VTK_JSON_SAVE_MEMBER(json, Vendor);
   VTK_JSON_SAVE_MEMBER(json, Version);
   VTK_JSON_SAVE_MEMBER(json, Renderer);
@@ -107,7 +107,7 @@ vtkJson vtkPVOpenGLInformation::SaveInformation() const
 }
 
 //-----------------------------------------------------------------------------
-bool vtkPVOpenGLInformation::LoadInformation(const vtkJson& json)
+bool vtkPVOpenGLInformation::LoadInformation(const vtkNJson& json)
 {
   VTK_JSON_LOAD_MEMBER(json, Vendor);
   VTK_JSON_LOAD_MEMBER(json, Version);

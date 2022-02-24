@@ -115,10 +115,10 @@ public:
   /**
    * vtkPVInformation API implementation.
    */
-  vtkJson SaveState() const override;
-  bool LoadState(const vtkJson& state) override;
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
+  vtkNJson SaveState() const override;
+  bool LoadState(const vtkNJson& state) override;
+  bool LoadInformation(const vtkNJson& json) override;
+  vtkNJson SaveInformation() const override;
   void AddInformation(vtkPVInformation* oinfo) override;
   //@}
 

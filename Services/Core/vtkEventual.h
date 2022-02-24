@@ -47,7 +47,7 @@
 #define vtkEventual_h
 
 #include "vtkEventualImplementation.h" // for vtkEventualImplementation
-#include "vtkJson.h"                   // for vtkJson
+#include "vtkNJson.h"                  // for vtkNJson
 #include "vtkServicesCoreModule.h"     // for exports
 
 #include <memory> // for std::shared_ptr
@@ -64,7 +64,7 @@ public:
   {
   }
   vtkEventual(const T& value)
-    : Internals(new vtkEventualImplementation(vtkJson(value)))
+    : Internals(new vtkEventualImplementation(vtkNJson(value)))
   {
   }
   ~vtkEventual() = default;
@@ -83,7 +83,7 @@ public:
   {
     if (this->Internals)
     {
-      const vtkJson var = this->Internals->Wait();
+      const vtkNJson var = this->Internals->Wait();
       return var.get<T>();
     }
     return T{};
@@ -111,7 +111,7 @@ public:
       return rxcpp::sources::empty<T>();
     }
     return this->Internals->GetObservable().map(
-      [](const vtkJson& value) { return value.get<T>(); });
+      [](const vtkNJson& value) { return value.get<T>(); });
   }
 };
 #endif

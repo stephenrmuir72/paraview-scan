@@ -174,9 +174,9 @@ vtkPVDataInformation::~vtkPVDataInformation()
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataInformation::SaveState() const
+vtkNJson vtkPVDataInformation::SaveState() const
 {
-  vtkJson json;
+  vtkNJson json;
   json["port_number"] = this->PortNumber;
   json["subset_selector"] = std::string(this->SubsetSelector ? this->SubsetSelector : "");
   json["subset_assembly_name"] =
@@ -185,7 +185,7 @@ vtkJson vtkPVDataInformation::SaveState() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataInformation::LoadState(const vtkJson& json)
+bool vtkPVDataInformation::LoadState(const vtkNJson& json)
 {
   this->PortNumber = json.at("port_number").get<int>();
   const auto path = json.at("subset_selector").get<std::string>();
@@ -989,9 +989,9 @@ bool vtkPVDataInformation::IsAttributeValid(int fieldAssociation) const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataInformation::SaveInformation() const
+vtkNJson vtkPVDataInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   VTK_JSON_SAVE_MEMBER(json, DataSetType);
   VTK_JSON_SAVE_MEMBER(json, CompositeDataSetType);
   VTK_JSON_SAVE_MEMBER(json, FirstLeafCompositeIndex);
@@ -1027,7 +1027,7 @@ vtkJson vtkPVDataInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataInformation::LoadInformation(const vtkJson& json)
+bool vtkPVDataInformation::LoadInformation(const vtkNJson& json)
 {
   VTK_JSON_LOAD_MEMBER(json, DataSetType);
   VTK_JSON_LOAD_MEMBER(json, CompositeDataSetType);

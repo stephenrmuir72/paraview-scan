@@ -23,7 +23,7 @@
 #ifndef vtkObjectWrapper_h
 #define vtkObjectWrapper_h
 
-#include "vtkJsonFwd.h"
+#include "vtkNJsonFwd.h"
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" // for exports
 
@@ -48,7 +48,7 @@ public:
   /**
    * Initializes the wrapper.
    */
-  bool Initialize(vtkTypeUInt32 gid, const vtkJson& state, vtkRemoteObjectProvider* provider);
+  bool Initialize(vtkTypeUInt32 gid, const vtkNJson& state, vtkRemoteObjectProvider* provider);
 
   /**
    * Returns the global id assigned to this wrapper.
@@ -58,7 +58,7 @@ public:
   /**
    * Update the wrapped object using the state.
    */
-  void UpdateState(const vtkJson& state, vtkRemoteObjectProvider* provider);
+  void UpdateState(const vtkNJson& state, vtkRemoteObjectProvider* provider);
 
   /**
    * Invokes a command.
@@ -68,7 +68,7 @@ public:
   /**
    * Returns state for all information properties.
    */
-  vtkJson UpdateInformation(vtkRemoteObjectProvider* provider) const;
+  vtkNJson UpdateInformation(vtkRemoteObjectProvider* provider) const;
 
   /**
    * Update pipeline.

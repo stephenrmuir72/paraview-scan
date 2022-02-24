@@ -14,10 +14,10 @@
 =========================================================================*/
 #include "vtkEventualImplementation.h"
 
-#include "vtkJson.h"
+#include "vtkNJson.h"
 
 //----------------------------------------------------------------------------
-vtkEventualImplementation::vtkEventualImplementation(const vtkJson& value)
+vtkEventualImplementation::vtkEventualImplementation(const vtkNJson& value)
   : ValueBehavior{ value }
 {
 }
@@ -29,10 +29,10 @@ vtkEventualImplementation::~vtkEventualImplementation()
 }
 
 //----------------------------------------------------------------------------
-rxcpp::observable<vtkJson> vtkEventualImplementation::GetObservable() const
+rxcpp::observable<vtkNJson> vtkEventualImplementation::GetObservable() const
 {
   return this->ValueBehavior.get_observable()
-    .filter([](const vtkJson& value) { return !value.is_null(); })
+    .filter([](const vtkNJson& value) { return !value.is_null(); })
     .take(1);
 }
 
@@ -43,7 +43,7 @@ bool vtkEventualImplementation::Test() const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkEventualImplementation::Wait() const
+vtkNJson vtkEventualImplementation::Wait() const
 {
   if (!this->Test())
   {
@@ -54,7 +54,7 @@ vtkJson vtkEventualImplementation::Wait() const
 }
 
 //----------------------------------------------------------------------------
-void vtkEventualImplementation::SetValue(const vtkJson& value) const
+void vtkEventualImplementation::SetValue(const vtkNJson& value) const
 {
   this->ValueBehavior.get_subscriber().on_next(value);
 }

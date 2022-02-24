@@ -67,7 +67,7 @@ int TestEndpointUnsubscribe(int /*argc*/, char* /*argv*/[])
     .subscribe([&service, &packets_sent](int idx) {
       vtkLogF(INFO, "sending packet #%d", idx);
       ++packets_sent;
-      service->Publish("channel0", vtkJson({ "idx", idx }));
+      service->Publish("channel0", vtkNJson({ "idx", idx }));
     });
 
   vtkLogIfF(ERROR,
@@ -88,7 +88,7 @@ int TestEndpointUnsubscribe(int /*argc*/, char* /*argv*/[])
       idx += 6;
       vtkLogF(INFO, "sending packet #%d", idx);
       ++packets_sent;
-      service->Publish("channel0", vtkJson({ "idx", idx }));
+      service->Publish("channel0", vtkNJson({ "idx", idx }));
     });
 
   // wait till more messages are sent.

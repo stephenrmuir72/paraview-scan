@@ -214,9 +214,9 @@ void vtkPVPythonInformation::AddInformation(vtkPVInformation* i)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVPythonInformation::SaveInformation() const
+vtkNJson vtkPVPythonInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   VTK_JSON_SAVE_MEMBER(json, this->PythonSupport);
   VTK_JSON_SAVE_MEMBER(json, this->PythonPath);
   VTK_JSON_SAVE_MEMBER(json, this->PythonVersion);
@@ -230,7 +230,7 @@ vtkJson vtkPVPythonInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVPythonInformation::LoadInformation(const vtkJson& json)
+bool vtkPVPythonInformation::LoadInformation(const vtkNJson& json)
 {
   VTK_JSON_LOAD_MEMBER(json, this->PythonSupport);
   VTK_JSON_LOAD_MEMBER(json, this->PythonPath);

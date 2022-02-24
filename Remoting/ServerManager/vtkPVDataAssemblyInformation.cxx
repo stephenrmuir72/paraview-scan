@@ -48,7 +48,7 @@ void vtkPVDataAssemblyInformation::SetMethodName(const std::string& name)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataAssemblyInformation::SaveState() const
+vtkNJson vtkPVDataAssemblyInformation::SaveState() const
 {
   auto json = this->Superclass::SaveState();
   VTK_JSON_SAVE_MEMBER(json, MethodName);
@@ -56,7 +56,7 @@ vtkJson vtkPVDataAssemblyInformation::SaveState() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataAssemblyInformation::LoadState(const vtkJson& state)
+bool vtkPVDataAssemblyInformation::LoadState(const vtkNJson& state)
 {
   if (!this->Superclass::LoadState(state))
   {
@@ -67,9 +67,9 @@ bool vtkPVDataAssemblyInformation::LoadState(const vtkJson& state)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataAssemblyInformation::SaveInformation() const
+vtkNJson vtkPVDataAssemblyInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   if (this->DataAssembly)
   {
     json["DataAssembly"] = this->DataAssembly->SerializeToXML(vtkIndent());
@@ -82,7 +82,7 @@ vtkJson vtkPVDataAssemblyInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataAssemblyInformation::LoadInformation(const vtkJson& json)
+bool vtkPVDataAssemblyInformation::LoadInformation(const vtkNJson& json)
 {
   if (json.find("DataAssembly") == json.end())
   {

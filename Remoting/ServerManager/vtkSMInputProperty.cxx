@@ -16,8 +16,8 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
-#include "vtkJson.h"
 #include "vtkLogger.h"
+#include "vtkNJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMSessionProxyManager.h"
@@ -142,16 +142,16 @@ vtkPVXMLElement* vtkSMInputProperty::AddProxyElementState(vtkPVXMLElement* prop,
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMInputProperty::SaveState(vtkJson& element)
+bool vtkSMInputProperty::SaveState(vtkNJson& element)
 {
   this->vtkSMProperty::SaveState(element);
   auto& internals = (*this->PPInternals);
   element["type"] = this->GetElementType();
-  auto array = vtkJson::array();
+  auto array = vtkNJson::array();
   const size_t count = internals.GetProxies().size();
   for (size_t i = 0; i < count; i++)
   {
-    vtkJson json = vtkJson::object();
+    vtkNJson json = vtkNJson::object();
     vtkSMProxy* value = this->GetProxy(i);
     json["producer"] = value ? value->GetGlobalID() : 0;
     json["index"] = value ? internals.GetPort(i) : 0;
@@ -162,7 +162,7 @@ bool vtkSMInputProperty::SaveState(vtkJson& element)
   return true;
 }
 //---------------------------------------------------------------------------
-bool vtkSMInputProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMInputProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {

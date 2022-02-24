@@ -104,7 +104,7 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
 
 //----------------------------------------------------------------------------
 bool vtkObjectWrapper::Initialize(
-  vtkTypeUInt32 gid, const vtkJson& state, vtkRemoteObjectProvider* provider)
+  vtkTypeUInt32 gid, const vtkNJson& state, vtkRemoteObjectProvider* provider)
 {
   auto& internals = (*this->Internals);
   internals.GlobalID = gid;
@@ -160,7 +160,7 @@ bool vtkObjectWrapper::Initialize(
 }
 
 //----------------------------------------------------------------------------
-void vtkObjectWrapper::UpdateState(const vtkJson& state, vtkRemoteObjectProvider* provider)
+void vtkObjectWrapper::UpdateState(const vtkNJson& state, vtkRemoteObjectProvider* provider)
 {
   auto& internals = (*this->Internals);
   internals.LogName = state.at("log_name").get<std::string>();
@@ -269,7 +269,7 @@ void vtkObjectWrapper::InvokeCommand(const std::string& command)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkObjectWrapper::UpdateInformation(vtkRemoteObjectProvider* provider) const
+vtkNJson vtkObjectWrapper::UpdateInformation(vtkRemoteObjectProvider* provider) const
 {
   const auto& internals = (*this->Internals);
   auto* object = this->GetVTKObject();
@@ -281,22 +281,22 @@ vtkJson vtkObjectWrapper::UpdateInformation(vtkRemoteObjectProvider* provider) c
 
   // TODO: ASYNC
   // scan all information properties and return their state.
-  vtkJson json = vtkJson::object();
+  vtkNJson json = vtkNJson::object();
   json["status"] = true;
-  vtkJson properties = vtkJson::object();
+  vtkNJson properties = vtkNJson::object();
   std::vector<vtkVariant> args;
   for (const auto& item : internals.Properties)
   {
     const PropertyInformation propertyInfo = item.second;
     if (propertyInfo.InformationOnly)
     {
-      vtkJson property = vtkJson::object();
+      vtkNJson property = vtkNJson::object();
       const std::string& propertyName = item.first;
       args.clear();
       property["name"] = propertyName;
       property["type"] = propertyInfo.Type;
       bool success = vtkReflection::Get(object, propertyInfo.Method, args);
-      vtkJson elements = vtkJson::array();
+      vtkNJson elements = vtkNJson::array();
       if (!success)
       {
         vtkLogF(WARNING, "Error getting values of property '%s' using '%s::%s' ",
@@ -348,7 +348,7 @@ vtkJson vtkObjectWrapper::UpdateInformation(vtkRemoteObjectProvider* provider) c
           {
             std::transform(args.begin(), args.end(), std::back_inserter(elements),
               [&provider](const vtkVariant& v) {
-                vtkJson value = vtkJson::object();
+                vtkNJson value = vtkNJson::object();
                 auto* output = vtk::variant_cast_to_VTKObject<vtkAlgorithmOutput*>(v);
                 assert(output != nullptr);
                 value["producer"] = provider->GetObjectStore()->GetID(output->GetProducer());

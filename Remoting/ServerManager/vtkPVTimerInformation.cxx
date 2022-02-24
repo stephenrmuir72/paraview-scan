@@ -55,17 +55,17 @@ double vtkPVTimerInformation::GetLogThreshold() const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVTimerInformation::SaveState() const
+vtkNJson vtkPVTimerInformation::SaveState() const
 {
   const auto& internals = (*this->Internals);
 
-  vtkJson json;
+  vtkNJson json;
   json["threshold"] = internals.LogThreshold;
   return json;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVTimerInformation::LoadState(const vtkJson& state)
+bool vtkPVTimerInformation::LoadState(const vtkNJson& state)
 {
   auto iter = state.find("threshold");
   if (iter != state.end())
@@ -109,7 +109,7 @@ void vtkPVTimerInformation::AddInformation(vtkPVInformation* info)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVTimerInformation::LoadInformation(const vtkJson& json)
+bool vtkPVTimerInformation::LoadInformation(const vtkNJson& json)
 {
   auto& internals = (*this->Internals);
   auto iter = json.find("logs");
@@ -123,10 +123,10 @@ bool vtkPVTimerInformation::LoadInformation(const vtkJson& json)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVTimerInformation::SaveInformation() const
+vtkNJson vtkPVTimerInformation::SaveInformation() const
 {
   const auto& internals = (*this->Internals);
-  vtkJson json;
+  vtkNJson json;
   json["logs"] = internals.Logs;
   return json;
 }

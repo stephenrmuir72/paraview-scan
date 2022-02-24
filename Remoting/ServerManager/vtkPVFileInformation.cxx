@@ -1088,9 +1088,9 @@ bool vtkPVFileInformation::GatherInformation(vtkObject* /*target*/)
 void vtkPVFileInformation::AddInformation(vtkPVInformation* other) {}
 
 //-----------------------------------------------------------------------------
-vtkJson vtkPVFileInformation::SaveState() const
+vtkNJson vtkPVFileInformation::SaveState() const
 {
-  vtkJson state;
+  vtkNJson state;
 
   VTK_JSON_SAVE_MEMBER(state, FastFileTypeDetection);
   VTK_JSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
@@ -1104,7 +1104,7 @@ vtkJson vtkPVFileInformation::SaveState() const
 }
 
 //-----------------------------------------------------------------------------
-bool vtkPVFileInformation::LoadState(const vtkJson& state)
+bool vtkPVFileInformation::LoadState(const vtkNJson& state)
 {
   this->Initialize();
   VTK_JSON_LOAD_MEMBER(state, FastFileTypeDetection);
@@ -1118,7 +1118,7 @@ bool vtkPVFileInformation::LoadState(const vtkJson& state)
   return true;
 }
 //-----------------------------------------------------------------------------
-bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
+bool vtkPVFileInformation::LoadInformation(const vtkNJson& state)
 {
   this->SetRootOnly(state.at("root_only").get<bool>());
 
@@ -1155,9 +1155,9 @@ bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
 }
 
 //-----------------------------------------------------------------------------
-vtkJson vtkPVFileInformation::SaveInformation() const
+vtkNJson vtkPVFileInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   json["root_only"] = this->GetRootOnly();
   json["name"] = std::string(this->Name ? this->Name : "");
   json["full_path"] = std::string(this->FullPath ? this->FullPath : "");
@@ -1168,7 +1168,7 @@ vtkJson vtkPVFileInformation::SaveInformation() const
   json["size"] = this->Size;
   json["modification_time"] = this->ModificationTime;
   json["path_separator"] = vtkPVFileInformationPathSeparator();
-  auto children = vtkJson::array();
+  auto children = vtkNJson::array();
 
   vtkSmartPointer<vtkCollectionIterator> iter;
   iter.TakeReference(this->Contents->NewIterator());

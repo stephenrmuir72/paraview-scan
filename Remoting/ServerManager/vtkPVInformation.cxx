@@ -60,13 +60,13 @@ bool vtkPVInformation::CanRunOnRPC() const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVInformation::SaveState() const
+vtkNJson vtkPVInformation::SaveState() const
 {
-  return vtkJson();
+  return vtkNJson();
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVInformation::LoadState(const vtkJson& /*state*/)
+bool vtkPVInformation::LoadState(const vtkNJson& /*state*/)
 {
   return true;
 }

@@ -658,7 +658,7 @@ vtkPacket vtkPVView::GetRenderedResult() const
     buffer.Capture(renderer);
     vtkLogEndScope("capture");
 
-    vtkJson result;
+    vtkNJson result;
     result["gid"] = this->GetGlobalID();
     result["width"] = buffer.GetWidth();
     result["height"] = buffer.GetHeight();

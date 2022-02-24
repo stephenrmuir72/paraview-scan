@@ -12,8 +12,8 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include <vtkJson.h>
 #include <vtkLogger.h>
+#include <vtkNJson.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPacket.h>
@@ -69,7 +69,7 @@ int TestInterruptPipeline(int /*argc*/, char* /*argv*/[])
           algorithms[id] = algorithm;
         });
 
-        receiver.Respond(vtkJson{ { "status", true } });
+        receiver.Respond(vtkNJson{ { "status", true } });
       }
       else if (command == "update")
       {
@@ -82,7 +82,7 @@ int TestInterruptPipeline(int /*argc*/, char* /*argv*/[])
           vtkLogF(INFO, "Updating (id=%d)", id);
           algorithms[id]->Update();
         });
-        receiver.Respond(vtkJson{ { "status", true } });
+        receiver.Respond(vtkNJson{ { "status", true } });
       }
       else if (command == "modify_n_update")
       {
@@ -91,7 +91,7 @@ int TestInterruptPipeline(int /*argc*/, char* /*argv*/[])
 
         // TODO: determine how to do this, we want to interrupt any existing
         // update happening and then retrigger an update.
-        receiver.Respond(vtkJson{ { "status", true } });
+        receiver.Respond(vtkNJson{ { "status", true } });
       }
     });
 
@@ -101,13 +101,13 @@ int TestInterruptPipeline(int /*argc*/, char* /*argv*/[])
   status.Wait();
 
   endpoint
-    ->SendRequest(vtkJson({ { "id", 1 }, { "command", std::string{ "create" } },
+    ->SendRequest(vtkNJson({ { "id", 1 }, { "command", std::string{ "create" } },
       { "type", std::string{ "vtkSphereSource" } } }))
     .Wait();
 
-  endpoint->SendRequest(vtkJson({ { "id", 1 }, { "command", std::string{ "update" } } })).Wait();
+  endpoint->SendRequest(vtkNJson({ { "id", 1 }, { "command", std::string{ "update" } } })).Wait();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  endpoint->SendRequest(vtkJson({ { "id", 1 }, { "command", std::string{ "modify_n_update" } } }))
+  endpoint->SendRequest(vtkNJson({ { "id", 1 }, { "command", std::string{ "modify_n_update" } } }))
     .Wait();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));

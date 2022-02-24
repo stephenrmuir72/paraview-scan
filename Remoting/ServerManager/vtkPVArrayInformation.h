@@ -24,7 +24,7 @@
 #ifndef vtkPVArrayInformation_h
 #define vtkPVArrayInformation_h
 
-#include "vtkJson.h" // for vtkJson
+#include "vtkNJson.h" // for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkTuple.h"                       // for vtkTuple
@@ -150,8 +150,8 @@ public:
   /*
    * Serialization API.
    */
-  vtkJson SaveInformation() const;
-  bool LoadInformation(const vtkJson& json);
+  vtkNJson SaveInformation() const;
+  bool LoadInformation(const vtkNJson& json);
   ///@}
 
 protected:

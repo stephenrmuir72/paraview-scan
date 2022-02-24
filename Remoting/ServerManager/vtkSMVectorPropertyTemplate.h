@@ -22,7 +22,7 @@
 #define vtkSMVectorPropertyTemplate_h
 
 #include "vtkCommand.h"      // for vtkCommand enums
-#include "vtkJson.h"         // for vtkJson
+#include "vtkNJson.h"        // for vtkNJson
 #include "vtkPVXMLElement.h" // for vtkPVXMLElement
 
 // clang-format off
@@ -435,11 +435,11 @@ public:
   }
 
   //---------------------------------------------------------------------------
-  bool SaveState(vtkJson& element) const
+  bool SaveState(vtkNJson& element) const
   {
     // if (this->ElementsValid) FIXME is this applicable ?
     {
-      auto array = vtkJson::array();
+      auto array = vtkNJson::array();
       for (auto& value : this->Values)
       {
         array.push_back(this->ToJson(value));
@@ -450,11 +450,11 @@ public:
     return true;
   }
   //---------------------------------------------------------------------------
-  vtkJson ToJson(const T& value) const { return vtkJson(value); }
-  T ToValue(const vtkJson& value, vtkSMProxyLocator*) const { return value.get<T>(); }
+  vtkNJson ToJson(const T& value) const { return vtkNJson(value); }
+  T ToValue(const vtkNJson& value, vtkSMProxyLocator*) const { return value.get<T>(); }
 
   //---------------------------------------------------------------------------
-  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+  bool LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
   {
     std::vector<T> elements;
 

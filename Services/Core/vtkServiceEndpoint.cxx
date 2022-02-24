@@ -15,8 +15,8 @@
 #include "vtkServiceEndpoint.h"
 
 #include "vtkChannelSubscription.h"
-#include "vtkJson.h"
 #include "vtkLogger.h"
+#include "vtkNJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPacket.h"
 #include "vtkRemotingCoreUtilities.h"
@@ -27,7 +27,7 @@ namespace
 {
 vtkPacket GetEmptyPacket()
 {
-  return vtkPacket(vtkJson{ { "__is_initial_value__", true } });
+  return vtkPacket(vtkNJson{ { "__is_initial_value__", true } });
 }
 }
 

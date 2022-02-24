@@ -353,9 +353,9 @@ void vtkPVArrayInformation::CopyFromGenericAttribute(vtkGenericAttribute* array)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVArrayInformation::SaveInformation() const
+vtkNJson vtkPVArrayInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
 
   // Array name, data type, and number of components.
   VTK_JSON_SAVE_MEMBER(json, Name);
@@ -363,13 +363,13 @@ vtkJson vtkPVArrayInformation::SaveInformation() const
   VTK_JSON_SAVE_MEMBER(json, NumberOfTuples);
   VTK_JSON_SAVE_MEMBER(json, IsPartial);
 
-  vtkJson components = vtkJson::array();
+  vtkNJson components = vtkNJson::array();
   // components
   for (auto& info : this->Components)
   {
-    vtkJson item;
-    item["Range"] = vtkJson{ info.Range[0], info.Range[1] };
-    item["FiniteRange"] = vtkJson{ info.FiniteRange[0], info.FiniteRange[1] };
+    vtkNJson item;
+    item["Range"] = vtkNJson{ info.Range[0], info.Range[1] };
+    item["FiniteRange"] = vtkNJson{ info.FiniteRange[0], info.FiniteRange[1] };
     item["Name"] = info.Name;
     item["DefaultName"] = info.DefaultName;
     components.push_back(item);
@@ -386,7 +386,7 @@ vtkJson vtkPVArrayInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVArrayInformation::LoadInformation(const vtkJson& json)
+bool vtkPVArrayInformation::LoadInformation(const vtkNJson& json)
 {
   assert(this->Components.size() == 0); // sanity check.
 
@@ -399,7 +399,7 @@ bool vtkPVArrayInformation::LoadInformation(const vtkJson& json)
   // components
   auto components = json.at("Components");
   std::transform(components.begin(), components.end(), std::back_inserter(this->Components),
-    [](const vtkJson& item) {
+    [](const vtkNJson& item) {
       ComponentInfo info;
       info.Range[0] = item.at("Range")[0].get<double>();
       info.Range[1] = item.at("Range")[1].get<double>();

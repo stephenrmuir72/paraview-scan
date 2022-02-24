@@ -402,7 +402,7 @@ bool vtkSMStringVectorProperty::IsValueDefault()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMStringVectorProperty::SaveState(vtkJson& element)
+bool vtkSMStringVectorProperty::SaveState(vtkNJson& element)
 {
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
@@ -411,7 +411,7 @@ bool vtkSMStringVectorProperty::SaveState(vtkJson& element)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMStringVectorProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMStringVectorProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {

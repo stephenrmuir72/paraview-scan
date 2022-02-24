@@ -18,8 +18,8 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSMVectorPropertyTemplate.h"
 
-#include "vtkJson.h" // for vtkJson
 #include "vtkLogger.h"
+#include "vtkNJson.h" // for vtkNJson
 
 vtkStandardNewMacro(vtkSMDoubleVectorProperty);
 
@@ -291,7 +291,7 @@ bool vtkSMDoubleVectorProperty::IsValueDefault()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMDoubleVectorProperty::SaveState(vtkJson& element)
+bool vtkSMDoubleVectorProperty::SaveState(vtkNJson& element)
 {
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
@@ -299,7 +299,7 @@ bool vtkSMDoubleVectorProperty::SaveState(vtkJson& element)
   return true;
 }
 //---------------------------------------------------------------------------
-bool vtkSMDoubleVectorProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMDoubleVectorProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {

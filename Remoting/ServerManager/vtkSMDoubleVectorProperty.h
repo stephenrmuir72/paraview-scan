@@ -28,7 +28,7 @@
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMVectorProperty.h"
 
-#include "vtkJsonFwd.h" // for vtkJson
+#include "vtkNJsonFwd.h" // for vtkNJson
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMDoubleVectorProperty : public vtkSMVectorProperty
 {
@@ -205,8 +205,8 @@ protected:
   // Save concrete property values into the XML state property declaration
   void SaveStateValues(vtkPVXMLElement* propElement) override;
 
-  bool SaveState(vtkJson& node) override;
-  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator) override;
+  bool SaveState(vtkNJson& node) override;
+  bool LoadState(const vtkNJson& json, vtkSMProxyLocator* locator) override;
 
 private:
   vtkSMDoubleVectorProperty(const vtkSMDoubleVectorProperty&) = delete;
