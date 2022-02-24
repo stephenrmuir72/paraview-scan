@@ -230,14 +230,8 @@ void TestBasicQtAppMainWindow::connect(const QString& url)
 
   rxqt::from_signal(this->Internals->Ui.actionSaveState, &QAction::triggered)
     .map([this, pqserver](bool /*unused*/) {
-      pqFileDialog dialog(pqserver, this->Internals->Ui.dockWidget);
-      dialog.exec();
-      QString file;
-      QStringList fileList = dialog.getSelectedFiles();
-      if (!fileList.empty())
-      {
-        file = fileList.front();
-      }
+      QString file =
+        pqFileDialog::getSaveFileName(pqserver, this->Internals->Ui.dockWidget, "Save State as...");
       return file;
     })
     .filter([](const QString& fname) { return !fname.isEmpty(); })
