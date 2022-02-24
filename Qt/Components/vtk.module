@@ -11,8 +11,8 @@ DEPENDS
   ParaView::qttesting
   VTK::jsoncpp
 PRIVATE_DEPENDS
+  ParaView::RemotingApplication
   #ParaView::RemotingAnimation
-  #ParaView::RemotingApplication
   #ParaView::RemotingLive
   #ParaView::RemotingMisc
   ParaView::RemotingSettings
@@ -20,6 +20,7 @@ PRIVATE_DEPENDS
   VTK::CommonSystem
   VTK::IOImage
   VTK::pugixml
+  VTK::ViewsContext2D
   VTK::vtksys
 OPTIONAL_DEPENDS
   VTK::ParallelMPI

@@ -28,13 +28,13 @@
 
 #include "vtkDiscretizableColorTransferFunction.h"
 
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 
 class vtkAbstractArray;
 class vtkDoubleArray;
 class vtkVariantArray;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDiscretizableColorTransferFunction
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVDiscretizableColorTransferFunction
   : public vtkDiscretizableColorTransferFunction
 {
 public:

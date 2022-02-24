@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkCommand.h"
 #include "vtkEventQtSlotConnect.h"
-#include "vtkPVGeneralSettings.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
@@ -45,11 +44,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QPointer>
 #include <QtDebug>
 
-#include "pqApplicationCore.h"
 #include "pqPipelineRepresentation.h"
 #include "pqRenderViewBase.h"
 #include "pqSMAdaptor.h"
-#include "pqScalarBarRepresentation.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqScalarBarRepresentation.h"
 #include "pqServerManagerModel.h"
 #include "pqSettings.h"
 #include "vtkSMProperty.h"
@@ -96,10 +95,14 @@ pqScalarsToColors::~pqScalarsToColors()
 //-----------------------------------------------------------------------------
 pqScalarBarRepresentation* pqScalarsToColors::getScalarBar(pqRenderViewBase* ren) const
 {
+#if 0 // FIXME: ASYNC
   vtkSMProxy* proxy =
     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(this->getProxy(), ren->getProxy());
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   return proxy ? smmodel->findItem<pqScalarBarRepresentation*>(proxy) : nullptr;
+#else
+  return nullptr;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -133,37 +136,6 @@ bool pqScalarsToColors::getScalarRangeLock() const
   }
   // we may keep some GUI only state for vtkLookupTable proxies.
   return false;
-}
-
-//-----------------------------------------------------------------------------
-void pqScalarsToColors::hideUnusedScalarBars()
-{
-  // FIXME:
-  // pqApplicationCore* core = pqApplicationCore::instance();
-  // pqServerManagerModel* smmodel = core->getServerManagerModel();
-
-  // QList<pqPipelineRepresentation*> displays =
-  //  smmodel->findItems<pqPipelineRepresentation*>(this->getServer());
-
-  // bool used_at_all = false;
-  // Q_FOREACH(pqPipelineRepresentation* display, displays)
-  //  {
-  //  if (display->isVisible() &&
-  //    display->getColorField(true) != pqPipelineRepresentation::solidColor() &&
-  //    display->getLookupTableProxy() == this->getProxy())
-  //    {
-  //    used_at_all = true;
-  //    break;
-  //    }
-  //  }
-  // if (!used_at_all)
-  //  {
-  //  Q_FOREACH(pqScalarBarRepresentation* sb, this->Internal->ScalarBars)
-  //    {
-  //    sb->setVisible(false);
-  //    sb->renderViewEventually();
-  //    }
-  //  }
 }
 
 //-----------------------------------------------------------------------------
@@ -290,17 +262,6 @@ void pqScalarsToColors::setVectorMode(Mode mode, int comp)
 }
 
 //-----------------------------------------------------------------------------
-void pqScalarsToColors::updateScalarBarTitles(const QString& component)
-{
-  (void)component;
-  // FIXME:
-  // Q_FOREACH(pqScalarBarRepresentation* sb, this->Internal->ScalarBars)
-  //  {
-  //  sb->setTitle(sb->getTitle().first, component);
-  //  }
-}
-
-//-----------------------------------------------------------------------------
 pqScalarsToColors::Mode pqScalarsToColors::getVectorMode() const
 {
   if (pqSMAdaptor::getEnumerationProperty(this->getProxy()->GetProperty("VectorMode")) ==
@@ -326,13 +287,13 @@ void pqScalarsToColors::build()
 //-----------------------------------------------------------------------------
 void pqScalarsToColors::setColorRangeScalingMode(int mode)
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  auto* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   settings->setValue("pqScalarsToColors/COLOR_RANGE_SCALING_MODE", mode);
 }
 
 //-----------------------------------------------------------------------------
 int pqScalarsToColors::colorRangeScalingMode(int default_value /*=GROW_ON_MODIFIED*/)
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  auto* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   return settings->value("pqScalarsToColors/COLOR_RANGE_SCALING_MODE", default_value).toInt();
 }

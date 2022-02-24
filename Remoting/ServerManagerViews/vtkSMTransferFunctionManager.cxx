@@ -17,11 +17,11 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMCoreUtilities.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyIterator.h"
-#include "vtkSMScalarBarWidgetRepresentationProxy.h"
+// #include "vtkSMScalarBarWidgetRepresentationProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
 #include "vtkSMTrace.h"
@@ -115,7 +115,6 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
   // Look up array-specific transfer function
   std::ostringstream prefix;
   prefix << ".array_" << proxy->GetXMLGroup() << "." << arrayName;
-
   settings->GetProxySettings(prefix.str().c_str(), proxy);
 
   std::ostringstream proxyName;
@@ -281,6 +280,7 @@ void vtkSMTransferFunctionManager::ResetAllTransferFunctionRangesUsingCurrentDat
 //----------------------------------------------------------------------------
 bool vtkSMTransferFunctionManager::UpdateScalarBars(vtkSMProxy* viewProxy, unsigned int mode)
 {
+#if 0 // FIXME: ASYNC
   typedef std::set<vtkSMProxy*> proxysettype;
   proxysettype currently_shown_scalar_bars;
   proxysettype luts;
@@ -348,11 +348,15 @@ bool vtkSMTransferFunctionManager::UpdateScalarBars(vtkSMProxy* viewProxy, unsig
     }
   }
   return modified;
+#else
+  return false;
+#endif
 }
 //----------------------------------------------------------------------------
 bool vtkSMTransferFunctionManager::UpdateScalarBarsComponentTitle(
   vtkSMProxy* lutProxy, vtkSMProxy* representation)
 {
+#if 0 // FIXME: ASYNC
   if (!lutProxy || !representation)
   {
     return false;
@@ -366,11 +370,15 @@ bool vtkSMTransferFunctionManager::UpdateScalarBarsComponentTitle(
     .arg(representation)
     .arg("comment", "Update a scalar bar component title.");
   return ret;
+#else
+  return false;
+#endif
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMTransferFunctionManager::HideScalarBarIfNotNeeded(vtkSMProxy* lutProxy, vtkSMProxy* view)
 {
+#if 0 // FIXME: ASYNC
   if (!lutProxy || !view)
   {
     return false;
@@ -416,6 +424,7 @@ bool vtkSMTransferFunctionManager::HideScalarBarIfNotNeeded(vtkSMProxy* lutProxy
 
   vtkSMPropertyHelper(sbProxy, "Visibility").Set(0);
   sbProxy->UpdateVTKObjects();
+#endif
   return true;
 }
 

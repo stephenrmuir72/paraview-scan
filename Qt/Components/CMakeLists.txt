@@ -31,6 +31,7 @@
 set(classes
   pqAboutDialog
   pqAbstractItemSelectionModel
+  pqActionGroupInterface
   pqActiveObjects
   pqArrayListDomain
   pqArraySelectionWidget
@@ -110,6 +111,7 @@ set(classes
   pqTextureSelectorPropertyWidget
   pqToolBarInterface
   pqToolTipTrapper
+  pqTransferFunctionWidget
   pqTriggerOnIdleHelper
   pqViewFrame
   pqViewFrameActionsInterface
@@ -117,7 +119,6 @@ set(classes
 )
 
 set(old_classes
-  pqActionGroupInterface
   pqAnimatablePropertiesComboBox
   pqAnimatableProxyComboBox
   pqAnimationManager
@@ -163,7 +164,6 @@ set(old_classes
   pqServerConnectDialog
   pqSignalAdaptorKeyFrameType
   pqTimerLogDisplay
-  pqTransferFunctionWidget
   pqUndoStackBuilder
   pqVCRController
 )

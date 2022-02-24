@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
-// #include "vtkSMTransferFunctionManager.h"
+#include "vtkSMTransferFunctionManager.h"
 
 #include <QColor>
 #include <QPointer>
@@ -185,14 +185,9 @@ vtkSMProxy* pqDataRepresentation::getLookupTableProxy()
 //-----------------------------------------------------------------------------
 pqScalarsToColors* pqDataRepresentation::getLookupTable()
 {
-#if 0 // FIXME: ASYNC
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
-    pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   vtkSMProxy* lut = this->getLookupTableProxy();
   return (lut ? smmodel->findItem<pqScalarsToColors*>(lut) : 0);
-#else
-  return nullptr;
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -316,7 +311,6 @@ void pqDataRepresentation::updateLookupTable()
 //-----------------------------------------------------------------------------
 void pqDataRepresentation::resetAllTransferFunctionRangesUsingCurrentData()
 {
-#if 0 // FIXME: ASYNC
   vtkSMProxy* representationProxy = this->getProxy();
   vtkSMProxy* lut = vtkSMPropertyHelper(representationProxy, "LookupTable").GetAsProxy();
   if (lut)
@@ -324,5 +318,4 @@ void pqDataRepresentation::resetAllTransferFunctionRangesUsingCurrentData()
     vtkNew<vtkSMTransferFunctionManager> tfmgr;
     tfmgr->ResetAllTransferFunctionRangesUsingCurrentData(this->getServer()->proxyManager(), false);
   }
-#endif
 }

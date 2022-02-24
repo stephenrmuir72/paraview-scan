@@ -277,7 +277,7 @@ private:
     {
       return;
     }
-    char* rawJSON = vtkSMTransferFunctionPresetsColorMapsJSON();
+    const char* rawJSON = vtkSMTransferFunctionPresetsBuiltin;
     Json::CharReaderBuilder builder;
     builder["collectComments"] = false;
     std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
@@ -288,7 +288,6 @@ private:
       vtkGenericWarningMacro(<< "Failed to parse builtin transfer function presets: "
                              << formattedErrors);
     }
-    delete[] rawJSON;
     for (auto const& preset : value)
     {
       this->BuiltinPresets.push_back(preset);

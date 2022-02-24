@@ -96,12 +96,6 @@ public:
   Mode getVectorMode() const;
   int getVectorComponent() const;
 
-  /**
-   * Convenience method to update the titles for all color legends showing this
-   * lookup table. This only updates the component part of the title.
-   */
-  void updateScalarBarTitles(const QString& component);
-
   enum RangeScalingModes
   {
     GROW_ON_MODIFIED, /* only when a pipeline object is explicitly modified */
@@ -131,10 +125,6 @@ Q_SIGNALS:
   void componentOrModeChanged();
 
 public Q_SLOTS:
-  // This method checks if this LUT is used by any display,
-  // if not, it hides all the scalars bar showing this LUT.
-  void hideUnusedScalarBars();
-
   /**
    * Set the scalar range lock.
    */

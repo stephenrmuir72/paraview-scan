@@ -39,8 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 // #include "pqProxyModifiedStateUndoElement.h"
 // #include "pqScalarBarRepresentation.h"
-// #include "pqScalarsToColors.h"
 #include "pqSMAdaptor.h"
+#include "pqScalarsToColors.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
@@ -445,28 +445,7 @@ void pqObjectBuilder::destroy(pqRepresentation* repr)
     pp->RemoveProxy(repr->getProxy());
     view->getProxy()->UpdateVTKObjects();
   }
-
-#if 0 // FIXME: ASYNC
-  // If this repr has a lookuptable, we hide all scalar bars for that
-  // lookup table unless there is some other repr that's using it.
-  pqScalarsToColors* stc = nullptr;
-  if (pqDataRepresentation* dataRepr = qobject_cast<pqDataRepresentation*>(repr))
-  {
-    stc = dataRepr->getLookupTable();
-  }
-#endif
-
   this->destroyProxyInternal(repr);
-
-#if 0 // FIXME: ASYNC
-  if (stc)
-  {
-    // this hides scalar bars only if the LUT is not used by
-    // any other repr. This must happen after the repr has
-    // been deleted.
-    stc->hideUnusedScalarBars();
-  }
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -499,9 +478,9 @@ void pqObjectBuilder::destroySources(pqServer* server)
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::destroyLookupTables(pqServer* server)
 {
-#if 0 // FIXME: ASYNC
-  pqServerManagerModel* model = pqApplicationCore::instance()->getServerManagerModel();
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* model = pvapp->GetServerManagerModel();
+  auto* builder = pvapp->GetObjectBuilder();
 
   QList<pqScalarsToColors*> luts = model->findItems<pqScalarsToColors*>(server);
   Q_FOREACH (pqScalarsToColors* lut, luts)
@@ -509,6 +488,7 @@ void pqObjectBuilder::destroyLookupTables(pqServer* server)
     builder->destroy(lut);
   }
 
+#if 0 // FIXME: ASYNC
   QList<pqScalarBarRepresentation*> scalarbars =
     model->findItems<pqScalarBarRepresentation*>(server);
   Q_FOREACH (pqScalarBarRepresentation* sb, scalarbars)
