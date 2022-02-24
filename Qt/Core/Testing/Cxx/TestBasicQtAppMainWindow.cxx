@@ -16,6 +16,7 @@
 #include "ui_TestBasicQtAppMainWindow.h"
 
 #include "pqFileDialog.h"
+#include "pqInterfaceTracker.h"
 #include "pqProgressManager.h"
 #include "pqProgressWidget.h"
 #include "pqProxy.h"
@@ -23,6 +24,7 @@
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqSourcesMenuReaction.h"
+#include "pqStandardPropertyWidgetInterface.h"
 #include "vtkCamera.h"
 #include "vtkClientSession.h"
 #include "vtkLogger.h"
@@ -51,21 +53,57 @@ class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
+  vtkTypeUInt32 SessionId;
   vtkSMViewProxy* setupSession(const QString& url);
+  void openData(const QString& fileName);
+  void saveState(const QString& fileName);
 };
+
+void TestBasicQtAppMainWindow::QInternals::openData(const QString& fileName)
+{
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* session = pvapp->GetSession(this->SessionId);
+  auto* pxm = session->GetProxyManager();
+
+  vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
+
+  vtkLogF(INFO, "openData (%s)", qPrintable(fileName));
+
+  auto reader =
+    vtk::TakeSmartPointer(vtkSMSourceProxy::SafeDownCast(pxm->NewProxy("sources", "IOSSReader")));
+  vtkSMApplyController::MarkShowOnApply(reader);
+
+  controller->PreInitializeProxy(reader);
+  vtkSMPropertyHelper(reader, "FileName").Set(fileName.toStdString().c_str());
+  reader->UpdateVTKObjects();
+  controller->PostInitializeProxy(reader);
+  controller->RegisterPipelineProxy(reader);
+}
+void TestBasicQtAppMainWindow::QInternals::saveState(const QString& fileName)
+{
+  vtkLogF(INFO, "saving state to %s", qPrintable(fileName));
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* session = pvapp->GetSession(this->SessionId);
+  auto* pxm = session->GetProxyManager();
+  if (!pxm->SaveXMLState(fileName.toStdString().c_str()))
+  {
+    vtkLogF(ERROR, "Error saving state");
+  }
+}
 
 vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString& url)
 {
   vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
 
   auto* pvapp = vtkPVGUIApplication::GetInstance();
-  auto sessionId =
+  auto* tracker = pvapp->GetInterfaceTracker();
+  tracker->addInterface(new pqStandardPropertyWidgetInterface(tracker));
+  this->SessionId =
     url.isEmpty() ? pvapp->CreateBuiltinSession() : pvapp->CreateRemoteSession(url.toStdString());
-  auto* session = pvapp->GetSession(sessionId);
+  auto* session = pvapp->GetSession(this->SessionId);
   auto* pxm = session->GetProxyManager();
   auto* smmodel = pvapp->GetServerManagerModel();
-  pqServer* pqserver = smmodel->findServer(sessionId);
-  assert(pqserver);
+  pqServer* pqserver = smmodel->findServer(this->SessionId);
 
   // initialize the session.
   controller->InitializeSession(session);
@@ -94,7 +132,6 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString
   controller->AssignViewToLayout(view);
   controller->Show(shrink, 0, view, "GeometryRepresentation");
 
-
   QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
     [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
 
@@ -105,27 +142,6 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString
     // view->InvokeCommand("Update");
   });
 
-  // Hookup file-open dialog
-  rxqt::from_signal(this->Ui.actionOpenFile, &QAction::triggered)
-    .map([this, pqserver](bool /*unused*/) {
-      pqFileDialog dialog(pqserver, this->Ui.dockWidget);
-      if (pqFileDialog::Accepted != dialog.exec())
-      {
-        vtkLogF(ERROR, "Selected file was not accepted");
-      }
-
-      QString file;
-      QStringList fileList = dialog.getSelectedFiles();
-      if (!fileList.empty())
-      {
-        file = fileList.front();
-      }
-      return file;
-    })
-    .filter([](const QString& fname) { return !fname.isEmpty(); })
-    .subscribe([](const QString& fname) {
-      vtkLogF(INFO, "filname picked %s", fname.toStdString().c_str());
-    });
   // Update the view.
   view->InvokeCommand("Update");
   return view;
@@ -188,4 +204,42 @@ void TestBasicQtAppMainWindow::connect(const QString& url)
       timer->stop();
     }
   });
+
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* smmodel = pvapp->GetServerManagerModel();
+  pqServer* pqserver = smmodel->findServer(this->Internals->SessionId);
+  // Hookup file-open dialog
+  rxqt::from_signal(this->Internals->Ui.actionOpenFile, &QAction::triggered)
+    .map([this, pqserver](bool /*unused*/) {
+      pqFileDialog dialog(pqserver, this->Internals->Ui.dockWidget);
+      if (pqFileDialog::Accepted != dialog.exec())
+      {
+        vtkLogF(ERROR, "Selected file was not accepted");
+      }
+
+      QString file;
+      QStringList fileList = dialog.getSelectedFiles();
+      if (!fileList.empty())
+      {
+        file = fileList.front();
+      }
+      return file;
+    })
+    .filter([](const QString& fname) { return !fname.isEmpty(); })
+    .subscribe([this](const QString& fname) { this->Internals->openData(fname); });
+
+  rxqt::from_signal(this->Internals->Ui.actionSaveState, &QAction::triggered)
+    .map([this, pqserver](bool /*unused*/) {
+      pqFileDialog dialog(pqserver, this->Internals->Ui.dockWidget);
+      dialog.exec();
+      QString file;
+      QStringList fileList = dialog.getSelectedFiles();
+      if (!fileList.empty())
+      {
+        file = fileList.front();
+      }
+      return file;
+    })
+    .filter([](const QString& fname) { return !fname.isEmpty(); })
+    .subscribe([this](const QString& fname) { this->Internals->saveState(fname); });
 }
