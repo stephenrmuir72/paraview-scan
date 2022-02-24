@@ -48,14 +48,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkLogger.h>
 #include <vtkPVFileInformation.h>
 //#include <vtkSMDirectoryProxy.h>
+#include <vtkClientSession.h>
+#include <vtkRemoteObjectProvider.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
 #include <vtkSMSessionProxyManager.h>
-//#include <vtkSMSettings.h>
-#include <vtkClientSession.h>
-#include <vtkRemoteObjectProvider.h>
+#include <vtkSMSettings.h>
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringList.h>

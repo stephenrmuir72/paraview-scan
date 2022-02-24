@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 #include "vtkPVGUIApplication.h"
 
-// #include "vtkSMSettings.h"
+#include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
 
@@ -191,7 +191,6 @@ void pqShaderReplacementsSelectorPropertyWidget::onPresetChanged(int index)
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::onLoad()
 {
-#if 0 // FIXME: ASYNC see async/paraview#20
   dynamic_cast<QToolButton*>(this->sender())->setChecked(false);
   // Popup load texture dialog.
   QString filters = "Shader replacements files (*.json);;All files (*)";
@@ -226,7 +225,6 @@ void pqShaderReplacementsSelectorPropertyWidget::onLoad()
       return;
     }
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -248,7 +246,6 @@ bool pqShaderReplacementsSelectorPropertyWidget::loadShaderReplacements(const QS
 //-----------------------------------------------------------------------------
 void pqShaderReplacementsSelectorPropertyWidget::onDelete()
 {
-#if 0 // FIXME: ASYNC
   QVariant presetPath =
     this->Internal->ComboBox->itemData(this->Internal->ComboBox->currentIndex()).toString();
 
@@ -285,5 +282,4 @@ void pqShaderReplacementsSelectorPropertyWidget::onDelete()
   // Update the combobox
   this->Internal->ComboBox->populate();
   this->Internal->ComboBox->setCurrentIndex(0);
-#endif
 }

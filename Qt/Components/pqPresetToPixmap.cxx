@@ -39,7 +39,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVDiscretizableColorTransferFunction.h"
 #include "vtkPiecewiseFunction.h"
 #include "vtkSMPropertyHelper.h"
-#include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMTransferFunctionPresets.h"
 #include "vtkSMTransferFunctionProxy.h"
@@ -61,6 +60,7 @@ class pqPresetToPixmap::pqInternals
 public:
   pqInternals()
   {
+#if 0 // FIXME: ASYNC
     vtkSMSessionProxyManager* pxm = pqActiveObjects::instance().proxyManager();
     this->PiecewiseFunction.TakeReference(
       pxm->NewProxy("piecewise_functions", "PiecewiseFunction"));
@@ -70,6 +70,7 @@ public:
     this->PVLookupTable.TakeReference(pxm->NewProxy("lookup_tables", "PVLookupTable"));
     this->PVLookupTable->SetLocation(vtkSMSession::CLIENT);
     vtkSMPropertyHelper(this->PVLookupTable, "ScalarOpacityFunction").Set(this->PiecewiseFunction);
+#endif
   }
 
   vtkSMProxy* lookupTable() const
@@ -105,6 +106,7 @@ pqPresetToPixmap::~pqPresetToPixmap() = default;
 //-----------------------------------------------------------------------------
 QPixmap pqPresetToPixmap::render(const Json::Value& preset, const QSize& resolution) const
 {
+#if 0 // FIXME: ASYNC
   if (resolution.width() <= 0 || resolution.height() <= 0)
   {
     return QPixmap();
@@ -132,6 +134,9 @@ QPixmap pqPresetToPixmap::render(const Json::Value& preset, const QSize& resolut
     }
     return this->renderColorTransferFunction(stc, pf, resolution);
   }
+#else
+  return QPixmap();
+#endif
 }
 
 //-----------------------------------------------------------------------------

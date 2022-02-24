@@ -11,6 +11,7 @@ DEPENDS
   ParaView::rxcpp
   ParaView::ServicesCore
   ParaView::VTKExtensionsCore
+  VTK::jsoncpp
   VTK::ParallelCore
   VTK::pugixml
 PRIVATE_DEPENDS

@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqSettingsDialog.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
+#include "vtkPVGUIApplication.h"
 #include "pqProxyWidget.h"
 #include "pqSearchBox.h"
 #include "pqServer.h"
@@ -96,7 +96,7 @@ pqSettingsDialog::pqSettingsDialog(
   this->Internals->Server = server;
 
   vtkNew<vtkSMProxyIterator> iter;
-  iter->SetSession(server->session());
+  iter->SetSessionProxyManager(server->proxyManager());
   iter->SetModeToOneGroup();
   for (iter->Begin("settings"); !iter->IsAtEnd(); iter->Next())
   {
@@ -181,7 +181,7 @@ pqSettingsDialog::pqSettingsDialog(
 
   this->filterPanelWidgets();
 
-  pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   this->connect(smmodel, SIGNAL(serverRemoved(pqServer*)), SLOT(serverRemoved(pqServer*)));
 }
 
@@ -229,10 +229,10 @@ void pqSettingsDialog::onAccepted()
   // If there are any properties that needed to save their values in QSettings,
   // do that. Otherwise, save to the vtkSMSettings singleton.
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
-  pqSettings* qSettings = pqApplicationCore::instance()->settings();
+  pqSettings* qSettings = vtkPVGUIApplication::GetInstance()->GetSettings();
   pqServer* server = pqActiveObjects::instance().activeServer();
   vtkNew<vtkSMProxyIterator> iter;
-  iter->SetSession(server->session());
+  iter->SetSessionProxyManager(server->proxyManager());
   iter->SetModeToOneGroup();
   for (iter->Begin("settings"); !iter->IsAtEnd(); iter->Next())
   {
@@ -262,8 +262,10 @@ void pqSettingsDialog::onAccepted()
   // undo-able is the "serialized" values. Hence we just clear the undo stack.
   CLEAR_UNDO_STACK();
 
+#if 0 // FIXME: ASYNC
   // Render all views.
   pqApplicationCore::instance()->render();
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPresetDialog.h"
 #include "ui_pqPresetDialog.h"
 
-#include "pqApplicationCore.h"
 #include "pqFileDialog.h"
 #include "pqPresetGroupsManager.h"
 #include "pqPresetToPixmap.h"
@@ -93,12 +92,14 @@ public:
   {
     this->Presets = vtkSMTransferFunctionPresets::GetInstance();
     this->Pixmaps.reserve(this->Presets->GetNumberOfPresets());
+#if 0 // FIXME: ASYNC
     this->GroupManager = qobject_cast<pqPresetGroupsManager*>(
       pqApplicationCore::instance()->manager("PRESET_GROUP_MANAGER"));
     this->connect(this->GroupManager, &pqPresetGroupsManager::groupsUpdated, this, [this]() {
       this->beginResetModel();
       this->endResetModel();
     });
+#endif
   }
 
   ~pqPresetDialogTableModel() override = default;

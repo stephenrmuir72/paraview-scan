@@ -64,7 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
-// #include "vtkSMSettings.h"
+#include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
 #include "vtkStringList.h"
@@ -1314,7 +1314,6 @@ void pqProxyWidget::updatePanel()
 //-----------------------------------------------------------------------------
 bool pqProxyWidget::restoreDefaults()
 {
-#if 0 // FIXME: ASYNC
   bool anyReset = false;
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   if (this->Internals->Proxy)
@@ -1361,15 +1360,11 @@ bool pqProxyWidget::restoreDefaults()
     Q_EMIT changeFinished();
   }
   return anyReset;
-#else
-  abort();
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqProxyWidget::saveAsDefaults()
 {
-#if 0 // FIXME: ASYNC
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   vtkSMNamedPropertyIterator* propertyIt = nullptr;
   if (this->Internals->Properties)
@@ -1382,9 +1377,6 @@ void pqProxyWidget::saveAsDefaults()
   {
     propertyIt->Delete();
   }
-#else
-  abort();
-#endif
 }
 
 //-----------------------------------------------------------------------------
