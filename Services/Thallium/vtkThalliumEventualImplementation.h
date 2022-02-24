@@ -22,7 +22,7 @@
 #define vtkThalliumEventualImplementation_h
 
 #include "vtkEventualImplementation.h"
-#include "vtkJson.h"                   // for vtkJson
+#include "vtkNJson.h"                  // for vtkNJson
 #include "vtkServicesThalliumModule.h" // for exports
 
 #include <thallium.hpp>
@@ -30,13 +30,13 @@
 class VTKSERVICESTHALLIUM_EXPORT vtkThalliumEventualImplementation
   : public vtkEventualImplementation
 {
-  mutable thallium::eventual<vtkJson> Eventual;
+  mutable thallium::eventual<vtkNJson> Eventual;
 
 public:
   vtkThalliumEventualImplementation();
   bool Test() const override;
-  void SetValue(const vtkJson& value) const override;
-  vtkJson Wait() const override;
+  void SetValue(const vtkNJson& value) const override;
+  vtkNJson Wait() const override;
 };
 
 #endif

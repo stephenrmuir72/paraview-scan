@@ -174,9 +174,9 @@ vtkPVDataInformation::~vtkPVDataInformation()
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataInformation::SaveState() const
+vtkNJson vtkPVDataInformation::SaveState() const
 {
-  vtkJson json;
+  vtkNJson json;
   json["port_number"] = this->PortNumber;
   json["subset_selector"] = std::string(this->SubsetSelector ? this->SubsetSelector : "");
   json["subset_assembly_name"] =
@@ -185,7 +185,7 @@ vtkJson vtkPVDataInformation::SaveState() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataInformation::LoadState(const vtkJson& json)
+bool vtkPVDataInformation::LoadState(const vtkNJson& json)
 {
   this->PortNumber = json.at("port_number").get<int>();
   const auto path = json.at("subset_selector").get<std::string>();
@@ -989,27 +989,27 @@ bool vtkPVDataInformation::IsAttributeValid(int fieldAssociation) const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataInformation::SaveInformation() const
+vtkNJson vtkPVDataInformation::SaveInformation() const
 {
-  vtkJson json;
-  VTK_JSON_SAVE_MEMBER(json, DataSetType);
-  VTK_JSON_SAVE_MEMBER(json, CompositeDataSetType);
-  VTK_JSON_SAVE_MEMBER(json, FirstLeafCompositeIndex);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfTrees);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfLeaves);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfAMRLevels);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfDataSets);
-  VTK_JSON_SAVE_MEMBER(json, MemorySize);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, Bounds);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, Extent);
-  VTK_JSON_SAVE_MEMBER(json, HasTime);
-  VTK_JSON_SAVE_MEMBER(json, Time);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, TimeRange);
-  VTK_JSON_SAVE_MEMBER(json, TimeLabel);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfTimeSteps);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, NumberOfElements)
-  VTK_JSON_SAVE_MEMBER(json, UniqueBlockTypes);
-  VTK_JSON_SAVE_MEMBER(json, AMRNumberOfDataSets);
+  vtkNJson json;
+  VTK_NJSON_SAVE_MEMBER(json, DataSetType);
+  VTK_NJSON_SAVE_MEMBER(json, CompositeDataSetType);
+  VTK_NJSON_SAVE_MEMBER(json, FirstLeafCompositeIndex);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfTrees);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfLeaves);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfAMRLevels);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfDataSets);
+  VTK_NJSON_SAVE_MEMBER(json, MemorySize);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, Bounds);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, Extent);
+  VTK_NJSON_SAVE_MEMBER(json, HasTime);
+  VTK_NJSON_SAVE_MEMBER(json, Time);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, TimeRange);
+  VTK_NJSON_SAVE_MEMBER(json, TimeLabel);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfTimeSteps);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, NumberOfElements)
+  VTK_NJSON_SAVE_MEMBER(json, UniqueBlockTypes);
+  VTK_NJSON_SAVE_MEMBER(json, AMRNumberOfDataSets);
 
   json["PointArrayInformation"] = this->PointArrayInformation->SaveInformation();
   for (int cc = 0; cc < vtkDataObject::NUMBER_OF_ATTRIBUTE_TYPES; ++cc)
@@ -1027,26 +1027,26 @@ vtkJson vtkPVDataInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataInformation::LoadInformation(const vtkJson& json)
+bool vtkPVDataInformation::LoadInformation(const vtkNJson& json)
 {
-  VTK_JSON_LOAD_MEMBER(json, DataSetType);
-  VTK_JSON_LOAD_MEMBER(json, CompositeDataSetType);
-  VTK_JSON_LOAD_MEMBER(json, FirstLeafCompositeIndex);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfTrees);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfLeaves);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfAMRLevels);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfDataSets);
-  VTK_JSON_LOAD_MEMBER(json, MemorySize);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, Bounds);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, Extent);
-  VTK_JSON_LOAD_MEMBER(json, HasTime);
-  VTK_JSON_LOAD_MEMBER(json, Time);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, TimeRange);
-  VTK_JSON_LOAD_MEMBER(json, TimeLabel);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfTimeSteps);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, NumberOfElements)
-  VTK_JSON_LOAD_MEMBER(json, UniqueBlockTypes);
-  VTK_JSON_LOAD_MEMBER(json, AMRNumberOfDataSets);
+  VTK_NJSON_LOAD_MEMBER(json, DataSetType);
+  VTK_NJSON_LOAD_MEMBER(json, CompositeDataSetType);
+  VTK_NJSON_LOAD_MEMBER(json, FirstLeafCompositeIndex);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfTrees);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfLeaves);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfAMRLevels);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfDataSets);
+  VTK_NJSON_LOAD_MEMBER(json, MemorySize);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, Bounds);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, Extent);
+  VTK_NJSON_LOAD_MEMBER(json, HasTime);
+  VTK_NJSON_LOAD_MEMBER(json, Time);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, TimeRange);
+  VTK_NJSON_LOAD_MEMBER(json, TimeLabel);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfTimeSteps);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, NumberOfElements)
+  VTK_NJSON_LOAD_MEMBER(json, UniqueBlockTypes);
+  VTK_NJSON_LOAD_MEMBER(json, AMRNumberOfDataSets);
 
   this->PointArrayInformation->LoadInformation(json.at("PointArrayInformation"));
 

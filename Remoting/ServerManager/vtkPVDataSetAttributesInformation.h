@@ -26,7 +26,7 @@
 #ifndef vtkPVDataSetAttributesInformation_h
 #define vtkPVDataSetAttributesInformation_h
 
-#include "vtkJson.h" // needed for vtkJson
+#include "vtkNJson.h" // needed for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 
@@ -101,8 +101,8 @@ protected:
   /**
    * Manage a serialized version of the information.
    */
-  vtkJson SaveInformation() const;
-  bool LoadInformation(const vtkJson& json);
+  vtkNJson SaveInformation() const;
+  bool LoadInformation(const vtkNJson& json);
   //@}
 
   /**

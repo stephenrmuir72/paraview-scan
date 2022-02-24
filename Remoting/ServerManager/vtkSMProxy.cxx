@@ -440,7 +440,7 @@ void vtkSMProxy::UpdateVTKObjects()
       this->WarnIfDeprecated();
     }
 
-    vtkJson state;
+    vtkNJson state;
     if (this->SaveState(state, /*tstamp*/ internals.UpdateVTKObjectsTimeStamp) && !state.empty())
     {
       auto packet = vtkRemoteObjectProvider::UpdateState(this->GetGlobalID(), state);
@@ -456,14 +456,14 @@ void vtkSMProxy::UpdateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
+bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp)
 {
   auto& internals = (*this->Internals);
   state["group"] = this->XMLGroup;
   state["name"] = this->XMLName;
   state["id"] = this->GlobalID;
   state["log_name"] = this->GetLogNameOrDefault();
-  vtkJson properties = vtkJson::object();
+  vtkNJson properties = vtkNJson::object();
   for (auto& pair : internals.Properties)
   {
     const auto& property = pair.second.Property;
@@ -473,14 +473,14 @@ bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
       continue;
     }
 
-    vtkJson propertyState;
+    vtkNJson propertyState;
     if (property->SaveState(propertyState))
     {
       properties[pair.first] = std::move(propertyState);
     }
   }
   state["properties"] = std::move(properties);
-  vtkJson& subproxies = state["subproxies"];
+  vtkNJson& subproxies = state["subproxies"];
   for (const auto& pair : internals.SubProxies)
   {
     subproxies[pair.first] = pair.second->GetGlobalID();
@@ -489,7 +489,7 @@ bool vtkSMProxy::SaveState(vtkJson& state, vtkMTimeType tstamp)
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMProxy::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMProxy::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (json.count("properties") && json["properties"].is_object())
   {

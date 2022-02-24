@@ -196,8 +196,8 @@ protected:
    */
   void SetNumberOfUncheckedElements(unsigned int num) override;
 
-  bool SaveState(vtkJson& node) override;
-  bool LoadState(const vtkJson& node, vtkSMProxyLocator* loader) override;
+  bool SaveState(vtkNJson& node) override;
+  bool LoadState(const vtkNJson& node, vtkSMProxyLocator* loader) override;
 
   /**
    * Load the XML state.

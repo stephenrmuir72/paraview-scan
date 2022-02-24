@@ -50,12 +50,12 @@ public:
   ///@}
 
   ///@{
-  vtkJson SaveState() const override;
-  bool LoadState(const vtkJson& state) override;
+  vtkNJson SaveState() const override;
+  bool LoadState(const vtkNJson& state) override;
   bool GatherInformation(vtkObject* target) override;
   void AddInformation(vtkPVInformation* other) override;
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
+  bool LoadInformation(const vtkNJson& json) override;
+  vtkNJson SaveInformation() const override;
   ///@}
 
 protected:

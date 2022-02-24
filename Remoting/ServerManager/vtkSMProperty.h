@@ -133,7 +133,7 @@
 #ifndef vtkSMProperty_h
 #define vtkSMProperty_h
 
-#include "vtkJsonFwd.h" // needed for vtkJson
+#include "vtkNJsonFwd.h" // needed for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkSMDomainIterator.h"            // needed for vtkSMDomainIterator
@@ -588,12 +588,12 @@ protected:
    *
    * Returns true on success.
    */
-  virtual bool SaveState(vtkJson& element);
+  virtual bool SaveState(vtkNJson& element);
 
   /**
    * Load state.
    */
-  virtual bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator);
+  virtual bool LoadState(const vtkNJson& element, vtkSMProxyLocator* locator);
 
   /**
    * Set the appropriate ivars from the xml element. Should

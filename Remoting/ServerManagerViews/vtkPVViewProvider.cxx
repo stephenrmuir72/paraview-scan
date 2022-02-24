@@ -115,7 +115,7 @@ void vtkPVViewProvider::PushViewData(vtkObject* caller, unsigned long eventId, v
   if (!dataMap.empty())
   {
     vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "Pushing rendering data");
-    vtkJson json;
+    vtkNJson json;
     json["gid"] = view->GetGlobalID();
     this->GetService()->Publish(
       vtkPVViewProvider::GetDataChannelName(), vtkPacket{ std::move(json), dataMap });

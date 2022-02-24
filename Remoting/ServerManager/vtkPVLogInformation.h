@@ -53,11 +53,11 @@ public:
    * vtkPVInformation overrides.
    */
   bool GatherInformation(vtkObject* target) override;
-  vtkJson SaveState() const override;
-  bool LoadState(const vtkJson& state) override;
+  vtkNJson SaveState() const override;
+  bool LoadState(const vtkNJson& state) override;
   void AddInformation(vtkPVInformation* info) override;
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
+  bool LoadInformation(const vtkNJson& json) override;
+  vtkNJson SaveInformation() const override;
   ///@}
 
   /**

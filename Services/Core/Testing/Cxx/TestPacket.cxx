@@ -19,19 +19,19 @@ int TestPacket(int /*argc*/, char* /*argv*/[])
   vtkPacket packet0;
   packet0.Print(std::cout, 4);
 
-  vtkPacket packet1(vtkJson{ { "data", 12 }, { "value", 13.0 } });
+  vtkPacket packet1(vtkNJson{ { "data", 12 }, { "value", 13.0 } });
   packet1.Print();
 
-  vtkPacket packet2(vtkJson({ { "data", 12 }, { "value", 13.0 } }));
+  vtkPacket packet2(vtkNJson({ { "data", 12 }, { "value", 13.0 } }));
   packet2.Print();
 
   vtkPacket packet3({ { "data", 12 }, { "value", 13.0 } });
   packet3.Print();
 
-  vtkPacket packet4(vtkJson({ "data", 12 }));
+  vtkPacket packet4(vtkNJson({ "data", 12 }));
   packet4.Print();
 
-  vtkPacket packet5(vtkJson{ { "data", 12 } });
+  vtkPacket packet5(vtkNJson{ { "data", 12 } });
   packet5.Print();
 
   return EXIT_SUCCESS;

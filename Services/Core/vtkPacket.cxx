@@ -25,25 +25,25 @@
 
 //----------------------------------------------------------------------------
 vtkPacket::vtkPacket()
-  : JSON(std::make_shared<vtkJson>())
+  : JSON(std::make_shared<vtkNJson>())
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPacket::vtkPacket(const vtkJson& json)
-  : JSON(std::make_shared<vtkJson>(json))
+vtkPacket::vtkPacket(const vtkNJson& json)
+  : JSON(std::make_shared<vtkNJson>(json))
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPacket::vtkPacket(vtkJson&& json)
-  : JSON(std::make_shared<vtkJson>(std::move(json)))
+vtkPacket::vtkPacket(vtkNJson&& json)
+  : JSON(std::make_shared<vtkNJson>(std::move(json)))
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPacket::vtkPacket(
-  const vtkJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
+  const vtkNJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
   : vtkPacket(json)
 {
   this->Payload = payload;
@@ -51,14 +51,14 @@ vtkPacket::vtkPacket(
 
 //----------------------------------------------------------------------------
 vtkPacket::vtkPacket(
-  vtkJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
+  vtkNJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload)
   : vtkPacket(std::move(json))
 {
   this->Payload = payload;
 }
 
 //----------------------------------------------------------------------------
-const vtkJson& vtkPacket::GetJSON() const
+const vtkNJson& vtkPacket::GetJSON() const
 {
   return *this->JSON;
 }
@@ -84,13 +84,13 @@ std::string vtkPacket::ToString(int spaces) const
 //----------------------------------------------------------------------------
 std::vector<uint8_t> vtkPacket::GetBinary() const
 {
-  return vtkJson::to_cbor(*this->JSON);
+  return vtkNJson::to_cbor(*this->JSON);
 }
 
 //----------------------------------------------------------------------------
 void vtkPacket::SetBinary(const std::vector<uint8_t>& buffer)
 {
-  *this->JSON = vtkJson::from_cbor(buffer);
+  *this->JSON = vtkNJson::from_cbor(buffer);
 }
 
 //----------------------------------------------------------------------------

@@ -1088,37 +1088,37 @@ bool vtkPVFileInformation::GatherInformation(vtkObject* /*target*/)
 void vtkPVFileInformation::AddInformation(vtkPVInformation* other) {}
 
 //-----------------------------------------------------------------------------
-vtkJson vtkPVFileInformation::SaveState() const
+vtkNJson vtkPVFileInformation::SaveState() const
 {
-  vtkJson state;
+  vtkNJson state;
 
-  VTK_JSON_SAVE_MEMBER(state, FastFileTypeDetection);
-  VTK_JSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
-  VTK_JSON_SAVE_MEMBER(state, GroupFileSequences);
-  VTK_JSON_SAVE_MEMBER(state, ListDirectories);
-  VTK_JSON_SAVE_MEMBER(state, ListSpecialDirectories);
-  VTK_JSON_SAVE_MEMBER(state, Path);
-  VTK_JSON_SAVE_MEMBER(state, WorkingDirectory);
+  VTK_NJSON_SAVE_MEMBER(state, FastFileTypeDetection);
+  VTK_NJSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
+  VTK_NJSON_SAVE_MEMBER(state, GroupFileSequences);
+  VTK_NJSON_SAVE_MEMBER(state, ListDirectories);
+  VTK_NJSON_SAVE_MEMBER(state, ListSpecialDirectories);
+  VTK_NJSON_SAVE_MEMBER(state, Path);
+  VTK_NJSON_SAVE_MEMBER(state, WorkingDirectory);
 
   return state;
 }
 
 //-----------------------------------------------------------------------------
-bool vtkPVFileInformation::LoadState(const vtkJson& state)
+bool vtkPVFileInformation::LoadState(const vtkNJson& state)
 {
   this->Initialize();
-  VTK_JSON_LOAD_MEMBER(state, FastFileTypeDetection);
-  VTK_JSON_LOAD_MEMBER(state, ReadDetailedFileInformation);
-  VTK_JSON_LOAD_MEMBER(state, GroupFileSequences);
-  VTK_JSON_LOAD_MEMBER(state, ListDirectories);
-  VTK_JSON_LOAD_MEMBER(state, ListSpecialDirectories);
-  VTK_JSON_LOAD_MEMBER(state, Path);
-  VTK_JSON_LOAD_MEMBER(state, WorkingDirectory);
+  VTK_NJSON_LOAD_MEMBER(state, FastFileTypeDetection);
+  VTK_NJSON_LOAD_MEMBER(state, ReadDetailedFileInformation);
+  VTK_NJSON_LOAD_MEMBER(state, GroupFileSequences);
+  VTK_NJSON_LOAD_MEMBER(state, ListDirectories);
+  VTK_NJSON_LOAD_MEMBER(state, ListSpecialDirectories);
+  VTK_NJSON_LOAD_MEMBER(state, Path);
+  VTK_NJSON_LOAD_MEMBER(state, WorkingDirectory);
 
   return true;
 }
 //-----------------------------------------------------------------------------
-bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
+bool vtkPVFileInformation::LoadInformation(const vtkNJson& state)
 {
   this->SetRootOnly(state.at("root_only").get<bool>());
 
@@ -1155,9 +1155,9 @@ bool vtkPVFileInformation::LoadInformation(const vtkJson& state)
 }
 
 //-----------------------------------------------------------------------------
-vtkJson vtkPVFileInformation::SaveInformation() const
+vtkNJson vtkPVFileInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   json["root_only"] = this->GetRootOnly();
   json["name"] = std::string(this->Name ? this->Name : "");
   json["full_path"] = std::string(this->FullPath ? this->FullPath : "");
@@ -1168,7 +1168,7 @@ vtkJson vtkPVFileInformation::SaveInformation() const
   json["size"] = this->Size;
   json["modification_time"] = this->ModificationTime;
   json["path_separator"] = vtkPVFileInformationPathSeparator();
-  auto children = vtkJson::array();
+  auto children = vtkNJson::array();
 
   vtkSmartPointer<vtkCollectionIterator> iter;
   iter.TakeReference(this->Contents->NewIterator());

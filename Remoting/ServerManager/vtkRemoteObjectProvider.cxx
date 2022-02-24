@@ -67,17 +67,17 @@ public:
   /**
    * Handle state update. This is only called on the service's main thread.
    */
-  void UpdateState(vtkTypeUInt32 gid, const vtkJson& state);
+  void UpdateState(vtkTypeUInt32 gid, const vtkNJson& state);
 
   /**
    * Handle update-information requests.
    */
-  vtkJson UpdateInformation(vtkTypeUInt32 gid);
+  vtkNJson UpdateInformation(vtkTypeUInt32 gid);
 
   /**
    * Handle update-pipeline requests.
    */
-  vtkJson UpdatePipeline(vtkTypeUInt32 gid, double time);
+  vtkNJson UpdatePipeline(vtkTypeUInt32 gid, double time);
 
   /**
    * Deletes an object.
@@ -92,22 +92,22 @@ public:
   /**
    * Gather information.
    */
-  vtkJson GatherInformation(const vtkJson& request) const;
+  vtkNJson GatherInformation(const vtkNJson& request) const;
 
 private:
   /**
    * Find (or create) object.
    */
-  vtkSmartPointer<vtkObjectWrapper> GetObject(vtkTypeUInt32 gid, const vtkJson& state);
+  vtkSmartPointer<vtkObjectWrapper> GetObject(vtkTypeUInt32 gid, const vtkNJson& state);
 
-  vtkJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
+  vtkNJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
 
   void SetupObservers(vtkObjectWrapper* wrapper) const;
 };
 
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObject(
-  vtkTypeUInt32 gid, const vtkJson& state)
+  vtkTypeUInt32 gid, const vtkNJson& state)
 {
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
     this->ObjectStore->FindObject<vtkObjectWrapper>(gid);
@@ -146,12 +146,12 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
       gid, vtkLogIdentifier(objWrapper), vtkLogIdentifier(objWrapper->GetVTKObject()));
     return objWrapper;
   }
-  catch (vtkJson::out_of_range&)
+  catch (vtkNJson::out_of_range&)
   {
     vtkLogF(ERROR, "Missing required keys in state to create object: %s", state.dump().c_str());
     return nullptr;
   }
-  catch (vtkJson::type_error&)
+  catch (vtkNJson::type_error&)
   {
     vtkLogF(ERROR, "Invalid state JSON received: %s", state.dump().c_str());
     return nullptr;
@@ -159,7 +159,7 @@ vtkSmartPointer<vtkObjectWrapper> vtkRemoteObjectProvider::vtkInternals::GetObje
 }
 
 //----------------------------------------------------------------------------
-void vtkRemoteObjectProvider::vtkInternals::UpdateState(vtkTypeUInt32 gid, const vtkJson& state)
+void vtkRemoteObjectProvider::vtkInternals::UpdateState(vtkTypeUInt32 gid, const vtkNJson& state)
 {
   vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdateState(%u, ...)", gid);
 
@@ -173,7 +173,7 @@ void vtkRemoteObjectProvider::vtkInternals::UpdateState(vtkTypeUInt32 gid, const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 gid)
+vtkNJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 gid)
 {
   vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdateInformation(%u)", gid);
 
@@ -182,18 +182,18 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::UpdateInformation(vtkTypeUInt32 g
   if (!objWrapper)
   {
     // TODO: ASYNC send error?
-    return vtkJson();
+    return vtkNJson();
   }
 
   return objWrapper->UpdateInformation(this->Self);
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid, double time)
+vtkNJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid, double time)
 {
   vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "UpdatePipeline(%u, %f)", gid, time);
 
-  vtkJson reply;
+  vtkNJson reply;
   reply["status"] = false;
 
   vtkSmartPointer<vtkObjectWrapper> objWrapper =
@@ -249,7 +249,7 @@ void vtkRemoteObjectProvider::vtkInternals::InvokeCommand(
 }
 
 //-----------------------------------------------------------------------------
-vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(const vtkJson& request) const
+vtkNJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(const vtkNJson& request) const
 {
   const auto infoClassName = request.at("class").get<std::string>();
   auto info = vtkReflection::CreateInstance<vtkPVInformation>(infoClassName);
@@ -272,7 +272,7 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(const vtkJson& 
 }
 
 //-----------------------------------------------------------------------------
-vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
+vtkNJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
   vtkPVInformation* info, vtkObject* target) const
 {
   info->GatherInformation(target);
@@ -286,7 +286,7 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
     vtkMultiProcessStream stream;
     if (rank > 0)
     {
-      auto bson = vtkJson::to_bson(state);
+      auto bson = vtkNJson::to_bson(state);
       stream << static_cast<unsigned int>(bson.size());
       stream.Push(
         reinterpret_cast<unsigned char*>(&bson[0]), static_cast<unsigned int>(bson.size()));
@@ -307,7 +307,7 @@ vtkJson vtkRemoteObjectProvider::vtkInternals::GatherInformation(
         mpStream.Pop(ptr, size);
 
         auto clone = vtk::TakeSmartPointer(info->NewInstance());
-        clone->LoadInformation(vtkJson::from_bson(bson));
+        clone->LoadInformation(vtkNJson::from_bson(bson));
         info->AddInformation(clone);
       }
       state = info->SaveInformation();
@@ -435,9 +435,9 @@ vtkProxyDefinitionManager* vtkRemoteObjectProvider::GetProxyDefinitionManager() 
 }
 
 //----------------------------------------------------------------------------
-vtkPacket vtkRemoteObjectProvider::UpdateState(vtkTypeUInt32 gid, const vtkJson& json)
+vtkPacket vtkRemoteObjectProvider::UpdateState(vtkTypeUInt32 gid, const vtkNJson& json)
 {
-  vtkJson message;
+  vtkNJson message;
   message["type"] = "vtk-remote-object-update-state";
   message["gid"] = gid;
   message["state"] = json;
@@ -447,7 +447,7 @@ vtkPacket vtkRemoteObjectProvider::UpdateState(vtkTypeUInt32 gid, const vtkJson&
 //----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::UpdateInformation(vtkTypeUInt32 gid)
 {
-  vtkJson message;
+  vtkNJson message;
   message["type"] = "vtk-remote-object-update-information";
   message["gid"] = gid;
   return { message };
@@ -456,7 +456,7 @@ vtkPacket vtkRemoteObjectProvider::UpdateInformation(vtkTypeUInt32 gid)
 //----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::UpdatePipeline(vtkTypeUInt32 gid, double time)
 {
-  vtkJson message;
+  vtkNJson message;
   message["type"] = "vtk-remote-object-update-pipeline";
   message["gid"] = gid;
   message["time"] = time;
@@ -466,7 +466,7 @@ vtkPacket vtkRemoteObjectProvider::UpdatePipeline(vtkTypeUInt32 gid, double time
 //----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::DeleteObject(vtkTypeUInt32 gid)
 {
-  vtkJson message;
+  vtkNJson message;
   message["type"] = "vtk-remote-object-delete";
   message["gid"] = gid;
   return { message };
@@ -475,7 +475,7 @@ vtkPacket vtkRemoteObjectProvider::DeleteObject(vtkTypeUInt32 gid)
 //----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::string& command)
 {
-  vtkJson message;
+  vtkNJson message;
   message["type"] = "vtk-remote-object-invoke-command";
   message["gid"] = gid;
   message["command"] = command;
@@ -486,7 +486,7 @@ vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::s
 vtkPacket vtkRemoteObjectProvider::GatherInformation(
   vtkPVInformation* information, vtkTypeUInt32 targetGID)
 {
-  vtkJson json = vtkJson::object();
+  vtkNJson json = vtkNJson::object();
   json["type"] = "vtk-remote-object-gather-information";
   json["class"] = information->GetClassName();
   json["target_gid"] = targetGID;
@@ -516,7 +516,7 @@ bool vtkRemoteObjectProvider::ParseResponse(const vtkPacket& packet, vtkPVInform
 }
 
 //----------------------------------------------------------------------------
-bool vtkRemoteObjectProvider::ParseResponse(const vtkJson& json, vtkPVInformation* information)
+bool vtkRemoteObjectProvider::ParseResponse(const vtkNJson& json, vtkPVInformation* information)
 {
   return information->LoadInformation(json);
 }
@@ -567,13 +567,13 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
       std::sort(gids.begin(), gids.end());
       gids.erase(std::unique(gids.begin(), gids.end()), gids.end());
       service->Publish(
-        vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE(), vtkJson({ { "gids", gids } }));
+        vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE(), vtkNJson({ { "gids", gids } }));
     });
 
   // can't really buffer since we don't want to skip start/end.
   // just sending all for now, need to figure out better time management.
   internals.ProgressSubject.get_observable().subscribe([service](const auto& item) {
-    vtkJson json;
+    vtkNJson json;
     json["progress_item"] = item;
     service->Publish(vtkRemoteObjectProvider::CHANNEL_PROGRESS(), std::move(json));
   });

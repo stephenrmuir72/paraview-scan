@@ -59,17 +59,17 @@ public:
     vtkLogEndScope("still-render");
   }
 
-  static void FromJSON(vtkCamera* camera, const vtkJson& json)
+  static void FromJSON(vtkCamera* camera, const vtkNJson& json)
   {
     double viewUp[3];
     double position[3];
     double focalPoint[3];
     double viewAngle;
 
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, viewUp);
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, position);
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, focalPoint);
-    VTK_JSON_LOAD_MEMBER(json, viewAngle);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, viewUp);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, position);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, focalPoint);
+    VTK_NJSON_LOAD_MEMBER(json, viewAngle);
 
     camera->SetViewUp(viewUp);
     camera->SetPosition(position);
@@ -77,7 +77,7 @@ public:
     camera->SetViewAngle(viewAngle);
   }
 
-  static vtkJson ToJSON(vtkCamera* camera)
+  static vtkNJson ToJSON(vtkCamera* camera)
   {
     double viewUp[3];
     camera->GetViewUp(viewUp);
@@ -90,11 +90,11 @@ public:
 
     double viewAngle = camera->GetViewAngle();
 
-    vtkJson json;
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, viewUp);
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, position);
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, focalPoint);
-    VTK_JSON_SAVE_MEMBER(json, viewAngle);
+    vtkNJson json;
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, viewUp);
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, position);
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, focalPoint);
+    VTK_NJSON_SAVE_MEMBER(json, viewAngle);
     return json;
   }
 };
@@ -126,7 +126,7 @@ vtkSmartPointer<vtkObjectStore> vtkInteractionProvider::GetObjectStore() const
 //----------------------------------------------------------------------------
 vtkPacket vtkInteractionProvider::Render(vtkTypeUInt32 gid, vtkCamera* camera)
 {
-  vtkJson json = vtkJson::object();
+  vtkNJson json = vtkNJson::object();
   json["type"] = "vtk-interaction-render";
   json["gid"] = gid;
   json["camera"] = vtkInternals::ToJSON(camera);

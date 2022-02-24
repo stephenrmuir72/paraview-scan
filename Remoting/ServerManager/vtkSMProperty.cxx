@@ -16,7 +16,7 @@
 #include "vtkSMPropertyInternals.h"
 
 #include "vtkCommand.h"
-#include "vtkJson.h"
+#include "vtkNJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkReflection.h"
@@ -556,15 +556,15 @@ int vtkSMProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* element
 void vtkSMProperty::Copy(vtkSMProperty*) {}
 
 //---------------------------------------------------------------------------
-bool vtkSMProperty::SaveState(vtkJson& element)
+bool vtkSMProperty::SaveState(vtkNJson& element)
 {
-  element = vtkJson::object();
+  element = vtkNJson::object();
   element["name"] = this->GetXMLName();
   return true;
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMProperty::LoadState(const vtkJson& element, vtkSMProxyLocator* locator)
+bool vtkSMProperty::LoadState(const vtkNJson& element, vtkSMProxyLocator* locator)
 {
   return element.is_object() && element.find("name") != element.end() &&
     element.at("name").get<std::string>() == this->GetXMLName();

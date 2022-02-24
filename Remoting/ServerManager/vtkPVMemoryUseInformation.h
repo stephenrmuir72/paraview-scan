@@ -34,8 +34,8 @@ public:
 
   bool GatherInformation(vtkObject*) override;
   void AddInformation(vtkPVInformation*) override;
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
+  bool LoadInformation(const vtkNJson& json) override;
+  vtkNJson SaveInformation() const override;
 
   /**
    * access the managed information.

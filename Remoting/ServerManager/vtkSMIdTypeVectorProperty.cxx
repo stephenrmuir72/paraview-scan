@@ -281,7 +281,7 @@ void vtkSMIdTypeVectorProperty::SaveStateValues(vtkPVXMLElement* propElement)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMIdTypeVectorProperty::SaveState(vtkJson& element)
+bool vtkSMIdTypeVectorProperty::SaveState(vtkNJson& element)
 {
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
@@ -290,7 +290,7 @@ bool vtkSMIdTypeVectorProperty::SaveState(vtkJson& element)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMIdTypeVectorProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMIdTypeVectorProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {

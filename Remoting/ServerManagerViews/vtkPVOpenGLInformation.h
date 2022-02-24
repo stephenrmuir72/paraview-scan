@@ -47,8 +47,8 @@ public:
   ///@{
   bool GatherInformation(vtkObject* target) override;
   void AddInformation(vtkPVInformation* other) override;
-  bool LoadInformation(const vtkJson& json) override;
-  vtkJson SaveInformation() const override;
+  bool LoadInformation(const vtkNJson& json) override;
+  vtkNJson SaveInformation() const override;
   ///@}
 
 protected:

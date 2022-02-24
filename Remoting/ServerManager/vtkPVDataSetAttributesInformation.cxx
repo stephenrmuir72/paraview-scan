@@ -352,18 +352,18 @@ vtkPVArrayInformation* vtkPVDataSetAttributesInformation::GetArrayInformation(
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVDataSetAttributesInformation::SaveInformation() const
+vtkNJson vtkPVDataSetAttributesInformation::SaveInformation() const
 {
   const auto& impl = (*this->Internals);
 
-  vtkJson json;
+  vtkNJson json;
 
   // Number of arrays.
-  VTK_JSON_SAVE_MEMBER(json, impl.ValuesPopulated);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, impl.AttributesInformation);
+  VTK_NJSON_SAVE_MEMBER(json, impl.ValuesPopulated);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, impl.AttributesInformation);
 
   // Serialize each array's information.
-  vtkJson arrays = vtkJson::object();
+  vtkNJson arrays = vtkNJson::object();
   for (const auto& pair : impl.ArrayInformation)
   {
     arrays[pair.first] = pair.second->SaveInformation();
@@ -374,13 +374,13 @@ vtkJson vtkPVDataSetAttributesInformation::SaveInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVDataSetAttributesInformation::LoadInformation(const vtkJson& json)
+bool vtkPVDataSetAttributesInformation::LoadInformation(const vtkNJson& json)
 {
   auto& impl = (*this->Internals);
   assert(impl.ValuesPopulated == false);
 
-  VTK_JSON_LOAD_MEMBER(json, impl.ValuesPopulated);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, impl.AttributesInformation);
+  VTK_NJSON_LOAD_MEMBER(json, impl.ValuesPopulated);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, impl.AttributesInformation);
 
   for (auto el : json.at("arrays").items())
   {

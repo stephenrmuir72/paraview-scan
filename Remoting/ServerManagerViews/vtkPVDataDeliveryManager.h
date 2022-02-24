@@ -29,7 +29,7 @@
 #ifndef vtkPVDataDeliveryManager_h
 #define vtkPVDataDeliveryManager_h
 
-#include "vtkJson.h" // for vtkJson
+#include "vtkNJson.h" // for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSmartPointer.h"                     // needed for iVar.

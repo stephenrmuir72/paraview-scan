@@ -206,9 +206,9 @@ protected:
    */
   int LoadState(vtkPVXMLElement* element, vtkSMProxyLocator* loader) override;
 
-  bool SaveState(vtkJson& element) override;
-  bool LoadState(const vtkJson& json, vtkSMProxyLocator* locator) override;
-  vtkJson ToJson(const vtkSmartPointer<vtkSMProxy>& value) const;
+  bool SaveState(vtkNJson& element) override;
+  bool LoadState(const vtkNJson& json, vtkSMProxyLocator* locator) override;
+  vtkNJson ToJson(const vtkSmartPointer<vtkSMProxy>& value) const;
 
   /**
    * Called when a producer fires the vtkCommand::UpdateDataEvent. We update all

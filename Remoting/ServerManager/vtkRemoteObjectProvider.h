@@ -58,7 +58,7 @@ public:
   /**
    * These methods can be used to construct a message to send to provider.
    */
-  static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkJson& json);
+  static vtkPacket UpdateState(vtkTypeUInt32 gid, const vtkNJson& json);
   static vtkPacket UpdateInformation(vtkTypeUInt32 gid);
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
   static vtkPacket DeleteObject(vtkTypeUInt32 gid);
@@ -93,7 +93,7 @@ public:
    * Parse GatherInformation response.
    */
   static bool ParseResponse(const vtkPacket& packet, vtkPVInformation* information);
-  static bool ParseResponse(const vtkJson& json, vtkPVInformation* information);
+  static bool ParseResponse(const vtkNJson& json, vtkPVInformation* information);
   ///@}
 
 protected:

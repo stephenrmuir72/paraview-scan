@@ -50,32 +50,32 @@ void vtkPVMemoryUseInformation::AddInformation(vtkPVInformation* pvinfo)
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVMemoryUseInformation::SaveInformation() const
+vtkNJson vtkPVMemoryUseInformation::SaveInformation() const
 {
-  vtkJson json = vtkJson::array();
+  vtkNJson json = vtkNJson::array();
   for (const auto& info : MemInfos)
   {
-    vtkJson item;
-    VTK_JSON_SAVE_MEMBER(item, info.ProcessType);
-    VTK_JSON_SAVE_MEMBER(item, info.Rank);
-    VTK_JSON_SAVE_MEMBER(item, info.ProcMemUse);
-    VTK_JSON_SAVE_MEMBER(item, info.HostMemUse);
+    vtkNJson item;
+    VTK_NJSON_SAVE_MEMBER(item, info.ProcessType);
+    VTK_NJSON_SAVE_MEMBER(item, info.Rank);
+    VTK_NJSON_SAVE_MEMBER(item, info.ProcMemUse);
+    VTK_NJSON_SAVE_MEMBER(item, info.HostMemUse);
     json.push_back(std::move(item));
   }
   return json;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVMemoryUseInformation::LoadInformation(const vtkJson& json)
+bool vtkPVMemoryUseInformation::LoadInformation(const vtkNJson& json)
 {
   this->MemInfos.clear();
   for (const auto& item : json)
   {
     MemInfo info;
-    VTK_JSON_LOAD_MEMBER(item, info.ProcessType);
-    VTK_JSON_LOAD_MEMBER(item, info.Rank);
-    VTK_JSON_LOAD_MEMBER(item, info.ProcMemUse);
-    VTK_JSON_LOAD_MEMBER(item, info.HostMemUse);
+    VTK_NJSON_LOAD_MEMBER(item, info.ProcessType);
+    VTK_NJSON_LOAD_MEMBER(item, info.Rank);
+    VTK_NJSON_LOAD_MEMBER(item, info.ProcMemUse);
+    VTK_NJSON_LOAD_MEMBER(item, info.HostMemUse);
     this->MemInfos.push_back(std::move(info));
   }
   return true;

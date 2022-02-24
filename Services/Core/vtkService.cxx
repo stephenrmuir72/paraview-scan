@@ -15,9 +15,9 @@
 #include "vtkService.h"
 
 #include "vtkChannelSubscription.h"
-#include "vtkJson.h"
 #include "vtkLogger.h"
 #include "vtkMultiProcessController.h"
+#include "vtkNJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkServiceEndpoint.h"
@@ -30,7 +30,7 @@ constexpr int SERVICE_DISPATCH_RMI_TAG = 229933;
 
 vtkPacket GetEmptyPacket()
 {
-  return vtkPacket(vtkJson{ { "__is_initial_value__", true } });
+  return vtkPacket(vtkNJson{ { "__is_initial_value__", true } });
 }
 
 struct vtkChannelInfo
@@ -155,7 +155,7 @@ void vtkService::RMIDispatch(
 
     // TODO: dispatch on RPC pool for consistency across MPI ranks.
     self->Dispatch(
-      vtkServiceReceiver(self, vtkPacket(std::move(json)), vtkEventual<vtkJson>::Empty()));
+      vtkServiceReceiver(self, vtkPacket(std::move(json)), vtkEventual<vtkNJson>::Empty()));
   }
 }
 
@@ -179,7 +179,7 @@ void vtkService::Dispatch(vtkServiceReceiver&& message)
   if (controller->GetLocalProcessId() == 0 && controller->GetNumberOfProcesses() > 1)
   {
     auto& packet = message.GetPacket();
-    vtkJson json = packet.GetJSON();
+    vtkNJson json = packet.GetJSON();
     json["__vtk_service_id__"] = this->GetName();
     std::vector<uint8_t> buffer = nlohmann::json::to_cbor(json);
     controller->TriggerRMIOnAllChildren(
@@ -367,7 +367,7 @@ void vtkService::UnsetEngine()
 
 //----------------------------------------------------------------------------
 vtkServiceReceiver::vtkServiceReceiver(
-  vtkService* service, const vtkPacket& packet, const vtkEventual<vtkJson>& response)
+  vtkService* service, const vtkPacket& packet, const vtkEventual<vtkNJson>& response)
   : Service(service)
   , Response(response)
   , Packet(packet)
@@ -375,7 +375,7 @@ vtkServiceReceiver::vtkServiceReceiver(
 }
 
 //----------------------------------------------------------------------------
-void vtkServiceReceiver::Respond(const vtkJson& json) const
+void vtkServiceReceiver::Respond(const vtkNJson& json) const
 {
   this->Response.SetValue(json);
 }

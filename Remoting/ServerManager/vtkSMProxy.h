@@ -131,7 +131,7 @@
 #define vtkSMProxy_h
 
 #include "vtkCommand.h" // for vtkCommand
-#include "vtkJsonFwd.h" // needed for vtkJson
+#include "vtkNJsonFwd.h" // needed for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkWeakPointer.h"                 // for vtkWeakPointer
@@ -574,13 +574,13 @@ protected:
    * It tstamp is non-zero, then only those properties that have been modified
    * since the tstamp are saved to the state.
    */
-  bool SaveState(vtkJson& json, vtkMTimeType tstamp = 0);
+  bool SaveState(vtkNJson& json, vtkMTimeType tstamp = 0);
 
   /**
    * Load state. `context` is used to locate other proxies, for example, that
    * may be referenced in the state.
    */
-  bool LoadState(const vtkJson& element, vtkSMProxyLocator* locator);
+  bool LoadState(const vtkNJson& element, vtkSMProxyLocator* locator);
 
   /**
    * Add a property with the given key (name). The name can then

@@ -182,15 +182,15 @@ void vtkPVRenderingCapabilitiesInformation::AddInformation(vtkPVInformation* oth
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkPVRenderingCapabilitiesInformation::SaveInformation() const
+vtkNJson vtkPVRenderingCapabilitiesInformation::SaveInformation() const
 {
-  vtkJson json;
+  vtkNJson json;
   json["capabilities"] = this->Capabilities;
   return json;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVRenderingCapabilitiesInformation::LoadInformation(const vtkJson& json)
+bool vtkPVRenderingCapabilitiesInformation::LoadInformation(const vtkNJson& json)
 {
   this->Capabilities = json.at("capabilities").get<vtkTypeUInt32>();
   return true;

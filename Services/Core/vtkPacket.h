@@ -31,8 +31,8 @@
 #ifndef vtkPacket_h
 #define vtkPacket_h
 
-#include "vtkJson.h"               // for vtkJson
 #include "vtkLogger.h"             // for vtkLogger.
+#include "vtkNJson.h"              // for vtkNJson
 #include "vtkServicesCoreModule.h" // for exports
 #include "vtkSmartPointer.h"       // for vtkSmartPointer
 #include "vtkUnsignedCharArray.h"  // for vtkUnsignedCharArray
@@ -53,10 +53,10 @@ public:
 
   ///@{
   /**
-   * Constructors to create a packet from a vtkJson object.
+   * Constructors to create a packet from a vtkNJson object.
    */
-  vtkPacket(const vtkJson& json);
-  vtkPacket(vtkJson&& json);
+  vtkPacket(const vtkNJson& json);
+  vtkPacket(vtkNJson&& json);
   ///@}
 
   ///@{
@@ -65,8 +65,8 @@ public:
    * Currently, only vtkUnsignedCharArray is supported if across wire exchange
    * is required.
    */
-  vtkPacket(const vtkJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
-  vtkPacket(vtkJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
+  vtkPacket(const vtkNJson& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
+  vtkPacket(vtkNJson&& json, const std::map<std::string, vtkSmartPointer<vtkObject>>& payload);
   ///@}
 
   ~vtkPacket() = default;
@@ -78,7 +78,7 @@ public:
   /**
    * Provides access to internal Json.
    */
-  const vtkJson& GetJSON() const;
+  const vtkNJson& GetJSON() const;
 
   ///@{
   /**
@@ -154,12 +154,12 @@ public:
   }
 
   bool operator==(const vtkPacket& other) const { return *this == other.GetJSON(); }
-  bool operator==(const vtkJson& json) const { return this->GetJSON() == json; }
+  bool operator==(const vtkNJson& json) const { return this->GetJSON() == json; }
   bool operator!=(const vtkPacket& other) const { return *this != other.GetJSON(); }
-  bool operator!=(const vtkJson& json) const { return this->GetJSON() != json; }
+  bool operator!=(const vtkNJson& json) const { return this->GetJSON() != json; }
 
 private:
-  std::shared_ptr<vtkJson> JSON;
+  std::shared_ptr<vtkNJson> JSON;
   std::map<std::string, vtkSmartPointer<vtkObject>> Payload;
 
   ///@{

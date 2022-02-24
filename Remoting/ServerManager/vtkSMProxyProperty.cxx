@@ -16,8 +16,8 @@
 #include "vtkSMProxyPropertyInternals.h"
 
 #include "vtkCommand.h"
-#include "vtkJson.h"
 #include "vtkLogger.h"
+#include "vtkNJson.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDomainIterator.h"
@@ -391,12 +391,12 @@ void vtkSMProxyProperty::ResetToXMLDefaults()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMProxyProperty::SaveState(vtkJson& element)
+bool vtkSMProxyProperty::SaveState(vtkNJson& element)
 {
   this->vtkSMProperty::SaveState(element);
   auto& internals = (*this->PPInternals);
   element["type"] = this->GetElementType(); // variant->set_type(Variant::INPUT); // or PROXY?
-  auto array = vtkJson::array();
+  auto array = vtkNJson::array();
   for (auto proxy : internals.GetProxies())
   {
     array.push_back(this->ToJson(proxy));
@@ -407,7 +407,7 @@ bool vtkSMProxyProperty::SaveState(vtkJson& element)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMProxyProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMProxyProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {
@@ -438,7 +438,7 @@ bool vtkSMProxyProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locat
 }
 
 //---------------------------------------------------------------------------
-vtkJson vtkSMProxyProperty::ToJson(const vtkSmartPointer<vtkSMProxy>& value) const
+vtkNJson vtkSMProxyProperty::ToJson(const vtkSmartPointer<vtkSMProxy>& value) const
 {
-  return vtkJson(value ? value->GetGlobalID() : 0);
+  return vtkNJson(value ? value->GetGlobalID() : 0);
 }

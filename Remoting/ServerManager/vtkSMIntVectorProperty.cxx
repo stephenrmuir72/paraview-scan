@@ -290,7 +290,7 @@ bool vtkSMIntVectorProperty::IsValueDefault()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMIntVectorProperty::SaveState(vtkJson& element)
+bool vtkSMIntVectorProperty::SaveState(vtkNJson& element)
 {
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
@@ -299,7 +299,7 @@ bool vtkSMIntVectorProperty::SaveState(vtkJson& element)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSMIntVectorProperty::LoadState(const vtkJson& json, vtkSMProxyLocator* locator)
+bool vtkSMIntVectorProperty::LoadState(const vtkNJson& json, vtkSMProxyLocator* locator)
 {
   if (!this->Superclass::LoadState(json, locator))
   {

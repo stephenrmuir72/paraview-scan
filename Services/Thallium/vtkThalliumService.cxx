@@ -91,7 +91,7 @@ protected:
   void SendMessage(const thallium::request& /*req*/, const vtkPacket& packet)
   {
     this->Service->Dispatch(
-      vtkServiceReceiver(this->Service, packet, vtkEventual<vtkJson>::Empty()));
+      vtkServiceReceiver(this->Service, packet, vtkEventual<vtkNJson>::Empty()));
   }
 
   /**
@@ -100,7 +100,7 @@ protected:
    */
   void SendRequest(const thallium::request& req, const vtkPacket& packet)
   {
-    vtkEventual<vtkJson> eventual(std::make_shared<vtkThalliumEventualImplementation>());
+    vtkEventual<vtkNJson> eventual(std::make_shared<vtkThalliumEventualImplementation>());
     this->Service->Dispatch(vtkServiceReceiver(this->Service, packet, eventual));
 
     // wait for the response; this will yield to other RPC requests, is that

@@ -18,7 +18,7 @@
 
 //----------------------------------------------------------------------------
 vtkThalliumEventualImplementation::vtkThalliumEventualImplementation()
-  : vtkEventualImplementation(vtkJson{})
+  : vtkEventualImplementation(vtkNJson{})
 {
 }
 
@@ -29,13 +29,13 @@ bool vtkThalliumEventualImplementation::Test() const
 }
 
 //----------------------------------------------------------------------------
-vtkJson vtkThalliumEventualImplementation::Wait() const
+vtkNJson vtkThalliumEventualImplementation::Wait() const
 {
   return this->Eventual.wait();
 }
 
 //----------------------------------------------------------------------------
-void vtkThalliumEventualImplementation::SetValue(const vtkJson& value) const
+void vtkThalliumEventualImplementation::SetValue(const vtkNJson& value) const
 {
   this->Eventual.set_value(value);
   this->vtkEventualImplementation::SetValue(value);
