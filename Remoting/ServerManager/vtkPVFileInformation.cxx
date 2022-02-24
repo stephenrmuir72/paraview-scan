@@ -1237,7 +1237,9 @@ std::string vtkPVFileInformation::RetrieveAbsolutePath(const std::string& path)
       return child->GetFullPath();
     }
   }
-  return "";
+  // the name appears nowhere in the current directory. We assume it is a new file
+  // and compose its full path.
+  return fullPath + vtkPVFileInformationPathSeparator() + path;
 }
 
 //-----------------------------------------------------------------------------
