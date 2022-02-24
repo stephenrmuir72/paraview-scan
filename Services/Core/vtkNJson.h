@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkJson.h
+  Module:    vtkNJson.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,10 +12,10 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#ifndef vtkJson_h
-#define vtkJson_h
+#ifndef vtkNJson_h
+#define vtkNJson_h
 
-#include "vtkJsonFwd.h"
+#include "vtkNJsonFwd.h"
 
 // clang-format off
 #include VTK_NLOHMANN_JSON(json.hpp) // for json

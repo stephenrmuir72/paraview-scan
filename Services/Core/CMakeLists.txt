@@ -14,8 +14,8 @@ set(nowrap_classes
 
 set(headers
   vtkEventual.h
-  vtkJson.h
-  vtkJsonFwd.h)
+  vtkNJson.h
+  vtkNJsonFwd.h)
 
 set(templates
   vtkServicesEngine.txx)

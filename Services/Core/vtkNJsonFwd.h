@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkJsonFwd.h
+  Module:    vtkNJsonFwd.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -13,13 +13,13 @@
 
 =========================================================================*/
 /**
- * @class vtkJsonFwd
+ * @class vtkNJsonFwd
  * @brief
  *
  */
 
-#ifndef vtkJsonFwd_h
-#define vtkJsonFwd_h
+#ifndef vtkNJsonFwd_h
+#define vtkNJsonFwd_h
 
 #include "vtkObject.h"
 
@@ -32,6 +32,6 @@
  * Let's define a type for JSON to make it a little easier
  * to replace the implementation in future, if needed.
  */
-using vtkJson = nlohmann::json;
+using vtkNJson = nlohmann::json;
 
 #endif
