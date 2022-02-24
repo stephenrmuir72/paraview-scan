@@ -28,6 +28,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionOpenFile"/>
+    <addaction name="actionSaveState"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menu_Sources">
@@ -109,6 +110,11 @@
    </property>
    <property name="toolTip">
     <string>Spin camera</string>
+   </property>
+  </action>
+  <action name="actionSaveState">
+   <property name="text">
+    <string>S&amp;ave State</string>
    </property>
   </action>
  </widget>

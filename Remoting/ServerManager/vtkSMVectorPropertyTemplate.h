@@ -462,7 +462,14 @@ public:
     {
       elements.push_back(this->ToValue(element, locator));
     }
-    this->Values = elements;
+    if (!elements.empty())
+    {
+      this->SetElements(&elements[0], static_cast<unsigned int>(elements.size()));
+    }
+    else
+    {
+      this->SetNumberOfElements(0);
+    }
     return true;
   }
 
