@@ -36,7 +36,6 @@
 #include "vtkExplicitStructuredGridSurfaceFilter.h"
 #include "vtkFeatureEdges.h"
 #include "vtkFloatArray.h"
-#include "vtkGarbageCollector.h"
 #include "vtkGenericDataSet.h"
 #include "vtkGenericGeometryFilter.h"
 #include "vtkGeometryFilter.h"
@@ -559,7 +558,6 @@ int vtkPVGeometryFilter::RequestData(
   if (vtkCompositeDataSet::SafeDownCast(input))
   {
     vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::RequestData");
-    vtkGarbageCollector::DeferredCollectionPush();
     if (input->IsA("vtkUniformGridAMR"))
     {
       this->RequestAMRData(request, inputVector, outputVector);
@@ -569,7 +567,6 @@ int vtkPVGeometryFilter::RequestData(
       this->RequestDataObjectTree(request, inputVector, outputVector);
     }
     vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::GarbageCollect");
-    vtkGarbageCollector::DeferredCollectionPop();
     vtkTimerLog::MarkEndEvent("vtkPVGeometryFilter::GarbageCollect");
     vtkTimerLog::MarkEndEvent("vtkPVGeometryFilter::RequestData");
     return 1;
@@ -1811,17 +1808,6 @@ int vtkPVGeometryFilter::FillInputPortInformation(int port, vtkInformation* info
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkHyperTreeGrid");
   return 1;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPVGeometryFilter::ReportReferences(vtkGarbageCollector* collector)
-{
-  this->Superclass::ReportReferences(collector);
-  vtkGarbageCollectorReport(collector, this->DataSetSurfaceFilter, "DataSetSurfaceFilter");
-  vtkGarbageCollectorReport(collector, this->GenericGeometryFilter, "GenericGeometryFilter");
-  vtkGarbageCollectorReport(
-    collector, this->UnstructuredGridGeometryFilter, "UnstructuredGridGeometryFilter");
-  vtkGarbageCollectorReport(collector, this->RecoverWireframeFilter, "RecoverWireframeFilter");
 }
 
 //----------------------------------------------------------------------------
