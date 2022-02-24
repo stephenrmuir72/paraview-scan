@@ -98,11 +98,12 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
 
-  const auto engineURL = vtkPVCoreApplication::GetEngineURL(url);
+  const auto engineURL = url.empty() ? url : vtkPVCoreApplication::GetEngineURL(url);
   auto* pvapp = vtkPVCoreApplication::GetInstance();
   assert(pvapp != nullptr);
   auto* engine = pvapp->GetServicesEngine();
-  internals.IsRemote = engine->GetUrl() != engineURL; // FIXME: confirm
+  internals.IsRemote =
+    (engineURL.empty() == false) && (engine->GetUrl() != engineURL); // FIXME: confirm
   internals.URL = url;
   if (pvapp->GetRank() == 0)
   {
