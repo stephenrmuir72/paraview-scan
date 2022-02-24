@@ -98,17 +98,17 @@ vtkNJson vtkPVSystemConfigInformation::SaveInformation() const
   for (const auto& config : this->Configs)
   {
     vtkNJson item;
-    VTK_JSON_SAVE_MEMBER(item, config.OSDescriptor);
-    VTK_JSON_SAVE_MEMBER(item, config.CPUDescriptor);
-    VTK_JSON_SAVE_MEMBER(item, config.MemDescriptor);
-    VTK_JSON_SAVE_MEMBER(item, config.HostName);
-    VTK_JSON_SAVE_MEMBER(item, config.ProcessType);
-    VTK_JSON_SAVE_MEMBER(item, config.SystemType);
-    VTK_JSON_SAVE_MEMBER(item, config.Rank);
-    VTK_JSON_SAVE_MEMBER(item, config.Pid);
-    VTK_JSON_SAVE_MEMBER(item, config.HostMemoryTotal);
-    VTK_JSON_SAVE_MEMBER(item, config.HostMemoryAvailable);
-    VTK_JSON_SAVE_MEMBER(item, config.ProcMemoryAvailable);
+    VTK_NJSON_SAVE_MEMBER(item, config.OSDescriptor);
+    VTK_NJSON_SAVE_MEMBER(item, config.CPUDescriptor);
+    VTK_NJSON_SAVE_MEMBER(item, config.MemDescriptor);
+    VTK_NJSON_SAVE_MEMBER(item, config.HostName);
+    VTK_NJSON_SAVE_MEMBER(item, config.ProcessType);
+    VTK_NJSON_SAVE_MEMBER(item, config.SystemType);
+    VTK_NJSON_SAVE_MEMBER(item, config.Rank);
+    VTK_NJSON_SAVE_MEMBER(item, config.Pid);
+    VTK_NJSON_SAVE_MEMBER(item, config.HostMemoryTotal);
+    VTK_NJSON_SAVE_MEMBER(item, config.HostMemoryAvailable);
+    VTK_NJSON_SAVE_MEMBER(item, config.ProcMemoryAvailable);
     configs.push_back(std::move(item));
   }
   json["configs"] = std::move(configs);
@@ -122,17 +122,17 @@ bool vtkPVSystemConfigInformation::LoadInformation(const vtkNJson& json)
   for (const auto& item : json.at("configs"))
   {
     ConfigInfo config;
-    VTK_JSON_LOAD_MEMBER(item, config.OSDescriptor);
-    VTK_JSON_LOAD_MEMBER(item, config.CPUDescriptor);
-    VTK_JSON_LOAD_MEMBER(item, config.MemDescriptor);
-    VTK_JSON_LOAD_MEMBER(item, config.HostName);
-    VTK_JSON_LOAD_MEMBER(item, config.ProcessType);
-    VTK_JSON_LOAD_MEMBER(item, config.SystemType);
-    VTK_JSON_LOAD_MEMBER(item, config.Rank);
-    VTK_JSON_LOAD_MEMBER(item, config.Pid);
-    VTK_JSON_LOAD_MEMBER(item, config.HostMemoryTotal);
-    VTK_JSON_LOAD_MEMBER(item, config.HostMemoryAvailable);
-    VTK_JSON_LOAD_MEMBER(item, config.ProcMemoryAvailable);
+    VTK_NJSON_LOAD_MEMBER(item, config.OSDescriptor);
+    VTK_NJSON_LOAD_MEMBER(item, config.CPUDescriptor);
+    VTK_NJSON_LOAD_MEMBER(item, config.MemDescriptor);
+    VTK_NJSON_LOAD_MEMBER(item, config.HostName);
+    VTK_NJSON_LOAD_MEMBER(item, config.ProcessType);
+    VTK_NJSON_LOAD_MEMBER(item, config.SystemType);
+    VTK_NJSON_LOAD_MEMBER(item, config.Rank);
+    VTK_NJSON_LOAD_MEMBER(item, config.Pid);
+    VTK_NJSON_LOAD_MEMBER(item, config.HostMemoryTotal);
+    VTK_NJSON_LOAD_MEMBER(item, config.HostMemoryAvailable);
+    VTK_NJSON_LOAD_MEMBER(item, config.ProcMemoryAvailable);
     this->Configs.push_back(std::move(config));
   }
 

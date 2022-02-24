@@ -51,7 +51,7 @@ void vtkPVDataAssemblyInformation::SetMethodName(const std::string& name)
 vtkNJson vtkPVDataAssemblyInformation::SaveState() const
 {
   auto json = this->Superclass::SaveState();
-  VTK_JSON_SAVE_MEMBER(json, MethodName);
+  VTK_NJSON_SAVE_MEMBER(json, MethodName);
   return json;
 }
 
@@ -62,7 +62,7 @@ bool vtkPVDataAssemblyInformation::LoadState(const vtkNJson& state)
   {
     return false;
   }
-  VTK_JSON_LOAD_MEMBER(state, MethodName);
+  VTK_NJSON_LOAD_MEMBER(state, MethodName);
   return true;
 }
 

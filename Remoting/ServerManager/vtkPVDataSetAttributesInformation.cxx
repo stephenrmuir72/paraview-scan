@@ -359,8 +359,8 @@ vtkNJson vtkPVDataSetAttributesInformation::SaveInformation() const
   vtkNJson json;
 
   // Number of arrays.
-  VTK_JSON_SAVE_MEMBER(json, impl.ValuesPopulated);
-  VTK_JSON_SAVE_MEMBER_ARRAY(json, impl.AttributesInformation);
+  VTK_NJSON_SAVE_MEMBER(json, impl.ValuesPopulated);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, impl.AttributesInformation);
 
   // Serialize each array's information.
   vtkNJson arrays = vtkNJson::object();
@@ -379,8 +379,8 @@ bool vtkPVDataSetAttributesInformation::LoadInformation(const vtkNJson& json)
   auto& impl = (*this->Internals);
   assert(impl.ValuesPopulated == false);
 
-  VTK_JSON_LOAD_MEMBER(json, impl.ValuesPopulated);
-  VTK_JSON_LOAD_MEMBER_ARRAY(json, impl.AttributesInformation);
+  VTK_NJSON_LOAD_MEMBER(json, impl.ValuesPopulated);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, impl.AttributesInformation);
 
   for (auto el : json.at("arrays").items())
   {

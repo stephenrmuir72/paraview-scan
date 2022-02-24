@@ -358,10 +358,10 @@ vtkNJson vtkPVArrayInformation::SaveInformation() const
   vtkNJson json;
 
   // Array name, data type, and number of components.
-  VTK_JSON_SAVE_MEMBER(json, Name);
-  VTK_JSON_SAVE_MEMBER(json, DataType);
-  VTK_JSON_SAVE_MEMBER(json, NumberOfTuples);
-  VTK_JSON_SAVE_MEMBER(json, IsPartial);
+  VTK_NJSON_SAVE_MEMBER(json, Name);
+  VTK_NJSON_SAVE_MEMBER(json, DataType);
+  VTK_NJSON_SAVE_MEMBER(json, NumberOfTuples);
+  VTK_NJSON_SAVE_MEMBER(json, IsPartial);
 
   vtkNJson components = vtkNJson::array();
   // components
@@ -377,10 +377,10 @@ vtkNJson vtkPVArrayInformation::SaveInformation() const
   json["Components"] = components;
 
   // string values.
-  VTK_JSON_SAVE_MEMBER(json, StringValues);
+  VTK_NJSON_SAVE_MEMBER(json, StringValues);
 
   // information keys.
-  VTK_JSON_SAVE_MEMBER(json, InformationKeys);
+  VTK_NJSON_SAVE_MEMBER(json, InformationKeys);
 
   return json;
 }
@@ -391,10 +391,10 @@ bool vtkPVArrayInformation::LoadInformation(const vtkNJson& json)
   assert(this->Components.size() == 0); // sanity check.
 
   // Array name, data type, and number of components.
-  VTK_JSON_LOAD_MEMBER(json, Name);
-  VTK_JSON_LOAD_MEMBER(json, DataType);
-  VTK_JSON_LOAD_MEMBER(json, NumberOfTuples);
-  VTK_JSON_LOAD_MEMBER(json, IsPartial);
+  VTK_NJSON_LOAD_MEMBER(json, Name);
+  VTK_NJSON_LOAD_MEMBER(json, DataType);
+  VTK_NJSON_LOAD_MEMBER(json, NumberOfTuples);
+  VTK_NJSON_LOAD_MEMBER(json, IsPartial);
 
   // components
   auto components = json.at("Components");
@@ -411,10 +411,10 @@ bool vtkPVArrayInformation::LoadInformation(const vtkNJson& json)
     });
 
   // string values.
-  VTK_JSON_LOAD_MEMBER(json, StringValues);
+  VTK_NJSON_LOAD_MEMBER(json, StringValues);
 
   // information keys.
-  VTK_JSON_LOAD_MEMBER(json, InformationKeys);
+  VTK_NJSON_LOAD_MEMBER(json, InformationKeys);
 
   return true;
 }

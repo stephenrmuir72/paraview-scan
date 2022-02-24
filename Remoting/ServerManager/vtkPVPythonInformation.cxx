@@ -217,30 +217,30 @@ void vtkPVPythonInformation::AddInformation(vtkPVInformation* i)
 vtkNJson vtkPVPythonInformation::SaveInformation() const
 {
   vtkNJson json;
-  VTK_JSON_SAVE_MEMBER(json, this->PythonSupport);
-  VTK_JSON_SAVE_MEMBER(json, this->PythonPath);
-  VTK_JSON_SAVE_MEMBER(json, this->PythonVersion);
-  VTK_JSON_SAVE_MEMBER(json, this->NumpySupport);
-  VTK_JSON_SAVE_MEMBER(json, this->NumpyPath);
-  VTK_JSON_SAVE_MEMBER(json, this->NumpyVersion);
-  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibSupport);
-  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibPath);
-  VTK_JSON_SAVE_MEMBER(json, this->MatplotlibVersion);
+  VTK_NJSON_SAVE_MEMBER(json, this->PythonSupport);
+  VTK_NJSON_SAVE_MEMBER(json, this->PythonPath);
+  VTK_NJSON_SAVE_MEMBER(json, this->PythonVersion);
+  VTK_NJSON_SAVE_MEMBER(json, this->NumpySupport);
+  VTK_NJSON_SAVE_MEMBER(json, this->NumpyPath);
+  VTK_NJSON_SAVE_MEMBER(json, this->NumpyVersion);
+  VTK_NJSON_SAVE_MEMBER(json, this->MatplotlibSupport);
+  VTK_NJSON_SAVE_MEMBER(json, this->MatplotlibPath);
+  VTK_NJSON_SAVE_MEMBER(json, this->MatplotlibVersion);
   return json;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPVPythonInformation::LoadInformation(const vtkNJson& json)
 {
-  VTK_JSON_LOAD_MEMBER(json, this->PythonSupport);
-  VTK_JSON_LOAD_MEMBER(json, this->PythonPath);
-  VTK_JSON_LOAD_MEMBER(json, this->PythonVersion);
-  VTK_JSON_LOAD_MEMBER(json, this->NumpySupport);
-  VTK_JSON_LOAD_MEMBER(json, this->NumpyPath);
-  VTK_JSON_LOAD_MEMBER(json, this->NumpyVersion);
-  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibSupport);
-  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibPath);
-  VTK_JSON_LOAD_MEMBER(json, this->MatplotlibVersion);
+  VTK_NJSON_LOAD_MEMBER(json, this->PythonSupport);
+  VTK_NJSON_LOAD_MEMBER(json, this->PythonPath);
+  VTK_NJSON_LOAD_MEMBER(json, this->PythonVersion);
+  VTK_NJSON_LOAD_MEMBER(json, this->NumpySupport);
+  VTK_NJSON_LOAD_MEMBER(json, this->NumpyPath);
+  VTK_NJSON_LOAD_MEMBER(json, this->NumpyVersion);
+  VTK_NJSON_LOAD_MEMBER(json, this->MatplotlibSupport);
+  VTK_NJSON_LOAD_MEMBER(json, this->MatplotlibPath);
+  VTK_NJSON_LOAD_MEMBER(json, this->MatplotlibVersion);
   this->Modified();
   return true;
 }

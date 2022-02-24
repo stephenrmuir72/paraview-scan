@@ -1092,13 +1092,13 @@ vtkNJson vtkPVFileInformation::SaveState() const
 {
   vtkNJson state;
 
-  VTK_JSON_SAVE_MEMBER(state, FastFileTypeDetection);
-  VTK_JSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
-  VTK_JSON_SAVE_MEMBER(state, GroupFileSequences);
-  VTK_JSON_SAVE_MEMBER(state, ListDirectories);
-  VTK_JSON_SAVE_MEMBER(state, ListSpecialDirectories);
-  VTK_JSON_SAVE_MEMBER(state, Path);
-  VTK_JSON_SAVE_MEMBER(state, WorkingDirectory);
+  VTK_NJSON_SAVE_MEMBER(state, FastFileTypeDetection);
+  VTK_NJSON_SAVE_MEMBER(state, ReadDetailedFileInformation);
+  VTK_NJSON_SAVE_MEMBER(state, GroupFileSequences);
+  VTK_NJSON_SAVE_MEMBER(state, ListDirectories);
+  VTK_NJSON_SAVE_MEMBER(state, ListSpecialDirectories);
+  VTK_NJSON_SAVE_MEMBER(state, Path);
+  VTK_NJSON_SAVE_MEMBER(state, WorkingDirectory);
 
   return state;
 }
@@ -1107,13 +1107,13 @@ vtkNJson vtkPVFileInformation::SaveState() const
 bool vtkPVFileInformation::LoadState(const vtkNJson& state)
 {
   this->Initialize();
-  VTK_JSON_LOAD_MEMBER(state, FastFileTypeDetection);
-  VTK_JSON_LOAD_MEMBER(state, ReadDetailedFileInformation);
-  VTK_JSON_LOAD_MEMBER(state, GroupFileSequences);
-  VTK_JSON_LOAD_MEMBER(state, ListDirectories);
-  VTK_JSON_LOAD_MEMBER(state, ListSpecialDirectories);
-  VTK_JSON_LOAD_MEMBER(state, Path);
-  VTK_JSON_LOAD_MEMBER(state, WorkingDirectory);
+  VTK_NJSON_LOAD_MEMBER(state, FastFileTypeDetection);
+  VTK_NJSON_LOAD_MEMBER(state, ReadDetailedFileInformation);
+  VTK_NJSON_LOAD_MEMBER(state, GroupFileSequences);
+  VTK_NJSON_LOAD_MEMBER(state, ListDirectories);
+  VTK_NJSON_LOAD_MEMBER(state, ListSpecialDirectories);
+  VTK_NJSON_LOAD_MEMBER(state, Path);
+  VTK_NJSON_LOAD_MEMBER(state, WorkingDirectory);
 
   return true;
 }

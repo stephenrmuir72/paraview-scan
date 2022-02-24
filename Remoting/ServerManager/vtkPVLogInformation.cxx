@@ -89,7 +89,7 @@ void vtkPVLogInformation::AddInformation(vtkPVInformation* info)
 vtkNJson vtkPVLogInformation::SaveState() const
 {
   auto json = this->Superclass::SaveState();
-  VTK_JSON_SAVE_MEMBER(json, Rank);
+  VTK_NJSON_SAVE_MEMBER(json, Rank);
   return json;
 }
 
@@ -100,7 +100,7 @@ bool vtkPVLogInformation::LoadState(const vtkNJson& json)
   {
     return false;
   }
-  VTK_JSON_LOAD_MEMBER(json, Rank);
+  VTK_NJSON_LOAD_MEMBER(json, Rank);
   return true;
 }
 
@@ -108,17 +108,17 @@ bool vtkPVLogInformation::LoadState(const vtkNJson& json)
 vtkNJson vtkPVLogInformation::SaveInformation() const
 {
   vtkNJson json;
-  VTK_JSON_SAVE_MEMBER(json, Logs);
-  VTK_JSON_SAVE_MEMBER(json, StartingLogs);
-  VTK_JSON_SAVE_MEMBER(json, Verbosity);
+  VTK_NJSON_SAVE_MEMBER(json, Logs);
+  VTK_NJSON_SAVE_MEMBER(json, StartingLogs);
+  VTK_NJSON_SAVE_MEMBER(json, Verbosity);
   return json;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPVLogInformation::LoadInformation(const vtkNJson& json)
 {
-  VTK_JSON_LOAD_MEMBER(json, Logs);
-  VTK_JSON_LOAD_MEMBER(json, StartingLogs);
-  VTK_JSON_LOAD_MEMBER(json, Verbosity);
+  VTK_NJSON_LOAD_MEMBER(json, Logs);
+  VTK_NJSON_LOAD_MEMBER(json, StartingLogs);
+  VTK_NJSON_LOAD_MEMBER(json, Verbosity);
   return true;
 }

@@ -66,10 +66,10 @@ public:
     double focalPoint[3];
     double viewAngle;
 
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, viewUp);
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, position);
-    VTK_JSON_LOAD_MEMBER_ARRAY(json, focalPoint);
-    VTK_JSON_LOAD_MEMBER(json, viewAngle);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, viewUp);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, position);
+    VTK_NJSON_LOAD_MEMBER_ARRAY(json, focalPoint);
+    VTK_NJSON_LOAD_MEMBER(json, viewAngle);
 
     camera->SetViewUp(viewUp);
     camera->SetPosition(position);
@@ -91,10 +91,10 @@ public:
     double viewAngle = camera->GetViewAngle();
 
     vtkNJson json;
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, viewUp);
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, position);
-    VTK_JSON_SAVE_MEMBER_ARRAY(json, focalPoint);
-    VTK_JSON_SAVE_MEMBER(json, viewAngle);
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, viewUp);
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, position);
+    VTK_NJSON_SAVE_MEMBER_ARRAY(json, focalPoint);
+    VTK_NJSON_SAVE_MEMBER(json, viewAngle);
     return json;
   }
 };
