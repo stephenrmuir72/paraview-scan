@@ -53,6 +53,13 @@ public:
    */
   virtual void Apply(vtkSMSessionProxyManager* pxm);
 
+  /**
+   * Handle change to scalar coloring.
+   *
+   * Argument is the representation proxy that is being updated.
+   */
+  virtual void ApplyScalarColoring(vtkSMProxy* repr);
+
 protected:
   vtkSMApplyController();
   ~vtkSMApplyController();

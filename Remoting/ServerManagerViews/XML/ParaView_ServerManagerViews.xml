@@ -676,8 +676,7 @@
           automatically be disabled.
         </Documentation>
         <ArrayListDomain name="array_list"
-                         input_domain_name="input_array_any"
-                         none_string="None" >
+                         input_domain_name="input_array_any">
           <RequiredProperties>
             <Property function="Input" name="Input" />
           </RequiredProperties>
@@ -723,7 +722,7 @@
       </IntVectorProperty>
 
 
-      <PropertyGroup label="Data Coloring">
+      <PropertyGroup label="Data Coloring" panel_widget="ColorArray">
         <Property name="ColorArrayName" />
         <Property name="LookupTable" />
         <Property name="InterpolateScalarsBeforeMapping" />

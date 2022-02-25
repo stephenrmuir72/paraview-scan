@@ -897,6 +897,16 @@ int vtkSMArrayListDomain::ComponentIndexFromMangledName(
 }
 
 //---------------------------------------------------------------------------
+vtkPVArrayInformation* vtkSMArrayListDomain::GetArrayInformation(int association, const char* name)
+{
+  vtkPVDataInformation* dataInfo = this->GetInputDataInformation("Input");
+  vtkPVDataInformation* extraInfo = this->GetExtraDataInformation();
+  auto* arrayInfo = (dataInfo ? dataInfo->GetArrayInformation(name, association) : nullptr);
+  return arrayInfo || extraInfo == nullptr ? arrayInfo
+                                           : extraInfo->GetArrayInformation(name, association);
+}
+
+//---------------------------------------------------------------------------
 bool vtkSMArrayListDomain::IsFilteredArray(vtkPVDataInformation*, int, const char*)
 {
   return false;
