@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
+#include <QIcon>
 #include <QMessageBox>
 #include <QPointer>
 #include <QString>
@@ -202,6 +203,11 @@ public:
    * Also set HightlightedText to white
    */
   static void setPaletteHighlightToCritical(QPalette& palette);
+
+  /**
+   * Returns an icon for the given field association.
+   */
+  static QIcon fieldAssociationIcon(int association);
 
 private:
   static QWidget* findMainWindow();
