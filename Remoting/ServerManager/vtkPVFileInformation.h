@@ -192,8 +192,23 @@ public:
   vtkGetMacro(ModificationTime, time_t);
   //@}
 
+  /**
+   * Get the absolute path of a given path.
+   * If \p path does not match `this` vtkPVFileInformation or any of its children,
+   * it just returns \p path prepended by the absolute path of this vtkPVFileInformation
+   */
   std::string RetrieveAbsolutePath(const std::string& path);
+
+  /**
+   * Check whether \p path exists as a file under the current directory
+   * respresented by `this`. Return also the full path to \p path.
+   */
   bool FileExists(const std::string& path, std::string& fullpath);
+
+  /**
+   * Check whether \p path exists as a directory under the current directory
+   * respresented by `this`. Return also the full path to \p path.
+   */
   bool DirectoryExists(const std::string& path, std::string& fullpath);
 
   vtkGetMacro(PathSeparator, char);
