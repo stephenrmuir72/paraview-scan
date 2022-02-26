@@ -38,7 +38,7 @@ spack-centos7:build:
         - .centos7
         - .spack_build_linux
         - .linux_builder_tags
-        - .run_scheduled
+        - .run_manually
 
 ## Linux
 
