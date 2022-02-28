@@ -572,11 +572,12 @@ protected:
    * If tstamp is non-zero, then only those properties that have been modified
    * since the tstamp are saved to the state.
    *
-   * Setting \p destination to only one of the services one can save only the
+   * Setting \p destinationMask to only one of the services, one can save only the
    * properties applicable to this service.
    */
   bool SaveState(vtkNJson& json, vtkMTimeType tstamp = 0,
-    vtkTypeUInt32 destination = (vtkClientSession::DATA_SERVER | vtkClientSession::RENDER_SERVER));
+    vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
+      vtkClientSession::RENDER_SERVER));
 
   /**
    * Load state. `context` is used to locate other proxies, for example, that

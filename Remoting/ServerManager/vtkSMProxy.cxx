@@ -440,12 +440,13 @@ void vtkSMProxy::UpdateVTKObjects()
       this->WarnIfDeprecated();
     }
 
-    for(auto destination : vtkClientSession::ServiceTypeList)
+    for (auto destination : vtkClientSession::ServiceTypeList)
     {
-      if ((this->GetLocation() & destination) != 0) 
+      if ((this->GetLocation() & destination) != 0)
       {
         vtkNJson state;
-        if (this->SaveState(state, /*tstamp*/ internals.UpdateVTKObjectsTimeStamp, destination) && !state["properties"].empty())
+        if (this->SaveState(state, /*tstamp*/ internals.UpdateVTKObjectsTimeStamp, destination) &&
+          !state["properties"].empty())
         {
           auto packet = vtkRemoteObjectProvider::UpdateState(this->GetGlobalID(), state);
           this->GetSession()->SendMessage(destination, std::move(packet));
@@ -462,7 +463,7 @@ void vtkSMProxy::UpdateVTKObjects()
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp, vtkTypeUInt32 destination)
+bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp, vtkTypeUInt32 destinationMask)
 {
   auto& internals = (*this->Internals);
   state["group"] = this->XMLGroup;
@@ -480,7 +481,7 @@ bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp, vtkTypeUInt32 d
     }
 
     // skip properties not associated with this destination
-    if(property->GetLocation() & destination)
+    if (property->GetLocation() & destinationMask)
     {
       vtkNJson propertyState;
       if (property->SaveState(propertyState))
