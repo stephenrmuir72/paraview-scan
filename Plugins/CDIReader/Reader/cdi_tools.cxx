@@ -1,3 +1,18 @@
+/*=========================================================================
+ *
+ *  Program:   Visualization Toolkit
+ *  Module:    cdi_tools.cxx
+ *
+ *  Copyright (c) 2018 Niklas Roeber, DKRZ Hamburg
+ *  All rights reserved.
+ *  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+ *
+ *     This software is distributed WITHOUT ANY WARRANTY; without even
+ *     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *     PURPOSE.  See the above copyright notice for more information.
+ *
+ *  =========================================================================*/
+
 #include "cdi_tools.h"
 #include "vtk_netcdf.h"
 #include "vtksys/SystemTools.hxx"

@@ -1,4 +1,3 @@
-// -*- c++ -*-
 /*=========================================================================
  *
  *  Program:   Visualization Toolkit
@@ -13,31 +12,31 @@
  *     PURPOSE.  See the above copyright notice for more information.
  *
  *  =========================================================================*/
-// .NAME vtkCDIReader - reads ICON/CDI netCDF data sets
-// .SECTION Description
-// vtkCDIReader is based on the vtk MPAS netCDF reader developed by
-// Christine Ahrens (cahrens@lanl.gov). The plugin reads all ICON/CDI
-// netCDF data sets with point and cell variables, both 2D and 3D. It allows
-// spherical (standard), as well as equidistant cylindrical and Cassini projection.
-// 3D data can be visualized using slices, as well as 3D unstructured mesh. If
-// bathymetry information (wet_c) is present in the data, this can be used for
-// masking out continents. For more information, also check out our ParaView tutorial:
-// https://www.dkrz.de/Nutzerportal-en/doku/vis/sw/paraview
-//
-// .SECTION Caveats
-// The integrated visualization of performance data is not yet fully developed
-// and documented. If interested in using it, see the following presentation
-// https://www.dkrz.de/about/media/galerie/Vis/performance/perf-vis
-// and/or contact Niklas Roeber at roeber@dkrz.de
-//
-// .SECTION Thanks
-// Thanks to Uwe Schulzweida for the CDI code (uwe.schulzweida@mpimet.mpg.de)
-// Thanks to Moritz Hanke for the sorting code (hanke@dkrz.de)
 
-// Test
-// Correct Plotting 3D, Wrapping
-// Parallel Visualization of Cell Data
-// Visualization of other Grids, Point, Edge etc.
+/**
+ *
+ * @class vtkCDIReader
+ * @brief reads ICON/CDI netCDF data sets
+ *
+ * vtkCDIReader is based on the vtk MPAS netCDF reader developed by
+ * Christine Ahrens (cahrens@lanl.gov). The plugin reads all ICON/CDI
+ * netCDF data sets with point and cell variables, both 2D and 3D. It allows
+ * spherical (standard), as well as equidistant cylindrical and Cassini projection.
+ * 3D data can be visualized using slices, as well as 3D unstructured mesh. If
+ * bathymetry information (wet_c) is present in the data, this can be used for
+ * masking out continents. For more information, also check out our ParaView tutorial:
+ * https://www.dkrz.de/Nutzerportal-en/doku/vis/sw/paraview
+ *
+ * @section caveats Caveats
+ * The integrated visualization of performance data is not yet fully developed
+ * and documented. If interested in using it, see the following presentation
+ * https://www.dkrz.de/about/media/galerie/Vis/performance/perf-vis
+ * and/or contact Niklas Roeber at roeber@dkrz.de
+ *
+ * @section thanks Thanks
+ * Thanks to Uwe Schulzweida for the CDI code (uwe.schulzweida@mpimet.mpg.de)
+ * Thanks to Moritz Hanke for the sorting code (hanke@dkrz.de)
+ */
 
 #ifndef vtkCDIReader_h
 #define vtkCDIReader_h

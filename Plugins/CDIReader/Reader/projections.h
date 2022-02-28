@@ -1,3 +1,17 @@
+/*=========================================================================
+ *
+ *  Program:   Visualization Toolkit
+ *  Module:    projections.h
+ *
+ *  Copyright (c) 2018 Niklas Roeber, DKRZ Hamburg
+ *  All rights reserved.
+ *  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+ *
+ *     This software is distributed WITHOUT ANY WARRANTY; without even
+ *     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *     PURPOSE.  See the above copyright notice for more information.
+ *
+ *  =========================================================================*/
 #ifndef CDI_READER_PROJECTIONS_
 #define CDI_READER_PROJECTIONS_
 
