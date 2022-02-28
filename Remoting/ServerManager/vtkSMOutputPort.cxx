@@ -223,34 +223,11 @@ void vtkSMOutputPort::PipelineUpdated()
 {
   // This is called when the VTK algorithm has updated. We simply flag the data
   // information obsolete.
-  this->DataInformation->SetIsObsolete(true);
+  // DataInformation is already updated; see
+  // vtkSMSessionProxyManager::ProcessPiggybackedMessages
+  // this->DataInformation->SetIsObsolete(true);
   this->TemporalDataInformation->SetIsObsolete(true);
   this->SubsetDataInformations.clear();
   this->RankDataInformations.clear();
-
-  auto* producer = this->GetSourceProxy();
-  auto* session = producer->GetSession();
-
-  auto packet =
-    vtkRemoteObjectProvider::GatherInformation(this->DataInformation, producer->GetGlobalID());
-  auto coordination = session->GetCoordination();
-  auto eventual = session->SendRequest(
-    /** FIXME**/ producer->GetLocation(), std::move(packet));
-  eventual.GetObservable().observe_on(coordination).subscribe([this](const vtkPacket& packet) {
-    vtkLogF(INFO, "received updated data information for %s",
-      this->GetSourceProxy()->GetLogNameOrDefault());
-    // Initialize, once we have updated information.
-    this->DataInformation->Initialize();
-    if (vtkRemoteObjectProvider::ParseResponse(packet, this->DataInformation))
-    {
-      this->DataInformation->SetIsObsolete(false);
-      // FIXME: need better named events
-      this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
-      this->GetSourceProxy()->UpdateConsumerDomains();
-    }
-  });
-
-  // Fired since data information has become obsolete.
-  // FIXME: need better named events
   this->InvokeEvent(vtkCommand::UpdateInformationEvent, this);
 }

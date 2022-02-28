@@ -67,11 +67,6 @@ public:
   ///@}
 
   ///@{
-  static const std::string CHANNEL_NOTIFY_UPDATE() { return "notify::update"; }
-  static std::vector<vtkTypeUInt32> ParseNotifyUpdate(const vtkPacket& packet);
-  ///@}
-
-  ///@{
   struct vtkProgressItem
   {
     std::string Message;

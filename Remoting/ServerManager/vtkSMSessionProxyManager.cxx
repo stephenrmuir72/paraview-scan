@@ -35,6 +35,8 @@
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSourceProxy.h"
 // #include "vtkSMSettingsProxy.h"
+#include "vtkPVDataInformation.h"
+#include "vtkSMOutputPort.h"
 #include "vtkSMStateLoader.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringList.h"
@@ -1244,10 +1246,28 @@ vtkProxyDefinitionManager* vtkSMSessionProxyManager::GetProxyDefinitionManager()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMSessionProxyManager::MarkPipelineUpdated(vtkSMProxy* proxy) const
+void vtkSMSessionProxyManager::ProcessPiggybackedMessages(const vtkNJson& json)
 {
-  if (auto* sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy))
+  const bool hasDataInformation = json.count("pb_data_informations") > 0;
+  if (!hasDataInformation)
   {
-    sourceProxy->PipelineUpdated();
+    return;
+  }
+
+  for (const auto& el : json["pb_data_informations"].items())
+  {
+    const auto gid = static_cast<vtkTypeUInt32>(std::stoi(el.key()));
+    if (auto* proxy = vtkSMSourceProxy::SafeDownCast(this->FindProxy(gid)))
+    {
+      for (unsigned int idx = 0; idx < proxy->GetNumberOfOutputPorts(); ++idx)
+      {
+        auto* port = proxy->GetOutputPort(idx);
+        auto* dinfo = port->GetDataInformation();
+        dinfo->Initialize();
+        vtkRemoteObjectProvider::ParseResponse(el.value().at(idx), dinfo);
+        dinfo->SetIsObsolete(false);
+      }
+      proxy->PipelineUpdated();
+    }
   }
 }

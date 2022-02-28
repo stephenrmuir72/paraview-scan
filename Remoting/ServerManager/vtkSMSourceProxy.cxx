@@ -296,30 +296,22 @@ rxcpp::observable<bool> vtkSMSourceProxy::UpdatePipeline(double time)
   auto subscriber = internals.UpdatePipelineSubject.get_subscriber();
   auto packet = vtkRemoteObjectProvider::UpdatePipeline(this->GetGlobalID(), time);
   auto eventual = session->SendRequest(this->GetLocation(), std::move(packet));
-  eventual.GetObservable().subscribe([this, subscriber, tag](const vtkPacket& reply) {
-    vtkLogF(INFO, "handle UpdatePipeline response");
+  eventual.GetObservable()
+    .observe_on(session->GetCoordination())
+    .subscribe([this, subscriber, tag](const vtkPacket& reply) {
+      vtkLogF(INFO, "handle UpdatePipeline response");
 
-    const auto& json = reply.GetJSON();
-    const bool status = json.at("status").get<bool>();
-    const bool hasDataInformation = json.count("data_information") > 0;
-    // update data information.
-    for (int cc = 0; hasDataInformation && cc < this->GetNumberOfOutputPorts(); ++cc)
-    {
-      auto* port = this->GetOutputPort(cc);
-      auto* dinfo = port->GetDataInformation();
-      dinfo->Initialize();
-      dinfo->SetIsObsolete(false);
-      vtkRemoteObjectProvider::ParseResponse(json["data_information"].at(cc), dinfo);
-    }
-    subscriber.on_next(std::make_pair(tag, status));
-  });
+      const auto& json = reply.GetJSON();
+      const bool status = json.at("status").get<bool>();
+      this->GetSessionProxyManager()->ProcessPiggybackedMessages(json);
+      subscriber.on_next(std::make_pair(tag, status));
+    });
 
   auto coordination = session->GetCoordination();
   return internals.UpdatePipelineSubject.get_observable()
     .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
     .take(1)
-    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; })
-    .observe_on(coordination);
+    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; });
 }
 
 //---------------------------------------------------------------------------
@@ -469,6 +461,8 @@ void vtkSMSourceProxy::PipelineUpdated()
 
   // Notify the world that this algorithm has re-executed.
   this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
+
+  this->UpdateConsumerDomains();
 }
 
 //---------------------------------------------------------------------------
