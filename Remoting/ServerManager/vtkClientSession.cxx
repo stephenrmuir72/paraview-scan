@@ -25,6 +25,7 @@
 #include "vtkServiceEndpoint.h"
 #include "vtkServicesEngine.h"
 #include "vtkSmartPointer.h"
+#include "vtkType.h"
 
 #include <cassert>
 
@@ -82,6 +83,11 @@ void vtkClientSession::vtkInternals::InitializeSession(vtkClientSession* self)
 }
 
 //============================================================================
+const std::initializer_list<vtkTypeUInt32> vtkClientSession::ServiceTypeList = {
+  vtkClientSession::DATA_SERVER, vtkClientSession::RENDER_SERVER, vtkClientSession::CLIENT
+};
+
+//----------------------------------------------------------------------------
 vtkObjectFactoryNewMacro(vtkClientSession);
 //----------------------------------------------------------------------------
 vtkClientSession::vtkClientSession()

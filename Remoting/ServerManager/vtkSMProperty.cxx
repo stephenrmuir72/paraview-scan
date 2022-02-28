@@ -15,6 +15,7 @@
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyInternals.h"
 
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
 #include "vtkNJson.h"
 #include "vtkObjectFactory.h"
@@ -66,6 +67,9 @@ vtkSMProperty::vtkSMProperty()
   this->PendingModifiedEvents = false;
 
   this->Proxy = nullptr;
+
+  this->Location =
+    (vtkClientSession::DATA_SERVER | vtkClientSession::RENDER_SERVER | vtkClientSession::CLIENT);
 
   // Whenever the property fires UncheckedPropertyModifiedEvent, we update any
   // dependent domains.
@@ -547,6 +551,27 @@ int vtkSMProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElement* element
     {
       vtkErrorMacro("Could not create a vtkSMDomain subclasses of type " << name.str());
     }
+  }
+
+  const char* processes = element->GetAttribute("processes");
+  if (processes)
+  {
+
+    vtkTypeUInt32 uiprocesses = 0;
+    const std::string strprocesses = processes;
+    if (strprocesses.find("client") != std::string::npos)
+    {
+      uiprocesses |= vtkClientSession::CLIENT;
+    }
+    if (strprocesses.find("renderserver") != std::string::npos)
+    {
+      uiprocesses |= vtkClientSession::RENDER_SERVER;
+    }
+    if (strprocesses.find("dataserver") != std::string::npos)
+    {
+      uiprocesses |= vtkClientSession::DATA_SERVER;
+    }
+    this->Location = uiprocesses;
   }
 
   return 1;
