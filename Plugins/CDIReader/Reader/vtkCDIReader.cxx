@@ -45,14 +45,14 @@ constexpr static int MAX_VARS = 100;
 
 struct Point
 {
-  double lon;
-  double lat;
+  double Lon;
+  double Lat;
 };
 
 struct PointWithIndex
 {
-  Point p;
-  int i;
+  Point Pt;
+  int Idx;
 };
 
 //----------------------------------------------------------------------------
@@ -124,16 +124,16 @@ int ComparePointWithIndex(const void* a, const void* b)
   const struct PointWithIndex* b_ = (struct PointWithIndex*)b;
   double threshold = 1e-22;
 
-  int lon_diff = fabs(a_->p.lon - b_->p.lon) > threshold;
+  int lon_diff = fabs(a_->Pt.Lon - b_->Pt.Lon) > threshold;
   if (lon_diff)
   {
-    return (a_->p.lon > b_->p.lon) ? -1 : 1;
+    return (a_->Pt.Lon > b_->Pt.Lon) ? -1 : 1;
   }
 
-  int lat_diff = fabs(a_->p.lat - b_->p.lat) > threshold;
+  int lat_diff = fabs(a_->Pt.Lat - b_->Pt.Lat) > threshold;
   if (lat_diff)
   {
-    return (a_->p.lat > b_->p.lat) ? -1 : 1;
+    return (a_->Pt.Lat > b_->Pt.Lat) ? -1 : 1;
   }
   return 0;
 }
@@ -206,12 +206,6 @@ void vtkCDIReader::DestroyData()
 
   this->DomainVarDataArray->Initialize();
 
-  if (this->ReconstructNew)
-  {
-    delete[] this->PointVarData;
-    this->PointVarData = nullptr;
-  }
-
   vtkDebugMacro("Out DestroyData...");
 }
 
@@ -230,9 +224,6 @@ vtkCDIReader::~vtkCDIReader()
   }
 
   this->DestroyData();
-
-  delete[] this->DomainMask;
-  this->DomainMask = nullptr;
 
   vtkDebugMacro("Destructing other stuff...");
   this->PointDataArraySelection->RemoveObserver(this->SelectionObserver);
@@ -764,7 +755,6 @@ void vtkCDIReader::SetDefaults()
   this->TimeSet = false;
 
   this->DTime = 0;
-  this->PointVarData = nullptr;
   this->FileSeriesNumber = 0;
   this->NumberOfFiles = 1;
   this->NeedHorizontalGridFile = false;
@@ -778,12 +768,6 @@ void vtkCDIReader::SetDefaults()
   this->MaximumPoints = 0;
   this->MaximumCells = 0;
   this->DepthVar = nullptr;
-
-  this->DomainMask = new int[MAX_VARS];
-  for (int i = 0; i < MAX_VARS; i++)
-  {
-    this->DomainMask[i] = 0;
-  }
 
   this->NumberOfPoints = 0;
 }
@@ -1329,10 +1313,6 @@ int vtkCDIReader::ReadAndOutputGrid(bool init)
   this->OutputPoints(init);
   this->OutputCells(init);
 
-  // Allocate the data arrays which will hold the NetCDF var data
-  vtkDebugMacro("pointVarData: Alloc " << this->MaximumPoints << " doubles");
-  delete[] this->PointVarData;
-  this->PointVarData = new double[this->MaximumPoints];
   vtkDebugMacro("Leaving vtkCDIReader::ReadAndOutputGrid");
 
   return 1;
@@ -1382,25 +1362,25 @@ void vtkCDIReader::RemoveDuplicates(
       curr_lon = 0.0;
     }
 
-    sort_array[i].p.lon = curr_lon;
-    sort_array[i].p.lat = curr_lat;
-    sort_array[i].i = i;
+    sort_array[i].Pt.Lon = curr_lon;
+    sort_array[i].Pt.Lat = curr_lat;
+    sort_array[i].Idx = i;
   }
 
   qsort(sort_array, temp_nbr_vertices, sizeof(*sort_array), ::ComparePointWithIndex);
-  triangle_list[sort_array[0].i] = 1;
+  triangle_list[sort_array[0].Idx] = 1;
 
-  int last_unique_idx = sort_array[0].i;
+  int last_unique_idx = sort_array[0].Idx;
   for (int i = 1; i < temp_nbr_vertices; ++i)
   {
     if (::ComparePointWithIndex(sort_array + i - 1, sort_array + i))
     {
-      triangle_list[sort_array[i].i] = 1;
-      last_unique_idx = sort_array[i].i;
+      triangle_list[sort_array[i].Idx] = 1;
+      last_unique_idx = sort_array[i].Idx;
     }
     else
     {
-      triangle_list[sort_array[i].i] = -last_unique_idx;
+      triangle_list[sort_array[i].Idx] = -last_unique_idx;
     }
   }
 
@@ -1446,18 +1426,23 @@ int vtkCDIReader::ConstructGridGeometry()
 
   int size = this->NumberLocalCells * this->PointsPerCell;
   int size2 = this->NumberAllCells * this->PointsPerCell;
-  this->CLonVertices = new double[size];
-  this->CLatVertices = new double[size];
+  std::vector<double> cLonVertices;
+  std::vector<double> cLatVertices;
+  if (size > cLonVertices.max_size())
+  {
+    vtkErrorMacro("Too many points to construct geometry.");
+    return 0;
+  }
+  cLonVertices.resize(size);
+  cLatVertices.resize(size);
   this->DepthVar = new double[this->MaximumNVertLevels];
-  CHECK_NEW(this->CLonVertices);
-  CHECK_NEW(this->CLatVertices);
   CHECK_NEW(this->DepthVar);
 
   vtkDebugMacro("Start reading Vertices");
   gridInqXboundsPart(
-    this->GridID, (this->BeginCell * this->PointsPerCell), size, this->CLonVertices);
+    this->GridID, (this->BeginCell * this->PointsPerCell), size, cLonVertices.data());
   gridInqYboundsPart(
-    this->GridID, (this->BeginCell * this->PointsPerCell), size, this->CLatVertices);
+    this->GridID, (this->BeginCell * this->PointsPerCell), size, cLatVertices.data());
   vtkDebugMacro("Done reading Vertices");
   zaxisInqLevels(this->ZAxisID, this->DepthVar);
   char units[CDI_MAX_NAME];
@@ -1471,7 +1456,7 @@ int vtkCDIReader::ConstructGridGeometry()
     {
       for (int i = 0; i < size; i++)
       {
-        this->CLonVertices[i] = vtkMath::RadiansFromDegrees(this->CLonVertices[i]);
+        cLonVertices[i] = vtkMath::RadiansFromDegrees(cLonVertices[i]);
       }
     }
     gridInqYunits(this->GridID, units);
@@ -1479,14 +1464,14 @@ int vtkCDIReader::ConstructGridGeometry()
     {
       for (int i = 0; i < size; i++)
       {
-        this->CLatVertices[i] = vtkMath::RadiansFromDegrees(this->CLatVertices[i]);
+        cLatVertices[i] = vtkMath::RadiansFromDegrees(cLatVertices[i]);
       }
     }
   }
 
   // check for duplicates in the Point list and update the triangle list
   this->RemoveDuplicates(
-    this->CLonVertices, this->CLatVertices, size, &this->OrigConnections[0], new_cells);
+    cLonVertices.data(), cLatVertices.data(), size, &this->OrigConnections[0], new_cells);
   this->NumberLocalCells = floor(new_cells[0] / this->PointsPerCell);
   this->NumberLocalPoints = new_cells[1];
   if (this->NumberOfPoints and this->NumberOfPoints != new_cells[1])
@@ -1508,8 +1493,8 @@ int vtkCDIReader::ConstructGridGeometry()
   // now get the individual coordinates out of the clon/clat vertices
   for (int i = 0; i < this->NumberLocalPoints; i++)
   {
-    projection::longLatToCartesian(this->CLonVertices[i], this->CLatVertices[i], &PointX[i],
-      &PointY[i], &PointZ[i], this->ProjectionMode);
+    projection::longLatToCartesian(
+      cLonVertices[i], cLatVertices[i], &PointX[i], &PointY[i], &PointZ[i], this->ProjectionMode);
   }
 
   // mirror the mesh if needed
@@ -1522,8 +1507,13 @@ int vtkCDIReader::ConstructGridGeometry()
 
   // if we run with data decomposition, we need to know the mapping of points
   this->VertexIds.resize(size);
-  int* vertex_ids2 = new int[size2];
-  CHECK_NEW(vertex_ids2);
+  std::vector<int> vertex_ids2;
+  if (size2 > vertex_ids2.max_size())
+  {
+    vtkErrorMacro("Too many points to construct geometry.");
+    return 0;
+  }
+  vertex_ids2.resize(size2);
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
   if (this->Decomposition)
   {
@@ -1554,15 +1544,15 @@ int vtkCDIReader::ConstructGridGeometry()
         }
       }
 
-      this->RemoveDuplicates(clon_vert2, clat_vert2, size2, vertex_ids2, new_cells2);
+      this->RemoveDuplicates(clon_vert2, clat_vert2, size2, vertex_ids2.data(), new_cells2);
       for (int i = 1; i < this->NumPieces; i++)
       {
-        this->Controller->Send(vertex_ids2, size2, i, 101);
+        this->Controller->Send(vertex_ids2.data(), size2, i, 101);
       }
     }
     else
     {
-      this->Controller->Receive(vertex_ids2, size2, 0, 101);
+      this->Controller->Receive(vertex_ids2.data(), size2, 0, 101);
 
       for (int i = this->BeginPoint; i < (this->EndPoint + 1); i++)
       {
@@ -1577,11 +1567,8 @@ int vtkCDIReader::ConstructGridGeometry()
   this->CurrentExtraPoint = this->NumberLocalPoints;
   this->CurrentExtraCell = this->NumberLocalCells;
 
-  delete[] this->CLonVertices;
-  delete[] this->CLatVertices;
-  this->CLonVertices = nullptr;
-  this->CLatVertices = nullptr;
-  delete[] vertex_ids2;
+  cLonVertices.clear();
+  cLatVertices.clear();
   vtkDebugMacro("Grid Reconstruction complete...");
   return 1;
 }
@@ -3070,11 +3057,6 @@ int vtkCDIReader::LoadDomainVarData(int variableIndex)
     vtksys::ifstream file(filename.c_str());
     std::string str, word;
     double temp[1];
-
-    for (int j = 0; j < this->DomainMask[variableIndex]; j++)
-    {
-      getline(file, str);
-    }
 
     getline(file, str);
     std::stringstream ss(str);

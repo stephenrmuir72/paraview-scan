@@ -270,7 +270,6 @@ protected:
   std::string FileNameGridSelect;
   std::string FileSeriesFirstName;
   std::string MaskingVarname;
-  int* VariableType;
   int NumberOfTimeSteps;
   int NumberOfAllTimeSteps;
   std::vector<int> TimeSeriesTimeSteps;
@@ -340,8 +339,6 @@ protected:
   bool NeedVerticalGridFile;
   bool WrapOn;
 
-  double* CLonVertices;
-  double* CLatVertices;
   std::vector<double> CLon;
   std::vector<double> CLat;
   double* DepthVar;
@@ -351,7 +348,6 @@ protected:
   std::vector<int> OrigConnections;
   std::vector<int> ModConnections;
   std::vector<bool> CellMask;
-  int* DomainMask;
   double* DomainCellVar;
   int MaximumCells;
   int MaximumPoints;
@@ -360,7 +356,6 @@ protected:
   int NumberOfCellVars;
   int NumberOfPointVars;
   int NumberOfDomainVars;
-  double* PointVarData;
   bool GridReconstructed;
 
   int StreamID;
