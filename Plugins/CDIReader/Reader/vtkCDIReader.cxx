@@ -1519,8 +1519,8 @@ int vtkCDIReader::ConstructGridGeometry()
   // now get the individual coordinates out of the clon/clat vertices
   for (int i = 0; i < this->NumberLocalPoints; i++)
   {
-    projection::lLtoXYZ(this->CLonVertices[i], this->CLatVertices[i], &PointX[i], &PointY[i],
-      &PointZ[i], this->ProjectionMode);
+    projection::longLatToCartesian(this->CLonVertices[i], this->CLatVertices[i], &PointX[i],
+      &PointY[i], &PointZ[i], this->ProjectionMode);
   }
 
   // mirror the mesh if needed

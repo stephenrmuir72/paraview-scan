@@ -20,6 +20,103 @@
 
 namespace projection
 {
+
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
+#ifndef RSQRT2
+#define RSQRT2 0.7071067811865475244008443620
+#endif
+
+namespace details
+{
+//----------------------------------------------------------------------------
+inline double iterate_theta(const double vtkNotUsed(lon), const double lat, const double theta)
+{
+  const double pi = vtkMath::Pi();
+  return theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
+}
+
+//----------------------------------------------------------------------------
+inline double get_theta(const double lon, const double lat)
+{
+  double theta = lat;
+  const double pi = vtkMath::Pi();
+  if (lat == pi / 2.)
+    return pi / 2;
+  else if (lat == -pi / 2.)
+    return -pi / 2;
+
+  for (int i = 0; i < 5; i++)
+    theta = details::iterate_theta(lon, lat, theta);
+  return theta;
+}
+
+//----------------------------------------------------------------------------
+double aasin(double v)
+{
+  double av;
+
+  if ((av = fabs(v)) >= 1.)
+  {
+    return (v < 0. ? -M_PI_2 : M_PI_2);
+  }
+  return asin(v);
+}
+
+//----------------------------------------------------------------------------
+double aacos(double v)
+{
+  double av;
+
+  if ((av = fabs(v)) >= 1.)
+  {
+    return (v < 0. ? M_PI : 0.);
+  }
+  return acos(v);
+}
+
+//----------------------------------------------------------------------------
+void crossProduct(double vect_A[], double vect_B[], double cross_P[])
+{
+  cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
+  cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
+  cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
+}
+
+//----------------------------------------------------------------------------
+double dotProduct(double vect_A[], double vect_B[])
+{
+  double product = 0;
+  for (int i = 0; i < 3; i++)
+    product = product + vect_A[i] * vect_B[i];
+
+  return product;
+}
+
+//----------------------------------------------------------------------------
+void rotateVec(double v[], double r[])
+{
+  double theta = 1.0472;
+  double cos_theta = cos(theta);
+  double sin_theta = sin(theta);
+
+  double k[3], p[3];
+
+  k[0] = cos(3.57792);
+  k[1] = sin(3.57792);
+  k[2] = 0.0;
+
+  details::crossProduct(k, v, p);
+  double dot = details::dotProduct(k, v);
+
+  r[0] = (v[0] * cos_theta) + (p[0] * sin_theta) + (k[0] * dot) * (1 - cos_theta);
+  r[1] = (v[1] * cos_theta) + (p[1] * sin_theta) + (k[1] * dot) * (1 - cos_theta);
+  r[2] = (v[2] * cos_theta) + (p[2] * sin_theta) + (k[2] * dot) * (1 - cos_theta);
+}
+
+};
+
 //----------------------------------------------------------------------------
 int cartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta)
 {
@@ -56,35 +153,6 @@ int sphericalToCartesian(double rho, double phi, double theta, double* x, double
   return 0;
 }
 
-//----------------------------------------------------------------------------
-inline double iterate_theta(const double vtkNotUsed(lon), const double lat, const double theta)
-{
-  const double pi = vtkMath::Pi();
-  return theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
-}
-
-//----------------------------------------------------------------------------
-inline double get_theta(const double lon, const double lat)
-{
-  double theta = lat;
-  const double pi = vtkMath::Pi();
-  if (lat == pi / 2.)
-    return pi / 2;
-  else if (lat == -pi / 2.)
-    return -pi / 2;
-
-  for (int i = 0; i < 5; i++)
-    theta = iterate_theta(lon, lat, theta);
-  return theta;
-}
-
-#ifndef M_PI_2
-#define M_PI_2 1.57079632679489661923
-#endif
-#ifndef RSQRT2
-#define RSQRT2 0.7071067811865475244008443620
-#endif
-
 double ell_int_5(double phi)
 {
   /* Procedure to compute elliptic integral of the first kind
@@ -118,66 +186,8 @@ double ell_int_5(double phi)
   return phi * (y * d1 - d2 + 0.5 * C0);
 }
 
-double aasin(double v)
-{
-  double av;
-
-  if ((av = fabs(v)) >= 1.)
-  {
-    return (v < 0. ? -M_PI_2 : M_PI_2);
-  }
-  return asin(v);
-}
-
-double aacos(double v)
-{
-  double av;
-
-  if ((av = fabs(v)) >= 1.)
-  {
-    return (v < 0. ? M_PI : 0.);
-  }
-  return acos(v);
-}
-
-void crossProduct(double vect_A[], double vect_B[], double cross_P[])
-{
-  cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
-  cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
-  cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
-}
-
-double dotProduct(double vect_A[], double vect_B[])
-{
-  double product = 0;
-  for (int i = 0; i < 3; i++)
-    product = product + vect_A[i] * vect_B[i];
-
-  return product;
-}
-
-void rotateVec(double v[], double r[])
-{
-  double theta = 1.0472;
-  double cos_theta = cos(theta);
-  double sin_theta = sin(theta);
-
-  double k[3], p[3];
-
-  k[0] = cos(3.57792);
-  k[1] = sin(3.57792);
-  k[2] = 0.0;
-
-  crossProduct(k, v, p);
-  double dot = dotProduct(k, v);
-
-  r[0] = (v[0] * cos_theta) + (p[0] * sin_theta) + (k[0] * dot) * (1 - cos_theta);
-  r[1] = (v[1] * cos_theta) + (p[1] * sin_theta) + (k[1] * dot) * (1 - cos_theta);
-  r[2] = (v[2] * cos_theta) + (p[2] * sin_theta) + (k[2] * dot) * (1 - cos_theta);
-}
-
 //----------------------------------------------------------------------------
-int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode)
+int longLatToCartesian(double lon, double lat, double* x, double* y, double* z, int projectionMode)
 {
   double tx = 0.0;
   double ty = 0.0;
@@ -204,7 +214,7 @@ int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
   }
   else if (projectionMode == 3) // Mollweide
   {
-    const double theta = get_theta(lon, lat);
+    const double theta = details::get_theta(lon, lat);
     tx = (2 * sqrt(2) / vtkMath::Pi()) * lon * cos(theta);
     ty = sqrt(2) * sin(theta);
     tz = 0.0;
@@ -229,7 +239,7 @@ int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
     v[1] = sin(lat) * sin(lon);
     v[2] = cos(lat);
 
-    rotateVec(v, p);
+    details::rotateVec(v, p);
     double lon_rot, lat_rot, radius;
     (void)cartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
     lon_rot -= 1.536194408171;
@@ -242,17 +252,17 @@ int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
     bool sm = false, sn = false;
 
     const double spp = tan(0.5 * lat_rot);
-    a = cos(aasin(spp)) * sin(0.5 * lon_rot);
+    a = cos(details::aasin(spp)) * sin(0.5 * lon_rot);
     sm = (spp + a) < 0.;
     sn = (spp - a) < 0.;
-    b = aacos(spp);
-    a = aacos(a);
+    b = details::aacos(spp);
+    a = details::aacos(a);
 
-    double m = aasin(sqrt((1. + std::min(0.0, cos(a + b)))));
+    double m = details::aasin(sqrt((1. + std::min(0.0, cos(a + b)))));
     if (sm)
       m = -m;
 
-    double n = aasin(sqrt(fabs(1. - std::max(0.0, cos(a - b)))));
+    double n = details::aasin(sqrt(fabs(1. - std::max(0.0, cos(a - b)))));
     if (sn)
       n = -n;
 

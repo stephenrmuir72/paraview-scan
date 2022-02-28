@@ -46,25 +46,8 @@ int sphericalToCartesian(double rho, double phi, double theta, double* x, double
 /**
  * Function to convert lon/lat coordinates to cartesian
  */
-int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode);
+int longLatToCartesian(double lon, double lat, double* x, double* y, double* z, int projectionMode);
 
-/**
- * Compute mollweide projection theta
- * https://en.wikipedia.org/wiki/Mollweide_projection
- */
-double iterate_theta(const double lon, const double lat, const double theta);
-
-double get_theta(const double lon, const double lat);
-
-double aasin(double v);
-
-double aacos(double v);
-
-void crossProduct(double vect_A[], double vect_B[], double cross_P[]);
-
-double dotProduct(double vect_A[], double vect_B[]);
-
-void rotateVec(double v[], double r[]);
 }; // end of namespace projection
 
 #endif /* CDI_READER_PROJECTIONS_ */

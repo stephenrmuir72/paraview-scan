@@ -17,27 +17,9 @@
 #include "vtk_netcdf.h"
 #include "vtksys/SystemTools.hxx"
 
-#include "cdi.h"
-
 #include <cstring>
 
-namespace cdi_tools
-{
-std::string GuessGridFileFromUri(const std::string& FileName)
-{
-  std::string guess;
-  // NETCDF-CALL:
-  std::string uri_filename =
-    vtksys::SystemTools::GetFilenameName(get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
-  if (!uri_filename.empty())
-  {
-    std::string dir = vtksys::SystemTools::GetParentDirectory(FileName);
-    // guess = vtksys::SystemTools::JoinPath({dir, uri_filename});
-    guess = dir + "/" + uri_filename;
-  }
-  return guess;
-}
-
+//----------------------------------------------------------------------------
 std::string get_att_str(const std::string& filename, const std::string& var, const std::string& att)
 {
   std::string result;
@@ -68,6 +50,25 @@ std::string get_att_str(const std::string& filename, const std::string& var, con
   return result;
 }
 
+namespace cdi_tools
+{
+//----------------------------------------------------------------------------
+std::string GuessGridFileFromUri(const std::string& FileName)
+{
+  std::string guess;
+  // NETCDF-CALL:
+  std::string uri_filename =
+    vtksys::SystemTools::GetFilenameName(::get_att_str(FileName, "NC_GLOBAL", "grid_file_uri"));
+  if (!uri_filename.empty())
+  {
+    std::string dir = vtksys::SystemTools::GetParentDirectory(FileName);
+    // guess = vtksys::SystemTools::JoinPath({dir, uri_filename});
+    guess = dir + "/" + uri_filename;
+  }
+  return guess;
+}
+
+//----------------------------------------------------------------------------
 std::string ParseTimeUnits(const int& vdate, const int& vtime)
 {
   std::string date = std::to_string(vdate);
@@ -102,6 +103,7 @@ std::string ParseTimeUnits(const int& vdate, const int& vtime)
   return time_units;
 }
 
+//----------------------------------------------------------------------------
 std::string ParseCalendar(const int& calendar)
 {
   std::string calendar_name;
@@ -141,23 +143,18 @@ void cdi_set_cur(CDIVar* cdiVar, int Timestep, int level)
   cdiVar->LevelID = level;
 }
 
-// These pass on to CDI functions where function overloading is broken due to F interface stuff, or
-// so.
 void readslice(int streamID, int varID, int levelID, double data[], SizeType* nmiss)
 {
   streamReadVarSlice(streamID, varID, levelID, data, nmiss);
 }
-
 void readslice(int streamID, int varID, int levelID, float data[], SizeType* nmiss)
 {
   streamReadVarSliceF(streamID, varID, levelID, data, nmiss);
 }
-
 void readvar(int streamID, int varID, double data[], SizeType* nmiss)
 {
   streamReadVar(streamID, varID, data, nmiss);
 }
-
 void readvar(int streamID, int varID, float data[], SizeType* nmiss)
 {
   streamReadVarF(streamID, varID, data, nmiss);
