@@ -317,7 +317,7 @@ protected:
   int DimensionSelection;
   bool InvertZAxis;
   bool AddCoordinateVars;
-  projection ProjectionMode;
+  projection::Projection ProjectionMode;
   bool DoublePrecision;
   bool ShowClonClat;
   bool ShowMultilayerView;

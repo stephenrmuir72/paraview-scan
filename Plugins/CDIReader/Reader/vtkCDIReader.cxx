@@ -1519,12 +1519,12 @@ int vtkCDIReader::ConstructGridGeometry()
   // now get the individual coordinates out of the clon/clat vertices
   for (int i = 0; i < this->NumberLocalPoints; i++)
   {
-    ::LLtoXYZ(this->CLonVertices[i], this->CLatVertices[i], &PointX[i], &PointY[i], &PointZ[i],
-      this->ProjectionMode);
+    projection::lLtoXYZ(this->CLonVertices[i], this->CLatVertices[i], &PointX[i], &PointY[i],
+      &PointZ[i], this->ProjectionMode);
   }
 
   // mirror the mesh if needed
-  if (ProjectionMode == SPHERICAL)
+  if (this->ProjectionMode == projection::SPHERICAL)
   {
     this->MirrorMesh();
   }
@@ -2313,9 +2313,9 @@ void vtkCDIReader::OutputPoints(bool init)
       {
         if ((x != 0.0) || (y != 0.0) || (z != 0.0))
         {
-          retval = ::CartesianToSpherical(x, y, z, &rho, &phi, &theta);
+          retval = projection::cartesianToSpherical(x, y, z, &rho, &phi, &theta);
           if (!retval)
-            retval = ::SphericalToCartesian(
+            retval = projection::sphericalToCartesian(
               rho + this->Layer0Offset * adjustedLayerThickness, phi, theta, &x, &y, &z);
         }
       }
@@ -2339,7 +2339,7 @@ void vtkCDIReader::OutputPoints(bool init)
           if (!retval && ((x != 0.0) || (y != 0.0) || (z != 0.0)))
           {
             rholevel = rho - (adjustedLayerThickness * this->DepthVar[levelNum]);
-            retval = ::SphericalToCartesian(rholevel, phi, theta, &x, &y, &z);
+            retval = projection::sphericalToCartesian(rholevel, phi, theta, &x, &y, &z);
           }
         }
         else if (this->ProjectionMode == projection::CATALYST)
@@ -3505,13 +3505,13 @@ void vtkCDIReader::SetProjection(int val)
 {
   if (this->ProjectionMode != val)
   {
-    if (!isproj(val))
+    if (!projection::isproj(val))
     {
       vtkErrorMacro(
         "SetProjection: Can't set ProjectionMode to '" << val << "'. Not a valid projection.");
       return;
     }
-    this->ProjectionMode = projection(val);
+    this->ProjectionMode = projection::Projection(val);
     this->Modified();
     vtkDebugMacro("SetProjection: ProjectionMode to " << this->ProjectionMode);
     this->ReconstructNew = true;

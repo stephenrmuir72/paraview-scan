@@ -18,7 +18,10 @@
 
 #include <cmath>
 
-int CartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta)
+namespace projection
+{
+//----------------------------------------------------------------------------
+int cartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta)
 {
   double trho = sqrt((x * x) + (y * y) + (z * z));
   double ttheta = atan2(y, x);
@@ -36,10 +39,7 @@ int CartesianToSpherical(double x, double y, double z, double* rho, double* phi,
 }
 
 //----------------------------------------------------------------------------
-//  Function to convert spherical coordinates to cartesian, for use in
-//  computing points in different layers of multilayer spherical view
-//----------------------------------------------------------------------------
-int SphericalToCartesian(double rho, double phi, double theta, double* x, double* y, double* z)
+int sphericalToCartesian(double rho, double phi, double theta, double* x, double* y, double* z)
 {
   double tx = rho * sin(phi) * cos(theta);
   double ty = rho * sin(phi) * sin(theta);
@@ -57,16 +57,13 @@ int SphericalToCartesian(double rho, double phi, double theta, double* x, double
 }
 
 //----------------------------------------------------------------------------
-//  Compute mollweide projection theta
-//  https://en.wikipedia.org/wiki/Mollweide_projection
-//----------------------------------------------------------------------------
-
 inline double iterate_theta(const double vtkNotUsed(lon), const double lat, const double theta)
 {
   const double pi = vtkMath::Pi();
   return theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
 }
 
+//----------------------------------------------------------------------------
 inline double get_theta(const double lon, const double lat)
 {
   double theta = lat;
@@ -180,9 +177,7 @@ void rotateVec(double v[], double r[])
 }
 
 //----------------------------------------------------------------------------
-//  Function to convert lon/lat coordinates to cartesian
-//----------------------------------------------------------------------------
-int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode)
+int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode)
 {
   double tx = 0.0;
   double ty = 0.0;
@@ -236,7 +231,7 @@ int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
 
     rotateVec(v, p);
     double lon_rot, lat_rot, radius;
-    (void)CartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
+    (void)cartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
     lon_rot -= 1.536194408171;
     lat_rot -= M_PI_2;
 
@@ -278,19 +273,20 @@ int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int project
   return 1;
 }
 
-void get_scaling(const projection ProjectionMode, const bool ShowMultilayerView,
-  const double VertLev, const double adjustedLayerThickness, double& sx, double& sy, double& sz)
+//----------------------------------------------------------------------------
+void get_scaling(const Projection projectionMode, const bool showMultilayerView,
+  const double vertLev, const double adjustedLayerThickness, double& sx, double& sy, double& sz)
 {
-  switch (ProjectionMode)
+  switch (projectionMode)
   {
     case SPHERICAL:
       sx = 200;
       sy = 200;
-      if (ShowMultilayerView)
+      if (showMultilayerView)
         sz = 200;
       else
       {
-        float scale = adjustedLayerThickness * VertLev;
+        float scale = adjustedLayerThickness * vertLev;
         sz = 200 - scale;
       }
       break;
@@ -321,3 +317,4 @@ void get_scaling(const projection ProjectionMode, const bool ShowMultilayerView,
       break;
   }
 }
+} // end of namespace projection

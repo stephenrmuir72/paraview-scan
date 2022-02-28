@@ -15,7 +15,9 @@
 #ifndef CDI_READER_PROJECTIONS_
 #define CDI_READER_PROJECTIONS_
 
-enum projection
+namespace projection
+{
+enum Projection
 {
   SPHERICAL = 0,
   CYLINDRICAL_EQUIDISTANT = 1,
@@ -27,18 +29,29 @@ enum projection
 
 inline bool isproj(const int p)
 {
-  return p >= projection::SPHERICAL && p <= projection::SPILHOUSE;
+  return p >= Projection::SPHERICAL && p <= Projection::SPILHOUSE;
 }
 
-void get_scaling(const projection ProjectionMode, const bool ShowMultilayerView,
+void get_scaling(const Projection projectionMode, const bool showMultilayerView,
   const double VertLev, const double adjustedLayerThickness, double& sx, double& sy, double& sz);
 
-int CartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta);
+int cartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta);
 
-int SphericalToCartesian(double rho, double phi, double theta, double* x, double* y, double* z);
+/**
+ * Function to convert spherical coordinates to cartesian, for use in
+ * computing points in different layers of multilayer spherical view
+ */
+int sphericalToCartesian(double rho, double phi, double theta, double* x, double* y, double* z);
 
-int LLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode);
+/**
+ * Function to convert lon/lat coordinates to cartesian
+ */
+int lLtoXYZ(double lon, double lat, double* x, double* y, double* z, int projectionMode);
 
+/**
+ * Compute mollweide projection theta
+ * https://en.wikipedia.org/wiki/Mollweide_projection
+ */
 double iterate_theta(const double lon, const double lat, const double theta);
 
 double get_theta(const double lon, const double lat);
@@ -52,5 +65,6 @@ void crossProduct(double vect_A[], double vect_B[], double cross_P[]);
 double dotProduct(double vect_A[], double vect_B[]);
 
 void rotateVec(double v[], double r[]);
+}; // end of namespace projection
 
 #endif /* CDI_READER_PROJECTIONS_ */
