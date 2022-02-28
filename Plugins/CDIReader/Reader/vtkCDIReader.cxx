@@ -199,13 +199,6 @@ void vtkCDIReader::DestroyData()
   vtkDebugMacro("DestroyData...");
   vtkDebugMacro("Destructing double cell var data...");
 
-  // this->Internals->CellVars.clear();
-  // this->Internals->PointVars.clear();
-  /*
-    delete [] this->MaximumLevelPoint;
-    this->MaximumLevelPoint = nullptr;
-    */
-
   this->CellVarDataArray->Initialize();
 
   vtkDebugMacro("Destructing double Point var array...");
@@ -1113,10 +1106,6 @@ int vtkCDIReader::GetVars()
     {
       continue;
     }
-    // if (gridInqType(aVar.GridID) != GRID_UNSTRUCTURED)
-    // {
-    //   continue;
-    // }
 
     vlistInqVarName(this->VListID, varID, aVar.Name);
     aVar.Type = 2;
@@ -2003,7 +1992,6 @@ int vtkCDIReader::AddMirrorPointX(int index, double dividerX, double offset)
     x -= offset;
   }
 
-  //  assert(this->CurrentExtraPoint < this->ModNumPoints);
   this->PointX[this->CurrentExtraPoint] = x;
   this->PointY[this->CurrentExtraPoint] = y;
 
@@ -2037,7 +2025,6 @@ int vtkCDIReader::AddMirrorPointY(int index, double dividerY, double offset)
     y -= offset;
   }
 
-  //  assert(this->CurrentExtraPoint < this->ModNumPoints);
   this->PointX[this->CurrentExtraPoint] = x;
   this->PointY[this->CurrentExtraPoint] = y;
 
@@ -2545,27 +2532,6 @@ void vtkCDIReader::OutputCells(bool init)
     output->GetCellData()->AddArray(this->ClatArray);
   }
 
-  /*
-    if (this->GotMask) // Does not work for bool. Complete shit show, vector<bool> is different and
-    SetArray expects unsigned char for a bit array.
-    {
-      this->maskArray = vtkSmartPointer<vtkIntArray>::New();
-      this->maskArray->SetName("Land/Sea Mask (wet_c)");
-      this->maskArray->SetNumberOfTuples(this->CurrentExtraCell * this->MaximumNVertLevels);
-      if (this->ShowMultilayerView)
-      {
-        this->maskArray->SetArray(this->CellMask, this->CurrentExtraCell * this->MaximumNVertLevels,
-    0, vtkIntArray::VTK_DATA_ARRAY_FREE);
-      }
-      else
-      {
-        this->maskArray->SetArray(this->CellMask, this->CurrentExtraCell, 0,
-    vtkIntArray::VTK_DATA_ARRAY_FREE);
-      }
-      output->GetCellData()->AddArray(this->maskArray);
-    }
-  */
-
   vtkDebugMacro("Leaving OutputCells...");
 }
 
@@ -2841,7 +2807,6 @@ int vtkCDIReader::ReplaceFillWithNan(const int varID, vtkDataArray* dataArray)
     {
 
       float fillValue = miss;
-      //        nc_get_att_float(ncFD, varId, "_FillValue", &fillValue);
       std::replace(reinterpret_cast<float*>(dataArray->GetVoidPointer(0)),
         reinterpret_cast<float*>(dataArray->GetVoidPointer(dataArray->GetNumberOfTuples())),
         fillValue, static_cast<float>(vtkMath::Nan()));
@@ -2849,7 +2814,6 @@ int vtkCDIReader::ReplaceFillWithNan(const int varID, vtkDataArray* dataArray)
     else if (dataArray->GetDataType() == VTK_DOUBLE)
     {
       double fillValue = miss;
-      //        nc_get_att_double(ncFD, varId, "_FillValue", &fillValue);
       std::replace(reinterpret_cast<double*>(dataArray->GetVoidPointer(0)),
         reinterpret_cast<double*>(dataArray->GetVoidPointer(dataArray->GetNumberOfTuples())),
         fillValue, vtkMath::Nan());
