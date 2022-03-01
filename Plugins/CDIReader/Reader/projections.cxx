@@ -20,14 +20,6 @@
 
 namespace projection
 {
-
-#ifndef M_PI_2
-#define M_PI_2 1.57079632679489661923
-#endif
-#ifndef RSQRT2
-#define RSQRT2 0.7071067811865475244008443620
-#endif
-
 namespace details
 {
 //----------------------------------------------------------------------------
@@ -53,45 +45,15 @@ inline double get_theta(const double lon, const double lat)
 }
 
 //----------------------------------------------------------------------------
-double aasin(double v)
+double clamp_asin(double v)
 {
-  double av;
-
-  if ((av = fabs(v)) >= 1.)
-  {
-    return (v < 0. ? -M_PI_2 : M_PI_2);
-  }
-  return asin(v);
+  return std::asin(vtkMath::ClampValue(v, -1., 1.));
 }
 
 //----------------------------------------------------------------------------
-double aacos(double v)
+double clamp_acos(double v)
 {
-  double av;
-
-  if ((av = fabs(v)) >= 1.)
-  {
-    return (v < 0. ? M_PI : 0.);
-  }
-  return acos(v);
-}
-
-//----------------------------------------------------------------------------
-void crossProduct(double vect_A[], double vect_B[], double cross_P[])
-{
-  cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
-  cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
-  cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
-}
-
-//----------------------------------------------------------------------------
-double dotProduct(double vect_A[], double vect_B[])
-{
-  double product = 0;
-  for (int i = 0; i < 3; i++)
-    product = product + vect_A[i] * vect_B[i];
-
-  return product;
+  return std::acos(vtkMath::ClampValue(v, -1., 1.));
 }
 
 //----------------------------------------------------------------------------
@@ -107,15 +69,14 @@ void rotateVec(double v[], double r[])
   k[1] = sin(3.57792);
   k[2] = 0.0;
 
-  details::crossProduct(k, v, p);
-  double dot = details::dotProduct(k, v);
+  vtkMath::Cross(k, v, p);
+  double dot = vtkMath::Dot(k, v);
 
   r[0] = (v[0] * cos_theta) + (p[0] * sin_theta) + (k[0] * dot) * (1 - cos_theta);
   r[1] = (v[1] * cos_theta) + (p[1] * sin_theta) + (k[1] * dot) * (1 - cos_theta);
   r[2] = (v[2] * cos_theta) + (p[2] * sin_theta) + (k[2] * dot) * (1 - cos_theta);
 }
-
-};
+}; // end of namespace details
 
 //----------------------------------------------------------------------------
 int cartesianToSpherical(double x, double y, double z, double* rho, double* phi, double* theta)
@@ -171,7 +132,7 @@ double ell_int_5(double phi)
     0.0914203033408211,
   };
 
-  double y = phi * M_2_PI;
+  double y = phi * 2 / vtkMath::Pi();
   y = 2. * y * y - 1.;
   double y2 = 2. * y;
   double d1 = 0.0;
@@ -218,12 +179,6 @@ int longLatToCartesian(double lon, double lat, double* x, double* y, double* z, 
     tx = (2 * sqrt(2) / vtkMath::Pi()) * lon * cos(theta);
     ty = sqrt(2) * sin(theta);
     tz = 0.0;
-
-    //    tx = (2 * sqrt(2) / vtkMath::Pi()) * lon *
-    //      cos((lat) - ((2 * lat + sin(2 * lat) - vtkMath::Pi() * sin(lat)) / (2 + 2 * cos(lat))));
-    //    ty = sqrt(2) *
-    //      sin((lat) - ((2 * lat + sin(2 * lat) - vtkMath::Pi() * sin(lat)) / (2 + 2 * cos(lat))));
-    //    tz = 0.0;
   }
   else if (projectionMode == 4) // Catalyst (lat/lon)
   {
@@ -243,26 +198,26 @@ int longLatToCartesian(double lon, double lat, double* x, double* y, double* z, 
     double lon_rot, lat_rot, radius;
     (void)cartesianToSpherical(p[0], p[1], p[2], &radius, &lat_rot, &lon_rot);
     lon_rot -= 1.536194408171;
-    lat_rot -= M_PI_2;
+    lat_rot -= vtkMath::Pi() * 0.5;
 
-    if (lon_rot < (-1 * M_PI))
-      lon_rot += 2 * M_PI;
+    if (lon_rot < (-1 * vtkMath::Pi()))
+      lon_rot += 2 * vtkMath::Pi();
 
     double a = 0., b = 0.;
     bool sm = false, sn = false;
 
     const double spp = tan(0.5 * lat_rot);
-    a = cos(details::aasin(spp)) * sin(0.5 * lon_rot);
+    a = cos(details::clamp_asin(spp)) * sin(0.5 * lon_rot);
     sm = (spp + a) < 0.;
     sn = (spp - a) < 0.;
-    b = details::aacos(spp);
-    a = details::aacos(a);
+    b = details::clamp_acos(spp);
+    a = details::clamp_acos(a);
 
-    double m = details::aasin(sqrt((1. + std::min(0.0, cos(a + b)))));
+    double m = details::clamp_asin(sqrt((1. + std::min(0.0, cos(a + b)))));
     if (sm)
       m = -m;
 
-    double n = details::aasin(sqrt(fabs(1. - std::max(0.0, cos(a - b)))));
+    double n = details::clamp_asin(sqrt(fabs(1. - std::max(0.0, cos(a - b)))));
     if (sn)
       n = -n;
 
