@@ -274,6 +274,13 @@ public:
     vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
       vtkClientSession::RENDER_SERVER));
 
+  /**
+   * Invoke command obtain command execution status.
+   */
+  rxcpp::observable<bool> ExecuteCommand(const char* name,
+    vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
+      vtkClientSession::RENDER_SERVER));
+
   //@{
   /**
    * Returns the type of object managed by the proxy.

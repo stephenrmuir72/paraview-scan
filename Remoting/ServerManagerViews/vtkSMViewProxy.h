@@ -36,7 +36,7 @@ public:
   vtkTypeMacro(vtkSMViewProxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  void Update();
+  rxcpp::observable<bool> Update();
 
   void StillRender();
 

@@ -370,6 +370,16 @@ vtkPacket vtkRemoteObjectProvider::vtkInternals::Process(const vtkPacket& packet
     return {};
   }
 
+  if (type == "vtk-remote-object-execute-command")
+  {
+    this->InvokeCommand(json.at("gid").get<vtkTypeUInt32>(), json.at("command").get<std::string>());
+
+    vtkNJson reply;
+    reply["status"] = true;
+    this->PiggybackDataInformation(reply);
+    return reply;
+  }
+
   if (type == "vtk-remote-object-gather-information")
   {
     return this->GatherInformation(packet.GetJSON());
@@ -492,6 +502,16 @@ vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::s
 {
   vtkNJson message;
   message["type"] = "vtk-remote-object-invoke-command";
+  message["gid"] = gid;
+  message["command"] = command;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::ExecuteCommand(vtkTypeUInt32 gid, const std::string& command)
+{
+  vtkNJson message;
+  message["type"] = "vtk-remote-object-execute-command";
   message["gid"] = gid;
   message["command"] = command;
   return { message };
