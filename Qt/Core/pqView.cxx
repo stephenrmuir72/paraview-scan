@@ -177,7 +177,7 @@ void pqView::update()
 {
   if (vtkSMViewProxy* view = this->getViewProxy())
   {
-    view->InvokeCommand("Update");
+    view->Update();
     this->render();
   }
 }

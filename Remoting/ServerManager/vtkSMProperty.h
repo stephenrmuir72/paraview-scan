@@ -570,6 +570,16 @@ public:
    */
   static int GetPropertyType(const std::string& className);
 
+  ///@{
+  /**
+   * Get the location where the underlying VTK-objects are created. The
+   * value can be constructed by or-ing vtkClientSession::ServiceTypes.
+   * It is initialized by the xml attribute "processes" in the proxy
+   * definition.
+   */
+  vtkGetMacro(Location, vtkTypeUInt32);
+  ///@}
+
 protected:
   vtkSMProperty();
   ~vtkSMProperty() override;
@@ -711,6 +721,8 @@ protected:
   void SetDocumentation(vtkSMDocumentation*);
 
   int Repeatable;
+
+  vtkTypeUInt32 Location;
 
   //@{
   /**

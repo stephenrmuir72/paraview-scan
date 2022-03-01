@@ -177,7 +177,8 @@
         command="SetVisibility"
         number_of_elements="1"
         default_values="1"
-        panel_visibility="never">
+        panel_visibility="never"
+        processes="client|renderserver">
         <BooleanDomain name="bool" />
         <Documentation>
           Visibility of the representation. A representation is shown in the view only
@@ -202,7 +203,8 @@
       <IntVectorProperty command="SetTriangulate"
                          default_values="0"
                          name="Triangulate"
-                         number_of_elements="1">
+                         number_of_elements="1"
+                         processes="client|dataserver">
         <BooleanDomain name="bool" />
         <Documentation>
           Triangulate the geometry internally to avoid rendering
@@ -214,7 +216,8 @@
       <IntVectorProperty command="SetNonlinearSubdivisionLevel"
                        default_values="1"
                        name="NonlinearSubdivisionLevel"
-                       number_of_elements="1">
+                       number_of_elements="1"
+                       processes="client|dataserver">
         <IntRangeDomain min="0" max="4" name="range" />
         <Documentation>
           For datasets with non-linear elements, specify the sub-division level.
@@ -251,7 +254,8 @@
       </StringVectorProperty>
 
       <ProxyProperty command="SetLookupTable"
-                     name="LookupTable" >
+                     name="LookupTable"
+                     processes="client|renderserver">
         <Documentation>Set the lookup-table to use to map data array to colors.
         Lookuptable is only used with MapScalars to ON.</Documentation>
         <ProxyGroupDomain name="groups">
@@ -262,7 +266,8 @@
       <IntVectorProperty command="SetInterpolateScalarsBeforeMapping"
                          default_values="1"
                          name="InterpolateScalarsBeforeMapping"
-                         number_of_elements="1">
+                         number_of_elements="1"
+                         processes="client|renderserver">
         <BooleanDomain name="bool" />
         <Documentation>When set to true (default), texture coordinates
         are sent to and interpolated by the graphics card. This is
@@ -275,7 +280,8 @@
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
                          name="MapScalars"
-                         number_of_elements="1">
+                         number_of_elements="1"
+                         processes="client|renderserver">
         <BooleanDomain name="bool" />
         <Documentation>When set to True, LookupTable will always be
         used for scalar mapping. Otherwise, when up to 4 component

@@ -25,7 +25,8 @@
 #include "vtkRemoteObjectProvider.h" // for vtkRemoteObjectProvider::vtkProgressItem
 #include "vtkSession.h"
 
-#include <memory> // for std::unique_ptr
+#include <initializer_list> // for std::initializer_list
+#include <memory>           // for std::unique_ptr
 
 #include "vtk_rxcpp.h" // for rxcpp
 // clang-format off
@@ -50,6 +51,11 @@ public:
     RENDER_SERVER = 0x02,
     CLIENT = 0x04
   };
+
+  /**
+   * Collection of all services to ease iteration.
+   */
+  static const std::initializer_list<vtkTypeUInt32> ServiceTypeList;
 
   /**
    * Connect to a server session.

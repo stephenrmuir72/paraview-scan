@@ -130,8 +130,9 @@
 #ifndef vtkSMProxy_h
 #define vtkSMProxy_h
 
-#include "vtkCommand.h" // for vtkCommand
-#include "vtkNJsonFwd.h" // needed for vtkNJson
+#include "vtkClientSession.h" // for vtkClientSession::DATA_SERVER /RENDER_SERVER
+#include "vtkCommand.h"       // for vtkCommand
+#include "vtkNJsonFwd.h"      // needed for vtkNJson
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
 #include "vtkWeakPointer.h"                 // for vtkWeakPointer
@@ -142,7 +143,6 @@
 #include VTK_REMOTING_RXCPP(rx.hpp)
 // clang-format on
 
-class vtkClientSession;
 class vtkPVInformation;
 class vtkPVXMLElement;
 class vtkSMDocumentation;
@@ -270,7 +270,9 @@ public:
   /**
    * Invoke a command.
    */
-  void InvokeCommand(const char* name);
+  void InvokeCommand(const char* name,
+    vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
+      vtkClientSession::RENDER_SERVER));
 
   //@{
   /**
@@ -567,14 +569,17 @@ protected:
   ~vtkSMProxy() override;
 
   /**
-   * Save proxy state. `verbose` is set to true to save extraneous information
-   * useful for public facing state files. This will include things like domains
-   * etc.
+   * Save proxy state.
    *
-   * It tstamp is non-zero, then only those properties that have been modified
+   * If tstamp is non-zero, then only those properties that have been modified
    * since the tstamp are saved to the state.
+   *
+   * Setting \p destinationMask to only one of the services, one can save only the
+   * properties applicable to this service.
    */
-  bool SaveState(vtkNJson& json, vtkMTimeType tstamp = 0);
+  bool SaveState(vtkNJson& json, vtkMTimeType tstamp = 0,
+    vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
+      vtkClientSession::RENDER_SERVER));
 
   /**
    * Load state. `context` is used to locate other proxies, for example, that

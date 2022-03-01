@@ -25,12 +25,12 @@
 #include "vtkPVCoreApplication.h"
 #include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
+#include "vtkPVLogger.h"
 #include "vtkPVRenderView.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkPVLogger.h"
 
 class vtkGeometryRepresentation::vtkDataProcessingInternals
 {
@@ -213,29 +213,23 @@ void vtkGeometryRepresentation::SetColorArray(int fieldAssociation, const char* 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetLookupTable(vtkScalarsToColors* val)
 {
-  if (this->RInternals)
-  {
-    this->RInternals->Mapper->SetLookupTable(val);
-  }
+  assert(this->RInternals);
+  this->RInternals->Mapper->SetLookupTable(val);
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetInterpolateScalarsBeforeMapping(bool val)
 {
-  if (this->RInternals)
-  {
-    this->RInternals->Mapper->SetInterpolateScalarsBeforeMapping(val ? 1 : 0);
-  }
+  assert(this->RInternals);
+  this->RInternals->Mapper->SetInterpolateScalarsBeforeMapping(val ? 1 : 0);
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetMapScalars(bool val)
 {
-  if (this->RInternals)
-  {
-    this->RInternals->Mapper->SetColorMode(
-      val ? VTK_COLOR_MODE_DIRECT_SCALARS : VTK_COLOR_MODE_MAP_SCALARS);
-  }
+  assert(this->RInternals);
+  this->RInternals->Mapper->SetColorMode(
+    val ? VTK_COLOR_MODE_DIRECT_SCALARS : VTK_COLOR_MODE_MAP_SCALARS);
 }
 
 //----------------------------------------------------------------------------
@@ -284,10 +278,8 @@ bool vtkGeometryRepresentation::RemoveFromView(vtkPVView* view)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetVisibility(bool val)
 {
-  if (this->RInternals)
-  {
-    this->RInternals->Actor->SetVisibility(val);
-  }
+  assert(this->RInternals);
+  this->RInternals->Actor->SetVisibility(val);
   this->Superclass::SetVisibility(val);
 }
 
@@ -449,19 +441,15 @@ void vtkGeometryRepresentation::SetRepresentation(int type)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetTriangulate(bool value)
 {
-  if (this->DInternals)
-  {
-    this->DInternals->GeometryFilter->SetTriangulate(value);
-  }
+  assert(this->DInternals);
+  this->DInternals->GeometryFilter->SetTriangulate(value);
 }
 
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int value)
 {
-  if (this->DInternals)
-  {
-    this->DInternals->GeometryFilter->SetNonlinearSubdivisionLevel(value);
-  }
+  assert(this->DInternals);
+  this->DInternals->GeometryFilter->SetNonlinearSubdivisionLevel(value);
 }
 
 //----------------------------------------------------------------------------
