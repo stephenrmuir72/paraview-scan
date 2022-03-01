@@ -270,7 +270,9 @@ public:
   /**
    * Invoke a command.
    */
-  void InvokeCommand(const char* name);
+  void InvokeCommand(const char* name,
+    vtkTypeUInt32 destinationMask = (vtkClientSession::DATA_SERVER |
+      vtkClientSession::RENDER_SERVER));
 
   //@{
   /**

@@ -284,6 +284,12 @@ bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMViewProxy::Update()
+{
+  this->InvokeCommand("Update", vtkClientSession::DATA_SERVER);
+}
+
+//----------------------------------------------------------------------------
 void vtkSMViewProxy::StillRender()
 {
   auto& internals = (*this->Internals);

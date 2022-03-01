@@ -138,12 +138,10 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString
   QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied), [pxm]() {
     vtkNew<vtkSMApplyController> applyController;
     applyController->Apply(pxm);
-
-    // view->InvokeCommand("Update");
   });
 
   // Update the view.
-  view->InvokeCommand("Update");
+  view->Update();
   return view;
 }
 

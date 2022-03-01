@@ -52,10 +52,11 @@ bool DoTest(vtkClientSession* session, rxcpp::schedulers::run_loop& runLoop)
   vtkSMPropertyHelper(repr, "Input").Set(shrink, 0);
   repr->UpdateVTKObjects();
 
-  auto viewProxy = vtk::TakeSmartPointer(pxm->NewProxy("views", "RenderView"));
+  auto viewProxy =
+    vtk::TakeSmartPointer(vtkSMViewProxy::SafeDownCast(pxm->NewProxy("views", "RenderView")));
   vtkSMPropertyHelper(viewProxy, "Representations").Add(repr);
   viewProxy->UpdateVTKObjects();
-  viewProxy->InvokeCommand("Update");
+  viewProxy->Update();
 
   auto* view = vtkSMViewProxy::SafeDownCast(viewProxy);
   vtkNew<vtkRenderWindowInteractor> iren;

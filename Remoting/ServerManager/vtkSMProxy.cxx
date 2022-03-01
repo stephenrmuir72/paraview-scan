@@ -296,12 +296,16 @@ void vtkSMProxy::AddProperty(const char* name, vtkSMProperty* prop)
 }
 
 //---------------------------------------------------------------------------
-void vtkSMProxy::InvokeCommand(const char* name)
+void vtkSMProxy::InvokeCommand(const char* name, vtkTypeUInt32 destinationMask)
 {
-  const auto& internals = (*this->Internals);
-  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
-  auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
-  this->GetSession()->SendMessage(this->GetLocation(), std::move(packet));
+  const vtkTypeUInt32 destination = destinationMask & this->GetLocation();
+  if (destination != 0)
+  {
+    const auto& internals = (*this->Internals);
+    vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+    auto packet = vtkRemoteObjectProvider::InvokeCommand(this->GetGlobalID(), name);
+    this->GetSession()->SendMessage(destination, std::move(packet));
+  }
 }
 
 //---------------------------------------------------------------------------

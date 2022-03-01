@@ -96,7 +96,7 @@ void vtkSMApplyController::Apply(vtkSMSessionProxyManager* pxm)
   {
     if (auto* view = vtkSMViewProxy::SafeDownCast(iter->GetProxy()))
     {
-      view->InvokeCommand("Update");
+      view->Update();
     }
   }
 }
@@ -159,7 +159,7 @@ void vtkSMApplyController::HideInputs(vtkSMProxy* producer, vtkSMViewProxy* view
 void vtkSMApplyController::ResetCamera(vtkSMViewProxy* view)
 {
   // TODO:
-  view->InvokeCommand("Update");
+  view->Update();
 }
 
 //----------------------------------------------------------------------------
