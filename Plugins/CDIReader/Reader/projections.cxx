@@ -23,14 +23,14 @@ namespace projection
 namespace details
 {
 //----------------------------------------------------------------------------
-inline double iterate_theta(const double vtkNotUsed(lon), const double lat, const double theta)
+inline double iterate_theta(const double lat, const double theta)
 {
   const double pi = vtkMath::Pi();
   return theta - (2 * theta + sin(2 * theta) - pi * sin(lat)) / (2 + 2 * cos(2 * theta));
 }
 
 //----------------------------------------------------------------------------
-inline double get_theta(const double lon, const double lat)
+inline double get_theta(const double lat)
 {
   double theta = lat;
   const double pi = vtkMath::Pi();
@@ -40,7 +40,7 @@ inline double get_theta(const double lon, const double lat)
     return -pi / 2;
 
   for (int i = 0; i < 5; i++)
-    theta = details::iterate_theta(lon, lat, theta);
+    theta = details::iterate_theta(lat, theta);
   return theta;
 }
 
@@ -154,39 +154,39 @@ int longLatToCartesian(double lon, double lat, double* x, double* y, double* z, 
   double ty = 0.0;
   double tz = 0.0;
 
-  if (projectionMode == 0) // Project Spherical
+  if (projectionMode == SPHERICAL)
   {
     lat += vtkMath::Pi() * 0.5;
     tx = sin(lat) * cos(lon);
     ty = sin(lat) * sin(lon);
     tz = cos(lat);
   }
-  else if (projectionMode == 1) // Lat/Lon
+  else if (projectionMode == CYLINDRICAL_EQUIDISTANT) // Lat/Lon
   {
     tx = lon;
     ty = lat;
     tz = 0.0;
   }
-  else if (projectionMode == 2) // Cassini
+  else if (projectionMode == CASSINI)
   {
     tx = asin(cos(lat) * sin(lon));
     ty = atan2(sin(lat), (cos(lat) * cos(lon)));
     tz = 0.0;
   }
-  else if (projectionMode == 3) // Mollweide
+  else if (projectionMode == MOLLWEIDE)
   {
-    const double theta = details::get_theta(lon, lat);
+    const double theta = details::get_theta(lat);
     tx = (2 * sqrt(2) / vtkMath::Pi()) * lon * cos(theta);
     ty = sqrt(2) * sin(theta);
     tz = 0.0;
   }
-  else if (projectionMode == 4) // Catalyst (lat/lon)
+  else if (projectionMode == CATALYST)
   {
     tx = lon;
     ty = lat;
     tz = 0.0;
   }
-  else if (projectionMode == 5) // Spilhause
+  else if (projectionMode == SPILHOUSE)
   {
     double v[3], p[3];
     lat += vtkMath::Pi() * 0.5;
