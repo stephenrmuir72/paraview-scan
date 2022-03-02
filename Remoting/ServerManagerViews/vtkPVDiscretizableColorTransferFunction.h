@@ -27,8 +27,9 @@
 #define vtkPVDiscretizableColorTransferFunction_h
 
 #include "vtkDiscretizableColorTransferFunction.h"
-
 #include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
+
+#include <vector> // for std::vector
 
 class vtkAbstractArray;
 class vtkDoubleArray;
@@ -77,6 +78,11 @@ public:
   vtkGetMacro(UseActiveValues, bool);
   vtkBooleanMacro(UseActiveValues, bool);
   //@}
+
+  /**
+   * For vtkReflection, adding API to set points.
+   */
+  void SetRGBPoints(const std::vector<double>& points);
 
   /**
    * Override to set only the active annotations

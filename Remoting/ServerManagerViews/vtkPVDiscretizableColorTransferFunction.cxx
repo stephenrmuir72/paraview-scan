@@ -393,6 +393,23 @@ void vtkPVDiscretizableColorTransferFunction::Build()
 }
 
 //-------------------------------------------------------------------------
+void vtkPVDiscretizableColorTransferFunction::SetRGBPoints(const std::vector<double>& points)
+{
+  if (points.size() % 4 != 0)
+  {
+    vtkErrorMacro("Invalid number of rgb-points: " << points.size());
+    return;
+  }
+
+  this->RemoveAllPoints();
+  for (size_t cc = 0; cc + 3 < points.size(); cc += 4)
+  {
+    this->AddRGBPoint(points[cc], points[cc + 1], points[cc + 2], points[cc + 3]);
+  }
+  this->Modified();
+}
+
+//-------------------------------------------------------------------------
 void vtkPVDiscretizableColorTransferFunction::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
