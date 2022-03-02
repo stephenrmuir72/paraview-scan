@@ -40,7 +40,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkSynchronizedRenderers.h"
 #include "vtkUnsignedCharArray.h"
-#include "vtkVariant.h"
 
 namespace vtkSMViewProxyNS
 {
@@ -287,30 +286,7 @@ bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
 //----------------------------------------------------------------------------
 rxcpp::observable<bool> vtkSMViewProxy::Update()
 {
-  using BehaviorT = rxcpp::subjects::behavior<vtkVariant>;
-  auto behavior = std::make_shared<BehaviorT>(vtkVariant());
-
-  this->ExecuteCommand("Update", vtkClientSession::DATA_SERVER)
-    .subscribe([behavior, this](bool status) {
-      vtkLogF(INFO, "make PrepareForRender");
-      // notify caller before triggering PrepareForRender.
-      // this is essential so the caller update scene if needed.
-      behavior->get_subscriber().on_next(vtkVariant(status ? 1 : 0));
-      if (status)
-      {
-        this->ExecuteCommand("UpdateForRendering", vtkClientSession::RENDER_SERVER);
-        this->StillRender();
-      }
-    });
-
-  return behavior->get_observable()
-    .filter([](const vtkVariant& variant) { return variant.IsValid(); })
-    .take(1)
-    .map([behavior](const vtkVariant& variant) {
-      // capture behavior to ensure it hangs around until the returned value hangs around.
-      (void)behavior;
-      return variant.ToInt() != 0;
-    });
+  return this->Superclass::ExecuteCommand("Update", vtkClientSession::DATA_SERVER);
 }
 
 //----------------------------------------------------------------------------

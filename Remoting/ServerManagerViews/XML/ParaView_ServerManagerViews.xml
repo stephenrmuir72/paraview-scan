@@ -583,7 +583,6 @@
       </ProxyProperty>
 
       <Command name="Update" command="Update" />
-      <Command name="UpdateForRendering" command="UpdateForRendering" />
     </RenderViewProxy>
   </ProxyGroup>
 
