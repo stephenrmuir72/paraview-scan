@@ -229,7 +229,7 @@ void vtkGeometryRepresentation::SetMapScalars(bool val)
 {
   assert(this->RInternals);
   this->RInternals->Mapper->SetColorMode(
-    val ? VTK_COLOR_MODE_DIRECT_SCALARS : VTK_COLOR_MODE_MAP_SCALARS);
+    val ? VTK_COLOR_MODE_MAP_SCALARS : VTK_COLOR_MODE_DIRECT_SCALARS);
 }
 
 //----------------------------------------------------------------------------
