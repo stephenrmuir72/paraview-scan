@@ -295,6 +295,11 @@ public:
    */
   vtkSMPropertyHelper& Modified();
 
+  /**
+   * Returns the property, if any.
+   */
+  vtkSMProperty* GetProperty() const { return this->Property; }
+
 protected:
   void setUseUnchecked(bool useUnchecked) { this->UseUnchecked = useUnchecked; }
 

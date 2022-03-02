@@ -284,9 +284,9 @@ bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
 }
 
 //----------------------------------------------------------------------------
-void vtkSMViewProxy::Update()
+rxcpp::observable<bool> vtkSMViewProxy::Update()
 {
-  this->InvokeCommand("Update", vtkClientSession::DATA_SERVER);
+  return this->Superclass::ExecuteCommand("Update", vtkClientSession::DATA_SERVER);
 }
 
 //----------------------------------------------------------------------------

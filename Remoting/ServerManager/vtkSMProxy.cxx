@@ -309,6 +309,42 @@ void vtkSMProxy::InvokeCommand(const char* name, vtkTypeUInt32 destinationMask)
 }
 
 //---------------------------------------------------------------------------
+rxcpp::observable<bool> vtkSMProxy::ExecuteCommand(const char* name, vtkTypeUInt32 destinationMask)
+{
+  const vtkTypeUInt32 destination = destinationMask & this->GetLocation();
+  if (destination == 0)
+  {
+    return rxcpp::sources::never<bool>();
+  }
+
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+
+  const vtkTypeUInt32 tag = ++internals.ExecuteCommandTag;
+  auto* session = this->GetSession();
+
+  auto subscriber = internals.ExecuteCommandSubject.get_subscriber();
+  auto packet = vtkRemoteObjectProvider::ExecuteCommand(this->GetGlobalID(), name);
+  auto eventual = session->SendRequest(destination, std::move(packet));
+  eventual.GetObservable()
+    .observe_on(session->GetCoordination())
+    .subscribe([this, subscriber, tag](const vtkPacket& reply) {
+      vtkLogF(INFO, "handle ExecuteCommand response");
+
+      const auto& json = reply.GetJSON();
+      const bool status = json.at("status").get<bool>();
+      this->GetSessionProxyManager()->ProcessPiggybackedMessages(json);
+      subscriber.on_next(std::make_pair(tag, status));
+    });
+
+  auto coordination = session->GetCoordination();
+  return internals.ExecuteCommandSubject.get_observable()
+    .filter([tag](const std::pair<vtkTypeUInt32, bool>& pair) { return tag == pair.first; })
+    .take(1)
+    .map([](const std::pair<vtkTypeUInt32, bool>& pair) { return pair.second; });
+}
+
+//---------------------------------------------------------------------------
 void vtkSMProxy::SetPropertyModifiedFlag(const char* name, int flag)
 {
   if (this->DoNotModifyProperty)

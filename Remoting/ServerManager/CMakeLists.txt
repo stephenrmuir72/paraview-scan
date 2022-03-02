@@ -115,6 +115,7 @@ set(classes
   vtkSMRegistrationNamesDomain
   vtkSMSelectionQueryDomain
   vtkSMSessionProxyManager
+  vtkSMSettings
   vtkSMSourceProxy
   vtkSMStateLoader
   vtkSMStringListDomain
@@ -158,7 +159,6 @@ set(old_classes
   vtkSMReaderReloadHelper
   vtkSMRemoteObjectUpdateUndoElement
   vtkSMSelfGeneratingSourceProxy
-  vtkSMSettings
   vtkSMSettingsProxy
   vtkSMStateVersionController
   vtkSMTimeKeeper

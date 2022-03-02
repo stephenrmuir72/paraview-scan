@@ -30,15 +30,15 @@
 #ifndef vtkSMTransferFunctionPresets_h
 #define vtkSMTransferFunctionPresets_h
 
-#include "vtkSMObject.h"
+#include "vtkObject.h"
 
-#include "vtkRemotingViewsModule.h" // needed for exports
-#include "vtkSmartPointer.h"        // for ivars
-#include <vector>                   // for vector
-#include <vtk_jsoncpp_fwd.h>        // for forward declarations
+#include "vtkRemotingServerManagerViewsModule.h" // needed for exports
+#include "vtkSmartPointer.h"                     // for ivars
+#include <vector>                                // for vector
+#include <vtk_jsoncpp_fwd.h>                     // for forward declarations
 
 class vtkPVXMLElement;
-class VTKREMOTINGVIEWS_EXPORT vtkSMTransferFunctionPresets : public vtkSMObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMTransferFunctionPresets : public vtkObject
 {
 public:
   // Used to return information about the imported presets to the caller of ImportPresets
@@ -53,7 +53,7 @@ public:
   };
 
   static vtkSMTransferFunctionPresets* New();
-  vtkTypeMacro(vtkSMTransferFunctionPresets, vtkSMObject);
+  vtkTypeMacro(vtkSMTransferFunctionPresets, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

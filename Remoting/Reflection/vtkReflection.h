@@ -170,10 +170,6 @@ template <>
 inline std::string variant_cast<std::string>(const vtkVariant& variant)
 {
   std::string result = variant.ToString();
-  if (result.empty())
-  {
-    throw std::runtime_error("variant_cast<std::string> : invalid cast");
-  }
   return result;
 }
 

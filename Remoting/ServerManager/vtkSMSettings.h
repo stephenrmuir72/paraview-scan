@@ -81,9 +81,11 @@
 #include <vector>                           // needed for vector.
 #include <vtk_jsoncpp_fwd.h>                // for forward declarations
 
+class vtkMultiProcessController;
 class vtkSMProperty;
-class vtkSMProxy;
 class vtkSMPropertyIterator;
+class vtkSMProxy;
+
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMSettings : public vtkObject
 {
 public:
@@ -119,7 +121,7 @@ public:
   /**
    * Distribute setting collections to all processes if in batch symmetric mode.
    */
-  bool DistributeSettings();
+  bool DistributeSettings(vtkMultiProcessController* controller);
 
   /**
    * Save highest priority setting collection to file.

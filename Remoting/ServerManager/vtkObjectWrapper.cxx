@@ -55,6 +55,7 @@ public:
   std::map<std::string, PropertyInformation> Properties;
   std::map<std::string, std::string> Commands;
   std::map<std::string, std::string> SubproxyCommands;
+  std::string PostPushCommand;
 };
 
 vtkStandardNewMacro(vtkObjectWrapper);
@@ -72,6 +73,7 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
 {
   auto& internals = (*this->Internals);
   internals.VTKClassName = node.attribute("class").as_string();
+  internals.PostPushCommand = node.attribute("post_push").as_string();
 
   // process properties.
   for (auto child : node.children())
@@ -99,6 +101,7 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
       }
     }
   }
+
   return true;
 }
 
@@ -249,6 +252,11 @@ void vtkObjectWrapper::UpdateState(const vtkNJson& state, vtkRemoteObjectProvide
       default:
         abort();
     }
+  }
+
+  if (!internals.PostPushCommand.empty())
+  {
+    vtkReflection::Set(internals.VTKObject, internals.PostPushCommand, std::vector<vtkVariant>{});
   }
 }
 

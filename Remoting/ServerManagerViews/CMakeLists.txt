@@ -40,6 +40,7 @@ set(classes
   vtkPVDataRepresentation
   vtkPVDataRepresentationPipeline
   vtkPVDefaultPass
+  vtkPVDiscretizableColorTransferFunction
   vtkPVGeometryFilter
   vtkPVLight
   vtkPVLODActor
@@ -55,6 +56,9 @@ set(classes
   vtkSMApplyController
   vtkSMParaViewPipelineControllerWithRendering
   vtkSMRenderViewProxy
+  vtkSMTransferFunctionManager
+  vtkSMTransferFunctionPresets
+  vtkSMTransferFunctionProxy
   vtkSMUtilities
   vtkSMViewLayoutProxy
   vtkSMViewProxy
@@ -62,11 +66,8 @@ set(classes
   vtkViewLayout
 )
 
-set(private_headers
-)
-
-set(sources
-)
+set(private_headers)
+set(sources)
 
 if (TARGET ParaView::icet)
   list(APPEND classes
@@ -88,6 +89,17 @@ if (TARGET ParaView::icet)
     list(APPEND private_headers ${header})
   endforeach ()
 endif()
+
+# Compile ColorMaps.json
+vtk_encode_string(
+  INPUT     "${CMAKE_CURRENT_SOURCE_DIR}/ColorMaps.json"
+  NAME      "vtkSMTransferFunctionPresetsBuiltin"
+  EXPORT_SYMBOL "VTKREMOTINGSERVERMANAGERVIEWS_EXPORT"
+  EXPORT_HEADER "vtkRemotingServerManagerViewsModule.h"
+  HEADER_OUTPUT colormaps_header
+  SOURCE_OUTPUT colormaps_source)
+list(APPEND sources "${colormaps_source}")
+list(APPEND private_headers "${colormaps_header}")
 
 vtk_object_factory_declare(
   BASE "vtkServerSession"

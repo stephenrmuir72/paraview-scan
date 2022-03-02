@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QStringList>
 
 #include "pqSettings.h"
+#include "vtkDataObject.h"
 #include "vtkNumberToString.h"
 #include "vtkObject.h"
 #include "vtkPVGUIApplication.h"
@@ -390,4 +391,25 @@ void pqCoreUtilities::setPaletteHighlightToCritical(QPalette& palette)
   auto criticalRed = QColor::fromRgb(217, 84, 84);
   palette.setColor(QPalette::Highlight, criticalRed);
   palette.setColor(QPalette::HighlightedText, Qt::white);
+}
+
+//-----------------------------------------------------------------------------
+QIcon pqCoreUtilities::fieldAssociationIcon(int association)
+{
+  switch (association)
+  {
+    case vtkDataObject::POINT:
+    case vtkDataObject::VERTEX:
+      return QIcon(":/pqWidgets/Icons/pqPointData.svg");
+    case vtkDataObject::CELL:
+      return QIcon(":/pqWidgets/Icons/pqCellData.svg");
+    case vtkDataObject::FIELD:
+      return QIcon(":/pqWidgets/Icons/pqGlobalData.svg");
+    case vtkDataObject::EDGE:
+      return QIcon(":/pqWidgets/Icons/pqEdgeCenterData.svg");
+    case vtkDataObject::ROW:
+      return QIcon(":/pqWidgets/Icons/pqSpreadsheet.svg");
+    default:
+      return QIcon();
+  }
 }

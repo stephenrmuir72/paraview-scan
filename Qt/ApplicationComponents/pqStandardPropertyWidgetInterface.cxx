@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCameraManipulatorWidget.h"
 #include "pqCheckableProperty.h"
 #include "pqColorAnnotationsPropertyWidget.h"
+#include "pqColorArrayPropertyWidget.h"
 #include "pqColorEditorPropertyWidget.h"
 // #include "pqColorOpacityEditorWidget.h"
 #include "pqColorPaletteSelectorWidget.h"
@@ -253,6 +254,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   if (panelWidget == "ColorEditor")
   {
     return new pqColorEditorPropertyWidget(proxy, parentWidget);
+  }
+  else if (panelWidget == "ColorArray")
+  {
+    return new pqColorArrayPropertyWidget(proxy, group, parentWidget);
   }
   else if (panelWidget == "CubeAxes")
   {

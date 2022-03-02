@@ -57,10 +57,10 @@ bool DoTest(vtkClientSession* session, rxcpp::schedulers::run_loop& runLoop)
   vtkSMPropertyHelper(viewProxy, "Representations").Add(repr);
   viewProxy->UpdateVTKObjects();
   viewProxy->Update();
+  viewProxy->Update();
 
-  auto* view = vtkSMViewProxy::SafeDownCast(viewProxy);
   vtkNew<vtkRenderWindowInteractor> iren;
-  iren->SetRenderWindow(view->GetRenderWindow());
+  iren->SetRenderWindow(viewProxy->GetRenderWindow());
   iren->Initialize();
 
   auto* app = vtkPVCoreApplication::GetInstance();
@@ -73,7 +73,6 @@ bool DoTest(vtkClientSession* session, rxcpp::schedulers::run_loop& runLoop)
     iren->ProcessEvents();
   }
   viewProxy = nullptr;
-  view = nullptr;
   app->Exit(EXIT_SUCCESS);
   return true;
 }

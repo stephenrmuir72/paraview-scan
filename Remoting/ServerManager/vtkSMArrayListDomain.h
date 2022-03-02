@@ -215,6 +215,11 @@ public:
   static int ComponentIndexFromMangledName(vtkPVArrayInformation* info, const char* name);
   //@}
 
+  /**
+   * Returns input array information, if any.
+   */
+  vtkPVArrayInformation* GetArrayInformation(int association, const char* name);
+
 protected:
   vtkSMArrayListDomain();
   ~vtkSMArrayListDomain() override;

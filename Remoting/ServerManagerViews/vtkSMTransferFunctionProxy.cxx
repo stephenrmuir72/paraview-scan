@@ -20,15 +20,15 @@
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVArrayInformation.h"
-#include "vtkPVProminentValuesInformation.h"
+// #include "vtkPVProminentValuesInformation.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMNamedPropertyIterator.h"
-#include "vtkSMPVRepresentationProxy.h"
+// #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
-#include "vtkSMScalarBarWidgetRepresentationProxy.h"
+// #include "vtkSMScalarBarWidgetRepresentationProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
 #include "vtkSMStringVectorProperty.h"
@@ -370,6 +370,7 @@ bool vtkSMTransferFunctionProxy::ComputeDataRange(double range[2])
     component = vtkSMPropertyHelper(this, "VectorComponent").GetAsInt();
   }
 
+#if 0 // FIXME: ASYNC
   for (unsigned int cc = 0, max = this->GetNumberOfConsumers(); cc < max; ++cc)
   {
     vtkSMProxy* proxy = this->GetConsumerProxy(cc);
@@ -399,6 +400,7 @@ bool vtkSMTransferFunctionProxy::ComputeDataRange(double range[2])
       }
     }
   }
+#endif
   return (range[0] <= range[1]);
 }
 
@@ -434,6 +436,7 @@ bool vtkSMTransferFunctionProxy::ComputeAvailableAnnotations(bool extend)
     activeAnnotatedValuesProperty->GetElements(activeAnnotatedValues);
   }
 
+#if 0 // FIXME: ASYNC
   for (unsigned int cc = 0, max = this->GetNumberOfConsumers(); cc < max; ++cc)
   {
     vtkSMProxy* proxy = this->GetConsumerProxy(cc);
@@ -477,13 +480,14 @@ bool vtkSMTransferFunctionProxy::ComputeAvailableAnnotations(bool extend)
 
   activeAnnotatedValuesProperty->SetElements(activeAnnotatedValues);
   this->UpdateVTKObjects();
-
+#endif
   return true;
 }
 
 //----------------------------------------------------------------------------
 vtkTable* vtkSMTransferFunctionProxy::ComputeDataHistogramTable(int numberOfBins)
 {
+#if 0 // FIXME: ASYNC
   if (!this->HistogramTableCache)
   {
     this->HistogramTableCache = vtkSmartPointer<vtkTable>::New();
@@ -657,6 +661,9 @@ vtkTable* vtkSMTransferFunctionProxy::ComputeDataHistogramTable(int numberOfBins
   this->HistogramTableCache->RemoveColumn(1);
   this->HistogramTableCache->AddColumn(doubleValueArray);
   return this->HistogramTableCache;
+#else
+  return nullptr;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -861,11 +868,13 @@ bool vtkSMTransferFunctionProxy::ApplyPreset(const Json::Value& arg, bool rescal
   {
     preset["HSVWrap"] = 0;
   }
+
   if (vtkSMSettings::DeserializeFromJSON(this, preset))
   {
     this->UpdateVTKObjects();
     return true;
   }
+
   vtkErrorMacro("Failed to load preset properly");
   this->UpdateVTKObjects();
   return false;
@@ -917,6 +926,7 @@ Json::Value vtkSMTransferFunctionProxy::GetStateAsPreset()
   vtkNew<vtkSMNamedPropertyIterator> iter;
   iter->SetProxy(this);
   iter->SetPropertyNames(toSave);
+
   return vtkSMSettings::SerializeAsJSON(this, iter);
 }
 
@@ -1062,6 +1072,7 @@ vtkSMProxy* vtkSMTransferFunctionProxy::FindScalarBarRepresentation(vtkSMProxy* 
 //----------------------------------------------------------------------------
 bool vtkSMTransferFunctionProxy::UpdateScalarBarsComponentTitle(vtkPVArrayInformation* info)
 {
+#if 0 // FIXME: ASYNC
   // find all scalar bars for this transfer function and update their titles.
   for (unsigned int cc = 0, max = this->GetNumberOfConsumers(); cc < max; ++cc)
   {
@@ -1078,6 +1089,7 @@ bool vtkSMTransferFunctionProxy::UpdateScalarBarsComponentTitle(vtkPVArrayInform
       sb->UpdateComponentTitle(info);
     }
   }
+#endif
   return true;
 }
 

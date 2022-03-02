@@ -14,25 +14,25 @@
 =========================================================================*/
 #include "vtkSMParaViewPipelineController.h"
 
-#include "vtkReflection.h"
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
+#include "vtkProxyDefinitionManager.h"
+#include "vtkReflection.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
 #include "vtkSMPropertyLink.h"
-#include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxyInitializationHelper.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMProxySelectionModel.h"
-#include "vtkClientSession.h"
 #include "vtkSMSessionProxyManager.h"
-// #include "vtkSMSettings.h"
+#include "vtkSMSettings.h"
 // #include "vtkSMSettingsProxy.h"
 #include "vtkSMSourceProxy.h"
 // #include "vtkSMTimeKeeperProxy.h"
@@ -1070,11 +1070,9 @@ bool vtkSMParaViewPipelineController::PreInitializeProxy(vtkSMProxy* proxy)
     return false;
   }
 
-#if 0 // FIXME: ASYNC
   // 4. Load property values from Settings.
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
   settings->GetProxySettings(proxy);
-#endif
 
   // Now, update the initialization time.
   this->Internals->InitializationTimeStamps[proxy].Modified();

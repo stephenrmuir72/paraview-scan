@@ -573,9 +573,9 @@ protected:
   ~vtkSMSessionProxyManager() override;
 
   friend class vtkSMProxy;
-  friend class vtkPVProxyDefinitionIterator;
   friend class vtkSMProxyIterator;
   friend class vtkSMProxyManagerObserver;
+  friend class vtkSMSourceProxy;
 
   /**
    * Given an XML element and group name create a proxy
@@ -601,12 +601,16 @@ protected:
    */
   void RemovePrototype(const char* groupname, const char* proxyname);
 
+  /**
+   * Process data information message, if any that may be have been piggybacked
+   * on some other message
+   */
+  void ProcessPiggybackedMessages(const vtkNJson& json);
+
 private:
   vtkSMSessionProxyManager(const vtkSMSessionProxyManager&) = delete;
   void operator=(const vtkSMSessionProxyManager&) = delete;
   static vtkSMSessionProxyManager* New();
-
-  void MarkPipelineUpdated(vtkSMProxy* proxy) const;
 
   friend class vtkSMSessionProxyManagerInternals;
   std::unique_ptr<vtkSMSessionProxyManagerInternals> Internals;

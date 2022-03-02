@@ -59,6 +59,7 @@ set(classes
   pqRecentlyUsedResourceLoaderInterface
   pqRecentlyUsedResourcesList
   pqRepresentation
+  pqScalarsToColors
   pqServer
   pqServerConfiguration
   pqServerConfigurationCollection
@@ -117,7 +118,6 @@ set(old_classes
   pqRenderView
   pqRenderViewBase
   pqScalarBarRepresentation
-  pqScalarsToColors
   pqSpreadSheetView
   pqSpreadSheetViewModel
   pqSpreadSheetViewSelectionModel

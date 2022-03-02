@@ -32,17 +32,17 @@
 #ifndef vtkSMTransferFunctionManager_h
 #define vtkSMTransferFunctionManager_h
 
-#include "vtkRemotingViewsModule.h" // needed for export macro
-#include "vtkSMObject.h"
+#include "vtkObject.h"
+#include "vtkRemotingServerManagerViewsModule.h" // needed for export macro
 
 class vtkSMProxy;
 class vtkSMSessionProxyManager;
 
-class VTKREMOTINGVIEWS_EXPORT vtkSMTransferFunctionManager : public vtkSMObject
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMTransferFunctionManager : public vtkObject
 {
 public:
   static vtkSMTransferFunctionManager* New();
-  vtkTypeMacro(vtkSMTransferFunctionManager, vtkSMObject);
+  vtkTypeMacro(vtkSMTransferFunctionManager, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**

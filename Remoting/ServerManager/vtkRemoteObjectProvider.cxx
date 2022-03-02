@@ -28,16 +28,18 @@
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 
+#include <set>
 #include <sstream>
 
 class vtkRemoteObjectProvider::vtkInternals
 {
+  mutable std::set<vtkTypeUInt32> UpdatedAlgorithms;
+
 public:
   vtkRemoteObjectProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
   vtkSmartPointer<vtkProxyDefinitionManager> ProxyDefinitionManager;
   rxcpp::composite_subscription Subscription;
-  rxcpp::subjects::subject<vtkTypeUInt32> NotifyUpdateSubject;
   rxcpp::subjects::subject<vtkRemoteObjectProvider::vtkProgressItem> ProgressSubject;
 
   vtkInternals(vtkRemoteObjectProvider* self)
@@ -93,6 +95,8 @@ public:
    * Gather information.
    */
   vtkNJson GatherInformation(const vtkNJson& request) const;
+
+  void PiggybackDataInformation(vtkNJson& json);
 
 private:
   /**
@@ -213,19 +217,34 @@ vtkNJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid
 
   reply["status"] = true;
 
-  // UpdatePipeline has implicit gather information since that's the most
-  // typical way UpdatePipeline is used.
-  if (auto* algo = vtkAlgorithm::SafeDownCast(objWrapper->GetVTKObject()))
+  // Piggy back any invalidated data information that needs to be
+  // communicated back to the client.
+  this->PiggybackDataInformation(reply);
+
+  return reply;
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::vtkInternals::PiggybackDataInformation(vtkNJson& payload)
+{
+  auto& parent = payload["pb_data_informations"];
+  for (const auto& gid : this->UpdatedAlgorithms)
   {
+    auto algo = this->ObjectStore->FindVTKObject<vtkAlgorithm>(gid);
+    if (algo == nullptr || algo->GetNumberOfOutputPorts() == 0)
+    {
+      continue;
+    }
+
     for (int cc = 0, max = algo->GetNumberOfOutputPorts(); cc < max; ++cc)
     {
       vtkNew<vtkPVDataInformation> dataInfo;
       dataInfo->SetPortNumber(cc);
-      reply["data_information"].push_back(this->GatherInformation(dataInfo, algo));
+      parent[std::to_string(gid)].push_back(this->GatherInformation(dataInfo, algo));
     }
   }
 
-  return reply;
+  this->UpdatedAlgorithms.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -351,6 +370,16 @@ vtkPacket vtkRemoteObjectProvider::vtkInternals::Process(const vtkPacket& packet
     return {};
   }
 
+  if (type == "vtk-remote-object-execute-command")
+  {
+    this->InvokeCommand(json.at("gid").get<vtkTypeUInt32>(), json.at("command").get<std::string>());
+
+    vtkNJson reply;
+    reply["status"] = true;
+    this->PiggybackDataInformation(reply);
+    return reply;
+  }
+
   if (type == "vtk-remote-object-gather-information")
   {
     return this->GatherInformation(packet.GetJSON());
@@ -369,13 +398,9 @@ void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* obj
   if (auto* algorithm = vtkAlgorithm::SafeDownCast(vtkobject))
   {
     auto* service = this->Self->GetService();
-
-    // FIXME: see async/paraview#2
-    // Need to use vtkCommand::RealEndEvent
-    rxvtk::from_event(algorithm, vtkCommand::EndEvent)
-      .map([gid](const auto& tuple) { return gid; })
-      .debounce(std::chrono::milliseconds(500), service->GetRunLoopScheduler())
-      .subscribe(this->NotifyUpdateSubject.get_subscriber());
+    rxvtk::from_event(algorithm, vtkCommand::EndEvent).subscribe([gid, this](const auto& tuple) {
+      this->UpdatedAlgorithms.insert(gid);
+    });
 
     // progress event
     rxvtk::from_event(vtkobject, vtkCommand::ProgressEvent)
@@ -483,6 +508,16 @@ vtkPacket vtkRemoteObjectProvider::InvokeCommand(vtkTypeUInt32 gid, const std::s
 }
 
 //----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::ExecuteCommand(vtkTypeUInt32 gid, const std::string& command)
+{
+  vtkNJson message;
+  message["type"] = "vtk-remote-object-execute-command";
+  message["gid"] = gid;
+  message["command"] = command;
+  return { message };
+}
+
+//----------------------------------------------------------------------------
 vtkPacket vtkRemoteObjectProvider::GatherInformation(
   vtkPVInformation* information, vtkTypeUInt32 targetGID)
 {
@@ -493,12 +528,6 @@ vtkPacket vtkRemoteObjectProvider::GatherInformation(
   json["state"] = information->SaveState();
   json["run_on_rpc"] = information->CanRunOnRPC();
   return { json };
-}
-
-//----------------------------------------------------------------------------
-std::vector<vtkTypeUInt32> vtkRemoteObjectProvider::ParseNotifyUpdate(const vtkPacket& packet)
-{
-  return packet.GetJSON().at("gids").get<std::vector<vtkTypeUInt32>>();
 }
 
 //----------------------------------------------------------------------------
@@ -557,18 +586,6 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
       .subscribe([&internals](const vtkServiceReceiver& receiver) {
         receiver.Respond(internals.Process(receiver.GetPacket()));
       });
-
-  // publish pipeline-updated notifications periodically.
-  internals.NotifyUpdateSubject.get_observable()
-    .buffer_with_time(std::chrono::milliseconds(500), service->GetRunLoopScheduler())
-    .filter([](auto& vector) { return !vector.empty(); })
-    .subscribe([service](std::vector<vtkTypeUInt32> gids) {
-      // gids is a vector of gids that have been updated.
-      std::sort(gids.begin(), gids.end());
-      gids.erase(std::unique(gids.begin(), gids.end()), gids.end());
-      service->Publish(
-        vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE(), vtkNJson({ { "gids", gids } }));
-    });
 
   // can't really buffer since we don't want to skip start/end.
   // just sending all for now, need to figure out better time management.

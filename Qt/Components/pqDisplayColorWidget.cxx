@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "pqDisplayColorWidget.h"
 
-// #include "pqDataRepresentation.h"
+#include "pqDataRepresentation.h"
 #include "pqPropertiesPanel.h"
 #include "pqPropertyLinks.h"
 #include "pqScalarsToColors.h"
@@ -48,8 +48,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMTrace.h"
-// #include "vtkSMTransferFunctionManager.h"
-// #include "vtkSMTransferFunctionProxy.h"
+#include "vtkSMTransferFunctionManager.h"
+#include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMViewProxy.h"
 #include "vtkWeakPointer.h"
 
@@ -291,30 +291,26 @@ pqDisplayColorWidget::~pqDisplayColorWidget()
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::renderActiveView()
 {
-#if 0 // FIXME: ASYNC
   if (this->Representation)
   {
     this->Representation->renderViewEventually();
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
 vtkSMViewProxy* pqDisplayColorWidget::viewProxy() const
 {
-#if 0 // FIXME: ASYNC
   if (this->Representation)
   {
     return this->Representation->getViewProxy();
   }
-#endif
+
   return nullptr;
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
 {
-#if 0 // FIXME: ASYNC
   if (this->CachedRepresentation == repr)
   {
     return;
@@ -373,7 +369,6 @@ void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr)
     this, "notused", SIGNAL(arraySelectionChanged()), proxy, prop);
 
   this->updateColorTransferFunction();
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -597,7 +592,6 @@ void pqDisplayColorWidget::componentNumberChanged()
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::refreshComponents()
 {
-#if 0 // FIXME: ASYNC
   if (!this->Representation)
   {
     return;
@@ -650,13 +644,11 @@ void pqDisplayColorWidget::refreshComponents()
   }
   this->Components->blockSignals(prev);
   this->Components->setEnabled(this->Components->count() > 0);
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayColorWidget::updateColorTransferFunction()
 {
-#if 0 // FIXME: ASYNC
   if (!this->Representation)
   {
     return;
@@ -676,7 +668,6 @@ void pqDisplayColorWidget::updateColorTransferFunction()
     this->connect(lut, SIGNAL(componentOrModeChanged()), SLOT(updateColorTransferFunction()),
       Qt::UniqueConnection);
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -45,8 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "pqPlotMatrixView.h"
 //#include "pqRenderView.h"
 //#include "pqScalarBarRepresentation.h"
-//#include "pqScalarsToColors.h"
 #include "pqDataRepresentation.h"
+#include "pqScalarsToColors.h"
 #include "pqServer.h"
 //#include "pqSpreadSheetView.h"
 //#include "pqTimeKeeper.h"
@@ -191,6 +191,10 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
   {
     return new pqProxy(group, name, proxy, server, nullptr);
   }
+  else if (group == "lookup_tables")
+  {
+    return new pqScalarsToColors(group, name, proxy, server, nullptr);
+  }
 
 #else // FIXME: ASYNC
   if (group == "views" && vtkSMViewProxy::SafeDownCast(proxy))
@@ -219,10 +223,6 @@ pqProxy* pqStandardServerManagerModelInterface::createPQProxy(
   else if (group == "timekeeper")
   {
     return new pqTimeKeeper(group, name, proxy, server, nullptr);
-  }
-  else if (group == "lookup_tables")
-  {
-    return new pqScalarsToColors(group, name, proxy, server, nullptr);
   }
   else if (group == "scalar_bars")
   {

@@ -116,33 +116,7 @@ struct vtkSMSessionProxyManagerInternals
   }
 
 private:
-  void Subscribe(vtkServiceEndpoint* endpoint)
-  {
-    auto subscription = endpoint->Subscribe(vtkRemoteObjectProvider::CHANNEL_NOTIFY_UPDATE());
-    subscription->GetObservable().subscribe([this](const vtkPacket& packet) {
-      auto gids = vtkRemoteObjectProvider::ParseNotifyUpdate(packet);
-      this->ProxiesUpdated(gids);
-    });
-    this->Subscriptions.push_back(subscription);
-  }
-
-  /**
-   * This is called whenever a service notifies us that an algorithm
-   * has updated. The service buffers these notifications and sends
-   * a list of gids for all algorithms that were updated.
-   */
-  void ProxiesUpdated(const std::vector<vtkTypeUInt32>& gids) const
-  {
-    vtkRemotingCoreUtilities::EnsureThread(this->OwnerTID);
-    for (auto id : gids)
-    {
-      auto iter = this->Proxies.find(id);
-      if (iter != this->Proxies.end() && iter->second)
-      {
-        this->ProxyManager->MarkPipelineUpdated(iter->second);
-      }
-    }
-  }
+  void Subscribe(vtkServiceEndpoint*) {}
 
   // A collection of vtkChannelSubscription.
   std::vector<vtkSmartPointer<vtkChannelSubscription>> Subscriptions;

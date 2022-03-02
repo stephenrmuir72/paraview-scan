@@ -51,8 +51,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMPropertyHelper.h"
 // #include "vtkSMPVRepresentationProxy.h"
-// #include "vtkSMScalarBarWidgetRepresentationProxy.h"
-// #include "vtkSMTransferFunctionManager.h"
 #include "vtkSMViewProxy.h"
 
 #include <QHeaderView>

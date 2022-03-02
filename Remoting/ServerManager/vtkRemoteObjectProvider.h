@@ -63,12 +63,8 @@ public:
   static vtkPacket UpdatePipeline(vtkTypeUInt32 gid, double time);
   static vtkPacket DeleteObject(vtkTypeUInt32 gid);
   static vtkPacket InvokeCommand(vtkTypeUInt32 gid, const std::string& command);
+  static vtkPacket ExecuteCommand(vtkTypeUInt32 gid, const std::string& command);
   static vtkPacket GatherInformation(vtkPVInformation* information, vtkTypeUInt32 targetGID);
-  ///@}
-
-  ///@{
-  static const std::string CHANNEL_NOTIFY_UPDATE() { return "notify::update"; }
-  static std::vector<vtkTypeUInt32> ParseNotifyUpdate(const vtkPacket& packet);
   ///@}
 
   ///@{

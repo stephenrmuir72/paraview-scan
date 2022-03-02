@@ -97,6 +97,10 @@ struct vtkSMProxyInternals
   rxcpp::subjects::behavior<std::pair<vtkTypeUInt32, bool>> UpdateInformationSubject{
     std::make_pair(0, false)
   };
+
+  vtkTypeUInt32 ExecuteCommandTag{ 0 };
+  rxcpp::subjects::behavior<std::pair<vtkTypeUInt32, bool>> ExecuteCommandSubject{ std::make_pair(
+    0, false) };
 };
 
 #endif

@@ -16,12 +16,18 @@
 
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVArrayInformation.h"
+#include "vtkSMArrayListDomain.h"
+#include "vtkSMCoreUtilities.h"
 #include "vtkSMParaViewPipelineControllerWithRendering.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyIterator.h"
+#include "vtkSMPropertyHelper.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMProperty.h"
+#include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMViewLayoutProxy.h"
 #include "vtkSMViewProxy.h"
 
@@ -160,6 +166,53 @@ void vtkSMApplyController::ResetCamera(vtkSMViewProxy* view)
 {
   // TODO:
   view->Update();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMApplyController::ApplyScalarColoring(vtkSMProxy* repr)
+{
+  const bool mapScalars = repr->GetProperty("MapScalars") ?
+    vtkSMPropertyHelper(repr, "MapScalars").GetAsInt() == 1 : true;
+  if (!mapScalars)
+  {
+    return;
+  }
+
+  vtkSMPropertyHelper colorArray(repr, "ColorArrayName");
+  if (colorArray.GetInputArrayNameToProcess() == nullptr)
+  {
+    return;
+  }
+
+  auto* lut = vtkSMPropertyHelper(repr, "LookupTable").GetAsProxy();
+  if (!lut)
+  {
+    return;
+  }
+
+  // reset range is requested by settings.
+  auto* domain = colorArray.GetProperty()->FindDomain<vtkSMArrayListDomain>();
+  if (!domain)
+  {
+    return;
+  }
+
+  int component = vtkSMPropertyHelper(lut, "VectorMode").GetAsInt() != 0 ?
+    vtkSMPropertyHelper(lut, "VectorComponent").GetAsInt() : -1;
+
+  auto* arrayInfo = domain->GetArrayInformation(colorArray.GetInputArrayAssociation(),
+      colorArray.GetInputArrayNameToProcess());
+  if (!arrayInfo || component >= arrayInfo->GetNumberOfComponents())
+  {
+    return;
+  }
+
+
+  double range[2];
+  arrayInfo->GetComponentFiniteRange(component, range);
+  vtkSMCoreUtilities::AdjustRange(range);
+  vtkSMTransferFunctionProxy::RescaleTransferFunction(lut, range, /*extend=*/true);
+  lut->UpdateVTKObjects();
 }
 
 //----------------------------------------------------------------------------

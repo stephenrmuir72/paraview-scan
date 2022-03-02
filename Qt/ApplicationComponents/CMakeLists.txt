@@ -48,6 +48,7 @@ set(classes
   pqChooseColorPresetReaction
   pqColorAnnotationsPropertyWidget
   pqColorAnnotationsWidget
+  pqColorArrayPropertyWidget
   pqColorEditorPropertyWidget
   pqColorPaletteSelectorWidget
   pqColorSelectorPropertyWidget
@@ -243,6 +244,7 @@ set(ui_files
   Resources/UI/pqCameraManipulatorWidget.ui
   Resources/UI/pqCameraToolbar.ui
   Resources/UI/pqColorAnnotationsWidget.ui
+  Resources/UI/pqColorArrayPropertyWidget.ui
   Resources/UI/pqColorEditorPropertyWidget.ui
   Resources/UI/pqColorMapEditor.ui
   Resources/UI/pqColorOpacityEditorWidget.ui

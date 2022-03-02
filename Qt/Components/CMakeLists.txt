@@ -31,6 +31,7 @@
 set(classes
   pqAboutDialog
   pqAbstractItemSelectionModel
+  pqActionGroupInterface
   pqActiveObjects
   pqArrayListDomain
   pqArraySelectionWidget
@@ -75,6 +76,9 @@ set(classes
   pqPipelineModel
   pqPipelineModelSelectionAdaptor
   pqPopOutWidget
+  pqPresetDialog
+  pqPresetGroupsManager
+  pqPresetToPixmap
   pqPropertiesPanel
   pqPropertyGroupWidget
   pqPropertyWidget
@@ -95,6 +99,7 @@ set(classes
   pqServerConfigurationImporter
   pqServerLauncher
   pqSetBreakpointDialog
+  pqSettingsDialog
   pqShaderReplacementsComboBox
   pqShaderReplacementsSelectorPropertyWidget
   pqShortcutDecorator
@@ -106,6 +111,7 @@ set(classes
   pqTextureSelectorPropertyWidget
   pqToolBarInterface
   pqToolTipTrapper
+  pqTransferFunctionWidget
   pqTriggerOnIdleHelper
   pqViewFrame
   pqViewFrameActionsInterface
@@ -113,7 +119,6 @@ set(classes
 )
 
 set(old_classes
-  pqActionGroupInterface
   pqAnimatablePropertiesComboBox
   pqAnimatableProxyComboBox
   pqAnimationManager
@@ -149,9 +154,6 @@ set(old_classes
   pqPluginDialog
   pqPluginTreeWidgetEventPlayer
   pqPluginTreeWidgetEventTranslator
-  pqPresetDialog
-  pqPresetGroupsManager
-  pqPresetToPixmap
   pqRemoteCommandDialog
   pqRemoteCommandTemplateDialog
   pqSingleLogViewerWidget
@@ -159,11 +161,9 @@ set(old_classes
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
-  pqSettingsDialog
   pqServerConnectDialog
   pqSignalAdaptorKeyFrameType
   pqTimerLogDisplay
-  pqTransferFunctionWidget
   pqUndoStackBuilder
   pqVCRController
 )

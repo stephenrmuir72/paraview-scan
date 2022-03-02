@@ -18,7 +18,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
-#include "vtkProcessModule.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMEnumerationDomain.h"
 #include "vtkSMIdTypeVectorProperty.h"
@@ -1085,15 +1084,11 @@ void vtkSMSettings::ClearAllSettings()
 }
 
 //----------------------------------------------------------------------------
-bool vtkSMSettings::DistributeSettings()
+bool vtkSMSettings::DistributeSettings(vtkMultiProcessController* controller)
 {
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  if (pm->GetProcessType() == vtkProcessModule::PROCESS_BATCH && pm->GetSymmetricMPIMode() &&
-    (pm->GetNumberOfLocalPartitions() > 1))
+  if (controller->GetNumberOfProcesses() > 1)
   {
     // Broadcast settings to satellite nodes
-    vtkMultiProcessController* controller = pm->GetGlobalController();
-
     unsigned int numberOfSettingCollections;
     if (controller->GetLocalProcessId() == 0)
     {
