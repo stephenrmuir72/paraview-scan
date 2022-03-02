@@ -151,8 +151,6 @@ void vtkPVViewProvider::InitializeInternal(vtkService* service)
         {
           auto* dmanager = view->GetDataDeliveryManager();
           dmanager->SetData(data.GetPayload());
-          view->UpdateForRendering();
-          view->StillRender();
         }
       });
   }
