@@ -98,7 +98,7 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetColorTransferFunction(
 
   // Set the range reset mode based on the global setting
   vtkSMTransferFunctionProxy* tfProxy = vtkSMTransferFunctionProxy::SafeDownCast(proxy);
-  tfProxy->ResetRescaleModeToGlobalSetting();
+  tfProxy->ResetRescaleModeToDefaultSetting();
 
   vtkSMSettings* settings = vtkSMSettings::GetInstance();
 
