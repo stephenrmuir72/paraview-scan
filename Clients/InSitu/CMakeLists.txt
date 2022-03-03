@@ -44,4 +44,13 @@ vtk_module_add_module(ParaView::InSitu
   CLASSES ${classes})
 vtk_module_client_server_exclude()
 
-add_subdirectory(catalyst)
+if (PARAVIEW_ENABLE_CATALYST)
+  if (NOT TARGET VTK::IOCatalystConduit)
+    message(FATAL_ERROR "Cannot build Catalyst implementation without VTK::IOCatalystConduit module enabled")
+  endif()
+
+  add_subdirectory(catalyst)
+  vtk_module_link(ParaView::InSitu
+    PRIVATE
+      catalyst::catalyst)
+endif()
