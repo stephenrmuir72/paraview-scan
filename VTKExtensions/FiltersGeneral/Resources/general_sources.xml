@@ -3,7 +3,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkHierarchicalFractal"
                  label="Hierarchical Fractal"
-                 name="HierarchicalFractal">
+                 name="HierarchicalFractal"
+                 number_of_output_ports="1">
       <Documentation long_help="Test source for AMR with HierarchicalDataSet"
                      short_help="Hierarchical fractal">The Hierarchical Fractal
                      source is a collection of uniform grids. All have the same
@@ -100,7 +101,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkImageSimpleSource"
                  label="Fast Uniform Grid"
-                 name="FastUniformGrid">
+                 name="FastUniformGrid"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a uniform grid in 3 dimensions with scalar and vector data arrays, consuming minimal computational resources."
                      short_help="Create a 3D uniform grid with scalar and vector arrays.">The
                      Fast Uniform Grid source can be used to create a uniform
@@ -171,7 +173,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVTextSource"
                  label="Text"
-                 name="TextSource">
+                 name="TextSource"
+                 number_of_output_ports="1">
       <Documentation long_help="The Text source generates a table containing text."
                      short_help="Display text">
                      The Text source is used to generate a vtkTable with a single text string.
@@ -202,7 +205,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkTimeToTextConvertor"
                  label="Annotate Time"
-                 name="TimeToTextConvertorSource">
+                 name="TimeToTextConvertorSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Shows the animation time as text annotation in the view."
                      short_help="Show animation time as text">The Annotate Time
                      source can be used to show the animation time in text

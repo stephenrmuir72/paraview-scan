@@ -3,7 +3,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPartitionedDataSetCollectionSource"
       label="PartitionedDataSetCollection Source"
-      name="PartitionedDataSetCollectionSource">
+      name="PartitionedDataSetCollectionSource"
+      number_of_output_ports="1">
       <Documentation short_help="Create vtkPartitionedDataSetCollection">
       This source can be used to createa  `vtkPartitionedDataSetCollection` for testing purposes.
       </Documentation>
@@ -23,7 +24,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkArrowSource"
                  label="Arrow"
-                 name="ArrowSource">
+                 name="ArrowSource"
+                 number_of_output_ports="1">
       <Documentation long_help="3D arrow with a long cylindrical shaft and a cone for the tip"
                      short_help="Create a 3D arrow">The Arrow source appends a
                      cylinder to a cone to form a 3D arrow. The length of the
@@ -106,7 +108,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCellTypeSource"
                  label="Unstructured Cell Types"
-                 name="UnstructuredCellTypes">
+                 name="UnstructuredCellTypes"
+                 number_of_output_ports="1">
       <Documentation long_help="Generates cells of the specified type."
                      short_help="Generate cells of the specified type">
         Generate cells of the specified type. If a 1D cell type is chosen then
@@ -248,7 +251,8 @@
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkConeSource"
-                 name="Test3DWidget">
+                 name="Test3DWidget"
+                 number_of_output_ports="1">
       <IntVectorProperty command="SetResolution"
                          default_values="6"
                          name="Resolution"
@@ -265,7 +269,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkConeSource"
                  label="Cone"
-                 name="ConeSource">
+                 name="ConeSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a 3D cone of a given radius and height."
                      short_help="3D cone of a given radius and height">The Cone
                      source can be used to add a polygonal cone to the 3D
@@ -344,7 +349,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCubeSource"
                  label="Box"
-                 name="CubeSource">
+                 name="CubeSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a box with specified X, Y, and Z lengths."
                      short_help="3D box with specified X, Y, and Z lengths">The
                      Box source can be used to add a box to the 3D scene. The
@@ -399,7 +405,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCylinderSource"
                  label="Cylinder"
-                 name="CylinderSource">
+                 name="CylinderSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a 3D cylinder of a given radius and height."
                      short_help="3D cylinder of a given radius and height">The
                      Cylinder source can be used to add a polygonal cylinder to
@@ -465,7 +472,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkDiskSource"
                  label="Disk"
-                 name="DiskSource">
+                 name="DiskSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a 3D disk with a specified inner and outer radius."
                      short_help="Create a 3D disk">The Disk source can be used
                      to add a polygonal disk to the 3D scene. The output of the
@@ -518,7 +526,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkEllipseArcSource"
                  label="Ellipse"
-                 name="EllipseSource">
+                 name="EllipseSource"
+                 number_of_output_ports="1">
       <Documentation short_help="Create an elliptical arc">
         Source that creates an elliptical arc
         defined by a normal, a center, a major radius vector (the direction in
@@ -599,7 +608,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkGlyphSource2D"
                  label="2D Glyph"
-                 name="GlyphSource2D">
+                 name="GlyphSource2D"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a 2D glyph (e.g., arrow, cross, dash, etc.)"
                      short_help="Create a 2D glyph">The 2D Glyph source is used
                      for generating a family of 2D glyphs, each of which lies
@@ -662,7 +672,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkHyperTreeGridSource"
                  label="Hyper Tree Grid"
-                 name="HyperTreeGridSource">
+                 name="HyperTreeGridSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Hyper tree grid representing a tree-based AMR data set"
                      short_help="Create a hyper tree grid">This source uses input parameters,
                      most notably a string descriptor, to generate a vtkHyperTreeGrid instance
@@ -721,7 +732,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkLineSource"
                  label="Line"
-                 name="LineSource">
+                 name="LineSource"
+                 number_of_output_ports="1">
       <Documentation long_help="This source creates a line between two points. The resolution indicates how many segments are in the line."
                      short_help="Create a line between two points">The Line
                      source can be used to interactively (using a 3D widget) or
@@ -802,7 +814,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkLineSource"
                  label="Ruler"
-                 name="Ruler">
+                 name="Ruler"
+                 number_of_output_ports="1">
       <Documentation long_help="This is a line source that can be used to measure distance between two points"
                      short_help="Create a ruler">The ruler can be used to
                      interactively (using a 3D widget) or manually (using the
@@ -838,7 +851,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkOutlineSource"
                  label="Outline Source"
-                 name="OutlineSource">
+                 name="OutlineSource"
+                 number_of_output_ports="1">
       <Documentation long_help="3D outline of the specified bounds."
                      short_help="Create an outline from the bounds">The Outline
                      source creates an axis aligned bounding box given the
@@ -859,7 +873,8 @@
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkParametricFunctionSource"
-                 name="SplineSource">
+                 name="SplineSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Tessellate parametric functions."
                      short_help="Tessellate parametric functions.">This class
                      tessellates parametric functions. The user must specify
@@ -890,7 +905,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPlaneSource"
                  label="Plane"
-                 name="PlaneSource">
+                 name="PlaneSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a parallelogram given an origin and two points. The resolution indicates the number of division along each axis of the plane."
                      short_help="Create a parallelogram from an origin and two points">
                      The Plane source can be used to add a polygonal
@@ -958,7 +974,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPointSource"
                  label="Point Source"
-                 name="PointSource">
+                 name="PointSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a point cloud of a certain size, radius, and center."
                      short_help="Create a point cloud">The point source creates
                      a specified number of points within a given radius about a
@@ -1001,7 +1018,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPolyLineSource"
                  label="Poly Line Source"
-                 name="PolyLineSource">
+                 name="PolyLineSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a poly line from one or more points."
                      short_help="Create a poly line from one or more points.">
         The Poly Line Source creates a poly line from an arbitrary
@@ -1031,7 +1049,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPolyPointSource"
                  label="Poly Point Source"
-                 name="PolyPointSource">
+                 name="PolyPointSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create polydata from one or more points."
                      short_help="Create polydata from one or more points.">
         The Poly Point Source creates a poly data of points from an arbitrary
@@ -1051,7 +1070,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkRandomHyperTreeGridSource"
                  label="Hyper Tree Grid (Random)"
-                 name="RandomHyperTreeGridSource">
+                 name="RandomHyperTreeGridSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Construct a HyperTreeGrid from a random seed."
                      short_help="Create a random hyper tree grid">This source uses input parameters,
                      most notably a seed value, to generate a vtkHyperTreeGrid instance for testing.
@@ -1216,7 +1236,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkSuperquadricSource"
                  label="Superquadric"
-                 name="SuperquadricSource">
+                 name="SuperquadricSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a superquadric according to the theta and phi roundness parameters. This one source can generate a wide variety of 3D objects including a box, a sphere, or a torus."
                      short_help="Create a superquadric according to the theta and phi roundness parameters">
       The Superquadric source can be used to add a polygonal superquadric to
@@ -1344,7 +1365,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkLineSource"
                  label="Line Source"
-                 name="LineSource">
+                 name="LineSource"
+                 number_of_output_ports="1">
       <DoubleVectorProperty animateable="1"
                             command="SetPoint1"
                             default_values="0.0 0.0 0.0"
@@ -1400,7 +1422,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkLineSource"
                  label="Line"
-                 name="HighResLineSource">
+                 name="HighResLineSource"
+                 number_of_output_ports="1">
       <DoubleVectorProperty animateable="1"
                             command="SetPoint1"
                             default_values="0.0 0.0 0.0"
@@ -1455,7 +1478,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPolyLineSource"
                  label="Poly Line Source"
-                 name="PolyLineSource">
+                 name="PolyLineSource"
+                 number_of_output_ports="1">
       <DoubleVectorProperty command="SetPoint"
                             default_values="0 0 0 1 0 0"
                             name="Points"
@@ -1497,7 +1521,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPointSource"
                  label="Point Cloud"
-                 name="PointSource">
+                 name="PointSource"
+                 number_of_output_ports="1">
       <DoubleVectorProperty animateable="1"
                             command="SetCenter"
                             default_values="0.0 0.0 0.0"
@@ -1554,7 +1579,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPointSource"
                  label="Fixed Radius Point Source"
-                 name="FixedRadiusPointSource">
+                 name="FixedRadiusPointSource"
+                 number_of_output_ports="1">
       <DoubleVectorProperty animateable="1"
                             command="SetCenter"
                             default_values="0.0 0.0 0.0"
