@@ -98,6 +98,20 @@ protected:
 
   void InitializeInternal(vtkService* service) override;
 
+  /**
+   * Preview a message. Called on the RPC thread.
+   */
+  virtual void Preview(const vtkPacket& packet);
+
+  ///@{
+  /**
+   * Process a message. Called on the RPC thread if "run_on_rpc" is true,
+   * otherwise called on the service's main thread.
+   */
+  virtual vtkPacket ProcessOnRPC(const vtkPacket& packet);
+  virtual vtkPacket Process(const vtkPacket& packet);
+  ///@}
+
 private:
   vtkRemoteObjectProvider(const vtkRemoteObjectProvider&) = delete;
   void operator=(const vtkRemoteObjectProvider&) = delete;

@@ -417,7 +417,7 @@ void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* obj
 }
 
 //============================================================================
-vtkStandardNewMacro(vtkRemoteObjectProvider);
+vtkObjectFactoryNewMacro(vtkRemoteObjectProvider);
 //----------------------------------------------------------------------------
 vtkRemoteObjectProvider::vtkRemoteObjectProvider()
   : Internals(new vtkRemoteObjectProvider::vtkInternals(this))
@@ -568,23 +568,23 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
         return iter != json.end() &&
           iter.value().get<std::string>().find("vtk-remote-object-") != std::string::npos;
       })
-      .map([&internals](const vtkServiceReceiver& receiver) {
-        internals.Preview(receiver.GetPacket());
+      .map([this](const vtkServiceReceiver& receiver) {
+        this->Preview(receiver.GetPacket());
         return receiver;
       })
-      .filter([&internals](const vtkServiceReceiver& receiver) {
+      .filter([this](const vtkServiceReceiver& receiver) {
         // handle "run_on_rpc" requests.
         const auto& json = receiver.GetPacket().GetJSON();
         if (json.count("run_on_rpc") > 0 && json.at("run_on_rpc").get<bool>())
         {
-          receiver.Respond(internals.Process(receiver.GetPacket()));
+          receiver.Respond(this->ProcessOnRPC(receiver.GetPacket()));
           return false;
         }
         return true;
       })
       .observe_on(service->GetRunLoopScheduler())
-      .subscribe([&internals](const vtkServiceReceiver& receiver) {
-        receiver.Respond(internals.Process(receiver.GetPacket()));
+      .subscribe([this](const vtkServiceReceiver& receiver) {
+        receiver.Respond(this->Process(receiver.GetPacket()));
       });
 
   // can't really buffer since we don't want to skip start/end.
@@ -594,6 +594,27 @@ void vtkRemoteObjectProvider::InitializeInternal(vtkService* service)
     json["progress_item"] = item;
     service->Publish(vtkRemoteObjectProvider::CHANNEL_PROGRESS(), std::move(json));
   });
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::Preview(const vtkPacket& packet)
+{
+  auto& internals = (*this->Internals);
+  internals.Preview(packet);
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::ProcessOnRPC(const vtkPacket& packet)
+{
+  auto& internals = (*this->Internals);
+  return internals.Process(packet);
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProvider::Process(const vtkPacket& packet)
+{
+  auto& internals = (*this->Internals);
+  return internals.Process(packet);
 }
 
 //----------------------------------------------------------------------------
