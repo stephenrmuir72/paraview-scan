@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkPVViewProvider.cxx
+  Module:    vtkRemoteObjectProviderViews.cxx
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkPVViewProvider.h"
+#include "vtkRemoteObjectProviderViews.h"
 
 #include "vtkChannelSubscription.h"
 #include "vtkObjectFactory.h"
@@ -27,52 +27,26 @@
 
 #include <cassert>
 
-class vtkPVViewProvider::vtkInternals
+class vtkRemoteObjectProviderViews::vtkInternals
 {
 public:
-  vtkPVViewProvider* Self;
-  vtkSmartPointer<vtkObjectStore> ObjectStore;
-  vtkSmartPointer<vtkMultiProcessController> Controller;
   vtkSmartPointer<vtkChannelSubscription> DataChannelSubscription;
   bool DataProcessing{ false };
-
   std::map<vtkTypeUInt32, vtkTimeStamp> PushTimeStamps;
-  vtkInternals(vtkPVViewProvider* self)
-    : Self(self)
-  {
-  }
 };
 
-vtkStandardNewMacro(vtkPVViewProvider);
+vtkObjectFactoryNewMacro(vtkRemoteObjectProviderViews);
 //----------------------------------------------------------------------------
-vtkPVViewProvider::vtkPVViewProvider()
-  : Internals(new vtkPVViewProvider::vtkInternals(this))
+vtkRemoteObjectProviderViews::vtkRemoteObjectProviderViews()
+  : Internals(new vtkRemoteObjectProviderViews::vtkInternals())
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPVViewProvider::~vtkPVViewProvider() = default;
+vtkRemoteObjectProviderViews::~vtkRemoteObjectProviderViews() = default;
 
 //----------------------------------------------------------------------------
-void vtkPVViewProvider::SetObjectStore(vtkObjectStore* store)
-{
-  auto& internals = (*this->Internals);
-  internals.ObjectStore = store;
-  store->AddObserver(
-    vtkObjectStore::RegisterObjectEvent, this, &vtkPVViewProvider::HandleObjectStoreEvent);
-  store->AddObserver(
-    vtkObjectStore::UnregisterObjectEvent, this, &vtkPVViewProvider::HandleObjectStoreEvent);
-}
-
-//----------------------------------------------------------------------------
-vtkSmartPointer<vtkObjectStore> vtkPVViewProvider::GetObjectStore() const
-{
-  const auto& internals = (*this->Internals);
-  return internals.ObjectStore;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVViewProvider::HandleObjectStoreEvent(
+void vtkRemoteObjectProviderViews::HandleObjectStoreEvent(
   vtkObject* caller, unsigned long eventId, void* callData)
 {
   // this is called on service's main thread.
@@ -86,13 +60,15 @@ void vtkPVViewProvider::HandleObjectStoreEvent(
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for data processing (%s)",
           vtkLogIdentifier(view));
-        view->AddObserver(vtkCommand::UpdateEvent, this, &vtkPVViewProvider::PushViewData);
+        view->AddObserver(
+          vtkCommand::UpdateEvent, this, &vtkRemoteObjectProviderViews::PushViewData);
       }
       else
       {
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for rendering (%s)",
           vtkLogIdentifier(view));
-        view->AddObserver(vtkCommand::RenderEvent, this, &vtkPVViewProvider::PushViewImage);
+        view->AddObserver(
+          vtkCommand::RenderEvent, this, &vtkRemoteObjectProviderViews::PushViewImage);
       }
       internals.PushTimeStamps[view->GetGlobalID()].Modified();
     }
@@ -100,7 +76,8 @@ void vtkPVViewProvider::HandleObjectStoreEvent(
 }
 
 //----------------------------------------------------------------------------
-void vtkPVViewProvider::PushViewData(vtkObject* caller, unsigned long eventId, void* callData)
+void vtkRemoteObjectProviderViews::PushViewData(
+  vtkObject* caller, unsigned long eventId, void* callData)
 {
   auto& internals = (*this->Internals);
   assert("Only supported on data-processing services" && internals.DataProcessing);
@@ -118,35 +95,45 @@ void vtkPVViewProvider::PushViewData(vtkObject* caller, unsigned long eventId, v
     vtkNJson json;
     json["gid"] = view->GetGlobalID();
     this->GetService()->Publish(
-      vtkPVViewProvider::GetDataChannelName(), vtkPacket{ std::move(json), dataMap });
+      vtkRemoteObjectProviderViews::GetDataChannelName(), vtkPacket{ std::move(json), dataMap });
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPVViewProvider::PushViewImage(vtkObject* caller, unsigned long eventId, void* callData)
+void vtkRemoteObjectProviderViews::PushViewImage(
+  vtkObject* caller, unsigned long eventId, void* callData)
 {
   auto& internals = (*this->Internals);
   assert("Only supported on rendering services" && !internals.DataProcessing);
   auto* view = vtkPVView::SafeDownCast(caller);
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "Pushing rendered image");
-  this->GetService()->Publish(vtkPVViewProvider::GetImageChannelName(), view->GetRenderedResult());
+  this->GetService()->Publish(
+    vtkRemoteObjectProviderViews::GetImageChannelName(), view->GetRenderedResult());
 }
 
 //----------------------------------------------------------------------------
-void vtkPVViewProvider::InitializeInternal(vtkService* service)
+void vtkRemoteObjectProviderViews::InitializeInternal(vtkService* service)
 {
+  this->Superclass::InitializeInternal(service);
+
+  auto store = this->GetObjectStore();
+  store->AddObserver(vtkObjectStore::RegisterObjectEvent, this,
+    &vtkRemoteObjectProviderViews::HandleObjectStoreEvent);
+  store->AddObserver(vtkObjectStore::UnregisterObjectEvent, this,
+    &vtkRemoteObjectProviderViews::HandleObjectStoreEvent);
+
   auto& internals = (*this->Internals);
   internals.DataProcessing = (service->GetName() == "ds"); // TODO: need a better way
   if (!internals.DataProcessing)
   {
     internals.DataChannelSubscription =
-      service->Subscribe(vtkPVViewProvider::GetDataChannelName(), "ds");
+      service->Subscribe(vtkRemoteObjectProviderViews::GetDataChannelName(), "ds");
     internals.DataChannelSubscription->GetObservable().subscribe(
-      [&internals](const vtkPacket& data) {
+      [&internals, this](const vtkPacket& data) {
         vtkVLogScopeF(PARAVIEW_LOG_DATA_MOVEMENT_VERBOSITY(), "Received rendering data");
         const auto& json = data.GetJSON();
         const auto gid = json.at("gid").get<vtkTypeUInt32>();
-        auto view = internals.ObjectStore->FindVTKObject<vtkPVView>(gid);
+        auto view = this->GetObjectStore()->FindVTKObject<vtkPVView>(gid);
         if (view)
         {
           auto* dmanager = view->GetDataDeliveryManager();
@@ -157,7 +144,7 @@ void vtkPVViewProvider::InitializeInternal(vtkService* service)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVViewProvider::PrintSelf(ostream& os, vtkIndent indent)
+void vtkRemoteObjectProviderViews::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

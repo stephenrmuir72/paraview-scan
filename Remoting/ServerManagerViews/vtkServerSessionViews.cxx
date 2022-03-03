@@ -17,7 +17,6 @@
 #include "vtkInteractionProvider.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVViewProvider.h"
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 
@@ -54,12 +53,6 @@ void vtkServerSessionViews::InitializeService(vtkService* service, vtkObjectStor
     provider->Initialize(service);
     internals.Providers.emplace_back(provider);
   }
-
-  vtkLogF(INFO, "creating vtkPVViewProvider");
-  auto viewProvider = vtk::TakeSmartPointer(vtkPVViewProvider::New());
-  viewProvider->SetObjectStore(store);
-  viewProvider->Initialize(service);
-  internals.Providers.emplace_back(viewProvider);
 }
 
 //----------------------------------------------------------------------------

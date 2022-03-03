@@ -16,8 +16,8 @@
 
 #include "vtkChannelSubscription.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVViewProvider.h"
 #include "vtkPacket.h"
+#include "vtkRemoteObjectProviderViews.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMViewProxy.h"
 #include "vtkServiceEndpoint.h"
@@ -47,7 +47,7 @@ void vtkClientSessionViews::InitializeServiceEndpoint(vtkServiceEndpoint* endpoi
   if (endpoint->GetServiceName() == "rs")
   {
     auto* pxm = this->GetProxyManager();
-    auto cSubscription = endpoint->Subscribe(vtkPVViewProvider::GetImageChannelName());
+    auto cSubscription = endpoint->Subscribe(vtkRemoteObjectProviderViews::GetImageChannelName());
     cSubscription->GetObservable().subscribe([pxm](const vtkPacket& packet) {
       const auto& json = packet.GetJSON();
       const auto gid = json.at("gid").get<vtkTypeUInt32>();
