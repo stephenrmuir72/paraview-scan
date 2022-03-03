@@ -329,10 +329,10 @@ public:
   //@}
 
   /**
-   * Reset the transfer function's AutomaticRescaleResetMode to the global
-   * TransferFunctionRresetMode setting.
+   * Reset the transfer function's AutomaticRescaleResetMode to the default
+   * TransferFunctionResetMode setting.
    */
-  void ResetRescaleModeToGlobalSetting();
+  void ResetRescaleModeToDefaultSetting();
 
   //@{
   /**

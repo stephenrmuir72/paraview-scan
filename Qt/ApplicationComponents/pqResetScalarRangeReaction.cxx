@@ -41,7 +41,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqTimeKeeper.h"
 #include "pqUndoStack.h"
 #include "vtkPVDataInformation.h"
-#include "vtkPVGeneralSettings.h"
 #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSessionProxyManager.h"
@@ -163,9 +162,9 @@ bool pqResetScalarRangeReaction::resetScalarRangeToData(pqPipelineRepresentation
   repr->renderViewEventually();
   if (vtkSMProxy* lut = lutProxy(repr))
   {
-    // Set the AutomaticRescaleRangeMode to the current global setting.
+    // Set the AutomaticRescaleRangeMode to the default setting.
     vtkSMTransferFunctionProxy* tfProxy = vtkSMTransferFunctionProxy::SafeDownCast(lut);
-    tfProxy->ResetRescaleModeToGlobalSetting();
+    tfProxy->ResetRescaleModeToDefaultSetting();
 
     lut->UpdateVTKObjects();
   }
