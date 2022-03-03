@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.12)
 
 if (WIN32)
+  set(catalyst_dll)
+  if (EXISTS TARGET catalyst::catalyst)
+    get_target_property(catalyst_dll catalyst::catalyst IMPORTED_LOCATION_RELEASE)
+  endif()
   # Append the ParaView DLL directory to PATH for the tests.
   set(ENV{PATH}
-    "$ENV{PATH};${paraview_binary_dir}")
+    "$ENV{PATH};${paraview_binary_dir};${catalyst_dll}")
 endif ()
 
 set(cmake_arguments)
@@ -31,6 +35,7 @@ execute_process(
       "-DBUILD_SHARED_LIBS:BOOL=${shared}"
       "-DParaView_DIR:PATH=${paraview_dir}"
       "-DParaView_CATALYST_DIR:PATH=${paraview_catalyst_dir}"
+      "-Dcatalyst_DIR=${catalyst_dir}"
     --test-command
       "${ctest}"
         -C ${config}

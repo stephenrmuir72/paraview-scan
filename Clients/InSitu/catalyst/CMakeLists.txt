@@ -2,6 +2,13 @@
 # import plugins statically yet. Force shared libraries for now.
 set(BUILD_SHARED_LIBS ON)
 
+# Requires catalyst SDK
+find_package(catalyst 2.0 COMPONENTS SDK REQUIRED)
+
+# Needed by top CMakeLists to check catalyst version consistency across modules
+set_property(GLOBAL PROPERTY
+  vtk_catalyst_dir_InSituCatalyst "${catalyst_DIR}")
+
 if (WIN32)
   set(catalyst_library_destination
     "${_vtk_build_RUNTIME_DESTINATION}/catalyst")
@@ -25,11 +32,6 @@ endif ()
 
 set_property(GLOBAL PROPERTY paraview_catalyst_directory "${catalyst_library_destination}")
 
-# Transport the variable needed for Catalyst's CMake API from
-# `ThirdParty/catalyst/CMakeLists.txt`.
-get_property(_catalyst_macro_directory GLOBAL
-  PROPERTY paraview_catalyst_macro_directory)
-
 catalyst_implementation(
   NAME    paraview
   TARGET  catalyst-paraview
@@ -39,7 +41,7 @@ catalyst_implementation(
     ParaViewCatalyst.cxx
     vtkCatalystBlueprint.cxx
     vtkCatalystBlueprint.h
-  CATALYST_TARGET ParaView::vtkcatalyst)
+  CATALYST_TARGET catalyst::catalyst)
 add_library(ParaView::catalyst-paraview ALIAS catalyst-paraview)
 
 target_link_libraries(catalyst-paraview

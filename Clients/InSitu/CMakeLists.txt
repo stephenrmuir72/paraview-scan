@@ -44,4 +44,11 @@ vtk_module_add_module(ParaView::InSitu
   CLASSES ${classes})
 vtk_module_client_server_exclude()
 
-add_subdirectory(catalyst)
+if (PARAVIEW_ENABLE_CATALYST)
+  # add this to include catalyst CMake API
+  vtk_module_find_package(PACKAGE catalyst COMPONENTS SDK)
+  add_subdirectory(catalyst)
+  vtk_module_link(ParaView::InSitu
+    PRIVATE
+      catalyst::catalyst)
+endif()

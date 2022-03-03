@@ -3,9 +3,11 @@ project(ParaViewExamples)
 
 if (ParaView_BINARY_DIR)
   set(paraview_catalyst_directory "")
+  set(catalyst_dir "")
   if (TARGET ParaView::catalyst-paraview)
     get_property(paraview_catalyst_directory GLOBAL
       PROPERTY paraview_catalyst_directory)
+    set(catalyst_dir "${catalyst_DIR}")
   endif ()
 
   function (add_example dir)
@@ -30,6 +32,7 @@ if (ParaView_BINARY_DIR)
               "-Dtoolset=${CMAKE_GENERATOR_TOOLSET}"
               "-Dparaview_binary_dir=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
               "-Dparaview_catalyst_dir=${ParaView_BINARY_DIR}/${paraview_catalyst_directory}"
+              "-Dcatalyst_dir=${catalyst_dir}"
               -P "${CMAKE_CURRENT_LIST_DIR}/RunExample.cmake")
     set_property(TEST "ParaViewExample-${dir}" APPEND
       PROPERTY
