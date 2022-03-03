@@ -3,9 +3,11 @@ project(ParaViewExamples)
 
 if (ParaView_BINARY_DIR)
   set(paraview_catalyst_directory "")
+  set(catalyst_dir "")
   if (TARGET ParaView::catalyst-paraview)
     get_property(paraview_catalyst_directory GLOBAL
       PROPERTY paraview_catalyst_directory)
+    set(catalyst_dir "${catalyst_DIR}")
   endif ()
 
   function (add_example dir)
@@ -30,6 +32,7 @@ if (ParaView_BINARY_DIR)
               "-Dtoolset=${CMAKE_GENERATOR_TOOLSET}"
               "-Dparaview_binary_dir=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
               "-Dparaview_catalyst_dir=${ParaView_BINARY_DIR}/${paraview_catalyst_directory}"
+              "-Dcatalyst_dir=${catalyst_dir}"
               -P "${CMAKE_CURRENT_LIST_DIR}/RunExample.cmake")
     set_property(TEST "ParaViewExample-${dir}" APPEND
       PROPERTY
@@ -93,10 +96,12 @@ add_example(CustomApplications/Spreadsheet)
 add_example(Catalyst
   TEST_TIMEOUT 600)
 
-add_example(Catalyst2/CFullExample)
-add_example(Catalyst2/CxxFullExample)
-add_example(Catalyst2/CxxImageDataExample)
-add_example(Catalyst2/CxxMultiChannelInputExample)
-add_example(Catalyst2/CxxPolyhedra)
-add_example(Catalyst2/CxxMultimesh)
-add_example(Catalyst2/CxxSteeringExample)
+if (TARGET VTK::IOCatalystConduit)
+  add_example(Catalyst2/CFullExample)
+  add_example(Catalyst2/CxxFullExample)
+  add_example(Catalyst2/CxxImageDataExample)
+  add_example(Catalyst2/CxxMultiChannelInputExample)
+  add_example(Catalyst2/CxxPolyhedra)
+  add_example(Catalyst2/CxxMultimesh)
+  add_example(Catalyst2/CxxSteeringExample)
+endif()
