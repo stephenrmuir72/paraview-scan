@@ -632,7 +632,8 @@ array.
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVContourFilter"
-                 name="Contour">
+                 name="Contour"
+                 number_of_output_ports="1">
       <Documentation long_help="Generate isolines or isosurfaces using point scalars."
                      short_help="Generate isolines or isosurfaces.">The Contour
                      filter computes isolines or isosurfaces using a selected
@@ -2661,6 +2662,7 @@ Every Nth Point.
 
     <SourceProxy class="vtkPVMetaClipDataSet"
                  name="Clip">
+    <!--
       <Documentation long_help="Clip with an implicit function (an implicit description). Clipping does not reduce the dimensionality of the data set. The output data type of this filter is always an unstructured grid."
                      short_help="Clip with an implicit function.">The Clip filter
                      cuts away a portion of the input data set using an
@@ -2853,6 +2855,7 @@ Every Nth Point.
       <Hints>
         <Visibility replace_input="2" />
       </Hints>
+    -->
       <!-- End Clip -->
     </SourceProxy>
 
@@ -2860,6 +2863,7 @@ Every Nth Point.
     <SourceProxy class="vtkPVMetaSliceDataSet"
                  label="Slice"
                  name="Cut">
+    <!--
       <Documentation long_help="This filter slices a data set with a plane. Slicing is similar to a contour. It creates surfaces from volumes and lines from surfaces."
                      short_help="Slice datasets with planes.">This filter
                      extracts the portion of the input dataset that lies along
@@ -3027,6 +3031,7 @@ Every Nth Point.
       <Hints>
         <Visibility replace_input="2" />
       </Hints>
+    -->
       <!-- End Cut -->
     </SourceProxy>
 

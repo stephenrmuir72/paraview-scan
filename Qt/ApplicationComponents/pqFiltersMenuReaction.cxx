@@ -32,9 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqFiltersMenuReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqChangeInputDialog.h"
-#include "pqCollaborationManager.h"
 #include "pqCoreUtilities.h"
 #include "pqMenuReactionUtils.h"
 #include "pqObjectBuilder.h"
@@ -46,12 +44,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqUndoStack.h"
-#include "vtkSMCollaborationManager.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
-#include "vtkSMProxyManager.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
@@ -80,6 +78,8 @@ pqFiltersMenuReaction::pqFiltersMenuReaction(
   QObject::connect(
     activeObjects, SIGNAL(selectionChanged(pqProxySelection)), &this->Timer, SLOT(start()));
   QObject::connect(activeObjects, SIGNAL(dataUpdated()), &this->Timer, SLOT(start()));
+// FIXME ASYNC
+#if 0
   QObject::connect(pqApplicationCore::instance()->getPluginManager(), SIGNAL(pluginsUpdated()),
     &this->Timer, SLOT(start()));
 
@@ -88,6 +88,7 @@ pqFiltersMenuReaction::pqFiltersMenuReaction(
 
   QObject::connect(pqApplicationCore::instance(), SIGNAL(updateMasterEnableState(bool)), this,
     SLOT(setEnableStateDirty()));
+#endif
 
   // force the state to compute the first time
   this->IsDirty = true;
@@ -108,17 +109,17 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
   {
     return;
   }
+  pqServer* server = pqActiveObjects::instance().activeServer();
+
   // Impossible to validate anything without any SessionProxyManager
-  if (!vtkSMProxyManager::GetProxyManager()->GetActiveSessionProxyManager())
+  if (!server || !server->proxyManager())
   {
     pqTimer::singleShot(100, this, SLOT(updateEnableState())); // Try later
     return;
   }
 
-  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-  pqServer* server = activeObjects->activeServer();
   bool enabled = (server != nullptr);
-  enabled = enabled ? server->isMaster() : enabled;
+  enabled = enabled ? !server->isRemote() : enabled;
 
   // Make sure we already have a selection model
   vtkSMProxySelectionModel* selModel = pqActiveObjects::instance().activeSourcesSelectionModel();
@@ -130,8 +131,8 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
   // If active proxy is non-existent, then also the filters are disabled.
   if (enabled)
   {
-    pqApplicationCore* core = pqApplicationCore::instance();
-    pqServerManagerModel* smmodel = core->getServerManagerModel();
+    vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+    pqServerManagerModel* smmodel = core->GetServerManagerModel();
 
     for (unsigned int cc = 0; cc < selModel->GetNumberOfSelectedProxies(); cc++)
     {
@@ -202,7 +203,7 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
       continue;
     }
 
-    int numProcs = outputPorts[0]->getServer()->getNumberOfPartitions();
+    int numProcs = outputPorts[0]->getServer()->numberOfRanks();
     vtkSMSourceProxy* sp = vtkSMSourceProxy::SafeDownCast(prototype);
     if (sp &&
       ((sp->GetProcessSupport() == vtkSMSourceProxy::SINGLE_PROCESS && numProcs > 1) ||
@@ -318,9 +319,9 @@ pqPipelineSource* pqFiltersMenuReaction::createFilter(
   const QString& xmlgroup, const QString& xmlname)
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqObjectBuilder* builder = core->getObjectBuilder();
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
+  vtkPVGUIApplication* core = vtkPVGUIApplication::GetInstance();
+  pqObjectBuilder* builder = core->GetObjectBuilder();
+  pqServerManagerModel* smmodel = core->GetServerManagerModel();
 
   if (!pqSourcesMenuReaction::warnOnCreate(xmlgroup, xmlname))
   {
@@ -389,6 +390,11 @@ pqPipelineSource* pqFiltersMenuReaction::createFilter(
 
   BEGIN_UNDO_SET(QString("Create '%1'").arg(xmlname));
   pqPipelineSource* filter = builder->createFilter("filters", xmlname, namedInputs, server);
+  if (filter)
+  {
+    vtkSMApplyController::MarkShowOnApply(filter->proxy());
+  }
+
   END_UNDO_SET();
   return filter;
 }

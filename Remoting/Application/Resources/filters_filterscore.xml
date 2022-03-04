@@ -1201,6 +1201,7 @@ found and the point will be rejected.</Documentation>
     <SourceProxy class="vtkPointDataToCellData"
                  label="Point Data to Cell Data"
                  name="PointDataToCellData">
+      <!--
       <Documentation long_help="Create cell attributes by averaging point attributes."
                      short_help="Convert point data to cell data.">The Point
                      Data to Cell Data filter averages the values of the point
@@ -1270,6 +1271,7 @@ found and the point will be rejected.</Documentation>
         resultant cell data will be determined by  a majority rules
         vote, with ties going to the smaller value.</Documentation>
       </IntVectorProperty>
+      -->
       <!-- End PointDataToCellData -->
     </SourceProxy>
 
@@ -1460,6 +1462,7 @@ found and the point will be rejected.</Documentation>
     <SourceProxy class="vtkResampleWithDataSet"
                  label="Resample With Dataset"
                  name="ResampleWithDataset">
+    <!--
       <Documentation short_help="Sample data attributes at the points of a dataset.">
           This filter takes two inputs - **Source Data Arrays**, and samples the
           point and cell values of this input onto the point locations of the
@@ -1555,7 +1558,9 @@ found and the point will be rejected.</Documentation>
               <PropertyWidgetDecorator type="GenericDecorator" mode="enabled_state" property="PassFieldArrays" value="1" inverse="0" />
             </Expression>
           </PropertyWidgetDecorator>
+          -->
           <!-- show this widget when PassCellArrays, PassPointArrays, or PassFieldArrays is on -->
+          <!--
 
         </Hints>
       </IntVectorProperty>
@@ -1598,7 +1603,9 @@ found and the point will be rejected.</Documentation>
         </Documentation>
         <BooleanDomain name="bool" />
       </IntVectorProperty>
+      -->
       <!-- cell locator begin -->
+      <!--
       <ProxyProperty command="SetCellLocatorPrototype"
                      label="Cell Locator"
                      name="CellLocator"
@@ -1609,9 +1616,10 @@ found and the point will be rejected.</Documentation>
         <Documentation>The cell locator to use for finding cells for probing.
         </Documentation>
       </ProxyProperty>
+      -->
       <!-- cell locator end -->
 
-      <!-- End vtkResampleToImage -->
+      <!-- End vtkResampleWithDataSet -->
     </SourceProxy>
 
     <!-- ==================================================================== -->
