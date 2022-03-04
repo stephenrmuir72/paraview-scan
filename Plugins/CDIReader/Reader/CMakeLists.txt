@@ -15,9 +15,13 @@ vtk_module_add_module(CDIReader::vtkCDIReader
   PRIVATE_HEADERS ${private_headers}
 )
 
+list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_LIST_DIR}/../cmake")
+
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 vtk_module_find_package(
   PACKAGE CDI
   VERSION 2)
+set(CMAKE_FIND_DEBUG_MODE FALSE)
 
 vtk_module_link(CDIReader::vtkCDIReader
   PRIVATE
