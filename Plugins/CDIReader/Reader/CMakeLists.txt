@@ -15,9 +15,16 @@ vtk_module_add_module(CDIReader::vtkCDIReader
   PRIVATE_HEADERS ${private_headers}
 )
 
+find_path(LIBCDI cdi-config.cmake /usr/lib/cmake NO_CACHE)
+if (LIBCDI-NOTFOUND)
+  message(FATAL_ERROR "no cdi-config.cmake")
+endif()
+
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 vtk_module_find_package(
   PACKAGE CDI
   VERSION 2)
+set(CMAKE_FIND_DEBUG_MODE FALSE)
 
 vtk_module_link(CDIReader::vtkCDIReader
   PRIVATE
