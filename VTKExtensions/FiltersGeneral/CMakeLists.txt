@@ -52,7 +52,7 @@ set(classes
   #vtkPVClipClosedSurface
   #vtkPVClipDataSet
   vtkPVConnectivityFilter
-  #vtkPVContourFilter
+  vtkPVContourFilter
   #vtkPVCutter
   #vtkPVDataSetAlgorithmSelectorFilter
   vtkPVExtractComponent
