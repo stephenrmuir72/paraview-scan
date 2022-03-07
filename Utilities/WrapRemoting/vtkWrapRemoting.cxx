@@ -907,6 +907,7 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     const int count = theFunc->NumberOfParameters;
     const unsigned int parserType = vtkWrapRemoting_CorrespondingParserType(theFunc->Parameters[0]);
     const unsigned int containerType = vtkWrapRemoting_GetContainerType(parserType);
+
     if (count == 1 && containerType == REMOTING_PARSER_STD_VECTOR_TYPE)
     {
       std::fprintf(fp, "  if (method == \"%s\" && args.size() > 0 )\n", theFunc->Name);
@@ -918,6 +919,37 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
 
     std::fprintf(fp, "  {\n");
     std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+
+    //  We assume that when the expected by VTK type is a vector it contains the right type
+    // i.e. no overloads with vectors of different type exist.
+    // FIXME validate that this is indeed the case
+    const bool checkTypes = (containerType != REMOTING_PARSER_STD_VECTOR_TYPE);
+
+    if (checkTypes)
+    {
+      // Check that we are picking the right function.
+      // For example, vtkAlgorithm::SetInputArrayToProcess has 3 signatures
+      // with same the number but different type of arguments.
+      // The following condition will be true only if all the arguments of the
+      // std::vector<vtkVariant> match the expected setter signature.
+
+      std::fprintf(fp, "    if (\n");
+      for (int i = 0; i < theFunc->NumberOfParameters; i++)
+      {
+        unsigned int parserType = vtkWrapRemoting_CorrespondingParserType(theFunc->Parameters[i]);
+        std::string parserTypeName = (parserType == REMOTING_PARSER_VTK_OBJECT)
+          ? theFunc->Parameters[i]->Class
+          : vtkWrapRemoting_GetTypeName(parserType);
+        std::fprintf(
+          fp, "      vtk::variant_is_compatible<%s>(args[%d]) ", parserTypeName.c_str(), i);
+        if (i != theFunc->NumberOfParameters - 1)
+        {
+          std::fprintf(fp, " && \n");
+        }
+      }
+      std::fprintf(fp, ")\n");
+      std::fprintf(fp, "    {\n");
+    }
 
     for (int i = 0; i < theFunc->NumberOfParameters; i++)
     {
@@ -934,6 +966,10 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
 
     std::fprintf(fp, "    return true;\n");
     std::fprintf(fp, "  }\n");
+    if (checkTypes)
+    {
+      std::fprintf(fp, "    }\n");
+    }
   }
   else if (vtkWrapRemoting_IsGetter(theFunc))
   {
@@ -1304,9 +1340,12 @@ std::vector<FunctionInfo*> vtkWrapRemoting_GetWrappableFunctions(ClassInfo* clas
 
 //------------------------------------------------------------------------------
 void vtkWrapRemoting_AddNecessaryIncludeFiles(
-  FILE* fp, std::vector<FunctionInfo*>& wrappableFunctions)
+  FILE* fp, const std::vector<FunctionInfo*>& wrappableFunctions)
 {
   std::set<std::string> includeFiles;
+
+  std::fprintf(fp, "#define VTK_WRAPPING_CXX\n");
+  std::fprintf(fp, "#include \"vtkReflection.h\"\n");
 
   // add few common ones
   includeFiles.insert("#include <vector>");
@@ -1381,6 +1420,7 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
   std::vector<FunctionInfo*> wrappableFunctions = vtkWrapRemoting_GetWrappableFunctions(classInfo);
 
   vtkWrapRemoting_AddNecessaryIncludeFiles(fp, wrappableFunctions);
+  std::fprintf(fp, "#include \"%s.h\"\n\n", className);
 
   // Write Setters && Methods with no arguments
   std::fprintf(fp,
@@ -1479,9 +1519,44 @@ void vtkWrapRemoting_DummyFile(FILE* fp, const char* className)
   std::fprintf(fp, "// This automatically generated file contains only a stub,\n");
   std::fprintf(fp, "// because the class %s cannot be wrapped.\n", className);
   std::fprintf(fp, "\n");
-  std::fprintf(fp, "void %sRXX()\n", className);
-  std::fprintf(fp, "{\n");
-  std::fprintf(fp, "}\n");
+
+  vtkWrapRemoting_AddNecessaryIncludeFiles(fp, {});
+
+  // Write Setter that returns always false
+  std::fprintf(fp,
+    "static bool %sSetter(vtkObject* object, const std::string& method, const "
+    "std::vector<vtkVariant>& args)\n"
+    "{\n"
+    "  vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "  return false;\n"
+    "}\n",
+    className, className);
+
+  std::fprintf(fp, "\n\n");
+
+  // Write Getters
+  std::fprintf(fp,
+    "static bool %sGetter(vtkObject* object, const std::string& method, std::vector<vtkVariant>& "
+    "args)\n"
+    "{\n"
+    "    vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "    return false;\n"
+    "}\n",
+    className, className);
+
+  std::fprintf(fp, "\n\n");
+
+  // Registration
+  std::fprintf(fp,
+    "void %sRXX()\n"
+    "{\n",
+    className);
+
+  std::fprintf(fp,
+    "  vtkReflection::RegisterSetter(\"%s\", %sSetter);\n"
+    "  vtkReflection::RegisterGetter(\"%s\", %sGetter);\n"
+    "}\n",
+    className, className, className, className);
 }
 //------------------------------------------------------------------------------
 /**
@@ -1567,15 +1642,11 @@ int main(int argc, char* argv[])
     skip = true;
   }
 
+  std::fprintf(fp, "// Wrapper for %s\n", className.c_str());
+  vtkWrapRemoting_DecorateHeader(fp, argc, argv);
+
   if (!skip)
   {
-    std::fprintf(fp, "// Wrapper for %s\n", className.c_str());
-    vtkWrapRemoting_DecorateHeader(fp, argc, argv);
-
-    std::fprintf(fp, "#define VTK_WRAPPING_CXX\n");
-    std::fprintf(fp, "#include \"vtkReflection.h\"\n");
-    std::fprintf(fp, "#include \"%s.h\"\n\n", className.c_str());
-
     int error = vtkWrapRemoting_WrapOneClass(fp, data);
     if (error)
     {

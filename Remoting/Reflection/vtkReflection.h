@@ -189,6 +189,41 @@ inline T variant_cast_to_VTKObject(const vtkVariant& variant)
   return VTK_TYPE::SafeDownCast(variant.ToVTKObject());
 }
 
+/**
+ * Check whether T and the value in \p variant are compatible based on the conversions performed in
+ * `vtk::variant_cast` In practice, we deem as incompatible only a couple of cases:
+ * - T = arithmetic and variant holding a string.
+ * - T, and variant vtkObjects with no inheritance relation
+ * - Any case where the variant is invalid
+ */
+/**@{*/
+template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+inline bool variant_is_compatible(const vtkVariant& variant)
+{
+  if (!variant.IsValid())
+  {
+    return false;
+  }
+  return variant.IsNumeric();
+}
+
+template <typename T, std::enable_if_t<std::is_same<std::string, T>::value, bool> = true>
+inline bool variant_is_compatible(const vtkVariant& variant)
+{
+  return variant.IsValid();
+}
+
+template <typename T, std::enable_if_t<std::is_base_of<vtkObjectBase, T>::value, bool> = true>
+inline bool variant_is_compatible(const vtkVariant& variant)
+{
+  if (!variant.IsValid())
+  {
+    return false;
+  }
+  using VTK_TYPE = typename std::remove_pointer<T>::type;
+  return VTK_TYPE::SafeDownCast(variant.ToVTKObject()) != nullptr;
+}
+/**@}*/
 }
 
 #define vtkRLogF(...) vtkVLogF(vtkReflection::GetLogVerbosity(), __VA_ARGS__)
