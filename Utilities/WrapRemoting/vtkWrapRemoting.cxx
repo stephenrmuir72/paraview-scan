@@ -1340,9 +1340,12 @@ std::vector<FunctionInfo*> vtkWrapRemoting_GetWrappableFunctions(ClassInfo* clas
 
 //------------------------------------------------------------------------------
 void vtkWrapRemoting_AddNecessaryIncludeFiles(
-  FILE* fp, std::vector<FunctionInfo*>& wrappableFunctions)
+  FILE* fp, const std::vector<FunctionInfo*>& wrappableFunctions)
 {
   std::set<std::string> includeFiles;
+
+  std::fprintf(fp, "#define VTK_WRAPPING_CXX\n");
+  std::fprintf(fp, "#include \"vtkReflection.h\"\n");
 
   // add few common ones
   includeFiles.insert("#include <vector>");
@@ -1417,6 +1420,7 @@ void vtkWrapRemoting_GenerateMethods(FILE* fp, ClassInfo* classInfo)
   std::vector<FunctionInfo*> wrappableFunctions = vtkWrapRemoting_GetWrappableFunctions(classInfo);
 
   vtkWrapRemoting_AddNecessaryIncludeFiles(fp, wrappableFunctions);
+  std::fprintf(fp, "#include \"%s.h\"\n\n", className);
 
   // Write Setters && Methods with no arguments
   std::fprintf(fp,
@@ -1515,9 +1519,44 @@ void vtkWrapRemoting_DummyFile(FILE* fp, const char* className)
   std::fprintf(fp, "// This automatically generated file contains only a stub,\n");
   std::fprintf(fp, "// because the class %s cannot be wrapped.\n", className);
   std::fprintf(fp, "\n");
-  std::fprintf(fp, "void %sRXX()\n", className);
-  std::fprintf(fp, "{\n");
-  std::fprintf(fp, "}\n");
+
+  vtkWrapRemoting_AddNecessaryIncludeFiles(fp, {});
+
+  // Write Setter that returns always false
+  std::fprintf(fp,
+    "static bool %sSetter(vtkObject* object, const std::string& method, const "
+    "std::vector<vtkVariant>& args)\n"
+    "{\n"
+    "  vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "  return false;\n"
+    "}\n",
+    className, className);
+
+  std::fprintf(fp, "\n\n");
+
+  // Write Getters
+  std::fprintf(fp,
+    "static bool %sGetter(vtkObject* object, const std::string& method, std::vector<vtkVariant>& "
+    "args)\n"
+    "{\n"
+    "    vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "    return false;\n"
+    "}\n",
+    className, className);
+
+  std::fprintf(fp, "\n\n");
+
+  // Registration
+  std::fprintf(fp,
+    "void %sRXX()\n"
+    "{\n",
+    className);
+
+  std::fprintf(fp,
+    "  vtkReflection::RegisterSetter(\"%s\", %sSetter);\n"
+    "  vtkReflection::RegisterGetter(\"%s\", %sGetter);\n"
+    "}\n",
+    className, className, className, className);
 }
 //------------------------------------------------------------------------------
 /**
@@ -1603,15 +1642,11 @@ int main(int argc, char* argv[])
     skip = true;
   }
 
+  std::fprintf(fp, "// Wrapper for %s\n", className.c_str());
+  vtkWrapRemoting_DecorateHeader(fp, argc, argv);
+
   if (!skip)
   {
-    std::fprintf(fp, "// Wrapper for %s\n", className.c_str());
-    vtkWrapRemoting_DecorateHeader(fp, argc, argv);
-
-    std::fprintf(fp, "#define VTK_WRAPPING_CXX\n");
-    std::fprintf(fp, "#include \"vtkReflection.h\"\n");
-    std::fprintf(fp, "#include \"%s.h\"\n\n", className.c_str());
-
     int error = vtkWrapRemoting_WrapOneClass(fp, data);
     if (error)
     {
