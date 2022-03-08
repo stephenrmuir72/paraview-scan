@@ -173,6 +173,7 @@
     <SourceProxy class="vtkExtractGeometry"
                  label="Extract Cells By Region"
                  name="ExtractGeometry">
+    <!--
       <Documentation long_help="This filter extracts cells that are inside/outside a region or at a region boundary."
                      short_help="Extract cells that are inside/outside a region or at a region boundary.">
       This filter extracts from its input dataset all cells that are either
@@ -244,6 +245,7 @@
         <Documentation>This parameter controls whether to extract cells that
         are on the boundary of the region.</Documentation>
       </IntVectorProperty>
+    -->
       <!-- End ExtractGeometry -->
     </SourceProxy>
 

@@ -63,6 +63,7 @@ set(classes
   pqExampleVisualizationsDialogReaction
   pqFileListPropertyWidget
   pqFileNamePropertyWidget
+  pqFiltersMenuReaction
   pqFontPropertyWidget
   pqGenericPropertyWidgetDecorator
   pqGlyphScaleFactorPropertyWidget
@@ -71,6 +72,7 @@ set(classes
   pqListPropertyWidget
   pqManageFavoritesReaction
   pqMasterOnlyReaction
+  pqMenuReactionUtils
   pqMoleculePropertyWidget
   pqOSPRayHidingDecorator
   pqProxyGroupMenuManager
@@ -133,7 +135,6 @@ set(old_classes
   pqEditCameraReaction
   pqExportReaction
   pqExtractorsMenuReaction
-  pqFiltersMenuReaction
   pqFindDataWidget
   pqHandlePropertyWidget
   pqIgnoreSourceTimeReaction
@@ -156,7 +157,6 @@ set(old_classes
   pqManageCustomFiltersReaction
   pqManageLinksReaction
   pqManagePluginsReaction
-  pqMenuReactionUtils
   pqModelTransformSupportBehavior
   pqMultiComponentsDecorator
   pqObjectPickingBehavior

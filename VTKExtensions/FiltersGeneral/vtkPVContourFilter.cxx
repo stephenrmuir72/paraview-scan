@@ -53,6 +53,16 @@ vtkPVContourFilter::vtkPVContourFilter() = default;
 vtkPVContourFilter::~vtkPVContourFilter() = default;
 
 //-----------------------------------------------------------------------------
+void vtkPVContourFilter::SetValues(const std::vector<double>& values)
+{
+  this->SetNumberOfContours(values.size());
+  for (int i = 0; i < values.size(); i++)
+  {
+    this->SetValue(i, values[i]);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void vtkPVContourFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

@@ -16,6 +16,7 @@
 #include "ui_TestBasicQtAppMainWindow.h"
 
 #include "pqFileDialog.h"
+#include "pqFiltersMenuReaction.h"
 #include "pqInterfaceTracker.h"
 #include "pqProgressManager.h"
 #include "pqProgressWidget.h"
@@ -158,12 +159,11 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   sourceMenuMgr->setRecentlyUsedMenuSize(10);
   new pqSourcesMenuReaction(sourceMenuMgr);
 
-#if 0
   auto* filtersMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Filters, "ParaViewFilters");
   filtersMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Filters.xml");
   filtersMenuMgr->addProxyDefinitionUpdateListener("filters");
   filtersMenuMgr->setRecentlyUsedMenuSize(10);
-#endif
+  new pqFiltersMenuReaction(filtersMenuMgr);
 
   auto* progressWidget = new pqProgressWidget();
   internals.Ui.statusbar->addPermanentWidget(progressWidget, /*stretch*/ 0);

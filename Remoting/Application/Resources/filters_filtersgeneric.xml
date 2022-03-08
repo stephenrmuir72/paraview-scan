@@ -4,6 +4,7 @@
     <SourceProxy class="vtkGenericClip"
                  label="Clip Generic Dataset"
                  name="GenericClip">
+    <!--
       <Documentation long_help="Clip with an implicit plane, sphere or with scalars. Clipping does not reduce the dimensionality of the data set.  This output data type of this filter is always an unstructured grid."
                      short_help="Clip with an implicit plane, sphere or with scalars.">
                      The Generic Clip filter cuts away a portion of the input
@@ -103,6 +104,7 @@
       <Hints>
         <Visibility replace_input="2" />
       </Hints>
+    -->
       <!-- End GenericClip -->
     </SourceProxy>
 
@@ -267,6 +269,7 @@
     <SourceProxy class="vtkGenericCutter"
                  label="Slice Generic Dataset"
                  name="GenericCut">
+    <!--
       <Documentation long_help="This filter cuts a data set with a plane or sphere.  Cutting is similar to a contour.  It creates surfaces from volumes and lines from surfaces."
                      short_help="Cut datasets with planes or spheres.">The
                      Generic Cut filter extracts the portion of the input data
@@ -354,6 +357,7 @@
       <Hints>
         <Visibility replace_input="2" />
       </Hints>
+    -->
       <!-- End GenericCut -->
     </SourceProxy>
 
@@ -443,6 +447,7 @@
     <SourceProxy class="vtkGenericStreamTracer"
                  label="Stream Tracer For Generic Datasets"
                  name="GenericStreamTracer">
+      <!--
       <Documentation long_help="Integrate streamlines in a vector field."
                      short_help="Integrate streamlines in a vector field.">The
                      Generic Stream Tracer filter generates streamlines in a
@@ -639,6 +644,7 @@
       <Hints>
         <Visibility replace_input="2" />
       </Hints>
+      -->
       <!-- End GenericStreamTracer -->
     </SourceProxy>
   </ProxyGroup>

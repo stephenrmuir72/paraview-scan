@@ -45,9 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 #include "vtkClientSession.h"
 #include "vtkNew.h"
-#include "vtkProxyDefinitionManager.h"
 #include "vtkPVGUIApplication.h"
-#include "vtkSmartPointer.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMOutputPort.h"
@@ -58,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
+#include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 
 // Qt Includes.
@@ -312,8 +312,6 @@ void pqServerManagerModel::onProxyRegistered(
   pqRepresentation* repr = qobject_cast<pqRepresentation*>(item);
   auto extrator = qobject_cast<pqExtractor*>(item);
 
-  QObject::connect(source, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
-    SIGNAL(annotationsChanged(pqServerManagerModelItem*)));
   if (view)
   {
     Q_EMIT this->preViewAdded(view);
@@ -335,6 +333,9 @@ void pqServerManagerModel::onProxyRegistered(
       SIGNAL(modifiedStateChanged(pqServerManagerModelItem*)));
     QObject::connect(
       source, SIGNAL(dataUpdated(pqPipelineSource*)), this, SIGNAL(dataUpdated(pqPipelineSource*)));
+
+    QObject::connect(source, SIGNAL(annotationsChanged(pqServerManagerModelItem*)), this,
+      SIGNAL(annotationsChanged(pqServerManagerModelItem*)));
 
     Q_EMIT this->preSourceAdded(source);
   }

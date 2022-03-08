@@ -3,7 +3,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkRTAnalyticSource"
                  label="Wavelet"
-                 name="RTAnalyticSource">
+                 name="RTAnalyticSource"
+                 number_of_output_ports="1">
       <Documentation long_help="Create a regular rectilinear grid in up to three dimensions with values varying according to a periodic function."
                      short_help="Create a rectilinear grid containing a wavelet">
                      The Wavelet source can be used to create a uniform
