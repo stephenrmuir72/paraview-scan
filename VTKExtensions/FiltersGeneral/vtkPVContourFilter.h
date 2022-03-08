@@ -46,6 +46,8 @@
 #include "vtkContourFilter.h"
 #include "vtkPVVTKExtensionsFiltersGeneralModule.h" //needed for exports
 
+#include <vector> // for std::vector
+
 class VTKPVVTKEXTENSIONSFILTERSGENERAL_EXPORT vtkPVContourFilter : public vtkContourFilter
 {
 public:
@@ -56,6 +58,8 @@ public:
   static vtkPVContourFilter* New();
 
   int ProcessRequest(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
+
+  void SetValues(const std::vector<double>& values);
 
 protected:
   vtkPVContourFilter();

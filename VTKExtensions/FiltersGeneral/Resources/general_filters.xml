@@ -802,14 +802,12 @@ points in the input. Defaults to ***Single***.
         </Documentation>
       </IntVectorProperty>
       <DoubleVectorProperty animateable="1"
-                            command="SetValue"
+                            command="SetValues"
                             label="Isosurfaces"
                             name="ContourValues"
                             number_of_elements="0"
                             number_of_elements_per_command="1"
-                            repeat_command="1"
-                            set_number_command="SetNumberOfContours"
-                            use_index="1">
+                            repeat_command="1">
         <ArrayRangeDomain name="scalar_range">
           <RequiredProperties>
             <Property function="Input"
