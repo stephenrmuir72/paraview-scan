@@ -21,6 +21,7 @@
 #include "vtkPVDataDeliveryManager.h"
 #include "vtkPVDataRepresentation.h"
 #include "vtkPVLogger.h"
+#include "vtkPVRenderView.h"
 #include "vtkPVView.h"
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
@@ -141,6 +142,26 @@ void vtkRemoteObjectProviderViews::InitializeInternal(vtkService* service)
         }
       });
   }
+}
+
+//----------------------------------------------------------------------------
+vtkNJson vtkRemoteObjectProviderViews::PiggybackInformation(vtkObject* object) const
+{
+  if (auto* rvview = vtkPVRenderView::SafeDownCast(object))
+  {
+    auto& internals = (*this->Internals);
+    if (!internals.DataProcessing)
+    {
+      auto bbox = rvview->GetVisiblePropBounds();
+      std::vector<double> bounds(6, 0.0);
+      bbox.GetBounds(&bounds[0]);
+      vtkNJson json;
+      json["VisiblePropBounds"] = bounds;
+      return json;
+    }
+  }
+
+  return this->Superclass::PiggybackInformation(object);
 }
 
 //----------------------------------------------------------------------------

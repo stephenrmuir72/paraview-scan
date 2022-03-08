@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkSMViewProxy.h"
 
+#include "vtkBoundingBox.h"
 #include "vtkCamera.h"
 #include "vtkChannelSubscription.h"
 #include "vtkClientSession.h"
@@ -26,6 +27,7 @@
 #include "vtkPVCoreApplication.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVXMLElement.h"
+#include "vtkRemotingCoreUtilities.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -92,11 +94,13 @@ const char* GetRepresentationNameFromHints(const char* viewType, vtkPVXMLElement
 class vtkSMViewProxy::vtkInternals
 {
 public:
+  const std::thread::id OwnerTID{ std::this_thread::get_id() };
   vtkSMViewProxy* Self{ nullptr };
   vtkSmartPointer<vtkRenderWindow> RenderWindow;
   vtkSmartPointer<vtkRenderer> Renderer;
   unsigned long RenderWindowObserverId{ 0 };
   std::string DefaultRepresentationName;
+  vtkBoundingBox VisiblePropBounds;
 
   void SetupInteractor();
 
@@ -262,6 +266,7 @@ vtkCamera* vtkSMViewProxy::GetCamera() const
 void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
 {
   auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
   vtkLogF(TRACE, "got image");
   const auto& json = packet.GetJSON();
   auto array = packet.GetPayload<vtkUnsignedCharArray>("image");
@@ -287,21 +292,18 @@ bool vtkSMViewProxy::GetUseGenericOpenGLRenderWindow()
 //----------------------------------------------------------------------------
 rxcpp::observable<bool> vtkSMViewProxy::Update()
 {
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+
   using BehaviorT = rxcpp::subjects::behavior<vtkVariant>;
   auto behavior = std::make_shared<BehaviorT>(vtkVariant());
-
-  this->ExecuteCommand("Update", vtkClientSession::DATA_SERVER)
-    .subscribe([behavior, this](bool status) {
-      vtkLogF(INFO, "make PrepareForRender");
-      // notify caller before triggering PrepareForRender.
-      // this is essential so the caller update scene if needed.
-      behavior->get_subscriber().on_next(vtkVariant(status ? 1 : 0));
-      if (status)
-      {
-        this->ExecuteCommand("UpdateForRendering", vtkClientSession::RENDER_SERVER);
+  this->ExecuteCommand("Update", vtkClientSession::DATA_SERVER).subscribe([behavior, this](bool) {
+    this->ExecuteCommand("UpdateForRendering", vtkClientSession::RENDER_SERVER)
+      .subscribe([=](bool status) {
+        behavior->get_subscriber().on_next(vtkVariant(status ? 1 : 0));
         this->StillRender();
-      }
-    });
+      });
+  });
 
   return behavior->get_observable()
     .filter([](const vtkVariant& variant) { return variant.IsValid(); })
@@ -314,9 +316,23 @@ rxcpp::observable<bool> vtkSMViewProxy::Update()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMViewProxy::ResetCameraUsingVisiblePropBounds()
+{
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  if (internals.VisiblePropBounds.IsValid())
+  {
+    double bds[6];
+    internals.VisiblePropBounds.GetBounds(bds);
+    internals.Renderer->ResetCamera(bds);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkSMViewProxy::StillRender()
 {
   auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
   internals.RequestRender();
 }
 
@@ -514,6 +530,19 @@ vtkSMViewProxy* vtkSMViewProxy::FindView(vtkSMProxy* repr, const char* reggroup 
     }
   }
   return nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMViewProxy::ProcessPiggybackedInformation(const vtkNJson& json)
+{
+  this->Superclass::ProcessPiggybackedInformation(json);
+
+  auto iter = json.find("VisiblePropBounds");
+  if (iter != json.end())
+  {
+    std::vector<double> bounds = iter.value().get<std::vector<double>>();
+    this->Internals->VisiblePropBounds.SetBounds(&bounds[0]);
+  }
 }
 
 //----------------------------------------------------------------------------

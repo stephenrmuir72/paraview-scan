@@ -27,6 +27,7 @@
 #ifndef vtkPVRenderView_h
 #define vtkPVRenderView_h
 
+#include "vtkBoundingBox.h" // for vtkBoundingBox
 #include "vtkPVView.h"
 #include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
@@ -69,9 +70,13 @@ public:
   vtkCamera* GetActiveCamera() const override;
   vtkRenderWindow* GetRenderWindow() const override;
   void InitializeForDataProcessing() override;
-  ;
   void InitializeForRendering() override;
   ///@}
+
+  /**
+   * Computes visible prop bounds.
+   */
+  virtual vtkBoundingBox GetVisiblePropBounds();
 
 protected:
   vtkPVRenderView();

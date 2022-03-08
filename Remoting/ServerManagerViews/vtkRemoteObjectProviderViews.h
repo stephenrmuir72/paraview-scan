@@ -45,6 +45,11 @@ protected:
 
   void InitializeInternal(vtkService* service) override;
 
+  /**
+   * Overridden to handle views.
+   */
+  vtkNJson PiggybackInformation(vtkObject* object) const override;
+
 private:
   vtkRemoteObjectProviderViews(const vtkRemoteObjectProviderViews&) = delete;
   void operator=(const vtkRemoteObjectProviderViews&) = delete;

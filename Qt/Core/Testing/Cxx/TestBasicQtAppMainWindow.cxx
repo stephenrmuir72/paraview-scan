@@ -142,7 +142,7 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString
   });
 
   // Update the view.
-  view->Update();
+  view->Update().subscribe([view](bool) { view->ResetCameraUsingVisiblePropBounds(); });
   return view;
 }
 

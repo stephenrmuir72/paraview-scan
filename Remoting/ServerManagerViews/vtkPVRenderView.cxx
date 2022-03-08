@@ -16,6 +16,7 @@
 #include "vtkPVRenderView.h"
 
 #include "vtkCamera.h"
+#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVAxesWidget.h"
 #include "vtkPVSynchronizedRenderer.h"
@@ -106,6 +107,28 @@ vtkCamera* vtkPVRenderView::GetActiveCamera() const
 {
   const auto& internals = (*this->Internals);
   return internals.Camera;
+}
+
+//-----------------------------------------------------------------------------
+vtkBoundingBox vtkPVRenderView::GetVisiblePropBounds()
+{
+  if (auto* renderer = this->GetRenderer())
+  {
+    double bounds[6];
+    renderer->ComputeVisiblePropBounds(bounds);
+
+    vtkBoundingBox bbox;
+    bbox.SetBounds(bounds);
+
+    auto* controller = this->GetController();
+    controller->Reduce(bbox, bbox, 0);
+    if (controller->GetLocalProcessId() == 0)
+    {
+      return bbox;
+    }
+  }
+
+  return vtkBoundingBox();
 }
 
 //-----------------------------------------------------------------------------

@@ -409,6 +409,7 @@ void vtkPVView::PrintSelf(ostream& os, vtkIndent indent)
 void vtkPVView::Update()
 {
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: update view", this->GetLogName().c_str());
+  this->InvokeEvent(vtkCommand::StartEvent);
 
   const auto& internals = (*this->Internals);
   if (!internals.InitializedForDataProcessing)
@@ -429,12 +430,14 @@ void vtkPVView::Update()
   // This decision making will include which service to render on, perhaps i.e. render-server
   // or render-server-lite.
   this->InvokeEvent(vtkCommand::UpdateEvent);
+  this->InvokeEvent(vtkCommand::EndEvent);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVView::UpdateForRendering()
 {
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: update view", this->GetLogName().c_str());
+  this->InvokeEvent(vtkCommand::StartEvent);
   const auto& internals = (*this->Internals);
   if (internals.InitializedForDataProcessing)
   {
@@ -452,6 +455,7 @@ void vtkPVView::UpdateForRendering()
   this->CallProcessViewRequest(request);
 
   this->InvokeEvent(vtkCommand::UpdateEvent);
+  this->InvokeEvent(vtkCommand::EndEvent);
 }
 
 //----------------------------------------------------------------------------
