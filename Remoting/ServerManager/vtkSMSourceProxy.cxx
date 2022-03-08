@@ -449,11 +449,29 @@ vtkPVDataInformation* vtkSMSourceProxy::GetSubsetDataInformation(
 }
 
 //----------------------------------------------------------------------------
-void vtkSMSourceProxy::PipelineUpdated()
+void vtkSMSourceProxy::ProcessPiggybackedInformation(const vtkNJson& json)
 {
+  this->Superclass::ProcessPiggybackedInformation(json);
+
   // This is called when the remote VTK object has re-executed.
   vtkLogF(INFO, "Proxy (%s, %s): %u has been updated!", this->GetXMLGroup(), this->GetXMLName(),
     this->GetGlobalID());
+
+  auto iter = json.find("output_data_information");
+  if (iter != json.end())
+  {
+    unsigned int idx = 0;
+    for (const auto& item : this->PInternals->OutputPorts)
+    {
+      auto* dinfo = item.Port->GetDataInformation();
+      dinfo->Initialize();
+      vtkRemoteObjectProvider::ParseResponse(iter.value().at(idx), dinfo);
+      dinfo->SetIsObsolete(false);
+      ++idx;
+    }
+  }
+
+  // mark pipeline updated, once all data information has been updated.
   for (const auto& item : this->PInternals->OutputPorts)
   {
     item.Port->PipelineUpdated();
@@ -461,7 +479,6 @@ void vtkSMSourceProxy::PipelineUpdated()
 
   // Notify the world that this algorithm has re-executed.
   this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
-
   this->UpdateConsumerDomains();
 }
 

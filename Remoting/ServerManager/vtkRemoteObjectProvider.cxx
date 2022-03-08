@@ -33,14 +33,13 @@
 
 class vtkRemoteObjectProvider::vtkInternals
 {
-  mutable std::set<vtkTypeUInt32> UpdatedAlgorithms;
-
 public:
   vtkRemoteObjectProvider* Self;
   vtkSmartPointer<vtkObjectStore> ObjectStore;
   vtkSmartPointer<vtkProxyDefinitionManager> ProxyDefinitionManager;
   rxcpp::composite_subscription Subscription;
   rxcpp::subjects::subject<vtkRemoteObjectProvider::vtkProgressItem> ProgressSubject;
+  mutable std::set<vtkTypeUInt32> UpdatedObjects;
 
   vtkInternals(vtkRemoteObjectProvider* self)
     : Self(self)
@@ -95,8 +94,7 @@ public:
    * Gather information.
    */
   vtkNJson GatherInformation(const vtkNJson& request) const;
-
-  void PiggybackDataInformation(vtkNJson& json);
+  vtkNJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
 
 private:
   /**
@@ -104,7 +102,6 @@ private:
    */
   vtkSmartPointer<vtkObjectWrapper> GetObject(vtkTypeUInt32 gid, const vtkNJson& state);
 
-  vtkNJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
 
   void SetupObservers(vtkObjectWrapper* wrapper) const;
 };
@@ -219,32 +216,9 @@ vtkNJson vtkRemoteObjectProvider::vtkInternals::UpdatePipeline(vtkTypeUInt32 gid
 
   // Piggy back any invalidated data information that needs to be
   // communicated back to the client.
-  this->PiggybackDataInformation(reply);
+  this->Self->PiggybackInformation(reply);
 
   return reply;
-}
-
-//----------------------------------------------------------------------------
-void vtkRemoteObjectProvider::vtkInternals::PiggybackDataInformation(vtkNJson& payload)
-{
-  auto& parent = payload["pb_data_informations"];
-  for (const auto& gid : this->UpdatedAlgorithms)
-  {
-    auto algo = this->ObjectStore->FindVTKObject<vtkAlgorithm>(gid);
-    if (algo == nullptr || algo->GetNumberOfOutputPorts() == 0)
-    {
-      continue;
-    }
-
-    for (int cc = 0, max = algo->GetNumberOfOutputPorts(); cc < max; ++cc)
-    {
-      vtkNew<vtkPVDataInformation> dataInfo;
-      dataInfo->SetPortNumber(cc);
-      parent[std::to_string(gid)].push_back(this->GatherInformation(dataInfo, algo));
-    }
-  }
-
-  this->UpdatedAlgorithms.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -376,7 +350,7 @@ vtkPacket vtkRemoteObjectProvider::vtkInternals::Process(const vtkPacket& packet
 
     vtkNJson reply;
     reply["status"] = true;
-    this->PiggybackDataInformation(reply);
+    this->Self->PiggybackInformation(reply);
     return reply;
   }
 
@@ -395,13 +369,16 @@ void vtkRemoteObjectProvider::vtkInternals::SetupObservers(vtkObjectWrapper* obj
 {
   auto gid = objWrapper->GetGlobalID();
   auto* vtkobject = objWrapper->GetVTKObject();
-  if (auto* algorithm = vtkAlgorithm::SafeDownCast(vtkobject))
+  if (vtkobject)
   {
     auto* service = this->Self->GetService();
-    rxvtk::from_event(algorithm, vtkCommand::EndEvent).subscribe([gid, this](const auto& tuple) {
-      this->UpdatedAlgorithms.insert(gid);
+    rxvtk::from_event(vtkobject, vtkCommand::EndEvent).subscribe([gid, this](const auto& tuple) {
+      this->UpdatedObjects.insert(gid);
     });
+  }
 
+  if (auto* algorithm = vtkAlgorithm::SafeDownCast(vtkobject))
+  {
     // progress event
     rxvtk::from_event(vtkobject, vtkCommand::ProgressEvent)
       .map([gid, algorithm](const auto& tuple) {
@@ -615,6 +592,55 @@ vtkPacket vtkRemoteObjectProvider::Process(const vtkPacket& packet)
 {
   auto& internals = (*this->Internals);
   return internals.Process(packet);
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProvider::PiggybackInformation(vtkNJson& payload) const
+{
+  const auto& internals = (*this->Internals);
+  auto& parent = payload["piggybacked_infos"];
+  for (const auto& gid : internals.UpdatedObjects)
+  {
+    if (auto object = internals.ObjectStore->FindVTKObject<vtkObject>(gid))
+    {
+      auto json = this->PiggybackInformation(object);
+      if (!json.empty())
+      {
+        parent[std::to_string(gid)] = std::move(json);
+      }
+    }
+  }
+
+  internals.UpdatedObjects.clear();
+}
+
+//----------------------------------------------------------------------------
+vtkNJson vtkRemoteObjectProvider::PiggybackInformation(vtkObject* object) const
+{
+  auto* algo = vtkAlgorithm::SafeDownCast(object);
+  if (!algo || algo->GetNumberOfOutputPorts() <= 0)
+  {
+    return vtkNJson{};
+  }
+
+  vtkNJson array = vtkNJson::array();
+  for (int cc = 0, max = algo->GetNumberOfOutputPorts(); cc < max; ++cc)
+  {
+    vtkNew<vtkPVDataInformation> dataInfo;
+    dataInfo->SetPortNumber(cc);
+    array.push_back(this->GatherInformation(dataInfo, algo));
+  }
+
+  vtkNJson json;
+  json["output_data_information"] = std::move(array);
+  return json;
+}
+
+//----------------------------------------------------------------------------
+vtkNJson vtkRemoteObjectProvider::GatherInformation(vtkPVInformation* info, vtkObject* target) const
+{
+  auto& internals = (*this->Internals);
+  return internals.GatherInformation(info, target);
 }
 
 //----------------------------------------------------------------------------
