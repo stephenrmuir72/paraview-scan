@@ -98,11 +98,41 @@ protected:
 
   void InitializeInternal(vtkService* service) override;
 
+  /**
+   * Preview a message. Called on the RPC thread.
+   */
+  virtual void Preview(const vtkPacket& packet);
+
+  ///@{
+  /**
+   * Process a message. Called on the RPC thread if "run_on_rpc" is true,
+   * otherwise called on the service's main thread.
+   */
+  virtual vtkPacket ProcessOnRPC(const vtkPacket& packet);
+  virtual vtkPacket Process(const vtkPacket& packet);
+  ///@}
+
+  /**
+   * Collects data information to piggy back.
+   */
+  void PiggybackInformation(vtkNJson& json) const;
+
+  /**
+   * Gathers information to piggy back with update calls for the given object.
+   */
+  virtual vtkNJson PiggybackInformation(vtkObject* object) const;
+
+  /**
+   * Gathers information.
+   */
+  vtkNJson GatherInformation(vtkPVInformation* info, vtkObject* target) const;
+
 private:
   vtkRemoteObjectProvider(const vtkRemoteObjectProvider&) = delete;
   void operator=(const vtkRemoteObjectProvider&) = delete;
 
   class vtkInternals;
+  friend class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
 };
 

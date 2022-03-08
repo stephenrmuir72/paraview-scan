@@ -1248,26 +1248,18 @@ vtkProxyDefinitionManager* vtkSMSessionProxyManager::GetProxyDefinitionManager()
 //----------------------------------------------------------------------------
 void vtkSMSessionProxyManager::ProcessPiggybackedMessages(const vtkNJson& json)
 {
-  const bool hasDataInformation = json.count("pb_data_informations") > 0;
+  const bool hasDataInformation = json.count("piggybacked_infos") > 0;
   if (!hasDataInformation)
   {
     return;
   }
 
-  for (const auto& el : json["pb_data_informations"].items())
+  for (const auto& el : json["piggybacked_infos"].items())
   {
     const auto gid = static_cast<vtkTypeUInt32>(std::stoi(el.key()));
-    if (auto* proxy = vtkSMSourceProxy::SafeDownCast(this->FindProxy(gid)))
+    if (auto* proxy = this->FindProxy(gid))
     {
-      for (unsigned int idx = 0; idx < proxy->GetNumberOfOutputPorts(); ++idx)
-      {
-        auto* port = proxy->GetOutputPort(idx);
-        auto* dinfo = port->GetDataInformation();
-        dinfo->Initialize();
-        vtkRemoteObjectProvider::ParseResponse(el.value().at(idx), dinfo);
-        dinfo->SetIsObsolete(false);
-      }
-      proxy->PipelineUpdated();
+      proxy->ProcessPiggybackedInformation(el.value());
     }
   }
 }

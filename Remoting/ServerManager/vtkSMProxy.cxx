@@ -2012,6 +2012,7 @@ void vtkSMProxy::DeleteRemoteObject()
     }
   }
 }
+
 //---------------------------------------------------------------------------
 void vtkSMProxy::UpdateConsumerDomains()
 {
@@ -2023,3 +2024,6 @@ void vtkSMProxy::UpdateConsumerDomains()
     }
   }
 }
+
+//---------------------------------------------------------------------------
+void vtkSMProxy::ProcessPiggybackedInformation(const vtkNJson& vtkNotUsed(json)) {}

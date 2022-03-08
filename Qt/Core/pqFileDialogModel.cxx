@@ -361,7 +361,7 @@ public:
 
     auto* session = this->Server->session();
     auto packet = vtkRemoteObjectProvider::GatherInformation(
-      this->FileInformation, /* no corresponding remote Object*/ 0);
+      this->FileInformation, /* no corresponding remote Object*/ 0u);
     auto coordination = session->GetCoordination();
     auto eventual = session->SendRequest(
       /** FIXME**/ vtkClientSession::ServiceTypes::DATA_SERVER, std::move(packet));

@@ -822,6 +822,13 @@ protected:
    */
   void UpdateConsumerDomains();
 
+  /**
+   * Called by vtkSMSessionProxyManager when piggy-backed information is
+   * received. This method should update locally maintained vtkPVInformation
+   * subclasses based on the received information(s).
+   */
+  virtual void ProcessPiggybackedInformation(const vtkNJson& json);
+
   char* VTKClassName;
   char* XMLGroup;
   char* XMLName;

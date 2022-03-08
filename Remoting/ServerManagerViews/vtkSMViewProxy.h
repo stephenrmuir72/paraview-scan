@@ -28,6 +28,7 @@ class vtkCamera;
 class vtkPacket;
 class vtkRenderWindow;
 class vtkSMSourceProxy;
+class vtkBoundingBox;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMViewProxy : public vtkSMProxy
 {
@@ -36,9 +37,15 @@ public:
   vtkTypeMacro(vtkSMViewProxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  /**
+   * These are the most recent visible prop bounds.
+   */
+  const vtkBoundingBox& GetVisiblePropBounds() const;
+
   rxcpp::observable<bool> Update();
 
   void StillRender();
+  void ResetCameraUsingVisiblePropBounds();
 
   /**
    * Provides access to the render window.
@@ -154,6 +161,8 @@ protected:
    * Read attributes from an XML element.
    */
   int ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element) override;
+
+  void ProcessPiggybackedInformation(const vtkNJson& json) override;
 
 private:
   vtkSMViewProxy(const vtkSMViewProxy&) = delete;

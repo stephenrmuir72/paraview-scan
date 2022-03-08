@@ -226,11 +226,7 @@ public:
     BOTH
   };
 
-  /**
-   * This is called by vtkSMSessionProxyManager when the service notifies the
-   * client that the VTK-pipeline has executed.
-   */
-  void PipelineUpdated();
+  void ProcessPiggybackedInformation(const vtkNJson& json) override;
 
 protected:
   vtkSMSourceProxy();

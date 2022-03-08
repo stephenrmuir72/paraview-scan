@@ -51,7 +51,7 @@ set(classes
   vtkPVRenderView
   vtkPVSynchronizedRenderer
   vtkPVView
-  vtkPVViewProvider
+  vtkRemoteObjectProviderViews
   vtkServerSessionViews
   vtkSMApplyController
   vtkSMParaViewPipelineControllerWithRendering
@@ -108,6 +108,10 @@ vtk_object_factory_declare(
 vtk_object_factory_declare(
   BASE "vtkClientSession"
   OVERRIDE "vtkClientSessionViews")
+
+vtk_object_factory_declare(
+  BASE "vtkRemoteObjectProvider"
+  OVERRIDE "vtkRemoteObjectProviderViews")
 
 vtk_object_factory_declare(
   BASE "vtkSMParaViewPipelineController"

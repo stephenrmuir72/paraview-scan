@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ParaView
-  Module:    vtkPVViewProvider.h
+  Module:    vtkRemoteObjectProviderViews.h
 
   Copyright (c) Kitware, Inc.
   All rights reserved.
@@ -13,48 +13,46 @@
 
 =========================================================================*/
 /**
- * @class vtkPVViewProvider
+ * @class vtkRemoteObjectProviderViews
  * @brief
  *
  */
 
-#ifndef vtkPVViewProvider_h
-#define vtkPVViewProvider_h
+#ifndef vtkRemoteObjectProviderViews_h
+#define vtkRemoteObjectProviderViews_h
 
 #include "vtkPacket.h" // for vtkPacket
-#include "vtkProvider.h"
+#include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingServerManagerViewsModule.h" // for exports
 
 class vtkObjectStore;
 class vtkMultiProcessController;
 
-class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVViewProvider : public vtkProvider
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkRemoteObjectProviderViews
+  : public vtkRemoteObjectProvider
 {
 public:
-  static vtkPVViewProvider* New();
-  vtkTypeMacro(vtkPVViewProvider, vtkProvider);
+  static vtkRemoteObjectProviderViews* New();
+  vtkTypeMacro(vtkRemoteObjectProviderViews, vtkRemoteObjectProvider);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  ///@{
-  /**
-   * Get/Set the object store to use.
-   */
-  void SetObjectStore(vtkObjectStore* store);
-  vtkSmartPointer<vtkObjectStore> GetObjectStore() const;
-  ///@}
 
   static const char* GetImageChannelName() { return "pvview-image-stream"; }
   static const char* GetDataChannelName() { return "pvview-data-stream"; }
 
 protected:
-  vtkPVViewProvider();
-  ~vtkPVViewProvider();
+  vtkRemoteObjectProviderViews();
+  ~vtkRemoteObjectProviderViews();
 
   void InitializeInternal(vtkService* service) override;
 
+  /**
+   * Overridden to handle views.
+   */
+  vtkNJson PiggybackInformation(vtkObject* object) const override;
+
 private:
-  vtkPVViewProvider(const vtkPVViewProvider&) = delete;
-  void operator=(const vtkPVViewProvider&) = delete;
+  vtkRemoteObjectProviderViews(const vtkRemoteObjectProviderViews&) = delete;
+  void operator=(const vtkRemoteObjectProviderViews&) = delete;
 
   void HandleObjectStoreEvent(vtkObject* caller, unsigned long eventId, void* callData);
   void PushViewData(vtkObject* caller, unsigned long eventId, void* callData);
