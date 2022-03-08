@@ -3,7 +3,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCleanUnstructuredGrid"
                  label="Clean to Grid"
-                 name="CleanUnstructuredGrid">
+                 name="CleanUnstructuredGrid"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter merges points and converts the data set to unstructured grid."
                      short_help="Merge points.">The Clean to Grid filter merges
                      points that are exactly coincident. It also converts the
@@ -65,7 +66,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkCleanUnstructuredGridCells"
                  label="Clean Cells to Grid"
-                 name="CleanUnstructuredGridCells">
+                 name="CleanUnstructuredGridCells"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter merges cells and converts the data set to unstructured grid."
                      short_help="Merge cells.">Merges degenerate cells. Assumes
                      the input grid does not contain duplicate points. You may
@@ -92,7 +94,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkHybridProbeFilter"
                  label="Extract Location"
-                 name="ExtractLocation">
+                 name="ExtractLocation"
+                 number_of_output_ports="1">
       <Documentation long_help="Sample or extract cells at a point."
         short_help="Sample or extracy cells at a point.">
         This filter allows you to specify a location and then either interpolate
@@ -153,7 +156,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkIntegrateFlowThroughSurface"
                  label="Surface Flow"
-                 name="IntegrateFlowThroughSurface">
+                 name="IntegrateFlowThroughSurface"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter integrates flow through a surface."
                      short_help="This filter integrates flow through a surface.">
                      The flow integration filter integrates the dot product of
@@ -196,7 +200,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkIsoVolume"
                  label="Iso Volume"
-                 name="IsoVolume">
+                 name="IsoVolume"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter extracts cells by clipping cells that have point
        scalars not in the specified range."
                      short_help="Extract cells that satisfy a threshold criterion.">
@@ -258,7 +263,8 @@
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPlotEdges"
                  label="Plot On Sorted Lines"
-                 name="PlotOnSortedLines">
+                 name="PlotOnSortedLines"
+                 number_of_output_ports="1">
       <Documentation long_help="The Plot on Sorted Lines filter sorts and orders polylines for graph visualization."
       short_help="">The Plot on Sorted Lines filter sorts and orders
       polylines for graph visualization. See http://www.paraview.org/ParaView3/index.php/Plotting_Over_Curves for more information.</Documentation>
@@ -285,7 +291,8 @@
 
     <SourceProxy class="vtkConvertPolyhedraFilter"
                  label="Convert Polyhedral Cells"
-                 name="ConvertPolyhedra">
+                 name="ConvertPolyhedra"
+                 number_of_output_ports="1">
       <Documentation long_help="Attempt to convert polyhedral cells tp simple cells.">
 Attempt to convert polyhedral cells to simple cells (tetrahedron, pyramid, wedge
 or hexahedron). It will speed up downstream processing if polyhedral cells can
@@ -308,7 +315,8 @@ be treated as simple cells.
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVArrayCalculator"
-                 name="Calculator">
+                 name="Calculator"
+                 number_of_output_ports="1">
       <Documentation long_help="Compute new attribute arrays as function of existing arrays."
                      short_help="Compute new attribute arrays.">
 The Calculator filter computes a new data array or new point
@@ -520,7 +528,8 @@ array.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVClipClosedSurface"
                  label="Clip Closed Surface"
-                 name="ClipClosedSurface">
+                 name="ClipClosedSurface"
+                 number_of_output_ports="1">
       <Documentation long_help="Clip a polygonal dataset with a plane to produce closed surfaces"
                      short_help="Clip a polygonal dataset with a plane to produce closed surfaces">
       This clip filter cuts away a portion of the input polygonal dataset using
@@ -849,7 +858,8 @@ points in the input. Defaults to ***Single***.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVExtractComponent"
                  name="ExtractComponent"
-                 label="Extract Component">
+                 label="Extract Component"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter extracts a component of a multi-component attribute array."
                      short_help="Extract Component."/>
       <InputProperty command="SetInputConnection" name="Input">
@@ -913,7 +923,8 @@ points in the input. Defaults to ***Single***.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVExtractVOI"
                  label="Extract Subset"
-                 name="ExtractGrid">
+                 name="ExtractGrid"
+                 number_of_output_ports="1">
       <Documentation long_help="Extract a subgrid from a structured grid with the option of setting subsample strides."
                      short_help="Extract a subgrid or subsample.">The Extract
                      Grid filter returns a subgrid of a structured input data
@@ -1007,7 +1018,8 @@ points in the input. Defaults to ***Single***.
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVGlyphFilter"
-                 name="Glyph">
+                 name="Glyph"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter produces a glyph at points or cell centers in an input data set. The glyphs can be oriented and scaled by point or cell attributes of the input dataset."
                      short_help="Generate glyphs that represent attributes in the input data set.">
 The Glyph filter generates a glyph (i.e., an arrow, cone, cube, cylinder, line,
@@ -1306,7 +1318,8 @@ Every Nth Point.
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVGlyphFilterLegacy"
-                 name="GlyphLegacy">
+                 name="GlyphLegacy"
+                 number_of_output_ports="1">
       <Deprecated deprecated_in="5.6" to_remove_in="5.7">
         It has been replaced by 'GlyphWithCustomSource'. Please consider using that instead.
       </Deprecated>
@@ -1593,7 +1606,8 @@ source.</Documentation>
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVGlyphFilter"
                  name="GlyphWithCustomSource"
-                 label="Glyph With Custom Source">
+                 label="Glyph With Custom Source"
+                 number_of_output_ports="1">
                  The glyph is provided as the **Source** input to this filter.
       <Documentation long_help="This filter produces a glyph at points or cell centers in an input data set. The glyphs can be oriented and scaled by point or cell attributes of the input dataset."
                      short_help="Generate glyphs that represent attributes in the input data set.">
@@ -1881,7 +1895,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVGlyphFilterLegacy"
                  label="Glyph With Custom Source Legacy"
-                 name="GlyphWithCustomSourceLegacy">
+                 name="GlyphWithCustomSourceLegacy"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter generates a glyph at each point of the input data set.  The glyphs can be oriented and scaled by point attributes of the input dataset."
                      short_help="Generate a glyph symbol at each point of the input data set.">
       The Glyph filter generates a glyph at each point in the input dataset.
@@ -2134,7 +2149,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVGradientFilter"
                  label="Gradient"
-                 name="Gradient">
+                 name="Gradient"
+                 number_of_output_ports="1">
       <Documentation long_help="Estimate the gradient for each point or cell in any type of dataset."
                      short_help="Compute the gradient for any type of dataset.">
                      The Gradient filter estimates the gradient vector at each
@@ -2516,7 +2532,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVLinearExtrusionFilter"
                  label="Linear Extrusion"
-                 name="LinearExtrusionFilter">
+                 name="LinearExtrusionFilter"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter creates a swept surface defined by translating the input along a vector."
                      short_help="Generate a linear swept surface.">The Linear
                      Extrusion filter creates a swept surface by translating
@@ -2590,7 +2607,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkLinearCellExtrusionFilter"
                  label="Linear Cell Extrusion"
-                 name="LinearCellExtrusionFilter">
+                 name="LinearCellExtrusionFilter"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter creates a swept surface defined by translating the input along a vector."
                      short_help="Generate a linear swept surface.">The Linear
                      Extrusion filter creates a swept surface by translating
@@ -3216,7 +3234,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkPVTransposeTable"
                  label="Transpose Table"
-                 name="TransposeTable">
+                 name="TransposeTable"
+                 number_of_output_ports="1">
       <Documentation long_help="Transpose a table."
                      short_help="Transpose a table.">
                      </Documentation>
@@ -3283,7 +3302,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkRectilinearGridConnectivity"
                  label="Rectilinear Grid Connectivity"
-                 name="RectilinearGridConnectivity">
+                 name="RectilinearGridConnectivity"
+                 number_of_output_ports="1">
       <Documentation long_help="Parallel fragments extraction and attributes integration on rectilinear grids."
                      short_help="Parallel fragments extraction and attributes integration on rectilinear grids.">
       Extracts material fragments from multiblock vtkRectilinearGrid datasets
@@ -3403,7 +3423,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkRulerLineForInput"
                  name="RulerFilter"
-                 label="Bounding Ruler">
+                 label="Bounding Ruler"
+                 number_of_output_ports="1">
       <Documentation short_help="Create a line along the input to use as a ruler">
         This filter creates a line along the object and defaults its
         representation to showing a ruler along that line.
@@ -3452,7 +3473,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkSliceAlongPolyPlane"
                  label="Slice Along PolyLine"
-                 name="SliceAlongPolyLine">
+                 name="SliceAlongPolyLine"
+                 number_of_output_ports="1">
       <Documentation
         long_help="Slice along the surface defined by sweeping a polyline parallel to the z-axis."
         short_help="Slice along the surface defined by sweeping a polyline parallel to the z-axis.">
@@ -3509,7 +3531,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkThresholdTable"
                  label="Threshold Table"
-                 name="ThresholdTable">
+                 name="ThresholdTable"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter extracts table rows that satisfy a threshold criterion for a given column."
                      short_help="Threshold table rows.">
                      The Threshold Table Filter uses minimum and/or maximum values to threshold
@@ -3623,7 +3646,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkSurfaceVectors"
                  label="Surface Vectors"
-                 name="SurfaceVectors">
+                 name="SurfaceVectors"
+                 number_of_output_ports="1">
       <Documentation long_help="This filter constrains vectors to lie on a surface."
                      short_help="This filter constrains vectors to lie on a surface.">
                      The Surface Vectors filter is used for 2D data sets. It
@@ -3684,7 +3708,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkTimeStepProgressFilter"
                  label="Time Step Progress Bar"
-                 name="TimeStepProgressFilter">
+                 name="TimeStepProgressFilter"
+                 number_of_output_ports="1">
       <Documentation long_help="Shows input data time as progress bar in the view."
                      short_help="Show data time step as progress bar.">The Time Step Progress Bar
                      filter can be used to show the relative position of the actual time step/value
@@ -3711,7 +3736,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkTimeToTextConvertor"
                  label="Annotate Time Filter"
-                 name="TimeToTextConvertor">
+                 name="TimeToTextConvertor"
+                 number_of_output_ports="1">
       <Documentation long_help="Shows input data time as text annnotation in the view."
                      short_help="Show data time as text.">The Annotate Time
                      filter can be used to show the data time in a text
@@ -3761,7 +3787,8 @@ Every Nth Point.
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkOMETIFFChannelCalculator" name="OMETIFFChannelCalculator"
-      label="OME TIFF Channel Calculator">
+      label="OME TIFF Channel Calculator"
+      number_of_output_ports="1">
       <InputProperty command="SetInputConnection" name="Input">
         <ProxyGroupDomain name="groups">
           <Group name="sources" />
@@ -3913,7 +3940,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkAnnotateGlobalDataFilter"
                  label="Annotate Global Data"
-                 name="AnnotateGlobalData">
+                 name="AnnotateGlobalData"
+                 number_of_output_ports="1">
       <Documentation short_help="Filter for annotating with global/field data">
         Generates annotation text from global / field data presumed to be associated
         with time steps in the source dataset for this filter.
@@ -3982,7 +4010,8 @@ Every Nth Point.
     <!-- ==================================================================== -->
     <SourceProxy class="vtkMergeVectorComponents"
                  label="Merge Vector Components"
-                 name="MergeVectorComponents">
+                 name="MergeVectorComponents"
+                 number_of_output_ports="1">
      <Documentation
         long_help="Merge three 1-component arrays of the same attribute type (point-data or cell-data)
                    into one 3-component vector."
@@ -4080,7 +4109,8 @@ Every Nth Point.
    <!-- ==================================================================== -->
    <SourceProxy class="vtkMultiObjectMassProperties"
                 label="Compute Connected Surface Properties"
-                name="ComputeConnectedSurfaceProperties">
+                name="ComputeConnectedSurfaceProperties"
+                number_of_output_ports="1">
      <Documentation
              long_help="Compute volume, area, and centroid of multiple connected polygonal
              objects in a single polygonal input"
