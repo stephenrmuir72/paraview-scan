@@ -89,6 +89,10 @@ int vtkGeometryRepresentation::FillInputPortInformation(int vtkNotUsed(port), vt
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkCompositeDataSet");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkHyperTreeGrid");
+  if (this->IsInitializedForRendering())
+  {
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+  }
   return 1;
 }
 

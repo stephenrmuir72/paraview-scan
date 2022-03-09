@@ -33,11 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqPipelineRepresentation.h"
-#include "pqRenderView.h"
-
+// #include "pqRenderView.h"
 #include "vtkCamera.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMRenderViewProxy.h"
+#include "vtkSMViewProxy.h"
 
 //-----------------------------------------------------------------------------
 pqCameraReaction::pqCameraReaction(QAction* parentObject, pqCameraReaction::Mode mode)
@@ -54,7 +53,11 @@ void pqCameraReaction::updateEnableState()
 {
   pqView* view = pqActiveObjects::instance().activeView();
   pqPipelineSource* source = pqActiveObjects::instance().activeSource();
+#if 0 // FIXME: ASYNC
   pqRenderView* rview = qobject_cast<pqRenderView*>(view);
+#else
+  auto* rview = view; // currently, all views are render views
+#endif
   if (view && (this->ReactionMode == RESET_CAMERA || this->ReactionMode == RESET_CAMERA_CLOSEST))
   {
     this->parentAction()->setEnabled(true);
@@ -69,7 +72,7 @@ void pqCameraReaction::updateEnableState()
     {
       // Check hints to see if actions should be disabled
       bool cameraResetButtonsEnabled = true;
-      vtkPVXMLElement* hints = rview->getHints();
+      vtkPVXMLElement* hints = rview->xmlHints();
       if (hints)
       {
         cameraResetButtonsEnabled =
@@ -154,10 +157,19 @@ void pqCameraReaction::resetCamera(bool closest)
 void pqCameraReaction::resetDirection(
   double look_x, double look_y, double look_z, double up_x, double up_y, double up_z)
 {
-  pqRenderView* ren = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
-  if (ren)
+  double pos[3] = { 0, 0, 0 };
+  double focal_point[3] = { look_x, look_y, look_z };
+  double view_up[3] = { up_x, up_y, up_z };
+
+  if (pqView* view = pqActiveObjects::instance().activeView())
   {
-    ren->resetViewDirection(look_x, look_y, look_z, up_x, up_y, up_z);
+    auto* viewProxy = view->getViewProxy();
+    auto* camera = viewProxy->GetCamera();
+    camera->SetPosition(pos);
+    camera->SetFocalPoint(focal_point);
+    camera->SetViewUp(view_up);
+    viewProxy->ResetCameraUsingVisiblePropBounds();
+    view->render();
   }
 }
 
@@ -200,6 +212,7 @@ void pqCameraReaction::resetNegativeZ()
 //-----------------------------------------------------------------------------
 void pqCameraReaction::zoomToData(bool closest)
 {
+#if 0 // FIXME: ASYNC
   pqRenderView* renModule = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
   pqPipelineRepresentation* repr =
     qobject_cast<pqPipelineRepresentation*>(pqActiveObjects::instance().activeRepresentation());
@@ -209,16 +222,17 @@ void pqCameraReaction::zoomToData(bool closest)
     rm->ZoomTo(repr->getProxy(), closest);
     renModule->render();
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqCameraReaction::rotateCamera(double angle)
 {
-  pqRenderView* renModule = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
-
-  if (renModule)
+  if (pqView* view = pqActiveObjects::instance().activeView())
   {
-    renModule->getRenderViewProxy()->GetActiveCamera()->Roll(angle);
-    renModule->render();
+    auto* viewProxy = view->getViewProxy();
+    auto* camera = viewProxy->GetCamera();
+    camera->Roll(angle);
+    view->render();
   }
 }

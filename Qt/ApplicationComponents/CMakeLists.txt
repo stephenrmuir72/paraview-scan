@@ -39,6 +39,8 @@ set(classes
   pqBackgroundEditorWidget
   pqBoolPropertyWidgetDecorator
   pqCameraManipulatorWidget
+  pqCameraReaction
+  pqCameraToolbar
   pqCatalystConnectReaction
   pqCatalystExportReaction
   pqCatalystPauseSimulationReaction
@@ -104,8 +106,6 @@ set(old_classes
   pqBlockContextMenu
   pqBoxPropertyWidget
   pqCameraLinkReaction
-  pqCameraReaction
-  pqCameraToolbar
   pqCameraUndoRedoReaction
   pqCategoryToolbarsBehavior
   pqChangePipelineInputReaction
