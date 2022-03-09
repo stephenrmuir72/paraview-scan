@@ -192,7 +192,7 @@ inline T variant_cast_to_VTKObject(const vtkVariant& variant)
 /**
  * Check whether T and the value in \p variant are compatible based on the conversions performed in
  * `vtk::variant_cast` In practice, we deem as incompatible only a couple of cases:
- * - T = arithmetic and variant holding a string.
+ * - T = arithmetic and variant cannot be converted to a string.
  * - T, and variant vtkObjects with no inheritance relation
  * - Any case where the variant is invalid
  */
@@ -203,6 +203,15 @@ inline bool variant_is_compatible(const vtkVariant& variant)
   if (!variant.IsValid())
   {
     return false;
+  }
+
+  // Check if the string can become a double. This is enough to support all 4
+  // numeric types we are interested in.
+  if (variant.IsString())
+  {
+    bool validAsDouble;
+    (void)variant.ToDouble(&validAsDouble);
+    return validAsDouble;
   }
   return variant.IsNumeric();
 }
