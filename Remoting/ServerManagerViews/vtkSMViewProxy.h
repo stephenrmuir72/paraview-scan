@@ -37,14 +37,23 @@ public:
   vtkTypeMacro(vtkSMViewProxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /**
-   * These are the most recent visible prop bounds.
-   */
-  const vtkBoundingBox& GetVisiblePropBounds() const;
-
   rxcpp::observable<bool> Update();
 
   void StillRender();
+
+  /**
+   * These are the most recent visible prop bounds. These are gathered from the
+   * rendering service in the most recent `Update` call after the updated
+   * geometries have been delivered (and processed) by the rendering service.
+   * Until that happens, these values may not be correct.
+   */
+  const vtkBoundingBox& GetVisiblePropBounds() const;
+
+  /**
+   * Convenience method to simply reset the camera using the current bounds
+   * returned by `GetVisiblePropBounds`. If the bounds are not valid, then this
+   * method has no effect.
+   */
   void ResetCameraUsingVisiblePropBounds();
 
   /**

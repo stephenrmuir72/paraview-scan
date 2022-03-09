@@ -143,10 +143,8 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
 
   /**
    * Called to reset the view's display.
-   * For example, reset the camera or zoom level.
-   * The default implementation does nothing, but subclasses may override.
    */
-  virtual void resetDisplay(bool closest = false) { (void)closest; }
+  virtual void resetDisplay(bool closest = false);
 
 public: // NOLINT(readability-redundant-access-specifiers)
   /**

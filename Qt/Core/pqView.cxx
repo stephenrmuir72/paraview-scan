@@ -379,6 +379,16 @@ QWidget* pqView::createWidget()
 }
 
 //-----------------------------------------------------------------------------
+void pqView::resetDisplay(bool vtkNotUsed(closest))
+{
+  if (auto* view = this->getViewProxy())
+  {
+    view->ResetCameraUsingVisiblePropBounds();
+    view->StillRender();
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool pqView::canDisplay(pqOutputPort* opPort) const
 {
 #if 0 // FIXME: ASYNC

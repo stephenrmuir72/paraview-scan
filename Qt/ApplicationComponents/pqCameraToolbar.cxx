@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqCameraReaction.h"
 #include "pqDataRepresentation.h"
-#include "pqRenderViewSelectionReaction.h"
+// #include "pqRenderViewSelectionReaction.h"
 
 //-----------------------------------------------------------------------------
 void pqCameraToolbar::constructor()
@@ -55,8 +55,10 @@ void pqCameraToolbar::constructor()
   new pqCameraReaction(ui.actionRotate90degCW, pqCameraReaction::ROTATE_CAMERA_CW);
   new pqCameraReaction(ui.actionRotate90degCCW, pqCameraReaction::ROTATE_CAMERA_CCW);
 
+#if 0 // FIXME: ASYNC
   new pqRenderViewSelectionReaction(
     ui.actionZoomToBox, nullptr, pqRenderViewSelectionReaction::ZOOM_TO_BOX);
+#endif
 
   this->ZoomToDataAction = ui.actionZoomToData;
   this->ZoomToDataAction->setEnabled(pqActiveObjects::instance().activeSource() != nullptr);
