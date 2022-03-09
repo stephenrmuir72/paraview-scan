@@ -44,7 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadStateReaction.h"
 #include "pqObjectBuilder.h"
 #include "pqPVApplicationCore.h"
-#include "pqPersistentMainWindowStateBehavior.h"
 #include "pqQtDeprecated.h"
 #include "pqRenderView.h"
 #include "pqScalarsToColors.h"
@@ -298,8 +297,6 @@ bool pqCommandLineOptionsBehavior::processTests()
   }
 
   QMainWindow* mainWindow = qobject_cast<QMainWindow*>(pqCoreUtilities::mainWidget());
-  pqPersistentMainWindowStateBehavior::saveState(mainWindow);
-
   for (int cc = 0, max = cConfig->testScriptCount(); cc < max; ++cc)
   {
     // let the world know which test we're current running.
@@ -307,7 +304,6 @@ bool pqCommandLineOptionsBehavior::processTests()
 
     if (cc > 0)
     {
-      pqPersistentMainWindowStateBehavior::restoreState(mainWindow);
       pqCommandLineOptionsBehavior::resetApplication();
     }
     else if (cc == 0)

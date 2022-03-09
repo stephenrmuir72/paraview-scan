@@ -167,7 +167,6 @@ set(old_classes
   pqParaViewBehaviors
   pqParaViewMenuBuilders
   pqPauseLiveSourcePropertyWidget
-  pqPersistentMainWindowStateBehavior
   pqPipelineContextMenuBehavior
   pqPluginActionGroupBehavior
   pqPluginDockWidgetsBehavior
