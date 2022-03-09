@@ -193,8 +193,8 @@ inline T variant_cast_to_VTKObject(const vtkVariant& variant)
  * Check whether T and the value in \p variant are compatible based on the conversions performed in
  * `vtk::variant_cast` In practice, we deem as incompatible only a couple of cases:
  * - T = arithmetic and variant cannot be converted to a string.
- * - T, and variant vtkObjects with no inheritance relation
- * - Any case where the variant is invalid
+ * - T, and variant is a vtkObject with no inheritance relation to T.
+ * - Any case where the variant is invalid and T != string.
  */
 /**@{*/
 template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
@@ -219,7 +219,13 @@ inline bool variant_is_compatible(const vtkVariant& variant)
 template <typename T, std::enable_if_t<std::is_same<std::string, T>::value, bool> = true>
 inline bool variant_is_compatible(const vtkVariant& variant)
 {
-  return variant.IsValid();
+  // even if variant is invalid variant.ToString() will return an empty string
+  // this allows to accept nullptr as valid value for filters consuming a const char*.
+  if (!variant.IsValid())
+  {
+    return true;
+  }
+  return !variant.IsVTKObject(); // everything else (numeric types) has meaningfull conversion
 }
 
 template <typename T, std::enable_if_t<std::is_base_of<vtkObjectBase, T>::value, bool> = true>
