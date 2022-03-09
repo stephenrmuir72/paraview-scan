@@ -62,7 +62,7 @@ public:
 
 protected:
   vtkSMApplyController();
-  ~vtkSMApplyController();
+  ~vtkSMApplyController() override;
 
   vtkSMViewProxy* GetActiveView(vtkSMSessionProxyManager* pxm) const;
 
