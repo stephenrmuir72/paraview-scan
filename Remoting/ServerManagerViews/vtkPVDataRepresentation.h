@@ -116,6 +116,18 @@ protected:
   ~vtkPVDataRepresentation() override;
 
   /**
+   * Returns true if the representation has been initialized for data
+   * processing, false otherwise.
+   */
+  bool IsInitializedForDataProcessing() const;
+
+  /**
+   * Returns true if the representation has been initialized for rendering,
+   * false otherwise.
+   */
+  bool IsInitializedForRendering() const;
+
+  /**
    * Set the number of rendering ports. This must be called, if at all, in the
    * constructor of the subclass to avoid odd side-effects.
    */

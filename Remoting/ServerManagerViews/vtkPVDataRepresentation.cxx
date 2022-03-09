@@ -429,6 +429,20 @@ vtkMTimeType vtkPVDataRepresentation::GetPipelineDataTime() const
 }
 
 //----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::IsInitializedForDataProcessing() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Initialized && internals.InitializedForDataProcessing;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPVDataRepresentation::IsInitializedForRendering() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.Initialized && !internals.InitializedForDataProcessing;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVDataRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
