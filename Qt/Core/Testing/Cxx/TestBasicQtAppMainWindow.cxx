@@ -24,6 +24,7 @@
 #include "pqProxyGroupMenuManager.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "pqSettings.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqStandardPropertyWidgetInterface.h"
 #include "vtkCamera.h"
@@ -54,6 +55,7 @@ class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
+  bool StateRestored{ false };
   vtkTypeUInt32 SessionId;
   vtkSMViewProxy* setupSession(const QString& url);
   void openData(const QString& fileName);
@@ -177,6 +179,26 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
 
 //-----------------------------------------------------------------------------
 TestBasicQtAppMainWindow::~TestBasicQtAppMainWindow() = default;
+
+//-----------------------------------------------------------------------------
+void TestBasicQtAppMainWindow::showEvent(QShowEvent* evt)
+{
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto& internals = (*this->Internals);
+  if (!internals.StateRestored)
+  {
+    internals.StateRestored = true;
+    pvapp->GetSettings()->restoreState("mainWindow", *this);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void TestBasicQtAppMainWindow::closeEvent(QCloseEvent* evt)
+{
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pvapp->GetSettings()->saveState(*this, "mainWindow");
+  this->QMainWindow::closeEvent(evt);
+}
 
 //-----------------------------------------------------------------------------
 void TestBasicQtAppMainWindow::connect(const QString& url)

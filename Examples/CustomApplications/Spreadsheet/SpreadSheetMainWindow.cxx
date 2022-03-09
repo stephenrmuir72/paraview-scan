@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadDataReaction.h"
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
-#include "pqPersistentMainWindowStateBehavior.h"
 #include "pqPipelineSource.h"
 #include "pqRecentFilesMenu.h"
 #include "pqSpreadSheetView.h"
@@ -54,7 +53,6 @@ SpreadSheetMainWindow::SpreadSheetMainWindow(QWidget* parentObject, Qt::WindowFl
   // Define default behaviors - create only small subset, since this application
   // is not really a ParaView-like application at all.
   new pqAlwaysConnectedBehavior(this);
-  new pqPersistentMainWindowStateBehavior(this);
 
   /// We do need the recent files menu, so set it up.
   new pqRecentFilesMenu(*ui.menuRecent_Datasets, ui.menuRecent_Datasets);

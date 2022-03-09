@@ -25,6 +25,15 @@ public:
 
   void connect(const QString& url);
 
+protected:
+  ///@{
+  /**
+   * Overridden to save/restore window layout
+   */
+  void showEvent(QShowEvent* evt) override;
+  void closeEvent(QCloseEvent* evt) override;
+  ///@}
+
 private:
   Q_DISABLE_COPY(TestBasicQtAppMainWindow);
 

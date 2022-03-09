@@ -49,7 +49,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLockPanelsBehavior.h"
 #include "pqMainWindowEventBehavior.h"
 #include "pqObjectPickingBehavior.h"
-#include "pqPersistentMainWindowStateBehavior.h"
 #include "pqPipelineContextMenuBehavior.h"
 #include "pqPluginActionGroupBehavior.h"
 #include "pqPluginDockWidgetsBehavior.h"
@@ -149,7 +148,6 @@ PQ_BEHAVIOR_DEFINE_FLAG(VerifyRequiredPluginBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginActionGroupBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginToolBarBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CommandLineOptionsBehavior, true);
-PQ_BEHAVIOR_DEFINE_FLAG(PersistentMainWindowStateBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CollaborationBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ViewStreamingBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginSettingsBehavior, true);
@@ -261,10 +259,6 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   if (PQ_IS_BEHAVIOR_ENABLED(CommandLineOptionsBehavior))
   {
     new pqCommandLineOptionsBehavior(this);
-  }
-  if (PQ_IS_BEHAVIOR_ENABLED(PersistentMainWindowStateBehavior))
-  {
-    new pqPersistentMainWindowStateBehavior(mainWindow);
   }
   if (PQ_IS_BEHAVIOR_ENABLED(CollaborationBehavior))
   {
