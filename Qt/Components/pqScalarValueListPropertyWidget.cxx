@@ -561,12 +561,18 @@ void pqScalarValueListPropertyWidget::setRangeDomain(vtkSMDoubleRangeDomain* smR
   this->Internals->RangeDomain = smRangeDomain;
   this->Internals->Mode = pqInternals::MODE_DOUBLE;
   this->Internals->Model.setAllowIntegerValuesOnly(false);
-  if (smRangeDomain && (smRangeDomain->GetMinimumExists(0) || smRangeDomain->GetMinimumExists(0)))
+
+  // Min/Max values may not be available yet. Still, we want to connect the
+  // widget with the domain so that it updates itself when information about
+  // the domain arrives
+  if (smRangeDomain)
   {
     this->Internals->VTKRangeConnector->Connect(
       smRangeDomain, vtkCommand::DomainModifiedEvent, this, SLOT(smRangeModified()));
-    this->Internals->Ui.ScalarRangeLabel->show();
-    this->Internals->Ui.AddRange->show();
+  }
+
+  if (smRangeDomain->GetMinimumExists(0) || smRangeDomain->GetMaximumExists(0))
+  {
     this->smRangeModified();
   }
   else
@@ -582,12 +588,18 @@ void pqScalarValueListPropertyWidget::setRangeDomain(vtkSMIntRangeDomain* smRang
   this->Internals->RangeDomain = smRangeDomain;
   this->Internals->Mode = pqInternals::MODE_INT;
   this->Internals->Model.setAllowIntegerValuesOnly(true);
-  if (smRangeDomain && (smRangeDomain->GetMinimumExists(0) || smRangeDomain->GetMinimumExists(0)))
+
+  // Min/Max values may not be available yet. Still, we want to connect the
+  // widget with the domain so that it updates itself when information about
+  // the domain arrives
+  if (smRangeDomain)
   {
     this->Internals->VTKRangeConnector->Connect(
       smRangeDomain, vtkCommand::DomainModifiedEvent, this, SLOT(smRangeModified()));
-    this->Internals->Ui.ScalarRangeLabel->show();
-    this->Internals->Ui.AddRange->show();
+  }
+
+  if (smRangeDomain->GetMinimumExists(0) || smRangeDomain->GetMaximumExists(0))
+  {
     this->smRangeModified();
   }
   else
@@ -605,10 +617,14 @@ void pqScalarValueListPropertyWidget::smRangeModified()
     double range_min, range_max;
     if (this->getRange(range_min, range_max))
     {
+      this->Internals->Ui.ScalarRangeLabel->show();
+      this->Internals->Ui.AddRange->show();
       this->Internals->setScalarRangeLabel(range_min, range_max);
     }
     else
     {
+      this->Internals->Ui.ScalarRangeLabel->hide();
+      this->Internals->Ui.AddRange->hide();
       this->Internals->clearScalarRangeLabel();
     }
   }
@@ -617,10 +633,14 @@ void pqScalarValueListPropertyWidget::smRangeModified()
     int range_min, range_max;
     if (this->getRange(range_min, range_max))
     {
+      this->Internals->Ui.ScalarRangeLabel->show();
+      this->Internals->Ui.AddRange->show();
       this->Internals->setScalarRangeLabel(range_min, range_max);
     }
     else
     {
+      this->Internals->Ui.ScalarRangeLabel->hide();
+      this->Internals->Ui.AddRange->hide();
       this->Internals->clearScalarRangeLabel();
     }
   }
