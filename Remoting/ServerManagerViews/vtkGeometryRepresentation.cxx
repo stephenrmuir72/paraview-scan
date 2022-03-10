@@ -64,6 +64,7 @@ public:
   {
     this->Actor->SetMapper(this->Mapper);
     this->Actor->SetProperty(this->Property);
+    this->Mapper->SetScalarVisibility(0);
   }
 
   vtkMTimeType GetMTime() const { return 0; }
