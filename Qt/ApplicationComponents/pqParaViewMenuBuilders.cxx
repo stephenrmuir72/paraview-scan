@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqQtConfig.h"
 
+#if 0
 #include "pqAboutDialogReaction.h"
 #include "pqAnimatedExportReaction.h"
 #include "pqAnimationTimeToolbar.h"
@@ -116,6 +117,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pqPythonManager.h>
 #include <pqPythonScriptEditorReaction.h>
 #endif
+#endif
 
 #include <QApplication>
 #include <QDockWidget>
@@ -147,7 +149,7 @@ public:
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 {
-  QString objectName = menu.objectName();
+  const QString objectName = menu.objectName();
   Ui::pqFileMenuBuilder ui;
   ui.setupUi(&menu);
   // since the UI file tends to change the name of the menu.
@@ -156,8 +158,10 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   QObject::connect(
     ui.actionFileExit, SIGNAL(triggered()), QApplication::instance(), SLOT(closeAllWindows()));
 
+#if 0 // FIXME: ASYNC
   // now setup reactions.
   new pqLoadDataReaction(ui.actionFileOpen);
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   new pqLoadMaterialsReaction(ui.actionFileLoadMaterials);
 #else
@@ -192,11 +196,13 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 
   new pqLoadRestoreWindowLayoutReaction(true, ui.actionFileLoadWindowArrangement);
   new pqLoadRestoreWindowLayoutReaction(false, ui.actionFileSaveWindowArrangement);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel)
 {
+#if 0 // FIXME: ASYNC
   QString objectName = menu.objectName();
   Ui::pqEditMenuBuilder ui;
   ui.setupUi(&menu);
@@ -235,11 +241,13 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
     new pqApplyPropertiesReaction(propertiesPanel, applyAction, true);
     new pqApplyPropertiesReaction(propertiesPanel, resetAction, false);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWindow)
 {
+#if 0 // FIXME: ASYNC
   pqProxyGroupMenuManager* mgr = new pqProxyGroupMenuManager(&menu, "ParaViewSources");
   mgr->addProxyDefinitionUpdateListener("sources");
   mgr->setRecentlyUsedMenuSize(10);
@@ -249,12 +257,14 @@ void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWind
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildFiltersMenu(
   QMenu& menu, QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
 {
+#if 0 // FIXME: ASYNC
   // Make sure disabled actions are still considered active
   auto* style = new pqActiveDisabledStyle;
   style->setParent(&menu);
@@ -283,12 +293,14 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildExtractorsMenu(
   QMenu& menu, QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
 {
+#if 0 // FIXME: ASYNC
   // Make sure disabled actions are still considered active
   auto* style = new pqActiveDisabledStyle;
   style->setParent(&menu);
@@ -310,11 +322,13 @@ void pqParaViewMenuBuilders::buildExtractorsMenu(
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   new pqCreateCustomFilterReaction(
     menu.addAction("Create Custom Filter...") << pqSetName("actionToolsCreateCustomFilter"));
   new pqCameraLinkReaction(
@@ -366,17 +380,22 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
   new pqPythonScriptEditorReaction(
     menu.addAction("Python Script Editor") << pqSetName("actionToolsOpenScriptEditor"));
 #endif
+
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildViewMenu(QMenu& menu, QMainWindow& mainWindow)
 {
+#if 0 // FIXME: ASYNC
   new pqViewMenuManager(&mainWindow, &menu);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainWindow* mainWindow)
 {
+#if 0 // FIXME: ASYNC
   // Build the context menu manually so we can insert submenus where needed.
   QAction* actionPBOpen = new QAction(menu.parent());
   actionPBOpen->setObjectName(QStringLiteral("actionPBOpen"));
@@ -570,11 +589,13 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainW
   new pqCreateCustomFilterReaction(actionPBCreateCustomFilter);
   new pqLinkSelectionReaction(actionPBLinkSelection);
   new pqRenameProxyReaction(actionPBRename, mainWindow);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildMacrosMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   Q_UNUSED(menu);
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   // Give the macros menu to the pqPythonMacroSupervisor
@@ -590,11 +611,13 @@ void pqParaViewMenuBuilders::buildMacrosMenu(QMenu& menu)
     manager->addWidgetForDeleteMacros(deleteMenu);
   }
 #endif
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   QString documentationPath(vtkPVFileInformation::GetParaViewDocDirectory().c_str());
   QString paraViewGettingStartedFile = documentationPath + "/GettingStarted.pdf";
 
@@ -716,11 +739,13 @@ void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 
   // About
   new pqAboutDialogReaction(menu.addAction("About...") << pqSetName("actionAbout"));
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
 {
+#if 0 // FIXME: ASYNC
   QToolBar* mainToolBar = new pqMainControlsToolbar(&mainWindow)
     << pqSetName("MainControlsToolbar");
   mainToolBar->layout()->setSpacing(0);
@@ -771,11 +796,13 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
     mainWindow.addToolBar(Qt::TopToolBarArea, macrosToolbar);
   }
 #endif
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildCatalystMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   new pqCatalystConnectReaction(menu.addAction("Connect...") << pqSetName("actionCatalystConnect"));
   new pqCatalystPauseSimulationReaction(
     menu.addAction("Pause Simulation") << pqSetName("actionCatalystPauseSimulation"));
@@ -787,4 +814,5 @@ void pqParaViewMenuBuilders::buildCatalystMenu(QMenu& menu)
 
   new pqCatalystRemoveBreakpointReaction(
     menu.addAction("Remove Breakpoint") << pqSetName("actionCatalystRemoveBreakpoint"));
+#endif
 }

@@ -72,12 +72,14 @@ set(classes
   pqImageCompressorWidget
   pqInputDataTypeDecorator
   pqListPropertyWidget
+  # pqLoadDataReaction
   pqLoadMaterialsReaction
   pqManageFavoritesReaction
   pqMasterOnlyReaction
   pqMenuReactionUtils
   pqMoleculePropertyWidget
   pqOSPRayHidingDecorator
+  pqParaViewMenuBuilders
   pqProxyGroupMenuManager
   pqReaction
   pqScalarBarVisibilityReaction
@@ -145,7 +147,6 @@ set(old_classes
   pqLinePropertyWidget
   pqLinkSelectionReaction
   pqLiveSourceBehavior
-  pqLoadDataReaction
   pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
   pqLoadStateReaction
@@ -165,7 +166,6 @@ set(old_classes
   pqPVAnimationWidget
   pqPVApplicationCore
   pqParaViewBehaviors
-  pqParaViewMenuBuilders
   pqPauseLiveSourcePropertyWidget
   pqPipelineContextMenuBehavior
   pqPluginActionGroupBehavior
