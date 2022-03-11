@@ -72,6 +72,15 @@ protected:
 
   virtual void Show(vtkSMSourceProxy* producer);
 
+  /**
+   * Sets a default color for the representation of the \p producer 's output  on port \p outputPort
+   * in \p view. Currently, it follows ParaView's default behavior: If there is a unique scalar
+   * variable associated with the points of outputPort's representation it will be used for scalar
+   * coloring.
+   */
+  virtual void InitializeScalarColoring(
+    vtkSMProxy* producer, unsigned int outputPort, vtkSMViewProxy* view);
+
 private:
   vtkSMApplyController(const vtkSMApplyController&) = delete;
   void operator=(const vtkSMApplyController&) = delete;

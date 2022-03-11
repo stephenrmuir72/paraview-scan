@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkPVArrayInformation.h"
 #include "vtkPVLogger.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMArrayListDomain.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyGroup.h"
@@ -43,7 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProxy.h"
 #include "vtkSMTransferFunctionManager.h"
 #include "vtkScalarsToColors.h"
-#include "vtkSMApplyController.h"
 
 #include <QSignalBlocker>
 #include <cassert>

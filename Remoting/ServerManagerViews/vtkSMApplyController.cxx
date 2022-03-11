@@ -28,6 +28,7 @@
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMTransferFunctionManager.h"
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMViewLayoutProxy.h"
 #include "vtkSMViewProxy.h"
@@ -179,6 +180,9 @@ void vtkSMApplyController::Show(vtkSMSourceProxy* producer)
     // otherwise).
     this->HideInputs(producer, preferredView);
 
+    // Set some default coloring
+    this->InitializeScalarColoring(producer, cc, preferredView);
+
     views.insert(preferredView);
   }
 
@@ -293,6 +297,59 @@ void vtkSMApplyController::ApplyScalarColoring(vtkSMProxy* repr)
   vtkSMCoreUtilities::AdjustRange(range);
   vtkSMTransferFunctionProxy::RescaleTransferFunction(lut, range, /*extend=*/true);
   lut->UpdateVTKObjects();
+}
+
+//----------------------------------------------------------------------------
+void vtkSMApplyController::InitializeScalarColoring(
+  vtkSMProxy* producer, unsigned int outputPort, vtkSMViewProxy* view)
+{
+  vtkSMProxy* repr = view->FindRepresentation(vtkSMSourceProxy::SafeDownCast(producer), outputPort);
+  if (repr == nullptr)
+  {
+    // if producer's input has no representation in the view, nothing to do.
+    return;
+  }
+
+  vtkSMPropertyHelper colorArrayHelper(repr, "ColorArrayName");
+  if (colorArrayHelper.GetInputArrayNameToProcess() != nullptr &&
+    colorArrayHelper.GetInputArrayNameToProcess()[0] != '\0')
+  {
+    // a color array is already set
+    return;
+  }
+
+  auto* colorArrayProperty = colorArrayHelper.GetProperty();
+  auto* domain = colorArrayProperty->FindDomain<vtkSMArrayListDomain>();
+  int association = 0;
+  const char* arrayName = nullptr;
+  int numberOfCandidateArrays = 0;
+  for (unsigned int idx = 0; idx < domain->GetNumberOfStrings(); idx++)
+  {
+    association = domain->GetFieldAssociation(idx);
+    arrayName = domain->GetString(idx);
+    if (association != vtkDataObject::FIELD_ASSOCIATION_POINTS)
+    {
+      continue;
+    }
+    auto* arrayInfo = domain->GetArrayInformation(association, arrayName);
+    if (arrayInfo && arrayInfo->GetNumberOfComponents() == 1)
+    {
+      numberOfCandidateArrays++;
+    }
+  }
+
+  if (numberOfCandidateArrays != 1)
+  {
+    return;
+  }
+  colorArrayHelper.SetInputArrayToProcess(association, arrayName);
+
+  vtkNew<vtkSMTransferFunctionManager> mgr;
+  vtkSMSessionProxyManager* pxm = producer->GetSessionProxyManager();
+  vtkSMProxy* lut = mgr->GetColorTransferFunction(arrayName, pxm);
+  vtkSMPropertyHelper(repr, "LookupTable").Set(lut);
+
+  this->ApplyScalarColoring(repr);
 }
 
 //----------------------------------------------------------------------------
