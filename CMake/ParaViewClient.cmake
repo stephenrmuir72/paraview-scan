@@ -324,20 +324,10 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
   endif ()
 
   set(_paraview_client_source_files
-    "${CMAKE_CURRENT_BINARY_DIR}/${_paraview_client_NAME}_main.cxx"
-    "${CMAKE_CURRENT_BINARY_DIR}/pq${_paraview_client_NAME}Initializer.cxx"
-    "${CMAKE_CURRENT_BINARY_DIR}/pq${_paraview_client_NAME}Initializer.h")
+    "${CMAKE_CURRENT_BINARY_DIR}/${_paraview_client_NAME}_main.cxx")
   configure_file(
     "${_ParaViewClient_cmake_dir}/paraview_client_main.cxx.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${_paraview_client_NAME}_main.cxx"
-    @ONLY)
-  configure_file(
-    "${_ParaViewClient_cmake_dir}/paraview_client_initializer.cxx.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/pq${_paraview_client_NAME}Initializer.cxx"
-    @ONLY)
-  configure_file(
-    "${_ParaViewClient_cmake_dir}/paraview_client_initializer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/pq${_paraview_client_NAME}Initializer.h"
     @ONLY)
 
   # Set up rpaths
