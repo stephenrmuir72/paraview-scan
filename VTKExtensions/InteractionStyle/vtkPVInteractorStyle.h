@@ -90,6 +90,15 @@ public:
 
   //@{
   /**
+   * When enabled, mouse wheel scroll will zoom to the projected point under the mouse position.
+   * There is no need to hold down Ctrl key to achieve this.
+   */
+  vtkSetMacro(ScrollZoomsToMouse, bool);
+  vtkGetMacro(ScrollZoomsToMouse, bool);
+  //@}
+
+  //@{
+  /**
    * Propagates the center to the manipulators.
    * This simply sets an internal ivar.
    * It is propagated to a manipulator before the event
@@ -140,6 +149,7 @@ protected:
   void Dolly(double factor) override;
 
   vtkCameraManipulator* CurrentManipulator;
+  bool ScrollZoomsToMouse = false;
   double CenterOfRotation[3];
   double RotationFactor;
 

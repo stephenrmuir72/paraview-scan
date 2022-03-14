@@ -3006,6 +3006,18 @@ void vtkPVRenderView::SetReverseMouseWheelZoomDirection(bool reverse)
   }
 }
 
+void vtkPVRenderView::SetScrollZoomsToMouse(bool value)
+{
+  if (this->TwoDInteractorStyle)
+  {
+    this->TwoDInteractorStyle->SetScrollZoomsToMouse(value);
+  }
+  if (this->ThreeDInteractorStyle)
+  {
+    this->ThreeDInteractorStyle->SetScrollZoomsToMouse(value);
+  }
+}
+
 //----------------------------------------------------------------------------
 void vtkPVRenderView::SetCamera2DMouseWheelMotionFactor(double factor)
 {

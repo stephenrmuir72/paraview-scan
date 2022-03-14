@@ -245,7 +245,7 @@ void vtkPVInteractorStyle::OnKeyUp()
 
 void vtkPVInteractorStyle::Dolly(double fact)
 {
-  if (this->Interactor->GetControlKey())
+  if (this->Interactor->GetControlKey() || this->ScrollZoomsToMouse)
   {
     vtkPVInteractorStyle::DollyToPosition(
       fact, this->Interactor->GetEventPosition(), this->CurrentRenderer);
