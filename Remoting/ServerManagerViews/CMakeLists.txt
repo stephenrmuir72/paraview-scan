@@ -44,6 +44,7 @@ set(classes
   vtkPVGeometryFilter
   vtkPVLight
   vtkPVLODActor
+  vtkPVMaterialLibrary
   vtkPVOpenGLInformation
   vtkPVProcessWindow
   vtkPVRecoverGeometryWireframe
@@ -54,6 +55,7 @@ set(classes
   vtkRemoteObjectProviderViews
   vtkServerSessionViews
   vtkSMApplyController
+  vtkSMMaterialDomain
   vtkSMParaViewPipelineControllerWithRendering
   vtkSMRenderViewProxy
   vtkSMTransferFunctionManager

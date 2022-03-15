@@ -95,7 +95,6 @@ set(classes
   vtkPVLODActor
   vtkPVLODVolume
   vtkPVLogoSource
-  vtkPVMaterialLibrary
   vtkPVMultiSliceView
   vtkPVOpenGLInformation
   vtkPVOrthographicSliceView
@@ -143,8 +142,6 @@ set(classes
   vtkSMImageExtractWriterProxy
   vtkSMImplicitPlaneRepresentationProxy
   vtkSMLightProxy
-  vtkSMMaterialDomain
-  vtkSMMaterialLibraryProxy
   vtkSMMultiSliceViewProxy
   vtkSMNewWidgetRepresentationProxy
   vtkSMOrthographicSliceViewProxy

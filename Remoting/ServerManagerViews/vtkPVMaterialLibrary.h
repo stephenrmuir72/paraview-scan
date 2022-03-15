@@ -26,65 +26,70 @@
 #ifndef vtkPVMaterialLibrary_h
 #define vtkPVMaterialLibrary_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
-
 #include "vtkObject.h"
-#include <string> //for std::string
+#include "vtkRemotingServerManagerViewsModule.h" // needed for exports
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVMaterialLibrary : public vtkObject
+#include <string> // for std::string
+#include <vector> // for std::vector
+
+class vtkMultiProcessController;
+
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVMaterialLibrary : public vtkObject
 {
 public:
   static vtkPVMaterialLibrary* New();
   vtkTypeMacro(vtkPVMaterialLibrary, vtkObject);
-
   void PrintSelf(ostream& os, vtkIndent indent) override;
-  /**
-   * Unlike vtkOSPRayMaterial::ReadFile, this searches in a number of
-   * relative and environmental paths specified by the SearchPaths
-   * member variable.
-   */
-  void ReadRelativeFile(const char* FileName);
 
+  ///@{
   /**
-   * Get a string of standard search paths (path1;path2;path3)
-   * search paths are based on PV_PLUGIN_PATH,
-   * plugin dir relative to executable.
+   * Set the material library filenames.
+   * All absolute paths are treated as absolute while relative paths are
+   * searched relative to the search paths.
    */
-  vtkGetStringMacro(SearchPaths);
+  void SetFiles(const std::vector<std::string>& files);
+  const std::vector<std::string>& GetFiles() const;
+  ///@}
+
+  ///@{
+  /**
+   * Get/set the multiprocess controller. This is used to avoid searching files
+   * on all ranks in a distributed setup and instead only do those searches on
+   * the root node.
+   */
+  void SetController(vtkMultiProcessController* controller);
+  vtkMultiProcessController* GetController() const;
+  ///@}
 
   /**
    * Returns the underlying material library.
-   * When compiled withouth OSPRAY, will return nullptr
+   * When compiled without OSPRAY, will return nullptr
    */
-  vtkObject* GetMaterialLibrary();
+  vtkObject* GetMaterialLibrary() const;
 
   /**
-   * Defer to contained MaterialLibrary
+   * Returns list of available materials.
+   */
+  const std::vector<std::string>& GetMaterialNames() const;
+
+  ///@{
+  /**
+   * Defer to contained MaterialLibrary, if any, otherwise does nothing.
    */
   bool ReadFile(const char* FileName);
-  /**
-   * Defer to contained MaterialLibrary
-   */
-  const char* WriteBuffer();
   void WriteFile(const std::string& filename);
-  /**
-   * Defer to contained MaterialLibrary
-   */
-  bool ReadBuffer(const char*);
+  ///@}
 
 protected:
   vtkPVMaterialLibrary();
   ~vtkPVMaterialLibrary() override;
 
-  vtkSetStringMacro(SearchPaths);
-
-  char* SearchPaths;
-
-  vtkObject* MaterialLibrary;
-
 private:
   vtkPVMaterialLibrary(const vtkPVMaterialLibrary&) = delete;
   void operator=(const vtkPVMaterialLibrary&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

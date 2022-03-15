@@ -35,13 +35,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 #include "pqServer.h"
-#include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "pqUndoStack.h"
-#include "pqView.h"
 #include "vtkNew.h"
-#include "vtkSMMaterialLibraryProxy.h"
 #include "vtkSMParaViewPipelineController.h"
-#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
+#include "vtkSMStringVectorProperty.h"
 
 #include <sstream>
 
@@ -73,18 +71,19 @@ bool pqLoadMaterialsReaction::loadMaterials()
 bool pqLoadMaterialsReaction::loadMaterials(const QString& dbase, pqServer* server)
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-  CLEAR_UNDO_STACK();
-
   server = (server != nullptr) ? server : pqActiveObjects::instance().activeServer();
-
-  vtkSMSession* session = server->session();
-  if (session)
+  if (auto* session = server->session())
   {
     vtkNew<vtkSMParaViewPipelineController> controller;
-    vtkSMMaterialLibraryProxy* mlp =
-      vtkSMMaterialLibraryProxy::SafeDownCast(controller->FindMaterialLibrary(session));
-    vtkSMPropertyHelper(mlp, "LoadMaterials").Set(dbase.toUtf8().data());
-    mlp->UpdateVTKObjects();
+    auto* materialLibrary = controller->FindMaterialLibrary(session);
+    auto* svp = materialLibrary
+      ? vtkSMStringVectorProperty::SafeDownCast(materialLibrary->GetProperty("MaterialFiles"))
+      : nullptr;
+    if (svp)
+    {
+      svp->SetElement(svp->GetNumberOfElements() + 1, qUtf8Printable(dbase));
+      materialLibrary->UpdateVTKObjects();
+    }
   }
 
   CLEAR_UNDO_STACK();

@@ -31,6 +31,7 @@ PRIVATE_DEPENDS
 OPTIONAL_DEPENDS
   ParaView::icet
   VTK::ParallelMPI
+  VTK::RenderingRayTracing
 TEST_DEPENDS
   ParaView::RemotingApplication
   VTK::InteractionStyle
