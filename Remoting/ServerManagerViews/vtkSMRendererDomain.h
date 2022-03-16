@@ -22,10 +22,10 @@
 #ifndef vtkSMRendererDomain_h
 #define vtkSMRendererDomain_h
 
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSMStringListDomain.h"
 
-class VTKREMOTINGVIEWS_EXPORT vtkSMRendererDomain : public vtkSMStringListDomain
+class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMRendererDomain : public vtkSMStringListDomain
 {
 public:
   static vtkSMRendererDomain* New();

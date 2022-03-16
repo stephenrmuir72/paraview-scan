@@ -584,6 +584,227 @@
 
       <Command name="Update" command="Update" />
       <Command name="UpdateForRendering" command="UpdateForRendering" />
+
+      <IntVectorProperty name="EnableRayTracing"
+          command="SetEnableRayTracing"
+          processes="client|renderserver"
+          default_values="0"
+          number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Enable/disable ray tracing, if available.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+        </Hints>
+      </IntVectorProperty>
+
+      <StringVectorProperty name="RayTracingBackEnd"
+          command="SetRayTracingBackEnd"
+          processes="client|renderserver"
+          default_values="unknown"
+          number_of_elements="1">
+        <RendererDomain name="list">
+        </RendererDomain>
+        <Documentation>Selects a specific ray traced rendering engine.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+        </Hints>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="EnableShadows"
+          command="SetEnableShadows"
+          processes="client|renderserver"
+          default_values="0"
+          number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Specify whether shadows should be rendered, if supported by the rendering technique.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="and">
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="EnableRayTracing"
+                                       values="1" />
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay raycaster"/>
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="AmbientOcclusionSamples"
+          command="SetAmbientOcclusionSamples"
+          processes="client|renderserver"
+          default_values="0"
+          number_of_elements="1">
+        <IntRangeDomain min="0" name="range"/>
+        <Documentation>Specify the number of occlusion query rays
+          that the raycaster sends at each intersection.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="and">
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="EnableRayTracing"
+                                       values="1" />
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay raycaster"/>
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="NumberOfSamplesPerPixel"
+          command="SetNumberSamplesPerPixel"
+          processes="client|renderserver"
+          default_values="1"
+          number_of_elements="1">
+        <IntRangeDomain min="1" name="range"/>
+        <Documentation>
+          Specify the number of primary rays that ray tracers shoot, per pixel.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+        </Hints>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="NumberOfProgressivePasses"
+          command="SetNumberOfProgressivePasses"
+          processes="client|renderserver"
+          default_values="1"
+          number_of_elements="1">
+        <IntRangeDomain min="1" name="range"/>
+        <Documentation>
+          Specify the number of passeses when for progressive rendering.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+        </Hints>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="RouletteDepth"
+          command="SetRouletteDepth"
+          processes="client|renderserver"
+          default_values="5"
+          number_of_elements="1">
+        <IntRangeDomain min="0" name="range"/>
+        <Documentation>
+          Specify the path-traced recursion depth at which to start Russian roulette termination.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="and">
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="EnableRayTracing"
+                                       values="1" />
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay pathtracer"/>
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="VolumeAnisotropy"
+          command="SetVolumeAnisotropy"
+          processes="client|renderserver"
+          default_values="0.0"
+          number_of_elements="1">
+        <DoubleRangeDomain min="-1.0" max="1.0" name="range"/>
+        <Documentation>
+            Specify the tendency for light to scatter back towards (negative)
+            or away from (positive) the light source within path-traced volumes.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="and">
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="EnableRayTracing"
+                                       values="1" />
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay pathtracer"/>
+              </PropertyWidgetDecorator>
+            </Expression>
+</PropertyWidgetDecorator>
+        </Hints>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="EnableDenoise"
+          command="SetEnableDenoise"
+          processes="client|renderserver"
+          default_values="1"
+          animateable="0"
+          number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Controls whether to denoise images. This option will
+          have no effect without a denoiser library and until progressive
+          passes or samples per pixel exceeds four.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="or">
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                <Property name="NumberOfProgressivePasses" function="greaterthan" value="3"/>
+              </PropertyWidgetDecorator>
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                <Property name="NumberOfSamplesPerPixel" function="greaterthan" value="3" />
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="LightScale"
+          command="SetLightScale"
+          processes="client|renderserver"
+          default_values="1.0"
+          number_of_elements="1">
+        <DoubleRangeDomain min="0.0" name="range"/>
+        <Documentation>Diminish or amplify all lights in the scene.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+        </Hints>
+      </DoubleVectorProperty>
+
+      <ProxyProperty name="MaterialLibrary"
+                     command="SetMaterialLibrary"
+                     processes="client|renderserver"
+                     number_of_elements="1"
+                     panel_visibility="never">
+        <Documentation>Set the material library.</Documentation>
+      </ProxyProperty>
+
+      <!-- end of RenderViewProxy -->
     </RenderViewProxy>
   </ProxyGroup>
 

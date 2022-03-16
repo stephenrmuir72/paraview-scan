@@ -638,12 +638,11 @@ bool vtkSMParaViewPipelineController::RegisterViewProxy(vtkSMProxy* proxy, const
     scene->UpdateVTKObjects();
   }
 
-  vtkSmartPointer<vtkSMProxy> materialLib = this->FindMaterialLibrary(proxy->GetSession());
-  if (materialLib)
+  if (auto* materialLib = this->FindMaterialLibrary(proxy->GetSession()))
   {
     // session has one, try and add it to the view
     // third argument 'true' stops complaints on incompatible view types
-    vtkSMPropertyHelper(proxy, "OSPRayMaterialLibrary", true).Add(materialLib);
+    vtkSMPropertyHelper(proxy, "MaterialLibrary", true).Set(materialLib);
   }
 
   // Make the proxy active.

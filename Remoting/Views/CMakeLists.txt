@@ -151,7 +151,6 @@ set(classes
   vtkSMPVRepresentationProxy
   vtkSMRangedTransferFunctionDomain
   vtkSMRecolorableImageExtractWriterProxy
-  vtkSMRendererDomain
   vtkSMRenderViewProxy
   vtkSMRepresentationProxy
   vtkSMRepresentationTypeDomain

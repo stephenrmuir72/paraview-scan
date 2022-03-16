@@ -12,13 +12,13 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-
 #include "vtkSMRendererDomain.h"
+
+#include "vtkObjectFactory.h"
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
 #include "vtkOSPRayPass.h"
 #endif
-#include "vtkObjectFactory.h"
-#include "vtkSMProperty.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSMRendererDomain);
@@ -32,17 +32,13 @@ void vtkSMRendererDomain::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 int vtkSMRendererDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element)
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-  int retVal = this->Superclass::ReadXMLAttributes(prop, element);
-  if (!retVal)
+  if (!this->Superclass::ReadXMLAttributes(prop, element))
   {
     return 0;
   }
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   // throw away whatever XML said our strings are and call update instead
   this->Update(nullptr);
-#else
-  (void)prop;
-  (void)element;
 #endif
   return 1;
 }
@@ -50,10 +46,10 @@ int vtkSMRendererDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement*
 //---------------------------------------------------------------------------
 void vtkSMRendererDomain::Update(vtkSMProperty* vtkNotUsed(prop))
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-
   // populate my list
   std::vector<std::string> sa;
+
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   if (vtkOSPRayPass::IsBackendAvailable("OSPRay raycaster"))
   {
     sa.push_back(std::string("OSPRay raycaster"));
@@ -66,7 +62,6 @@ void vtkSMRendererDomain::Update(vtkSMProperty* vtkNotUsed(prop))
   {
     sa.push_back(std::string("OptiX pathtracer"));
   }
-
-  this->SetStrings(sa);
 #endif
+  this->SetStrings(sa);
 }

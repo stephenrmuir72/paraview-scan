@@ -57,6 +57,7 @@ set(classes
   vtkSMApplyController
   vtkSMMaterialDomain
   vtkSMParaViewPipelineControllerWithRendering
+  vtkSMRendererDomain
   vtkSMRenderViewProxy
   vtkSMTransferFunctionManager
   vtkSMTransferFunctionPresets
