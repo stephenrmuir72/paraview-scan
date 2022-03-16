@@ -95,6 +95,13 @@ public:
   void SetLightScale(double scale);
   void SetMaterialLibrary(vtkPVMaterialLibrary* library);
   ///@}
+
+  /**
+   * Overridden to return true if this->GetLastRenderingPass() < number of
+   * progressive passes.
+   */
+  bool GetContinueRendering() const override;
+
 protected:
   vtkPVRenderView();
   ~vtkPVRenderView() override;

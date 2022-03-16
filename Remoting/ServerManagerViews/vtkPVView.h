@@ -131,13 +131,25 @@ public:
   /**
    * Triggers a high-resolution render.
    */
-  void StillRender();
+  void StillRender(int pass = 0);
 
   /**
    * Triggers a interactive render. Based on the settings on the view, this may
    * result in a low-resolution rendering or a simplified geometry rendering.
    */
-  void InteractiveRender();
+  void InteractiveRender(int pass = 0);
+
+  enum RenderingModes
+  {
+    STILL_RENDER,
+    INTERACTIVE_RENDER
+  };
+
+  /**
+   * Returns vtkPVView::RenderingModes indicating the type used by the last
+   * render.
+   */
+  int GetLastRenderingMode() const;
 
   /**
    * Updates the representations. This triggers various view passes based on the
@@ -240,6 +252,21 @@ public:
    * Capture current rendering result and returns it.
    */
   vtkPacket GetRenderedResult() const;
+
+  /**
+   * This is used only on the rendering service to determine if the view
+   * requires progressive passes. In which case, the
+   * vtkRemoteObjectProviderViews ensures that `StillRender` or
+   * `InteractiveRender` is called again.
+   */
+  virtual bool GetContinueRendering() const { return false; }
+
+  /**
+   * Returns the pass number for the most recent StillRender or
+   * InteractiveRender call. This can be used in vtkCommand::RenderEvent handler
+   * to determine which pass was rendered.
+   */
+  int GetLastRenderingPass() const;
 
 protected:
   vtkPVView();

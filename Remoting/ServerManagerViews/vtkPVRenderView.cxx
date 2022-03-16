@@ -270,6 +270,17 @@ void vtkPVRenderView::SetMaterialLibrary(vtkPVMaterialLibrary* library)
 }
 
 //-----------------------------------------------------------------------------
+bool vtkPVRenderView::GetContinueRendering() const
+{
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  return (this->GetLastRenderingPass() + 1) <
+    vtkOSPRayRendererNode::GetMaxFrames(this->GetRenderer());
+#else
+  return this->Superclass::GetContinueRendering();
+#endif
+}
+
+//-----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
