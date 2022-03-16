@@ -304,6 +304,11 @@ bool vtkGeometryRepresentation::RequestDataToRender(
 
   auto* outInfo = outputVector->GetInformationObject(0);
   outInfo->Set(vtkDataObject::DATA_OBJECT(), dinternals.GeometryFilter->GetOutputDataObject(0));
+
+  auto* inInfo = inputVector[0]->GetInformationObject(0);
+  // if the input was aborted inform the view downstream so we can skip rendering
+  outInfo->Set(vtkAlgorithm::ABORTED(),
+    inInfo->Get(vtkAlgorithm::ABORTED()) | outInfo->Get(vtkAlgorithm::ABORTED()));
   return true;
 }
 

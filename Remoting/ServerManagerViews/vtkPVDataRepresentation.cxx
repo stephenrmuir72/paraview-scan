@@ -221,7 +221,10 @@ bool vtkPVDataRepresentation::ProcessViewRequest(vtkInformation* request)
       for (int cc = 0; cc < internals.NumberOfRenderingPorts; ++cc)
       {
         auto* info = internals.InformationVector->GetInformationObject(cc);
-        vtkPVView::SetPiece(this, cc, vtkDataObject::GetData(info));
+        if (info->Get(vtkAlgorithm::ABORTED()) == 0)
+        {
+          vtkPVView::SetPiece(this, cc, vtkDataObject::GetData(info));
+        }
       }
     }
 
