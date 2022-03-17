@@ -285,6 +285,26 @@ bool vtkPVRenderView::GetContinueRendering() const
 #endif
   return this->Superclass::GetContinueRendering();
 }
+//-----------------------------------------------------------------------------
+int vtkPVRenderView::GetNumberOfProgressivePasses() const
+{
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  return vtkOSPRayRendererNode::GetMaxFrames(this->GetRenderer());
+#else
+  return 0;
+#endif
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPVRenderView::IsRayTracingEnabled() const
+{
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  assert(this->RInternals);
+  const auto& rinternals = (*this->RInternals);
+  return rinternals.UsingRayTracing;
+#endif
+  return false;
+}
 
 //-----------------------------------------------------------------------------
 void vtkPVRenderView::PrintSelf(ostream& os, vtkIndent indent)

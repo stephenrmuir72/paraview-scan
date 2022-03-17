@@ -110,9 +110,18 @@ void vtkRemoteObjectProviderViews::HandleViewRenderEvent(
   auto& internals = (*this->Internals);
   assert("Only supported on rendering services" && !internals.DataProcessing);
   auto* view = vtkPVView::SafeDownCast(caller);
+
+  vtkNJson metadata;
+  auto* renderView = vtkPVRenderView::SafeDownCast(view);
+  if (renderView && renderView->IsRayTracingEnabled())
+  {
+    metadata["rendering-pass"] = renderView->GetLastRenderingPass() + 1;
+    metadata["total-rendering-passes"] = renderView->GetNumberOfProgressivePasses();
+  }
+
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "Pushing rendered image");
   this->GetService()->Publish(
-    vtkRemoteObjectProviderViews::GetImageChannelName(), view->GetRenderedResult());
+    vtkRemoteObjectProviderViews::GetImageChannelName(), view->GetRenderedResult(metadata));
 
   const auto gid = view->GetGlobalID();
   const int lastPass = view->GetLastRenderingPass();

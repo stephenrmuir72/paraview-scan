@@ -25,6 +25,7 @@ PRIVATE_DEPENDS
   VTK::FiltersHyperTree
   VTK::FiltersParallel
   VTK::IOImage
+  VTK::RenderingAnnotation
   VTK::RenderingFreeType
   VTK::RenderingOpenGL2
   VTK::RenderingVolume

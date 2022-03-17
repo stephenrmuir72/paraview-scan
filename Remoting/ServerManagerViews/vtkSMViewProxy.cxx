@@ -19,6 +19,7 @@
 #include "vtkChannelSubscription.h"
 #include "vtkClientSession.h"
 #include "vtkCommand.h"
+#include "vtkCornerAnnotation.h"
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkInteractionProvider.h"
 #include "vtkLogger.h"
@@ -43,6 +44,11 @@
 #include "vtkSynchronizedRenderers.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkVariant.h"
+
+#include <vtk_fmt.h> // needed for `fmt`
+// clang-format off
+#include VTK_FMT(fmt/core.h)
+// clang-format on
 
 namespace vtkSMViewProxyNS
 {
@@ -101,6 +107,8 @@ public:
   unsigned long RenderWindowObserverId{ 0 };
   std::string DefaultRepresentationName;
   vtkBoundingBox VisiblePropBounds;
+  vtkSmartPointer<vtkCornerAnnotation> CornerAnnotation;
+  vtkSmartPointer<vtkRenderer> Renderer2D;
 
   void SetupInteractor();
 
@@ -138,6 +146,22 @@ public:
   }
 
   void RequestRender() { this->UpdateCameraIfNeeded(/*force*/ true); }
+
+  void AddMetadataAsAnnotations(vtkNJson metadata)
+  {
+    if (metadata.empty())
+    {
+      return;
+    }
+    if (metadata.contains("rendering-pass") && metadata.contains("total-rendering-passes"))
+    {
+      int pass = metadata.at("rendering-pass").get<int>();
+      int totalPasses = metadata.at("total-rendering-passes").get<int>();
+      std::string text = fmt::format("Rendering Pass {:3d}/{:3d}", pass, totalPasses);
+      this->CornerAnnotation->SetText(2, text.c_str());
+      this->CornerAnnotation->SetVisibility(true);
+    }
+  }
 
 private:
   std::vector<unsigned long> InteractorObserverIds;
@@ -236,6 +260,23 @@ vtkSMViewProxy::vtkSMViewProxy()
   internals.Renderer = vtk::TakeSmartPointer(vtkRenderer::New());
   internals.Renderer->SetBackground(0, 0, 0.4);
   internals.RenderWindow->AddRenderer(internals.Renderer);
+  internals.RenderWindow->SetNumberOfLayers(3);
+
+  // Setup Corner annotation for rendering passes
+  internals.CornerAnnotation = vtk::TakeSmartPointer(vtkCornerAnnotation::New());
+  internals.CornerAnnotation->SetLinearFontScaleFactor(2);
+  internals.CornerAnnotation->SetNonlinearFontScaleFactor(1);
+  internals.CornerAnnotation->SetMaximumFontSize(40);
+  internals.CornerAnnotation->SetText(2, "");
+  internals.CornerAnnotation->SetVisibility(true);
+
+  internals.Renderer2D = vtk::TakeSmartPointer(vtkRenderer::New());
+  internals.Renderer2D->SetLayer(2);
+  internals.Renderer2D->EraseOff();
+  internals.Renderer2D->InteractiveOff();
+  internals.Renderer2D->SetActiveCamera(internals.Renderer->GetActiveCamera());
+  internals.Renderer2D->AddViewProp(internals.CornerAnnotation);
+  internals.RenderWindow->AddRenderer(internals.Renderer2D);
 
   // monitor render window so we can setup observers on interactor
   // for events that send render requests to the server.
@@ -274,6 +315,16 @@ void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
   vtkSynchronizedRenderers::vtkRawImage image;
   image.Initialize(json.at("width").get<int>(), json.at("height").get<int>(), array);
   image.MarkValid();
+
+  if (json.contains("metadata"))
+  {
+    internals.AddMetadataAsAnnotations(json["metadata"]);
+  }
+  else
+  {
+    internals.CornerAnnotation->SetVisibility(false);
+  }
+
   internals.PushImage(std::move(image));
 }
 
