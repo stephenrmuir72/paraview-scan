@@ -369,11 +369,6 @@ protected:
   void ProcessInitializationHelperRegistration(vtkSMProxy*);
 
   /**
-   * An entry point to load a catalog of OSPRay rendering materials.
-   */
-  virtual void DoMaterialSetup(vtkSMProxy* proxy);
-
-  /**
    * Called in `PostInitializeProxy(vtkSMProxy*)` once the information properties are
    * updated.
    */

@@ -16,10 +16,11 @@ PRIVATE_DEPENDS
   # ParaView::RemotingExport
   # ParaView::RemotingLive
   # ParaView::RemotingMisc
-  ParaView::RemotingSettings
   ParaView::RemotingServerManagerViews
+  ParaView::RemotingSettings
   # ParaView::VTKExtensionsFiltersRendering
   VTK::IOCore
+  VTK::IOImage
 OPTIONAL_DEPENDS
   ParaView::nvpipe
   VTK::PythonInterpreter

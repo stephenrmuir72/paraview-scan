@@ -33,6 +33,7 @@
 
 class vtkCamera;
 class vtkRenderer;
+class vtkPVMaterialLibrary;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVRenderView : public vtkPVView
 {
@@ -78,6 +79,29 @@ public:
    */
   virtual vtkBoundingBox GetVisiblePropBounds();
 
+  ///@{
+  /**
+   * Ray-tracing related properties
+   */
+  void SetEnableRayTracing(bool enableRayTracing);
+  void SetRayTracingBackEnd(const std::string& backend);
+  void SetEnableShadows(bool enableShadows);
+  void SetAmbientOcclusionSamples(int samples);
+  void SetNumberSamplesPerPixel(int samples);
+  void SetNumberOfProgressivePasses(int passes);
+  void SetRouletteDepth(int depth);
+  void SetVolumeAnisotropy(double value);
+  void SetEnableDenoise(bool enableDenoise);
+  void SetLightScale(double scale);
+  void SetMaterialLibrary(vtkPVMaterialLibrary* library);
+  ///@}
+
+  /**
+   * Overridden to return true if this->GetLastRenderingPass() < number of
+   * progressive passes.
+   */
+  bool GetContinueRendering() const override;
+
 protected:
   vtkPVRenderView();
   ~vtkPVRenderView() override;
@@ -86,8 +110,8 @@ private:
   vtkPVRenderView(const vtkPVRenderView&) = delete;
   void operator=(const vtkPVRenderView&) = delete;
 
-  class vtkInternals;
-  std::unique_ptr<vtkInternals> Internals;
+  class vtkRInternals;
+  std::unique_ptr<vtkRInternals> RInternals;
 };
 
 #endif

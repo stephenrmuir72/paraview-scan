@@ -34,6 +34,9 @@ public:
   vtkSmartPointer<vtkChannelSubscription> DataChannelSubscription;
   bool DataProcessing{ false };
   std::map<vtkTypeUInt32, vtkTimeStamp> PushTimeStamps;
+
+  std::map<vtkTypeUInt32, std::atomic<uint64_t>> ProgressivePassTags;
+  rxcpp::subjects::subject<std::tuple<vtkTypeUInt32, vtkTypeUInt32, bool>> ProgressRenderingSubject;
 };
 
 vtkObjectFactoryNewMacro(vtkRemoteObjectProviderViews);
@@ -69,7 +72,7 @@ void vtkRemoteObjectProviderViews::HandleObjectStoreEvent(
         vtkVLogF(PARAVIEW_LOG_PROVIDER_VERBOSITY(), "Initialize for rendering (%s)",
           vtkLogIdentifier(view));
         view->AddObserver(
-          vtkCommand::RenderEvent, this, &vtkRemoteObjectProviderViews::PushViewImage);
+          vtkCommand::RenderEvent, this, &vtkRemoteObjectProviderViews::HandleViewRenderEvent);
       }
       internals.PushTimeStamps[view->GetGlobalID()].Modified();
     }
@@ -101,7 +104,7 @@ void vtkRemoteObjectProviderViews::PushViewData(
 }
 
 //----------------------------------------------------------------------------
-void vtkRemoteObjectProviderViews::PushViewImage(
+void vtkRemoteObjectProviderViews::HandleViewRenderEvent(
   vtkObject* caller, unsigned long eventId, void* callData)
 {
   auto& internals = (*this->Internals);
@@ -110,6 +113,30 @@ void vtkRemoteObjectProviderViews::PushViewImage(
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "Pushing rendered image");
   this->GetService()->Publish(
     vtkRemoteObjectProviderViews::GetImageChannelName(), view->GetRenderedResult());
+
+  const auto gid = view->GetGlobalID();
+  const int lastPass = view->GetLastRenderingPass();
+  const int interactiveRender = *(reinterpret_cast<int*>(callData));
+  if (view->GetContinueRendering())
+  {
+    vtkTypeUInt32 tag;
+    if (lastPass == 0)
+    {
+      tag = ++internals.ProgressivePassTags[gid];
+    }
+    else
+    {
+      tag = internals.ProgressivePassTags[gid];
+    }
+
+    // kick off a new series of progressive renders.
+    rxcpp::observable<>::just(1)
+      .delay(std::chrono::milliseconds(1), this->GetService()->GetRunLoopScheduler())
+      .subscribe([&internals, gid, tag, interactiveRender](int) {
+        internals.ProgressRenderingSubject.get_subscriber().on_next(
+          std::make_tuple(gid, tag, interactiveRender != 0));
+      });
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -141,6 +168,29 @@ void vtkRemoteObjectProviderViews::InitializeInternal(vtkService* service)
           dmanager->SetData(data.GetPayload());
         }
       });
+
+    internals.ProgressRenderingSubject.get_observable()
+      .observe_on(service->GetRunLoopScheduler())
+      .filter(rxcpp::util::apply_to(
+        [&internals](vtkTypeUInt32 gid, vtkTypeUInt32 tag, bool interactiveRender) {
+          return internals.ProgressivePassTags[gid] == tag;
+        }))
+      .subscribe(
+        rxcpp::util::apply_to([this](vtkTypeUInt32 gid, vtkTypeUInt32 tag, bool interactiveRender) {
+          auto view = this->GetObjectStore()->FindVTKObject<vtkPVView>(gid);
+          if (view)
+          {
+            vtkLogF(INFO, "Render progressive pass: %d", view->GetLastRenderingPass() + 1);
+            if (interactiveRender)
+            {
+              view->InteractiveRender(view->GetLastRenderingPass() + 1);
+            }
+            else
+            {
+              view->StillRender(view->GetLastRenderingPass() + 1);
+            }
+          }
+        }));
   }
 }
 

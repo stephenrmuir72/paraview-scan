@@ -56,7 +56,7 @@ private:
 
   void HandleObjectStoreEvent(vtkObject* caller, unsigned long eventId, void* callData);
   void PushViewData(vtkObject* caller, unsigned long eventId, void* callData);
-  void PushViewImage(vtkObject* caller, unsigned long eventId, void* callData);
+  void HandleViewRenderEvent(vtkObject* caller, unsigned long eventId, void* callData);
 
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;

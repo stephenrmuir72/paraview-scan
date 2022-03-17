@@ -287,12 +287,6 @@ bool vtkSMParaViewPipelineController::CreateAnimationHelpers(vtkSMProxy* proxy)
 }
 
 //----------------------------------------------------------------------------
-void vtkSMParaViewPipelineController::DoMaterialSetup(vtkSMProxy* vtkNotUsed(proxy))
-{
-  // expected to be overridden by rendering capable subclass
-}
-
-//----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::InitializeSession(vtkClientSession* session)
 {
   assert(session != nullptr);
@@ -342,16 +336,14 @@ bool vtkSMParaViewPipelineController::InitializeSession(vtkClientSession* sessio
   vtkSmartPointer<vtkSMProxy> materialLib = this->FindMaterialLibrary(session);
   if (!materialLib)
   {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-    materialLib.TakeReference(vtkSafeNewProxy(pxm, "materials", "MaterialLibrary"));
+    materialLib.TakeReference(vtkSafeNewProxy(pxm, "misc", "MaterialLibrary"));
     if (materialLib)
     {
       this->InitializeProxy(materialLib);
       materialLib->UpdateVTKObjects();
-      this->DoMaterialSetup(materialLib.Get());
-      pxm->RegisterProxy("materiallibrary", materialLib);
+      materialLib->UpdateInformation();
+      pxm->RegisterProxy("material_library", materialLib);
     }
-#endif
   }
 
   //---------------------------------------------------------------------------
@@ -388,7 +380,7 @@ vtkSMProxy* vtkSMParaViewPipelineController::FindMaterialLibrary(vtkClientSessio
   vtkSMSessionProxyManager* pxm = session->GetProxyManager();
   assert(pxm);
 
-  return this->FindProxy(pxm, "materiallibrary", "materials", "MaterialLibrary");
+  return this->FindProxy(pxm, "material_library", "misc", "MaterialLibrary");
 }
 
 //----------------------------------------------------------------------------
@@ -646,12 +638,11 @@ bool vtkSMParaViewPipelineController::RegisterViewProxy(vtkSMProxy* proxy, const
     scene->UpdateVTKObjects();
   }
 
-  vtkSmartPointer<vtkSMProxy> materialLib = this->FindMaterialLibrary(proxy->GetSession());
-  if (materialLib)
+  if (auto* materialLib = this->FindMaterialLibrary(proxy->GetSession()))
   {
     // session has one, try and add it to the view
     // third argument 'true' stops complaints on incompatible view types
-    vtkSMPropertyHelper(proxy, "OSPRayMaterialLibrary", true).Add(materialLib);
+    vtkSMPropertyHelper(proxy, "MaterialLibrary", true).Set(materialLib);
   }
 
   // Make the proxy active.

@@ -38,20 +38,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkImageData.h"
 #include "vtkJPEGReader.h"
 #include "vtkMath.h"
+#include "vtkNew.h"
 #include "vtkOSPRayMaterialLibrary.h"
 #include "vtkPNGReader.h"
 #include "vtkPNMReader.h"
 #include "vtkPVMaterialLibrary.h"
-#include "vtkPVRenderView.h"
-#include "vtkProcessModule.h"
-#include "vtkSMMaterialLibraryProxy.h"
+#include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkTexture.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 #include "pqLoadMaterialsReaction.h"
@@ -60,6 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqObjectBuilder.h"
 #include "pqServerManagerModel.h"
 #include "pqView.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QAbstractTableModel>
 #include <QMetaProperty>
@@ -509,8 +509,9 @@ pqMaterialEditor::pqMaterialEditor(QWidget* parentObject)
       this->HasWarnedUser = false;
       if (server && !server->isRemote())
       {
-        vtkSMProxy* proxy =
-          server->proxyManager()->FindProxy("materiallibrary", "materials", "MaterialLibrary");
+        vtkNew<vtkSMParaViewPipelineController> controller;
+        vtkSMProxy* proxy = controller->FindMaterialLibrary(server->session());
+#if 0 // FIXME: ASYNC
         if (proxy)
         {
           auto* localObject = proxy->GetClientSideObject();
@@ -528,6 +529,7 @@ pqMaterialEditor::pqMaterialEditor(QWidget* parentObject)
             }
           }
         }
+#endif
       }
       if (server && server->isRemote() && this->isVisible())
       {
@@ -643,12 +645,6 @@ void pqMaterialEditor::attachMaterial()
   }
 
   pqView* activeView = pqActiveObjects::instance().activeView();
-  if (!vtkPVRenderView::SafeDownCast(activeView->getClientSideView()))
-  {
-    vtkGenericWarningMacro("No valid render view selected.");
-    return;
-  }
-
   auto* activeRepresentation = activeObject->getRepresentation(activeView);
   if (activeRepresentation)
   {
@@ -657,7 +653,7 @@ void pqMaterialEditor::attachMaterial()
     {
       vtkSMPropertyHelper(representationProxy, "OSPRayMaterial")
         .Set(currentMaterial.toStdString().c_str());
-      representationProxy->UpdateProperty("OSPRayMaterial");
+      representationProxy->UpdateVTKObjects();
       activeView->render();
     }
     else
@@ -831,8 +827,7 @@ void pqMaterialEditor::propertyChanged(const QModelIndex& topLeft, const QModelI
 
   if (needRender)
   {
-    pqApplicationCore* app = pqApplicationCore::instance();
-    pqServerManagerModel* smModel = app->getServerManagerModel();
+    pqServerManagerModel* smModel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
     QList<pqView*> views = smModel->findItems<pqView*>();
 
     for (auto v : views)

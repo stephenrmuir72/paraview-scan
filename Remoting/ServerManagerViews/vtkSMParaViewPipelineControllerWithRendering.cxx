@@ -39,8 +39,6 @@
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 
-// #include "vtkSMMaterialLibraryProxy.h"
-
 #include <cassert>
 #include <sstream>
 #include <string>
@@ -151,26 +149,20 @@ void vtkInheritRepresentationProperties(vtkSMProxy* repr, vtkSMSourceProxy* prod
   }
 #endif
 
-  // always copy over ospray material name
-  vtkSMPropertyIterator* iter = inputRepr->NewPropertyIterator();
-  for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+  // always copy material name
+  auto* srcMaterial = inputRepr->GetProperty("Material");
+  auto* dstMaterial = repr->GetProperty("Material");
+  if (srcMaterial && dstMaterial)
   {
-    const char* pname = iter->GetKey();
-    vtkSMProperty* dest = repr->GetProperty(pname);
-    vtkSMProperty* source = iter->GetProperty();
-    if (dest && source && strcmp("OSPRayMaterial", pname) == 0)
-    {
-      dest->Copy(source);
-    }
+    dstMaterial->Copy(srcMaterial);
   }
-  iter->Delete();
 
   if (!vtkSMParaViewPipelineControllerWithRendering::GetInheritRepresentationProperties())
   {
     return;
   }
   // copy properties from inputRepr to repr is they weren't modified.
-  iter = inputRepr->NewPropertyIterator();
+  auto iter = vtk::TakeSmartPointer(inputRepr->NewPropertyIterator());
   for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
   {
     const char* pname = iter->GetKey();
@@ -237,7 +229,6 @@ void vtkInheritRepresentationProperties(vtkSMProxy* repr, vtkSMSourceProxy* prod
       dest->Copy(source);
     }
   }
-  iter->Delete();
   repr->UpdateVTKObjects();
 }
 
@@ -781,16 +772,6 @@ bool vtkSMParaViewPipelineControllerWithRendering::RegisterLayoutProxy(
 void vtkSMParaViewPipelineControllerWithRendering::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMParaViewPipelineControllerWithRendering::DoMaterialSetup(vtkSMProxy* prox)
-{
-#if 0 // FIXME: ASYNC
-  vtkSMMaterialLibraryProxy* mlp = vtkSMMaterialLibraryProxy::SafeDownCast(prox);
-  mlp->LoadDefaultMaterials();
-  mlp->Synchronize();
-#endif
 }
 
 //----------------------------------------------------------------------------

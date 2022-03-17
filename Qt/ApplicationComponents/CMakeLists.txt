@@ -72,6 +72,7 @@ set(classes
   pqImageCompressorWidget
   pqInputDataTypeDecorator
   pqListPropertyWidget
+  pqLoadMaterialsReaction
   pqManageFavoritesReaction
   pqMasterOnlyReaction
   pqMenuReactionUtils
@@ -145,7 +146,6 @@ set(old_classes
   pqLinkSelectionReaction
   pqLiveSourceBehavior
   pqLoadDataReaction
-  pqLoadMaterialsReaction
   pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
   pqLoadStateReaction

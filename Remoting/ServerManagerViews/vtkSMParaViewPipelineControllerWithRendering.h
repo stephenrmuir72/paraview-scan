@@ -232,11 +232,6 @@ protected:
     vtkSMSourceProxy* producer, int outputPort, vtkSMViewProxy* currentView);
 
   /**
-   * Overridden here where the library has link access to rendering classes.
-   */
-  void DoMaterialSetup(vtkSMProxy* proxy) override;
-
-  /**
    * Overridden to handle default ColorArrayName for representations correctly.
    */
   bool DoPostInitializeProxy(vtkSMProxy* proxy, vtkMTimeType ts) override;

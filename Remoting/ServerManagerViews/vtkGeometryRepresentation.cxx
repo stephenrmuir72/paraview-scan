@@ -458,6 +458,54 @@ void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int value)
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetScalingMode(int mode)
+{
+  (void)mode;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  assert(this->RInternals);
+  this->RInternals->Actor->SetEnableScaling(mode);
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetScalingArrayName(const char* arrayName)
+{
+  (void)arrayName;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  assert(this->RInternals);
+  this->RInternals->Actor->SetScalingArrayName(arrayName);
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetScalingFunction(vtkPiecewiseFunction* pwf)
+{
+  (void)pwf;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  assert(this->RInternals);
+  this->RInternals->Actor->SetScalingFunction(pwf);
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetMaterial(const char* materialName)
+{
+  (void)materialName;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  assert(this->RInternals);
+  auto& property = this->RInternals->Property;
+  if (strcmp(materialName, "None") == 0)
+  {
+    property->SetMaterialName(nullptr);
+  }
+  else
+  {
+    property->SetMaterialName(materialName);
+  }
+#endif
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

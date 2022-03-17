@@ -162,6 +162,9 @@ public:
    * Keeps track of the active rendering pass.
    */
   mutable vtkInformation* ActiveRequest{ nullptr };
+
+  mutable int LastRenderingPass{ 0 };
+  mutable int LastRenderingMode{ vtkPVView::STILL_RENDER };
 };
 
 vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_DATA, Request);
@@ -459,7 +462,7 @@ void vtkPVView::UpdateForRendering()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::StillRender()
+void vtkPVView::StillRender(int pass /*=0*/)
 {
   vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: still-render", this->GetLogName().c_str());
   const auto& internals = (*this->Internals);
@@ -468,6 +471,9 @@ void vtkPVView::StillRender()
     vtkLogF(WARNING, "StillRender called on data processing service. Ignored.");
     return;
   }
+
+  internals.LastRenderingPass = pass;
+  internals.LastRenderingMode = vtkPVView::STILL_RENDER;
 
   vtkNew<vtkInformation> request;
   request->Set(vtkPVView::REQUEST_RENDER());
@@ -482,7 +488,34 @@ void vtkPVView::StillRender()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVView::InteractiveRender() {}
+void vtkPVView::InteractiveRender(int pass /*=0*/)
+{
+  vtkVLogScopeF(
+    PARAVIEW_LOG_RENDERING_VERBOSITY(), "%s: interative-render", this->GetLogName().c_str());
+  const auto& internals = (*this->Internals);
+  if (internals.InitializedForDataProcessing)
+  {
+    vtkLogF(WARNING, "InteractiveRender called on data processing service. Ignored.");
+    return;
+  }
+
+  internals.LastRenderingPass = pass;
+  internals.LastRenderingMode = vtkPVView::INTERACTIVE_RENDER;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVView::GetLastRenderingPass() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.LastRenderingPass;
+}
+
+//----------------------------------------------------------------------------
+int vtkPVView::GetLastRenderingMode() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.LastRenderingMode;
+}
 
 //----------------------------------------------------------------------------
 int vtkPVView::CallProcessViewRequest(vtkInformation* request)

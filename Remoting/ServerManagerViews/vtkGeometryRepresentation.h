@@ -31,6 +31,7 @@
 #include "vtkPVDataRepresentation.h"
 #include "vtkRemotingServerManagerViewsModule.h" // needed for exports
 
+class vtkPiecewiseFunction;
 class vtkProperty;
 class vtkPVLODActor;
 class vtkScalarsToColors;
@@ -130,6 +131,16 @@ public:
   void SetLookupTable(vtkScalarsToColors* val);
   void SetInterpolateScalarsBeforeMapping(bool val);
   void SetMapScalars(bool val);
+  ///@}
+
+  ///@{
+  /**
+   * API affecting ray-tracing.
+   */
+  void SetScalingMode(int mode);
+  void SetScalingArrayName(const char* arrayName);
+  void SetScalingFunction(vtkPiecewiseFunction* pwf);
+  void SetMaterial(const char* materialName);
   ///@}
 
   vtkMTimeType GetMTime() override;
