@@ -117,7 +117,7 @@ void vtkPVDataRepresentation::SetNumberOfRenderingPorts(int ports)
 void vtkPVDataRepresentation::SetVisibility(bool value)
 {
   auto& internals = (*this->Internals);
-  internals.Visibility = true;
+  internals.Visibility = value;
 }
 
 //----------------------------------------------------------------------------

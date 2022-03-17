@@ -283,8 +283,10 @@ bool vtkGeometryRepresentation::RemoveFromView(vtkPVView* view)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetVisibility(bool val)
 {
-  assert(this->RInternals);
-  this->RInternals->Actor->SetVisibility(val);
+  if (this->RInternals)
+  {
+    this->RInternals->Actor->SetVisibility(val);
+  }
   this->Superclass::SetVisibility(val);
 }
 
