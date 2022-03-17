@@ -43,6 +43,7 @@ public:
   vtkSmartPointer<vtkRenderPass> DefaultRenderPass;
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkSmartPointer<vtkOSPRayPass> OSPRayPass;
+  bool UsingRayTracing{ false };
 #endif
 };
 
@@ -165,6 +166,7 @@ void vtkPVRenderView::SetEnableRayTracing(bool enableRayTracing)
     rinternals.SynchronizedRenderers->SetRenderPass(rinternals.OSPRayPass);
     rinternals.SynchronizedRenderers->SetEnableRayTracing(true);
   }
+  rinternals.UsingRayTracing = enableRayTracing;
 #else
   if (enableRayTracing)
   {
@@ -273,11 +275,15 @@ void vtkPVRenderView::SetMaterialLibrary(vtkPVMaterialLibrary* library)
 bool vtkPVRenderView::GetContinueRendering() const
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-  return (this->GetLastRenderingPass() + 1) <
-    vtkOSPRayRendererNode::GetMaxFrames(this->GetRenderer());
-#else
-  return this->Superclass::GetContinueRendering();
+  assert(this->RInternals);
+  const auto& rinternals = (*this->RInternals);
+  if (rinternals.UsingRayTracing)
+  {
+    return (this->GetLastRenderingPass() + 1) <
+      vtkOSPRayRendererNode::GetMaxFrames(this->GetRenderer());
+  }
 #endif
+  return this->Superclass::GetContinueRendering();
 }
 
 //-----------------------------------------------------------------------------
