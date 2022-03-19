@@ -322,6 +322,9 @@ void setShowDetailedInformationSetting(pqServer* server, bool show)
 class pqFileDialogModel::pqImplementation
 {
 public:
+  Qt::ItemFlags FileItemFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+  Qt::ItemFlags DirItemFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+
   pqImplementation(pqServer* server)
     : Separator(0)
     , Server(server)
@@ -615,6 +618,16 @@ pqFileDialogModel::~pqFileDialogModel()
   delete this->Implementation;
 }
 
+void pqFileDialogModel::setFileItemFlags(const Qt::ItemFlags& flags)
+{
+  this->Implementation->FileItemFlags = flags;
+}
+
+void pqFileDialogModel::setDirectoryItemFlags(const Qt::ItemFlags& flags)
+{
+  this->Implementation->DirItemFlags = flags;
+}
+
 bool pqFileDialogModel::isShowingDetailedInfo()
 {
   return this->Implementation->isShowingDetailedInformation();
@@ -676,7 +689,7 @@ bool pqFileDialogModel::isHidden(const QModelIndex& localIndex)
   return false;
 }
 
-bool pqFileDialogModel::isDir(const QModelIndex& localIndex)
+bool pqFileDialogModel::isDir(const QModelIndex& localIndex) const
 {
   if (localIndex.model() == this)
   {
