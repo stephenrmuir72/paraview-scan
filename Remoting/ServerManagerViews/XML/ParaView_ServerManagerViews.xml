@@ -637,14 +637,46 @@
         </Hints>
       </IntVectorProperty>
 
-      <IntVectorProperty name="AmbientOcclusionSamples"
-          command="SetAmbientOcclusionSamples"
+      <IntVectorProperty name="EnableDenoise"
+          command="SetEnableDenoise"
           processes="client|renderserver"
-          default_values="0"
+          default_values="1"
+          animateable="0"
           number_of_elements="1">
-        <IntRangeDomain min="0" name="range"/>
-        <Documentation>Specify the number of occlusion query rays
-          that the raycaster sends at each intersection.
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Controls whether to denoise images. This option will
+          have no effect without a denoiser library and until progressive
+          passes or samples per pixel exceeds four.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="or">
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                <Property name="NumberOfProgressivePasses" function="greaterthan" value="3"/>
+              </PropertyWidgetDecorator>
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                <Property name="NumberOfSamplesPerPixel" function="greaterthan" value="3" />
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="VolumeAnisotropy"
+          command="SetVolumeAnisotropy"
+          processes="client|renderserver"
+          default_values="0.0"
+          number_of_elements="1">
+        <DoubleRangeDomain min="-1.0" max="1.0" name="range"/>
+        <Documentation>
+            Specify the tendency for light to scatter back towards (negative)
+            or away from (positive) the light source within path-traced volumes.
         </Documentation>
         <Hints>
           <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
@@ -655,12 +687,29 @@
                                        property="EnableRayTracing"
                                        values="1" />
               <PropertyWidgetDecorator type="EnableWidgetDecorator">
-                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay raycaster"/>
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay pathtracer"/>
               </PropertyWidgetDecorator>
             </Expression>
-          </PropertyWidgetDecorator>
+</PropertyWidgetDecorator>
         </Hints>
-      </IntVectorProperty>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty name="LightScale"
+          command="SetLightScale"
+          processes="client|renderserver"
+          default_values="1.0"
+          number_of_elements="1">
+        <DoubleRangeDomain min="0.0" name="range"/>
+        <Documentation>Diminish or amplify all lights in the scene.</Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="EnableRayTracing"
+                                   values="1" />
+        </Hints>
+      </DoubleVectorProperty>
+
 
       <IntVectorProperty name="NumberOfSamplesPerPixel"
           command="SetNumberSamplesPerPixel"
@@ -698,6 +747,31 @@
         </Hints>
       </IntVectorProperty>
 
+      <IntVectorProperty name="AmbientOcclusionSamples"
+          command="SetAmbientOcclusionSamples"
+          processes="client|renderserver"
+          default_values="0"
+          number_of_elements="1">
+        <IntRangeDomain min="0" name="range"/>
+        <Documentation>Specify the number of occlusion query rays
+          that the raycaster sends at each intersection.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="and">
+              <PropertyWidgetDecorator type="GenericDecorator"
+                                       mode="visibility"
+                                       property="EnableRayTracing"
+                                       values="1" />
+              <PropertyWidgetDecorator type="EnableWidgetDecorator">
+                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay raycaster"/>
+              </PropertyWidgetDecorator>
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+
       <IntVectorProperty name="RouletteDepth"
           command="SetRouletteDepth"
           processes="client|renderserver"
@@ -723,78 +797,6 @@
         </Hints>
       </IntVectorProperty>
 
-      <DoubleVectorProperty name="VolumeAnisotropy"
-          command="SetVolumeAnisotropy"
-          processes="client|renderserver"
-          default_values="0.0"
-          number_of_elements="1">
-        <DoubleRangeDomain min="-1.0" max="1.0" name="range"/>
-        <Documentation>
-            Specify the tendency for light to scatter back towards (negative)
-            or away from (positive) the light source within path-traced volumes.
-        </Documentation>
-        <Hints>
-          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
-          <PropertyWidgetDecorator type="CompositeDecorator">
-            <Expression type="and">
-              <PropertyWidgetDecorator type="GenericDecorator"
-                                       mode="visibility"
-                                       property="EnableRayTracing"
-                                       values="1" />
-              <PropertyWidgetDecorator type="EnableWidgetDecorator">
-                 <Property name="RayTracingBackEnd" function="equals" value="OSPRay pathtracer"/>
-              </PropertyWidgetDecorator>
-            </Expression>
-</PropertyWidgetDecorator>
-        </Hints>
-      </DoubleVectorProperty>
-
-      <IntVectorProperty name="EnableDenoise"
-          command="SetEnableDenoise"
-          processes="client|renderserver"
-          default_values="1"
-          animateable="0"
-          number_of_elements="1">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Controls whether to denoise images. This option will
-          have no effect without a denoiser library and until progressive
-          passes or samples per pixel exceeds four.
-        </Documentation>
-        <Hints>
-          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
-          <PropertyWidgetDecorator type="GenericDecorator"
-                                   mode="visibility"
-                                   property="EnableRayTracing"
-                                   values="1" />
-          <PropertyWidgetDecorator type="CompositeDecorator">
-            <Expression type="or">
-              <PropertyWidgetDecorator type="EnableWidgetDecorator">
-                <Property name="NumberOfProgressivePasses" function="greaterthan" value="3"/>
-              </PropertyWidgetDecorator>
-              <PropertyWidgetDecorator type="EnableWidgetDecorator">
-                <Property name="NumberOfSamplesPerPixel" function="greaterthan" value="3" />
-              </PropertyWidgetDecorator>
-            </Expression>
-          </PropertyWidgetDecorator>
-        </Hints>
-      </IntVectorProperty>
-
-      <DoubleVectorProperty name="LightScale"
-          command="SetLightScale"
-          processes="client|renderserver"
-          default_values="1.0"
-          number_of_elements="1">
-        <DoubleRangeDomain min="0.0" name="range"/>
-        <Documentation>Diminish or amplify all lights in the scene.</Documentation>
-        <Hints>
-          <PropertyWidgetDecorator type="OSPRayHidingDecorator" />
-          <PropertyWidgetDecorator type="GenericDecorator"
-                                   mode="visibility"
-                                   property="EnableRayTracing"
-                                   values="1" />
-        </Hints>
-      </DoubleVectorProperty>
 
       <ProxyProperty name="MaterialLibrary"
                      command="SetMaterialLibrary"
@@ -804,6 +806,24 @@
         <Documentation>Set the material library.</Documentation>
       </ProxyProperty>
 
+      <PropertyGroup label="Ray Tracing">
+        <Property name="EnableRayTracing" />
+        <Property name="RayTracingBackEnd" />
+      </PropertyGroup>
+
+      <PropertyGroup label="Ray Tracing Features">
+        <Property name="EnableShadows" />
+        <Property name="EnableDenoise" />
+        <Property name="VolumeAnisotropy" />
+        <Property name="LightScale" />
+      </PropertyGroup>
+
+      <PropertyGroup label="Ray Tracing Refinement">
+        <Property name="NumberOfSamplesPerPixel" />
+        <Property name="NumberOfProgressivePasses" />
+        <Property name="AmbientOcclusionSamples" />
+        <Property name="RouletteDepth" />
+      </PropertyGroup>
       <!-- end of RenderViewProxy -->
     </RenderViewProxy>
   </ProxyGroup>
