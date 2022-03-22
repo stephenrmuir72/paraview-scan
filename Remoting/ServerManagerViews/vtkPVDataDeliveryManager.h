@@ -34,9 +34,9 @@
 #include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 #include "vtkSmartPointer.h"                     // needed for iVar.
 #include "vtkTuple.h"                            // needed for vtkTuple.
-#include "vtkWeakPointer.h"                      // needed for iVar.
 
 #include <map> // for std::map
+#include <memory> // for std::unique_ptr
 
 class vtkAlgorithmOutput;
 class vtkDataObject;
@@ -113,7 +113,7 @@ private:
   void operator=(const vtkPVDataDeliveryManager&) = delete;
 
   class vtkInternals;
-  vtkInternals* Internals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

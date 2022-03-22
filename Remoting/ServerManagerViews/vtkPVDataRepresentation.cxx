@@ -28,7 +28,6 @@
 #include "vtkPVTrivialProducer.h"
 #include "vtkPVView.h"
 #include "vtkSmartPointer.h"
-#include "vtkWeakPointer.h"
 
 #include <cassert>
 #include <map>
@@ -37,7 +36,7 @@ class vtkPVDataRepresentation::vtkInternals
 {
 public:
   vtkTypeUInt32 GlobalID{ 0 };
-  vtkWeakPointer<vtkPVView> View;
+  vtkPVView* View{ nullptr }; //  FIXME: Use vtkWeakPtr<> when available
   vtkSmartPointer<vtkMultiProcessController> Controller;
 
   bool Initialized{ false };
