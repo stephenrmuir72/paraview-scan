@@ -254,6 +254,12 @@ public:
   vtkPacket GetRenderedResult() const;
 
   /**
+   * Capture current rendering result and returns it. If metadata is not empty
+   * it will be appended to the packet under the "metadata" key.
+   */
+  vtkPacket GetRenderedResult(vtkNJson& metadata) const;
+
+  /**
    * This is used only on the rendering service to determine if the view
    * requires progressive passes. In which case, the
    * vtkRemoteObjectProviderViews ensures that `StillRender` or

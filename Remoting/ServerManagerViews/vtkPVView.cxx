@@ -685,7 +685,7 @@ vtkPVDataDeliveryManager* vtkPVView::GetDataDeliveryManager() const
 }
 
 //----------------------------------------------------------------------------
-vtkPacket vtkPVView::GetRenderedResult() const
+vtkPacket vtkPVView::GetRenderedResult(vtkNJson& metadata) const
 {
   vtkSynchronizedRenderers::vtkRawImage buffer;
   if (auto* window = this->GetRenderWindow())
@@ -699,6 +699,10 @@ vtkPacket vtkPVView::GetRenderedResult() const
     result["gid"] = this->GetGlobalID();
     result["width"] = buffer.GetWidth();
     result["height"] = buffer.GetHeight();
+    if (!metadata.empty())
+    {
+      result["metadata"] = metadata;
+    }
 
     std::map<std::string, vtkSmartPointer<vtkObject>> payload;
     payload["image"] = buffer.GetRawPtr();
@@ -706,4 +710,11 @@ vtkPacket vtkPVView::GetRenderedResult() const
   }
 
   return vtkPacket();
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkPVView::GetRenderedResult() const
+{
+  vtkNJson metadata;
+  return this->GetRenderedResult(metadata);
 }

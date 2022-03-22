@@ -84,11 +84,13 @@ public:
    * Ray-tracing related properties
    */
   void SetEnableRayTracing(bool enableRayTracing);
+  bool IsRayTracingEnabled() const;
   void SetRayTracingBackEnd(const std::string& backend);
   void SetEnableShadows(bool enableShadows);
   void SetAmbientOcclusionSamples(int samples);
   void SetNumberSamplesPerPixel(int samples);
   void SetNumberOfProgressivePasses(int passes);
+  int GetNumberOfProgressivePasses() const;
   void SetRouletteDepth(int depth);
   void SetVolumeAnisotropy(double value);
   void SetEnableDenoise(bool enableDenoise);
