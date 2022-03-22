@@ -26,7 +26,6 @@
 #include "vtkService.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringUtilities.h"
-#include "vtkWeakPointer.h"
 
 #include <algorithm>
 #include <map>
@@ -64,11 +63,11 @@ struct vtkItem
 
   vtkTimeStamp TimeStamp;
   vtkSmartPointer<vtkDataObject> Data;
-  vtkSmartPointer<vtkInformation> MetaData{ vtkInformation::New() };
+  vtkSmartPointer<vtkInformation> MetaData = vtk::TakeSmartPointer(vtkInformation::New());
 
   vtkTimeStamp LODTimeStamp;
   vtkSmartPointer<vtkDataObject> LODData;
-  vtkSmartPointer<vtkInformation> LODMetaData{ vtkInformation::New() };
+  vtkSmartPointer<vtkInformation> LODMetaData = vtk::TakeSmartPointer(vtkInformation::New());
 };
 }
 
