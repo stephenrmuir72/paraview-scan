@@ -46,6 +46,7 @@ public:
 
 protected:
   void showEvent(QShowEvent* evt) override;
+  void startup();
 
 protected Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void showHelpForProxy(const QString& groupname, const QString& proxyname);

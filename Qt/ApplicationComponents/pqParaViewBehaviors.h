@@ -91,7 +91,6 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(ObjectPickingBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(DefaultViewBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(UndoRedoBehavior);
-  PQ_BEHAVIOR_DEFINE_METHODS(AlwaysConnectedBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CrashRecoveryBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(AutoLoadPluginXMLBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginDockWidgetsBehavior);

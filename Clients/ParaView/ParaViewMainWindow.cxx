@@ -38,9 +38,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqActiveObjects.h"
 #include "pqCoreUtilities.h"
+#include "pqServerResource.h"
 // #include "pqDeleteReaction.h"
 // #include "pqMainWindowEventManager.h"
-// #include "pqParaViewBehaviors.h"
+#include "pqObjectBuilder.h"
+#include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 #include "pqSettings.h"
 #include "pqTimer.h"
@@ -210,7 +212,6 @@ ParaViewMainWindow::ParaViewMainWindow()
   // Setup the help menu.
   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
 
-#if 0 // FIXME:ASYNC
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
 
@@ -218,7 +219,6 @@ ParaViewMainWindow::ParaViewMainWindow()
   // disabled by default.
   pqParaViewBehaviors::setEnableUsageLoggingBehavior(true);
   new pqParaViewBehaviors(this, this);
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -242,20 +242,11 @@ void ParaViewMainWindow::showEvent(QShowEvent* evt)
 {
   this->Superclass::showEvent(evt);
 
-  if (this->Internals->FirstShow)
+  auto& internals = (*this->Internals);
+  if (internals.FirstShow)
   {
-    this->Internals->FirstShow = false;
-    auto* pvapp = vtkPVGUIApplication::GetInstance();
-    auto* options = pvapp->GetOptions();
-    auto* settings = pvapp->GetSettings();
-    if (!options->GetDisableRegistry())
-    {
-      if (settings->value("GeneralSettings.ShowWelcomeDialog", true).toBool())
-      {
-        pqTimer::singleShot(1000, this, SLOT(showWelcomeDialog()));
-      }
-      this->updateFontSize();
-    }
+    internals.FirstShow = false;
+    this->startup();
   }
 }
 
@@ -322,4 +313,30 @@ void ParaViewMainWindow::handleMessage(const QString&, int type)
   {
     dock->raise();
   }
+}
+
+//-----------------------------------------------------------------------------
+void ParaViewMainWindow::startup()
+{
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* guiOptions = pvapp->GetOptions();
+  auto* settings = pvapp->GetSettings();
+
+  // show welcome dialog.
+  if (!guiOptions->GetDisableRegistry())
+  {
+    if (settings->value("GeneralSettings.ShowWelcomeDialog", true).toBool())
+    {
+      pqTimer::singleShot(1000, this, SLOT(showWelcomeDialog()));
+    }
+  }
+
+  // update font size.
+  if (!guiOptions->GetDisableRegistry())
+  {
+    this->updateFontSize();
+  }
+
+  // connect to default server.
+  pvapp->GetObjectBuilder()->createServer(pqServerResource("builtin:"));
 }

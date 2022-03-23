@@ -56,6 +56,7 @@ set(classes
   pqColorSelectorPropertyWidget
   pqCTHArraySelectionDecorator
   pqDataAssemblyPropertyWidget
+  pqDefaultViewBehavior
   pqDesktopServicesReaction
   pqDoubleRangeSliderPropertyWidget
   pqEditColorMapReaction
@@ -79,6 +80,7 @@ set(classes
   pqMenuReactionUtils
   pqMoleculePropertyWidget
   pqOSPRayHidingDecorator
+  pqParaViewBehaviors
   pqParaViewMenuBuilders
   pqProxyGroupMenuManager
   pqReaction
@@ -95,11 +97,9 @@ set(classes
   pqViewTypePropertyWidget
   pqWelcomeDialog
   pqYoungsMaterialPropertyWidget
-
 )
 
 set(old_classes
-  pqAlwaysConnectedBehavior
   pqAnimationTimeToolbar
   pqApplicationSettingsReaction
   pqApplyBehavior
@@ -132,7 +132,6 @@ set(old_classes
   pqDataQueryReaction
   pqDataTimeStepBehavior
   pqDefaultContextMenu
-  pqDefaultViewBehavior
   pqDeleteReaction
   pqDisplaySizedImplicitPlanePropertyWidget
   pqEditCameraReaction
@@ -165,7 +164,6 @@ set(old_classes
   pqOpacityTableModel
   pqPVAnimationWidget
   pqPVApplicationCore
-  pqParaViewBehaviors
   pqPauseLiveSourcePropertyWidget
   pqPipelineContextMenuBehavior
   pqPluginActionGroupBehavior
