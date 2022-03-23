@@ -45,7 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqInterfaceTracker.h"
 #include "vtkPVGUIApplication.h"
 // #include "pqLiveSourceBehavior.h"
-// #include "pqLockPanelsBehavior.h"
+#include "pqLockPanelsBehavior.h"
 // #include "pqMainWindowEventBehavior.h"
 // #include "pqObjectPickingBehavior.h"
 // #include "pqPipelineContextMenuBehavior.h"
@@ -310,11 +310,12 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     QObject::connect(
       altSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
   }
-
+#endif
   if (PQ_IS_BEHAVIOR_ENABLED(LockPanelsBehavior))
   {
     new pqLockPanelsBehavior(mainWindow);
   }
+#if 0 // FIXME: ASYNC
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   if (PQ_IS_BEHAVIOR_ENABLED(PythonShellResetBehavior))

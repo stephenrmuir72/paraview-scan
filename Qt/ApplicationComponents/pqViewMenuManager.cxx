@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqViewMenuManager.h"
 
 #include "pqLockPanelsReaction.h"
-#include "pqPVApplicationCore.h"
 #include "pqPreviewMenuManager.h"
 #include "pqSetName.h"
 #include "pqTabbedMultiViewWidget.h"
@@ -98,6 +97,7 @@ void pqViewMenuManager::buildMenu()
   // actions.
   this->updateMenu();
 
+#if 0 // FIXME: ASYNC
   pqTabbedMultiViewWidget* viewManager = qobject_cast<pqTabbedMultiViewWidget*>(
     pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
   if (viewManager)
@@ -120,6 +120,7 @@ void pqViewMenuManager::buildMenu()
       &pqTabbedMultiViewWidget::setDecorationsVisibility);
     this->ShowFrameDecorationsAction = showDecorations;
   }
+#endif
 
   QAction* lockDockWidgetsAction =
     this->Menu->addAction(QIcon(":/pqWidgets/Icons/pqToggleLock.svg"), "Toggle Lock Panels");
@@ -168,10 +169,12 @@ void pqViewMenuManager::updateMenu()
       /*before*/ this->DockPanelSeparators[1], dock_widget->toggleViewAction());
   }
 
+#if 0 // FIXME: ASYNC
   pqTabbedMultiViewWidget* viewManager = qobject_cast<pqTabbedMultiViewWidget*>(
     pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
   if (viewManager && this->ShowFrameDecorationsAction)
   {
     this->ShowFrameDecorationsAction->setChecked(viewManager->decorationsVisibility());
   }
+#endif
 }

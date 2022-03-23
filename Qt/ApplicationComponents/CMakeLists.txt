@@ -76,6 +76,8 @@ set(classes
   pqListPropertyWidget
   # pqLoadDataReaction
   pqLoadMaterialsReaction
+  pqLockPanelsBehavior
+  pqLockPanelsReaction
   pqManageFavoritesReaction
   pqMasterOnlyReaction
   pqMenuReactionUtils
@@ -96,6 +98,7 @@ set(classes
   pqStatusBar
   pqTextLocationWidget
   pqUseSeparateColorMapReaction
+  pqViewMenuManager
   pqViewResolutionPropertyWidget
   pqViewTypePropertyWidget
   pqWelcomeDialog
@@ -151,8 +154,6 @@ set(old_classes
   pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
   pqLoadStateReaction
-  pqLockPanelsBehavior
-  pqLockPanelsReaction
   pqLogViewerReaction
   pqMainControlsToolbar
   pqMainWindowEventBehavior
@@ -212,7 +213,6 @@ set(old_classes
   pqUsageLoggingBehavior
   pqVCRToolbar
   pqVerifyRequiredPluginBehavior
-  pqViewMenuManager
   pqViewStreamingBehavior
 )
 

@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqFiltersMenuReaction.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqSourcesMenuReaction.h"
+#include "pqViewMenuManager.h"
 
 #if 0
 #include "pqAboutDialogReaction.h"
@@ -109,7 +110,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqTimerLogReaction.h"
 #include "pqUndoRedoReaction.h"
 #include "pqVCRToolbar.h"
-#include "pqViewMenuManager.h"
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
 #include "pqMacroReaction.h"
@@ -404,9 +404,7 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildViewMenu(QMenu& menu, QMainWindow& mainWindow)
 {
-#if 0 // FIXME: ASYNC
   new pqViewMenuManager(&mainWindow, &menu);
-#endif
 }
 
 //-----------------------------------------------------------------------------
