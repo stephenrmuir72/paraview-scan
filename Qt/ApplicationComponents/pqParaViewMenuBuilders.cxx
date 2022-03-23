@@ -36,9 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqQtConfig.h"
 
+#include "pqCameraToolbar.h"
 #include "pqCategoryToolbarsBehavior.h"
 #include "pqFiltersMenuReaction.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqSetName.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqViewMenuManager.h"
 
@@ -51,7 +53,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplyPropertiesReaction.h"
 #include "pqAxesToolbar.h"
 #include "pqCameraLinkReaction.h"
-#include "pqCameraToolbar.h"
 #include "pqCameraUndoRedoReaction.h"
 #include "pqCatalystConnectReaction.h"
 #include "pqCatalystContinueReaction.h"
@@ -103,7 +104,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerConnectReaction.h"
 #include "pqServerDisconnectReaction.h"
 #include "pqSetMainWindowTitleReaction.h"
-#include "pqSetName.h"
 #include "pqShowHideAllReaction.h"
 #include "pqTemporalExportReaction.h"
 #include "pqTestingReaction.h"
@@ -791,10 +791,6 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
   reprToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, reprToolbar);
 
-  QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow) << pqSetName("cameraToolbar");
-  cameraToolbar->layout()->setSpacing(0);
-  mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
-
   QToolBar* axesToolbar = new pqAxesToolbar(&mainWindow) << pqSetName("axesToolbar");
   axesToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, axesToolbar);
@@ -812,6 +808,10 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
   }
 #endif
 #endif
+
+  QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow) << pqSetName("cameraToolbar");
+  cameraToolbar->layout()->setSpacing(0);
+  mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
 }
 
 //-----------------------------------------------------------------------------
