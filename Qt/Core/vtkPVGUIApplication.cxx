@@ -18,6 +18,7 @@
 #include "pqObjectBuilder.h"
 #include "pqProgressManager.h"
 #include "pqRecentlyUsedResourcesList.h"
+#include "pqServerConfigurationCollection.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
 #include "pqSettings.h"
@@ -74,6 +75,7 @@ public:
   QScopedPointer<pqRecentlyUsedResourcesList> RecentlyUsedResourcesList;
   QScopedPointer<pqProgressManager> ProgressManager;
   QScopedPointer<pqObjectBuilder> ObjectBuilder;
+  QScopedPointer<pqServerConfigurationCollection> ServerConfigurations;
 };
 
 vtkStandardNewMacro(vtkPVGUIApplication);
@@ -139,11 +141,18 @@ bool vtkPVGUIApplication::InitializeInternal()
   internals.ObjectBuilder.reset(new pqObjectBuilder());
 
   internals.ProgressManager.reset(new pqProgressManager());
+
+  internals.ServerConfigurations.reset(new pqServerConfigurationCollection());
   return true;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVGUIApplication::FinalizeInternal() {}
+void vtkPVGUIApplication::FinalizeInternal()
+{
+  auto& internals = (*this->Internals);
+  internals.ServerConfigurations.reset();
+  this->Superclass::FinalizeInternal();
+}
 
 //----------------------------------------------------------------------------
 pqSettings* vtkPVGUIApplication::GetSettings() const
@@ -192,6 +201,13 @@ pqObjectBuilder* vtkPVGUIApplication::GetObjectBuilder() const
 {
   const auto& internals = (*this->Internals);
   return internals.ObjectBuilder.get();
+}
+
+//----------------------------------------------------------------------------
+pqServerConfigurationCollection* vtkPVGUIApplication::GetServerConfigurations() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.ServerConfigurations.get();
 }
 
 //----------------------------------------------------------------------------
