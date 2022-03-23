@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqParaViewBehaviors.h"
 
-// #include "pqApplyBehavior.h"
 // #include "pqAutoLoadPluginXMLBehavior.h"
 // #include "pqBlockContextMenu.h"
 // #include "pqCollaborationBehavior.h"
@@ -149,7 +148,6 @@ PQ_BEHAVIOR_DEFINE_FLAG(CommandLineOptionsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CollaborationBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ViewStreamingBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginSettingsBehavior, true);
-PQ_BEHAVIOR_DEFINE_FLAG(ApplyBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(QuickLaunchShortcuts, true);
 PQ_BEHAVIOR_DEFINE_FLAG(LockPanelsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PythonShellResetBehavior, true);
@@ -287,14 +285,6 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   if (PQ_IS_BEHAVIOR_ENABLED(PluginSettingsBehavior))
   {
     new pqPluginSettingsBehavior(this);
-  }
-  if (PQ_IS_BEHAVIOR_ENABLED(ApplyBehavior))
-  {
-    pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
-    Q_FOREACH (pqPropertiesPanel* ppanel, mainWindow->findChildren<pqPropertiesPanel*>())
-    {
-      applyBehavior->registerPanel(ppanel);
-    }
   }
 
   if (PQ_IS_BEHAVIOR_ENABLED(QuickLaunchShortcuts))

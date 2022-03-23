@@ -108,7 +108,6 @@ set(classes
 set(old_classes
   pqAnimationTimeToolbar
   pqApplicationSettingsReaction
-  pqApplyBehavior
   pqAutoApplyReaction
   pqAutoLoadPluginXMLBehavior
   pqAxesToolbar

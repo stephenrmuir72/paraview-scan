@@ -101,7 +101,6 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(CollaborationBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(ViewStreamingBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginSettingsBehavior);
-  PQ_BEHAVIOR_DEFINE_METHODS(ApplyBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DEFINE_METHODS(LockPanelsBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PythonShellResetBehavior);
@@ -165,7 +164,6 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(CollaborationBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(ViewStreamingBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PluginSettingsBehavior);
-  PQ_BEHAVIOR_DECLARE_FLAG(ApplyBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DECLARE_FLAG(LockPanelsBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PythonShellResetBehavior);

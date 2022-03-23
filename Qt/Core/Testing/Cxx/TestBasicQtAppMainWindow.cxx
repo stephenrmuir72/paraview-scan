@@ -135,14 +135,6 @@ vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(vtkTypeUInt32
   controller->AssignViewToLayout(view);
   controller->Show(shrink, 0, view, "GeometryRepresentation");
 
-  QObject::connect(this->Ui.propertiesPanel, QOverload<pqProxy*>::of(&pqPropertiesPanel::applied),
-    [](pqProxy* proxy) { proxy->setModifiedState(pqProxy::UNMODIFIED); });
-
-  QObject::connect(this->Ui.propertiesPanel, QOverload<>::of(&pqPropertiesPanel::applied), [pxm]() {
-    vtkNew<vtkSMApplyController> applyController;
-    applyController->Apply(pxm);
-  });
-
   // Update the view.
   view->Update().subscribe([view](bool) { view->ResetCameraUsingVisiblePropBounds(); });
   return view;

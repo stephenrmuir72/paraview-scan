@@ -141,6 +141,12 @@ public:
     vtkVLogIfF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), this->Proxy != nullptr,
       "applying changes to `%s`", this->Proxy->getProxy()->GetLogNameOrDefault());
     this->Panel->apply();
+
+    // this ensures that we don't change the state of UNINITIALIZED proxies.
+    if (this->Proxy->modifiedState() == pqProxy::MODIFIED)
+    {
+      this->Proxy->setModifiedState(pqProxy::UNMODIFIED);
+    }
   }
 
   void reset()
@@ -796,6 +802,8 @@ void pqPropertiesPanel::apply()
 
   vtkTimerLog::MarkStartEvent("PropertiesPanel::Apply");
 
+  std::set<vtkSMSessionProxyManager*> pxms;
+
   BEGIN_UNDO_SET("Apply");
 
   bool onlyApplyCurrentPanel = vtkPVGeneralSettings::GetInstance()->GetAutoApplyActiveOnly();
@@ -807,6 +815,7 @@ void pqPropertiesPanel::apply()
     if (widgets)
     {
       widgets->apply(this->view());
+      pxms.insert(widgets->Proxy->proxyManager());
       Q_EMIT this->applied(widgets->Proxy);
     }
   }
@@ -815,6 +824,7 @@ void pqPropertiesPanel::apply()
     Q_FOREACH (pqProxyWidgets* widgets, this->Internals->SourceWidgets)
     {
       widgets->apply(this->view());
+      pxms.insert(widgets->Proxy->proxyManager());
       Q_EMIT this->applied(widgets->Proxy);
     }
   }
@@ -822,6 +832,11 @@ void pqPropertiesPanel::apply()
   this->Internals->updateInformationAndDomains();
   this->updateButtonState();
 
+  vtkNew<vtkSMApplyController> controller;
+  for (auto& pxm : pxms)
+  {
+    controller->Apply(pxm);
+  }
   Q_EMIT this->applied();
   END_UNDO_SET();
   vtkTimerLog::MarkEndEvent("PropertiesPanel::Apply");
