@@ -46,6 +46,7 @@ set(classes
   pqCatalystPauseSimulationReaction
   pqCatalystRemoveBreakpointReaction
   pqCatalystSetBreakpointReaction
+  pqCategoryToolbarsBehavior
   pqCheckableProperty
   pqChooseColorPresetReaction
   pqColorAnnotationsPropertyWidget
@@ -112,7 +113,6 @@ set(old_classes
   pqBoxPropertyWidget
   pqCameraLinkReaction
   pqCameraUndoRedoReaction
-  pqCategoryToolbarsBehavior
   pqChangePipelineInputReaction
   pqChartSelectionReaction
   pqCollaborationBehavior

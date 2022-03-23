@@ -36,6 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqQtConfig.h"
 
+#include "pqCategoryToolbarsBehavior.h"
+#include "pqFiltersMenuReaction.h"
+#include "pqProxyGroupMenuManager.h"
+#include "pqSourcesMenuReaction.h"
+
 #if 0
 #include "pqAboutDialogReaction.h"
 #include "pqAnimatedExportReaction.h"
@@ -53,7 +58,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystPauseSimulationReaction.h"
 #include "pqCatalystRemoveBreakpointReaction.h"
 #include "pqCatalystSetBreakpointReaction.h"
-#include "pqCategoryToolbarsBehavior.h"
 #include "pqChangePipelineInputReaction.h"
 #include "pqColorToolbar.h"
 #include "pqCopyReaction.h"
@@ -66,7 +70,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqExampleVisualizationsDialogReaction.h"
 #include "pqExportReaction.h"
 #include "pqExtractorsMenuReaction.h"
-#include "pqFiltersMenuReaction.h"
 #ifdef PARAVIEW_USE_QTHELP
 #include "pqHelpReaction.h"
 #endif
@@ -84,7 +87,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqManagePluginsReaction.h"
 #include "pqPVApplicationCore.h"
 #include "pqPropertiesPanel.h"
-#include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
@@ -102,7 +104,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSetMainWindowTitleReaction.h"
 #include "pqSetName.h"
 #include "pqShowHideAllReaction.h"
-#include "pqSourcesMenuReaction.h"
 #include "pqTemporalExportReaction.h"
 #include "pqTestingReaction.h"
 #include "pqTimerLogReaction.h"
@@ -247,8 +248,16 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWindow)
 {
-#if 0 // FIXME: ASYNC
+  pqParaViewMenuBuilders::buildSourcesMenu(
+    menu, ":/pqApplicationComponents/Menus/Sources.xml", mainWindow);
+}
+
+//-----------------------------------------------------------------------------
+void pqParaViewMenuBuilders::buildSourcesMenu(
+  QMenu& menu, const QString& configXML, QMainWindow* mainWindow)
+{
   pqProxyGroupMenuManager* mgr = new pqProxyGroupMenuManager(&menu, "ParaViewSources");
+  mgr->loadConfiguration(configXML);
   mgr->addProxyDefinitionUpdateListener("sources");
   mgr->setRecentlyUsedMenuSize(10);
   new pqSourcesMenuReaction(mgr);
@@ -257,14 +266,20 @@ void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWind
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildFiltersMenu(
   QMenu& menu, QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
 {
-#if 0 // FIXME: ASYNC
+  pqParaViewMenuBuilders::buildFiltersMenu(
+    menu, ":/pqApplicationComponents/Menus/Filters.xml", mainWindow, hideDisabled, quickLaunchable);
+}
+
+//-----------------------------------------------------------------------------
+void pqParaViewMenuBuilders::buildFiltersMenu(QMenu& menu, const QString& configXML,
+  QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
+{
   // Make sure disabled actions are still considered active
   auto* style = new pqActiveDisabledStyle;
   style->setParent(&menu);
@@ -272,6 +287,7 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
 
   pqProxyGroupMenuManager* mgr =
     new pqProxyGroupMenuManager(&menu, "ParaViewFilters", quickLaunchable);
+  mgr->loadConfiguration(configXML);
   mgr->addProxyDefinitionUpdateListener("filters");
   mgr->setRecentlyUsedMenuSize(10);
   mgr->setEnableFavorites(true);
@@ -282,18 +298,19 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
   // pqFiltersMenuReaction
   menuReaction->connect(&menu, SIGNAL(aboutToShow()), SLOT(updateEnableState()));
 
+#if 0 // FIXME: ASYNC
   auto* pvappcore = pqPVApplicationCore::instance();
   if (quickLaunchable && pvappcore)
   {
     menuReaction->connect(pvappcore, SIGNAL(aboutToShowQuickLaunch()), SLOT(updateEnableState()));
   }
+#endif
 
   if (mainWindow)
   {
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
