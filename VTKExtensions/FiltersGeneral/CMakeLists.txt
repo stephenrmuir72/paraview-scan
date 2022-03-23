@@ -48,7 +48,7 @@ set(classes
   vtkOMETIFFChannelCalculator
   vtkPEquivalenceSet
   #vtkPlotEdges
-  #vtkPVArrayCalculator
+  vtkPVArrayCalculator
   #vtkPVClipClosedSurface
   #vtkPVClipDataSet
   vtkPVConnectivityFilter
