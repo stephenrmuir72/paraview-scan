@@ -58,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "pqSpreadSheetVisibilityBehavior.h"
 #include "pqStandardPropertyWidgetInterface.h"
 // #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
-// #include "pqStandardViewFrameActionsImplementation.h"
+#include "pqStandardViewFrameActionsImplementation.h"
 // #include "pqStreamingTestingEventPlayer.h"
 // #include "pqUndoRedoBehavior.h"
 #include "pqUndoStack.h"
@@ -176,13 +176,13 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     // Register standard types of property widgets.
     interfaceTracker->addInterface(new pqStandardPropertyWidgetInterface(interfaceTracker));
   }
-#if 0 // FIXME: ASYNC
   if (PQ_IS_BEHAVIOR_ENABLED(StandardViewFrameActions))
   {
     // Register standard types of view-frame actions.
     interfaceTracker->addInterface(new pqStandardViewFrameActionsImplementation(interfaceTracker));
   }
 
+#if 0 // FIXME: ASYNC
   if (PQ_IS_BEHAVIOR_ENABLED(StandardRecentlyUsedResourceLoader))
   {
     // Register standard recent file menu handlers.

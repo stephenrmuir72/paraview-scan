@@ -84,12 +84,14 @@ set(classes
   pqParaViewMenuBuilders
   pqProxyGroupMenuManager
   pqReaction
+  pqRenameProxyReaction
   pqScalarBarVisibilityReaction
   pqSelectionQueryPropertyWidget
   pqSessionTypeDecorator
   pqShowWidgetDecorator
   pqSourcesMenuReaction
   pqStandardPropertyWidgetInterface
+  pqStandardViewFrameActionsImplementation
   pqStatusBar
   pqTextLocationWidget
   pqUseSeparateColorMapReaction
@@ -174,7 +176,6 @@ set(old_classes
   pqPreviewMenuManager
   pqPropertyCollectionWidget
   pqReloadFilesReaction
-  pqRenameProxyReaction
   pqRenderViewSelectionReaction
   pqRepresentationToolbar
   pqResetScalarRangeReaction
@@ -198,7 +199,6 @@ set(old_classes
   pqSpreadSheetViewDecorator
   pqSpreadSheetVisibilityBehavior
   pqStandardRecentlyUsedResourceLoaderImplementation
-  pqStandardViewFrameActionsImplementation
   pqStreamingTestingEventPlayer
   pqTemporalExportReaction
   pqTestingReaction

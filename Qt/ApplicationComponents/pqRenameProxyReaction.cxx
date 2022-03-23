@@ -81,7 +81,7 @@ void pqRenameProxyReaction::onTriggered()
 
   bool ok;
   QString group = dynamic_cast<pqView*>(proxy) ? "View" : "Proxy";
-  QString oldName = proxy->getSMName();
+  QString oldName = proxy->registrationName();
   QString newName = QInputDialog::getText(
     this->ParentWidget ? this->ParentWidget.data() : pqCoreUtilities::mainWidget(),
     tr("Rename") + " " + group + "...", tr("New name:"), QLineEdit::Normal, oldName, &ok);
@@ -92,15 +92,15 @@ void pqRenameProxyReaction::onTriggered()
     {
       SM_SCOPED_TRACE(CallFunction)
         .arg("RenameView")
-        .arg(newName.toUtf8().data())
+        .arg(qUtf8Printable(newName))
         .arg(proxy->getProxy());
     }
     else
     {
       SM_SCOPED_TRACE(CallFunction)
         .arg("RenameProxy")
-        .arg(newName.toUtf8().data())
-        .arg(proxy->getSMGroup().toUtf8().data())
+        .arg(qUtf8Printable(newName))
+        .arg(qUtf8Printable(proxy->registrationGroup()))
         .arg(proxy->getProxy());
     }
     BEGIN_UNDO_SET(tr("Rename") + " " + group);
