@@ -35,6 +35,7 @@ set(classes
   pqAnimationShortcutWidget
   pqAnnotationsModel
   pqApplicationComponentsInit
+  pqApplicationSettingsReaction
   pqApplyPropertiesReaction
   pqBackgroundEditorWidget
   pqBoolPropertyWidgetDecorator
@@ -108,7 +109,6 @@ set(classes
 
 set(old_classes
   pqAnimationTimeToolbar
-  pqApplicationSettingsReaction
   pqAutoApplyReaction
   pqAutoLoadPluginXMLBehavior
   pqAxesToolbar

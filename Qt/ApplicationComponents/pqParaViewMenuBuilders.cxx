@@ -36,9 +36,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqQtConfig.h"
 
+#include "pqApplicationSettingsReaction.h"
+#include "pqApplyPropertiesReaction.h"
 #include "pqCameraToolbar.h"
 #include "pqCategoryToolbarsBehavior.h"
 #include "pqFiltersMenuReaction.h"
+#include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqSetName.h"
 #include "pqSourcesMenuReaction.h"
@@ -49,8 +52,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAnimatedExportReaction.h"
 #include "pqAnimationTimeToolbar.h"
 #include "pqApplicationCore.h"
-#include "pqApplicationSettingsReaction.h"
-#include "pqApplyPropertiesReaction.h"
 #include "pqAxesToolbar.h"
 #include "pqCameraLinkReaction.h"
 #include "pqCameraUndoRedoReaction.h"
@@ -88,7 +89,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqManageLinksReaction.h"
 #include "pqManagePluginsReaction.h"
 #include "pqPVApplicationCore.h"
-#include "pqPropertiesPanel.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
@@ -203,13 +203,13 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel)
 {
-#if 0 // FIXME: ASYNC
   QString objectName = menu.objectName();
   Ui::pqEditMenuBuilder ui;
   ui.setupUi(&menu);
   // since the UI file tends to change the name of the menu.
   menu.setObjectName(objectName);
 
+#if 0 // FIXME: ASYNC
   new pqUndoRedoReaction(ui.actionEditUndo, true);
   new pqUndoRedoReaction(ui.actionEditRedo, false);
   new pqCameraUndoRedoReaction(ui.actionEditCameraUndo, true);
@@ -224,12 +224,15 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
   new pqSaveScreenshotReaction(ui.actionCopyScreenshotToClipboard, true);
   new pqCopyReaction(ui.actionCopy);
   new pqCopyReaction(ui.actionPaste, true);
+#endif
   new pqApplicationSettingsReaction(ui.actionEditSettings);
+#if 0 // FIXME: ASYNC
   new pqDataQueryReaction(ui.actionQuery);
   new pqSearchItemReaction(ui.actionSearch);
   new pqResetDefaultSettingsReaction(ui.actionResetDefaultSettings);
   new pqSetMainWindowTitleReaction(ui.actionSetMainWindowTitle);
   new pqRenameProxyReaction(ui.actionRename, propertiesPanel);
+#endif
 
   if (propertiesPanel)
   {
@@ -242,7 +245,6 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
     new pqApplyPropertiesReaction(propertiesPanel, applyAction, true);
     new pqApplyPropertiesReaction(propertiesPanel, resetAction, false);
   }
-#endif
 }
 
 //-----------------------------------------------------------------------------
