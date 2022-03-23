@@ -45,9 +45,15 @@ public:
   ~ParaViewMainWindow() override;
 
 protected:
-  void showEvent(QShowEvent* evt) override;
   void startup();
 
+  ///@{
+  /**
+   * Overridden to save/restore window layout
+   */
+  void showEvent(QShowEvent* evt) override;
+  void closeEvent(QCloseEvent* evt) override;
+  ///@}
 protected Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void showHelpForProxy(const QString& groupname, const QString& proxyname);
   void showWelcomeDialog();

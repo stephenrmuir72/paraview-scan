@@ -242,12 +242,22 @@ void ParaViewMainWindow::showEvent(QShowEvent* evt)
 {
   this->Superclass::showEvent(evt);
 
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
   auto& internals = (*this->Internals);
   if (internals.FirstShow)
   {
     internals.FirstShow = false;
+    pvapp->GetSettings()->restoreState("mainWindow", *this);
     this->startup();
   }
+}
+
+//-----------------------------------------------------------------------------
+void ParaViewMainWindow::closeEvent(QCloseEvent* evt)
+{
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pvapp->GetSettings()->saveState(*this, "mainWindow");
+  this->Superclass::closeEvent(evt);
 }
 
 //-----------------------------------------------------------------------------
