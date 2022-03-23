@@ -178,6 +178,11 @@ void vtkObjectWrapper::UpdateState(const vtkNJson& state, vtkRemoteObjectProvide
       // the property has no value (not same as empty value)
       continue;
     }
+    if (pinfo.Method.empty())
+    {
+      // property has no command -- nothing to update on the VTK object.
+      continue;
+    }
     switch (pinfo.Type)
     {
       case vtkSMProperty::INT:
