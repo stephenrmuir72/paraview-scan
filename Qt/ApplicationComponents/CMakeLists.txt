@@ -97,6 +97,7 @@ set(classes
   pqStandardViewFrameActionsImplementation
   pqStatusBar
   pqTextLocationWidget
+  pqUsageLoggingBehavior
   pqUseSeparateColorMapReaction
   pqViewMenuManager
   pqViewResolutionPropertyWidget
@@ -209,7 +210,6 @@ set(old_classes
   pqTransferFunctionWidgetPropertyWidget
   pqUndoRedoBehavior
   pqUndoRedoReaction
-  pqUsageLoggingBehavior
   pqVCRToolbar
   pqVerifyRequiredPluginBehavior
   pqViewStreamingBehavior

@@ -61,7 +61,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "pqStreamingTestingEventPlayer.h"
 // #include "pqUndoRedoBehavior.h"
 #include "pqUndoStack.h"
-// #include "pqUsageLoggingBehavior.h"
+#include "pqUsageLoggingBehavior.h"
 // #include "pqVerifyRequiredPluginBehavior.h"
 // #include "pqViewStreamingBehavior.h"
 
@@ -331,11 +331,11 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   {
     new pqMainWindowEventBehavior(mainWindow);
   }
+#endif
   if (PQ_IS_BEHAVIOR_ENABLED(UsageLoggingBehavior))
   {
     new pqUsageLoggingBehavior(mainWindow);
   }
-#endif
   CLEAR_UNDO_STACK();
 }
 
