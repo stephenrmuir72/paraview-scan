@@ -170,6 +170,8 @@ unsigned long pqProxyWidgets::Counter = 0;
 //*****************************************************************************
 class pqPropertiesPanel::pqInternals
 {
+  pqTimer AutoApplyTimer;
+
 public:
   Ui::propertiesPanel Ui;
   QPointer<pqView> View;
@@ -182,7 +184,6 @@ public:
   vtkNew<vtkSMProxyClipboard> SourceClipboard;
   vtkNew<vtkSMProxyClipboard> DisplayClipboard;
   vtkNew<vtkSMProxyClipboard> ViewClipboard;
-
   vtkNew<vtkEventQtSlotConnect> RepresentationEventConnect;
 
   //---------------------------------------------------------------------------
@@ -190,6 +191,23 @@ public:
     : ReceivedChangeAvailable(false)
   {
     this->Ui.setupUi(panel);
+    this->AutoApplyTimer.setSingleShot(true);
+    QObject::connect(&this->AutoApplyTimer, SIGNAL(timeout()), panel, SLOT(apply()));
+
+    QObject::connect(panel, &pqPropertiesPanel::modified, [this]() {
+      auto generalSettings = vtkPVGeneralSettings::GetInstance();
+      if (generalSettings->GetAutoApply())
+      {
+        this->AutoApplyTimer.start(generalSettings->GetAutoApplyDelay());
+      }
+      else
+      {
+        this->AutoApplyTimer.stop();
+      }
+    });
+
+    QObject::connect(
+      panel, &pqPropertiesPanel::resetDone, [this]() { this->AutoApplyTimer.stop(); });
 
     // Setup background color for Apply button so users notice it when it's
     // enabled.
