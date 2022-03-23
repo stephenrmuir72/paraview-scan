@@ -55,9 +55,10 @@ class TestBasicQtAppMainWindow::QInternals
 {
 public:
   Ui::TestBasicQtAppMainWindow Ui;
+  QTimer SpinTimer;
   bool StateRestored{ false };
-  vtkTypeUInt32 SessionId;
-  vtkSMViewProxy* setupSession(const QString& url);
+  vtkTypeUInt32 SessionId{ 0 };
+  vtkSMViewProxy* setupSession(vtkTypeUInt32 sessionId);
   void openData(const QString& fileName);
   void saveState(const QString& fileName);
 };
@@ -94,15 +95,14 @@ void TestBasicQtAppMainWindow::QInternals::saveState(const QString& fileName)
   }
 }
 
-vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(const QString& url)
+vtkSMViewProxy* TestBasicQtAppMainWindow::QInternals::setupSession(vtkTypeUInt32 sessionId)
 {
-  vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
+  this->SessionId = sessionId;
 
+  vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
   auto* pvapp = vtkPVGUIApplication::GetInstance();
   auto* tracker = pvapp->GetInterfaceTracker();
   tracker->addInterface(new pqStandardPropertyWidgetInterface(tracker));
-  this->SessionId =
-    url.isEmpty() ? pvapp->CreateBuiltinSession() : pvapp->CreateRemoteSession(url.toStdString());
   auto* session = pvapp->GetSession(this->SessionId);
   auto* pxm = session->GetProxyManager();
   auto* smmodel = pvapp->GetServerManagerModel();
@@ -154,6 +154,7 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
 {
   auto& internals = (*this->Internals);
   internals.Ui.setupUi(this);
+  internals.SpinTimer.setSingleShot(false);
 
   auto* sourceMenuMgr = new pqProxyGroupMenuManager(internals.Ui.menu_Sources, "ParaViewSources");
   sourceMenuMgr->loadConfiguration(":/pqApplicationComponents/Menus/Sources.xml");
@@ -175,6 +176,53 @@ TestBasicQtAppMainWindow::TestBasicQtAppMainWindow()
   QObject::connect(pgm, SIGNAL(enableProgress(bool)), progressWidget, SLOT(enableProgress(bool)));
   QObject::connect(pgm, SIGNAL(progress(const QString&, int)), progressWidget,
     SLOT(setProgress(const QString&, int)));
+
+  QObject::connect(internals.Ui.actionSpin, &QAction::toggled, [&internals](bool checked) {
+    if (checked)
+    {
+      internals.SpinTimer.start(10);
+    }
+    else
+    {
+      internals.SpinTimer.stop();
+    }
+  });
+
+  // Hookup file-open dialog
+  QObject::connect(
+    internals.Ui.actionOpenFile, &QAction::triggered, [pvapp, this, &internals](bool /*unused*/) {
+      auto* smmodel = pvapp->GetServerManagerModel();
+      if (auto* pqserver = smmodel->findServer(internals.SessionId))
+      {
+        pqFileDialog dialog(pqserver, this);
+        if (pqFileDialog::Accepted != dialog.exec())
+        {
+          vtkLogF(ERROR, "Selected file was not accepted");
+        }
+        else
+        {
+          QStringList fileList = dialog.getSelectedFiles();
+          if (!fileList.empty())
+          {
+            internals.openData(fileList.front());
+          }
+        }
+      }
+    });
+
+  QObject::connect(
+    internals.Ui.actionSaveState, &QAction::triggered, [pvapp, this, &internals](bool /*unused*/) {
+      auto* smmodel = pvapp->GetServerManagerModel();
+      if (auto* pqserver = smmodel->findServer(internals.SessionId))
+      {
+        QString file = pqFileDialog::getSaveFileName(
+          pqserver, this->Internals->Ui.dockWidget, "Save State as...");
+        if (!file.isEmpty())
+        {
+          internals.saveState(file);
+        }
+      }
+    });
 }
 
 //-----------------------------------------------------------------------------
@@ -204,56 +252,14 @@ void TestBasicQtAppMainWindow::closeEvent(QCloseEvent* evt)
 void TestBasicQtAppMainWindow::connect(const QString& url)
 {
   auto& internals = (*this->Internals);
-  auto* view = internals.setupSession(url);
-
-  auto* timer = new QTimer(this);
-  timer->setSingleShot(false);
-
-  QObject::connect(timer, &QTimer::timeout, [view]() {
-    view->GetCamera()->Azimuth(1);
-    view->StillRender();
-  });
-
-  QObject::connect(internals.Ui.actionSpin, &QAction::toggled, [timer](bool checked) {
-    if (checked)
-    {
-      timer->start(10);
-    }
-    else
-    {
-      timer->stop();
-    }
-  });
-
   auto* pvapp = vtkPVGUIApplication::GetInstance();
-  auto* smmodel = pvapp->GetServerManagerModel();
-  pqServer* pqserver = smmodel->findServer(this->Internals->SessionId);
-  // Hookup file-open dialog
-  rxqt::from_signal(this->Internals->Ui.actionOpenFile, &QAction::triggered)
-    .map([this, pqserver](bool /*unused*/) {
-      pqFileDialog dialog(pqserver, this->Internals->Ui.dockWidget);
-      if (pqFileDialog::Accepted != dialog.exec())
-      {
-        vtkLogF(ERROR, "Selected file was not accepted");
-      }
-
-      QString file;
-      QStringList fileList = dialog.getSelectedFiles();
-      if (!fileList.empty())
-      {
-        file = fileList.front();
-      }
-      return file;
-    })
-    .filter([](const QString& fname) { return !fname.isEmpty(); })
-    .subscribe([this](const QString& fname) { this->Internals->openData(fname); });
-
-  rxqt::from_signal(this->Internals->Ui.actionSaveState, &QAction::triggered)
-    .map([this, pqserver](bool /*unused*/) {
-      QString file =
-        pqFileDialog::getSaveFileName(pqserver, this->Internals->Ui.dockWidget, "Save State as...");
-      return file;
-    })
-    .filter([](const QString& fname) { return !fname.isEmpty(); })
-    .subscribe([this](const QString& fname) { this->Internals->saveState(fname); });
+  auto observable =
+    url.isEmpty() ? pvapp->CreateBuiltinSession() : pvapp->CreateRemoteSession(qUtf8Printable(url));
+  observable.subscribe([&internals](vtkTypeUInt32 id) {
+    auto* view = internals.setupSession(id);
+    QObject::connect(&internals.SpinTimer, &QTimer::timeout, [view]() {
+      view->GetCamera()->Azimuth(1);
+      view->StillRender();
+    });
+  });
 }

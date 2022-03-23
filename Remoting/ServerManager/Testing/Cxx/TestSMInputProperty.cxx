@@ -100,6 +100,7 @@ int TestSMInputProperty(int argc, char* argv[])
 
   // initialize the MPI environment.
   vtkDistributedEnvironment environment(&argc, &argv);
+  const int rank = environment.GetRank();
 
   // determine what mode this test is running under
   // and create appropriate application type.
@@ -119,7 +120,7 @@ int TestSMInputProperty(int argc, char* argv[])
   }
   catch (const CLI::ParseError& e)
   {
-    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
+    return (rank == 0 ? cli.exit(e) : EXIT_SUCCESS);
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
@@ -127,12 +128,12 @@ int TestSMInputProperty(int argc, char* argv[])
   std::string filename(name);
   delete[] name;
 
-  auto id = app->CreateBuiltinSession();
-  int returnValue = DoSMInputPropertyTest(app->GetSession(id), filename, runLoop);
+  app->CreateBuiltinSession()
+    .observe_on(rxcpp::observe_on_run_loop(runLoop))
+    .subscribe([&](vtkTypeUInt32 id) {
+      app->Exit(DoSMInputPropertyTest(app->GetSession(id), filename, runLoop));
+    });
+  app->WaitForExit(runLoop, std::chrono::seconds(1));
   app->Finalize();
-  if (returnValue == EXIT_FAILURE || app->GetExitCode() == EXIT_FAILURE)
-  {
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
+  return app->GetExitCode();
 }

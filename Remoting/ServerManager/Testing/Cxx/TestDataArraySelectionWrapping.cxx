@@ -36,7 +36,7 @@ bool DoDataArraySelectionTest(
 {
   auto* app = vtkPVCoreApplication::GetInstance();
   auto* pxm = session->GetProxyManager();
-  auto proxy = pxm->NewProxy("sources", "IOSSReader");
+  auto proxy = vtk::TakeSmartPointer(pxm->NewProxy("sources", "IOSSReader"));
   vtkSMPropertyHelper(proxy, "FileName").Set(filename.c_str());
   proxy->UpdateVTKObjects();
 
@@ -59,8 +59,6 @@ bool DoDataArraySelectionTest(
     return false;
   }
 
-  app->WaitForExit(runLoop, std::chrono::seconds(1));
-
   return true;
 }
 
@@ -71,6 +69,7 @@ int TestDataArraySelectionWrapping(int argc, char* argv[])
 
   // initialize the MPI environment.
   vtkDistributedEnvironment environment(&argc, &argv);
+  const int rank = environment.GetRank();
 
   // determine what mode this test is running under
   // and create appropriate application type.
@@ -90,19 +89,21 @@ int TestDataArraySelectionWrapping(int argc, char* argv[])
   }
   catch (const CLI::ParseError& e)
   {
-    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
+    return (rank == 0 ? cli.exit(e) : EXIT_SUCCESS);
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
-  std::string filename = vtkTestUtilities::ExpandDataFileName(argc, argv, "Testing/Data/can.ex2");
+  char* name = vtkTestUtilities::ExpandDataFileName(argc, argv, "Testing/Data/can.ex2");
+  std::string filename(name);
+  delete[] name;
 
-  auto id = app->CreateBuiltinSession();
-  bool success = DoDataArraySelectionTest(app->GetSession(id), filename, runLoop);
+  app->CreateBuiltinSession()
+    .observe_on(rxcpp::observe_on_run_loop(runLoop))
+    .subscribe([&](vtkTypeUInt32 id) {
+      bool success = DoDataArraySelectionTest(app->GetSession(id), filename, runLoop);
+      app->Exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
+    });
+  app->WaitForExit(runLoop, std::chrono::seconds(1));
   app->Finalize();
-  if (!success)
-  {
-    vtkLogF(ERROR, "FAILED");
-    return EXIT_FAILURE;
-  }
   return app->GetExitCode();
 }

@@ -33,10 +33,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define pqObjectBuilder_h
 
 #include "pqCoreModule.h"
+#include "vtkType.h"
 
 #include <QMap>
 #include <QObject>
 #include <QVariant>
+
+#include "vtk_rxcpp.h" // for rxcpp
+// clang-format off
+// ideally, we include rx-lite.hpp here.
+#include VTK_REMOTING_RXCPP(rx.hpp)
+// clang-format on
 
 class pqDataRepresentation;
 class pqOutputPort;
@@ -99,6 +106,8 @@ public:
     vtkNetworkAccessManager::ConnectionResult& result);
   //@}
 #endif
+
+  rxcpp::observable<vtkTypeUInt32> createServer(const pqServerResource& resource);
 
   /**
    * Destroy a server connection
@@ -224,28 +233,6 @@ public:
    */
   static QString getFileNamePropertyName(vtkSMProxy*);
 
-  /**
-   * Returns true while pqObjectBuilder is in createServer() call.
-   */
-  bool waitingForConnection() const
-  {
-    return this->ForceWaitingForConnection ? true : this->WaitingForConnection;
-  }
-
-  /**
-   * Set ForceWaitingForConnection
-   * When set to true, WaitingForConnection() will always return true
-   * When set to false, no effect.
-   * Returns the previous state
-   */
-  bool forceWaitingForConnection(bool force);
-
-public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
-  /**
-   * Closes any open connections for reverse-connection.
-   */
-  void abortPendingConnections();
-
 Q_SIGNALS:
 
   /**
@@ -358,9 +345,6 @@ protected:
 
 private:
   Q_DISABLE_COPY(pqObjectBuilder)
-
-  bool ForceWaitingForConnection;
-  bool WaitingForConnection;
 };
 
 #endif

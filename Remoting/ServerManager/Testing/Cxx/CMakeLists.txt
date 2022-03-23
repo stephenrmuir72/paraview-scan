@@ -11,9 +11,10 @@ vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   TestServerApplication,TestPVApplication.cxx,NO_VALID)
 
 vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
+  TestDataArraySelectionWrapping.cxx,NO_VALID
   TestProxyDefinitionsIterator.cxx,NO_VALID
-  TestSMInputProperty.cxx,NO_VALID
-  TestDataArraySelectionWrapping.cxx, NO_VALID)
+  TestSMInputProperty.cxx,NO_VALID)
+
 # TODO
 #vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
 #  --batch

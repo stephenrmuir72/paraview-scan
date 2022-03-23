@@ -44,12 +44,12 @@ public:
    * Currently, only 1 builtin session can be created at a time. But that should
    * be fixable with a few code changes.
    */
-  vtkTypeUInt32 CreateBuiltinSession();
+  rxcpp::observable<vtkTypeUInt32> CreateBuiltinSession();
 
   /**
    * Creates a remote session.
    */
-  vtkTypeUInt32 CreateRemoteSession(const std::string& url);
+  rxcpp::observable<vtkTypeUInt32> CreateRemoteSession(const std::string& url);
 
   /**
    * Access a session given its id.
