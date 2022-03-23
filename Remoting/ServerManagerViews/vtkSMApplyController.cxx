@@ -247,8 +247,7 @@ void vtkSMApplyController::HideInputs(vtkSMProxy* producer, vtkSMViewProxy* view
 //----------------------------------------------------------------------------
 void vtkSMApplyController::ResetCamera(vtkSMViewProxy* view)
 {
-  // TODO:
-  view->Update();
+  view->Update().subscribe([view](bool) { view->ResetCameraUsingVisiblePropBounds(); });
 }
 
 //----------------------------------------------------------------------------
