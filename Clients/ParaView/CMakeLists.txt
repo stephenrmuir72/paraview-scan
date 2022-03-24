@@ -53,12 +53,12 @@ if (default_style)
 endif ()
 
 paraview_client_add(
-  NAME              paraview
-  NAMESPACE         "ParaView"
+  NAME              parat
+  NAMESPACE         "ParaT"
   EXPORT            "ParaViewClient"
-  APPLICATION_NAME  "ParaView"
-  TITLE             "ParaView ${paraview_version}"
-  ORGANIZATION      "ParaView"
+  APPLICATION_NAME  "ParaT"
+  TITLE             "ParaT (unreleased)"
+  ORGANIZATION      "ParaT"
   VERSION           "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}.${PARAVIEW_VERSION_PATCH}"
   ${style_args}
   MAIN_WINDOW_CLASS "ParaViewMainWindow"
@@ -70,33 +70,33 @@ paraview_client_add(
 
 find_package(Qt5 REQUIRED QUIET COMPONENTS Widgets)
 
-target_link_libraries(paraview
+target_link_libraries(parat
   PRIVATE
     ParaView::RemotingSettings
     Qt5::Core
     Qt5::Widgets)
 
-target_compile_definitions(paraview
+target_compile_definitions(parat
   PRIVATE
     "PARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION=$<BOOL:${PARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION}>")
 if (PARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION)
-  target_link_libraries(paraview
+  target_link_libraries(parat
     PRIVATE
       vtkParaViewDocumentation)
 endif ()
 
-target_compile_definitions(paraview
+target_compile_definitions(parat
   PRIVATE
     "PARAVIEW_USE_PYTHON=$<BOOL:${PARAVIEW_USE_PYTHON}>")
 if (PARAVIEW_USE_PYTHON)
-  target_link_libraries(paraview
+  target_link_libraries(parat
     PRIVATE
       ParaView::pvpythonmodules
       ParaView::pqPython
       ParaView::PythonInitializer)
 endif ()
 
-target_compile_definitions(paraview
+target_compile_definitions(parat
   PRIVATE
     "PARAVIEW_USE_MATERIALEDITOR=$<BOOL:${paraview_use_materialeditor}>")
 
