@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGUIApplication.h"
 #include "vtkPVXMLElement.h"
 // #include "vtkSMAnimationSceneProxy.h"
+#include "pqServerResource.h"
 #include "vtkPVLogger.h"
 #include "vtkSMCoreUtilities.h"
 #include "vtkSMInputProperty.h"
@@ -76,13 +77,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace pqObjectBuilderNS
 {
-static bool ContinueWaiting = true;
-static bool processEvents()
-{
-  QApplication::processEvents();
-  return ContinueWaiting;
-}
-
 //-----------------------------------------------------------------------------
 bool preCreatePipelineProxy(vtkSMParaViewPipelineController* controller, vtkSMProxy* proxy)
 {
@@ -125,13 +119,11 @@ pqPipelineSource* postCreatePipelineProxy(vtkSMParaViewPipelineController* contr
 
   return source;
 }
-}
+} // end of namespace pqObjectBuilderNS
 
 //-----------------------------------------------------------------------------
 pqObjectBuilder::pqObjectBuilder(QObject* _parent /*=0*/)
   : QObject(_parent)
-  , ForceWaitingForConnection(false)
-  , WaitingForConnection(false)
 {
 }
 
@@ -536,73 +528,29 @@ QString pqObjectBuilder::getFileNamePropertyName(vtkSMProxy* proxy)
 }
 
 //-----------------------------------------------------------------------------
-bool pqObjectBuilder::forceWaitingForConnection(bool force)
+rxcpp::observable<vtkTypeUInt32> pqObjectBuilder::createServer(const pqServerResource& resource)
 {
-  std::swap(force, this->ForceWaitingForConnection);
-  return force;
-}
-
-//-----------------------------------------------------------------------------
-void pqObjectBuilder::abortPendingConnections()
-{
-  pqObjectBuilderNS::ContinueWaiting = false;
-}
-
-//-----------------------------------------------------------------------------
-#if 0 // FIXME: ASYNC
-pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int connectionTimeout,
-  vtkNetworkAccessManager::ConnectionResult& result)
-{
-  if (this->WaitingForConnection)
-  {
-    qCritical() << "createServer called while waiting for previous connection "
-                   "to be established.";
-    return nullptr;
-  }
-
-  pqObjectBuilderNS::ContinueWaiting = true;
-
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
   // Create a modified version of the resource that only contains server information
   const pqServerResource server_resource = resource.schemeHostsPorts();
 
-  pqServerManagerModel* smModel = pqApplicationCore::instance()->getServerManagerModel();
-
-  if (!vtkProcessModule::GetProcessModule()->GetMultipleSessionsSupport())
-  {
-    // If multiple connections are not supported, then we only connect to the
-    // new server if no already connected and ensure that any previously
-    // connected servers are disconnected.
-    // determine if we're already connected to this server.
-    pqServer* server = smModel->findServer(server_resource);
-    if (server)
-    {
-      return server;
-    }
-
-    if (smModel->getNumberOfItems<pqServer*>() > 0)
-    {
-      this->removeServer(smModel->getItemAtIndex<pqServer*>(0));
-    }
-  }
-
-  this->WaitingForConnection = true;
-
   // Let the pqServerManagerModel know the resource to use for the connection
   // to be created.
+  auto* smModel = pvapp->GetServerManagerModel();
   smModel->setActiveResource(resource);
 
   // Based on the server resource, create the correct type of server ...
-  vtkIdType id = 0;
+  rxcpp::observable<vtkTypeUInt32> observable;
   if (server_resource.scheme() == "builtin")
   {
-    id = vtkSMSession::ConnectToSelf();
-    result = vtkNetworkAccessManager::ConnectionResult::CONNECTION_SUCCESS;
+    observable = pvapp->CreateBuiltinSession();
   }
   else if (server_resource.scheme() == "cs")
   {
-    id = vtkSMSession::ConnectToRemote(resource.host().toUtf8().data(), resource.port(11111),
-      connectionTimeout, &pqObjectBuilderNS::processEvents, result);
+    observable = pvapp->CreateRemoteSession(
+      qUtf8Printable(QString("cs://%1:%2").arg(resource.host(), resource.port(11111))));
   }
+#if 0 // FIXME: ASYNC
   else if (server_resource.scheme() == "csrc")
   {
     id = vtkSMSession::ReverseConnectToRemote(
@@ -626,22 +574,22 @@ pqServer* pqObjectBuilder::createServer(const pqServerResource& resource, int co
     id = vtkSMSession::ConnectToCatalyst();
     result = vtkNetworkAccessManager::ConnectionResult::CONNECTION_SUCCESS;
   }
+#endif
   else
   {
     qCritical() << "Unknown server type: " << server_resource.scheme() << "\n";
-    result = vtkNetworkAccessManager::ConnectionResult::CONNECTION_FAILURE;
+    return rxcpp::sources::never<vtkTypeUInt32>();
   }
 
-  pqServer* server = nullptr;
-  if (id != 0)
-  {
-    server = smModel->findServer(id);
-    Q_EMIT this->finishedAddingServer(server);
-  }
-  this->WaitingForConnection = false;
-  return server;
+  observable.subscribe([=](vtkTypeUInt32 id) {
+    if (auto* server = smModel->findServer(id))
+    {
+      Q_EMIT this->finishedAddingServer(server);
+    }
+  });
+
+  return observable;
 }
-#endif
 
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::removeServer(pqServer* server)

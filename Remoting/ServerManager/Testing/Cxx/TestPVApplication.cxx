@@ -45,7 +45,7 @@ bool DoClientTest(vtkTypeUInt32 sessionId, rxcpp::schedulers::run_loop& runLoop)
   proxy->UpdateInformation().subscribe(
     [](bool changed) { vtkLogF(INFO, "proxy properties have been updated (%d)", changed); });
   shrink->UpdatePipeline(0.0);
-  app->WaitForExit(runLoop, std::chrono::seconds(2));
+  app->WaitForExit(runLoop, std::chrono::seconds(1));
   return true;
 }
 
@@ -56,6 +56,7 @@ int TestPVApplication(int argc, char* argv[])
 
   // initialize the MPI environment.
   vtkDistributedEnvironment environment(&argc, &argv);
+  const int rank = environment.GetRank();
 
   // determine what mode this test is running under
   // and create appropriate application type.
@@ -70,15 +71,6 @@ int TestPVApplication(int argc, char* argv[])
     else if (strcmp(argv[cc], "--client") == 0)
     {
       app = vtk::TakeSmartPointer(vtkPVApplication::New());
-
-      // a quick way to enqueue tasks on the main loop .
-      rxcpp::observable<>::just(1)
-        .observe_on(rxcpp::observe_on_run_loop(runLoop))
-        .subscribe([&](int) {
-          auto* pvapp = vtkPVApplication::GetInstance();
-          auto sessionId = pvapp->CreateBuiltinSession();
-          DoClientTest(sessionId, runLoop);
-        });
     }
     else if (strcmp(argv[cc], "--batch") == 0)
     {
@@ -87,6 +79,13 @@ int TestPVApplication(int argc, char* argv[])
     {
       args.push_back(argv[cc]);
     }
+  }
+
+  if (!app)
+  {
+    const int rank = environment.GetRank();
+    vtkLogIfF(ERROR, rank == 0, "Failed to determine app type. Quitting!");
+    return EXIT_SUCCESS;
   }
 
   // process command line arguments.
@@ -104,10 +103,16 @@ int TestPVApplication(int argc, char* argv[])
   }
   catch (const CLI::ParseError& e)
   {
-    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
+    return (rank == 0 ? cli.exit(e) : EXIT_SUCCESS);
   }
 
   app->Initialize(args[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
+  if (auto* pvapp = vtkPVApplication::SafeDownCast(app)) // builtin-client
+  {
+    pvapp->CreateBuiltinSession()
+      .observe_on(rxcpp::observe_on_run_loop(runLoop))
+      .subscribe([&](vtkTypeUInt32 sessionId) { DoClientTest(sessionId, runLoop); });
+  }
   app->WaitForExit(runLoop, std::chrono::seconds(2));
   app->Finalize();
   return app->GetExitCode();

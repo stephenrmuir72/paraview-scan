@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    pqStandardViewFrameActionsImplementation.cxx
+   Module:  pqStandardViewFrameActionsImplementation.cxx
 
    Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -33,37 +33,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ui_pqEmptyView.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
-#include "pqCameraUndoRedoReaction.h"
-#include "pqChartSelectionReaction.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqCameraUndoRedoReaction.h"
+// #include "pqChartSelectionReaction.h"
 #include "pqColorOverlay.h"
-#include "pqContextView.h"
+//#include "pqContextView.h"
 #include "pqCoreUtilities.h"
-#include "pqDataQueryReaction.h"
-#include "pqEditCameraReaction.h"
+// #include "pqDataQueryReaction.h"
+// #include "pqEditCameraReaction.h"
 #include "pqInterfaceTracker.h"
 #include "pqMultiViewWidget.h"
 #include "pqObjectBuilder.h"
 #include "pqRenameProxyReaction.h"
-#include "pqRenderView.h"
-#include "pqRenderViewSelectionReaction.h"
-#include "pqSaveScreenshotReaction.h"
+#include "pqView.h"
+#include "vtkProxyDefinitionManager.h"
+// #include "pqRenderView.h"
+// #include "pqRenderViewSelectionReaction.h"
+// #include "pqSaveScreenshotReaction.h"
 #include "pqServer.h"
-#include "pqSpreadSheetView.h"
-#include "pqSpreadSheetViewDecorator.h"
-#include "pqToggleInteractionViewMode.h"
+// #include "pqSpreadSheetView.h"
+// #include "pqSpreadSheetViewDecorator.h"
+// #include "pqToggleInteractionViewMode.h"
 #include "pqUndoStack.h"
 #include "pqViewFrame.h"
-#include "vtkChart.h"
+// #include "vtkChart.h"
 #include "vtkCollection.h"
-#include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
-#include "vtkSMInteractiveSelectionPipeline.h"
+// #include "vtkSMInteractiveSelectionPipeline.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
+// #include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSMTooltipSelectionPipeline.h"
+// #include "vtkSMTooltipSelectionPipeline.h"
 #include "vtkSMViewLayoutProxy.h"
 #include "vtkSmartPointer.h"
 
@@ -174,8 +175,9 @@ void pqStandardViewFrameActionsImplementation::frameConnected(pqViewFrame* frame
   else
   {
     // add view-type independent actions.
-    frame->setTitle(view->getSMName());
+    frame->setTitle(view->registrationName());
     this->addGenericActions(frame, view);
+#if 0 // FIXME: ASYNC
     if (pqContextView* const chart_view = qobject_cast<pqContextView*>(view))
     {
       this->addContextViewActions(frame, chart_view);
@@ -188,6 +190,7 @@ void pqStandardViewFrameActionsImplementation::frameConnected(pqViewFrame* frame
     {
       this->addSpreadSheetViewActions(frame, sp_view);
     }
+#endif
   }
 }
 
@@ -195,6 +198,7 @@ void pqStandardViewFrameActionsImplementation::frameConnected(pqViewFrame* frame
 void pqStandardViewFrameActionsImplementation::addContextViewActions(
   pqViewFrame* frame, pqContextView* chart_view)
 {
+#if 0 // FIXME: ASYNC
   // Adding special selection controls for chart/context view
   assert(chart_view);
   assert(frame);
@@ -236,6 +240,7 @@ void pqStandardViewFrameActionsImplementation::addContextViewActions(
   group->setExclusive(false);
   this->QObject::connect(
     group, SIGNAL(triggered(QAction*)), SLOT(manageGroupExclusivity(QAction*)));
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -324,7 +329,7 @@ void pqStandardViewFrameActionsImplementation::addGenericActions(pqViewFrame* fr
 
   QMenu* convertMenu = frame->contextMenu()->addMenu("Convert To ...");
   QObject::connect(convertMenu, SIGNAL(aboutToShow()), this, SLOT(aboutToShowConvertMenu()));
-
+#if 0 // FIXME: ASYNC
   if (view->supportsUndo())
   {
     // Setup undo/redo connections if the view module
@@ -347,6 +352,7 @@ void pqStandardViewFrameActionsImplementation::addGenericActions(pqViewFrame* fr
 
     this->addSeparator(frame, view);
   }
+#endif
 
   if (view->supportsCapture())
   {
@@ -366,6 +372,7 @@ void pqStandardViewFrameActionsImplementation::addGenericActions(pqViewFrame* fr
 void pqStandardViewFrameActionsImplementation::addRenderViewActions(
   pqViewFrame* frame, pqRenderView* renderView)
 {
+#if 0 // FIXME: ASYNC
   assert(renderView);
   assert(frame);
 
@@ -590,23 +597,26 @@ void pqStandardViewFrameActionsImplementation::addRenderViewActions(
     new pqRenderViewSelectionReaction(
       clearAction, renderView, pqRenderViewSelectionReaction::CLEAR_SELECTION);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqStandardViewFrameActionsImplementation::addSpreadSheetViewActions(
   pqViewFrame* frame, pqSpreadSheetView* spreadSheet)
 {
+#if 0 // FIXME: ASYNC
   assert(frame);
   assert(spreadSheet);
   Q_UNUSED(frame);
   new pqSpreadSheetViewDecorator(spreadSheet);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqStandardViewFrameActionsImplementation::isButtonVisible(
   const std::string& buttonName, pqView* view)
 {
-  vtkPVXMLElement* hints = view->getHints();
+  vtkPVXMLElement* hints = view->xmlHints();
   if (!hints)
   {
     // Default to true
@@ -668,17 +678,16 @@ pqStandardViewFrameActionsImplementation::availableViewTypes()
   {
     return views;
   }
-  vtkSMSessionProxyManager* pxm = server->proxyManager();
-  vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
-  iter.TakeReference(pxm->GetProxyDefinitionManager()->NewSingleGroupIterator("views"));
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  auto* pxm = server->proxyManager();
+  auto* pdm = server->session()->GetProxyDefinitionManager();
+  for (const auto& item : pdm->GetDefinitions("views"))
   {
-    vtkSMProxy* prototype = pxm->GetPrototypeProxy("views", iter->GetProxyName());
+    vtkSMProxy* prototype = pxm->GetPrototypeProxy("views", item.GetName().c_str());
     if (prototype)
     {
       ViewType info;
       info.Label = prototype->GetXMLLabel();
-      info.Name = iter->GetProxyName();
+      info.Name = prototype->GetXMLName();
       views.push_back(info);
     }
   }
@@ -765,7 +774,7 @@ void pqStandardViewFrameActionsImplementation::invoked(pqViewFrame* viewframe,
 pqView* pqStandardViewFrameActionsImplementation::handleCreateView(
   const pqStandardViewFrameActionsImplementation::ViewType& viewType)
 {
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+  pqObjectBuilder* builder = vtkPVGUIApplication::GetInstance()->GetObjectBuilder();
 
   // destroy active-view, if present (implying convert was called).
   if (pqActiveObjects::instance().activeView())
@@ -782,6 +791,7 @@ pqView* pqStandardViewFrameActionsImplementation::handleCreateView(
 //-----------------------------------------------------------------------------
 void pqStandardViewFrameActionsImplementation::selectSurfaceCellsTriggered()
 {
+#if 0 // FIXME: ASYNC
   pqView* activeView = pqActiveObjects::instance().activeView();
   pqContextView* chartView = qobject_cast<pqContextView*>(activeView);
 
@@ -795,11 +805,13 @@ void pqStandardViewFrameActionsImplementation::selectSurfaceCellsTriggered()
     // else trigger the render view selection
     triggerAction("actionSelectSurfaceCells");
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqStandardViewFrameActionsImplementation::selectSurfacePointsTriggered()
 {
+#if 0 // FIXME: ASYNC
   pqView* activeView = pqActiveObjects::instance().activeView();
   pqContextView* chartView = qobject_cast<pqContextView*>(activeView);
 
@@ -813,6 +825,7 @@ void pqStandardViewFrameActionsImplementation::selectSurfacePointsTriggered()
     // else trigger the render view selection
     triggerAction("actionSelectSurfacePoints");
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -899,6 +912,7 @@ void pqStandardViewFrameActionsImplementation::escapeableActionToggled(bool chec
 //-----------------------------------------------------------------------------
 void pqStandardViewFrameActionsImplementation::interactiveSelectionToggled(bool checked)
 {
+#if 0 // FIXME: ASYNC
   if (!checked)
   {
     vtkSMInteractiveSelectionPipeline::GetInstance()->Hide(
@@ -906,11 +920,14 @@ void pqStandardViewFrameActionsImplementation::interactiveSelectionToggled(bool 
     vtkSMTooltipSelectionPipeline::GetInstance()->Hide(
       vtkSMRenderViewProxy::SafeDownCast(pqActiveObjects::instance().activeView()->getViewProxy()));
   }
+
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqStandardViewFrameActionsImplementation::captureViewTriggered()
 {
+#if 0 // FIXME: ASYNC
   pqView* activeView = pqActiveObjects::instance().activeView();
   if (activeView)
   {
@@ -942,4 +959,5 @@ void pqStandardViewFrameActionsImplementation::captureViewTriggered()
       this->connect(animation, &QPropertyAnimation::finished, [=] { overlay->deleteLater(); });
     }
   }
+#endif
 }

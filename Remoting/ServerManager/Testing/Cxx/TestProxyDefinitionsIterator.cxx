@@ -76,17 +76,17 @@ int TestProxyDefinitionsIterator(int argc, char* argv[])
   }
   catch (const CLI::ParseError& e)
   {
-    app->Exit(app->GetRank() == 0 ? cli.exit(e) : EXIT_SUCCESS);
+    return cli.exit(e);
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop));
-
-  auto id = app->CreateBuiltinSession();
-  bool success = DoProxyDefinitionsIteratorTest(app->GetSession(id));
+  app->CreateBuiltinSession()
+    .observe_on(rxcpp::observe_on_run_loop(runLoop))
+    .subscribe([&](vtkTypeUInt32 id) {
+      bool success = DoProxyDefinitionsIteratorTest(app->GetSession(id));
+      app->Exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
+    });
+  app->WaitForExit(runLoop, std::chrono::seconds(1));
   app->Finalize();
-  if(!success)
-  {
-    return EXIT_FAILURE;
-  }
   return app->GetExitCode();
 }

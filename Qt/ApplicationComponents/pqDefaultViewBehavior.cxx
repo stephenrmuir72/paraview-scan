@@ -31,43 +31,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqDefaultViewBehavior.h"
 
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
-#include "pqRenderView.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqTabbedMultiViewWidget.h"
+#include "pqView.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
-#include "vtkPVOpenGLInformation.h"
-#include "vtkPVRenderingCapabilitiesInformation.h"
-#include "vtkSMSession.h"
-#include "vtkSMSessionProxyManager.h"
-
-#include <QCoreApplication>
-#include <QMessageBox>
-
-#include <cassert>
-
-namespace
-{
-QString openGLVersionInfo(vtkSMSession* session, vtkPVSession::ServerFlags server_flag)
-{
-  vtkNew<vtkPVOpenGLInformation> glinfo;
-  session->GatherInformation(server_flag, glinfo.GetPointer(), 0);
-  return QString(QCoreApplication::translate("pqDefaultViewBehavior",
-                   ("OpenGL Vendor: %1\nOpenGL Version: %2\nOpenGL Renderer: %3")))
-    .arg(glinfo->GetVendor().c_str(), glinfo->GetVersion().c_str(), glinfo->GetRenderer().c_str());
-}
-}
 
 //-----------------------------------------------------------------------------
 pqDefaultViewBehavior::pqDefaultViewBehavior(QObject* parentObject)
   : Superclass(parentObject)
 {
-  QObject::connect(pqApplicationCore::instance()->getServerManagerModel(),
-    SIGNAL(serverAdded(pqServer*)), this, SLOT(onServerCreation(pqServer*)));
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
+  QObject::connect(
+    smmodel, SIGNAL(serverAdded(pqServer*)), this, SLOT(onServerCreation(pqServer*)));
 
   this->WarningsTimer.setSingleShot(true);
   this->connect(&this->WarningsTimer, SIGNAL(timeout()), SLOT(showWarnings()));
@@ -76,6 +56,7 @@ pqDefaultViewBehavior::pqDefaultViewBehavior(QObject* parentObject)
 //-----------------------------------------------------------------------------
 void pqDefaultViewBehavior::showWarnings()
 {
+#if 0 // FIXME: ASYNC
   using RCInfo = vtkPVRenderingCapabilitiesInformation;
   if (RCInfo::Supports(this->ClientCapabilities, RCInfo::OPENGL) &&
     RCInfo::Supports(this->ServerCapabilities, RCInfo::OPENGL))
@@ -123,53 +104,29 @@ void pqDefaultViewBehavior::showWarnings()
     QMessageBox::warning(
       pqCoreUtilities::mainWidget(), tr("Server OpenGL support inadequate!"), msg, QMessageBox::Ok);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqDefaultViewBehavior::onServerCreation(pqServer* server)
 {
-  using RCInfo = vtkPVRenderingCapabilitiesInformation;
-
-  pqApplicationCore* core = pqApplicationCore::instance();
-
-  // Get information about rendering capabilities.
-  vtkNew<RCInfo> info;
-  server->session()->GatherInformation(vtkSMSession::RENDER_SERVER, info.GetPointer(), 0);
-
-  this->Server = server;
-  this->ServerCapabilities = this->ClientCapabilities = info->GetCapabilities();
-
-  // if server is remote, we separately get client capabilities.
-  if (server->isRemote())
+  const QString viewType = vtkPVGeneralSettings::GetInstance()->GetDefaultViewType();
+  if (viewType != "None" && !viewType.isEmpty())
   {
-    this->ClientCapabilities = RCInfo::GetLocalCapabilities();
-  }
-
-  // Setup a timer to show warning messages, if needed.
-  this->WarningsTimer.start(500);
-
-  // See if some view are already present and if we're in a collaborative
-  // session, we are the master.
-  if (core->getServerManagerModel()->getNumberOfItems<pqView*>() == 0 && server->isMaster())
-  {
-    pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-    const QString viewType = vtkPVGeneralSettings::GetInstance()->GetDefaultViewType();
-
-    if (viewType != "None" && !viewType.isEmpty() &&
-      RCInfo::Supports(this->ClientCapabilities, RCInfo::OPENGL))
+    auto* builder = vtkPVGUIApplication::GetInstance()->GetObjectBuilder();
+    // When a server is created, we create a new render view for it.
+    if (viewType == "Empty")
     {
-      // When a server is created, we create a new render view for it.
-      if (viewType == "Empty")
-      {
-        auto tmvwidget = qobject_cast<pqTabbedMultiViewWidget*>(core->manager("MULTIVIEW_WIDGET"));
-        // Create a new multi tabbed widget and set it active
-        tmvwidget->setCurrentTab(tmvwidget->createTab(server));
-      }
-      else if (auto pqview = builder->createView(viewType, server))
-      {
-        // let's put this view under a layout.
-        builder->addToLayout(pqview);
-      }
+#if 0 // FIXME: ASYNC
+      auto tmvwidget = qobject_cast<pqTabbedMultiViewWidget*>(core->manager("MULTIVIEW_WIDGET"));
+      // Create a new multi tabbed widget and set it active
+      tmvwidget->setCurrentTab(tmvwidget->createTab(server));
+#endif
+    }
+    else if (auto pqview = builder->createView(viewType, server))
+    {
+      // let's put this view under a layout.
+      builder->addToLayout(pqview);
     }
   }
 

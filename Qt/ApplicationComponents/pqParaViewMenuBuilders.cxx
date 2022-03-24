@@ -36,15 +36,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqQtConfig.h"
 
+#include "pqApplicationSettingsReaction.h"
+#include "pqApplyPropertiesReaction.h"
+#include "pqCameraToolbar.h"
+#include "pqCategoryToolbarsBehavior.h"
+#include "pqFiltersMenuReaction.h"
+#include "pqPropertiesPanel.h"
+#include "pqProxyGroupMenuManager.h"
+#include "pqSetName.h"
+#include "pqSourcesMenuReaction.h"
+#include "pqViewMenuManager.h"
+
+#if 0
 #include "pqAboutDialogReaction.h"
 #include "pqAnimatedExportReaction.h"
 #include "pqAnimationTimeToolbar.h"
 #include "pqApplicationCore.h"
-#include "pqApplicationSettingsReaction.h"
-#include "pqApplyPropertiesReaction.h"
 #include "pqAxesToolbar.h"
 #include "pqCameraLinkReaction.h"
-#include "pqCameraToolbar.h"
 #include "pqCameraUndoRedoReaction.h"
 #include "pqCatalystConnectReaction.h"
 #include "pqCatalystContinueReaction.h"
@@ -52,7 +61,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCatalystPauseSimulationReaction.h"
 #include "pqCatalystRemoveBreakpointReaction.h"
 #include "pqCatalystSetBreakpointReaction.h"
-#include "pqCategoryToolbarsBehavior.h"
 #include "pqChangePipelineInputReaction.h"
 #include "pqColorToolbar.h"
 #include "pqCopyReaction.h"
@@ -65,7 +73,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqExampleVisualizationsDialogReaction.h"
 #include "pqExportReaction.h"
 #include "pqExtractorsMenuReaction.h"
-#include "pqFiltersMenuReaction.h"
 #ifdef PARAVIEW_USE_QTHELP
 #include "pqHelpReaction.h"
 #endif
@@ -82,8 +89,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqManageLinksReaction.h"
 #include "pqManagePluginsReaction.h"
 #include "pqPVApplicationCore.h"
-#include "pqPropertiesPanel.h"
-#include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
@@ -99,15 +104,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerConnectReaction.h"
 #include "pqServerDisconnectReaction.h"
 #include "pqSetMainWindowTitleReaction.h"
-#include "pqSetName.h"
 #include "pqShowHideAllReaction.h"
-#include "pqSourcesMenuReaction.h"
 #include "pqTemporalExportReaction.h"
 #include "pqTestingReaction.h"
 #include "pqTimerLogReaction.h"
 #include "pqUndoRedoReaction.h"
 #include "pqVCRToolbar.h"
-#include "pqViewMenuManager.h"
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
 #include "pqMacroReaction.h"
@@ -115,6 +117,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <pqPythonManager.h>
 #include <pqPythonScriptEditorReaction.h>
+#endif
 #endif
 
 #include <QApplication>
@@ -147,7 +150,7 @@ public:
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 {
-  QString objectName = menu.objectName();
+  const QString objectName = menu.objectName();
   Ui::pqFileMenuBuilder ui;
   ui.setupUi(&menu);
   // since the UI file tends to change the name of the menu.
@@ -156,8 +159,10 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   QObject::connect(
     ui.actionFileExit, SIGNAL(triggered()), QApplication::instance(), SLOT(closeAllWindows()));
 
+#if 0 // FIXME: ASYNC
   // now setup reactions.
   new pqLoadDataReaction(ui.actionFileOpen);
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   new pqLoadMaterialsReaction(ui.actionFileLoadMaterials);
 #else
@@ -192,6 +197,7 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 
   new pqLoadRestoreWindowLayoutReaction(true, ui.actionFileLoadWindowArrangement);
   new pqLoadRestoreWindowLayoutReaction(false, ui.actionFileSaveWindowArrangement);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -203,6 +209,7 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
   // since the UI file tends to change the name of the menu.
   menu.setObjectName(objectName);
 
+#if 0 // FIXME: ASYNC
   new pqUndoRedoReaction(ui.actionEditUndo, true);
   new pqUndoRedoReaction(ui.actionEditRedo, false);
   new pqCameraUndoRedoReaction(ui.actionEditCameraUndo, true);
@@ -217,12 +224,15 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
   new pqSaveScreenshotReaction(ui.actionCopyScreenshotToClipboard, true);
   new pqCopyReaction(ui.actionCopy);
   new pqCopyReaction(ui.actionPaste, true);
+#endif
   new pqApplicationSettingsReaction(ui.actionEditSettings);
+#if 0 // FIXME: ASYNC
   new pqDataQueryReaction(ui.actionQuery);
   new pqSearchItemReaction(ui.actionSearch);
   new pqResetDefaultSettingsReaction(ui.actionResetDefaultSettings);
   new pqSetMainWindowTitleReaction(ui.actionSetMainWindowTitle);
   new pqRenameProxyReaction(ui.actionRename, propertiesPanel);
+#endif
 
   if (propertiesPanel)
   {
@@ -240,7 +250,16 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWindow)
 {
+  pqParaViewMenuBuilders::buildSourcesMenu(
+    menu, ":/pqApplicationComponents/Menus/Sources.xml", mainWindow);
+}
+
+//-----------------------------------------------------------------------------
+void pqParaViewMenuBuilders::buildSourcesMenu(
+  QMenu& menu, const QString& configXML, QMainWindow* mainWindow)
+{
   pqProxyGroupMenuManager* mgr = new pqProxyGroupMenuManager(&menu, "ParaViewSources");
+  mgr->loadConfiguration(configXML);
   mgr->addProxyDefinitionUpdateListener("sources");
   mgr->setRecentlyUsedMenuSize(10);
   new pqSourcesMenuReaction(mgr);
@@ -255,6 +274,14 @@ void pqParaViewMenuBuilders::buildSourcesMenu(QMenu& menu, QMainWindow* mainWind
 void pqParaViewMenuBuilders::buildFiltersMenu(
   QMenu& menu, QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
 {
+  pqParaViewMenuBuilders::buildFiltersMenu(
+    menu, ":/pqApplicationComponents/Menus/Filters.xml", mainWindow, hideDisabled, quickLaunchable);
+}
+
+//-----------------------------------------------------------------------------
+void pqParaViewMenuBuilders::buildFiltersMenu(QMenu& menu, const QString& configXML,
+  QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
+{
   // Make sure disabled actions are still considered active
   auto* style = new pqActiveDisabledStyle;
   style->setParent(&menu);
@@ -262,6 +289,7 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
 
   pqProxyGroupMenuManager* mgr =
     new pqProxyGroupMenuManager(&menu, "ParaViewFilters", quickLaunchable);
+  mgr->loadConfiguration(configXML);
   mgr->addProxyDefinitionUpdateListener("filters");
   mgr->setRecentlyUsedMenuSize(10);
   mgr->setEnableFavorites(true);
@@ -272,11 +300,13 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
   // pqFiltersMenuReaction
   menuReaction->connect(&menu, SIGNAL(aboutToShow()), SLOT(updateEnableState()));
 
+#if 0 // FIXME: ASYNC
   auto* pvappcore = pqPVApplicationCore::instance();
   if (quickLaunchable && pvappcore)
   {
     menuReaction->connect(pvappcore, SIGNAL(aboutToShowQuickLaunch()), SLOT(updateEnableState()));
   }
+#endif
 
   if (mainWindow)
   {
@@ -289,6 +319,7 @@ void pqParaViewMenuBuilders::buildFiltersMenu(
 void pqParaViewMenuBuilders::buildExtractorsMenu(
   QMenu& menu, QMainWindow* mainWindow, bool hideDisabled, bool quickLaunchable)
 {
+#if 0 // FIXME: ASYNC
   // Make sure disabled actions are still considered active
   auto* style = new pqActiveDisabledStyle;
   style->setParent(&menu);
@@ -310,11 +341,13 @@ void pqParaViewMenuBuilders::buildExtractorsMenu(
     // create toolbars for categories as needed.
     new pqCategoryToolbarsBehavior(mgr, mainWindow);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   new pqCreateCustomFilterReaction(
     menu.addAction("Create Custom Filter...") << pqSetName("actionToolsCreateCustomFilter"));
   new pqCameraLinkReaction(
@@ -366,6 +399,8 @@ void pqParaViewMenuBuilders::buildToolsMenu(QMenu& menu)
   new pqPythonScriptEditorReaction(
     menu.addAction("Python Script Editor") << pqSetName("actionToolsOpenScriptEditor"));
 #endif
+
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -377,6 +412,7 @@ void pqParaViewMenuBuilders::buildViewMenu(QMenu& menu, QMainWindow& mainWindow)
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainWindow* mainWindow)
 {
+#if 0 // FIXME: ASYNC
   // Build the context menu manually so we can insert submenus where needed.
   QAction* actionPBOpen = new QAction(menu.parent());
   actionPBOpen->setObjectName(QStringLiteral("actionPBOpen"));
@@ -570,11 +606,13 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainW
   new pqCreateCustomFilterReaction(actionPBCreateCustomFilter);
   new pqLinkSelectionReaction(actionPBLinkSelection);
   new pqRenameProxyReaction(actionPBRename, mainWindow);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildMacrosMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   Q_UNUSED(menu);
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   // Give the macros menu to the pqPythonMacroSupervisor
@@ -590,11 +628,13 @@ void pqParaViewMenuBuilders::buildMacrosMenu(QMenu& menu)
     manager->addWidgetForDeleteMacros(deleteMenu);
   }
 #endif
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   QString documentationPath(vtkPVFileInformation::GetParaViewDocDirectory().c_str());
   QString paraViewGettingStartedFile = documentationPath + "/GettingStarted.pdf";
 
@@ -716,11 +756,13 @@ void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 
   // About
   new pqAboutDialogReaction(menu.addAction("About...") << pqSetName("actionAbout"));
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
 {
+#if 0 // FIXME: ASYNC
   QToolBar* mainToolBar = new pqMainControlsToolbar(&mainWindow)
     << pqSetName("MainControlsToolbar");
   mainToolBar->layout()->setSpacing(0);
@@ -751,10 +793,6 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
   reprToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, reprToolbar);
 
-  QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow) << pqSetName("cameraToolbar");
-  cameraToolbar->layout()->setSpacing(0);
-  mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
-
   QToolBar* axesToolbar = new pqAxesToolbar(&mainWindow) << pqSetName("axesToolbar");
   axesToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, axesToolbar);
@@ -771,11 +809,17 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
     mainWindow.addToolBar(Qt::TopToolBarArea, macrosToolbar);
   }
 #endif
+#endif
+
+  QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow) << pqSetName("cameraToolbar");
+  cameraToolbar->layout()->setSpacing(0);
+  mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
 }
 
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildCatalystMenu(QMenu& menu)
 {
+#if 0 // FIXME: ASYNC
   new pqCatalystConnectReaction(menu.addAction("Connect...") << pqSetName("actionCatalystConnect"));
   new pqCatalystPauseSimulationReaction(
     menu.addAction("Pause Simulation") << pqSetName("actionCatalystPauseSimulation"));
@@ -787,4 +831,5 @@ void pqParaViewMenuBuilders::buildCatalystMenu(QMenu& menu)
 
   new pqCatalystRemoveBreakpointReaction(
     menu.addAction("Remove Breakpoint") << pqSetName("actionCatalystRemoveBreakpoint"));
+#endif
 }

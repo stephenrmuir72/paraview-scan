@@ -14,10 +14,10 @@
 =========================================================================*/
 #include "vtkSMSettingsProxy.h"
 
+#include "vtkClientSession.h"
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
-#include "vtkPVSession.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyIterator.h"
@@ -70,21 +70,11 @@ vtkStandardNewMacro(vtkSMSettingsProxy);
 vtkSMSettingsProxy::vtkSMSettingsProxy()
   : Internals(new vtkSMSettingsProxy::vtkInternals())
 {
-  this->SetLocation(vtkPVSession::CLIENT);
 }
 
 //----------------------------------------------------------------------------
 vtkSMSettingsProxy::~vtkSMSettingsProxy()
 {
-  if (this->ObjectsCreated && this->VTKObjectObserverId)
-  {
-    if (auto object = vtkObject::SafeDownCast(this->GetClientSideObject()))
-    {
-      object->RemoveObserver(this->VTKObjectObserverId);
-      this->VTKObjectObserverId = 0;
-    }
-  }
-
   for (auto& item : this->Internals->Links)
   {
     if (item.Target && item.ObserverId > 0)
@@ -128,35 +118,6 @@ int vtkSMSettingsProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXML
     }
   }
   return 1;
-}
-
-//----------------------------------------------------------------------------
-#if 0 // FIXME: ASYNC
-void vtkSMSettingsProxy::CreateVTKObjects()
-{
-  if (this->ObjectsCreated)
-  {
-    return;
-  }
-
-  this->Superclass::CreateVTKObjects();
-  if (auto object = vtkObject::SafeDownCast(this->GetClientSideObject()))
-  {
-    this->VTKObjectObserverId =
-      object->AddObserver(vtkCommand::ModifiedEvent, this, &vtkSMSettingsProxy::VTKObjectModified);
-  }
-}
-#endif
-
-//----------------------------------------------------------------------------
-void vtkSMSettingsProxy::VTKObjectModified()
-{
-  this->UpdatePropertyInformation();
-  this->InvokeEvent(vtkCommand::ModifiedEvent);
-
-  // FIXME: this should happen on UpdateProperty or PropertyModified, and not here.
-  vtkSMSettings* settings = vtkSMSettings::GetInstance();
-  settings->SetProxySettings(this);
 }
 
 //----------------------------------------------------------------------------
@@ -314,7 +275,7 @@ void vtkSMSettingsProxy::SaveLinksState(vtkPVXMLElement* root)
     vtkNew<vtkPVXMLElement> property;
     property->SetName("Property");
     property->AddAttribute("source_property", item.SourceName.c_str());
-    property->AddAttribute("target_id", item.TargetProxy->GetGlobalIDAsString());
+    property->AddAttribute("target_id", item.TargetProxy->GetGlobalID());
     property->AddAttribute("target_property", item.TargetName.c_str());
     property->AddAttribute("unlink_if_modified", (item.ObserverId > 0 ? 1 : 0));
     links->AddNestedElement(property);

@@ -31,41 +31,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqParaViewBehaviors.h"
 
-#include "pqAlwaysConnectedBehavior.h"
-#include "pqApplicationCore.h"
-#include "pqApplyBehavior.h"
-#include "pqAutoLoadPluginXMLBehavior.h"
-#include "pqBlockContextMenu.h"
-#include "pqCollaborationBehavior.h"
-#include "pqCommandLineOptionsBehavior.h"
-#include "pqCoreTestUtility.h"
-#include "pqCrashRecoveryBehavior.h"
-#include "pqCustomShortcutBehavior.h"
-#include "pqDataTimeStepBehavior.h"
+// #include "pqAutoLoadPluginXMLBehavior.h"
+// #include "pqBlockContextMenu.h"
+// #include "pqCollaborationBehavior.h"
+// #include "pqCommandLineOptionsBehavior.h"
+// #include "pqCoreTestUtility.h"
+// #include "pqCrashRecoveryBehavior.h"
+// #include "pqCustomShortcutBehavior.h"
+// #include "pqDataTimeStepBehavior.h"
 #include "pqDefaultViewBehavior.h"
-#include "pqFileDialogFavoriteModel.h"
+// #include "pqFileDialogFavoriteModel.h"
 #include "pqInterfaceTracker.h"
-#include "pqLiveSourceBehavior.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqLiveSourceBehavior.h"
 #include "pqLockPanelsBehavior.h"
-#include "pqMainWindowEventBehavior.h"
-#include "pqObjectPickingBehavior.h"
-#include "pqPipelineContextMenuBehavior.h"
-#include "pqPluginActionGroupBehavior.h"
-#include "pqPluginDockWidgetsBehavior.h"
-#include "pqPluginSettingsBehavior.h"
-#include "pqPluginToolBarBehavior.h"
-#include "pqPropertiesPanel.h"
-#include "pqServerManagerModel.h"
-#include "pqSpreadSheetVisibilityBehavior.h"
+// #include "pqMainWindowEventBehavior.h"
+// #include "pqObjectPickingBehavior.h"
+// #include "pqPipelineContextMenuBehavior.h"
+// #include "pqPluginActionGroupBehavior.h"
+// #include "pqPluginDockWidgetsBehavior.h"
+// #include "pqPluginSettingsBehavior.h"
+// #include "pqPluginToolBarBehavior.h"
+// #include "pqPropertiesPanel.h"
+// #include "pqServerManagerModel.h"
+// #include "pqSpreadSheetVisibilityBehavior.h"
 #include "pqStandardPropertyWidgetInterface.h"
-#include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
+// #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "pqStandardViewFrameActionsImplementation.h"
-#include "pqStreamingTestingEventPlayer.h"
-#include "pqUndoRedoBehavior.h"
+// #include "pqStreamingTestingEventPlayer.h"
+// #include "pqUndoRedoBehavior.h"
 #include "pqUndoStack.h"
 #include "pqUsageLoggingBehavior.h"
-#include "pqVerifyRequiredPluginBehavior.h"
-#include "pqViewStreamingBehavior.h"
+// #include "pqVerifyRequiredPluginBehavior.h"
+// #include "pqViewStreamingBehavior.h"
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
 #include "pqPythonShell.h"
@@ -140,7 +138,6 @@ PQ_BEHAVIOR_DEFINE_FLAG(BlockContentMenu, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ObjectPickingBehavior, false);
 PQ_BEHAVIOR_DEFINE_FLAG(DefaultViewBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(UndoRedoBehavior, true);
-PQ_BEHAVIOR_DEFINE_FLAG(AlwaysConnectedBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CrashRecoveryBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(AutoLoadPluginXMLBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginDockWidgetsBehavior, true);
@@ -151,7 +148,6 @@ PQ_BEHAVIOR_DEFINE_FLAG(CommandLineOptionsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CollaborationBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ViewStreamingBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginSettingsBehavior, true);
-PQ_BEHAVIOR_DEFINE_FLAG(ApplyBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(QuickLaunchShortcuts, true);
 PQ_BEHAVIOR_DEFINE_FLAG(LockPanelsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PythonShellResetBehavior, true);
@@ -170,24 +166,25 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   : Superclass(parentObject)
 {
   // Register ParaView interfaces.
-  pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
+  auto* app = vtkPVGUIApplication::GetInstance();
+  auto* interfaceTracker = app->GetInterfaceTracker();
 
   if (PQ_IS_BEHAVIOR_ENABLED(StandardPropertyWidgets))
   {
     // Register standard types of property widgets.
-    pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
+    interfaceTracker->addInterface(new pqStandardPropertyWidgetInterface(interfaceTracker));
   }
-
   if (PQ_IS_BEHAVIOR_ENABLED(StandardViewFrameActions))
   {
     // Register standard types of view-frame actions.
-    pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
+    interfaceTracker->addInterface(new pqStandardViewFrameActionsImplementation(interfaceTracker));
   }
 
+#if 0 // FIXME: ASYNC
   if (PQ_IS_BEHAVIOR_ENABLED(StandardRecentlyUsedResourceLoader))
   {
     // Register standard recent file menu handlers.
-    pgm->addInterface(new pqStandardRecentlyUsedResourceLoaderImplementation(pgm));
+    interfaceTracker->addInterface(new pqStandardRecentlyUsedResourceLoaderImplementation(interfaceTracker));
   }
 
   pqFileDialogFavoriteModel::AddExamplesInFavorites =
@@ -213,24 +210,22 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     // this only makes sense when pqPipelineContextMenuBehavior is enabled.
     if (PQ_IS_BEHAVIOR_ENABLED(BlockContentMenu))
     {
-      pgm->addInterface(new pqBlockContextMenu(pgm));
+      interfaceTracker->addInterface(new pqBlockContextMenu(interfaceTracker));
     }
   }
   if (PQ_IS_BEHAVIOR_ENABLED(ObjectPickingBehavior))
   {
     new pqObjectPickingBehavior(this);
   }
+#endif
   if (PQ_IS_BEHAVIOR_ENABLED(DefaultViewBehavior))
   {
     new pqDefaultViewBehavior(this);
   }
+#if 0 // FIXME: ASYNC
   if (PQ_IS_BEHAVIOR_ENABLED(UndoRedoBehavior))
   {
     new pqUndoRedoBehavior(this);
-  }
-  if (PQ_IS_BEHAVIOR_ENABLED(AlwaysConnectedBehavior))
-  {
-    new pqAlwaysConnectedBehavior(this);
   }
   if (PQ_IS_BEHAVIOR_ENABLED(CrashRecoveryBehavior))
   {
@@ -291,14 +286,6 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   {
     new pqPluginSettingsBehavior(this);
   }
-  if (PQ_IS_BEHAVIOR_ENABLED(ApplyBehavior))
-  {
-    pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
-    Q_FOREACH (pqPropertiesPanel* ppanel, mainWindow->findChildren<pqPropertiesPanel*>())
-    {
-      applyBehavior->registerPanel(ppanel);
-    }
-  }
 
   if (PQ_IS_BEHAVIOR_ENABLED(QuickLaunchShortcuts))
   {
@@ -313,11 +300,12 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     QObject::connect(
       altSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
   }
-
+#endif
   if (PQ_IS_BEHAVIOR_ENABLED(LockPanelsBehavior))
   {
     new pqLockPanelsBehavior(mainWindow);
   }
+#if 0 // FIXME: ASYNC
 
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   if (PQ_IS_BEHAVIOR_ENABLED(PythonShellResetBehavior))
@@ -343,6 +331,7 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   {
     new pqMainWindowEventBehavior(mainWindow);
   }
+#endif
   if (PQ_IS_BEHAVIOR_ENABLED(UsageLoggingBehavior))
   {
     new pqUsageLoggingBehavior(mainWindow);

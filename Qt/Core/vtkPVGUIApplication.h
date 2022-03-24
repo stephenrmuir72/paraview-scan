@@ -28,6 +28,7 @@ class pqInterfaceTracker;
 class pqObjectBuilder;
 class pqProgressManager;
 class pqRecentlyUsedResourcesList;
+class pqServerConfigurationCollection;
 class pqServerManagerModel;
 class pqServerManagerObserver;
 class pqSettings;
@@ -92,6 +93,13 @@ public:
    * Provides access to the object builder.
    */
   pqObjectBuilder* GetObjectBuilder() const;
+
+  /**
+   * Provides access to server configurations. Eventually this should move to
+   * ServerManager and then moved to vtkPVApplication so it's available for
+   * `pvpython` as well.
+   */
+  pqServerConfigurationCollection* GetServerConfigurations() const;
 
 protected:
   vtkPVGUIApplication();

@@ -25,15 +25,11 @@
  * Settings proxies have several unique traits when compared with other
  * properties:
  *
- * 1. In `ReadXMLAttributes`, if for a property an `information_property`
+ * *  In `ReadXMLAttributes`, if for a property an `information_property`
  *    attribute is specified i.e. `vtkSMProperty::GetInformationProperty` is
  *    not null, then a link is setup between that information property and the
  *    original property so that if the information property is modified, the
  *    original property is updated accordingly.
- * 2. Settings proxies may have an underlying vtkObject class that they instantiate
- *    locally. In which case, the proxy observes vtkCommand::ModifiedEvent on that
- *    VTK object and calls `vtkSMProxy::UpdatePropertyInformation` on itself to
- *    ensure all information properties are updated if the vtkObject changes.
  *
  * `vtkSMSettingsProxy::ProcessPropertyLinks` is called during proxy
  * initialization (vtkSMParaViewPipelineController::PreInitializeProxy) to setup
@@ -131,14 +127,8 @@ private:
   vtkSMSettingsProxy(const vtkSMSettingsProxy&) = delete;
   void operator=(const vtkSMSettingsProxy&) = delete;
 
-  /**
-   * Called whenever the VTK object is modified
-   */
-  void VTKObjectModified();
-
   void AutoBreakMapPropertyLink(vtkObject*, unsigned long, void*);
 
-  unsigned long VTKObjectObserverId = 0;
   bool IsSerializable = false;
 
   class vtkInternals;

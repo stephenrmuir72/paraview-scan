@@ -141,6 +141,12 @@ public:
     vtkVLogIfF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), this->Proxy != nullptr,
       "applying changes to `%s`", this->Proxy->getProxy()->GetLogNameOrDefault());
     this->Panel->apply();
+
+    // this ensures that we don't change the state of UNINITIALIZED proxies.
+    if (this->Proxy->modifiedState() == pqProxy::MODIFIED)
+    {
+      this->Proxy->setModifiedState(pqProxy::UNMODIFIED);
+    }
   }
 
   void reset()
@@ -164,6 +170,8 @@ unsigned long pqProxyWidgets::Counter = 0;
 //*****************************************************************************
 class pqPropertiesPanel::pqInternals
 {
+  pqTimer AutoApplyTimer;
+
 public:
   Ui::propertiesPanel Ui;
   QPointer<pqView> View;
@@ -176,7 +184,6 @@ public:
   vtkNew<vtkSMProxyClipboard> SourceClipboard;
   vtkNew<vtkSMProxyClipboard> DisplayClipboard;
   vtkNew<vtkSMProxyClipboard> ViewClipboard;
-
   vtkNew<vtkEventQtSlotConnect> RepresentationEventConnect;
 
   //---------------------------------------------------------------------------
@@ -184,6 +191,23 @@ public:
     : ReceivedChangeAvailable(false)
   {
     this->Ui.setupUi(panel);
+    this->AutoApplyTimer.setSingleShot(true);
+    QObject::connect(&this->AutoApplyTimer, SIGNAL(timeout()), panel, SLOT(apply()));
+
+    QObject::connect(panel, &pqPropertiesPanel::modified, [this]() {
+      auto generalSettings = vtkPVGeneralSettings::GetInstance();
+      if (generalSettings->GetAutoApply())
+      {
+        this->AutoApplyTimer.start(generalSettings->GetAutoApplyDelay());
+      }
+      else
+      {
+        this->AutoApplyTimer.stop();
+      }
+    });
+
+    QObject::connect(
+      panel, &pqPropertiesPanel::resetDone, [this]() { this->AutoApplyTimer.stop(); });
 
     // Setup background color for Apply button so users notice it when it's
     // enabled.
@@ -796,6 +820,8 @@ void pqPropertiesPanel::apply()
 
   vtkTimerLog::MarkStartEvent("PropertiesPanel::Apply");
 
+  std::set<vtkSMSessionProxyManager*> pxms;
+
   BEGIN_UNDO_SET("Apply");
 
   bool onlyApplyCurrentPanel = vtkPVGeneralSettings::GetInstance()->GetAutoApplyActiveOnly();
@@ -807,6 +833,7 @@ void pqPropertiesPanel::apply()
     if (widgets)
     {
       widgets->apply(this->view());
+      pxms.insert(widgets->Proxy->proxyManager());
       Q_EMIT this->applied(widgets->Proxy);
     }
   }
@@ -815,6 +842,7 @@ void pqPropertiesPanel::apply()
     Q_FOREACH (pqProxyWidgets* widgets, this->Internals->SourceWidgets)
     {
       widgets->apply(this->view());
+      pxms.insert(widgets->Proxy->proxyManager());
       Q_EMIT this->applied(widgets->Proxy);
     }
   }
@@ -822,6 +850,11 @@ void pqPropertiesPanel::apply()
   this->Internals->updateInformationAndDomains();
   this->updateButtonState();
 
+  vtkNew<vtkSMApplyController> controller;
+  for (auto& pxm : pxms)
+  {
+    controller->Apply(pxm);
+  }
   Q_EMIT this->applied();
   END_UNDO_SET();
   vtkTimerLog::MarkEndEvent("PropertiesPanel::Apply");

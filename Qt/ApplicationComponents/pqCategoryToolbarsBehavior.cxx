@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqCategoryToolbarsBehavior.h"
 
-#include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
 #include "pqEventTranslator.h"
 #include "pqProxyGroupMenuManager.h"
@@ -54,6 +53,7 @@ pqCategoryToolbarsBehavior::pqCategoryToolbarsBehavior(
   this->MainWindow = mainWindow;
   this->MenuManager = menuManager;
 
+#if 0 // FIXME: ASYNC
   // When tests start, hide toolbars that have asked to be off by default.
   // Do the same when starting to record events for a test.
   pqTestUtility* testUtil = pqApplicationCore::instance()->testUtility();
@@ -67,6 +67,7 @@ pqCategoryToolbarsBehavior::pqCategoryToolbarsBehavior(
   {
     QObject::connect(testRecorder, SIGNAL(started()), this, SLOT(prepareForTest()));
   }
+#endif
 
   QObject::connect(menuManager, SIGNAL(menuPopulated()), this, SLOT(updateToolbars()));
   this->updateToolbars();

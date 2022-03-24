@@ -35,6 +35,7 @@ set(classes
   pqAnimationShortcutWidget
   pqAnnotationsModel
   pqApplicationComponentsInit
+  pqApplicationSettingsReaction
   pqApplyPropertiesReaction
   pqBackgroundEditorWidget
   pqBoolPropertyWidgetDecorator
@@ -46,6 +47,7 @@ set(classes
   pqCatalystPauseSimulationReaction
   pqCatalystRemoveBreakpointReaction
   pqCatalystSetBreakpointReaction
+  pqCategoryToolbarsBehavior
   pqCheckableProperty
   pqChooseColorPresetReaction
   pqColorAnnotationsPropertyWidget
@@ -56,6 +58,7 @@ set(classes
   pqColorSelectorPropertyWidget
   pqCTHArraySelectionDecorator
   pqDataAssemblyPropertyWidget
+  pqDefaultViewBehavior
   pqDesktopServicesReaction
   pqDoubleRangeSliderPropertyWidget
   pqEditColorMapReaction
@@ -72,35 +75,40 @@ set(classes
   pqImageCompressorWidget
   pqInputDataTypeDecorator
   pqListPropertyWidget
+  # pqLoadDataReaction
   pqLoadMaterialsReaction
+  pqLockPanelsBehavior
+  pqLockPanelsReaction
   pqManageFavoritesReaction
   pqMasterOnlyReaction
   pqMenuReactionUtils
   pqMoleculePropertyWidget
   pqOSPRayHidingDecorator
+  pqParaViewBehaviors
+  pqParaViewMenuBuilders
   pqProxyGroupMenuManager
   pqReaction
+  pqRenameProxyReaction
   pqScalarBarVisibilityReaction
   pqSelectionQueryPropertyWidget
   pqSessionTypeDecorator
   pqShowWidgetDecorator
   pqSourcesMenuReaction
   pqStandardPropertyWidgetInterface
+  pqStandardViewFrameActionsImplementation
   pqStatusBar
   pqTextLocationWidget
+  pqUsageLoggingBehavior
   pqUseSeparateColorMapReaction
+  pqViewMenuManager
   pqViewResolutionPropertyWidget
   pqViewTypePropertyWidget
   pqWelcomeDialog
   pqYoungsMaterialPropertyWidget
-
 )
 
 set(old_classes
-  pqAlwaysConnectedBehavior
   pqAnimationTimeToolbar
-  pqApplicationSettingsReaction
-  pqApplyBehavior
   pqAutoApplyReaction
   pqAutoLoadPluginXMLBehavior
   pqAxesToolbar
@@ -108,7 +116,6 @@ set(old_classes
   pqBoxPropertyWidget
   pqCameraLinkReaction
   pqCameraUndoRedoReaction
-  pqCategoryToolbarsBehavior
   pqChangePipelineInputReaction
   pqChartSelectionReaction
   pqCollaborationBehavior
@@ -130,7 +137,6 @@ set(old_classes
   pqDataQueryReaction
   pqDataTimeStepBehavior
   pqDefaultContextMenu
-  pqDefaultViewBehavior
   pqDeleteReaction
   pqDisplaySizedImplicitPlanePropertyWidget
   pqEditCameraReaction
@@ -145,12 +151,9 @@ set(old_classes
   pqLinePropertyWidget
   pqLinkSelectionReaction
   pqLiveSourceBehavior
-  pqLoadDataReaction
   pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
   pqLoadStateReaction
-  pqLockPanelsBehavior
-  pqLockPanelsReaction
   pqLogViewerReaction
   pqMainControlsToolbar
   pqMainWindowEventBehavior
@@ -164,8 +167,6 @@ set(old_classes
   pqOpacityTableModel
   pqPVAnimationWidget
   pqPVApplicationCore
-  pqParaViewBehaviors
-  pqParaViewMenuBuilders
   pqPauseLiveSourcePropertyWidget
   pqPipelineContextMenuBehavior
   pqPluginActionGroupBehavior
@@ -176,7 +177,6 @@ set(old_classes
   pqPreviewMenuManager
   pqPropertyCollectionWidget
   pqReloadFilesReaction
-  pqRenameProxyReaction
   pqRenderViewSelectionReaction
   pqRepresentationToolbar
   pqResetScalarRangeReaction
@@ -200,7 +200,6 @@ set(old_classes
   pqSpreadSheetViewDecorator
   pqSpreadSheetVisibilityBehavior
   pqStandardRecentlyUsedResourceLoaderImplementation
-  pqStandardViewFrameActionsImplementation
   pqStreamingTestingEventPlayer
   pqTemporalExportReaction
   pqTestingReaction
@@ -211,10 +210,8 @@ set(old_classes
   pqTransferFunctionWidgetPropertyWidget
   pqUndoRedoBehavior
   pqUndoRedoReaction
-  pqUsageLoggingBehavior
   pqVCRToolbar
   pqVerifyRequiredPluginBehavior
-  pqViewMenuManager
   pqViewStreamingBehavior
 )
 

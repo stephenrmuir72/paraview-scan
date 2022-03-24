@@ -34,11 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDockWidget>
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqSettings.h"
-
 #include "vtkCommand.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVGeneralSettings.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMProxy.h"
@@ -137,7 +136,7 @@ void pqLockPanelsBehavior::toggleLockPanels()
 
   // We also need to set the value in pqSettings because this is a
   // Qt-only setting.
-  pqSettings* qSettings = pqApplicationCore::instance()->settings();
+  pqSettings* qSettings = vtkPVGUIApplication::GetInstance()->GetSettings();
   qSettings->saveInQSettings("GeneralSettings.LockPanels", lockPanelsProperty);
 }
 

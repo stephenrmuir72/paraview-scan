@@ -36,8 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QLocale>
 #include <QStyleFactory>
 #include <QSurfaceFormat>
+#include <QSplashScreen>
+#include <QBitmap>
 
-#include "pq@_paraview_client_NAME@Initializer.h"
 #include "pqQtWidgetsConfig.h"
 
 #if PARAVIEW_USE_QTWEBENGINE
@@ -51,9 +52,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #cmakedefine01 _paraview_client_DEFAULT_STYLE
+#cmakedefine01 _paraview_client_SPLASH_IMAGE
+#cmakedefine01 _paraview_client_TITLE
+#cmakedefine01 _paraview_client_built_shared
 
-#include <vtksys/SystemTools.hxx>
+#include <pqSettings.h>
 #include <QVTKRenderWindowAdapter.h>
+#include <vtk_cli11.h>
+#include <vtkDistributedEnvironment.h>
+#include <vtkPVLogger.h>
+#include <vtkMultiProcessController.h>
+#include <vtkNew.h>
+#include <vtkPVGUIApplication.h>
+#include <vtkPVGUIOptions.h>
+#include <vtksys/SystemTools.hxx>
 
 #include <clocale>
 #include <cstdlib>
@@ -62,8 +74,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #endif
 
+#include "@_paraview_client_MAIN_WINDOW_INCLUDE@"
+
+namespace
+{
+  QSplashScreen* showSplashScreen(const QString& resourceName)
+  {
+    auto* pvapp = vtkPVGUIApplication::GetInstance();
+    auto* options = pvapp->GetOptions();
+    auto* settings = pvapp->GetSettings();
+    if (!options->GetDisableRegistry() &&
+        settings->value("GeneralSettings.ShowSplashScreen", true).toBool() &&
+        !resourceName.isEmpty())
+    {
+      QPixmap pixmap(resourceName);
+      auto* splashScreen = new QSplashScreen(pixmap, Qt::WindowStaysOnTopHint);
+      splashScreen->setMask(pixmap.createMaskFromColor(QColor(Qt::transparent)));
+      splashScreen->show();
+      return splashScreen;
+    }
+    return nullptr;
+  }
+}
+
 int main(int argc, char* argv[])
 {
+  // initialize the MPI environment.
+  vtkDistributedEnvironment environment(&argc, &argv);
+
   // Workaround for issue 19751
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   vtksys::SystemTools::PutEnv("QT_AUTO_SCREEN_SCALE_FACTOR=0");
@@ -97,6 +135,10 @@ int main(int argc, char* argv[])
 @_paraview_client_plugins_calls@
 #endif
 
+#if !_paraview_client_built_shared
+@_paraview_client_resource_init@
+#endif
+
 #if PARAVIEW_USE_QTWEBENGINE
 {
   QWebEngineUrlScheme qtHelpScheme("qthelp");
@@ -128,7 +170,8 @@ int main(int argc, char* argv[])
   argc += 2;
   argv = new_argc.data();
 #endif
-  QApplication qtapp(argc, argv);
+
+  QApplication qtApp(argc, argv);
   // QApplication docs suggest resetting to "C" after the QApplication is
   // initialized.
   setlocale(LC_NUMERIC, "C");
@@ -136,17 +179,63 @@ int main(int argc, char* argv[])
   // However, this is needed to address BUG #17225, #17226.
   QLocale::setDefault(QLocale::c());
 
-  using InitializerT = pq@_paraview_client_NAME@Initializer;
+  //---------------------------------------------------------------------------
+  // Setup ParaView application.
+  //---------------------------------------------------------------------------
 
-  InitializerT pvInitializer;
-  InitializerT::Status status = pvInitializer.Initialize(argc, argv);
-  switch (status)
+  // process command line arguments.
+  CLI::App cli("Test application");
+
+  // let's use nicer formatter for help text.
+  vtkPVApplicationOptions::SetupDefaults(cli);
+
+  vtkNew<vtkPVGUIApplication> pvApp;
+
+  std::string url;
+  cli.add_option("-u,--url", url, "Server url to connect to, if any.");
+
+  pvApp->GetOptions()->Populate(cli);
+
+  // Qt app can directly use this macro since we never execute in distributed
+  // mode. App can just exit is CLI parsing fails.
+  CLI11_PARSE(cli, argc, argv);
+
+  // Initialize ParaView application
+  pvApp->InitializeUsingQt(environment.GetController());
+
+  QSplashScreen* splashScreen = nullptr;
+#if _paraview_client_SPLASH_IMAGE
+  splashScreen = ::showSplashScreen(_paraview_client_SPLASH_IMAGE);
+#endif
+
+  // Create MainWindow.
+  vtkVLogStartScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "create-window",
+      "creating main window `@_paraview_client_MAIN_WINDOW_CLASS@`");
+  @_paraview_client_MAIN_WINDOW_CLASS@ window;
+  vtkLogEndScope("create-window");
+
+  if (splashScreen)
   {
-    case InitializerT::ExitSuccess:
-      return EXIT_SUCCESS;
-    case InitializerT::ExitFailure:
-      return EXIT_FAILURE;
-    case InitializerT::RunApplication:
-      return QApplication::exec();
+    splashScreen->finish(&window);
   }
+
+
+  // the user can specify a different window title by setting the PARAVIEW_WINDOW_TITLE
+  // environment variable. This helps when using multiple PV GUIs simultaneously
+  // and context switching quickly between them.
+  if (const char* newWindowTitle = vtksys::SystemTools::GetEnv("PARAVIEW_WINDOW_TITLE"))
+  {
+    window.setWindowTitle(newWindowTitle);
+  }
+#if _paraview_client_TITLE
+  else
+  {
+    window.setWindowTitle("@_paraview_client_TITLE@");
+  }
+#endif
+
+  window.show();
+  pvApp->Exit(qtApp.exec());
+  pvApp->Finalize();
+  return pvApp->GetExitCode();
 }

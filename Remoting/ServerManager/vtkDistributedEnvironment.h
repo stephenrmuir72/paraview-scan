@@ -43,6 +43,14 @@ public:
    */
   vtkMultiProcessController* GetController() const;
 
+  ///@{
+  /**
+   * Returns the rank and number of ranks in the current setup.
+   */
+  int GetRank() const;
+  int GetNumberOfRanks() const;
+  ///@}
+
 private:
   vtkDistributedEnvironment(const vtkDistributedEnvironment&) = delete;
   void operator=(const vtkDistributedEnvironment&) = delete;

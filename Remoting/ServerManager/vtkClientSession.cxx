@@ -113,22 +113,37 @@ rxcpp::observable<bool> vtkClientSession::Connect(const std::string& url)
   internals.URL = url;
   if (pvapp->GetRank() == 0)
   {
-    // FIXME: ASYNC
-    // These should not "wait"
+    auto behavior = std::make_shared<rxcpp::subjects::behavior<vtkVariant>>(vtkVariant());
+
     internals.DSEndpoint = engine->CreateServiceEndpoint("ds", engineURL);
-    internals.DSEndpoint->Connect().Wait();
+    auto o1 = internals.DSEndpoint->Connect().GetObservable();
 
     internals.RSEndpoint = engine->CreateServiceEndpoint("rs", engineURL);
-    internals.RSEndpoint->Connect().Wait();
+    auto o2 = internals.RSEndpoint->Connect().GetObservable();
 
-    // auto o2 = internals.RSEndpoint->Connect().GetObservable();
-    // return o1.combine_latest(o2).observe_on(engine->GetCoordination())
-    //   .map([](const std::tuple<bool, bool>& status){
-    //       return std::get<0>(status) && std::get<1>(status);
-    //   });
-    internals.InitializeSession(this);
-    this->InitializeServiceEndpoint(internals.DSEndpoint);
-    this->InitializeServiceEndpoint(internals.RSEndpoint);
+    o1.combine_latest(o2)
+      .observe_on(engine->GetCoordination())
+      .map([](const std::tuple<bool, bool>& status) {
+        return std::get<0>(status) && std::get<1>(status);
+      })
+      .subscribe([behavior, &internals, this](bool status) {
+        if (status)
+        {
+          internals.InitializeSession(this);
+          this->InitializeServiceEndpoint(internals.DSEndpoint);
+          this->InitializeServiceEndpoint(internals.RSEndpoint);
+        }
+        behavior->get_subscriber().on_next(vtkVariant(status ? 1 : 0));
+      });
+
+    return behavior->get_observable()
+      .filter([](const vtkVariant& variant) { return variant.IsValid(); })
+      .take(1)
+      .map([behavior](const vtkVariant& variant) {
+        // capture behavior to ensure it hangs around until the returned value hangs around.
+        (void)behavior;
+        return variant.ToInt() != 0;
+      });
   }
 
   return rxcpp::sources::never<bool>();

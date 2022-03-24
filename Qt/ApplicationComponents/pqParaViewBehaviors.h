@@ -91,7 +91,6 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(ObjectPickingBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(DefaultViewBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(UndoRedoBehavior);
-  PQ_BEHAVIOR_DEFINE_METHODS(AlwaysConnectedBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CrashRecoveryBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(AutoLoadPluginXMLBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginDockWidgetsBehavior);
@@ -102,7 +101,6 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(CollaborationBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(ViewStreamingBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginSettingsBehavior);
-  PQ_BEHAVIOR_DEFINE_METHODS(ApplyBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DEFINE_METHODS(LockPanelsBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PythonShellResetBehavior);
@@ -166,7 +164,6 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(CollaborationBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(ViewStreamingBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PluginSettingsBehavior);
-  PQ_BEHAVIOR_DECLARE_FLAG(ApplyBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(QuickLaunchShortcuts);
   PQ_BEHAVIOR_DECLARE_FLAG(LockPanelsBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PythonShellResetBehavior);

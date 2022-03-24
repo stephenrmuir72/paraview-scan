@@ -15,7 +15,7 @@ DEPENDS
 PRIVATE_DEPENDS
   # FIX: ASYNC
   ParaView::VTKExtensionsAMR
-  #ParaView::VTKExtensionsCore
+  ParaView::VTKExtensionsCore
   #ParaView::VTKExtensionsFiltersRendering
   #ParaView::VTKExtensionsMisc
   VTK::FiltersGeneral

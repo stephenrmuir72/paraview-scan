@@ -93,6 +93,18 @@ vtkDistributedEnvironment::~vtkDistributedEnvironment()
 }
 
 //----------------------------------------------------------------------------
+int vtkDistributedEnvironment::GetRank() const
+{
+  return this->GetController()->GetLocalProcessId();
+}
+
+//----------------------------------------------------------------------------
+int vtkDistributedEnvironment::GetNumberOfRanks() const
+{
+  return this->GetController()->GetNumberOfProcesses();
+}
+
+//----------------------------------------------------------------------------
 vtkMultiProcessController* vtkDistributedEnvironment::GetController() const
 {
   auto& internals = (*this->Internals);

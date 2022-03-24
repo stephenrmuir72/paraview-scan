@@ -34,11 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqApplicationComponentsModule.h"
 
-class QMenu;
-class QWidget;
-class QMainWindow;
-
 class pqPropertiesPanel;
+class QMainWindow;
+class QMenu;
+class QString;
+class QWidget;
 
 /**
  * pqParaViewMenuBuilders provides helper methods to build menus that are
@@ -59,13 +59,18 @@ public:
    */
   static void buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel = nullptr);
 
+  ///@{
   /**
    * Builds "Sources" menu.
    * If you want to automatically add toolbars for sources as requested in the
    * configuration pass in a non-null main window.
    */
   static void buildSourcesMenu(QMenu& menu, QMainWindow* mainWindow = nullptr);
+  static void buildSourcesMenu(
+    QMenu& menu, const QString& configXML, QMainWindow* mainWindow = nullptr);
+  ///@}
 
+  ///@{
   /**
    * Builds "Filters" menu.
    * If you want to automatically add toolbars for filters as requested in the
@@ -76,6 +81,9 @@ public:
    */
   static void buildFiltersMenu(QMenu& menu, QMainWindow* mainWindow = nullptr,
     bool hideDisabled = false, bool quickLaunchable = true);
+  static void buildFiltersMenu(QMenu& menu, const QString& configXML,
+    QMainWindow* mainWindow = nullptr, bool hideDisabled = false, bool quickLaunchable = true);
+  ///@}
 
   /**
    * Builds "Extractors" menu.

@@ -84,6 +84,7 @@ int TestBasicRenderView(int argc, char* argv[])
 
   // initialize the MPI environment.
   vtkDistributedEnvironment environment(&argc, &argv);
+  const int rank = environment.GetRank();
 
   // determine what mode this test is running under
   // and create appropriate application type.
@@ -107,9 +108,9 @@ int TestBasicRenderView(int argc, char* argv[])
   }
 
   app->Initialize(argv[0], rxcpp::observe_on_run_loop(runLoop), environment.GetController());
-
-  auto id = app->CreateBuiltinSession();
-  DoTest(app->GetSession(id), runLoop);
+  app->CreateBuiltinSession().subscribe(
+    [&](vtkTypeUInt32 id) { DoTest(app->GetSession(id), runLoop); });
+  app->WaitForExit(runLoop, std::chrono::seconds(1));
   app->Finalize();
   return app->GetExitCode();
 }
