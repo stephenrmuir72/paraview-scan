@@ -132,24 +132,31 @@ int vtkChartLogoRepresentation::ProcessViewRequest(
           position[1] = chart->GetPoint1()[1] - chartRect.GetBottom();
           break;
         case LowerRightCorner:
-          position[0] = (chart->GetPoint2()[0] - chart->GetPoint1()[0]) - dims[0] / 2;
+          position[0] =
+            (chart->GetPoint2()[0] - chart->GetPoint1()[0]) - static_cast<float>(dims[0]) / 2;
           position[1] = chart->GetPoint1()[1] - chartRect.GetBottom();
           break;
         case LowerCenter:
-          position[0] = (chart->GetPoint2()[0] - chart->GetPoint1()[0]) / 2 - dims[0] / 2;
+          position[0] = static_cast<float>(chart->GetPoint2()[0] - chart->GetPoint1()[0]) / 2 -
+            static_cast<float>(dims[0]) / 2;
           position[1] = chart->GetPoint1()[1] - chartRect.GetBottom();
           break;
         case UpperLeftCorner:
           position[0] = chart->GetPoint1()[0] - chartRect.GetLeft();
-          position[1] = (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - dims[1] / 2;
+          position[1] =
+            (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - static_cast<float>(dims[1]) / 2;
           break;
         case UpperRightCorner:
-          position[0] = (chart->GetPoint2()[0] - chart->GetPoint1()[0]) - dims[0] / 2;
-          position[1] = (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - dims[1] / 2;
+          position[0] =
+            (chart->GetPoint2()[0] - chart->GetPoint1()[0]) - static_cast<float>(dims[0]) / 2;
+          position[1] =
+            (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - static_cast<float>(dims[1]) / 2;
           break;
         case UpperCenter:
-          position[0] = (chart->GetPoint2()[0] - chart->GetPoint1()[0]) / 2 - dims[0] / 2;
-          position[1] = (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - dims[1] / 2;
+          position[0] = static_cast<float>(chart->GetPoint2()[0] - chart->GetPoint1()[0]) / 2 -
+            static_cast<float>(dims[0]) / 2;
+          position[1] =
+            (chart->GetPoint2()[1] - chart->GetPoint1()[1]) - static_cast<float>(dims[1]) / 2;
           break;
         case AnyLocation:
           position[0] = this->Position[0];
