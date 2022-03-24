@@ -478,6 +478,8 @@ void vtkPVView::StillRender(int pass /*=0*/)
   vtkNew<vtkInformation> request;
   request->Set(vtkPVView::REQUEST_RENDER());
   this->CallProcessViewRequest(request);
+
+  this->PrepareForRendering();
   if (auto* window = this->GetRenderWindow())
   {
     window->Render();

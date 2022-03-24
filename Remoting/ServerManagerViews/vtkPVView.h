@@ -302,6 +302,8 @@ protected:
   int CallProcessViewRequest(vtkInformation* request);
   ///@}
 
+  virtual void PrepareForRendering(){};
+
 private:
   vtkPVView(const vtkPVView&) = delete;
   void operator=(const vtkPVView&) = delete;

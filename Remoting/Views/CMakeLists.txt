@@ -108,7 +108,6 @@ set(classes
   vtkPVRenderingCapabilitiesInformation
   vtkPVRenderView
   vtkPVRenderViewDataDeliveryManager
-  vtkPVRenderViewSettings
   vtkPVRenderViewWithEDL
   vtkPVRepresentedArrayListSettings
   vtkPVRepresentedDataInformation

@@ -32,8 +32,9 @@
 #include "vtkRemotingServerManagerViewsModule.h" //needed for exports
 
 class vtkCamera;
-class vtkRenderer;
 class vtkPVMaterialLibrary;
+class vtkRenderer;
+class vtkTexture;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkPVRenderView : public vtkPVView
 {
@@ -96,6 +97,9 @@ public:
   void SetEnableDenoise(bool enableDenoise);
   void SetLightScale(double scale);
   void SetMaterialLibrary(vtkPVMaterialLibrary* library);
+  void SetBackgroundMode(int val);
+  void SetBackgroundNorth(double x, double y, double z);
+  void SetBackgroundEast(double x, double y, double z);
   ///@}
 
   /**
@@ -104,9 +108,42 @@ public:
    */
   bool GetContinueRendering() const override;
 
+  enum BackgroundColorModes
+  {
+    DEFAULT,
+    GRADIENT,
+    IMAGE,
+    SKYBOX,
+    STEREO_SKYBOX,
+  };
+
+  ///@{
+  /**
+   * API for background color selection.
+   */
+  void SetUseRenderViewSettingsForBackground(bool value);
+  void SetBackgroundColorMode(int value);
+  void SetBackground(double, double, double);
+  void SetBackground2(double, double, double);
+  void SetUseEnvironmentLighting(bool value);
+  ///@}
+
+  //*****************************************************************
+  // Entry point for environmental backgrounds
+  void SetEnvironmentalBG(double r, double g, double b);
+  void SetEnvironmentalBG2(double r, double g, double b);
+  void SetEnvironmentalBGTexture(vtkTexture* val);
+  void SetGradientEnvironmentalBG(int val);
+  void SetTexturedEnvironmentalBG(int val);
+
 protected:
   vtkPVRenderView();
   ~vtkPVRenderView() override;
+
+  /**
+   * Overridden to setup background etc. if needed.
+   */
+  void PrepareForRendering() override;
 
 private:
   vtkPVRenderView(const vtkPVRenderView&) = delete;

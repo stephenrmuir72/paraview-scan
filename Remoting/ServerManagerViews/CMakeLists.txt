@@ -50,6 +50,7 @@ set(classes
   vtkPVRecoverGeometryWireframe
   vtkPVRenderingCapabilitiesInformation
   vtkPVRenderView
+  vtkPVRenderViewSettings
   vtkPVSynchronizedRenderer
   vtkPVView
   vtkRemoteObjectProviderViews
