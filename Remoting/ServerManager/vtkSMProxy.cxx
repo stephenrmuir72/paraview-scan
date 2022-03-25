@@ -525,6 +525,12 @@ bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp, vtkTypeUInt32 d
       continue;
     }
 
+    if (property->GetCommand() == nullptr)
+    {
+      // skip state-only properties
+      continue;
+    }
+
     // skip properties not associated with this destination
     if (property->GetLocation() & destinationMask)
     {
