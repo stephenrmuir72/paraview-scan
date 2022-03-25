@@ -218,6 +218,8 @@ void vtkSMViewProxy::vtkInternals::SetupInteractor()
     return;
   }
 
+  this->Self->InitializeInteractor(iren);
+
   this->InteractorObserverIds.push_back(iren->AddObserver(
     vtkCommand::StartInteractionEvent, this, &vtkInternals::HandleInteractorEvent));
   this->InteractorObserverIds.push_back(
@@ -230,10 +232,13 @@ void vtkSMViewProxy::vtkInternals::SetupInteractor()
   // XOpenGLRenderWindow fires ConfigureEvent when window resizes.
   this->InteractorObserverIds.push_back(
     iren->AddObserver(vtkCommand::ConfigureEvent, this, &vtkInternals::HandleInteractorEvent));
+
+  // Remove the observer so we don't end up calling this method again.
   this->RenderWindow->RemoveObserver(this->RenderWindowObserverId);
   this->RenderWindowObserverId = 0;
 }
 
+//============================================================================
 vtkStandardNewMacro(vtkSMViewProxy);
 bool vtkSMViewProxy::UseGenericOpenGLRenderWindow = false;
 //----------------------------------------------------------------------------
@@ -297,11 +302,21 @@ vtkRenderWindow* vtkSMViewProxy::GetRenderWindow() const
 }
 
 //----------------------------------------------------------------------------
+vtkRenderWindowInteractor* vtkSMViewProxy::GetRenderWindowInteractor() const
+{
+  const auto& internals = (*this->Internals);
+  return internals.RenderWindow ? internals.RenderWindow->GetInteractor() : nullptr;
+}
+
+//----------------------------------------------------------------------------
 vtkCamera* vtkSMViewProxy::GetCamera() const
 {
   const auto& internals = (*this->Internals);
   return internals.Renderer->GetActiveCamera();
 }
+
+//----------------------------------------------------------------------------
+void vtkSMViewProxy::InitializeInteractor(vtkRenderWindowInteractor* vtkNotUsed(iren)) {}
 
 //----------------------------------------------------------------------------
 void vtkSMViewProxy::PostRenderingResult(const vtkPacket& packet)
@@ -376,6 +391,14 @@ void vtkSMViewProxy::ResetCameraUsingVisiblePropBounds()
     double bds[6];
     internals.VisiblePropBounds.GetBounds(bds);
     internals.Renderer->ResetCamera(bds);
+
+    // If 'CenterOfRotation' is present, set it to the center of bounds as well.
+    if (auto* centerProperty = this->GetProperty("CenterOfRotation"))
+    {
+      double center[3];
+      internals.VisiblePropBounds.GetCenter(center);
+      vtkSMPropertyHelper(centerProperty).Set(center, 3);
+    }
   }
 }
 
