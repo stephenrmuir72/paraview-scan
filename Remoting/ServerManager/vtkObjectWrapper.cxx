@@ -82,7 +82,10 @@ bool vtkObjectWrapper::ReadXMLAttributes(const pugi::xml_node& node)
     {
       PropertyInformation info;
       info.Type = vtkSMProperty::GetPropertyType(fmt::format("vtkSM{}", child.name()));
-      assert(info.Type != vtkSMProperty::INVALID);
+      if (info.Type == vtkSMProperty::INVALID)
+      {
+        continue;
+      }
       info.Method = child.attribute("command").as_string();
       info.InformationOnly = child.attribute("information_only").as_bool(false);
       internals.Properties.emplace(child.attribute("name").as_string(), std::move(info));

@@ -44,10 +44,13 @@ pqSettings* CreateSettings(vtkPVGUIApplication* self)
 {
   auto* options = self->GetOptions();
   const auto disableRegistry = options->GetDisableRegistry();
-  const auto orgName = QApplication::organizationName();
-  const auto appName = QApplication::applicationName() + QApplication::applicationVersion() +
-    (disableRegistry ? "_bogus" : "");
-  auto* settings = new pqSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName);
+  const auto dir = self->GetUserSettingsDirectory();
+  QString fname = QString("%1%2-%3%4.ini")
+                    .arg(dir.c_str())
+                    .arg("qt")
+                    .arg(QApplication::applicationVersion())
+                    .arg(disableRegistry ? "bogus" : "");
+  auto* settings = new pqSettings(fname, QSettings::IniFormat);
   if (disableRegistry || settings->value("vtkPVGUIApplication.DisableSettings", false).toBool())
   {
     vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "loading of Qt settings skipped (disabled).");

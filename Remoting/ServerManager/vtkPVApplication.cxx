@@ -16,8 +16,10 @@
 
 #include "vtkClientSession.h"
 #include "vtkCommand.h"
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkRemotingCoreUtilities.h"
+#include "vtkSMSettings.h"
 #include "vtkServerSession.h"
 
 #include <algorithm>
@@ -83,7 +85,7 @@ vtkPVApplication* vtkPVApplication::GetInstance()
 //----------------------------------------------------------------------------
 bool vtkPVApplication::InitializeInternal()
 {
-
+  this->LoadSettings();
   return true;
 }
 
@@ -107,6 +109,7 @@ void vtkPVApplication::FinalizeInternal()
   auto& internals = (*this->Internals);
   vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
   internals.Sessions.clear();
+  this->SaveSettings();
 }
 
 //----------------------------------------------------------------------------
@@ -146,6 +149,114 @@ vtkTypeUInt32 vtkPVApplication::GetSessionID(vtkClientSession* session) const
   auto iter = std::find_if(internals.Sessions.begin(), internals.Sessions.end(),
     [session](const auto& pair) { return pair.second.Client == session; });
   return iter != internals.Sessions.end() ? iter->first : 0;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVApplication::LoadSettings()
+{
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  int myRank = this->GetRank();
+  if (myRank > 0) // don't read files on satellites.
+  {
+    settings->DistributeSettings(this->GetController());
+    return;
+  }
+
+  // Load user-level settings
+  std::string userSettingsFilePath = this->GetUserSettingsFilePath();
+  if (!settings->AddCollectionFromFile(userSettingsFilePath, VTK_DOUBLE_MAX))
+  {
+    // Loading user settings failed, so we need to create an empty
+    // collection with highest priority manually. Otherwise, if a
+    // setting is changed, a lower-priority collection such as site
+    // settings may receive the modified setting values.
+    settings->AddCollectionFromString("{}", VTK_DOUBLE_MAX);
+  }
+
+  // Load site-level settings
+  const auto sharedResourcesDir = this->GetSharedResourcesDirectory();
+
+  std::vector<std::string> pathsToSearch;
+  pathsToSearch.push_back(this->GetSharedResourcesDirectory() + "/config");
+  const std::string filename = "site_settings.json";
+  for (const std::string& path : pathsToSearch)
+  {
+    const std::string siteSettingsFile = std::string(path).append("/").append(filename);
+    if (settings->AddCollectionFromFile(siteSettingsFile, 1.0))
+    {
+      break;
+    }
+  }
+  settings->DistributeSettings(this->GetController());
+}
+
+//----------------------------------------------------------------------------
+void vtkPVApplication::SaveSettings()
+{
+  if (this->GetRank() > 0)
+  {
+    return;
+  }
+
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  if (!settings->SaveSettingsToFile(this->GetUserSettingsFilePath()))
+  {
+    vtkLogF(
+      WARNING, "Saving settings file to '%s' failed!", this->GetUserSettingsFilePath().c_str());
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPVApplication::GetUserSettingsDirectory() const
+{
+#if defined(_WIN32)
+  const char* appData = vtksys::SystemTools::GetEnv("APPDATA");
+  if (!appData)
+  {
+    return std::string();
+  }
+  std::string separator("\\");
+  std::string directoryPath(appData);
+  if (directoryPath[directoryPath.size() - 1] != separator[0])
+  {
+    directoryPath.append(separator);
+  }
+#else
+  std::string directoryPath;
+  std::string separator("/");
+
+  // Emulating QSettings behavior.
+  const char* xdgConfigHome = getenv("XDG_CONFIG_HOME");
+  if (xdgConfigHome && strlen(xdgConfigHome) > 0)
+  {
+    directoryPath = xdgConfigHome;
+    if (directoryPath[directoryPath.size() - 1] != separator[0])
+    {
+      directoryPath += separator;
+    }
+  }
+  else
+  {
+    const char* home = getenv("HOME");
+    if (!home)
+    {
+      return std::string();
+    }
+    directoryPath = home;
+    if (directoryPath[directoryPath.size() - 1] != separator[0])
+    {
+      directoryPath += separator;
+    }
+    directoryPath += ".config/";
+  }
+#endif
+  return directoryPath + this->GetApplicationName() + separator;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPVApplication::GetUserSettingsFilePath() const
+{
+  return this->GetUserSettingsDirectory() + "user_settings.json";
 }
 
 //----------------------------------------------------------------------------

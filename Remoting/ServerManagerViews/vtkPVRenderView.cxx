@@ -16,14 +16,20 @@
 #include "vtkPVRenderView.h"
 
 #include "vtkCamera.h"
+#include "vtkImageData.h"
 #include "vtkMultiProcessController.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVAxesWidget.h"
 #include "vtkPVMaterialLibrary.h"
+#include "vtkPVRenderViewSettings.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkSkybox.h"
 #include "vtkSmartPointer.h"
+#include "vtkTexture.h"
+#include "vtkTuple.h"
 
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
 #include "vtkOSPRayLightNode.h"
@@ -32,6 +38,31 @@
 #include "vtkOSPRayRendererNode.h"
 #endif
 
+//-----------------------------------------------------------------------------
+namespace
+{
+void PrepareTexture(vtkTexture* texture)
+{
+  // This is really bad! We're modifying the input! But preserving what the
+  // old code did for now. Need to be investigated.
+  if (texture != nullptr)
+  {
+    // environment texture is always declared in linear color space
+    vtkImageData* input = texture->GetInput();
+    if (input)
+    {
+      texture->Update();
+      texture->SetUseSRGBColorSpace(input->GetScalarType() == VTK_UNSIGNED_CHAR);
+
+      // mip map is required for correct IBL generation
+      texture->MipmapOn();
+      texture->InterpolateOn();
+    }
+  }
+}
+}
+
+//-----------------------------------------------------------------------------
 class vtkPVRenderView::vtkRInternals
 {
 public:
@@ -41,11 +72,106 @@ public:
   vtkNew<vtkPVAxesWidget> OrientationWidget;
   vtkNew<vtkPVSynchronizedRenderer> SynchronizedRenderers;
   vtkSmartPointer<vtkRenderPass> DefaultRenderPass;
+
+  bool UseRenderViewSettingsForBackground{ true };
+  int BackgroundColorMode{ vtkPVRenderView::DEFAULT };
+  vtkTuple<double, 3> Background{ { 0, 0, 0 } };
+  vtkTuple<double, 3> Background2{ { 0, 0, 0 } };
+  vtkSmartPointer<vtkTexture> EnvironmentalBGTexture;
+  bool UseEnvironmentLighting{ false };
+  bool UseTexturedEnvironmentalBG{ false };
+  vtkNew<vtkSkybox> Skybox;
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkSmartPointer<vtkOSPRayPass> OSPRayPass;
   bool UsingRayTracing{ false };
 #endif
+
+  void UpdateBackground(vtkRenderer* renderer) const;
 };
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::vtkRInternals::UpdateBackground(vtkRenderer* renderer) const
+{
+  vtkTuple<double, 3> color = this->Background;
+  vtkTuple<double, 3> color2 = this->Background2;
+  int mode = this->BackgroundColorMode;
+
+  if (this->UseRenderViewSettingsForBackground)
+  {
+    auto settings = vtkPVRenderViewSettings::GetInstance();
+    mode = settings->GetBackgroundColorMode();
+    settings->GetBackgroundColor(color.GetData());
+    settings->GetBackground2Color(color2.GetData());
+  }
+
+  switch (mode)
+  {
+    case DEFAULT:
+      renderer->SetTexturedBackground(false);
+      renderer->SetGradientBackground(false);
+      renderer->SetUseImageBasedLighting(this->UseTexturedEnvironmentalBG);
+      break;
+
+    case GRADIENT:
+      renderer->SetTexturedBackground(false);
+      renderer->SetGradientBackground(true);
+      renderer->SetUseImageBasedLighting(false);
+      break;
+
+    case IMAGE:
+      renderer->SetTexturedBackground(true);
+      renderer->SetGradientBackground(false);
+      renderer->SetUseImageBasedLighting(this->UseEnvironmentLighting);
+      break;
+
+    case SKYBOX:
+      renderer->SetTexturedBackground(false);
+      renderer->SetGradientBackground(false);
+      renderer->SetUseImageBasedLighting(this->UseEnvironmentLighting);
+      break;
+
+    case STEREO_SKYBOX:
+      renderer->SetTexturedBackground(false);
+      renderer->SetGradientBackground(false);
+      renderer->SetUseImageBasedLighting(this->UseEnvironmentLighting);
+      break;
+
+    default:
+      break;
+  }
+
+  renderer->SetBackground(color.GetData());
+  renderer->SetBackground2(color2.GetData());
+
+  // update skybox texture.
+  vtkTexture* texture = renderer->GetBackgroundTexture();
+  if ((this->BackgroundColorMode == vtkPVRenderView::STEREO_SKYBOX ||
+        this->BackgroundColorMode == vtkPVRenderView::SKYBOX) &&
+    texture != nullptr)
+  {
+    ::PrepareTexture(texture);
+
+    this->Skybox->SetProjection(this->BackgroundColorMode == vtkPVRenderView::SKYBOX
+        ? vtkSkybox::Sphere
+        : vtkSkybox::StereoSphere);
+    // Update skybox orientation from renderer orientation
+    double* up = renderer->GetEnvironmentUp();
+    double* right = renderer->GetEnvironmentRight();
+    double front[3];
+    vtkMath::Cross(right, up, front);
+    this->Skybox->SetFloorRight(front[0], front[1], front[2]);
+
+    this->Skybox->SetTexture(texture);
+    this->Skybox->SetVisibility(1);
+    renderer->SetEnvironmentTexture(texture);
+  }
+  else
+  {
+    this->Skybox->SetVisibility(0);
+    renderer->SetEnvironmentTexture(this->EnvironmentalBGTexture);
+  }
+}
 
 vtkStandardNewMacro(vtkPVRenderView);
 //-----------------------------------------------------------------------------
@@ -73,6 +199,10 @@ void vtkPVRenderView::InitializeForRendering()
 
   // 3D renderer
   internals.Renderers[0]->SetActiveCamera(internals.Camera);
+
+  // add skybox
+  internals.Renderers[0]->AddActor(internals.Skybox);
+  internals.Skybox->SetVisibility(0);
 
   // 2D renderer
   internals.Renderers[1]->SetLayer(2);
@@ -271,6 +401,40 @@ void vtkPVRenderView::SetMaterialLibrary(vtkPVMaterialLibrary* library)
 #endif
 }
 
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundMode(int val)
+{
+  (void)val;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  vtkOSPRayRendererNode::SetBackgroundMode(
+    static_cast<vtkOSPRayRendererNode::BackgroundMode>(val), this->GetRenderer());
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundNorth(double x, double y, double z)
+{
+  (void)x;
+  (void)y;
+  (void)z;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  double dir[3] = { x, y, z };
+  vtkOSPRayRendererNode::SetNorthPole(dir, this->GetRenderer());
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundEast(double x, double y, double z)
+{
+  (void)x;
+  (void)y;
+  (void)z;
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+  double dir[3] = { x, y, z };
+  vtkOSPRayRendererNode::SetEastPole(dir, this->GetRenderer());
+#endif
+}
+
 //-----------------------------------------------------------------------------
 bool vtkPVRenderView::GetContinueRendering() const
 {
@@ -285,6 +449,7 @@ bool vtkPVRenderView::GetContinueRendering() const
 #endif
   return this->Superclass::GetContinueRendering();
 }
+
 //-----------------------------------------------------------------------------
 int vtkPVRenderView::GetNumberOfProgressivePasses() const
 {
@@ -304,6 +469,90 @@ bool vtkPVRenderView::IsRayTracingEnabled() const
   return rinternals.UsingRayTracing;
 #endif
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseRenderViewSettingsForBackground(bool value)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.UseRenderViewSettingsForBackground = value;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackgroundColorMode(int value)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.BackgroundColorMode = value;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackground(double r, double g, double b)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.Background = vtkTuple<double, 3>({ r, g, b });
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::SetBackground2(double r, double g, double b)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.Background2 = vtkTuple<double, 3>({ r, g, b });
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::SetUseEnvironmentLighting(bool value)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.UseEnvironmentLighting = value;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBG(double r, double g, double b)
+{
+  this->GetRenderer()->SetEnvironmentalBG(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBG2(double r, double g, double b)
+{
+  this->GetRenderer()->SetEnvironmentalBG2(r, g, b);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetEnvironmentalBGTexture(vtkTexture* texture)
+{
+  ::PrepareTexture(texture);
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.EnvironmentalBGTexture = texture;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetGradientEnvironmentalBG(int val)
+{
+  this->GetRenderer()->SetGradientEnvironmentalBG(val ? true : false);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVRenderView::SetTexturedEnvironmentalBG(int val)
+{
+  assert(this->RInternals);
+  auto& rinternals = (*this->RInternals);
+  rinternals.UseTexturedEnvironmentalBG = (val ? true : false);
+}
+
+//-----------------------------------------------------------------------------
+void vtkPVRenderView::PrepareForRendering()
+{
+  this->Superclass::PrepareForRendering();
+  assert(this->RInternals);
+  const auto& rinternals = (*this->RInternals);
+  rinternals.UpdateBackground(this->GetRenderer());
 }
 
 //-----------------------------------------------------------------------------

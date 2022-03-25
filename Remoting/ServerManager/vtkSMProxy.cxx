@@ -514,6 +514,11 @@ bool vtkSMProxy::SaveState(vtkNJson& state, vtkMTimeType tstamp, vtkTypeUInt32 d
   for (auto& pair : internals.Properties)
   {
     const auto& property = pair.second.Property;
+    if (strcmp(property->GetClassName(), "vtkSMProperty") == 0)
+    {
+      continue;
+    }
+
     if (property->GetMTime() < tstamp)
     {
       // skip un-modified property

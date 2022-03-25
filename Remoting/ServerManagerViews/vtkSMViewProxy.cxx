@@ -258,7 +258,7 @@ vtkSMViewProxy::vtkSMViewProxy()
   }
 
   internals.Renderer = vtk::TakeSmartPointer(vtkRenderer::New());
-  internals.Renderer->SetBackground(0, 0, 0.4);
+  internals.Renderer->SetBackground(0, 0, 0); // must be black.
   internals.RenderWindow->AddRenderer(internals.Renderer);
   internals.RenderWindow->SetNumberOfLayers(3);
 

@@ -50,6 +50,7 @@ set(classes
   vtkPVRecoverGeometryWireframe
   vtkPVRenderingCapabilitiesInformation
   vtkPVRenderView
+  vtkPVRenderViewSettings
   vtkPVSynchronizedRenderer
   vtkPVView
   vtkRemoteObjectProviderViews
@@ -132,4 +133,6 @@ vtk_module_add_module(ParaView::RemotingServerManagerViews
 )
 
 paraview_add_server_manager_xmls(
-  XMLS  XML/ParaView_ServerManagerViews.xml)
+  XMLS
+    XML/ParaView_ServerManagerViews.xml
+    XML/ParaView_ServerManagerViews_settings.xml)

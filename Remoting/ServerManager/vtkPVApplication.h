@@ -66,21 +66,38 @@ public:
    */
   void CloseSession(vtkTypeUInt32 sessionId);
 
+  /**
+   * Get directory for user settings file. The last character is always the
+   * file path separator appropriate for the system.
+   */
+  std::string GetUserSettingsDirectory() const;
+
+  /**
+   * Get file path for the user settings file.
+   */
+  std::string GetUserSettingsFilePath() const;
+
 protected:
   vtkPVApplication();
   ~vtkPVApplication() override;
 
   /**
-   * Creates a single vtkServerSession. A server application currently only
-   * supports a unique server session.
+   * Loading settings json.
    */
   bool InitializeInternal() override;
-
   void FinalizeInternal() override;
 
 private:
   vtkPVApplication(const vtkPVApplication&) = delete;
   void operator=(const vtkPVApplication&) = delete;
+
+  ///@{
+  /**
+   * Load/Save vtkSMSettings to file.
+   */
+  void LoadSettings();
+  void SaveSettings();
+  ///@}
 
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
