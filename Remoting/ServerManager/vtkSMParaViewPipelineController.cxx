@@ -33,7 +33,7 @@
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
-// #include "vtkSMSettingsProxy.h"
+#include "vtkSMSettingsProxy.h"
 #include "vtkSMSourceProxy.h"
 // #include "vtkSMTimeKeeperProxy.h"
 #include "vtkSMTrace.h"
@@ -247,10 +247,8 @@ void vtkSMParaViewPipelineController::RegisterProxiesForProxyListDomains(vtkSMPr
 //----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::SetupGlobalPropertiesLinks(vtkSMProxy* proxy)
 {
-#if 0 // FIXME: ASYNC
   assert(proxy != nullptr);
   vtkSMSettingsProxy::ProcessPropertyLinks(proxy);
-#endif
   return true;
 }
 
