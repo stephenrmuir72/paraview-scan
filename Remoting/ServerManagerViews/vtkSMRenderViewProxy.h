@@ -32,15 +32,46 @@ public:
   vtkTypeMacro(vtkSMRenderViewProxy, vtkSMViewProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  enum InteractionModes
+  {
+    INTERACTION_MODE_UNINTIALIZED = -1,
+    INTERACTION_MODE_3D = 0,
+    INTERACTION_MODE_2D
+  };
+
+  enum InteractionManipulatorTypes
+  {
+    PAN = 1,
+    ZOOM = 2,
+    ROLL = 3,
+    ROTATE = 4,
+    MULTI_ROTATE = 5,
+    ZOOM_TO_MOUSE = 6,
+    SKYBOX_ROTATE = 7
+  };
+
+  enum KeyManipulatorTypes
+  {
+    NONE = 0,
+    SHIFT = 1,
+    CTRL = 2
+  };
+
   const char* GetRepresentationType(vtkSMSourceProxy* producer, int outputPort) override;
 
 protected:
   vtkSMRenderViewProxy();
   ~vtkSMRenderViewProxy();
 
+  void InitializeInteractor(vtkRenderWindowInteractor* iren) override;
+  void SetPropertyModifiedFlag(const char* name, int flag) override;
+
 private:
   vtkSMRenderViewProxy(const vtkSMRenderViewProxy&) = delete;
   void operator=(const vtkSMRenderViewProxy&) = delete;
+
+  class vtkInternals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif

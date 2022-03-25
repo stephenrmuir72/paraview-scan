@@ -24,11 +24,12 @@
 #include "vtkRemotingServerManagerViewsModule.h" // for exports
 #include "vtkSMProxy.h"
 
+class vtkBoundingBox;
 class vtkCamera;
 class vtkPacket;
 class vtkRenderWindow;
+class vtkRenderWindowInteractor;
 class vtkSMSourceProxy;
-class vtkBoundingBox;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkSMViewProxy : public vtkSMProxy
 {
@@ -60,6 +61,11 @@ public:
    * Provides access to the render window.
    */
   vtkRenderWindow* GetRenderWindow() const;
+
+  /**
+   * Provides access to the render window interactor.
+   */
+  vtkRenderWindowInteractor* GetRenderWindowInteractor() const;
 
   /**
    * Return the camera.
@@ -172,6 +178,11 @@ protected:
   int ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element) override;
 
   void ProcessPiggybackedInformation(const vtkNJson& json) override;
+
+  /**
+   * Initialize the interactor.
+   */
+  virtual void InitializeInteractor(vtkRenderWindowInteractor* iren);
 
 private:
   vtkSMViewProxy(const vtkSMViewProxy&) = delete;
