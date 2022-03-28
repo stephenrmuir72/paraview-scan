@@ -272,15 +272,18 @@ bool vtkSMContextViewProxy::CanDisplayData(vtkSMSourceProxy* producer, int outpu
   {
     return true;
   }
-  // also accept 1D structured datasets.
-  if (dataInfo->DataSetTypeIsA("vtkImageData") || dataInfo->DataSetTypeIsA("vtkRectilinearGrid"))
+
+  bool isVtkImageData = dataInfo->DataSetTypeIsA("vtkImageData");
+  bool isVtkRectilinearGrid = dataInfo->DataSetTypeIsA("vtkRectilinearGrid");
+  // also accept 1D structured datasets and the Logo
+  if (isVtkImageData || isVtkRectilinearGrid)
   {
-    int inExtent[6];
-    dataInfo->GetExtent(inExtent);
-    int outExtent[6] = { 0, 0, 0, 0, 0, 0 };
+    int extent[6];
+    dataInfo->GetExtent(extent);
+    int temp[6] = { 0, 0, 0, 0, 0, 0 };
     int dimensionality =
-      vtkStructuredData::GetDataDimension(vtkStructuredData::SetExtent(inExtent, outExtent));
-    if (dimensionality == 1)
+      vtkStructuredData::GetDataDimension(vtkStructuredData::SetExtent(extent, temp));
+    if (dimensionality == 1 || (isVtkImageData && dimensionality == 2))
     {
       return true;
     }
