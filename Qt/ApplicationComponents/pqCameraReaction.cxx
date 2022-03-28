@@ -39,13 +39,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVXMLElement.h"
 #include "vtkSMRenderViewProxy.h"
 
+#include <cmath>
+
 namespace
 {
+// magic number used as elevation to achieve an isometric view direction.
+const double isometric_elev = vtkMath::DegreesFromRadians(std::asin(std::tan(vtkMath::Pi() / 6.0)));
+
 template <typename EnumT>
 constexpr typename std::underlying_type<EnumT>::type to_underlying(const EnumT& e) noexcept
 {
   return static_cast<typename std::underlying_type<EnumT>::type>(e);
 }
+
+constexpr
+  typename std::underlying_type<vtkSMRenderViewProxy::CameraAdjustmentType>::type azimuthEnumVal =
+    to_underlying(vtkSMRenderViewProxy::CameraAdjustmentType::Azimuth);
+constexpr
+  typename std::underlying_type<vtkSMRenderViewProxy::CameraAdjustmentType>::type elevationEnumVal =
+    to_underlying(vtkSMRenderViewProxy::CameraAdjustmentType::Elevation);
+constexpr
+  typename std::underlying_type<vtkSMRenderViewProxy::CameraAdjustmentType>::type rollEnumVal =
+    to_underlying(vtkSMRenderViewProxy::CameraAdjustmentType::Roll);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,16 +142,24 @@ void pqCameraReaction::onTriggered()
       this->resetNegativeZ();
       break;
 
+    case APPLY_ISOMETRIC_VIEW:
+      // Ref: Fig 2.4 - Brian Griffith: "Engineering Drawing for Manufacture", DOI
+      // https://doi.org/10.1016/B978-185718033-6/50016-1
+      this->resetNegativeZ();
+      this->adjustCamera(azimuthEnumVal, 45.);
+      this->adjustCamera(elevationEnumVal, isometric_elev);
+      break;
+
     case ZOOM_TO_DATA:
       this->zoomToData();
       break;
 
     case ROTATE_CAMERA_CW:
-      this->rotateCamera(-90.0);
+      this->adjustCamera(rollEnumVal, -90.0);
       break;
 
     case ROTATE_CAMERA_CCW:
-      this->rotateCamera(90.0);
+      this->adjustCamera(rollEnumVal, 90.0);
       break;
 
     case ZOOM_CLOSEST_TO_DATA:
@@ -245,12 +268,12 @@ void pqCameraReaction::zoomToData(bool closest)
 }
 
 //-----------------------------------------------------------------------------
-void pqCameraReaction::rotateCamera(double angle)
+void pqCameraReaction::adjustCamera(const int& adjustType, const double& angle)
 {
   pqRenderView* renModule = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
 
   if (renModule)
   {
-    renModule->adjustView(to_underlying(vtkSMRenderViewProxy::CameraAdjustmentType::Roll), angle);
+    renModule->adjustView(adjustType, angle);
   }
 }
