@@ -131,9 +131,6 @@ protected:
     }
   }
 
-  static bool TestFileReadability(
-    const QString& file, pqServer* server, vtkSMReaderFactory* factory);
-
   static bool DetermineFileReader(const QString& filename, pqServer* server,
     vtkSMReaderFactory* factory, QPair<QString, QString>& readerInfo);
 

@@ -21,6 +21,7 @@
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkSMProxy.h"
+#include "vtkSMReaderFactory.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkServiceEndpoint.h"
 #include "vtkServicesEngine.h"
@@ -38,6 +39,7 @@ public:
   vtkSmartPointer<vtkServiceEndpoint> DSEndpoint;
   vtkSmartPointer<vtkServiceEndpoint> RSEndpoint;
   vtkSmartPointer<vtkSMSessionProxyManager> ProxyManager;
+  vtkSmartPointer<vtkSMReaderFactory> ReaderFactory;
   std::vector<vtkSmartPointer<vtkChannelSubscription>> ProgressSubscriptions;
 
   rxcpp::subjects::subject<std::tuple<std::string, vtkRemoteObjectProvider::vtkProgressItem>>
@@ -80,6 +82,9 @@ void vtkClientSession::vtkInternals::InitializeSession(vtkClientSession* self)
 {
   assert(this->DSEndpoint && this->RSEndpoint);
   this->ProxyManager = vtk::TakeSmartPointer(vtkSMSessionProxyManager::New(self));
+  this->ReaderFactory = vtk::TakeSmartPointer(vtkSMReaderFactory::New());
+  this->ReaderFactory->SetSession(self);
+  this->ReaderFactory->RegisterPrototypesFromGroup("sources");
 }
 
 //============================================================================
@@ -185,6 +190,20 @@ vtkSMSessionProxyManager* vtkClientSession::GetProxyManager() const
     return nullptr;
   }
   return internals.ProxyManager;
+}
+
+//----------------------------------------------------------------------------
+vtkSMReaderFactory* vtkClientSession::GetReaderFactory() const
+{
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  if (!internals.ReaderFactory)
+  {
+    vtkLogF(ERROR, "No ReaderFactory present. Is the session connected yet?");
+    return nullptr;
+  }
+
+  return internals.ReaderFactory;
 }
 
 //----------------------------------------------------------------------------

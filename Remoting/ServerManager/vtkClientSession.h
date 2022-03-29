@@ -37,6 +37,7 @@
 class vtkPacket;
 class vtkServiceEndpoint;
 class vtkSMSessionProxyManager;
+class vtkSMReaderFactory;
 
 class VTKREMOTINGSERVERMANAGER_EXPORT vtkClientSession : public vtkSession
 {
@@ -72,6 +73,11 @@ public:
    * Provides access to the session's proxy-manager.
    */
   vtkSMSessionProxyManager* GetProxyManager() const;
+
+  /**
+   * Provides access to the reader factory.
+   */
+  vtkSMReaderFactory* GetReaderFactory() const;
 
   /**
    * Send a message to services identified by the destination

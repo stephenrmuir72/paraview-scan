@@ -32,15 +32,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadDataReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 #include "pqObjectBuilder.h"
 #include "pqPipelineSource.h"
 #include "pqSelectReaderDialog.h"
 #include "pqServer.h"
-#include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "pqUndoStack.h"
+#include "vtkSMApplyController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMProxyManager.h"
@@ -86,10 +87,9 @@ QList<pqPipelineSource*> pqLoadDataReaction::loadData()
 QList<pqPipelineSource*> pqLoadDataReaction::loadData(const ReaderSet& readerSet)
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
-  vtkSMReaderFactory* readerFactory = vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+  vtkSMReaderFactory* readerFactory = server->session()->GetReaderFactory();
 
-  std::vector<FileTypeDetailed> filtersDetailed =
-    readerFactory->GetSupportedFileTypesDetailed(server->session());
+  std::vector<FileTypeDetailed> filtersDetailed = readerFactory->GetSupportedFileTypes();
   QString filtersString;
 
   bool first = true;
@@ -215,6 +215,7 @@ QVector<pqPipelineSource*> pqLoadDataReaction::loadFilesForAllTypes(
   QList<QStringList> files, pqServer* server, vtkSMReaderFactory* readerFactory)
 {
   QVector<pqPipelineSource*> newSources;
+#if 0 // FIXME: ASYNC
   vtkStringList* list = readerFactory->GetReaders(server->session());
   for (QStringList const& fileGroups : files)
   {
@@ -293,6 +294,7 @@ QVector<pqPipelineSource*> pqLoadDataReaction::loadFilesForAllTypes(
       }
     }
   }
+#endif
   return newSources;
 }
 
@@ -321,7 +323,7 @@ pqPipelineSource* pqLoadDataReaction::loadData(
     return nullptr;
   }
 
-  vtkSMReaderFactory* readerFactory = vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+  vtkSMReaderFactory* readerFactory = server->session()->GetReaderFactory();
   pqPipelineSource* reader = nullptr;
 
   // Extension to ReaderType,ReaderGroup Hash table
@@ -331,12 +333,6 @@ pqPipelineSource* pqLoadDataReaction::loadData(
     QPair<QString, QString> readerInfo; // type,group
     QString filename(filegroup[0]);
     QFileInfo fi(filename);
-
-    if (!pqLoadDataReaction::TestFileReadability(filename, server, readerFactory))
-    {
-      qWarning() << "File '" << filename << "' cannot be read.";
-      continue;
-    }
 
     if (!smgroup.isEmpty() && !smname.isEmpty())
     {
@@ -354,9 +350,7 @@ pqPipelineSource* pqLoadDataReaction::loadData(
       else
       {
         // Determine reader type based on the first filegroup
-        bool valid =
-          pqLoadDataReaction::DetermineFileReader(filename, server, readerFactory, readerInfo);
-        if (valid == 0)
+        if (!pqLoadDataReaction::DetermineFileReader(filename, server, readerFactory, readerInfo))
         {
           // no reader selected
           continue;
@@ -376,16 +370,21 @@ pqPipelineSource* pqLoadDataReaction::loadData(
 }
 
 //-----------------------------------------------------------------------------
-bool pqLoadDataReaction::TestFileReadability(
-  const QString& file, pqServer* server, vtkSMReaderFactory* vtkNotUsed(factory))
-{
-  return vtkSMReaderFactory::TestFileReadability(file.toUtf8().data(), server->session());
-}
-
-//-----------------------------------------------------------------------------
 bool pqLoadDataReaction::DetermineFileReader(const QString& filename, pqServer* server,
   vtkSMReaderFactory* factory, QPair<QString, QString>& readerInfo)
 {
+  auto readers = factory->FindReadersForFile(qUtf8Printable(filename));
+  if (readers.size() >= 1)
+  {
+    readerInfo.second = QString::fromStdString(readers.front().first);
+    readerInfo.first = QString::fromStdString(readers.front().second);
+    return true;
+  }
+
+  return false;
+
+#if 0 // FIXME: ASYNC
+
   QString readerType, readerGroup;
   vtkStringList* list = factory->GetReaders(filename.toUtf8().data(), server->session());
   if (list->GetLength() > 3)
@@ -436,20 +435,24 @@ bool pqLoadDataReaction::DetermineFileReader(const QString& filename, pqServer* 
   readerInfo.first = readerType;
   readerInfo.second = readerGroup;
   return true;
+#endif
 }
 
 //-----------------------------------------------------------------------------
 pqPipelineSource* pqLoadDataReaction::LoadFile(
   const QStringList& files, pqServer* server, const QPair<QString, QString>& readerInfo)
 {
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+  pqObjectBuilder* builder = vtkPVGUIApplication::GetInstance()->GetObjectBuilder();
   pqPipelineSource* reader =
     builder->createReader(readerInfo.second, readerInfo.first, files, server);
 
   if (reader)
   {
+#if 0 // FIXME: ASYNC
     pqStandardRecentlyUsedResourceLoaderImplementation::addDataFilesToRecentResources(
       server, files, reader->getProxy()->GetXMLGroup(), reader->getProxy()->GetXMLName());
+#endif
+    vtkSMApplyController::MarkShowOnApply(reader->proxy());
   }
   return reader;
 }
@@ -469,7 +472,7 @@ void pqLoadDataReaction::addReaderToDefaults(QString const& readerName, pqServer
 
   std::string const readerNameString = readerName.toStdString();
 
-  auto filtersDetailed = readerFactory->GetSupportedFileTypesDetailed(server->session());
+  auto filtersDetailed = readerFactory->GetSupportedFileTypes();
   auto readerIt = std::find_if(filtersDetailed.begin(), filtersDetailed.end(),
     [&](FileTypeDetailed const& fileType) { return fileType.Name == readerNameString; });
 

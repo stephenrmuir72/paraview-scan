@@ -112,6 +112,7 @@ set(classes
   vtkSMProxyLocator
   vtkSMProxyProperty
   vtkSMProxySelectionModel
+  vtkSMReaderFactory
   vtkSMRegistrationNamesDomain
   vtkSMSelectionQueryDomain
   vtkSMSessionProxyManager
@@ -156,7 +157,6 @@ set(old_classes
   vtkSMPSWriterProxy
   vtkSMProxyManager
   vtkSMPWriterProxy
-  vtkSMReaderFactory
   vtkSMReaderReloadHelper
   vtkSMRemoteObjectUpdateUndoElement
   vtkSMSelfGeneratingSourceProxy

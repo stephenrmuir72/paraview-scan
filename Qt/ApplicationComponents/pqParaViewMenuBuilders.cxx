@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCameraToolbar.h"
 #include "pqCategoryToolbarsBehavior.h"
 #include "pqFiltersMenuReaction.h"
+#include "pqLoadDataReaction.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqSetName.h"
@@ -78,7 +79,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "pqIgnoreSourceTimeReaction.h"
 #include "pqLinkSelectionReaction.h"
-#include "pqLoadDataReaction.h"
 #include "pqLoadMaterialsReaction.h"
 #include "pqLoadRestoreWindowLayoutReaction.h"
 #include "pqLoadStateReaction.h"
@@ -159,9 +159,10 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   QObject::connect(
     ui.actionFileExit, SIGNAL(triggered()), QApplication::instance(), SLOT(closeAllWindows()));
 
-#if 0 // FIXME: ASYNC
   // now setup reactions.
   new pqLoadDataReaction(ui.actionFileOpen);
+
+#if 0 // FIXME: ASYNC
 
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   new pqLoadMaterialsReaction(ui.actionFileLoadMaterials);

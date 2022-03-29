@@ -75,7 +75,7 @@ set(classes
   pqImageCompressorWidget
   pqInputDataTypeDecorator
   pqListPropertyWidget
-  # pqLoadDataReaction
+  pqLoadDataReaction
   pqLoadMaterialsReaction
   pqLockPanelsBehavior
   pqLockPanelsReaction
