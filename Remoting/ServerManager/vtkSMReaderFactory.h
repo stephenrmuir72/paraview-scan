@@ -35,190 +35,104 @@
 #ifndef vtkSMReaderFactory_h
 #define vtkSMReaderFactory_h
 
+#include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMObject.h"
+
+#include "vtk_rxcpp.h" // for rxcpp
+// clang-format off
+// ideally, we include rx-lite.hpp here.
+#include VTK_REMOTING_RXCPP(rx.hpp)
+// clang-format on
 
 #include <string>
 #include <vector>
 
-class vtkStringList;
-class vtkPVXMLElement;
-class vtkSMProxy;
-class vtkSMSession;
-
 struct FileTypeDetailed
 {
   std::string Description;
-  std::vector<std::string> FilenamePatterns = {};
+  std::vector<std::string> FilenamePatterns;
   std::string Group;
   std::string Name;
 };
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMReaderFactory : public vtkSMObject
+class vtkClientSession;
+class vtkSMSessionProxyManager;
+
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMReaderFactory : public vtkObject
 {
 public:
   static vtkSMReaderFactory* New();
-  vtkTypeMacro(vtkSMReaderFactory, vtkSMObject);
+  vtkTypeMacro(vtkSMReaderFactory, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
   /**
-   * Cleanup all registered prototypes.
+   * Get/Set the session to which this reader factory belongs.
    */
-  void Initialize();
+  void SetSession(vtkClientSession* session);
+  vtkClientSession* GetSession() const;
+  ///@}
 
   /**
-   * Register a prototype. If it is already registered this becomes
-   * a no-op.
+   * Returns the session proxy manager. Same as calling
+   * `vtkSMReaderFactory::GetSession()->GetProxyManager()`.
    */
-  void RegisterPrototype(const char* xmlgroup, const char* xmlname);
+  vtkSMSessionProxyManager* GetSessionProxyManager() const;
 
   /**
-   * Returns true if a reader can be determined that can read the file.
-   * When this returns true, one can use GetReaderGroup() and GetReaderName() to
-   * obtain the xmlgroup and xmlname for the reader that can read the file.
-   * When this returns false, use GetPossibleReaders() to get the list of
-   * readers that can possibly read the file.
+   * Resets the factory to its initial state. All registered reader prototypes
+   * information will be cleared.
    */
-  bool CanReadFile(const char* filename, vtkSMSession* session);
+  void Reset();
 
-  //@{
+  ///@{
   /**
-   * Returns the xml-name for the reader that can read the file queried by the
-   * most recent CanReadFile() call. This is valid only if CanReadFile()
-   * returned true.
+   * For the reader factory to work, one must register reader proxy prototypes
+   * with the factory. These methods provides different ways of registering
+   * prototypes.
    */
-  vtkGetStringMacro(ReaderName);
-  //@}
-
-  //@{
-  /**
-   * Returns the xml-group for the reader that can read the file queried by the
-   * most recent CanReadFile() call. This is valid only if CanReadFile()
-   * returned true.
-   */
-  vtkGetStringMacro(ReaderGroup);
-  //@}
+  void RegisterPrototype(const std::string& xmlgroup, const std::string& xmlname);
+  void RegisterPrototypesFromGroup(const std::string& xmlgroup);
+  ///@}
 
   /**
-   * Get the list of readers that can possibly read the file. This is used when
-   * the factory cannot determine which reader to use for reading the file. The
-   * user can then choose from the provided options.
-   * Returns a list of 3-tuples where the 1st string is the group, the 2nd
-   * string is the reader name and the 3rd string is the reader description
-   * Note that the extension test is skipped in this case.
+   * Returns the list of supported file types with details on the corresponding
+   * readers and their supported patterns. The two first values of this vector are
+   * "Supported Types" and "All Files" to simplify its use with the `pqFileDialog`.
+   * They do not have a name or group fields.
    */
-  vtkStringList* GetPossibleReaders(const char* filename, vtkSMSession* session);
+  std::vector<FileTypeDetailed> GetSupportedFileTypes() const;
+
+  ///@{
+  /**
+   * Finds a reader type for reading the given file (or directory).
+   */
+  std::vector<std::pair<std::string, std::string>> FindReadersForFile(
+    const std::string& filename) const;
+  std::vector<std::pair<std::string, std::string>> FindReadersForDirectory(
+    const std::string& filename) const;
+  ///@}
 
   /**
-   * Returns a list of 3-tuples where the 1st string is the group, the 2nd
-   * string is the reader name and the 3rd string is the reader description
-   * This returns all the possible readers with a given connection id.
+   * Description of the file type used for all supported types
    */
-  vtkStringList* GetReaders(vtkSMSession* session);
+  static const std::string SUPPORTED_TYPES_DESCRIPTION;
 
   /**
-   * Returls list of readers that can read the file using its extension and
-   * connection id.
-   * Returns a list of 3-tuples where the 1st string is the group, the 2nd
-   * string is the reader name and the 3rd string is the reader description
+   * Description of the file type used for all files
    */
-  vtkStringList* GetReaders(const char* filename, vtkSMSession* session);
-
-  /**
-   * Helper method to test is a file is readable on the server side. This has
-   * nothing to do with the whether the file is readable by a reader, just test
-   * the file permissions etc. Internally uses the ServerFileListing proxy.
-   */
-  static bool TestFileReadability(const char* filename, vtkSMSession* session);
-
-  /**
-   * Returns a formatted string with all supported file types.
-   * \c cid is not used currently.
-   * An example returned string would look like:
-   * \verbatim
-   * "Supported Files (*.vtk *.pvd);;PVD Files (*.pvd);;VTK Files (*.vtk)"
-   * \endverbatim
-   */
-  virtual const char* GetSupportedFileTypes(vtkSMSession* session);
-
-  /**
-   * Returns the list of supported file types with details on the corresponding readers and its
-   * supported patterns.
-   * The two first values of this vector are Supported Type and All Files to simplify its use with
-   * the pqFileDialog. They do not have a name or group fields.
-   */
-  virtual std::vector<FileTypeDetailed> GetSupportedFileTypesDetailed(vtkSMSession* session);
-
-  //@{
-  /**
-   * Helper method to check if the reader can read the given file. This is a
-   * generic method that simply tries to call CanReadFile() on the reader. If
-   * the reader des not support CanReadFile() then we assume the reader can read
-   * the file, and return true.
-   */
-  static bool CanReadFile(const char* filename, vtkSMProxy* reader);
-  static bool CanReadFile(const char* filename, const char* readerxmlgroup,
-    const char* readerxmlname, vtkSMSession* session);
-  //@}
-
-  /**
-   * Returns the number of registered prototypes.
-   */
-  unsigned int GetNumberOfRegisteredPrototypes();
-
-  /**
-   * Every time a new proxy definition is added we check to see if it is
-   * a reader and then we add it to the list of available readers.
-   */
-  virtual void UpdateAvailableReaders();
-
-  //@{
-  /**
-   * Add/remove a group name to look for readers in. By default "source" is included.
-   */
-  void AddGroup(const char* groupName);
-  void RemoveGroup(const char* groupName);
-  void GetGroups(vtkStringList* groups);
-  //@}
-
-  /**
-   * This function is for ParaView based applications that only wish to expose
-   * a subset of the readers.  If this function is never called, the reader
-   * factory will expose all the readers as it has in the past.  However, if
-   * any readers are specified by passing their group name and reader name to
-   * this function, then only those readers will be available in any reader
-   * factories created by the application.  This is intended to be called at
-   * the beginning of the application's execution before any sessions are
-   * created.
-   */
-  static void AddReaderToWhitelist(const char* readerxmlgroup, const char* readerxmlname);
+  static const std::string ALL_FILES_DESCRIPTION;
 
 protected:
   vtkSMReaderFactory();
   ~vtkSMReaderFactory() override;
-
-  // To support legacy configuration files.
-  void RegisterPrototype(
-    const char* xmlgroup, const char* xmlname, const char* extensions, const char* description);
-
-  /**
-   * Returns true if the fname refers to a directory or a link to a directory.
-   */
-  static bool GetFilenameIsDirectory(const char* fname, vtkSMSession* session);
-
-  vtkSetStringMacro(ReaderName);
-  vtkSetStringMacro(ReaderGroup);
-
-  char* ReaderName;
-  char* ReaderGroup;
-  vtkStringList* Readers;
 
 private:
   vtkSMReaderFactory(const vtkSMReaderFactory&) = delete;
   void operator=(const vtkSMReaderFactory&) = delete;
 
   class vtkInternals;
-  vtkInternals* Internals;
+  std::unique_ptr<vtkInternals> Internals;
 };
 
 #endif
