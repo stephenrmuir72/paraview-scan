@@ -142,6 +142,7 @@ int vtkPVContourFilter::RequestData(
       amrDC->SetSkipGhostCopy(1);
       amrDC->SetTriangulateCap(1);
       amrDC->SetEnableMergePoints(1);
+      amrDC->SetContainerAlgorithm(this);
 
       for (int i = 0; i < this->GetNumberOfContours(); ++i)
       {
@@ -176,6 +177,7 @@ int vtkPVContourFilter::RequestData(
       contourFilter->SetValue(i, this->GetValue(i));
     }
 
+    contourFilter->SetContainerAlgorithm(this);
     contourFilter->Update();
     vtkPolyData::SafeDownCast(outDataObj)->ShallowCopy(contourFilter->GetOutput(0));
 
@@ -212,6 +214,7 @@ int vtkPVContourFilter::RequestData(
     vtkNew<vtkEventForwarderCommand> progressForwarder;
     progressForwarder->SetTarget(this);
     linear3DContour->AddObserver(vtkCommand::ProgressEvent, progressForwarder);
+    linear3DContour->SetContainerAlgorithm(this);
     auto retval = linear3DContour->ProcessRequest(request, inputVector, outputVector);
 
     return retval;
