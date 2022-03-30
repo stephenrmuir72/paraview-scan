@@ -818,7 +818,7 @@
       <StringVectorProperty name="RayTracingBackEnd"
           command="SetRayTracingBackEnd"
           processes="client|renderserver"
-          default_values="unknown"
+          default_values="OSPRay pathtracer"
           number_of_elements="1">
         <RendererDomain name="list">
         </RendererDomain>
@@ -950,7 +950,7 @@
       <IntVectorProperty name="NumberOfProgressivePasses"
           command="SetNumberOfProgressivePasses"
           processes="client|renderserver"
-          default_values="1"
+          default_values="10"
           number_of_elements="1">
         <IntRangeDomain min="1" name="range"/>
         <Documentation>
