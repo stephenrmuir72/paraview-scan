@@ -96,6 +96,7 @@ set(classes
   pqSourcesMenuReaction
   pqStandardPropertyWidgetInterface
   pqStandardViewFrameActionsImplementation
+  pqStandardRecentlyUsedResourceLoaderImplementation
   pqStatusBar
   pqTextLocationWidget
   pqUsageLoggingBehavior
@@ -199,7 +200,6 @@ set(old_classes
   pqSplinePropertyWidget
   pqSpreadSheetViewDecorator
   pqSpreadSheetVisibilityBehavior
-  pqStandardRecentlyUsedResourceLoaderImplementation
   pqStreamingTestingEventPlayer
   pqTemporalExportReaction
   pqTestingReaction
