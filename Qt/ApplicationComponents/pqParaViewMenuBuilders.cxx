@@ -45,6 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
+#include "pqSaveStateReaction.h"
 #include "pqSetName.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqViewMenuManager.h"
@@ -99,7 +100,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSaveDataReaction.h"
 #include "pqSaveExtractsReaction.h"
 #include "pqSaveScreenshotReaction.h"
-#include "pqSaveStateReaction.h"
 #include "pqSearchItemReaction.h"
 #include "pqServerConnectReaction.h"
 #include "pqServerDisconnectReaction.h"
@@ -173,7 +173,11 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   new pqReloadFilesReaction(ui.actionReloadFiles);
 
   new pqLoadStateReaction(ui.actionFileLoadServerState);
+#endif
   new pqSaveStateReaction(ui.actionFileSaveServerState);
+
+#if 0 // FIXME: ASYNC
+
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   new pqCatalystExportReaction(ui.actionFileSaveCatalystState);
 #else

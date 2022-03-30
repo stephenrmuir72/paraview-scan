@@ -89,6 +89,7 @@ set(classes
   pqProxyGroupMenuManager
   pqReaction
   pqRenameProxyReaction
+  pqSaveStateReaction
   pqScalarBarVisibilityReaction
   pqSelectionQueryPropertyWidget
   pqSessionTypeDecorator
@@ -188,7 +189,6 @@ set(old_classes
   pqSaveDataReaction
   pqSaveExtractsReaction
   pqSaveScreenshotReaction
-  pqSaveStateReaction
   pqSearchItemReaction
   pqSelectionReaction
   pqSeriesEditorPropertyWidget

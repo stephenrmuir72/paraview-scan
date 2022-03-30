@@ -32,10 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSaveStateReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
-#include "pqPVApplicationCore.h"
 #include "pqProxyWidgetDialog.h"
 #include "pqServer.h"
 #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
@@ -80,8 +78,14 @@ bool pqSaveStateReaction::saveState()
 #else
   QString fileExt = tr("ParaView state file (*.pvsm);;All files (*)");
 #endif
+
+  // FIXME: ASYNC
+  // Previously, for client-server file dialog, we'd send server == nullptr, but
+  // that can't work anymore. We'll need to rework on file browsing works on
+  // local file system
+  pqServer* server = pqActiveObjects::instance().activeServer();
   pqFileDialog fileDialog(
-    nullptr, pqCoreUtilities::mainWidget(), tr("Save State File"), QString(), fileExt);
+    server, pqCoreUtilities::mainWidget(), tr("Save State File"), QString(), fileExt);
 
   fileDialog.setObjectName("FileSaveServerStateDialog");
   fileDialog.setFileMode(pqFileDialog::AnyFile);
@@ -105,12 +109,14 @@ bool pqSaveStateReaction::saveState()
 //-----------------------------------------------------------------------------
 bool pqSaveStateReaction::saveState(const QString& filename)
 {
-  if (!pqApplicationCore::instance()->saveState(filename))
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  if (!server)
   {
-    qCritical() << "Failed to save " << filename;
+    qCritical() << "No active server to save state!";
     return false;
   }
-  pqServer* server = pqActiveObjects::instance().activeServer();
+
+  server->proxyManager()->SaveXMLState(qUtf8Printable(filename));
   // Add this to the list of recent server resources ...
   pqStandardRecentlyUsedResourceLoaderImplementation::addStateFileToRecentResources(
     server, filename);
