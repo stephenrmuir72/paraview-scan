@@ -855,8 +855,10 @@ bool vtkSMSessionProxyManager::SaveXMLState(const char* filename)
 //---------------------------------------------------------------------------
 vtkPVXMLElement* vtkSMSessionProxyManager::SaveXMLState()
 {
+  const auto& appName = vtkPVCoreApplication::GetInstance()->GetApplicationName();
+
   vtkPVXMLElement* root = vtkPVXMLElement::New();
-  root->SetName("GenericParaViewApplication");
+  root->SetName(appName.empty() ? "GenericParaViewApplication" : appName.c_str());
   root->AddNestedElement(this->GetXMLState({}));
 
   vtkSMSessionProxyManager::LoadStateInformation info;

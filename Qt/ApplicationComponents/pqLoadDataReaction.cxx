@@ -38,9 +38,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 #include "pqSelectReaderDialog.h"
 #include "pqServer.h"
-#include "vtkPVGUIApplication.h"
-// #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
+#include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "pqUndoStack.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSMApplyController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
@@ -448,10 +448,8 @@ pqPipelineSource* pqLoadDataReaction::LoadFile(
 
   if (reader)
   {
-#if 0 // FIXME: ASYNC
     pqStandardRecentlyUsedResourceLoaderImplementation::addDataFilesToRecentResources(
       server, files, reader->getProxy()->GetXMLGroup(), reader->getProxy()->GetXMLName());
-#endif
     vtkSMApplyController::MarkShowOnApply(reader->proxy());
   }
   return reader;

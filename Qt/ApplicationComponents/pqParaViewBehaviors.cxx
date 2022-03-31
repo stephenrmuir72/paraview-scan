@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "pqServerManagerModel.h"
 // #include "pqSpreadSheetVisibilityBehavior.h"
 #include "pqStandardPropertyWidgetInterface.h"
-// #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
+#include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "pqStandardViewFrameActionsImplementation.h"
 // #include "pqStreamingTestingEventPlayer.h"
 // #include "pqUndoRedoBehavior.h"
@@ -180,12 +180,13 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
     interfaceTracker->addInterface(new pqStandardViewFrameActionsImplementation(interfaceTracker));
   }
 
-#if 0 // FIXME: ASYNC
   if (PQ_IS_BEHAVIOR_ENABLED(StandardRecentlyUsedResourceLoader))
   {
     // Register standard recent file menu handlers.
     interfaceTracker->addInterface(new pqStandardRecentlyUsedResourceLoaderImplementation(interfaceTracker));
   }
+
+#if 0 // FIXME: ASYNC
 
   pqFileDialogFavoriteModel::AddExamplesInFavorites =
     PQ_IS_BEHAVIOR_ENABLED(AddExamplesInFavoritesBehavior);

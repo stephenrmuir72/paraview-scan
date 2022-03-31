@@ -44,6 +44,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadDataReaction.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
+#include "pqRecentFilesMenu.h"
+#include "pqSaveStateReaction.h"
 #include "pqSetName.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqViewMenuManager.h"
@@ -89,7 +91,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqManageLinksReaction.h"
 #include "pqManagePluginsReaction.h"
 #include "pqPVApplicationCore.h"
-#include "pqRecentFilesMenu.h"
 #include "pqReloadFilesReaction.h"
 #include "pqRenameProxyReaction.h"
 #include "pqRepresentationToolbar.h"
@@ -99,7 +100,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSaveDataReaction.h"
 #include "pqSaveExtractsReaction.h"
 #include "pqSaveScreenshotReaction.h"
-#include "pqSaveStateReaction.h"
 #include "pqSearchItemReaction.h"
 #include "pqServerConnectReaction.h"
 #include "pqServerDisconnectReaction.h"
@@ -161,6 +161,7 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 
   // now setup reactions.
   new pqLoadDataReaction(ui.actionFileOpen);
+  new pqRecentFilesMenu(*ui.menuRecentFiles, ui.menuRecentFiles);
 
 #if 0 // FIXME: ASYNC
 
@@ -169,11 +170,14 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 #else
   ui.actionFileLoadMaterials->setEnabled(false);
 #endif
-  new pqRecentFilesMenu(*ui.menuRecentFiles, ui.menuRecentFiles);
   new pqReloadFilesReaction(ui.actionReloadFiles);
 
   new pqLoadStateReaction(ui.actionFileLoadServerState);
+#endif
   new pqSaveStateReaction(ui.actionFileSaveServerState);
+
+#if 0 // FIXME: ASYNC
+
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   new pqCatalystExportReaction(ui.actionFileSaveCatalystState);
 #else

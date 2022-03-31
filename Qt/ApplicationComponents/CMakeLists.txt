@@ -89,6 +89,7 @@ set(classes
   pqProxyGroupMenuManager
   pqReaction
   pqRenameProxyReaction
+  pqSaveStateReaction
   pqScalarBarVisibilityReaction
   pqSelectionQueryPropertyWidget
   pqSessionTypeDecorator
@@ -96,6 +97,7 @@ set(classes
   pqSourcesMenuReaction
   pqStandardPropertyWidgetInterface
   pqStandardViewFrameActionsImplementation
+  pqStandardRecentlyUsedResourceLoaderImplementation
   pqStatusBar
   pqTextLocationWidget
   pqUsageLoggingBehavior
@@ -187,7 +189,6 @@ set(old_classes
   pqSaveDataReaction
   pqSaveExtractsReaction
   pqSaveScreenshotReaction
-  pqSaveStateReaction
   pqSearchItemReaction
   pqSelectionReaction
   pqSeriesEditorPropertyWidget
@@ -199,7 +200,6 @@ set(old_classes
   pqSplinePropertyWidget
   pqSpreadSheetViewDecorator
   pqSpreadSheetVisibilityBehavior
-  pqStandardRecentlyUsedResourceLoaderImplementation
   pqStreamingTestingEventPlayer
   pqTemporalExportReaction
   pqTestingReaction

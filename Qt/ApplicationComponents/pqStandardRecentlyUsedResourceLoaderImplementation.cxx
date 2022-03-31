@@ -31,10 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 
-#include "pqApplicationCore.h"
 #include "pqFileDialogModel.h"
 #include "pqLoadDataReaction.h"
-#include "pqLoadStateReaction.h"
+#include "vtkPVGUIApplication.h"
+// #include "pqLoadStateReaction.h"
 #include "pqRecentlyUsedResourcesList.h"
 #include "pqServer.h"
 #include "pqServerConfiguration.h"
@@ -112,7 +112,9 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::loadState(
     qCritical() << "State file no longer exists: '" << stateFile << "'";
     return false;
   }
+#if 0 // FIXME: ASYNC
   pqLoadStateReaction::loadState(stateFile, server);
+#endif
   return true;
 }
 
@@ -155,7 +157,7 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::addDataFilesToRecentRes
   if (server)
   {
     // Needed to get the display resource in case of port forwarding
-    pqServerResource resource = server->getResource();
+    pqServerResource resource = server->resource();
     pqServerConfiguration config = resource.configuration();
     if (!config.isNameDefault())
     {
@@ -171,9 +173,10 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::addDataFilesToRecentRes
     {
       resource.addData(QString("file.%1").arg(cc - 1), files[cc]);
     }
-    pqApplicationCore* core = pqApplicationCore::instance();
-    core->recentlyUsedResources().add(resource);
-    core->recentlyUsedResources().save(*core->settings());
+    auto* pvapp = vtkPVGUIApplication::GetInstance();
+    auto* rurl = pvapp->GetRecentlyUsedResourcesList();
+    rurl->add(resource);
+    rurl->save(*pvapp->GetSettings());
     return true;
   }
   return false;
@@ -186,7 +189,7 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::addStateFileToRecentRes
   if (server)
   {
     // Needed to get the display resource in case of port forwarding
-    pqServerResource tmpResource = server->getResource();
+    pqServerResource tmpResource = server->resource();
     pqServerConfiguration config = tmpResource.configuration();
     if (!config.isNameDefault())
     {
@@ -199,9 +202,11 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::addStateFileToRecentRes
     resource.setPath(filename);
     resource.setSessionServer(tmpResource);
     resource.addData("PARAVIEW_STATE", "1");
-    pqApplicationCore* core = pqApplicationCore::instance();
-    core->recentlyUsedResources().add(resource);
-    core->recentlyUsedResources().save(*core->settings());
+
+    auto* pvapp = vtkPVGUIApplication::GetInstance();
+    auto* rurl = pvapp->GetRecentlyUsedResourcesList();
+    rurl->add(resource);
+    rurl->save(*pvapp->GetSettings());
     return true;
   }
 
