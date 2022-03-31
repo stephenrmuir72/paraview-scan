@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVGUIApplication.h"
 #include "vtkPVLogger.h"
 #include "vtkPVXMLElement.h"
+#include "vtkSMProxy.h"
 #include "vtkSmartPointer.h"
 // #include "vtkSMCompoundSourceProxy.h"
 #include "vtkSMDocumentation.h"
@@ -723,6 +724,14 @@ pqProxyWidget::pqProxyWidget(vtkSMProxy* smproxy, const QStringList& properties,
   {
     this->updatePanel();
   }
+
+  // the proxy is not ready yet. Let's disable the panel until it is
+  if (smproxy->HasAnnotation("UNDER_INITIALIZATION"))
+  {
+    this->setEnabled(false);
+  }
+  smproxy->AddObserver(
+    vtkSMProxy::AnnotationsChangedEvent, this, &pqProxyWidget::onAnnotationChange);
 }
 
 //-----------------------------------------------------------------------------
@@ -1392,4 +1401,19 @@ void pqProxyWidget::onChangeFinished()
     }
   }
   Q_EMIT this->changeFinished();
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyWidget::onAnnotationChange(
+  vtkObject* caller, unsigned long /* eventid */, void* callData)
+{
+  const char* key = static_cast<char*>(callData);
+  if (strcmp(key, "UNDER_INITIALIZATION") == 0)
+  {
+    vtkSMProxy* smproxy = vtkSMProxy::SafeDownCast(caller);
+    if (!smproxy->HasAnnotation(key))
+    {
+      this->setEnabled(true);
+    }
+  }
 }
