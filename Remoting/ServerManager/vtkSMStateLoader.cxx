@@ -223,12 +223,7 @@ void vtkSMStateLoader::CreatedNewProxy(vtkTypeUInt32 id, vtkSMProxy* proxy)
 
   // Calling UpdateVTKObjects() will assign the proxy a GlobalId, if needed.
   proxy->UpdateVTKObjects();
-  if (proxy->IsA("vtkSMSourceProxy"))
-  {
-#if 0 // FIXME: ASYNC
-    vtkSMSourceProxy::SafeDownCast(proxy)->UpdatePipelineInformation();
-#endif
-  }
+  proxy->UpdateInformation();
   if (this->Internal->DeferProxyRegistration)
   {
     this->Internal->ProxyCreationOrder.push_back(
