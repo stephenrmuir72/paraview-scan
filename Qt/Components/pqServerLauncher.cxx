@@ -587,86 +587,49 @@ bool pqServerLauncher::connectToServer(bool showConnectionDialog)
       }
     }
   }
-#if 0 // FIXME: ASYNC
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkNetworkAccessManager* nam = pm->GetNetworkAccessManager();
-  vtkRemotingCoreConfiguration* config = vtkRemotingCoreConfiguration::GetInstance();
-  QDialog dialog(pqCoreUtilities::mainWidget(), Qt::WindowStaysOnTopHint);
-  Ui::pqConnectIdDialog ui;
-  ui.setupUi(&dialog);
-  ui.connectId->setMaximum(VTK_INT_MAX);
-  ui.connectId->setValue(config->GetConnectID());
 
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-  bool force = builder->forceWaitingForConnection(true);
-  bool launched = false;
-  while (!(launched = this->connectToPrelaunchedServer(showConnectionDialog)) &&
-    nam->GetWrongConnectID() && dialog.exec() == QDialog::Accepted)
-  {
-    config->SetConnectID(ui.connectId->value());
-  }
-  builder->forceWaitingForConnection(force);
-  return launched;
-#else
-  abort();
-#endif
+  return this->connectToPrelaunchedServer(showConnectionDialog);
 }
 
 //-----------------------------------------------------------------------------
 bool pqServerLauncher::connectToPrelaunchedServer(bool showConnectionDialog)
 {
-#if 0 // FIXME: ASYNC
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-
-  vtkNetworkAccessManager::ConnectionResult result;
-  do
+  QDialog dialog(pqCoreUtilities::mainWidget(), Qt::WindowStaysOnTopHint);
+  if (showConnectionDialog)
   {
-    QDialog dialog(pqCoreUtilities::mainWidget(), Qt::WindowStaysOnTopHint);
-    if (showConnectionDialog)
+    Ui::pqServerLauncherDialog ui;
+    ui.setupUi(&dialog);
+    if (this->isReverseConnection())
     {
-      QObject::connect(&dialog, SIGNAL(rejected()), builder, SLOT(abortPendingConnections()));
-
-      Ui::pqServerLauncherDialog ui;
-      ui.setupUi(&dialog);
-
-      if (this->isReverseConnection())
-      {
-        ui.message->setText(QString("Establishing connection to '%1' \n"
-                                    "Waiting for server to connect.")
-                              .arg(this->Internals->Configuration.name()));
-        dialog.setWindowTitle("Waiting for Server Connection");
-      }
-      else
-      {
-        ui.message->setText(QString("Establishing connection to '%1' \n"
-                                    "Waiting %2 seconds for connection to server.")
-                              .arg(this->Internals->Configuration.name())
-                              .arg(this->Internals->Configuration.connectionTimeout()));
-        dialog.setWindowTitle("Waiting for Connection to Server");
-      }
-
-      dialog.setModal(true);
-      dialog.show();
-      dialog.raise();
-      dialog.activateWindow();
+      ui.message->setText(QString("Establishing connection to '%1' \n"
+                                  "Waiting for server to connect.")
+                            .arg(this->Internals->Configuration.name()));
+      dialog.setWindowTitle("Waiting for Server Connection");
+    }
+    else
+    {
+      ui.message->setText(QString("Establishing connection to '%1' \n"
+                                  "Waiting %2 seconds for connection to server.")
+                            .arg(this->Internals->Configuration.name())
+                            .arg(this->Internals->Configuration.connectionTimeout()));
+      dialog.setWindowTitle("Waiting for Connection to Server");
     }
 
-    const pqServerResource& resource = this->Internals->Configuration.actualResource();
-    this->Internals->Server =
-      builder->createServer(resource, this->Internals->Configuration.connectionTimeout(), result);
+    dialog.setModal(true);
+    dialog.show();
+    dialog.raise();
+    dialog.activateWindow();
+  }
 
-    // Make sure events have been processed
-    pqEventDispatcher::processEventsAndWait(100);
+  bool status = false;
+  const pqServerResource& resource = this->Internals->Configuration.actualResource();
+  auto* builder = vtkPVGUIApplication::GetInstance()->GetObjectBuilder();
+  builder->createServer(resource).subscribe([&dialog, &status](vtkTypeUInt32 cid) {
+    status = cid != 0;
+    dialog.accept();
+  });
 
-  } while (result == vtkNetworkAccessManager::ConnectionResult::CONNECTION_TIMEOUT &&
-    QMessageBox::question(pqCoreUtilities::mainWidget(), QString("Connection Failed"),
-      QString("Unable to connect sucessfully. Try again for %1 seconds ?")
-        .arg(this->Internals->Configuration.connectionTimeout())) == QMessageBox::Yes);
-
-  return this->Internals->Server != nullptr;
-#else
-  abort();
-#endif
+  return dialog.exec() == QDialog::Accepted ? status : false;
 }
 
 //-----------------------------------------------------------------------------

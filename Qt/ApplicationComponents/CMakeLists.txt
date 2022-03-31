@@ -93,6 +93,8 @@ set(classes
   pqSaveStateReaction
   pqScalarBarVisibilityReaction
   pqSelectionQueryPropertyWidget
+  pqServerConnectReaction
+  pqServerDisconnectReaction
   pqSessionTypeDecorator
   pqShowWidgetDecorator
   pqSourcesMenuReaction
@@ -192,8 +194,6 @@ set(old_classes
   pqSearchItemReaction
   pqSelectionReaction
   pqSeriesEditorPropertyWidget
-  pqServerConnectReaction
-  pqServerDisconnectReaction
   pqSetMainWindowTitleReaction
   pqShowHideAllReaction
   pqSpherePropertyWidget

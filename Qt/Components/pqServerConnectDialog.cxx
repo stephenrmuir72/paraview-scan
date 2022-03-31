@@ -33,13 +33,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqQtDeprecated.h"
 #include "ui_pqServerConnectDialog.h"
 
-#include "pqApplicationCore.h"
 #include "pqFileDialog.h"
 #include "pqServerConfiguration.h"
 #include "pqServerConfigurationCollection.h"
 #include "pqServerConfigurationImporter.h"
 #include "pqServerResource.h"
 #include "pqSettings.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkSetGet.h"
 
 #include <QAuthenticator>
@@ -65,7 +65,7 @@ enum
 
 QString getPVSCSourcesFromSettings()
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   return settings
     ->value("PVSC_SOURCES",
       QString("# Enter list of URLs to obtain server configurations from.\n"
@@ -158,8 +158,8 @@ pqServerConnectDialog::pqServerConnectDialog(
   // this->Internals->servers->horizontalHeader()->setResizeMode(0,
   //  QHeaderView::ResizeToContents);
 
-  QObject::connect(&pqApplicationCore::instance()->serverConfigurations(), SIGNAL(changed()), this,
-    SLOT(updateConfigurations()));
+  auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
+  QObject::connect(serverConfigurations, SIGNAL(changed()), this, SLOT(updateConfigurations()));
 
   QObject::connect(this->Internals->servers, SIGNAL(currentCellChanged(int, int, int, int)), this,
     SLOT(onServerSelected()));
@@ -273,10 +273,10 @@ void pqServerConnectDialog::updateDialogTitle(int page_number)
 //-----------------------------------------------------------------------------
 void pqServerConnectDialog::updateConfigurations()
 {
+  auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
   this->Internals->Configurations = this->Internals->Selector.scheme().isEmpty()
-    ? pqApplicationCore::instance()->serverConfigurations().configurations()
-    : pqApplicationCore::instance()->serverConfigurations().configurations(
-        this->Internals->Selector);
+    ? serverConfigurations->configurations()
+    : serverConfigurations->configurations(this->Internals->Selector);
 
   // Add list-items for every configuration.
   bool old = this->Internals->servers->blockSignals(true);
@@ -595,11 +595,10 @@ void pqServerConnectDialog::acceptConfigurationPage2()
   }
 
   // Save this configuration.
-  pqApplicationCore::instance()->serverConfigurations().removeConfiguration(
-    this->Internals->OriginalName);
-  pqApplicationCore::instance()->serverConfigurations().addConfiguration(
-    this->Internals->ActiveConfiguration);
-  pqApplicationCore::instance()->serverConfigurations().saveNow();
+  auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
+  serverConfigurations->removeConfiguration(this->Internals->OriginalName);
+  serverConfigurations->addConfiguration(this->Internals->ActiveConfiguration);
+  serverConfigurations->saveNow();
 
   // Now, make this newly edited configuration the selected one.
   QList<QTableWidgetItem*> items = this->Internals->servers->findItems(
@@ -637,8 +636,9 @@ void pqServerConnectDialog::deleteServer()
         QString("Are you sure you want to delete \"%1\"?").arg(config.name()),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
   {
-    pqApplicationCore::instance()->serverConfigurations().removeConfiguration(config.name());
-    pqApplicationCore::instance()->serverConfigurations().saveNow();
+    auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
+    serverConfigurations->removeConfiguration(config.name());
+    serverConfigurations->saveNow();
   }
 
   Q_EMIT serverDeleted();
@@ -655,8 +655,8 @@ void pqServerConnectDialog::saveServers()
   dialog.setFileMode(pqFileDialog::AnyFile);
   if (dialog.exec() == QDialog::Accepted)
   {
-    pqApplicationCore::instance()->serverConfigurations().save(
-      dialog.getSelectedFiles()[0], /*only_mutable=*/false);
+    auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
+    serverConfigurations->save(dialog.getSelectedFiles()[0], /*only_mutable=*/false);
   }
 }
 
@@ -670,12 +670,12 @@ void pqServerConnectDialog::loadServers()
   pqFileDialog dialog(nullptr, this, tr("Load Server Configuration File"), QString(), filters);
   dialog.setObjectName("LoadServerConfigurationDialog");
   dialog.setFileMode(pqFileDialog::ExistingFile);
+  auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
   if (dialog.exec() == QDialog::Accepted)
   {
-    pqApplicationCore::instance()->serverConfigurations().load(
-      dialog.getSelectedFiles()[0], /*mutable_configs=*/true);
+    serverConfigurations->load(dialog.getSelectedFiles()[0], /*mutable_configs=*/true);
   }
-  pqApplicationCore::instance()->serverConfigurations().saveNow();
+  serverConfigurations->saveNow();
 }
 
 //-----------------------------------------------------------------------------
@@ -708,8 +708,8 @@ bool pqServerConnectDialog::selectServer(pqServerConfiguration& selected_configu
   // need to popup the dialog.
   if (!selector.scheme().isEmpty())
   {
-    QList<pqServerConfiguration> configs =
-      pqApplicationCore::instance()->serverConfigurations().configurations(selector);
+    auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
+    QList<pqServerConfiguration> configs = serverConfigurations->configurations(selector);
     if (configs.size() == 1)
     {
       selected_configuration = configs[0];
@@ -750,7 +750,7 @@ void pqServerConnectDialog::cancelEditSources()
 //-----------------------------------------------------------------------------
 void pqServerConnectDialog::saveSourcesList()
 {
-  pqSettings* settings = pqApplicationCore::instance()->settings();
+  pqSettings* settings = vtkPVGUIApplication::GetInstance()->GetSettings();
   settings->setValue("PVSC_SOURCES", this->Internals->editSourcesText->toPlainText());
   this->fetchServers();
 }
@@ -878,12 +878,11 @@ void pqServerConnectDialog::importServers()
     indexes.insert(item->data(Qt::UserRole).toInt());
   }
 
-  pqServerConfigurationCollection& collection =
-    pqApplicationCore::instance()->serverConfigurations();
-
+  auto* serverConfigurations = vtkPVGUIApplication::GetInstance()->GetServerConfigurations();
   Q_FOREACH (int index, indexes)
   {
-    collection.addConfiguration(this->Internals->Importer.configurations()[index].Configuration);
+    serverConfigurations->addConfiguration(
+      this->Internals->Importer.configurations()[index].Configuration);
   }
 
   this->goToFirstPage();

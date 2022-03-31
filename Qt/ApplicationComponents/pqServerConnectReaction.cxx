@@ -31,15 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqServerConnectReaction.h"
 
-#include "vtkProcessModule.h"
-
 #include "pqActiveObjects.h"
-#include "pqAnimationManager.h"
-#include "pqAnimationScene.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
-#include "pqPVApplicationCore.h"
 #include "pqPipelineSource.h"
 #include "pqServer.h"
 #include "pqServerConfiguration.h"
@@ -47,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerConnectDialog.h"
 #include "pqServerLauncher.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QMessageBox>
 #include <QScopedPointer>
@@ -55,23 +50,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 pqServerConnectReaction::pqServerConnectReaction(QAction* parentObject)
   : Superclass(parentObject)
 {
+#if 0 // FIXME: ASYNC
   // needed to disable server connection while an animation is playing
   QObject::connect(pqPVApplicationCore::instance()->animationManager(), SIGNAL(beginPlay()), this,
     SLOT(updateEnableState()));
   QObject::connect(pqPVApplicationCore::instance()->animationManager(), SIGNAL(endPlay()), this,
     SLOT(updateEnableState()));
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void pqServerConnectReaction::connectToServerWithWarning()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
-
+  auto* smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   pqServer* server = pqActiveObjects::instance().activeServer();
-
-  if (!vtkProcessModule::GetProcessModule()->GetMultipleSessionsSupport() &&
-    !smmodel->findItems<pqPipelineSource*>(server).empty())
+  // TODO: ASYNC: support multiple servers?
+  if (!smmodel->findItems<pqPipelineSource*>(server).empty())
   {
     int ret =
       QMessageBox::warning(pqCoreUtilities::mainWidget(), tr("Disconnect from current server?"),
@@ -103,8 +97,9 @@ void pqServerConnectReaction::connectToServer()
 bool pqServerConnectReaction::connectToServerUsingConfigurationName(
   const char* config_name, bool showConnectionDialog)
 {
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
   const pqServerConfiguration* config =
-    pqApplicationCore::instance()->serverConfigurations().configuration(config_name);
+    pvapp->GetServerConfigurations()->configuration(config_name);
   if (config)
   {
     return pqServerConnectReaction::connectToServerUsingConfiguration(
@@ -133,6 +128,7 @@ bool pqServerConnectReaction::connectToServerUsingConfiguration(
 //-----------------------------------------------------------------------------
 void pqServerConnectReaction::updateEnableState()
 {
+#if 0 // FIXME: ASYNC
   if (pqPVApplicationCore::instance()->animationManager()->animationPlaying())
   {
     this->parentAction()->setEnabled(false);
@@ -141,4 +137,5 @@ void pqServerConnectReaction::updateEnableState()
   {
     this->parentAction()->setEnabled(true);
   }
+#endif
 }

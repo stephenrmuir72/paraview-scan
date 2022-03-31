@@ -97,6 +97,7 @@ set(classes
   pqSearchBox
   pqSelectionAdaptor
   pqServerConfigurationImporter
+  pqServerConnectDialog
   pqServerLauncher
   pqSetBreakpointDialog
   pqSettingsDialog
@@ -161,7 +162,6 @@ set(old_classes
   pqSelectionInputWidget
   pqSelectionLinkDialog
   pqSelectionManager
-  pqServerConnectDialog
   pqSignalAdaptorKeyFrameType
   pqTimerLogDisplay
   pqUndoStackBuilder

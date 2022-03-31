@@ -47,6 +47,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
 #include "pqSaveStateReaction.h"
+#include "pqServerConnectReaction.h"
+#include "pqServerDisconnectReaction.h"
 #include "pqSetName.h"
 #include "pqSourcesMenuReaction.h"
 #include "pqViewMenuManager.h"
@@ -101,8 +103,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSaveExtractsReaction.h"
 #include "pqSaveScreenshotReaction.h"
 #include "pqSearchItemReaction.h"
-#include "pqServerConnectReaction.h"
-#include "pqServerDisconnectReaction.h"
 #include "pqSetMainWindowTitleReaction.h"
 #include "pqShowHideAllReaction.h"
 #include "pqTemporalExportReaction.h"
@@ -184,9 +184,11 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   ui.actionFileSaveCatalystState->setEnabled(false);
 #endif
 
+#endif
   new pqServerConnectReaction(ui.actionServerConnect);
   new pqServerDisconnectReaction(ui.actionServerDisconnect);
 
+#if 0 // FIXME: ASYNC
   new pqSaveScreenshotReaction(ui.actionFileSaveScreenshot);
   new pqSaveAnimationReaction(ui.actionFileSaveAnimation);
   new pqSaveAnimationGeometryReaction(ui.actionFileSaveGeometry);

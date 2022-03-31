@@ -532,44 +532,54 @@ rxcpp::observable<vtkTypeUInt32> pqObjectBuilder::createServer(const pqServerRes
 {
   auto* pvapp = vtkPVGUIApplication::GetInstance();
   // Create a modified version of the resource that only contains server information
-  const pqServerResource server_resource = resource.schemeHostsPorts();
+  const pqServerResource serverResource = resource.schemeHostsPorts();
 
   // Let the pqServerManagerModel know the resource to use for the connection
   // to be created.
   auto* smModel = pvapp->GetServerManagerModel();
+
+  if (pqServer* server = smModel->findServer(serverResource))
+  {
+    return rxcpp::sources::just<vtkTypeUInt32>(server->sessionID());
+  }
+
+  if (smModel->getNumberOfItems<pqServer*>() > 0)
+  {
+    this->removeServer(smModel->getItemAtIndex<pqServer*>(0));
+  }
+
   smModel->setActiveResource(resource);
 
   // Based on the server resource, create the correct type of server ...
   rxcpp::observable<vtkTypeUInt32> observable;
-  if (server_resource.scheme() == "builtin")
+  if (serverResource.scheme() == "builtin")
   {
     observable = pvapp->CreateBuiltinSession();
   }
-  else if (server_resource.scheme() == "cs")
+  else if (serverResource.scheme() == "cs")
   {
-    observable = pvapp->CreateRemoteSession(
-      qUtf8Printable(QString("cs://%1:%2").arg(resource.host(), resource.port(11111))));
+    observable = pvapp->CreateRemoteSession(qUtf8Printable(resource.toURI()));
   }
 #if 0 // FIXME: ASYNC
-  else if (server_resource.scheme() == "csrc")
+  else if (serverResource.scheme() == "csrc")
   {
     id = vtkSMSession::ReverseConnectToRemote(
-      server_resource.port(11111), connectionTimeout, &pqObjectBuilderNS::processEvents, result);
+      serverResource.port(11111), connectionTimeout, &pqObjectBuilderNS::processEvents, result);
   }
-  else if (server_resource.scheme() == "cdsrs")
+  else if (serverResource.scheme() == "cdsrs")
   {
-    id = vtkSMSession::ConnectToRemote(server_resource.dataServerHost().toUtf8().data(),
-      server_resource.dataServerPort(11111), server_resource.renderServerHost().toUtf8().data(),
-      server_resource.renderServerPort(22221), connectionTimeout, &pqObjectBuilderNS::processEvents,
+    id = vtkSMSession::ConnectToRemote(serverResource.dataServerHost().toUtf8().data(),
+      serverResource.dataServerPort(11111), serverResource.renderServerHost().toUtf8().data(),
+      serverResource.renderServerPort(22221), connectionTimeout, &pqObjectBuilderNS::processEvents,
       result);
   }
-  else if (server_resource.scheme() == "cdsrsrc")
+  else if (serverResource.scheme() == "cdsrsrc")
   {
-    id = vtkSMSession::ReverseConnectToRemote(server_resource.dataServerPort(11111),
-      server_resource.renderServerPort(22221), connectionTimeout, &pqObjectBuilderNS::processEvents,
+    id = vtkSMSession::ReverseConnectToRemote(serverResource.dataServerPort(11111),
+      serverResource.renderServerPort(22221), connectionTimeout, &pqObjectBuilderNS::processEvents,
       result);
   }
-  else if (server_resource.scheme() == "catalyst")
+  else if (serverResource.scheme() == "catalyst")
   {
     id = vtkSMSession::ConnectToCatalyst();
     result = vtkNetworkAccessManager::ConnectionResult::CONNECTION_SUCCESS;
@@ -577,7 +587,7 @@ rxcpp::observable<vtkTypeUInt32> pqObjectBuilder::createServer(const pqServerRes
 #endif
   else
   {
-    qCritical() << "Unknown server type: " << server_resource.scheme() << "\n";
+    qCritical() << "Unknown server type: " << serverResource.scheme() << "\n";
     return rxcpp::sources::never<vtkTypeUInt32>();
   }
 
@@ -594,19 +604,17 @@ rxcpp::observable<vtkTypeUInt32> pqObjectBuilder::createServer(const pqServerRes
 //-----------------------------------------------------------------------------
 void pqObjectBuilder::removeServer(pqServer* server)
 {
-#if 0 // FIXME: ASYNC
   if (!server)
   {
     qDebug() << "No server to remove.";
     return;
   }
 
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqServerManagerModel* sModel = core->getServerManagerModel();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  pqServerManagerModel* sModel = pvapp->GetServerManagerModel();
   sModel->beginRemoveServer(server);
-  vtkSMSession::Disconnect(server->sessionId());
+  pvapp->CloseSession(server->sessionID());
   sModel->endRemoveServer();
-#endif
 }
 
 //-----------------------------------------------------------------------------
