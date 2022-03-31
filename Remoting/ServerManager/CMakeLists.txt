@@ -32,6 +32,7 @@ set(classes
   vtkClientSession
   vtkDisplayConfiguration
   vtkDistributedEnvironment
+  vtkLoadStateOptions
   vtkObjectStore
   vtkObjectWrapper
   vtkProxyDefinitionManager
@@ -89,6 +90,7 @@ set(classes
   vtkSMIntRangeDomain
   vtkSMIntVectorProperty
   vtkSMLink
+  vtkSMLoadStateOptionsProxy
   vtkSMNamedPropertyIterator
   vtkSMNullProxy
   vtkSMNumberOfComponentsDomain
@@ -130,7 +132,6 @@ set(classes
 )
 
 set(old_classes
-  vtkLoadStateOptions
   vtkRemoteWriterHelper
   vtkPVCatalystChannelInformation
   vtkPVCatalystSessionCore
@@ -147,7 +148,6 @@ set(old_classes
   vtkSMExtractTriggerProxy
   vtkSMExtractWriterProxy
   vtkSMFileUtilities
-  vtkSMLoadStateOptionsProxy
   vtkSMMultiplexerSourceProxy
   vtkSMMultiplexerInputDomain
   vtkSMPluginLoaderProxy

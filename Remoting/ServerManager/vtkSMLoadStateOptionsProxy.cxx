@@ -14,11 +14,9 @@
 =========================================================================*/
 #include "vtkSMLoadStateOptionsProxy.h"
 
-#include "vtkClientServerStream.h"
 #include "vtkFileSequenceParser.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVSession.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
 #include "vtkSMCoreUtilities.h"
@@ -256,8 +254,10 @@ private:
     auto pxm = self->GetSessionProxyManager();
     auto prototype =
       pxm->NewProxy(proxy.attribute("group").value(), proxy.attribute("type").value());
+#if 0 // FIXME: ASYNC
     prototype->PrototypeOn();
     prototype->SetLocation(0);
+#endif
     prototype->LoadXMLState(vtkInternals::ConvertXML(proxy), nullptr);
 
     self->AddSubProxy(subproxyname.c_str(), prototype);
@@ -507,6 +507,7 @@ bool vtkSMLoadStateOptionsProxy::HasDataFiles()
 bool vtkSMLoadStateOptionsProxy::LocateFilesInDirectory(
   std::vector<std::string>& filepaths, int path, bool clearFilenameIfNotFound)
 {
+#if 0 // FIXME:ASYNC
   std::string lastLocatedPath;
   int numOfPathMatches = 0;
   std::vector<std::string>::iterator fIter;
@@ -564,6 +565,9 @@ bool vtkSMLoadStateOptionsProxy::LocateFilesInDirectory(
       *fIter = SystemTools::JoinPath(directoryPathComponents);
     }
   }
+#else
+  abort();
+#endif
   return true;
 }
 

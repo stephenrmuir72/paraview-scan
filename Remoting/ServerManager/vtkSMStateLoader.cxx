@@ -23,9 +23,9 @@
 #include "vtkSMProxyLink.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkSmartPointer.h"
-// #include "vtkSMSettingsProxy.h"
+#include "vtkSMSettingsProxy.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSmartPointer.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -227,8 +227,6 @@ void vtkSMStateLoader::CreatedNewProxy(vtkTypeUInt32 id, vtkSMProxy* proxy)
   {
 #if 0 // FIXME: ASYNC
     vtkSMSourceProxy::SafeDownCast(proxy)->UpdatePipelineInformation();
-#else
-    abort();
 #endif
   }
   if (this->Internal->DeferProxyRegistration)
@@ -688,14 +686,12 @@ int vtkSMStateLoader::LoadStateInternal(vtkPVXMLElement* parent)
         auto sproxy = currentElement->GetNestedElement(cc);
         if (sproxy && sproxy->GetName() && strcmp(sproxy->GetName(), "SettingsProxy") == 0)
         {
-#if 0 // FIXME: ASYNC
           auto settingsProxy = vtkSMSettingsProxy::SafeDownCast(
             pxm->GetProxy(sproxy->GetAttribute("group"), sproxy->GetAttribute("type")));
           if (settingsProxy)
           {
             settingsProxy->LoadLinksState(sproxy, this->ProxyLocator);
           }
-#endif
         }
       }
     }

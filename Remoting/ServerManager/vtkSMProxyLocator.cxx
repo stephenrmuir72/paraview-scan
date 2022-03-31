@@ -83,7 +83,10 @@ vtkSMProxy* vtkSMProxyLocator::LocateProxy(vtkTypeUInt32 id)
     }
   }
 #else
-  abort();
+  if (this->LocateProxyWithSessionToo)
+  {
+    abort();
+  }
 #endif
 
   // Create a brand new proxy
