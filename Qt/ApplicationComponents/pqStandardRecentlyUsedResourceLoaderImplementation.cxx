@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqFileDialogModel.h"
 #include "pqLoadDataReaction.h"
-#include "vtkPVGUIApplication.h"
-// #include "pqLoadStateReaction.h"
+#include "pqLoadStateReaction.h"
 #include "pqRecentlyUsedResourcesList.h"
 #include "pqServer.h"
 #include "pqServerConfiguration.h"
 #include "pqServerResource.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QFileInfo>
 #include <QtDebug>
@@ -112,9 +112,7 @@ bool pqStandardRecentlyUsedResourceLoaderImplementation::loadState(
     qCritical() << "State file no longer exists: '" << stateFile << "'";
     return false;
   }
-#if 0 // FIXME: ASYNC
   pqLoadStateReaction::loadState(stateFile, server);
-#endif
   return true;
 }
 

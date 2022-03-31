@@ -106,14 +106,17 @@ void pqLoadStateReaction::loadState(const QString& filename, bool dialogBlocked,
           return;
         }
       }
-      // pqPVApplicationCore::instance()->clearViewsForLoadingState(server);
-      // pqPVApplicationCore::instance()->setLoadingState(true);
+
+      // Clear session before loading state. Previously, we only cleared the
+      // views, now we completely reinitialize the session.
+      pxm->UnRegisterProxies();
+      controller->InitializeSession(server->session());
+
       if (proxy->Load())
       {
         pqStandardRecentlyUsedResourceLoaderImplementation::addStateFileToRecentResources(
           server, filename);
       }
-      // pqPVApplicationCore::instance()->setLoadingState(false);
 
       // This is needed since XML state currently does not save active view.
       // Check for an already active view that could have been set by a custom behavior.

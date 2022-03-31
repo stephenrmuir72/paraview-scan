@@ -82,12 +82,23 @@ public:
   bool UseTexturedEnvironmentalBG{ false };
   vtkNew<vtkSkybox> Skybox;
 
+  vtkBoundingBox VisiblePropBounds;
+
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkSmartPointer<vtkOSPRayPass> OSPRayPass;
   bool UsingRayTracing{ false };
 #endif
 
   void UpdateBackground(vtkRenderer* renderer) const;
+  void ResetCameraClippingRange(vtkRenderer* renderer) const
+  {
+    if (this->VisiblePropBounds.IsValid())
+    {
+      double bds[6];
+      this->VisiblePropBounds.GetBounds(bds);
+      renderer->ResetCameraClippingRange(bds);
+    }
+  }
 };
 
 //-----------------------------------------------------------------------------
@@ -253,6 +264,9 @@ vtkBoundingBox vtkPVRenderView::GetVisiblePropBounds()
 {
   if (auto* renderer = this->GetRenderer())
   {
+    assert(this->RInternals);
+    auto& rinternals = (*this->RInternals);
+
     double bounds[6];
     renderer->ComputeVisiblePropBounds(bounds);
 
@@ -260,7 +274,9 @@ vtkBoundingBox vtkPVRenderView::GetVisiblePropBounds()
     bbox.SetBounds(bounds);
 
     auto* controller = this->GetController();
-    controller->Reduce(bbox, bbox, 0);
+    controller->AllReduce(bbox, bbox);
+    rinternals.VisiblePropBounds = bbox;
+
     if (controller->GetLocalProcessId() == 0)
     {
       return bbox;
@@ -552,7 +568,9 @@ void vtkPVRenderView::PrepareForRendering()
   this->Superclass::PrepareForRendering();
   assert(this->RInternals);
   const auto& rinternals = (*this->RInternals);
-  rinternals.UpdateBackground(this->GetRenderer());
+  rinternals.UpdateBackground(rinternals.Renderers[0]);
+  rinternals.ResetCameraClippingRange(rinternals.Renderers[0]);
+  rinternals.ResetCameraClippingRange(rinternals.Renderers[1]);
 }
 
 //-----------------------------------------------------------------------------
