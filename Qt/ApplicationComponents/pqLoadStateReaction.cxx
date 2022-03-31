@@ -32,15 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadStateReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
-#include "pqPVApplicationCore.h"
 #include "pqProxyWidgetDialog.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqStandardRecentlyUsedResourceLoaderImplementation.h"
 #include "vtkNew.h"
+#include "vtkPVGUIApplication.h"
 #include "vtkPVXMLParser.h"
 #include "vtkSMLoadStateOptionsProxy.h"
 #include "vtkSMParaViewPipelineController.h"
@@ -107,14 +106,14 @@ void pqLoadStateReaction::loadState(const QString& filename, bool dialogBlocked,
           return;
         }
       }
-      pqPVApplicationCore::instance()->clearViewsForLoadingState(server);
-      pqPVApplicationCore::instance()->setLoadingState(true);
+      // pqPVApplicationCore::instance()->clearViewsForLoadingState(server);
+      // pqPVApplicationCore::instance()->setLoadingState(true);
       if (proxy->Load())
       {
         pqStandardRecentlyUsedResourceLoaderImplementation::addStateFileToRecentResources(
           server, filename);
       }
-      pqPVApplicationCore::instance()->setLoadingState(false);
+      // pqPVApplicationCore::instance()->setLoadingState(false);
 
       // This is needed since XML state currently does not save active view.
       // Check for an already active view that could have been set by a custom behavior.
@@ -139,7 +138,9 @@ void pqLoadStateReaction::loadState(const QString& filename, bool dialogBlocked,
 //-----------------------------------------------------------------------------
 void pqLoadStateReaction::loadState()
 {
-  pqFileDialog fileDialog(nullptr, pqCoreUtilities::mainWidget(), tr("Load State File"), QString(),
+  auto* server = pqActiveObjects::instance().activeServer();
+  // FIXME:ASYNC need to make this dialog browse client-side file system
+  pqFileDialog fileDialog(server, pqCoreUtilities::mainWidget(), tr("Load State File"), QString(),
     "ParaView state file (*.pvsm"
 #if VTK_MODULE_ENABLE_ParaView_pqPython
     " *.py"
@@ -159,7 +160,7 @@ void pqLoadStateReaction::loadState()
 void pqLoadStateReaction::activateView()
 {
   auto server = pqActiveObjects::instance().activeServer();
-  auto smmodel = pqApplicationCore::instance()->getServerManagerModel();
+  auto smmodel = vtkPVGUIApplication::GetInstance()->GetServerManagerModel();
   auto views = smmodel->findItems<pqView*>(server);
   if (!views.empty())
   {

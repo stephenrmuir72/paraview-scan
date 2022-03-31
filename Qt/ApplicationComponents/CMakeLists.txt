@@ -77,6 +77,7 @@ set(classes
   pqListPropertyWidget
   pqLoadDataReaction
   pqLoadMaterialsReaction
+  pqLoadStateReaction
   pqLockPanelsBehavior
   pqLockPanelsReaction
   pqManageFavoritesReaction
@@ -155,7 +156,6 @@ set(old_classes
   pqLiveSourceBehavior
   pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
-  pqLoadStateReaction
   pqLogViewerReaction
   pqMainControlsToolbar
   pqMainWindowEventBehavior

@@ -565,6 +565,15 @@
                name="RenderView"
                processes="client dataserver renderserver">
 
+      <IntVectorProperty name="ViewPosition"
+                         number_of_elements="2"
+                         default_values="0 0"
+                         panel_visibility="never"
+                         processes="client renderserver" >
+        <Documentation>
+          Position for the view.
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty command="SetSize"
                          default_values="1920 1163"
                          name="ViewSize"

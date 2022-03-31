@@ -53,6 +53,9 @@ set(classes
   vtkUndoSet
   vtkUndoStack)
 
+set(headers
+  vtkMemberFunctionCommand.h)
+
 set(private_headers
   vtkUndoStackInternal.h)
 
@@ -62,6 +65,7 @@ set(nowrap_classes
 vtk_module_add_module(ParaView::VTKExtensionsCore
   CLASSES ${classes}
   NOWRAP_CLASSES ${nowrap_classes}
+  HEADERS ${headers}
   PRIVATE_HEADERS ${private_headers})
 
 paraview_add_server_manager_xmls(

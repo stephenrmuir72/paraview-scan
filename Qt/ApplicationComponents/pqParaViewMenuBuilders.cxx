@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCategoryToolbarsBehavior.h"
 #include "pqFiltersMenuReaction.h"
 #include "pqLoadDataReaction.h"
+#include "pqLoadStateReaction.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
@@ -83,7 +84,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLinkSelectionReaction.h"
 #include "pqLoadMaterialsReaction.h"
 #include "pqLoadRestoreWindowLayoutReaction.h"
-#include "pqLoadStateReaction.h"
 #include "pqLogViewerReaction.h"
 #include "pqMainControlsToolbar.h"
 #include "pqManageCustomFiltersReaction.h"
@@ -171,9 +171,9 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
   ui.actionFileLoadMaterials->setEnabled(false);
 #endif
   new pqReloadFilesReaction(ui.actionReloadFiles);
+#endif
 
   new pqLoadStateReaction(ui.actionFileLoadServerState);
-#endif
   new pqSaveStateReaction(ui.actionFileSaveServerState);
 
 #if 0 // FIXME: ASYNC
