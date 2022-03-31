@@ -36,6 +36,7 @@ class vtkThalliumRunLoop
   thallium::abt Scope;
   thallium::mutex Mutex;
   thallium::condition_variable ConditionVariable;
+  thallium::managed<thallium::pool> Pool;
   thallium::managed<thallium::xstream> XStream;
   thallium::managed<thallium::thread> ProcessEventsTask;
   std::unique_ptr<rxcpp::schedulers::run_loop> RunLoop;

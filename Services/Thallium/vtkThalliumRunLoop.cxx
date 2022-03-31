@@ -18,7 +18,8 @@
 
 //----------------------------------------------------------------------------
 vtkThalliumRunLoop::vtkThalliumRunLoop(const std::string& name)
-  : XStream(thallium::xstream::create())
+  : Pool(thallium::pool::create(thallium::pool::access::mpsc, thallium::pool::kind::fifo_wait))
+  , XStream(thallium::xstream::create(thallium::scheduler::predef::basic_wait, *this->Pool))
 {
   // Setup the rxcpp:run_loop on the thread associated with the XStream.
   this->XStream
