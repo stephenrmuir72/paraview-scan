@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class pqPropertyWidget;
 class pqView;
+class vtkObject;
 class vtkSMProperty;
 class vtkSMProxy;
 
@@ -229,6 +230,11 @@ public Q_SLOTS:
 protected:
   void showEvent(QShowEvent* event) override;
   void hideEvent(QHideEvent* event) override;
+
+  /**
+   * Called when the corresponding vtkSMProxy fires vtkSMProxy::AnnotationsChangedEvent
+   */
+  void onAnnotationChange(vtkObject* caller, unsigned long eventid, void* callData);
 
 private Q_SLOTS:
   /**
