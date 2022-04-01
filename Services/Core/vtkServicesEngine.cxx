@@ -386,6 +386,34 @@ vtkSmartPointer<vtkMultiProcessController> vtkServicesEngine::NewController() co
 }
 
 //----------------------------------------------------------------------------
+void vtkServicesEngine::UnRegisterService(vtkService* service)
+{
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  const std::lock_guard<std::mutex> lock(internals.ServicesMutex);
+  auto iter = std::find_if(internals.Services.begin(), internals.Services.end(),
+    [&](const auto& pair) { return pair.second == service; });
+  if (iter != internals.Services.end())
+  {
+    internals.Services.erase(iter);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkServicesEngine::UnRegisterServiceEndpoint(vtkServiceEndpoint* endpoint)
+{
+  auto& internals = (*this->Internals);
+  vtkRemotingCoreUtilities::EnsureThread(internals.OwnerTID);
+  const std::lock_guard<std::mutex> lock(internals.EndpointsMutex);
+  auto iter = std::find_if(internals.Endpoints.begin(), internals.Endpoints.end(),
+    [&](const auto& pair) { return pair.second == endpoint; });
+  if (iter != internals.Endpoints.end())
+  {
+    internals.Endpoints.erase(iter);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkServicesEngine::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
