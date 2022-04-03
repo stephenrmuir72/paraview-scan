@@ -31,9 +31,20 @@ struct ServiceInfo
 class vtkServerSession::vtkInternals
 {
   std::map<std::string, ServiceInfo> Services;
-
 public:
   void StartService(const std::string& name, vtkServerSession* self);
+
+  ~vtkInternals()
+  {
+    for (auto& pair : this->Services)
+    {
+      if (pair.second.Service)
+      {
+        auto* engine = pair.second.Service->GetEngine();
+        engine->UnRegisterService(pair.second.Service);
+      }
+    }
+  }
 };
 
 //----------------------------------------------------------------------------

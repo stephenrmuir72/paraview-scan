@@ -69,10 +69,12 @@ public:
     if (this->DSEndpoint)
     {
       this->DSEndpoint->Shutdown();
+      this->DSEndpoint->GetEngine()->UnRegisterServiceEndpoint(this->DSEndpoint);
     }
     if (this->RSEndpoint)
     {
       this->RSEndpoint->Shutdown();
+      this->RSEndpoint->GetEngine()->UnRegisterServiceEndpoint(this->RSEndpoint);
     }
   }
 };

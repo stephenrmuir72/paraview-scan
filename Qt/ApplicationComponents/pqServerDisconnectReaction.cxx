@@ -32,15 +32,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerDisconnectReaction.h"
 
 #include "pqActiveObjects.h"
-#include "pqAnimationManager.h"
-#include "pqAnimationScene.h"
-#include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
-#include "pqPVApplicationCore.h"
 #include "pqPipelineSource.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
+#include "vtkPVGUIApplication.h"
 
 #include <QMessageBox>
 
@@ -56,20 +53,21 @@ pqServerDisconnectReaction::pqServerDisconnectReaction(QAction* parentObject)
   QObject::connect(&this->UpdateTimer, SIGNAL(timeout()), this, SLOT(updateState()));
   this->updateState();
 
+#if 0 // FIXME: ASYNC
   // needed to disable server disconnection while an animation is playing
   QObject::connect(pqPVApplicationCore::instance()->animationManager(), SIGNAL(beginPlay()), this,
     SLOT(updateState()));
   QObject::connect(pqPVApplicationCore::instance()->animationManager(), SIGNAL(endPlay()), this,
     SLOT(updateState()));
+#endif
 }
 
 //-----------------------------------------------------------------------------
 bool pqServerDisconnectReaction::disconnectFromServerWithWarning()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqServerManagerModel* smmodel = core->getServerManagerModel();
+  auto* pvapp = vtkPVGUIApplication::GetInstance();
+  auto* smmodel = pvapp->GetServerManagerModel();
   pqServer* server = pqActiveObjects::instance().activeServer();
-
   if (server && !smmodel->findItems<pqPipelineSource*>(server).empty())
   {
     int ret =
@@ -92,16 +90,16 @@ bool pqServerDisconnectReaction::disconnectFromServerWithWarning()
 void pqServerDisconnectReaction::disconnectFromServer()
 {
   auto& activeObjects = pqActiveObjects::instance();
-  pqApplicationCore* core = pqApplicationCore::instance();
   pqServer* server = activeObjects.activeServer();
   if (server)
   {
-    core->getObjectBuilder()->removeServer(server);
+    auto* pvapp = vtkPVGUIApplication::GetInstance();
+    pvapp->GetObjectBuilder()->removeServer(server);
 
     // set some other server active.
     if (activeObjects.activeServer() == nullptr)
     {
-      auto smmodel = core->getServerManagerModel();
+      auto smmodel = pvapp->GetServerManagerModel();
       auto allServers = smmodel->findItems<pqServer*>();
       if (!allServers.isEmpty())
       {
@@ -114,11 +112,13 @@ void pqServerDisconnectReaction::disconnectFromServer()
 //-----------------------------------------------------------------------------
 void pqServerDisconnectReaction::updateState()
 {
+#if 0 // FIXME: ASYNC
   if (pqPVApplicationCore::instance()->animationManager()->animationPlaying())
   {
     this->parentAction()->setEnabled(false);
   }
   else
+#endif
   {
     this->parentAction()->setEnabled(pqActiveObjects::instance().activeServer() != nullptr);
   }

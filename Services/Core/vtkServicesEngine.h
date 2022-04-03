@@ -166,6 +166,15 @@ public:
    */
   vtkSmartPointer<vtkMultiProcessController> NewController() const;
 
+  ///@{
+  /**
+   * APIs to unregister service and endpoints. This needs to be revisited.
+   * Requiring this unregistering should not be necessary.
+   */
+  void UnRegisterService(vtkService* service);
+  void UnRegisterServiceEndpoint(vtkServiceEndpoint* endpoint);
+  ///@}
+
 protected:
   vtkServicesEngine();
   ~vtkServicesEngine() override;
