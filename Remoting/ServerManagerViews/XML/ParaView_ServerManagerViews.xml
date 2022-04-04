@@ -950,7 +950,7 @@
       <IntVectorProperty name="NumberOfProgressivePasses"
           command="SetNumberOfProgressivePasses"
           processes="client|renderserver"
-          default_values="10"
+          default_values="50"
           number_of_elements="1">
         <IntRangeDomain min="1" name="range"/>
         <Documentation>
@@ -1101,7 +1101,7 @@
       </DoubleVectorProperty>
 
       <DoubleVectorProperty command="SetEnvironmentalBG"
-                            default_values="0.329 0.349 0.427"
+                            default_values="1 1 1"
                             name="EnvironmentalBG"
                             processes="client|renderserver"
                             panel_widget="color_selector_with_palette"
@@ -1151,7 +1151,7 @@
       </DoubleVectorProperty>
 
       <IntVectorProperty command="SetGradientEnvironmentalBG"
-                         default_values="0"
+                         default_values="1"
                          processes="client|renderserver"
                          name="UseGradientEnvironmentalBG"
                          number_of_elements="1">
