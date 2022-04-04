@@ -120,7 +120,8 @@ void vtkSMApplyController::Apply(vtkSMSessionProxyManager* pxm)
   for (iter->Begin("sources"); !iter->IsAtEnd(); iter->Next())
   {
     auto* producer = vtkSMSourceProxy::SafeDownCast(iter->GetProxy());
-    if (!vtkSMApplyController::IsMarkedShowOnApply(producer))
+    if (!vtkSMApplyController::IsMarkedShowOnApply(producer) ||
+      producer->HasAnnotation("UNDER_INITIALIZATION"))
     {
       continue;
     }
