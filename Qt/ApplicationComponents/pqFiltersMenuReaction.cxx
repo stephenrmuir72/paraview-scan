@@ -119,7 +119,6 @@ void pqFiltersMenuReaction::updateEnableState(bool updateOnlyToolbars)
   }
 
   bool enabled = (server != nullptr);
-  enabled = enabled ? !server->isRemote() : enabled;
 
   // Make sure we already have a selection model
   vtkSMProxySelectionModel* selModel = pqActiveObjects::instance().activeSourcesSelectionModel();
