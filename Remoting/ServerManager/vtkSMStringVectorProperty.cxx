@@ -406,7 +406,33 @@ bool vtkSMStringVectorProperty::SaveState(vtkNJson& element)
 {
   this->Superclass::SaveState(element);
   element["type"] = this->GetElementType();
-  this->Internals->SaveState(element);
+
+  vtkNJson elements;
+  for (int i = 0; i < this->GetNumberOfElements(); i++)
+  {
+    if (this->GetElementType(i) == STRING)
+    {
+      elements.push_back(this->GetElement(i));
+    }
+    else if (this->GetElementType(i) == INT)
+    {
+      // empty strings are converted to zero in vtkVariant
+      if (std::strlen(this->GetElement(i)) == 0)
+      {
+        elements.push_back(int64_t(0));
+      }
+      else
+      {
+        elements.push_back(std::stoi(this->GetElement(i)));
+      }
+    }
+    else if (this->GetElementType(i) == DOUBLE)
+    {
+      elements.push_back(std::stod(this->GetElement(i)));
+    }
+  }
+  element["elements"] = elements;
+
   return true;
 }
 
