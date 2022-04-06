@@ -918,7 +918,7 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     }
 
     std::fprintf(fp, "  {\n");
-    std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+    std::fprintf(fp, "    vtkRLogF(\"%%s::%s\", vtkLogIdentifier(object));\n", theFunc->Name);
 
     //  We assume that when the expected by VTK type is a vector it contains the right type
     // i.e. no overloads with vectors of different type exist.
@@ -976,7 +976,7 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     std::fprintf(fp, "  if (method == \"%s\")\n", theFunc->Name);
 
     std::fprintf(fp, "  {\n");
-    std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+    std::fprintf(fp, "    vtkRLogF(\"%%s::%s\", vtkLogIdentifier(object));\n", theFunc->Name);
     vtkWrapRemoting_AssignFromInternalObject(fp, theFunc, "convertedValue");
 
     int count = vtkWrapRemoting_GetArgumentCount(theFunc->ReturnValue);
@@ -1018,7 +1018,7 @@ void vtkWrapRemoting_GenerateOneMethod(FILE* fp, ClassInfo* classInfo, FunctionI
     std::fprintf(fp, "  if (method == \"%s\")\n", theFunc->Name);
 
     std::fprintf(fp, "  {\n");
-    std::fprintf(fp, "    vtkRLogF(\"%s(%%p)::%s\", object);\n", classname, theFunc->Name);
+    std::fprintf(fp, "    vtkRLogF(\"%%s::%s\", vtkLogIdentifier(object));\n", theFunc->Name);
     std::fprintf(fp, "    target->%s();\n", theFunc->Name);
     std::fprintf(fp, "    return true;\n");
     std::fprintf(fp, "  }\n");
@@ -1527,10 +1527,10 @@ void vtkWrapRemoting_DummyFile(FILE* fp, const char* className)
     "static bool %sSetter(vtkObject* object, const std::string& method, const "
     "std::vector<vtkVariant>& args)\n"
     "{\n"
-    "  vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "  vtkRLogF(\"%%s::%%s FAILED\", vtkLogIdentifier(object), method.c_str());\n"
     "  return false;\n"
     "}\n",
-    className, className);
+    className);
 
   std::fprintf(fp, "\n\n");
 
@@ -1539,10 +1539,10 @@ void vtkWrapRemoting_DummyFile(FILE* fp, const char* className)
     "static bool %sGetter(vtkObject* object, const std::string& method, std::vector<vtkVariant>& "
     "args)\n"
     "{\n"
-    "    vtkRLogF(\"%s(%%p)::%%s FAILED\", object, method.c_str());\n"
+    "    vtkRLogF(\"%%s::%%s FAILED\", vtkLogIdentifier(object), method.c_str());\n"
     "    return false;\n"
     "}\n",
-    className, className);
+    className);
 
   std::fprintf(fp, "\n\n");
 
