@@ -34,10 +34,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSmartPointer.h"
 // #include "vtkPVServerInformation.h"
 #include "pqServerResource.h"
+#include "pqTimer.h"
 #include "vtkClientSession.h"
 #include "vtkEventQtSlotConnect.h"
 #include "vtkPVApplication.h"
 #include "vtkProxyDefinitionManager.h"
+#include "vtkSMProxy.h"
 #include "vtkSMSessionProxyManager.h"
 
 // Qt includes.
@@ -54,6 +56,7 @@ public:
   vtkSmartPointer<vtkClientSession> Session;
   vtkTypeUInt32 SessionID;
   pqServerResource Resource;
+  pqTimer SettingsProxyChangedTimer;
 };
 
 //-----------------------------------------------------------------------------
@@ -65,9 +68,17 @@ pqServer::pqServer(vtkClientSession* session, QObject* parentObject)
   internals.Session = session;
   internals.SessionID = vtkPVApplication::GetInstance()->GetSessionID(session);
 
+  internals.SettingsProxyChangedTimer.setInterval(0);
+  internals.SettingsProxyChangedTimer.setSingleShot(true);
+  this->connect(
+    &internals.SettingsProxyChangedTimer, SIGNAL(timeout()), SIGNAL(settingsProxyChanged()));
+
   auto* connector = this->getConnector();
-  connector->Connect(session->GetProxyManager(), vtkProxyDefinitionManager::ProxyDefinitionsUpdated,
-    this, SIGNAL(proxyDefinitionsUpdated()), nullptr, 0.0, Qt::QueuedConnection);
+  auto* pxm = session->GetProxyManager();
+  connector->Connect(pxm, vtkProxyDefinitionManager::ProxyDefinitionsUpdated, this,
+    SIGNAL(proxyDefinitionsUpdated()), nullptr, 0.0, Qt::QueuedConnection);
+  connector->Connect(pxm, vtkCommand::UpdateEvent, this,
+    SLOT(onProxyUpdated(vtkObject*, unsigned long, void*, void*)));
 
   // FIXME: ASYNC
   // how do we monitor when the connection termintes
@@ -153,7 +164,25 @@ vtkSMSessionProxyManager* pqServer::proxyManager() const
 }
 
 //-----------------------------------------------------------------------------
+vtkSMProxy* pqServer::settingsProxy(const QString& type) const
+{
+  auto* pxm = this->proxyManager();
+  return pxm->FindProxy("settings", "settings", qUtf8Printable(type));
+}
+
+//-----------------------------------------------------------------------------
 void pqServer::onConnectionLost(vtkObject*, unsigned long, void*, void*)
 {
   Q_EMIT serverSideDisconnected();
+}
+
+//-----------------------------------------------------------------------------
+void pqServer::onProxyUpdated(vtkObject*, unsigned long, void*, void* callData)
+{
+  auto* proxy = reinterpret_cast<vtkSMProxy*>(callData);
+  if (proxy && strcmp(proxy->GetXMLGroup(), "settings") == 0)
+  {
+    auto& internals = (*this->Internals);
+    internals.SettingsProxyChangedTimer.start();
+  }
 }

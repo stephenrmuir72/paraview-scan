@@ -34,10 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class pqServerResource;
 class vtkClientSession;
+class vtkObject;
 class vtkPVServerInformation;
+class vtkSMProxy;
 class vtkSMProxySelectionModel;
 class vtkSMSessionProxyManager;
-class vtkObject;
 
 #include "pqCoreModule.h" // for exports
 #include "pqServerManagerModelItem.h"
@@ -113,6 +114,11 @@ public:
    */
   vtkPVServerInformation* serverInformation() const;
 
+  /**
+   * Returns the settings proxy of the given type, if any.
+   */
+  vtkSMProxy* settingsProxy(const QString& type) const;
+
 Q_SIGNALS:
   /**
    * Fired when the name of the proxy is changed.
@@ -144,12 +150,18 @@ Q_SIGNALS:
    */
   void proxyDefinitionsUpdated();
 
+  /**
+   * Fired if any property on a "settings" proxy are "pushed".
+   */
+  void settingsProxyChanged();
+
 protected Q_SLOTS:
   /**
    * Called by vtkSMSessionClient is any communication error occurred with the
    * server. This usually mean that the server side is dead.
    */
   void onConnectionLost(vtkObject*, unsigned long, void*, void*);
+  void onProxyUpdated(vtkObject*, unsigned long, void*, void*);
 
 private:
   Q_DISABLE_COPY(pqServer)
