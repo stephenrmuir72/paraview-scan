@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqFiltersMenuReaction.h"
 #include "pqLoadDataReaction.h"
 #include "pqLoadStateReaction.h"
+#include "pqMainControlsToolbar.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
@@ -87,7 +88,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqLoadMaterialsReaction.h"
 #include "pqLoadRestoreWindowLayoutReaction.h"
 #include "pqLogViewerReaction.h"
-#include "pqMainControlsToolbar.h"
 #include "pqManageCustomFiltersReaction.h"
 #include "pqManageFavoritesReaction.h"
 #include "pqManageLinksReaction.h"
@@ -769,12 +769,12 @@ void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
 {
-#if 0 // FIXME: ASYNC
   QToolBar* mainToolBar = new pqMainControlsToolbar(&mainWindow)
     << pqSetName("MainControlsToolbar");
   mainToolBar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, mainToolBar);
 
+#if 0 // FIXME: ASYNC
   QToolBar* vcrToolbar = new pqVCRToolbar(&mainWindow) << pqSetName("VCRToolbar");
   vcrToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, vcrToolbar);

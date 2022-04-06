@@ -34,16 +34,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqAutoApplyReaction.h"
 #include "pqCatalystExportReaction.h"
-#include "pqDataQueryReaction.h"
-#include "pqDeleteReaction.h"
+// #include "pqDataQueryReaction.h"
+// #include "pqDeleteReaction.h"
 #include "pqLoadDataReaction.h"
 #include "pqLoadPaletteReaction.h"
-#include "pqSaveDataReaction.h"
-#include "pqSaveExtractsReaction.h"
+// #include "pqSaveDataReaction.h"
+// #include "pqSaveExtractsReaction.h"
 #include "pqSaveStateReaction.h"
 #include "pqServerConnectReaction.h"
 #include "pqServerDisconnectReaction.h"
-#include "pqUndoRedoReaction.h"
+// #include "pqUndoRedoReaction.h"
 
 #include <QToolButton>
 
@@ -53,17 +53,35 @@ void pqMainControlsToolbar::constructor()
   Ui::pqMainControlsToolbar ui;
   ui.setupUi(this);
   new pqLoadDataReaction(ui.actionOpenData);
+#if 0 // FIXME ASYNC
   new pqSaveDataReaction(ui.actionSaveData);
+#else
+  ui.actionSaveData->setEnabled(false);
+#endif
   new pqServerConnectReaction(ui.actionServerConnect);
   new pqServerDisconnectReaction(ui.actionServerDisconnect);
+#if 0 // FIXME ASYNC
   new pqDeleteReaction(ui.actionDelete, true);
   new pqUndoRedoReaction(ui.actionUndo, true);
   new pqUndoRedoReaction(ui.actionRedo, false);
+#else
+  ui.actionDelete->setEnabled(false);
+  ui.actionUndo->setEnabled(false);
+  ui.actionRedo->setEnabled(false);
+#endif
   new pqAutoApplyReaction(ui.actionAutoApply);
+#if 0 // FIXME ASYNC
   new pqDataQueryReaction(ui.actionQuery);
+#else
+  ui.actionQuery->setEnabled(false);
+#endif
   new pqLoadPaletteReaction(ui.actionLoadPalette);
   new pqSaveStateReaction(ui.actionSaveState);
+#if 0 // FIXME ASYNC
   new pqSaveExtractsReaction(ui.actionGenerateExtracts);
+#else
+  ui.actionGenerateExtracts->setEnabled(false);
+#endif
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   new pqCatalystExportReaction(ui.actionSaveCatalystState);
 #else

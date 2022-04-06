@@ -35,6 +35,7 @@
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSourceProxy.h"
 // #include "vtkSMSettingsProxy.h"
+#include "vtkLogger.h"
 #include "vtkPVDataInformation.h"
 #include "vtkSMOutputPort.h"
 #include "vtkSMStateLoader.h"
@@ -188,6 +189,9 @@ vtkSMProxy* vtkSMSessionProxyManager::NewProxy(
     proxy->AddObserver(vtkCommand::PropertyModifiedEvent, internals.Observer);
     proxy->AddObserver(vtkCommand::StateChangedEvent, internals.Observer);
     proxy->AddObserver(vtkCommand::UpdateInformationEvent, internals.Observer);
+
+    // UpdateEvent is fired when vtkSMProxy::UpdateVTKObjects() is called.
+    proxy->AddObserver(vtkCommand::UpdateEvent, internals.Observer);
 
     return proxy;
   }
@@ -789,7 +793,9 @@ void vtkSMSessionProxyManager::ExecuteEvent(vtkObject* obj, unsigned long event,
         break;
 
       case vtkCommand::UpdateEvent:
-        // Proxy has been updated.
+        // Proxy has been updated i.e. vtkSMProxy::UpdateVTKObjects() has been
+        // called.
+        this->InvokeEvent(vtkCommand::UpdateEvent, proxy);
         break;
     }
   }

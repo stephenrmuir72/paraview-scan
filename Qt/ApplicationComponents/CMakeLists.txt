@@ -37,6 +37,7 @@ set(classes
   pqApplicationComponentsInit
   pqApplicationSettingsReaction
   pqApplyPropertiesReaction
+  pqAutoApplyReaction
   pqBackgroundEditorWidget
   pqBoolPropertyWidgetDecorator
   pqCameraManipulatorWidget
@@ -77,9 +78,11 @@ set(classes
   pqListPropertyWidget
   pqLoadDataReaction
   pqLoadMaterialsReaction
+  pqLoadPaletteReaction
   pqLoadStateReaction
   pqLockPanelsBehavior
   pqLockPanelsReaction
+  pqMainControlsToolbar
   pqManageFavoritesReaction
   pqMasterOnlyReaction
   pqMenuReactionUtils
@@ -114,7 +117,6 @@ set(classes
 
 set(old_classes
   pqAnimationTimeToolbar
-  pqAutoApplyReaction
   pqAutoLoadPluginXMLBehavior
   pqAxesToolbar
   pqBlockContextMenu
@@ -156,10 +158,8 @@ set(old_classes
   pqLinePropertyWidget
   pqLinkSelectionReaction
   pqLiveSourceBehavior
-  pqLoadPaletteReaction
   pqLoadRestoreWindowLayoutReaction
   pqLogViewerReaction
-  pqMainControlsToolbar
   pqMainWindowEventBehavior
   pqManageCustomFiltersReaction
   pqManageLinksReaction

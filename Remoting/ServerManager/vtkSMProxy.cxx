@@ -34,6 +34,7 @@
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMProxyManager.h"
+#include "vtkSMProxyProperty.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
 
@@ -1588,15 +1589,11 @@ void vtkSMProxy::Copy(vtkSMProxy* src, const char* exceptionClass, int proxyProp
       {
         if (!exceptionClass || !dest->IsA(exceptionClass))
         {
-#if 0 // FIXME: ASYNC
           vtkSMProxyProperty* pp = vtkSMProxyProperty::SafeDownCast(dest);
           if (!pp || proxyPropertyCopyFlag == vtkSMProxy::COPY_PROXY_PROPERTY_VALUES_BY_REFERENCE)
           {
             dest->Copy(source);
           }
-#else
-          abort();
-#endif
         }
       }
     }

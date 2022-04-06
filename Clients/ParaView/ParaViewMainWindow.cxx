@@ -181,11 +181,13 @@ ParaViewMainWindow::ParaViewMainWindow()
   pqParaViewMenuBuilders::buildEditMenu(
     *this->Internals->menu_Edit, this->Internals->propertiesPanel);
 
-  // Populate sources menu.
-  pqParaViewMenuBuilders::buildSourcesMenu(*this->Internals->menuSources, this);
+  pqParaViewMenuBuilders::buildToolbars(*this);
 
   // Populate filters menu.
   pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuFilters, this);
+
+  // Populate sources menu.
+  pqParaViewMenuBuilders::buildSourcesMenu(*this->Internals->menuSources, this);
 
   // Populate extractors menu.
   pqParaViewMenuBuilders::buildExtractorsMenu(*this->Internals->menuExtractors, this);
@@ -199,8 +201,6 @@ ParaViewMainWindow::ParaViewMainWindow()
   // setup the context menu for the pipeline browser.
   pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
     *this->Internals->pipelineBrowser->contextMenu());
-
-  pqParaViewMenuBuilders::buildToolbars(*this);
 
   // Setup the View menu. This must be setup after all toolbars and dockwidgets
   // have been created.
