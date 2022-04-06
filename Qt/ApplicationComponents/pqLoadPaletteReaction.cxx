@@ -35,13 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMenu>
 
 #include "pqActiveObjects.h"
-#include "pqApplicationCore.h"
 #include "pqApplicationSettingsReaction.h"
 #include "pqUndoStack.h"
 #include "vtkLogger.h"
-#include "vtkPVProxyDefinitionIterator.h"
+#include "vtkPVGUIApplication.h"
+#include "vtkProxyDefinitionManager.h"
 #include "vtkSMProxy.h"
-#include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
 #include "vtkSMTrace.h"
@@ -90,7 +89,7 @@ void pqLoadPaletteReaction::populateMenu()
   vtkSMSessionProxyManager* pxm = pqActiveObjects::instance().proxyManager();
   assert(pxm);
 
-  vtkSMProxyDefinitionManager* pdmgr = pxm->GetProxyDefinitionManager();
+  auto* pdmgr = pxm->GetProxyDefinitionManager();
   assert(pdmgr);
 
   // Palette ordering / ban list can be found in issue #20707
@@ -114,21 +113,19 @@ void pqLoadPaletteReaction::populateMenu()
   }
 
   // If there were any other available palettes, we append them in alphabetical order.
-  vtkSmartPointer<vtkPVProxyDefinitionIterator> iter;
-  iter.TakeReference(pdmgr->NewSingleGroupIterator("palettes"));
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  for (const auto& el : pdmgr->GetDefinitions("palettes"))
   {
-    if (vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", iter->GetProxyName()))
+    if (vtkSMProxy* prototype = pxm->GetPrototypeProxy("palettes", el.GetName().c_str()))
     {
-      if (std::find(mainPalettes.cbegin(), mainPalettes.cend(),
-            std::string(iter->GetProxyName())) != mainPalettes.cend())
+      if (std::find(mainPalettes.cbegin(), mainPalettes.cend(), el.GetName()) !=
+        mainPalettes.cend())
       {
         // skip main palettes since already added.
         continue;
       }
       QAction* actn = menu->addAction(prototype->GetXMLLabel());
       actn->setProperty("PV_XML_GROUP", "palettes");
-      actn->setProperty("PV_XML_NAME", iter->GetProxyName());
+      actn->setProperty("PV_XML_NAME", el.GetName().c_str());
     }
   }
   menu->addAction("Edit Current Palette ...");
@@ -160,7 +157,7 @@ void pqLoadPaletteReaction::actionTriggered(QAction* actn)
     // restart.
     vtkSMSettings* settings = vtkSMSettings::GetInstance();
     settings->SetProxySettings(paletteProxy, nullptr);
-    pqApplicationCore::instance()->render();
+    // pqApplicationCore::instance()->render();
   }
   else
   {

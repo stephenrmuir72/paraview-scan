@@ -31,43 +31,60 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "pqAutoApplyReaction.h"
 
-#include "pqCoreUtilities.h"
-#include "vtkCommand.h"
-#include "vtkPVGeneralSettings.h"
+#include "pqActiveObjects.h"
+#include "pqServer.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMProxy.h"
 
 //-----------------------------------------------------------------------------
 pqAutoApplyReaction::pqAutoApplyReaction(QAction* parentObject)
   : Superclass(parentObject)
 {
-  parentObject->setChecked(this->autoApply());
-  QObject::connect(parentObject, SIGNAL(triggered(bool)), this, SLOT(checkStateChanged(bool)));
-
-  vtkPVGeneralSettings* gs = vtkPVGeneralSettings::GetInstance();
-  pqCoreUtilities::connect(gs, vtkCommand::ModifiedEvent, this, SLOT(updateState()));
+  this->connect(
+    &pqActiveObjects::instance(), SIGNAL(serverChanged(pqServer*)), SLOT(updateEnableState()));
+  this->updateEnableState();
 }
 
 //-----------------------------------------------------------------------------
-void pqAutoApplyReaction::checkStateChanged(bool autoAccept)
+void pqAutoApplyReaction::onTriggered()
 {
-  pqAutoApplyReaction::setAutoApply(autoAccept);
+  pqAutoApplyReaction::setAutoApply(this->parentAction()->isChecked());
 }
 
 //-----------------------------------------------------------------------------
 bool pqAutoApplyReaction::autoApply()
 {
-  return vtkPVGeneralSettings::GetInstance()->GetAutoApply();
+  auto* server = pqActiveObjects::instance().activeServer();
+  if (auto* gsettings = server ? server->settingsProxy("GeneralSettings") : nullptr)
+  {
+    return vtkSMPropertyHelper(gsettings, "AutoApply").GetAsInt() == 1;
+  }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
 void pqAutoApplyReaction::setAutoApply(bool autoAccept)
 {
-  vtkPVGeneralSettings::GetInstance()->SetAutoApply(autoAccept);
-  // FIXME: How should this change be saved in vtkSMSettings?
+  auto* server = pqActiveObjects::instance().activeServer();
+  if (auto* gsettings = server ? server->settingsProxy("GeneralSettings") : nullptr)
+  {
+    vtkSMPropertyHelper(gsettings, "AutoApply").Set(autoAccept ? 1 : 0);
+    gsettings->UpdateVTKObjects();
+  }
 }
 
 //-----------------------------------------------------------------------------
-void pqAutoApplyReaction::updateState()
+void pqAutoApplyReaction::updateEnableState()
 {
-  vtkPVGeneralSettings* gs = vtkPVGeneralSettings::GetInstance();
-  this->parentAction()->setChecked(gs->GetAutoApply());
+  auto* server = pqActiveObjects::instance().activeServer();
+  const bool enabled = server != nullptr;
+  const bool checked = server ? this->autoApply() : false;
+  auto* actn = this->parentAction();
+  actn->setEnabled(enabled);
+  actn->setChecked(checked);
+  if (server)
+  {
+    QObject::connect(server, SIGNAL(settingsProxyChanged()), this, SLOT(updateEnableState()),
+      Qt::UniqueConnection);
+  }
 }

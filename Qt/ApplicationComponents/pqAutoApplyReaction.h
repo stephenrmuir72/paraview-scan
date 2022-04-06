@@ -57,8 +57,8 @@ public:
   static bool autoApply();
 
 protected Q_SLOTS:
-  void updateState();
-  void checkStateChanged(bool);
+  void onTriggered() override;
+  void updateEnableState() override;
 
 private:
   Q_DISABLE_COPY(pqAutoApplyReaction)
