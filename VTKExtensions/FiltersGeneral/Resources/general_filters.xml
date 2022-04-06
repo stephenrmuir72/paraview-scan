@@ -674,7 +674,7 @@ array.
       </InputProperty>
       <StringVectorProperty animateable="0"
                             command="SetInputArrayToProcess"
-                            element_types="int int int int str"
+                            element_types="0 0 0 0 2"
                             label="Contour By"
                             name="SelectInputScalars"
                             number_of_elements="5">

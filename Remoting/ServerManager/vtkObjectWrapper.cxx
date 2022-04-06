@@ -211,14 +211,25 @@ void vtkObjectWrapper::UpdateState(const vtkNJson& state, vtkRemoteObjectProvide
 
       case vtkSMProperty::STRING:
       {
-        auto values = value.at("elements").get<std::vector<std::string>>();
-        bool isEmptyVector =
-          std::all_of(values.begin(), values.end(), [](const std::string& v) { return v.empty(); });
-        // FIXME wrapper generated code should handle this case
-        if (!isEmptyVector)
-        {
-          vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
-        }
+        auto objects = value.at("elements");
+        std::vector<vtkVariant> values(objects.size());
+        std::transform(objects.begin(), objects.end(), values.begin(), [](const vtkNJson& value) {
+          if (value.type() == vtkNJson::value_t::string)
+          {
+            return vtkVariant(value.get<std::string>());
+          }
+          if (value.type() == vtkNJson::value_t::number_integer ||
+            value.type() == vtkNJson::value_t::number_unsigned)
+          {
+            return vtkVariant(value.get<int64_t>());
+          }
+          if (value.type() == vtkNJson::value_t::number_float)
+          {
+            return vtkVariant(value.get<double>());
+          }
+          return vtkVariant();
+        });
+        vtkReflection::Set(internals.VTKObject, pinfo.Method, values);
       }
       break;
 
