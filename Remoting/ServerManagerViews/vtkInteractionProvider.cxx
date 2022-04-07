@@ -15,6 +15,8 @@
 #include "vtkInteractionProvider.h"
 
 #include "vtkCamera.h"
+#include "vtkCommunicator.h"
+#include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
 #include "vtkPVLogger.h"
@@ -138,6 +140,9 @@ void vtkInteractionProvider::InitializeInternal(vtkService* service)
 {
   assert(service != nullptr);
   auto& internals = (*this->Internals);
+  auto* sController = service->GetController();
+  const int numRanks = sController->GetNumberOfProcesses();
+
   service->GetRequestObservable(/*skipEventLoop*/ true)
     .filter([](const vtkServiceReceiver& receiver) {
       const auto& json = receiver.GetPacket().GetJSON();
@@ -155,13 +160,32 @@ void vtkInteractionProvider::InitializeInternal(vtkService* service)
       return std::make_tuple(tag, gid, camera);
     })
     .observe_on(service->GetRunLoopScheduler())
+    .map(rxcpp::util::apply_to([&internals, sController, numRanks](uint64_t tag, vtkTypeUInt32 gid,
+                                 const vtkSmartPointer<vtkCamera>& camera) {
+      /**
+       * This function ensures that all ranks make the same decision on
+       * whether to render this message i.e. if this message is most recent
+       * message any of the ranks has received.
+       */
+      uint64_t ltag = internals.Tag;
+      uint64_t gtag = ltag;
+      if (numRanks > 1)
+      {
+        sController->AllReduce(&ltag, &gtag, 1, vtkCommunicator::MAX_OP);
+      }
+      return std::make_tuple(tag == gtag, gid, camera);
+    }))
     .filter(rxcpp::util::apply_to(
-      [&internals](uint64_t tag, vtkTypeUInt32 vtkNotUsed(gid),
-        const vtkSmartPointer<vtkCamera>& vtkNotUsed(camera)) { return internals.Tag == tag; }))
+      [&internals](bool doRender, vtkTypeUInt32 vtkNotUsed(gid),
+        const vtkSmartPointer<vtkCamera>& vtkNotUsed(camera)) { return doRender; }))
+    .map(rxcpp::util::apply_to(
+      [&internals](bool, vtkTypeUInt32 gid, const vtkSmartPointer<vtkCamera>& camera) {
+        return std::make_tuple(gid, camera);
+      }))
     .subscribe(internals.Subscription,
       rxcpp::util::apply_to(
-        [&internals](uint64_t tag, vtkTypeUInt32 gid, const vtkSmartPointer<vtkCamera>& camera) {
-          vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "do-render %ld, gid=%u", tag, gid);
+        [&internals](vtkTypeUInt32 gid, const vtkSmartPointer<vtkCamera>& camera) {
+          vtkVLogScopeF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "do-render gid=%u", gid);
           internals.Render(gid, camera);
         }));
 }
