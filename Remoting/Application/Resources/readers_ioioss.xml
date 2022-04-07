@@ -57,16 +57,14 @@
       <StringVectorProperty name="EdgeBlockInfo"
         command="GetEdgeBlockSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="EdgeBlocks"
-        command="GetEdgeBlockSelection"
+        command="SetEdgeBlockSelection"
         information_property="EdgeBlockInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="EdgeBlockInfo" />
@@ -81,16 +79,14 @@
       <StringVectorProperty name="FaceBlockInfo"
         command="GetFaceBlockSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="FaceBlocks"
-        command="GetFaceBlockSelection"
+        command="SetFaceBlockSelection"
         information_property="FaceBlockInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="FaceBlockInfo" />
@@ -105,16 +101,14 @@
       <StringVectorProperty name="ElementBlockInfo"
         command="GetElementBlockSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="ElementBlocks"
-        command="GetElementBlockSelection"
+        command="SetElementBlockSelection"
         information_property="ElementBlockInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="ElementBlockInfo" />
@@ -130,16 +124,14 @@
       <StringVectorProperty name="StructuredBlockInfo"
         command="GetStructuredBlockSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="StructuredBlocks"
-        command="GetStructuredBlockSelection"
+        command="SetStructuredBlockSelection"
         information_property="StructuredBlockInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="StructuredBlockInfo" />
@@ -154,16 +146,14 @@
       <StringVectorProperty name="NodeBlockFieldInfo"
         command="GetNodeBlockFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="NodeBlockFields"
-        command="GetNodeBlockFieldSelection"
+        command="SetNodeBlockFieldSelection"
         information_property="NodeBlockFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="NodeBlockFieldInfo" />
@@ -178,16 +168,14 @@
       <StringVectorProperty name="EdgeBlockFieldInfo"
         command="GetEdgeBlockFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="EdgeBlockFields"
-        command="GetEdgeBlockFieldSelection"
+        command="SetEdgeBlockFieldSelection"
         information_property="EdgeBlockFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="EdgeBlockFieldInfo" />
@@ -202,16 +190,14 @@
       <StringVectorProperty name="FaceBlockFieldInfo"
         command="GetFaceBlockFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="FaceBlockFields"
-        command="GetFaceBlockFieldSelection"
+        command="SetFaceBlockFieldSelection"
         information_property="FaceBlockFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="FaceBlockFieldInfo" />
@@ -226,16 +212,14 @@
       <StringVectorProperty name="ElementBlockFieldInfo"
         command="GetElementBlockFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="ElementBlockFields"
-        command="GetElementBlockFieldSelection"
+        command="SetElementBlockFieldSelection"
         information_property="ElementBlockFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="ElementBlockFieldInfo" />
@@ -250,16 +234,14 @@
       <StringVectorProperty name="StructuredBlockFieldInfo"
         command="GetStructuredBlockFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="StructuredBlockFields"
-        command="GetStructuredBlockFieldSelection"
+        command="SetStructuredBlockFieldSelection"
         information_property="StructuredBlockFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="StructuredBlockFieldInfo" />
@@ -274,16 +256,14 @@
       <StringVectorProperty name="NodeSetInfo"
         command="GetNodeSetSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="NodeSets"
-        command="GetNodeSetSelection"
+        command="SetNodeSetSelection"
         information_property="NodeSetInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="NodeSetInfo" />
@@ -298,16 +278,14 @@
       <StringVectorProperty name="EdgeSetInfo"
         command="GetEdgeSetSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="EdgeSets"
-        command="GetEdgeSetSelection"
+        command="SetEdgeSetSelection"
         information_property="EdgeSetInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="EdgeSetInfo" />
@@ -322,16 +300,14 @@
       <StringVectorProperty name="FaceSetInfo"
         command="GetFaceSetSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="FaceSets"
-        command="GetFaceSetSelection"
+        command="SetFaceSetSelection"
         information_property="FaceSetInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="FaceSetInfo" />
@@ -346,16 +322,14 @@
       <StringVectorProperty name="ElementSetInfo"
         command="GetElementSetSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="ElementSets"
-        command="GetElementSetSelection"
+        command="SetElementSetSelection"
         information_property="ElementSetInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="ElementSetInfo" />
@@ -370,16 +344,14 @@
       <StringVectorProperty name="SideSetInfo"
         command="GetSideSetSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="SideSets"
-        command="GetSideSetSelection"
+        command="SetSideSetSelection"
         information_property="SideSetInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="SideSetInfo" />
@@ -394,16 +366,14 @@
       <StringVectorProperty name="NodeSetFieldInfo"
         command="GetNodeSetFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="NodeSetFields"
-        command="GetNodeSetFieldSelection"
+        command="SetNodeSetFieldSelection"
         information_property="NodeSetFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="NodeSetFieldInfo" />
@@ -418,16 +388,14 @@
       <StringVectorProperty name="EdgeSetFieldInfo"
         command="GetEdgeSetFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="EdgeSetFields"
-        command="GetEdgeSetFieldSelection"
+        command="SetEdgeSetFieldSelection"
         information_property="EdgeSetFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="EdgeSetFieldInfo" />
@@ -442,16 +410,14 @@
       <StringVectorProperty name="FaceSetFieldInfo"
         command="GetFaceSetFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="FaceSetFields"
-        command="GetFaceSetFieldSelection"
+        command="SetFaceSetFieldSelection"
         information_property="FaceSetFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1" >
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="FaceSetFieldInfo" />
@@ -466,16 +432,14 @@
       <StringVectorProperty name="ElementSetFieldInfo"
         command="GetElementSetFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="ElementSetFields"
-        command="GetElementSetFieldSelection"
+        command="SetElementSetFieldSelection"
         information_property="ElementSetFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="ElementSetFieldInfo" />
@@ -490,16 +454,14 @@
       <StringVectorProperty name="SideSetFieldInfo"
         command="GetSideSetFieldSelection"
         number_of_elements_per_command="2"
-        information_only="1"
-        si_class="vtkSIDataArraySelectionProperty" />
+        information_only="1" />
 
       <StringVectorProperty name="SideSetFields"
-        command="GetSideSetFieldSelection"
+        command="SetSideSetFieldSelection"
         information_property="SideSetFieldInfo"
         number_of_elements_per_command="2"
         element_types="2 0"
-        repeat_command="1"
-        si_class="vtkSIDataArraySelectionProperty">
+        repeat_command="1">
         <ArraySelectionDomain name="array_list">
           <RequiredProperties>
             <Property function="ArrayList" name="SideSetFieldInfo" />
