@@ -170,6 +170,14 @@ void vtkObjectWrapper::UpdateState(const vtkNJson& state, vtkRemoteObjectProvide
 {
   auto& internals = (*this->Internals);
   internals.LogName = state.at("log_name").get<std::string>();
+
+  // Clean up the abort flag of the algorithm
+  // FIXME multiple update states will mess up the flag . Use message tags and reset abort only for the last one
+  if (vtkAlgorithm* algorithm = vtkAlgorithm::SafeDownCast(this->GetVTKObject()))
+  {
+    vtkReflection::Set(algorithm, "SetAbortExecute", std::vector<vtkVariant>{false});
+  }
+
   for (auto& el : state.at("properties").items())
   {
     const auto& key = el.key();

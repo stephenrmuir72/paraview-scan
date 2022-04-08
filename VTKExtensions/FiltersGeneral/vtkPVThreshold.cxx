@@ -97,6 +97,7 @@ int vtkPVThreshold::RequestData(
     inputClone->FastDelete();
 
     thresholdFilter->SetInputArrayToProcess(0, this->GetInputArrayInformation(0));
+    thresholdFilter->SetContainerAlgorithm(this);
     thresholdFilter->Update();
     outDataObj->ShallowCopy(thresholdFilter->GetOutput(0));
 

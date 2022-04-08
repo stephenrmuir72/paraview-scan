@@ -356,6 +356,7 @@ paraview_require_module(
             ParaView::VTKExtensionsAMR
             ParaView::VTKExtensionsFiltersGeneral
             VTK::IOIOSS
+            VTK::IOParallel
   )
 
 paraview_require_module(

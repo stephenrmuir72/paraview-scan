@@ -61,7 +61,27 @@ public:
     this->Subscription.unsubscribe();
   }
 
-  void Preview(const vtkPacket& packet) {}
+  void Preview(const vtkPacket& packet)
+  {
+    const auto json = packet.GetJSON();
+    const auto type = json.at("type").get<std::string>();
+    if (type == "vtk-remote-object-update-state")
+    {
+      const auto gid = json.at("gid").get<vtkTypeUInt32>();
+      vtkSmartPointer<vtkObjectWrapper> objWrapper =
+        this->ObjectStore->FindObject<vtkObjectWrapper>(gid);
+      if (!objWrapper)
+      {
+        return;
+      }
+
+      if (vtkAlgorithm* algorithm = vtkAlgorithm::SafeDownCast(objWrapper->GetVTKObject()))
+      {
+        vtkLogF(INFO, "Abort for gid %u", gid);
+        vtkReflection::Set(algorithm, "SetAbortExecuteAndUpdateTime", std::vector<vtkVariant>{});
+      }
+    }
+  }
 
   vtkPacket Process(const vtkPacket& packet);
 
@@ -101,7 +121,6 @@ private:
    * Find (or create) object.
    */
   vtkSmartPointer<vtkObjectWrapper> GetObject(vtkTypeUInt32 gid, const vtkNJson& state);
-
 
   void SetupObservers(vtkObjectWrapper* wrapper) const;
 };
