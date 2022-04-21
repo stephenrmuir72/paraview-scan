@@ -86,6 +86,17 @@ QList<pqPipelineSource*> pqLoadDataReaction::loadData()
 QList<pqPipelineSource*> pqLoadDataReaction::loadData(const ReaderSet& readerSet)
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
+  if (!server)
+  {
+    return QList<pqPipelineSource*>();
+  }
+
+  vtkSMSession* session = server->session();
+  if (!session)
+  {
+    return QList<pqPipelineSource*>();
+  }
+
   vtkSMReaderFactory* readerFactory = vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
 
   std::vector<FileTypeDetailed> filtersDetailed =
@@ -243,8 +254,14 @@ QVector<pqPipelineSource*> pqLoadDataReaction::loadFilesForSupportedTypes(QList<
 QVector<pqPipelineSource*> pqLoadDataReaction::loadFilesForAllTypes(
   QList<QStringList> files, pqServer* server, vtkSMReaderFactory* readerFactory)
 {
+  vtkSMSession* session = server->session();
+  if (!session)
+  {
+    return QVector<pqPipelineSource*>();
+  }
+
   QVector<pqPipelineSource*> newSources;
-  vtkStringList* list = readerFactory->GetReaders(server->session());
+  vtkStringList* list = readerFactory->GetReaders(session);
   for (QStringList const& fileGroups : files)
   {
     pqSelectReaderDialog prompt(fileGroups[0], server, list, pqCoreUtilities::mainWidget());
@@ -408,15 +425,27 @@ pqPipelineSource* pqLoadDataReaction::loadData(
 bool pqLoadDataReaction::TestFileReadability(
   const QString& file, pqServer* server, vtkSMReaderFactory* vtkNotUsed(factory))
 {
-  return vtkSMReaderFactory::TestFileReadability(file.toUtf8().data(), server->session());
+  vtkSMSession* session = server->session();
+  if (!session)
+  {
+    return false;
+  }
+
+  return vtkSMReaderFactory::TestFileReadability(file.toUtf8().data(), session);
 }
 
 //-----------------------------------------------------------------------------
 bool pqLoadDataReaction::DetermineFileReader(const QString& filename, pqServer* server,
   vtkSMReaderFactory* factory, QPair<QString, QString>& readerInfo)
 {
+  vtkSMSession* session = server->session();
+  if (!session)
+  {
+    return false;
+  }
+
   QString readerType, readerGroup;
-  vtkStringList* list = factory->GetReaders(filename.toUtf8().data(), server->session());
+  vtkStringList* list = factory->GetReaders(filename.toUtf8().data(), session);
   if (list->GetLength() > 3)
   {
     // If more than one readers found.
@@ -487,6 +516,12 @@ pqPipelineSource* pqLoadDataReaction::LoadFile(
 void pqLoadDataReaction::addReaderToDefaults(QString const& readerName, pqServer* server,
   vtkSMReaderFactory* readerFactory, QString const& customPattern)
 {
+  vtkSMSession* session = server->session();
+  if (!session)
+  {
+    return;
+  }
+
   auto pxm = server ? server->proxyManager() : nullptr;
   auto settingsProxy = pxm
     ? vtkSMSettingsProxy::SafeDownCast(pxm->GetProxy("settings", "RepresentedArrayListSettings"))
@@ -498,7 +533,7 @@ void pqLoadDataReaction::addReaderToDefaults(QString const& readerName, pqServer
 
   std::string const readerNameString = readerName.toStdString();
 
-  auto filtersDetailed = readerFactory->GetSupportedFileTypesDetailed(server->session());
+  auto filtersDetailed = readerFactory->GetSupportedFileTypesDetailed(session);
   auto readerIt = std::find_if(filtersDetailed.begin(), filtersDetailed.end(),
     [&](FileTypeDetailed const& fileType) { return fileType.Name == readerNameString; });
 
