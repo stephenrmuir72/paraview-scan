@@ -193,14 +193,13 @@
       <StringVectorProperty animateable="0"
                             command="SetInputArrayToProcess"
                             default_values_delimiter=";"
-                            default_values="0;1;0;0;None"
+                            default_values="0;1;0;0;ParticleVelocity"
                             element_types="0 0 0 0 2"
                             label="Particle Initial Velocity"
                             name="ParticleInitialVelocity"
                             number_of_elements="5">
         <ArrayListDomain attribute_type="Vectors"
                          input_domain_name="source_array_3"
-                         none_string="None"
                          name="array_list">
           <RequiredProperties>
             <Property function="Input"
@@ -210,24 +209,39 @@
         <Documentation>This property contains the name of the vector array from
         the seeds to use as initial particle velocity.</Documentation>
       </StringVectorProperty>
+      <IntVectorProperty command="SetUseInitialIntegrationTime"
+                         default_values="0"
+                         name="UseInitialIntegrationTime"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <Documentation>
+        Set whether to use an initial integration time array from input
+        instead of zero values.
+        </Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
       <StringVectorProperty animateable="0"
                             command="SetInputArrayToProcess"
                             default_values_delimiter=";"
-                            default_values="1;1;0;0;None"
+                            default_values="1;1;0;0;ParticleInitialIntegrationTime"
                             element_types="0 0 0 0 2"
                             label="Particle Initial Integration Time"
                             name="ParticleInitialIntegrationTime"
                             number_of_elements="5"
                             panel_visibility="advanced">
-        <ArrayListDomain attribute_type="Scalars"
+        <ArrayListDomain attribute_type="Vectors"
                          input_domain_name="source_array_1"
-                         none_string="None"
                          name="array_list">
           <RequiredProperties>
             <Property function="Input"
                       name="DummySource" />
           </RequiredProperties>
         </ArrayListDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="ShowWidgetDecorator">
+            <Property name="UseInitialIntegrationTime" function="boolean" />
+          </PropertyWidgetDecorator>
+        </Hints>
         <Documentation>This property contains the name of the scalar array from
         the seeds to use as initial particle integration time.</Documentation>
       </StringVectorProperty>
@@ -293,31 +307,6 @@
   </ProxyGroup>
   <!-- ==================================================================== -->
   <ProxyGroup name="lagrangian_integration_models">
-    <Proxy base_proxygroup="lagrangian_integration_models_abstract"
-           base_proxyname="BasicIntegrationModel"
-           class="vtkLagrangianSimpleIntegrationModel"
-           name="SimpleIntegrationModel"
-           label="Simple Integration Model">
-      <StringVectorProperty animateable="0"
-                            command="SetInputArrayToProcess"
-                            default_values_delimiter=";"
-                            default_values="3;0;0;3;FlowVelocity"
-                            element_types="0 0 0 0 2"
-                            label="Flow Velocity"
-                            name="FlowVelocity"
-                            number_of_elements="5">
-        <ArrayListDomain name="array_list"
-                         attribute_type="Vectors"
-                         input_domain_name="input_array_3">
-          <RequiredProperties>
-            <Property function="Input"
-                      name="DummyInput" />
-          </RequiredProperties>
-        </ArrayListDomain>
-        <Documentation>This property contains the name of
-        the array to use as flow velocity.</Documentation>
-      </StringVectorProperty>
-    </Proxy>
     <Proxy base_proxygroup="lagrangian_integration_models_abstract"
            base_proxyname="BasicIntegrationModel"
            class="vtkLagrangianMatidaIntegrationModel"
@@ -450,6 +439,12 @@
                         name="input_type">
           <DataType value="vtkDataSet" />
         </DataTypeDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="source_array_3"
+                          number_of_components="3" />
+        <InputArrayDomain attribute_type="point"
+                          name="source_array_1"
+                          number_of_components="1" />
         <Documentation>This property specifies the input used to obtain the
         seed points to generate particles.</Documentation>
       </InputProperty>
