@@ -569,6 +569,20 @@ void vtkImageVolumeRepresentation::SetVolumetricScatteringBlending(float val)
   this->Modified();
 }
 
+//-----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetJittering(bool val)
+{
+  if(auto smartVolumeMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    smartVolumeMapper->SetUseJittering(val);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetUseJittering(val);
+  }
+  this->Modified();
+}
+
 //----------------------------------------------------------------------------
 void vtkImageVolumeRepresentation::SetSliceFunction(vtkImplicitFunction* slice)
 {

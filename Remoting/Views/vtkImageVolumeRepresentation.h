@@ -80,6 +80,7 @@ public:
   void SetSpecularPower(double);
   void SetShade(bool);
   void SetAnisotropy(float);
+  void SetJittering(bool);
   void SetSliceFunction(vtkImplicitFunction* slice);
 
   //@{
