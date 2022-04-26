@@ -3,6 +3,7 @@ set -e
 
 # Append own public key as authorized so we can ssh localhost
 mkdir ~/.ssh
+ssh-keygen -t rsa -q -f "$HOME/.ssh/id_rsa" -N ""
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 # Append ourself to the known hosts to avoid interactive prompt
