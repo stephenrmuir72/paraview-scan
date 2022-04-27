@@ -584,6 +584,20 @@ void vtkImageVolumeRepresentation::SetJittering(bool val)
 }
 
 //----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetComputeNormalFromOpacity(bool val)
+{
+  if(auto smartVolumeMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    smartVolumeMapper->SetComputeNormalFromOpacity(val);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetComputeNormalFromOpacity(val);
+  }
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
 void vtkImageVolumeRepresentation::SetSliceFunction(vtkImplicitFunction* slice)
 {
   this->Property->SetSliceFunction(slice);

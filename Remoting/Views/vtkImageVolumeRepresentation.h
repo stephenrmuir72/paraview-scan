@@ -81,6 +81,7 @@ public:
   void SetShade(bool);
   void SetAnisotropy(float);
   void SetJittering(bool);
+  void SetComputeNormalFromOpacity(bool);
   void SetSliceFunction(vtkImplicitFunction* slice);
 
   //@{

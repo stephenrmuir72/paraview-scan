@@ -5627,6 +5627,13 @@
         <BooleanDomain name="bool" />
         <Documentation>Enable/Disable jittering.</Documentation>
       </IntVectorProperty>
+      <IntVectorProperty command="SetComputeNormalFromOpacity"
+                         default_values="0"
+                         name="Normals from Opacity"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Enable/Disable shading normals estimation from opacity instead of scalars.</Documentation>
+      </IntVectorProperty>
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
                          name="MapScalars"
