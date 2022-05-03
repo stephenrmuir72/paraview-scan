@@ -7226,7 +7226,7 @@ void readrays(FILE* gmvrayin, int ftype)
 
    if (ftype == ASCII)
      {
-      int res = fscanf(gmvrayin,"%ld %ld",&lrays,&lrayvars); (void) res;
+      int res = fscanf(gmvrayin,"%" PRIu64 "d %" PRIu64 "d",&lrays,&lrayvars); (void) res;
       if (ioerrtst2(gmvrayin)) return;
      }
    else
@@ -7266,7 +7266,7 @@ void readrays(FILE* gmvrayin, int ftype)
      }
 
    if (printon)
-      printf("Reading %ld rays.\n",lrays);
+      printf("Reading %" PRIu64 "d rays.\n",lrays);
 
    /*  Allocate and read variable 8 or 32 char. names and types.  */
    varnames = (char *)malloc(lrayvars*MAXCUSTOMNAMELENGTH*sizeof(char));
@@ -7484,7 +7484,7 @@ void readrayids(FILE* gmvrayin, int ftype)
   /*  Read and set alternate node numbers (ids).  */
   /*                                              */
   int i, *lrayids = NULL;
-  long *tmpids;
+  int64_t *tmpids;
 
    /*  Allocate ray ids.  */
    FREE(gmvray_data.rayids);
