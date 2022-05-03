@@ -63,7 +63,7 @@ public:
 
   void Preview(const vtkPacket& packet)
   {
-    const auto json = packet.GetJSON();
+    const auto& json = packet.GetJSON();
     const auto type = json.at("type").get<std::string>();
     if (type == "vtk-remote-object-update-state")
     {

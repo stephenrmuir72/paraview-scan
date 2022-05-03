@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkRemoteObjectProviderViews.h"
 
+#include "vtkCamera.h"
 #include "vtkChannelSubscription.h"
 #include "vtkObjectFactory.h"
 #include "vtkObjectStore.h"
@@ -27,6 +28,47 @@
 #include "vtkSmartPointer.h"
 
 #include <cassert>
+namespace
+{
+void FromJSON(vtkCamera* camera, const vtkNJson& json)
+{
+  double viewUp[3];
+  double position[3];
+  double focalPoint[3];
+  double viewAngle;
+
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, viewUp);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, position);
+  VTK_NJSON_LOAD_MEMBER_ARRAY(json, focalPoint);
+  VTK_NJSON_LOAD_MEMBER(json, viewAngle);
+
+  camera->SetViewUp(viewUp);
+  camera->SetPosition(position);
+  camera->SetFocalPoint(focalPoint);
+  camera->SetViewAngle(viewAngle);
+}
+
+vtkNJson ToJSON(vtkCamera* camera)
+{
+  double viewUp[3];
+  camera->GetViewUp(viewUp);
+
+  double position[3];
+  camera->GetPosition(position);
+
+  double focalPoint[3];
+  camera->GetFocalPoint(focalPoint);
+
+  double viewAngle = camera->GetViewAngle();
+
+  vtkNJson json;
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, viewUp);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, position);
+  VTK_NJSON_SAVE_MEMBER_ARRAY(json, focalPoint);
+  VTK_NJSON_SAVE_MEMBER(json, viewAngle);
+  return json;
+}
+} // end of namespace {}
 
 class vtkRemoteObjectProviderViews::vtkInternals
 {
@@ -221,6 +263,63 @@ vtkNJson vtkRemoteObjectProviderViews::PiggybackInformation(vtkObject* object) c
   }
 
   return this->Superclass::PiggybackInformation(object);
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProviderViews::Render(vtkTypeUInt32 gid, vtkCamera* camera)
+{
+  vtkNJson json = vtkNJson::object();
+  json["type"] = "vtk-interaction-render";
+  json["gid"] = gid;
+  json["camera"] = ::ToJSON(camera);
+  return { json };
+}
+
+//----------------------------------------------------------------------------
+void vtkRemoteObjectProviderViews::Preview(const vtkPacket& packet)
+{
+  const auto& json = packet.GetJSON();
+  const auto type = json.at("type").get<std::string>();
+  if (type == "vtk-remote-object-render")
+  {
+    const auto gid = json.at("gid").get<vtkTypeUInt32>();
+    auto view = this->GetObjectStore()->FindVTKObject<vtkPVView>(gid);
+    if (view)
+    {
+      view->DoPreviewRender();
+    }
+  }
+  else
+  {
+    this->Superclass::Preview(packet);
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkPacket vtkRemoteObjectProviderViews::Process(const vtkPacket& packet)
+{
+  const auto& json = packet.GetJSON();
+  const auto type = json.at("type").get<std::string>();
+  if (type == "vtk-remote-object-render")
+  {
+    vtkTypeUInt32 gid = json.at("gid").get<vtkTypeUInt32>();
+    auto view = this->GetObjectStore()->FindVTKObject<vtkPVView>(gid);
+    if (view)
+    {
+      if (auto* camera = view->GetActiveCamera())
+      {
+        ::FromJSON(camera, json.at("camera"));
+      }
+
+      view->DoRender();
+    }
+
+    return {};
+  }
+  else
+  {
+    return this->Superclass::Process(packet);
+  }
 }
 
 //----------------------------------------------------------------------------

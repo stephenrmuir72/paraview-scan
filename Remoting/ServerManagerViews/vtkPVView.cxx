@@ -165,6 +165,10 @@ public:
 
   mutable int LastRenderingPass{ 0 };
   mutable int LastRenderingMode{ vtkPVView::STILL_RENDER };
+
+  std::atomic<std::uint64_t> LocalPreviewRenderCounter{ 0 };
+  std::uint64_t GlobalPreviewRenderCounter{ 0 };
+  std::uint64_t RenderCounter{ 0 };
 };
 
 vtkInformationKeyMacro(vtkPVView, REQUEST_UPDATE_DATA, Request);
@@ -503,6 +507,50 @@ void vtkPVView::InteractiveRender(int pass /*=0*/)
 
   internals.LastRenderingPass = pass;
   internals.LastRenderingMode = vtkPVView::INTERACTIVE_RENDER;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::DoPreviewRender()
+{
+  // this is thread safe!
+  auto& internals = (*this->Internals);
+  ++internals.LocalPreviewRenderCounter;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVView::DoRender()
+{
+  auto& internals = (*this->Internals);
+  auto& controller = internals.Controller;
+
+  ++internals.RenderCounter;
+  if (internals.RenderCounter < internals.GlobalPreviewRenderCounter)
+  {
+    // skip this render; globally we've seen newer render requests.
+    return;
+  }
+
+  // we track local and global preview counters separately to avoid
+  // communication between ranks for render requests that are known to be
+  // obsolete since the most recent exchange among ranks.
+  const uint64_t lcounter = internals.LocalPreviewRenderCounter;
+  if (controller->GetNumberOfProcesses() > 1)
+  {
+    controller->AllReduce(
+      &lcounter, &internals.GlobalPreviewRenderCounter, 1, vtkCommunicator::MAX_OP);
+  }
+  else
+  {
+    internals.GlobalPreviewRenderCounter = lcounter;
+  }
+
+  if (internals.RenderCounter < internals.GlobalPreviewRenderCounter)
+  {
+    return;
+  }
+
+  assert(internals.RenderCounter == internals.GlobalPreviewRenderCounter);
+  this->StillRender();
 }
 
 //----------------------------------------------------------------------------

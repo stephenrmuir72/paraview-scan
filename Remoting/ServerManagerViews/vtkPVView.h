@@ -139,6 +139,11 @@ public:
    */
   void InteractiveRender(int pass = 0);
 
+  ///@{
+  void DoPreviewRender();
+  void DoRender();
+  ///@}
+
   enum RenderingModes
   {
     STILL_RENDER,

@@ -25,8 +25,9 @@
 #include "vtkRemoteObjectProvider.h"
 #include "vtkRemotingServerManagerViewsModule.h" // for exports
 
-class vtkObjectStore;
+class vtkCamera;
 class vtkMultiProcessController;
+class vtkObjectStore;
 
 class VTKREMOTINGSERVERMANAGERVIEWS_EXPORT vtkRemoteObjectProviderViews
   : public vtkRemoteObjectProvider
@@ -39,9 +40,21 @@ public:
   static const char* GetImageChannelName() { return "pvview-image-stream"; }
   static const char* GetDataChannelName() { return "pvview-data-stream"; }
 
+  ///@{
+  static vtkPacket Render(vtkTypeUInt32 gid, vtkCamera* camera);
+  ///@}
+
 protected:
   vtkRemoteObjectProviderViews();
   ~vtkRemoteObjectProviderViews();
+
+  ///@{
+  /**
+   * Overridden to preview/process render requests.
+   */
+  void Preview(const vtkPacket& packet) override;
+  vtkPacket Process(const vtkPacket& packet) override;
+  ///@}
 
   void InitializeInternal(vtkService* service) override;
 

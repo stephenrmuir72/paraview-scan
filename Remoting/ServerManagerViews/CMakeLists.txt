@@ -31,7 +31,6 @@
 set(classes
   vtkClientSessionViews
   vtkGeometryRepresentation
-  vtkInteractionProvider
   vtkOrderedCompositingHelper
   vtkPVAxesActor
   vtkPVAxesWidget
@@ -54,7 +53,6 @@ set(classes
   vtkPVSynchronizedRenderer
   vtkPVView
   vtkRemoteObjectProviderViews
-  vtkServerSessionViews
   vtkSMApplyController
   vtkSMMaterialDomain
   vtkSMParaViewPipelineControllerWithRendering
@@ -104,10 +102,6 @@ vtk_encode_string(
   SOURCE_OUTPUT colormaps_source)
 list(APPEND sources "${colormaps_source}")
 list(APPEND private_headers "${colormaps_header}")
-
-vtk_object_factory_declare(
-  BASE "vtkServerSession"
-  OVERRIDE "vtkServerSessionViews")
 
 vtk_object_factory_declare(
   BASE "vtkClientSession"

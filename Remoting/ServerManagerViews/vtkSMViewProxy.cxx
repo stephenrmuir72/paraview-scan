@@ -21,13 +21,13 @@
 #include "vtkCommand.h"
 #include "vtkCornerAnnotation.h"
 #include "vtkGenericOpenGLRenderWindow.h"
-#include "vtkInteractionProvider.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVApplicationOptions.h"
 #include "vtkPVCoreApplication.h"
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkPVXMLElement.h"
+#include "vtkRemoteObjectProviderViews.h"
 #include "vtkRemotingCoreUtilities.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -194,7 +194,7 @@ private:
     {
       vtkLogF(TRACE, "push camera");
       this->LastCameraMTime = camera->GetMTime();
-      auto packet = vtkInteractionProvider::Render(this->Self->GetGlobalID(), camera);
+      auto packet = vtkRemoteObjectProviderViews::Render(this->Self->GetGlobalID(), camera);
       this->Self->GetSession()->SendMessage(vtkClientSession::RENDER_SERVER, std::move(packet));
     }
   }
