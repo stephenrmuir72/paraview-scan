@@ -7226,7 +7226,7 @@ void readrays(FILE* gmvrayin, int ftype)
 
    if (ftype == ASCII)
      {
-      int res = fscanf(gmvrayin,"%d %d",&lrays,&lrayvars); (void) res;
+      int res = fscanf(gmvrayin,"%ld %ld",&lrays,&lrayvars); (void) res;
       if (ioerrtst2(gmvrayin)) return;
      }
    else
@@ -7266,7 +7266,7 @@ void readrays(FILE* gmvrayin, int ftype)
      }
 
    if (printon)
-      printf("Reading %d rays.\n",lrays);
+      printf("Reading %ld rays.\n",lrays);
 
    /*  Allocate and read variable 8 or 32 char. names and types.  */
    varnames = (char *)malloc(lrayvars*MAXCUSTOMNAMELENGTH*sizeof(char));
