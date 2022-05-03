@@ -7215,7 +7215,7 @@ void gmvrayread_data()
 void readrays(FILE* gmvrayin, int ftype)
 {
   int i, j=0, k, iswap=0, jswap=0, iray, npts=0, nvarin;
-  int lrays, lrayvars;
+  int64_t lrays, lrayvars;
   int *rayids;
   double *x, *y, *z, *field, *tmpdouble;
   float *tmpfloat = NULL; /* TODO: check fix for uninitialized pointer */
@@ -7500,7 +7500,7 @@ void readrayids(FILE* gmvrayin, int ftype)
      {
       if (ftype == IEEEI8R4 || ftype == IEEEI8R8)
         {
-         tmpids=(long *)malloc(numrays*sizeof(long));
+         tmpids=(int64_t *)malloc(numrays*sizeof(int64_t));
          if (tmpids == NULL)
            {
             gmvrayrdmemerr();
