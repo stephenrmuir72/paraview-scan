@@ -7215,7 +7215,7 @@ void gmvrayread_data()
 void readrays(FILE* gmvrayin, int ftype)
 {
   int i, j=0, k, iswap=0, jswap=0, iray, npts=0, nvarin;
-  int lrays, lrayvars;
+  int64_t lrays, lrayvars;
   int *rayids;
   double *x, *y, *z, *field, *tmpdouble;
   float *tmpfloat = NULL; /* TODO: check fix for uninitialized pointer */
@@ -7226,7 +7226,7 @@ void readrays(FILE* gmvrayin, int ftype)
 
    if (ftype == ASCII)
      {
-      int res = fscanf(gmvrayin,"%d %d",&lrays,&lrayvars); (void) res;
+      int res = fscanf(gmvrayin,"%" PRIu64 "d %" PRIu64 "d",&lrays,&lrayvars); (void) res;
       if (ioerrtst2(gmvrayin)) return;
      }
    else
@@ -7266,7 +7266,7 @@ void readrays(FILE* gmvrayin, int ftype)
      }
 
    if (printon)
-      printf("Reading %d rays.\n",lrays);
+      printf("Reading %" PRIu64 "d rays.\n",lrays);
 
    /*  Allocate and read variable 8 or 32 char. names and types.  */
    varnames = (char *)malloc(lrayvars*MAXCUSTOMNAMELENGTH*sizeof(char));
@@ -7483,8 +7483,13 @@ void readrayids(FILE* gmvrayin, int ftype)
   /*                                              */
   /*  Read and set alternate node numbers (ids).  */
   /*                                              */
+
+  // XXX numrays seems to never have been set before, assuming is has
+  // the same value as numnodes 
+  numrays = numnodes;
+
   int i, *lrayids = NULL;
-  long *tmpids;
+  int64_t *tmpids;
 
    /*  Allocate ray ids.  */
    FREE(gmvray_data.rayids);
@@ -7500,7 +7505,7 @@ void readrayids(FILE* gmvrayin, int ftype)
      {
       if (ftype == IEEEI8R4 || ftype == IEEEI8R8)
         {
-         tmpids=(long *)malloc(numrays*sizeof(long));
+         tmpids=(int64_t *)malloc(numrays*sizeof(int64_t));
          if (tmpids == NULL)
            {
             gmvrayrdmemerr();
