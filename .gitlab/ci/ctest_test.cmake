@@ -151,6 +151,24 @@ if ("$ENV{CC}" STREQUAL "icx")
     "^ParaView::RemotingServerManagerPython-TestGlobbing$"
     "^SurfaceLIC-OfficeContour-Batch$"
     "^SurfaceLIC-OfficeSlices-Batch$"
+
+    # Remove some tests that systematically fails with icc on minmus
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/21387
+    "^ParaView::RemotingApplicationPython-ConnectionProxyNamespaces$"
+    "^ParaView::RemotingApplicationPython-ProgrammableFilterProperties$"
+    "^ParaView::RemotingApplicationPython-RepresentationTypeHint$"
+    "^ParaView::RemotingApplicationPython-SaveAnimation$"
+    "^ParaView::RemotingApplicationPython-Plugins$"
+    "^ParaView::RemotingApplicationPython-MPI-Batch-TestFetchData$"
+    "^ParaView::RemotingApplicationPython::Module::pvpython::paraview.tests$"
+    "^ParaView::RemotingApplicationPython::Module::pvpython::paraview.tests.basic_rendering$"
+    "^ParaView::RemotingApplicationPython::Module::pvbatch::paraview.tests.basic_rendering$"
+    "^SurfaceLIC-OfficeHSlice-Batch$"
+    "^ParaView::VTKExtensionsIOParallelCGNSWriterCxx-MPI-TestPartialData$"
+    "^Catalyst::WaveletMiniApp.repeated_pipeline$"
+    "^Catalyst::MPI::WaveletMiniApp.package_test_zip$"
+    "^Catalyst::WaveletMiniApp::MultiplePipelines::pipeline1.pipeline2$"
+    "^Catalyst::WaveletMiniApp::MultiplePipelines::Validate::pipeline1.pipeline2$"
     )
 endif ()
 
