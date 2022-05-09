@@ -61,35 +61,6 @@ vtkLagrangianSurfaceHelper::~vtkLagrangianSurfaceHelper()
 }
 
 //---------------------------------------------------------------------------
-int vtkLagrangianSurfaceHelper::RequestInformation(vtkInformation* vtkNotUsed(request),
-  vtkInformationVector** inputVector, vtkInformationVector* vtkNotUsed(outputVector))
-{
-  // Add input to the model so it will be able to use it to compute default values
-  this->IntegrationModel->ClearDataSets(true);
-  vtkDataObject* input = vtkDataObject::GetData(inputVector[0]);
-  vtkCompositeDataSet* hdInput = vtkCompositeDataSet::SafeDownCast(input);
-  vtkDataSet* dsInput = vtkDataSet::SafeDownCast(input);
-  if (hdInput)
-  {
-    vtkSmartPointer<vtkCompositeDataIterator> iter;
-    iter.TakeReference(hdInput->NewIterator());
-    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
-    {
-      vtkDataSet* inDataset = vtkDataSet::SafeDownCast(hdInput->GetDataSet(iter));
-      if (inDataset)
-      {
-        this->IntegrationModel->AddDataSet(inDataset, true, iter->GetCurrentFlatIndex());
-      }
-    }
-  }
-  else if (dsInput)
-  {
-    this->IntegrationModel->AddDataSet(dsInput, true);
-  }
-  return 1;
-}
-
-//---------------------------------------------------------------------------
 int vtkLagrangianSurfaceHelper::RequestData(
   vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {

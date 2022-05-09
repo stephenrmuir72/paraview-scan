@@ -179,6 +179,7 @@ void pqIntegrationModelSurfaceHelperWidget::resetSurfaceWidget(bool force)
         enumIndex++;
 
         // Add a row for each leaf
+        double defaultValue = 0;
         for (unsigned int j = 0; j < nLeafs; j++)
         {
           QStandardItem* item;
@@ -191,9 +192,10 @@ void pqIntegrationModelSurfaceHelperWidget::resetSurfaceWidget(bool force)
           {
             item = new QStandardItem();
             model->setItem(j, k, item);
-            double defaultValue = 0;
             if (defaultValuesIndex < defaultValuesProp->GetNumberOfElements())
             {
+              // defaultValue can be set only once and will be used all the time
+              // or can be set multiple times if provided
               defaultValue = defaultValuesProp->GetElement(defaultValuesIndex);
               defaultValuesIndex++;
             }
