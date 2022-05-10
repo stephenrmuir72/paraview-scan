@@ -4900,6 +4900,11 @@
               </PropertyWidgetDecorator>
             </Hints>
           </PropertyGroup>
+          <PropertyGroup label="Shader Code Editor" 
+                         panel_widget="ShaderCodeEditorWidget">
+            <Property name="ShaderCode" function="SetShaderCode"/>
+            <Property name="ShaderCodeInformation" function="GetShaderCode"/>
+          </PropertyGroup>
         </ExposedProperties>
         <LinkProperties>
           <Property name="DummyInput" with_property="Input" />
@@ -5634,6 +5639,20 @@
         <BooleanDomain name="bool" />
         <Documentation>Enable/Disable shading normals estimation from opacity instead of scalars.</Documentation>
       </IntVectorProperty>
+      <StringVectorProperty name="ShaderCode"
+                            label="Set Shader Code"
+                            command="SetShaderCode"
+                            number_of_elements="1"
+                            default_values="">
+      </StringVectorProperty>
+
+      <StringVectorProperty name="ShaderCodeInformation"
+                            label="Get Shader Code"
+                            information_only="1"
+                            command="GetShaderCode"
+                            number_of_elements="1"
+                            default_values="">
+      </StringVectorProperty>
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
                          name="MapScalars"

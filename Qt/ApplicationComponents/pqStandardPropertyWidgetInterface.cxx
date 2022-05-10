@@ -80,6 +80,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSelectionQueryPropertyWidget.h"
 #include "pqSeriesEditorPropertyWidget.h"
 #include "pqSessionTypeDecorator.h"
+#include "pqShaderEditorButton.h"
 #include "pqShaderReplacementsSelectorPropertyWidget.h"
 #include "pqShowWidgetDecorator.h"
 #include "pqSpherePropertyWidget.h"
@@ -352,6 +353,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "MetaDataPropertyWidget")
   {
     return new pqMetaDataPropertyWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "ShaderCodeEditorWidget")
+  {
+    return new pqShaderEditorButton(proxy, group, parentWidget);
   }
 
   // *** NOTE: When adding new types, please update the header documentation ***

@@ -598,6 +598,34 @@ void vtkImageVolumeRepresentation::SetComputeNormalFromOpacity(bool val)
 }
 
 //----------------------------------------------------------------------------
+const char* vtkImageVolumeRepresentation::GetShaderCode()
+{
+  if (auto svMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    svMapper->GetShaderSource(lastShaderCode);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->GetShaderSource(lastShaderCode);
+  }
+  return lastShaderCode.c_str();
+}
+
+//----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetShaderCode(const std::string & s)
+{
+  if (auto svMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    svMapper->SetShaderSource(s);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetShaderSource(s);
+  }
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
 void vtkImageVolumeRepresentation::SetSliceFunction(vtkImplicitFunction* slice)
 {
   this->Property->SetSliceFunction(slice);
