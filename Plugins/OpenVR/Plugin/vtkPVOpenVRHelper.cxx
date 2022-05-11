@@ -81,6 +81,7 @@
 #include "vtkVRInteractorStyle.h"
 #include "vtkVRModel.h"
 #include "vtkVRRay.h"
+#include "vtkVRRenderWindow.h"
 #include "vtkVRRenderWindowInteractor.h"
 #include "vtkVRRenderer.h"
 #include "vtkVectorOperators.h"
@@ -2079,40 +2080,41 @@ void vtkPVOpenVRHelper::SendToOpenVR(vtkSMViewProxy* smview)
   this->Interactor->SetStillUpdateRate(200.0);
 
   this->RenderWindow->Initialize();
+  vtkVRRenderWindow* vrRenWin = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
 
-  this->SetRightTriggerMode("Probe");
-  this->OpenVRControls->SetRightTriggerMode("Probe");
-
-  // start the event loop
-  this->UpdateProps();
-  this->RenderWindow->Render();
-  this->Renderer->ResetCamera();
-  this->Renderer->ResetCameraClippingRange();
-  this->ApplyState();
-
-  this->Done = false;
-  while (!this->Done)
+  if (vrRenWin && vrRenWin->GetInitialized())
   {
-    // this->RenderWindow->MakeCurrent();
-    // this->RenderWindow->GetState()->ResetFramebufferBindings();
+    this->SetRightTriggerMode("Probe");
+    this->OpenVRControls->SetRightTriggerMode("Probe");
 
-    this->Widgets->UpdateWidgetsFromParaView();
-    this->DoOneEvent(); // calls render()
-    this->RenderVRView();
+    // start the event loop
+    this->UpdateProps();
+    this->RenderWindow->Render();
+    this->Renderer->ResetCamera();
+    this->Renderer->ResetCameraClippingRange();
+    this->ApplyState();
 
-    this->CollaborationClient->Render();
-    QCoreApplication::processEvents();
-    if (this->SMView && this->NeedStillRender)
+    this->Done = false;
+    while (!this->Done)
     {
-      this->SMView->StillRender();
-      this->NeedStillRender = false;
-    }
-    if (this->SMView && this->LoadLocationValue >= 0)
-    {
-      this->SMView->StillRender();
-      this->LoadLocationState(this->LoadLocationValue);
-      this->LoadLocationValue = -1;
-      this->SMView->StillRender();
+      this->Widgets->UpdateWidgetsFromParaView();
+      this->DoOneEvent(); // calls render()
+      this->RenderVRView();
+
+      this->CollaborationClient->Render();
+      QCoreApplication::processEvents();
+      if (this->SMView && this->NeedStillRender)
+      {
+        this->SMView->StillRender();
+        this->NeedStillRender = false;
+      }
+      if (this->SMView && this->LoadLocationValue >= 0)
+      {
+        this->SMView->StillRender();
+        this->LoadLocationState(this->LoadLocationValue);
+        this->LoadLocationValue = -1;
+        this->SMView->StillRender();
+      }
     }
   }
 
