@@ -29,16 +29,11 @@
 #
 #==========================================================================
 set(classes
+  vtkInSituInitializationHelper
   vtkInSituPipeline
+  vtkInSituPipelineIO
   vtkInSituPipelinePython
   )
-
-if (TARGET VTK::IOCatalystConduit)
-  list(APPEND classes
-    vtkInSituPipelineIO
-    vtkInSituInitializationHelper
-    )
-endif()
 
 vtk_module_add_module(ParaView::InSitu
   CLASSES ${classes})

@@ -31,7 +31,6 @@ execute_process(
       "-DBUILD_SHARED_LIBS:BOOL=${shared}"
       "-DParaView_DIR:PATH=${paraview_dir}"
       "-DParaView_CATALYST_DIR:PATH=${paraview_catalyst_dir}"
-      "-Dcatalyst_DIR=${catalyst_dir}"
     --test-command
       "${ctest}"
         -C ${config}
