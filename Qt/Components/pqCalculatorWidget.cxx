@@ -116,7 +116,7 @@ pqCalculatorWidget::pqCalculatorWidget(
   //--------------------------------------------------------------------------
 
   this->addPropertyLink(
-    this->Internals->Function, "text", SIGNAL(textChanged(const QString&)), smproperty);
+    this->Internals->Function, "plainText", SIGNAL(textChanged(const QString&)), smproperty);
 
   // now when editing is finished, we will fire the changeFinished() signal.
   this->connect(this->Internals->Function, SIGNAL(textChangedAndEditingFinished()), this,
@@ -137,14 +137,14 @@ void pqCalculatorWidget::variableChosen(QAction* menuAction)
 {
   if (menuAction)
   {
-    this->Internals->Function->insert(menuAction->text());
+    this->Internals->Function->insertPlainText(menuAction->text());
   }
 }
 
 //-----------------------------------------------------------------------------
 void pqCalculatorWidget::buttonPressed(const QString& buttonText)
 {
-  this->Internals->Function->insert(buttonText);
+  this->Internals->Function->insertPlainText(buttonText);
 }
 
 //-----------------------------------------------------------------------------
