@@ -22,4 +22,4 @@ set(PARAVIEW_PLUGIN_ENABLE_CDIReader ON CACHE BOOL "")
 # set(VTK_MODULE_USE_EXTERNAL_VTK_cgns OFF CACHE BOOL "")
 # set(VTK_MODULE_USE_EXTERNAL_VTK_gl2ps OFF CACHE BOOL "")
 
-include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora35.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora36.cmake")
