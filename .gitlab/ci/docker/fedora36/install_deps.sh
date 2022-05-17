@@ -58,13 +58,13 @@ dnf install -y --setopt=install_weak_deps=False \
     dnf-plugins-core
 
 # Openturns dependencies
-dnf config-manager --add-repo https://download.opensuse.org/repositories/science:/openturns/Fedora_35/science:openturns.repo
+dnf config-manager --add-repo https://download.opensuse.org/repositories/science:/openturns/Fedora_36/science:openturns.repo
 dnf install -y --setopt=install_weak_deps=False \
     openturns-libs openturns-devel
 
 # RPMFusion
 dnf install -y --setopt=install_weak_deps=False \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-35.noarch.rpm
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-36.noarch.rpm
 
 dnf install -y --setopt=install_weak_deps=False \
     ffmpeg-devel
