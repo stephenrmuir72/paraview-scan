@@ -283,6 +283,7 @@ set(paraview_default_plugins
   # ParFlow - Because of dependency to nlohmann_json
   SaveStateAndScreenshot
   SLACTools
+  SpaceMouseInteractor
   StreamLinesRepresentation
   StreamingParticles
   SurfaceLIC
