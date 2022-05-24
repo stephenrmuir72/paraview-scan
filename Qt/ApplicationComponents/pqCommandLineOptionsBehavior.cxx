@@ -198,7 +198,7 @@ void pqCommandLineOptionsBehavior::processData()
     // makes it possible to select a file group.
     pqFileDialog dialog(pqActiveObjects::instance().activeServer(), pqCoreUtilities::mainWidget(),
       tr("Internal Open File"), QString(), QString());
-    dialog.setFileMode(pqFileDialog::ExistingFiles);
+    dialog.setFileMode(pqFileDialog::ExistingFilesAndDirectories);
 
     if (!dialog.selectFile(path))
     {
