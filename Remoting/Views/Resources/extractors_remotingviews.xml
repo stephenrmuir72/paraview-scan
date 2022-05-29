@@ -78,11 +78,24 @@
        </Hints>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ZoomLevels"
+                         number_of_elements="1"
+                         default_values="0" >
+        <IntRangeDomain name="range" min="0" />
+       <Documentation>
+         Number of times to halve the distance to the focal point.
+       </Documentation>
+       <Hints>
+         <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="CameraMode" value="1" />
+       </Hints>
+      </IntVectorProperty>
+
       <PropertyGroup label="Miscellaneous">
         <Property name="ResetDisplay" />
         <Property name="CameraMode" />
         <Property name="PhiResolution" />
         <Property name="ThetaResolution" />
+        <Property name="ZoomLevels" />
       </PropertyGroup>
 
       <Hints>
@@ -168,11 +181,24 @@
        </Hints>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ZoomLevels"
+                         number_of_elements="1"
+                         default_values="0" >
+        <IntRangeDomain name="range" min="0" />
+       <Documentation>
+         Number of times to halve the distance to the focal point.
+       </Documentation>
+       <Hints>
+         <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="CameraMode" value="1" />
+       </Hints>
+      </IntVectorProperty>
+
       <PropertyGroup label="Miscellaneous">
         <Property name="ResetDisplay" />
         <Property name="CameraMode" />
         <Property name="PhiResolution" />
         <Property name="ThetaResolution" />
+        <Property name="ZoomLevels" />
       </PropertyGroup>
 
       <Hints>
@@ -367,11 +393,24 @@
        </Hints>
       </IntVectorProperty>
 
+      <IntVectorProperty name="ZoomLevels"
+                         number_of_elements="1"
+                         default_values="0" >
+        <IntRangeDomain name="range" min="0" />
+       <Documentation>
+         Number of times to halve the distance to the focal point.
+       </Documentation>
+       <Hints>
+         <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="CameraMode" value="1" />
+       </Hints>
+      </IntVectorProperty>
+
       <PropertyGroup label="Miscellaneous">
         <Property name="ResetDisplay" />
         <Property name="CameraMode" />
         <Property name="PhiResolution" />
         <Property name="ThetaResolution" />
+        <Property name="ZoomLevels" />
       </PropertyGroup>
 
       <Hints>

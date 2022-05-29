@@ -27,6 +27,7 @@
 #include "vtkVectorOperators.h"
 
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 
 namespace
@@ -229,6 +230,13 @@ bool vtkSMImageExtractWriterProxy::WriteInternal(vtkSMExtractsController* extrac
       return false;
     }
 
+    const int zoom_levels = vtkSMPropertyHelper(this, "ZoomLevels").GetAsInt();
+    if (zoom_levels < 0)
+    {
+      vtkErrorMacro("ZoomLevels must be positive");
+      return false;
+    }
+
     auto camera = rv->GetActiveCamera();
     ScopedCamera cameraState(camera);
 
@@ -242,18 +250,35 @@ bool vtkSMImageExtractWriterProxy::WriteInternal(vtkSMExtractsController* extrac
         camera->Elevation(elevation);
         camera->OrthogonalizeViewUp();
 
-        vtkSMExtractsController::SummaryParametersT tparams = params;
-        char buffer[128];
-        std::snprintf(buffer, 128, "%06.2f", phi);
-        tparams["phi"] = buffer;
-
-        std::snprintf(buffer, 128, "%06.2f", theta);
-        tparams["theta"] = buffer;
-
-        if (!this->WriteImage(extractor, tparams))
+        const double zoomFactor = 2.0;
+        for (int zoom = 0; zoom <= zoom_levels; zoom += 1)
         {
-          return false;
+          if (zoom > 0)
+          {
+            camera->Dolly(zoomFactor);
+          }
+
+          vtkSMExtractsController::SummaryParametersT tparams = params;
+          char buffer[128];
+          std::snprintf(buffer, 128, "%06.2f", phi);
+          tparams["phi"] = buffer;
+
+          std::snprintf(buffer, 128, "%06.2f", theta);
+          tparams["theta"] = buffer;
+
+          if (zoom_levels > 0)
+          {
+            std::snprintf(buffer, 128, "%02d", zoom);
+            tparams["zoom"] = buffer;
+          }
+
+          if (!this->WriteImage(extractor, tparams))
+          {
+            return false;
+          }
         }
+
+        camera->Dolly(pow(1.0 / zoomFactor, zoom_levels));
       }
     }
 
