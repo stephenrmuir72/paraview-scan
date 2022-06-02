@@ -631,6 +631,14 @@
         <Documentation>This property specifies the integration model to use to generate data.
         </Documentation>
       </ProxyProperty>
+      <ProxyProperty command="SetLocator"
+                     name="Locator"
+                     panel_visibility="default">
+        <ProxyListDomain name="proxy_list">
+          <Group name="cell_locators" default="StaticCellLocator"/>
+        </ProxyListDomain>
+        <Documentation>Specify the locator used to locate cells in the flow input</Documentation>
+      </ProxyProperty>
       <StringVectorProperty animateable="1"
                             clean_command="RemoveAllArraysToGenerate"
                             command="SetArrayToGenerate"

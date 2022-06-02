@@ -25,7 +25,7 @@
 #include "vtkExecutive.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
-#include "vtkLagrangianBasicIntegrationModel.h"
+#include "vtkLagrangianMatidaIntegrationModel.h"
 #include "vtkLagrangianParticle.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -35,6 +35,7 @@
 #include <vector>
 
 vtkStandardNewMacro(vtkLagrangianSeedHelper);
+vtkCxxSetSmartPointerMacro(vtkLagrangianSeedHelper, IntegrationModel, vtkLagrangianBasicIntegrationModel);
 
 class vtkLagrangianSeedHelper::vtkInternals
 {
@@ -66,16 +67,14 @@ public:
 
 //---------------------------------------------------------------------------
 vtkLagrangianSeedHelper::vtkLagrangianSeedHelper()
+  : Internals(new vtkLagrangianSeedHelper::vtkInternals())
 {
-  this->Internals = new vtkInternals();
+  this->IntegrationModel = vtkSmartPointer<vtkLagrangianMatidaIntegrationModel>::New();
   this->SetNumberOfInputPorts(2);
 }
 
 //---------------------------------------------------------------------------
-vtkLagrangianSeedHelper::~vtkLagrangianSeedHelper()
-{
-  delete this->Internals;
-}
+vtkLagrangianSeedHelper::~vtkLagrangianSeedHelper() = default;
 
 //---------------------------------------------------------------------------
 void vtkLagrangianSeedHelper::SetSourceConnection(vtkAlgorithmOutput* algInput)

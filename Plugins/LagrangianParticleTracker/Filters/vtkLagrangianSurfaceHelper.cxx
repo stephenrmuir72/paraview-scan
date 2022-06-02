@@ -24,7 +24,6 @@
 #include "vtkFieldData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
-#include "vtkLagrangianBasicIntegrationModel.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"

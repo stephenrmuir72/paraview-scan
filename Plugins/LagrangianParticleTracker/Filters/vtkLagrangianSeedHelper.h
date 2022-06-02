@@ -27,7 +27,11 @@
 
 #include "vtkLagrangianHelperBase.h"
 #include "vtkLagrangianParticleTrackerModule.h" // for export macro
+#include "vtkSmartPointer.h" // for SmartPointer
 
+#include <memory>
+
+class vtkLagrangianBasicIntegrationModel;
 class VTKLAGRANGIANPARTICLETRACKER_EXPORT vtkLagrangianSeedHelper : public vtkLagrangianHelperBase
 {
 public:
@@ -40,6 +44,11 @@ public:
     FLOW = 0,
     CONSTANT = 1
   };
+
+  /**
+   * Set the integration model.
+   */
+  void SetIntegrationModel(vtkLagrangianBasicIntegrationModel* integrationModel);
 
   /**
    * Set/Get the seed source input
@@ -81,8 +90,10 @@ protected:
 
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
+  vtkSmartPointer<vtkLagrangianBasicIntegrationModel> IntegrationModel;
+
   class vtkInternals;
-  vtkInternals* Internals;
+  std::unique_ptr<vtkInternals> Internals;
 
 private:
   vtkLagrangianSeedHelper(const vtkLagrangianSeedHelper&) = delete;

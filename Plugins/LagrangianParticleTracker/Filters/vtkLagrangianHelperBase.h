@@ -18,8 +18,6 @@
  *
  *
  * This is an abstract class for Lagrangian helper
- * It defines the integration model
- * as well as the SetArrayToGenerate method signature
  */
 
 #ifndef vtkLagrangianHelperBase_h
@@ -28,20 +26,11 @@
 #include "vtkDataObjectAlgorithm.h"
 #include "vtkLagrangianParticleTrackerModule.h" // for export macro
 
-class vtkLagrangianBasicIntegrationModel;
 class VTKLAGRANGIANPARTICLETRACKER_EXPORT vtkLagrangianHelperBase : public vtkDataObjectAlgorithm
 {
 public:
   vtkTypeMacro(vtkLagrangianHelperBase, vtkDataObjectAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent) override;
-
-  //@{
-  /**
-   * Set/Get the integration model.
-   */
-  void SetIntegrationModel(vtkLagrangianBasicIntegrationModel* integrationModel);
-  vtkGetObjectMacro(IntegrationModel, vtkLagrangianBasicIntegrationModel);
-  //@}
 
   /**
    * Remove all arrays to generate, no more array will be generated
@@ -60,15 +49,13 @@ public:
     int secondInt, const char* arrayValues) = 0;
 
 protected:
-  vtkLagrangianHelperBase();
-  ~vtkLagrangianHelperBase() override;
+  vtkLagrangianHelperBase() = default;
+  ~vtkLagrangianHelperBase() override = default;
 
   /**
    * Parse string array and extract double components from it.
    */
   bool ParseDoubleValues(const char*& arrayString, int numberOfComponents, double* array);
-
-  vtkLagrangianBasicIntegrationModel* IntegrationModel;
 
   class vtkInternals;
   vtkInternals* Internals;

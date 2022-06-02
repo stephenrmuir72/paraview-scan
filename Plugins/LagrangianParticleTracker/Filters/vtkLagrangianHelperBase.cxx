@@ -15,28 +15,12 @@
 
 #include "vtkLagrangianHelperBase.h"
 
-#include "vtkLagrangianMatidaIntegrationModel.h"
 #include "vtkObjectFactory.h"
-
-vtkCxxSetObjectMacro(vtkLagrangianHelperBase, IntegrationModel, vtkLagrangianBasicIntegrationModel);
-
-//---------------------------------------------------------------------------
-vtkLagrangianHelperBase::vtkLagrangianHelperBase()
-{
-  this->IntegrationModel = vtkLagrangianMatidaIntegrationModel::New();
-}
-
-//---------------------------------------------------------------------------
-vtkLagrangianHelperBase::~vtkLagrangianHelperBase()
-{
-  this->SetIntegrationModel(nullptr);
-}
 
 //----------------------------------------------------------------------------
 void vtkLagrangianHelperBase::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "IntegrationModel: " << this->IntegrationModel << endl;
 }
 
 //----------------------------------------------------------------------------
