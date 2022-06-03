@@ -15,6 +15,7 @@
 
 #include "vtkLagrangianSeedHelper.h"
 
+#include "vtkAbstractCellLocator.h"
 #include "vtkCell.h"
 #include "vtkCellData.h"
 #include "vtkCompositeDataIterator.h"
@@ -36,6 +37,7 @@
 
 vtkStandardNewMacro(vtkLagrangianSeedHelper);
 vtkCxxSetSmartPointerMacro(vtkLagrangianSeedHelper, IntegrationModel, vtkLagrangianBasicIntegrationModel);
+vtkCxxSetSmartPointerMacro(vtkLagrangianSeedHelper, Locator, vtkAbstractCellLocator);
 
 class vtkLagrangianSeedHelper::vtkInternals
 {
@@ -108,6 +110,7 @@ int vtkLagrangianSeedHelper::RequestData(
 
   // Clear previously setup flow
   this->IntegrationModel->ClearDataSets();
+  this->IntegrationModel->SetLocator(this->Locator);
 
   // Check flow dataset type
   vtkCompositeDataSet* hdFlow = vtkCompositeDataSet::SafeDownCast(flow);

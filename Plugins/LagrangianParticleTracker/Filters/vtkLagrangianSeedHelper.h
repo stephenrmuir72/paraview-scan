@@ -32,6 +32,7 @@
 #include <memory>
 
 class vtkLagrangianBasicIntegrationModel;
+class vtkAbstractCellLocator;
 class VTKLAGRANGIANPARTICLETRACKER_EXPORT vtkLagrangianSeedHelper : public vtkLagrangianHelperBase
 {
 public:
@@ -49,6 +50,11 @@ public:
    * Set the integration model.
    */
   void SetIntegrationModel(vtkLagrangianBasicIntegrationModel* integrationModel);
+
+  /**
+   * Set the locator.
+   */
+  void SetLocator(vtkAbstractCellLocator* locator);
 
   /**
    * Set/Get the seed source input
@@ -91,6 +97,7 @@ protected:
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
   vtkSmartPointer<vtkLagrangianBasicIntegrationModel> IntegrationModel;
+  vtkSmartPointer<vtkAbstractCellLocator> Locator;
 
   class vtkInternals;
   std::unique_ptr<vtkInternals> Internals;
