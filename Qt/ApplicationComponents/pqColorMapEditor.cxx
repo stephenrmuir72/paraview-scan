@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSearchBox.h"
 #include "pqSettings.h"
 #include "pqUndoStack.h"
+#include "vtkSMSession.h"
 
 #include "vtkCommand.h"
 #include "vtkPVArrayInformation.h"
@@ -52,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSettings.h"
 #include "vtkSMTransferFunctionProxy.h"
+#include "vtkSMViewProxy.h"
 #include "vtkWeakPointer.h"
 
 #include <sstream>
@@ -70,6 +72,7 @@ public:
   QPointer<pqDataRepresentation> ActiveRepresentation;
   QPointer<QAction> ScalarBarVisibilityAction;
   QPointer<QAction> EditScalarBarAction;
+  pqTimer lastChangedTimer;
 
   unsigned long ObserverId;
 
@@ -81,6 +84,8 @@ public:
     QVBoxLayout* vbox = new QVBoxLayout(this->Ui.PropertiesFrame);
     vbox->setMargin(0);
     vbox->setSpacing(0);
+    lastChangedTimer.setSingleShot(true);
+    QObject::connect(&this->lastChangedTimer, SIGNAL(timeout()), self, SLOT(renderViewsStill()));
   }
 
   ~pqInternals() = default;
@@ -103,7 +108,7 @@ pqColorMapEditor::pqColorMapEditor(QWidget* parentObject)
     this->Internals->Ui.SaveAsArrayDefaults, SIGNAL(clicked()), this, SLOT(saveAsArrayDefault()));
   QObject::connect(
     this->Internals->Ui.AutoUpdate, SIGNAL(clicked(bool)), this, SLOT(setAutoUpdate(bool)));
-  QObject::connect(this->Internals->Ui.Update, SIGNAL(clicked()), this, SLOT(renderViews()));
+  QObject::connect(this->Internals->Ui.Update, SIGNAL(clicked()), this, SLOT(renderViewsStill()));
 
   // Let pqScalarBarVisibilityReaction do the heavy lifting for managing the
   // show-scalar bar button.
@@ -261,7 +266,17 @@ void pqColorMapEditor::setColorTransferFunction(vtkSMProxy* ctf)
   this->Internals->ProxyWidget = widget;
   this->updatePanel();
 
-  QObject::connect(widget, SIGNAL(changeFinished()), this, SLOT(updateIfNeeded()));
+  QObject::connect(widget, SIGNAL(changeFinished()), this, SLOT(widgetChangeFinished()));
+}
+
+//-----------------------------------------------------------------------------
+void pqColorMapEditor::widgetChangeFinished()
+{
+  if (this->Internals->Ui.AutoUpdate->isChecked()) 
+  {
+      this->Internals->lastChangedTimer.start(300);
+      this->renderViewsInteractive();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -274,7 +289,25 @@ void pqColorMapEditor::updateScalarBarButtons()
 }
 
 //-----------------------------------------------------------------------------
-void pqColorMapEditor::renderViews()
+void pqColorMapEditor::renderViewsInteractive()
+{
+  if (this->Internals->ActiveRepresentation)
+  {
+    pqView *view = this->Internals->ActiveRepresentation->getView();
+    if(view)
+    {
+      view->cancelPendingRenders();
+      vtkSMViewProxy *viewProxy = view->getViewProxy();
+      if(viewProxy)
+      {
+        viewProxy->InteractiveRender();
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqColorMapEditor::renderViewsStill()
 {
   if (this->Internals->ActiveRepresentation)
   {
@@ -394,7 +427,7 @@ void pqColorMapEditor::restoreDefaults()
     }
   }
   END_UNDO_SET();
-  this->renderViews();
+  this->renderViewsStill();
 }
 
 //-----------------------------------------------------------------------------
@@ -409,6 +442,6 @@ void pqColorMapEditor::updateIfNeeded()
 {
   if (this->Internals->Ui.AutoUpdate->isChecked())
   {
-    this->renderViews();
+    this->renderViewsInteractive();
   }
 }
