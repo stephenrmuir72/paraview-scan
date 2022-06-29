@@ -188,6 +188,8 @@ set(classes
   pqServerDisconnectReaction
   pqSessionTypeDecorator
   pqSetMainWindowTitleReaction
+  pqShaderEditorButton
+  pqShaderEditorWindow
   pqShowHideAllReaction
   pqShowWidgetDecorator
   pqSourcesMenuReaction

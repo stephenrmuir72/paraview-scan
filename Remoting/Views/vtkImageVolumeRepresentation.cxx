@@ -569,6 +569,62 @@ void vtkImageVolumeRepresentation::SetVolumetricScatteringBlending(float val)
   this->Modified();
 }
 
+//-----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetJittering(bool val)
+{
+  if(auto smartVolumeMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    smartVolumeMapper->SetUseJittering(val);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetUseJittering(val);
+  }
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetComputeNormalFromOpacity(bool val)
+{
+  if(auto smartVolumeMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    smartVolumeMapper->SetComputeNormalFromOpacity(val);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetComputeNormalFromOpacity(val);
+  }
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
+const char* vtkImageVolumeRepresentation::GetShaderCode()
+{
+  if (auto svMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    svMapper->GetShaderSource(lastShaderCode);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->GetShaderSource(lastShaderCode);
+  }
+  return lastShaderCode.c_str();
+}
+
+//----------------------------------------------------------------------------
+void vtkImageVolumeRepresentation::SetShaderCode(const std::string & s)
+{
+  if (auto svMapper = vtkSmartVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    svMapper->SetShaderSource(s);
+  }
+  else if (auto mbMapper = vtkMultiBlockVolumeMapper::SafeDownCast(this->VolumeMapper))
+  {
+    mbMapper->SetShaderSource(s);
+  }
+  this->Modified();
+}
+
 //----------------------------------------------------------------------------
 void vtkImageVolumeRepresentation::SetSliceFunction(vtkImplicitFunction* slice)
 {

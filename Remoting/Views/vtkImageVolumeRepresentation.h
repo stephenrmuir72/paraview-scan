@@ -80,8 +80,9 @@ public:
   void SetSpecularPower(double);
   void SetShade(bool);
   void SetAnisotropy(float);
+  void SetJittering(bool);
+  void SetComputeNormalFromOpacity(bool);
   void SetSliceFunction(vtkImplicitFunction* slice);
-
   //@{
   /**
    * Methods to set isosurface values.
@@ -97,6 +98,8 @@ public:
   void SetCropping(int);
   void SetGlobalIlluminationReach(float);
   void SetVolumetricScatteringBlending(float);
+  const char* GetShaderCode();
+  void SetShaderCode(const std::string &);
 
   //@{
   /**
@@ -173,6 +176,8 @@ protected:
   int ColorArray2FieldAssociation = -1;
   int ColorArray2Component = -1;
   std::string ColorArray2Name;
+  
+  std::string lastShaderCode;
 
 private:
   vtkImageVolumeRepresentation(const vtkImageVolumeRepresentation&) = delete;

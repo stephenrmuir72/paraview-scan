@@ -69,7 +69,10 @@ protected Q_SLOTS:
   /**
    * render's view when transfer function is modified.
    */
-  void renderViews();
+  void renderViewsInteractive();
+  void renderViewsStill();
+
+  void widgetChangeFinished();
 
   /**
    * Save the current transfer function(s) as default.

@@ -4900,6 +4900,11 @@
               </PropertyWidgetDecorator>
             </Hints>
           </PropertyGroup>
+          <PropertyGroup label="Shader Code Editor" 
+                         panel_widget="ShaderCodeEditorWidget">
+            <Property name="ShaderCode" function="SetShaderCode"/>
+            <Property name="ShaderCodeInformation" function="GetShaderCode"/>
+          </PropertyGroup>
         </ExposedProperties>
         <LinkProperties>
           <Property name="DummyInput" with_property="Input" />
@@ -5620,6 +5625,34 @@
           An isotropic volume has a null anisotropy.
         </Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetJittering"
+                         default_values="1"
+                         name="Jittering"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Enable/Disable jittering.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetComputeNormalFromOpacity"
+                         default_values="0"
+                         name="Normals from Opacity"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Enable/Disable shading normals estimation from opacity instead of scalars.</Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty name="ShaderCode"
+                            label="Set Shader Code"
+                            command="SetShaderCode"
+                            number_of_elements="1"
+                            default_values="">
+      </StringVectorProperty>
+
+      <StringVectorProperty name="ShaderCodeInformation"
+                            label="Get Shader Code"
+                            information_only="1"
+                            command="GetShaderCode"
+                            number_of_elements="1"
+                            default_values="">
+      </StringVectorProperty>
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
                          name="MapScalars"
