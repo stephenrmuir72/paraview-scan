@@ -59,50 +59,50 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkPVGlyphFilterLegacy* New();
 
-  //@{
+  ///@{
   /**
    * Get/Set the vtkMultiProcessController to use for parallel processing.
    * By default, the vtkMultiProcessController::GetGlobalController() will be used.
    */
   void SetController(vtkMultiProcessController*);
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Set/Get the mode at which glyphs will be generated.
    */
   vtkSetClampMacro(GlyphMode, int, ALL_POINTS, SPATIALLY_UNIFORM_DISTRIBUTION);
   vtkGetMacro(GlyphMode, int);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Set/Get the stride at which to glyph the dataset.
    * Note, only applicable with EVERY_NTH_POINT GlyphMode.
    */
   vtkSetClampMacro(Stride, int, 1, VTK_INT_MAX);
   vtkGetMacro(Stride, int);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Set/Get Seed used for generating a spatially uniform distribution.
    */
   vtkSetMacro(Seed, int);
   vtkGetMacro(Seed, int);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Set/Get maximum number of sample points to use to sample the space when
    * GlyphMode is set to SPATIALLY_UNIFORM_DISTRIBUTION.
    */
   vtkSetClampMacro(MaximumNumberOfSamplePoints, int, 1, VTK_INT_MAX);
   vtkGetMacro(MaximumNumberOfSamplePoints, int);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Overridden to create output data of appropriate type.
    */
@@ -111,7 +111,7 @@ public:
 protected:
   vtkPVGlyphFilterLegacy();
   ~vtkPVGlyphFilterLegacy() override;
-  //@}
+  ///@}
 
   // Standard Pipeline methods
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;

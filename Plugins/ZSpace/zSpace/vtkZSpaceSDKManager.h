@@ -128,13 +128,13 @@ public:
    */
   vtkGetMacro(SecondaryTargets, int);
 
-  //@{
+  ///@{
   /**
    * Get/Set the distance between the eyes in meters.
    */
   vtkGetMacro(InterPupillaryDistance, float);
   vtkSetClampMacro(InterPupillaryDistance, float, 0.f, 1.f);
-  //@}
+  ///@}
 
   /**
    * Let zSpace compute the viewer scale, camera position and camera view up from the
@@ -236,29 +236,29 @@ public:
     NumberOfStates = 4
   };
 
-  //@{
+  ///@{
   /**
    * Get/Set the state of the left button of the stylus.
    */
   vtkGetMacro(LeftButtonState, int);
   vtkSetEnumMacro(LeftButtonState, ButtonState);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Get/Set the state of the middle button of the stylus.
    */
   vtkGetMacro(MiddleButtonState, int);
   vtkSetEnumMacro(MiddleButtonState, ButtonState);
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Get/Set the state of the right button of the stylus.
    */
   vtkGetMacro(RightButtonState, int);
   vtkSetEnumMacro(RightButtonState, ButtonState);
-  //@}
+  ///@}
 
 protected:
   vtkZSpaceSDKManager();

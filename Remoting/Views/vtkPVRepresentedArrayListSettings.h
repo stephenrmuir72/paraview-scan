@@ -43,22 +43,22 @@ public:
    */
   static vtkPVRepresentedArrayListSettings* GetInstance();
 
-  //@{
+  ///@{
   /**
    * Set/get the number of filter expressions.
    */
   virtual void SetNumberOfFilterExpressions(int n);
   virtual int GetNumberOfFilterExpressions();
-  //@}
+  ///@}
 
-  //@{
+  ///@{
   /**
    * Set/get the filter expression at index i. If the index is
    * outside the valid range, this call is a noop.
    */
   virtual void SetFilterExpression(int i, const char* expression);
   virtual const char* GetFilterExpression(int i);
-  //@}
+  ///@}
 
 protected:
   vtkPVRepresentedArrayListSettings();

@@ -44,14 +44,14 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkSMTooltipSelectionPipeline* GetInstance();
 
-  //@{
+  ///@{
   /**
    * Re-implemented from vtkSMPreselectionPipeline
    */
   void Hide(vtkSMRenderViewProxy* view) override;
   void Show(vtkSMSourceProxy* sourceRepresentation, vtkSMSourceProxy* selection,
     vtkSMRenderViewProxy* view) override;
-  //@}
+  ///@}
 
   /**
    * Return true if a tooltip can be displayed according to the context,
