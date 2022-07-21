@@ -276,6 +276,7 @@ documentation:build:
         - .linux_qt_builder_tags
         - .doxygen_log_artifacts
         - .doxygen_only
+        - .run_manually
 
 # Triggers
 
