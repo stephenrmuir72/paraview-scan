@@ -256,7 +256,7 @@ set(resource_files
 
 vtk_module_find_package(
   PACKAGE     Qt5
-  COMPONENTS  Network Widgets)
+  COMPONENTS  Network Widgets LinguistTools)
 
 source_group("Resources" FILES
   ${ui_files}
@@ -267,10 +267,16 @@ set(CMAKE_AUTORCC 1)
 set(CMAKE_AUTOUIC 1)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/UI")
 
+set(qm_files "")
+if (PARAVIEW_ENABLE_LOCALIZATION)
+qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
+endif()
+
 vtk_module_add_module(ParaView::pqComponents
   CLASSES ${classes}
   HEADERS ${headers}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files})
 vtk_module_link(ParaView::pqComponents
   PRIVATE

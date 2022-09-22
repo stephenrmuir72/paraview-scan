@@ -226,6 +226,8 @@ option(PARAVIEW_ENABLE_FIDES "Enable Fides support." OFF)
 
 option(PARAVIEW_ENABLE_FFMPEG "Enable FFMPEG Support." OFF)
 
+option(PARAVIEW_ENABLE_LOCALIZATION "Enable localization support." OFF)
+
 # If building on Unix with MPI enabled, we will present another option to
 # enable building of CosmoTools VTK extensions. This option is by default
 # OFF and set to OFF if ParaView is not built with MPI.

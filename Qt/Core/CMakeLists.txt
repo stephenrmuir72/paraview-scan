@@ -167,7 +167,7 @@ if (PARAVIEW_USE_PYTHON)
 endif ()
 
 set(qt_components
-  Widgets)
+  Widgets LinguistTools)
 
 if (PARAVIEW_USE_QTHELP)
   list(APPEND qt_components
@@ -185,6 +185,11 @@ set(CMAKE_AUTORCC 1)
 set(CMAKE_AUTOUIC 1)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/UI")
 
+set(qm_files "")
+if (PARAVIEW_ENABLE_LOCALIZATION)
+qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
+endif()
+
 source_group("Resources" FILES
   ${ui_files}
   ${resource_files})
@@ -192,6 +197,7 @@ source_group("Resources" FILES
 vtk_module_add_module(ParaView::pqCore
   CLASSES ${classes}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files}
   HEADERS ${headers})
 vtk_module_link(ParaView::pqCore

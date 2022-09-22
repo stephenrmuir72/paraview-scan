@@ -105,7 +105,8 @@ set(qt_components
   Core
   Gui
   Network
-  Widgets)
+  Widgets
+  LinguistTools)
 
 if (APPLE)
   list(APPEND qt_components
@@ -155,9 +156,15 @@ set(CMAKE_AUTORCC 1)
 set(CMAKE_AUTOUIC 1)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/UI")
 
+set(qm_files "")
+if (PARAVIEW_ENABLE_LOCALIZATION)
+qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
+endif()
+
 vtk_module_add_module(ParaView::pqWidgets
   CLASSES ${classes}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files}
   HEADERS ${headers})
 vtk_module_link(ParaView::pqWidgets

@@ -58,14 +58,21 @@ set(CMAKE_AUTOUIC 1)
 
 vtk_module_find_package(
   PACKAGE     Qt5
-  COMPONENTS  Widgets)
+  COMPONENTS  Widgets LinguistTools)
 
 source_group("Resources" FILES
   ${ui_files})
 
+set(qm_files "")
+if (PARAVIEW_ENABLE_LOCALIZATION)
+qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}"
+"${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
+endif()
+
 vtk_module_add_module(ParaView::pqPython
   CLASSES ${classes}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files}
   HEADERS ${headers})
 

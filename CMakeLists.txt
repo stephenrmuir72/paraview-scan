@@ -949,3 +949,29 @@ install(
 if (PARAVIEW_ENABLE_EXAMPLES)
   add_subdirectory(Examples)
 endif ()
+
+#-----------------------------------------------------------------------------
+
+if (PARAVIEW_ENABLE_LOCALIZATION)
+set(qm_files
+Qt/ApplicationComponents/lang_fr.qm
+Qt/Components/lang_fr.qm
+Qt/Core/lang_fr.qm
+Qt/Python/lang_fr.qm
+Qt/Widgets/lang_fr.qm
+)
+
+set (lconvert_cmd "lconvert")
+set (lconvert_arg 
+"-o"
+"lang_fr.qm"
+"Qt/ApplicationComponents/lang_fr.qm"
+"Qt/Components/lang_fr.qm"
+"Qt/Core/lang_fr.qm"
+"Qt/Python/lang_fr.qm"
+"Qt/Widgets/lang_fr.qm"
+"Clients/ParaView/lang_fr.qm"
+)
+execute_process(COMMAND ${lconvert_cmd} ${lconvert_arg}
+WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+endif()
