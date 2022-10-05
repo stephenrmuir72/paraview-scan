@@ -33,9 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 #include <QApplication>
+#include <QCoreApplication>
+#include <QDebug>
 #include <QLocale>
 #include <QStyleFactory>
 #include <QSurfaceFormat>
+#include <QTranslator>
 
 #include "pq@_paraview_client_NAME@Initializer.h"
 #include "pqQtWidgetsConfig.h"
@@ -49,6 +52,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if _paraview_client_have_plugins
 @_paraview_client_plugins_includes@
 #endif
+
+#cmakedefine01 PARAVIEW_ENABLE_LOCALIZATION
 
 #cmakedefine01 _paraview_client_DEFAULT_STYLE
 
@@ -106,6 +111,17 @@ int main(int argc, char* argv[])
 }
 #endif
 
+#if PARAVIEW_ENABLE_LOCALIZATION
+  QLocale curLocale(QLocale("fr_FR"));
+  //Load qm translation file
+  QTranslator UITranslator;
+  int translations_loaded =
+    UITranslator.load(curLocale, "lang", "_", "./");
+  if (!translations_loaded) {
+    qDebug() << "Could not load qm translation file";
+  }
+#endif
+
   // always request a non-stereo format; when using quadbuffer stereo, we
   // request stereo capable format for the individual `QVTKOpenGLWindow`
   // instance.
@@ -129,12 +145,20 @@ int main(int argc, char* argv[])
   argv = new_argc.data();
 #endif
   QApplication qtapp(argc, argv);
+
+#if PARAVIEW_ENABLE_LOCALIZATION
+  QCoreApplication::installTranslator(&UITranslator);
+#endif
+
   // QApplication docs suggest resetting to "C" after the QApplication is
   // initialized.
   setlocale(LC_NUMERIC, "C");
 
   // However, this is needed to address BUG #17225, #17226.
   QLocale::setDefault(QLocale::c());
+#if PARAVIEW_ENABLE_LOCALIZATION
+  QLocale::setDefault(curLocale);
+#endif
 
   using InitializerT = pq@_paraview_client_NAME@Initializer;
 
