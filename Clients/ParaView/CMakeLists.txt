@@ -33,7 +33,15 @@ set(sources
   ParaViewMainWindow.h
   ParaViewMainWindow.ui)
 
-find_package(Qt5 REQUIRED QUIET COMPONENTS Core Widgets LinguistTools)
+
+set(qt_components
+  Core Widgets)
+
+if (PARAVIEW_GENERATE_TRANSLATIONS)
+  list(APPEND qt_components LinguistTools)
+endif ()
+
+find_package(Qt5 REQUIRED QUIET COMPONENTS "${qt_components}")
 
 if (APPLE)
   # Enable high resolution when using Qt5
@@ -83,7 +91,7 @@ paraview_client_add(
   PLUGINS_TARGETS   ParaView::paraview_plugins
   APPLICATION_XMLS  ${xmls})
 
-find_package(Qt5 REQUIRED QUIET COMPONENTS Widgets LinguistTools)
+find_package(Qt5 REQUIRED QUIET COMPONENTS Widgets)
 
 target_link_libraries(paraview
   PRIVATE

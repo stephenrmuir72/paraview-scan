@@ -167,7 +167,11 @@ if (PARAVIEW_USE_PYTHON)
 endif ()
 
 set(qt_components
-  Widgets LinguistTools)
+  Widgets)
+
+if (PARAVIEW_GENERATE_TRANSLATIONS)
+  list(APPEND qt_components LinguistTools)
+endif ()
 
 if (PARAVIEW_USE_QTHELP)
   list(APPEND qt_components

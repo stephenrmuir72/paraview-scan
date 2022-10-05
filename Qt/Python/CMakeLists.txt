@@ -56,9 +56,16 @@ set(ui_files
 set(CMAKE_AUTOMOC 1)
 set(CMAKE_AUTOUIC 1)
 
+set(qt_components
+  Widgets)
+
+if (PARAVIEW_GENERATE_TRANSLATIONS)
+  list(APPEND qt_components LinguistTools)
+endif ()
+
 vtk_module_find_package(
   PACKAGE     Qt5
-  COMPONENTS  Widgets LinguistTools)
+  COMPONENTS  ${qt_components})
 
 source_group("Resources" FILES
   ${ui_files})

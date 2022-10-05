@@ -254,9 +254,16 @@ set(ui_files
 set(resource_files
   Resources/pqComponents.qrc)
 
+set(qt_components
+  Network Widgets)
+
+if (PARAVIEW_GENERATE_TRANSLATIONS)
+  list(APPEND qt_components LinguistTools)
+endif ()
+
 vtk_module_find_package(
   PACKAGE     Qt5
-  COMPONENTS  Network Widgets LinguistTools)
+  COMPONENTS  "${qt_components}")
 
 source_group("Resources" FILES
   ${ui_files}

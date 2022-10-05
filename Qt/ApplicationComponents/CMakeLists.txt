@@ -296,8 +296,11 @@ set(resource_files
 set(qt_components
   Network
   Widgets
-  Svg
-  LinguistTools)
+  Svg)
+
+if (PARAVIEW_GENERATE_TRANSLATIONS)
+  list(APPEND qt_components LinguistTools)
+endif ()
 
 if (paraview_use_materialeditor)
   list(APPEND classes
