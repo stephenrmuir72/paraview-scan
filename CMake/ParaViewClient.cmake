@@ -382,6 +382,11 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
     target_link_libraries("${_paraview_client_NAME}"
       PRIVATE Qt5::WebEngineWidgets)
   endif ()
+  if (PARAVIEW_ENABLE_LOCALIZATION OR PARAVIEW_GENERATE_TRANSLATIONS)
+    find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
+    target_link_libraries("${_paraview_client_NAME}"
+      PRIVATE Qt5::Core)
+  endif ()
 
   set(_paraview_client_export)
   if (DEFINED _paraview_client_EXPORT)
