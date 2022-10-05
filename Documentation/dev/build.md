@@ -398,6 +398,7 @@ More advanced / less common options include:
   * `PARAVIEW_ENABLE_FFMPEG` (default `OFF`; not available on Windows): Enable
     FFmpeg support.
   * `PARAVIEW_ENABLE_LOCALIZATION` (default `OFF`): Enable localization support.
+  * `PARAVIEW_GENERATE_TRANSLATIONS` (default `OFF`): Generate translation files.
   * `PARAVIEW_ENABLE_COSMOTOOLS` (default `OFF`; requires `PARAVIEW_USE_MPI`
     and not available on Windows): Enable support for CosmoTools which includes
     GenericIO readers and writers as well as some point cloud algorithms.
