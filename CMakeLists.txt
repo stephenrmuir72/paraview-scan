@@ -954,5 +954,5 @@ endif ()
 
 if (PARAVIEW_GENERATE_TRANSLATIONS)
 include(ParaViewTranslations)
-merge_all_qm("./")
+merge_all_qm("${CMAKE_CURRENT_BINARY_DIR}")
 endif()

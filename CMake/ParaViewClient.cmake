@@ -361,9 +361,30 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       FILES
         ${_paraview_client_resource_files})
   endif ()
+
+  ## Translation Management
+  #
+  # 
+  if (NOT DEFINED _paraview_client_ENABLE_TRANSLATION)
+    set(_paraview_client_ENABLE_TRANSLATION
+      OFF)
+  endif ()
+  message(STATUS "${_paraview_client_TS_DIRECTORIES} uwu")
+  if (DEFINED _paraview_client_TS_DIRECTORIES)
+    find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
+    message(STATUS "${_paraview_client_TS_DIRECTORIES}")
+    foreach (_paraview_client_TS IN LISTS _paraview_client_TS_DIRECTORIES)
+      qt5_create_translation(_paraview_client_translation_files "${_paraview_client_TS}" "${_paraview_client_TS}/ParaViewClient_fr.ts")
+      message(STATUS "${_paraview_client_TS} oui")
+      message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} ouioui")
+      message(STATUS "${_paraview_client_translation_files} non")
+    endforeach ()
+  endif ()
+
   add_executable("${_paraview_client_NAME}" ${_paraview_client_executable_flags}
     ${_paraview_client_SOURCES}
     ${_paraview_client_resource_files}
+    ${_paraview_client_translation_files}
     ${_paraview_client_source_files}
     ${_paraview_client_extra_sources})
   if (DEFINED _paraview_client_NAMESPACE)
@@ -450,14 +471,6 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
         MACOSX_BUNDLE_BUNDLE_NAME           "${_paraview_client_APPLICATION_NAME}"
         MACOSX_BUNDLE_GUI_IDENTIFIER        "org.${_paraview_client_organization}.${_paraview_client_APPLICATION_NAME}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING  "${_paraview_client_VERSION}")
-  endif ()
-
-  ## Translation Management
-  #
-  # 
-  if (NOT DEFINED _paraview_client_ENABLE_TRANSLATION)
-    set(_paraview_client_ENABLE_TRANSLATION
-      OFF)
   endif ()
 endfunction ()
 

@@ -4,15 +4,16 @@ function (merge_all_qm)
     "PATH"
     ${ARGN})
     if (NOT DEFINED _merge_args_PATH)
-        set(_merge_args_PATH "./")
+        set(_merge_args_PATH "${CMAKE_CURRENT_BINARY_DIR}")
     endif ()
     set(qm_files
-    "${_merge_args_PATH}Qt/ApplicationComponents/lang_fr.qm"
-    "${_merge_args_PATH}Qt/Components/lang_fr.qm"
-    "${_merge_args_PATH}Qt/Core/lang_fr.qm"
-    "${_merge_args_PATH}Qt/Python/lang_fr.qm"
-    "${_merge_args_PATH}Qt/Widgets/lang_fr.qm"
-    "${_merge_args_PATH}Clients/ParaView/lang_fr.qm"
+    "${_merge_args_PATH}/Qt/ApplicationComponents/lang_fr.qm"
+    "${_merge_args_PATH}/Qt/Components/lang_fr.qm"
+    "${_merge_args_PATH}/Qt/Core/lang_fr.qm"
+    "${_merge_args_PATH}/Qt/Python/lang_fr.qm"
+    "${_merge_args_PATH}/Qt/Widgets/lang_fr.qm"
+    "${_merge_args_PATH}/Clients/ParaView/lang_fr.qm"
+    "${_merge_args_PATH}/Clients/ParaView/ParaViewClient_fr.qm"
     )
 
     set (lconvert_cmd "lconvert")
