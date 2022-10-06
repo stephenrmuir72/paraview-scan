@@ -33,15 +33,7 @@ set(sources
   ParaViewMainWindow.h
   ParaViewMainWindow.ui)
 
-
-set(qt_components
-  Core Widgets)
-
-if (PARAVIEW_GENERATE_TRANSLATIONS)
-  list(APPEND qt_components LinguistTools)
-endif ()
-
-find_package(Qt5 REQUIRED QUIET COMPONENTS "${qt_components}")
+find_package(Qt5 REQUIRED QUIET COMPONENTS Core Widgets)
 
 if (APPLE)
   # Enable high resolution when using Qt5
@@ -67,12 +59,6 @@ if (default_style)
     DEFAULT_STYLE "${default_style}")
 endif ()
 
-set(qm_files "")
-if (PARAVIEW_ENABLE_LOCALIZATION)
-qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}"
-"${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
-endif()
-
 paraview_client_add(
   NAME              paraview
   NAMESPACE         "ParaView"
@@ -87,7 +73,6 @@ paraview_client_add(
   BUNDLE_PLIST      "${CMAKE_CURRENT_BINARY_DIR}/MacOSXBundleInfo.plist.in"
   APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/pvIcon.ico"
   SOURCES           ${sources}
-                    ${qm_files}
   PLUGINS_TARGETS   ParaView::paraview_plugins
   APPLICATION_XMLS  ${xmls})
 
