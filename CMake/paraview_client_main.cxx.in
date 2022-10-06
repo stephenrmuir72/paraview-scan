@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @_paraview_client_plugins_includes@
 #endif
 
-#cmakedefine01 PARAVIEW_ENABLE_LOCALIZATION
+#cmakedefine01 _paraview_client_ENABLE_TRANSLATION
 
 #cmakedefine01 _paraview_client_DEFAULT_STYLE
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 }
 #endif
 
-#if PARAVIEW_ENABLE_LOCALIZATION
+#if _paraview_client_ENABLE_TRANSLATION
   QLocale curLocale(QLocale("fr_FR"));
   //Load qm translation file
   QTranslator UITranslator;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 #endif
   QApplication qtapp(argc, argv);
 
-#if PARAVIEW_ENABLE_LOCALIZATION
+#if _paraview_client_ENABLE_TRANSLATION
   QCoreApplication::installTranslator(&UITranslator);
 #endif
 
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
   // However, this is needed to address BUG #17225, #17226.
   QLocale::setDefault(QLocale::c());
-#if PARAVIEW_ENABLE_LOCALIZATION
+#if _paraview_client_ENABLE_TRANSLATION
   QLocale::setDefault(curLocale);
 #endif
 
