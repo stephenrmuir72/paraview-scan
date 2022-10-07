@@ -191,8 +191,11 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/UI")
 
 set(qm_files "")
 if (PARAVIEW_ENABLE_LOCALIZATION)
-qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
-endif()
+  paraview_create_translation(
+    OUTPUT_QM qm_files 
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_TS "${TS_PATH}/Core.ts")
+endif ()
 
 source_group("Resources" FILES
   ${ui_files}

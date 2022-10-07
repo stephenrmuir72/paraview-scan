@@ -70,11 +70,13 @@ vtk_module_find_package(
 source_group("Resources" FILES
   ${ui_files})
 
-set(qm_files "")
-if (PARAVIEW_ENABLE_LOCALIZATION)
-qt5_create_translation(qm_files "${CMAKE_CURRENT_SOURCE_DIR}"
-"${CMAKE_CURRENT_SOURCE_DIR}/Resources/Translations/lang_fr.ts")
-endif()
+  set(qm_files "")
+  if (PARAVIEW_ENABLE_LOCALIZATION)
+    paraview_create_translation(
+      OUTPUT_QM qm_files 
+      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_TS "${TS_PATH}/Python.ts")
+  endif ()
 
 vtk_module_add_module(ParaView::pqPython
   CLASSES ${classes}
