@@ -194,7 +194,7 @@ if (PARAVIEW_ENABLE_LOCALIZATION)
   paraview_create_translation(
     OUTPUT_QM qm_files 
     DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    OUTPUT_TS "${TS_PATH}/Core.ts")
+    OUTPUT_TS "${translations_directory}/Core.ts")
 endif ()
 
 source_group("Resources" FILES

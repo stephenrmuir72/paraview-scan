@@ -164,7 +164,7 @@ if (PARAVIEW_ENABLE_LOCALIZATION)
   paraview_create_translation(
     OUTPUT_QM qm_files 
     DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    OUTPUT_TS "${TS_PATH}/Widgets.ts")
+    OUTPUT_TS "${translations_directory}/Widgets.ts")
 endif ()
 
 vtk_module_add_module(ParaView::pqWidgets

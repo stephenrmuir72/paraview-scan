@@ -342,7 +342,7 @@ if (PARAVIEW_ENABLE_LOCALIZATION)
   paraview_create_translation(
     OUTPUT_QM qm_files 
     DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    OUTPUT_TS "${TS_PATH}/ApplicationComponents.ts")
+    OUTPUT_TS "${translations_directory}/ApplicationComponents.ts")
 endif ()
 vtk_module_add_module(ParaView::pqApplicationComponents
   CLASSES ${classes}

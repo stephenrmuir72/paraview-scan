@@ -230,6 +230,10 @@ option(PARAVIEW_ENABLE_LOCALIZATION "Enable localization support." OFF)
 
 option(PARAVIEW_GENERATE_TRANSLATIONS "Generate translation files"
 "${PARAVIEW_ENABLE_LOCALIZATION}")
+if (PARAVIEW_ENABLE_LOCALIZATION OR PARAVIEW_GENERATE_TRANSLATIONS)
+  set(translations_directory "${CMAKE_SOURCE_DIR}" CACHE STRING 
+  "The directory containing translation files")
+endif()
 
 # If building on Unix with MPI enabled, we will present another option to
 # enable building of CosmoTools VTK extensions. This option is by default

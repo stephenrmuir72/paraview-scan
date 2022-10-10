@@ -375,7 +375,7 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       paraview_create_translation(
         OUTPUT_QM _paraview_client_translation_files 
         DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_TS "${TS_PATH}/Client.ts")
+        OUTPUT_TS "${translations_directory}/Client.ts")
     endforeach ()
   endif ()
 
