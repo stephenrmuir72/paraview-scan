@@ -11,6 +11,7 @@ function (merge_all_qm)
 
     add_custom_target("lang_fr.qm" ALL COMMAND lconvert -o lang_fr.qm ${_merge_args_qm_files} VERBATIM)
     add_dependencies("lang_fr.qm" paraview)
+    install(FILES "${CMAKE_BINARY_DIR}/lang_fr.qm" DESTINATION bin)
     message(STATUS "lconvert -o lang_fr.qm" ${_merge_args_qm_files})
 endfunction ()
 
