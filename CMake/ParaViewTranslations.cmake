@@ -8,23 +8,16 @@ function (merge_all_qm)
         set(_merge_args_PATH "${CMAKE_CURRENT_BINARY_DIR}")
     endif ()
     set(qm_files
-    "${_merge_args_PATH}/Qt/ApplicationComponents/lang_fr.qm"
-    "${_merge_args_PATH}/Qt/Components/lang_fr.qm"
-    "${_merge_args_PATH}/Qt/Core/lang_fr.qm"
-    "${_merge_args_PATH}/Qt/Python/lang_fr.qm"
-    "${_merge_args_PATH}/Qt/Widgets/lang_fr.qm"
-    "${_merge_args_PATH}/Clients/ParaView/lang_fr.qm"
-    "${_merge_args_PATH}/Clients/ParaView/ParaViewClient_fr.qm"
+    "${_merge_args_PATH}/ApplicationComponents.qm"
+    "${_merge_args_PATH}/Components.qm"
+    "${_merge_args_PATH}/Core.qm"
+    "${_merge_args_PATH}/Python.qm"
+    "${_merge_args_PATH}/Widgets.qm"
+    "${_merge_args_PATH}/Client.qm"
     )
 
-    set (lconvert_cmd "lconvert")
-    set (lconvert_arg 
-    "-o"
-    "lang_fr.qm"
-    "${qm_files}"
-    )
-    execute_process(COMMAND ${lconvert_cmd} ${lconvert_arg}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+    add_custom_target("lang_fr.qm" COMMAND lconvert -o lang_fr.qm ${qm_files} VERBATIM)
+    message(STATUS "lconvert -o lang_fr.qm" ${qm_files})
 endfunction ()
 
 function (paraview_create_translation OUTPUT_QM output_qm DIRECTORY dir_to_scan OUTPUT_TS output_ts)

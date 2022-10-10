@@ -87,6 +87,7 @@ include(ParaViewTesting)
 include(ParaViewClient)
 include(ParaViewPlugin)
 include(ParaViewPluginDebugging)
+include(ParaViewTranslations)
 include(vtkModuleWrapClientServer)
 include(CTest)
 set_property(CACHE BUILD_TESTING
@@ -953,6 +954,5 @@ endif ()
 #-----------------------------------------------------------------------------
 
 if (PARAVIEW_GENERATE_TRANSLATIONS)
-include(ParaViewTranslations)
-merge_all_qm("${CMAKE_CURRENT_BINARY_DIR}")
+merge_all_qm(PATH "${translations_directory}")
 endif()
