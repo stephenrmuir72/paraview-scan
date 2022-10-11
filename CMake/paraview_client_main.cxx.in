@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
   //Load qm translation file
   QTranslator UITranslator;
   int translations_loaded =
-    UITranslator.load(curLocale, "lang", "_", "./");
+    UITranslator.load(curLocale, "bin/lang", "_", "./");
   if (!translations_loaded) {
     qDebug() << "Could not load qm translation file";
   }
