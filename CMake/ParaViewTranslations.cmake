@@ -15,12 +15,17 @@ function (merge_all_qm)
     message(STATUS "lconvert -o lang_fr.qm" ${_merge_args_qm_files})
 endfunction ()
 
-function (paraview_create_translation OUTPUT_QM output_qm DIRECTORY dir_to_scan OUTPUT_TS output_ts_dir)
+function (paraview_create_translation)
+    cmake_parse_arguments(_pv_create_tr
+    ""
+    "OUTPUT_QM;DIRECTORY;OUTPUT_TS"
+    ""
+    ${ARGN})
     find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
-    get_filename_component(_dir_ts ${output_ts_dir} DIRECTORY)
-    set_source_files_properties("${output_ts_dir}" PROPERTIES OUTPUT_LOCATION "${_dir_ts}")
-    qt5_create_translation(result_qm "${CMAKE_CURRENT_SOURCE_DIR}" "${output_ts_dir}")
-    set(${output_qm} ${result_qm} PARENT_SCOPE)
+    get_filename_component(_dir_ts ${_pv_create_tr_OUTPUT_TS} DIRECTORY)
+    set_source_files_properties("${_pv_create_tr_OUTPUT_TS}" PROPERTIES OUTPUT_LOCATION "${_dir_ts}")
+    qt5_create_translation(result_qm "${_pv_create_tr_DIRECTORY}" "${_pv_create_tr_OUTPUT_TS}")
+    set(${_pv_create_tr_OUTPUT_QM} ${result_qm} PARENT_SCOPE)
     get_property(_create_translation_tmp_qm_list GLOBAL PROPERTY paraview_qm_files)
     list(APPEND _create_translation_tmp_qm_list "${result_qm}")
     set_property(GLOBAL PROPERTY paraview_qm_files "${_create_translation_tmp_qm_list}")
