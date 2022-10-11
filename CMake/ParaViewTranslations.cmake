@@ -5,7 +5,7 @@ function (merge_all_qm)
     ""
     ${ARGN})
     if (NOT DEFINED _merge_args_PATH)
-        set(_merge_args_PATH "${CMAKE_CURRENT_BINARY_DIR}")
+        set(_merge_args_PATH "${CMAKE_BINARY_DIR}/Translation")
     endif ()
     get_property(_merge_args_qm_files GLOBAL PROPERTY paraview_qm_files)
 

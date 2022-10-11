@@ -369,13 +369,14 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
     set(_paraview_client_ENABLE_TRANSLATION
       OFF)
   endif ()
+  set(_paraview_client_translation_files "")
   if (DEFINED _paraview_client_TS_DIRECTORIES)
     find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
-    foreach (_paraview_client_TS IN LISTS _paraview_client_TS_DIRECTORIES)
+    foreach (_paraview_client_TS_DIR IN LISTS _paraview_client_TS_DIRECTORIES)
       paraview_create_translation(
         OUTPUT_QM _paraview_client_translation_files 
-        DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_TS "${translations_directory}/Client.ts")
+        DIRECTORY "${_paraview_client_TS_DIR}"
+        OUTPUT_TS "${translations_directory}/${_paraview_client_NAME}.ts")
     endforeach ()
   endif ()
 
@@ -403,11 +404,6 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
     find_package(Qt5 REQUIRED QUIET COMPONENTS WebEngineWidgets)
     target_link_libraries("${_paraview_client_NAME}"
       PRIVATE Qt5::WebEngineWidgets)
-  endif ()
-  if (PARAVIEW_ENABLE_LOCALIZATION OR PARAVIEW_GENERATE_TRANSLATIONS)
-    find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
-    target_link_libraries("${_paraview_client_NAME}"
-      PRIVATE Qt5::Core)
   endif ()
 
   set(_paraview_client_export)

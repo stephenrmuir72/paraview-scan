@@ -107,10 +107,6 @@ set(qt_components
   Network
   Widgets)
 
-if (PARAVIEW_GENERATE_TRANSLATIONS)
-  list(APPEND qt_components LinguistTools)
-endif ()
-
 if (APPLE)
   list(APPEND qt_components
     PrintSupport)

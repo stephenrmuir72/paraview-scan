@@ -169,10 +169,6 @@ endif ()
 set(qt_components
   Widgets)
 
-if (PARAVIEW_GENERATE_TRANSLATIONS)
-  list(APPEND qt_components LinguistTools)
-endif ()
-
 if (PARAVIEW_USE_QTHELP)
   list(APPEND qt_components
     Help)

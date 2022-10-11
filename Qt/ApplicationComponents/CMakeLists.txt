@@ -298,10 +298,6 @@ set(qt_components
   Widgets
   Svg)
 
-if (PARAVIEW_GENERATE_TRANSLATIONS)
-  list(APPEND qt_components LinguistTools)
-endif ()
-
 if (paraview_use_materialeditor)
   list(APPEND classes
     pqMaterialAttributesDelegate
