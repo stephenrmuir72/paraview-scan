@@ -372,6 +372,14 @@ These settings control optional features. These begin with the prefix
   * `PARAVIEW_ENABLE_WEB` (default `OFF`; requires `PARAVIEW_USE_PYTHON`):
     Whether ParaViewWeb support will be available or not.
 
+These settings are used for translating purpose:
+  * `PARAVIEW_ENABLE_LOCALIZATION` (default `OFF`): Enable translation file
+    load.
+  * `PARAVIEW_GENERATE_TRANSLATIONS` (default `OFF`): Enable translation
+    files update and generation.
+  * `translations_directory` (default `${CMAKE_BINARY_DIR}/Translations`) Path
+    to the translation file repository
+
 More advanced / less common options include:
 
   * `PARAVIEW_ENABLE_VISITBRIDGE` (default `OFF`): Enable support for VisIt
