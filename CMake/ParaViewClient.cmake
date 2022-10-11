@@ -370,7 +370,7 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       OFF)
   endif ()
   set(_paraview_client_translation_files "")
-  if (DEFINED _paraview_client_TS_DIRECTORIES)
+  if (DEFINED _paraview_client_ENABLE_TRANSLATION AND DEFINED _paraview_client_TS_DIRECTORIES)
     find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
     foreach (_paraview_client_TS_DIR IN LISTS _paraview_client_TS_DIRECTORIES)
       paraview_create_translation(
