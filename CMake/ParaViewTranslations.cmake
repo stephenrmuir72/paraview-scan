@@ -1,16 +1,16 @@
 function (merge_all_qm)
     cmake_parse_arguments(PARSE_ARGV 0 _merge_args
     ""
-    "PATH"
+    "FILE"
     "")
-    if (NOT DEFINED _merge_args_PATH)
-        set(_merge_args_PATH "${CMAKE_BINARY_DIR}/Translation")
+    if (NOT DEFINED _merge_args_FILE)
+        set(_merge_args_FILE "${CMAKE_BINARY_DIR}/bin/lang_fr.qm")
     endif ()
     get_property(_merge_args_qm_files GLOBAL PROPERTY paraview_qm_files)
 
     add_custom_target("lang_fr.qm" ALL COMMAND lconvert -o bin/lang_fr.qm ${_merge_args_qm_files} VERBATIM)
     add_dependencies("lang_fr.qm" paraview)
-    install(FILES "${CMAKE_BINARY_DIR}/bin/lang_fr.qm" DESTINATION bin)
+    install(FILES "${_merge_args_FILE}" DESTINATION bin)
     message(STATUS "lconvert -o lang_fr.qm" ${_merge_args_qm_files})
 endfunction ()
 
