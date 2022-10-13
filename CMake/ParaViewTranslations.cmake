@@ -8,7 +8,7 @@ function (merge_all_qm)
     endif ()
     get_property(_merge_args_qm_files GLOBAL PROPERTY paraview_qm_files)
 
-    add_custom_target("lang_fr.qm" ALL COMMAND lconvert -o bin/lang_fr.qm ${_merge_args_qm_files} VERBATIM)
+    add_custom_target("lang_fr.qm" ALL COMMAND lconvert -o ${_merge_args_FILE} ${_merge_args_qm_files} VERBATIM)
     add_dependencies("lang_fr.qm" paraview)
     install(FILES "${_merge_args_FILE}" DESTINATION bin)
     message(STATUS "lconvert -o lang_fr.qm" ${_merge_args_qm_files})
