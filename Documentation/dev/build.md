@@ -377,7 +377,7 @@ These settings are used for translating purpose:
     load.
   * `PARAVIEW_GENERATE_TRANSLATIONS` (default `OFF`): Enable translation
     files update and generation.
-  * `translations_directory` (default `${CMAKE_BINARY_DIR}/Translations`) Path
+  * `PARAVIEW_TRANSLATIONS_DIRECTORY` (default `${CMAKE_BINARY_DIR}/Translations`) Path
     to the translation file repository
 
 More advanced / less common options include:

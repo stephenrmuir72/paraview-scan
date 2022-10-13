@@ -231,7 +231,7 @@ option(PARAVIEW_ENABLE_LOCALIZATION "Enable localization support." OFF)
 option(PARAVIEW_GENERATE_TRANSLATIONS "Generate translation files"
 "${PARAVIEW_ENABLE_LOCALIZATION}")
 if (PARAVIEW_ENABLE_LOCALIZATION OR PARAVIEW_GENERATE_TRANSLATIONS)
-  set(translations_directory "${CMAKE_BINARY_DIR}/Translation" CACHE STRING 
+  set(PARAVIEW_TRANSLATIONS_DIRECTORY "${CMAKE_BINARY_DIR}/Translation" CACHE STRING
   "The directory containing translation files")
 endif()
 

@@ -10,5 +10,5 @@ load a translation file at start.
 * `PARAVIEW_GENERATE_TRANSLATIONS` that generates translation
 TS file to be filled with translation, and then compile them.
 
-* `translations_directory` that indicate the desired path
+* `PARAVIEW_TRANSLATIONS_DIRECTORY` that indicate the desired path
 for the ts files.

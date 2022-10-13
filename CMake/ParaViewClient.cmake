@@ -376,7 +376,7 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       paraview_create_translation(
         OUTPUT_QM _paraview_client_translation_files 
         DIRECTORY "${_paraview_client_TS_DIR}"
-        OUTPUT_TS "${translations_directory}/${_paraview_client_NAME}.ts")
+        OUTPUT_TS "${PARAVIEW_TRANSLATIONS_DIRECTORY}/${_paraview_client_NAME}.ts")
     endforeach ()
   endif ()
 
