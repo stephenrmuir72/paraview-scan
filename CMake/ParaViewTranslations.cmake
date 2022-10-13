@@ -1,9 +1,8 @@
 function (merge_all_qm)
-    cmake_parse_arguments(_merge_args
+    cmake_parse_arguments(PARSE_ARGV 0 _merge_args
     ""
     "PATH"
-    ""
-    ${ARGN})
+    "")
     if (NOT DEFINED _merge_args_PATH)
         set(_merge_args_PATH "${CMAKE_BINARY_DIR}/Translation")
     endif ()
@@ -16,11 +15,10 @@ function (merge_all_qm)
 endfunction ()
 
 function (paraview_create_translation)
-    cmake_parse_arguments(_pv_create_tr
+    cmake_parse_arguments(PARSE_ARGV 0 _pv_create_tr
     ""
     "OUTPUT_QM;DIRECTORY;OUTPUT_TS"
-    ""
-    ${ARGN})
+    "")
     find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
     get_filename_component(_dir_ts ${_pv_create_tr_OUTPUT_TS} DIRECTORY)
     set_source_files_properties("${_pv_create_tr_OUTPUT_TS}" PROPERTIES OUTPUT_LOCATION "${_dir_ts}")
