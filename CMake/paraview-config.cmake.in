@@ -14,6 +14,7 @@ The following variables are provided by this module:
   * `PARAVIEW_USE_QT`: If ParaView's Qt GUI is available.
   * `PARAVIEW_USE_MPI`: If ParaView is built with MPI support.
   * `PARAVIEW_USE_PYTHON`: If ParaView is built with Python support.
+  * `PARAVIEW_PYTHONPATH`: Where ParaView's Python modules live under the
   * `PARAVIEW_USE_QTWEBENGINE`: If ParaView uses Qt's WebEngine for its help.
   * `PARAVIEW_PYTHONPATH`: Where ParaView's Python modules live under the
     install prefix. Unset if Python is not available.
@@ -182,6 +183,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/ParaViewClient.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewPlugin.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewServerManager.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ParaViewTesting.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/ParaViewTranslations.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/vtkModuleWrapClientServer.cmake")
 
 if (@paraview_has_catalyst@) # paraview_has_catalyst
