@@ -3,8 +3,14 @@ function (merge_all_qm)
     ""
     "FILE"
     "")
+    if (_merge_args_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR
+                "Unrecognized arguments for merge_all_qm: "
+                "${_merge_args_UNPARSED_ARGUMENTS}.")
+    endif ()
     if (NOT DEFINED _merge_args_FILE)
-        set(_merge_args_FILE "${CMAKE_BINARY_DIR}/bin/lang_fr.qm")
+        message(FATAL_ERROR
+                "The `FILE` argument is required.")
     endif ()
     get_property(_merge_args_qm_files GLOBAL PROPERTY paraview_qm_files)
 
@@ -19,6 +25,24 @@ function (paraview_create_translation)
     ""
     "OUTPUT_QM;DIRECTORY;OUTPUT_TS"
     "")
+    if (_pv_create_tr_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR
+                "Unrecognized arguments for paraview_create_translation: "
+                "${_pv_create_tr_UNPARSED_ARGUMENTS}.")
+    endif ()
+    if (NOT DEFINED _pv_create_tr_OUTPUT_QM)
+        message(FATAL_ERROR
+                "The `OUTPUT_QM` argument is required.")
+    endif ()
+    if (NOT DEFINED _pv_create_tr_DIRECTORY)
+        message(FATAL_ERROR
+                "The `DIRECTORY` argument is required.")
+    endif ()
+    if (NOT DEFINED _pv_create_tr_OUTPUT_TS)
+        message(FATAL_ERROR
+                "The `OUTPUT_TS` argument is required.")
+    endif ()
+
     find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
     get_filename_component(_dir_ts ${_pv_create_tr_OUTPUT_TS} DIRECTORY)
     set_source_files_properties("${_pv_create_tr_OUTPUT_TS}" PROPERTIES OUTPUT_LOCATION "${_dir_ts}")

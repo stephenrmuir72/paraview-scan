@@ -954,5 +954,5 @@ endif ()
 #-----------------------------------------------------------------------------
 
 if (PARAVIEW_GENERATE_TRANSLATIONS)
-merge_all_qm(PATH "${CMAKE_BINARY_DIR}/bin/lang_fr.qm")
+merge_all_qm(FILE "${CMAKE_BINARY_DIR}/bin/lang_fr.qm")
 endif()
