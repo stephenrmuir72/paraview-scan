@@ -91,6 +91,11 @@ if (TARGET GmshIO::vtkGmshIO)
     FindGmsh.cmake)
 endif ()
 
+if (PARAVIEW_USE_QT)
+  list(APPEND paraview_cmake_module_files
+    ParaViewTranslations.cmake)
+endif()
+
 set(paraview_cmake_files_to_install)
 foreach (paraview_cmake_module_file IN LISTS paraview_cmake_module_files)
   configure_file(

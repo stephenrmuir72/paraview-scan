@@ -37,7 +37,10 @@ paraview_client_add(
   [FORCE_UNIX_LAYOUT    <ON|OFF>]
   [BUNDLE_DESTINATION   <directory>]
   [RUNTIME_DESTINATION  <directory>]
-  [LIBRARY_DESTINATION  <directory>])
+  [LIBRARY_DESTINATION  <directory>]
+
+  [APPLICATION_UI_DIRECTORIES  <directory>...]
+  [TRANSLATIONS_DIRECTORY      <directory>])
 ```
 
   * `NAME`: (Required) The name of the application. This is used as the target
@@ -78,12 +81,16 @@ paraview_client_add(
   * `LIBRARY_DESTINATION`: (Defaults to `${CMAKE_INSTALL_LIBDIR}`) Where
     libraries are placed. Sets up `RPATH` on ELF platforms (e.g., Linux and the
     BSD family).
+  * `APPLICATION_UI_DIRECTORIES`: List of folder where the localization system have to search
+    for source files to be translated.
+  * `TRANSLATIONS_DIRECTORY`: List of folder where the localization system have to search
+    for source files to be translated.
 #]==]
 function (paraview_client_add)
   cmake_parse_arguments(_paraview_client
     ""
-    "NAME;APPLICATION_NAME;ORGANIZATION;TITLE;SPLASH_IMAGE;BUNDLE_DESTINATION;BUNDLE_ICON;BUNDLE_PLIST;APPLICATION_ICON;MAIN_WINDOW_CLASS;MAIN_WINDOW_INCLUDE;VERSION;FORCE_UNIX_LAYOUT;PLUGINS_TARGET;DEFAULT_STYLE;RUNTIME_DESTINATION;LIBRARY_DESTINATION;NAMESPACE;EXPORT"
-    "REQUIRED_PLUGINS;OPTIONAL_PLUGINS;APPLICATION_XMLS;SOURCES;QCH_FILES;QCH_FILE;PLUGINS_TARGETS"
+    "NAME;APPLICATION_NAME;ORGANIZATION;TITLE;SPLASH_IMAGE;BUNDLE_DESTINATION;BUNDLE_ICON;BUNDLE_PLIST;APPLICATION_ICON;MAIN_WINDOW_CLASS;MAIN_WINDOW_INCLUDE;VERSION;FORCE_UNIX_LAYOUT;PLUGINS_TARGET;DEFAULT_STYLE;RUNTIME_DESTINATION;LIBRARY_DESTINATION;NAMESPACE;EXPORT;TRANSLATIONS_DIRECTORY"
+    "REQUIRED_PLUGINS;OPTIONAL_PLUGINS;APPLICATION_XMLS;SOURCES;QCH_FILES;QCH_FILE;PLUGINS_TARGETS;APPLICATION_UI_DIRECTORIES"
     ${ARGN})
 
   if (_paraview_client_UNPARSED_ARGUMENTS)
@@ -183,6 +190,11 @@ function (paraview_client_add)
   if (NOT DEFINED _paraview_client_MAIN_WINDOW_INCLUDE)
     set(_paraview_client_MAIN_WINDOW_INCLUDE
       "${_paraview_client_MAIN_WINDOW_CLASS}.h")
+  endif ()
+
+  if (NOT DEFINED _paraview_client_TRANSLATIONS_DIRECTORY)
+    message(FATAL_ERROR
+            "The `TRANSLATIONS_DIRECTORY` argument is required.")
   endif ()
 
   set(_paraview_client_extra_sources)
@@ -358,9 +370,28 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       FILES
         ${_paraview_client_resource_files})
   endif ()
+
+  ## Translation Management
+  #
+  #
+  set(_paraview_client_translation_files "")
+  if (DEFINED _paraview_client_APPLICATION_UI_DIRECTORIES)
+
+    find_package(Qt5 REQUIRED QUIET COMPONENTS LinguistTools)
+    foreach (_paraview_client_TS_DIR IN LISTS _paraview_client_APPLICATION_UI_DIRECTORIES)
+      get_filename_component(_TS_NAME ${_paraview_client_TS_DIR} NAME)
+      paraview_create_translation(
+        RETURNED_QM _paraview_client_translation_tmp_file
+        DIRECTORY "${_paraview_client_TS_DIR}"
+        OUTPUT_TS "${_paraview_client_TRANSLATIONS_DIRECTORY}/${_TS_NAME}.ts")
+      list(APPEND _paraview_client_translation_files ${_paraview_client_translation_tmp_file})
+    endforeach ()
+  endif ()
+
   add_executable("${_paraview_client_NAME}" ${_paraview_client_executable_flags}
     ${_paraview_client_SOURCES}
     ${_paraview_client_resource_files}
+    ${_paraview_client_translation_files}
     ${_paraview_client_source_files}
     ${_paraview_client_extra_sources})
   if (DEFINED _paraview_client_NAMESPACE)

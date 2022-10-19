@@ -267,10 +267,19 @@ set(CMAKE_AUTORCC 1)
 set(CMAKE_AUTOUIC 1)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/UI")
 
+set(qm_files "")
+if (PARAVIEW_BUILD_TRANSLATIONS)
+  paraview_create_translation(  
+    RETURNED_QM qm_files
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_TS "${PARAVIEW_TRANSLATIONS_DIRECTORY}/Components.ts")
+endif ()
+
 vtk_module_add_module(ParaView::pqComponents
   CLASSES ${classes}
   HEADERS ${headers}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files})
 vtk_module_link(ParaView::pqComponents
   PRIVATE

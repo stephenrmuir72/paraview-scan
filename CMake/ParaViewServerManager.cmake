@@ -52,6 +52,13 @@ function (paraview_add_server_manager_xmls)
       PROPERTY  "paraview_server_manager_xml"
       VALUE     "${_paraview_add_sm_xml}")
   endforeach ()
+
+  get_property(_header_name TARGET "${_paraview_add_sm_MODULE}" PROPERTY "NAME")
+  paraview_generate_translation_header(TARGET "${_header_name}Translations"
+          DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+          RESULT_FILE "${_header_name}i18n.h"
+          INPUT_FILES ${_paraview_add_sm_XMLS})
+
 endfunction ()
 
 #[==[.md

@@ -87,6 +87,7 @@ include(ParaViewTesting)
 include(ParaViewClient)
 include(ParaViewPlugin)
 include(ParaViewPluginDebugging)
+include(ParaViewTranslations)
 include(vtkModuleWrapClientServer)
 include(CTest)
 set_property(CACHE BUILD_TESTING

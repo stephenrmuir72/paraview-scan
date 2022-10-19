@@ -63,9 +63,18 @@ vtk_module_find_package(
 source_group("Resources" FILES
   ${ui_files})
 
+  set(qm_files "")
+  if (PARAVIEW_BUILD_TRANSLATIONS)
+    paraview_create_translation(
+      RETURNED_QM qm_files
+      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_TS "${PARAVIEW_TRANSLATIONS_DIRECTORY}/Python.ts")
+  endif ()
+
 vtk_module_add_module(ParaView::pqPython
   CLASSES ${classes}
   SOURCES ${ui_files}
+          ${qm_files}
           ${resource_files}
   HEADERS ${headers})
 
