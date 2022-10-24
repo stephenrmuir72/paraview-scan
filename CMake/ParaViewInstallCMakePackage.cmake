@@ -83,18 +83,17 @@ set(paraview_cmake_module_files
   ParaViewTesting.cmake
 
   # Client Server
-  vtkModuleWrapClientServer.cmake)
+  vtkModuleWrapClientServer.cmake
+
+  # Translation API
+  ParaViewTranslations.cmake
+  XML_translations_header_generator.py)
 
 # From the `GmshIO` plugin.
 if (TARGET GmshIO::vtkGmshIO)
   list(APPEND paraview_cmake_module_files
     FindGmsh.cmake)
 endif ()
-
-if (PARAVIEW_USE_QT)
-  list(APPEND paraview_cmake_module_files
-    ParaViewTranslations.cmake)
-endif()
 
 set(paraview_cmake_files_to_install)
 foreach (paraview_cmake_module_file IN LISTS paraview_cmake_module_files)

@@ -375,8 +375,8 @@ These settings control optional features. These begin with the prefix
 These settings are used for translating purpose:
   * `PARAVIEW_BUILD_TRANSLATIONS` (default `OFF`): Enable translation
     files update and generation.
-  * `PARAVIEW_TRANSLATIONS_DIRECTORY` (default `${CMAKE_BINARY_DIR}/Translations`) Path
-    to the translation file repository
+  * `PARAVIEW_TRANSLATIONS_DIRECTORY` (default `${CMAKE_BINARY_DIR}/Translations`)
+    Path where the translation files will be generated on build.
 
 More advanced / less common options include:
 

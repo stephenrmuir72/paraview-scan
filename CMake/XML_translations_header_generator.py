@@ -49,8 +49,8 @@ def translationUnit(file: str, line: int, context: str, content: str) -> str:
 def _insertSpace(string: str, index: int) -> str:
     return string[:index] + ' ' + string[index:]
 
-# The function MUST have the same behavior as CreateNewPrettyLabel()
-# in Paraview's Remoting/ServerManager/vtkSMProperty.cxx !!
+# This function MUST have the same behavior as
+# vtkSMProperty::CreateNewPrettyLabel()
 def createPrettyLabel(label: str) -> str:
     """
     Create a proper label from a name.

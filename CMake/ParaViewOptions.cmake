@@ -226,11 +226,13 @@ option(PARAVIEW_ENABLE_FIDES "Enable Fides support." OFF)
 
 option(PARAVIEW_ENABLE_FFMPEG "Enable FFMPEG Support." OFF)
 
-option(PARAVIEW_BUILD_TRANSLATIONS "Generate translation files" OFF)
+cmake_dependent_option(PARAVIEW_BUILD_TRANSLATIONS
+  "Generate translation files" OFF
+  "PARAVIEW_USE_QT" OFF)
 if (PARAVIEW_BUILD_TRANSLATIONS)
-  set(PARAVIEW_TRANSLATIONS_DIRECTORY "${CMAKE_BINARY_DIR}/Translation" CACHE STRING
-  "The directory containing translation files")
-endif()
+  set(PARAVIEW_TRANSLATIONS_DIRECTORY "${CMAKE_BINARY_DIR}/Translations" CACHE STRING
+    "The directory containing translation files")
+endif ()
 
 # If building on Unix with MPI enabled, we will present another option to
 # enable building of CosmoTools VTK extensions. This option is by default
