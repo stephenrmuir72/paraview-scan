@@ -200,7 +200,7 @@ void pqCommandLineOptionsBehavior::processData()
     // This also resolve relative path into a canonical one.
     pqFileDialog dialog(pqActiveObjects::instance().activeServer(), pqCoreUtilities::mainWidget(),
       tr("Internal Open File"), QString(), QString());
-    dialog.setFileMode(pqFileDialog::ExistingFiles);
+    dialog.setFileMode(pqFileDialog::ExistingFilesAndDirectories);
 
     if (!dialog.selectFile(path))
     {
