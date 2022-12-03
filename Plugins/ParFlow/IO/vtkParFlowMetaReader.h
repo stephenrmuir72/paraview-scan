@@ -8,7 +8,12 @@
 #include "vtkSmartPointer.h" // for ivars
 #include "vtkVector.h"       // for vtkVector*
 
+#if 0
 #include "nlohmann/json.hpp" // for json bits
+#else
+#include "vtk_nlohmannjson.h"        // Use VTK's mangled version
+#include VTK_NLOHMANN_JSON(json.hpp) // Use VTK's mangled version
+#endif
 
 #include <map>    // for std::map
 #include <set>    // for std::set

@@ -310,7 +310,7 @@ set(paraview_default_plugins
   PacMan
   PanoramicProjectionView
   ParametricSurfaces
-  # ParFlow - Because of dependency to nlohmann_json
+  ParFlow
   Prism
   SaveStateAndScreenshot
   SLACTools

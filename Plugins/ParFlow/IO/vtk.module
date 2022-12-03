@@ -8,3 +8,4 @@ DEPENDS
   VTK::CommonDataModel
   VTK::CommonExecutionModel
   VTK::ParallelCore
+  VTK::nlohmannjson

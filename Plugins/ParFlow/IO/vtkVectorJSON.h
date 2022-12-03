@@ -4,7 +4,12 @@
 
 #include "vtkVector.h"
 
+#if 0
 #include "nlohmann/json.hpp" // for json
+#else
+#include "vtk_nlohmannjson.h"        // Use VTK's mangled version
+#include VTK_NLOHMANN_JSON(json.hpp) // Use VTK's mangled version
+#endif
 
 #include <stdexcept>
 

@@ -25,7 +25,12 @@
 #include "vtksys/FStream.hxx"
 #include "vtksys/SystemTools.hxx"
 
-#include "nlohmann/json.hpp"
+#if 0
+#include "nlohmann/json.hpp" // for json bits
+#else
+#include "vtk_nlohmannjson.h"        // Use VTK's mangled version
+#include VTK_NLOHMANN_JSON(json.hpp) // Use VTK's mangled version
+#endif
 
 #include <algorithm>
 #include <cmath>
