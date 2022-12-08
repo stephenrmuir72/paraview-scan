@@ -319,7 +319,6 @@
           <DataType value="vtkDataSet" />
           <DataType value="vtkCompositeDataSet" />
         </DataTypeDomain>
-        <InputArrayDomain name="input_array" />
         <Documentation>This property specifies the dataset from which to obtain
         probe values.</Documentation>
       </InputProperty>
