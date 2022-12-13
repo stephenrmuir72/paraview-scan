@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
+#include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 #include "vtkSMRenderViewProxy.h"
@@ -111,6 +112,17 @@ void sendLocationToPVtest(int marker, int freq, float x, float y, float z)
 }
 #endif /* OUTPUT_DATA_FOR_DEBUGGING */
 
+class vtkSMVRGrabTransformStyleProxy::vtkInternals
+{
+public:
+  double GetSpeed(vtkSMProxy* proxy)
+  {
+    vtkSMDoubleVectorProperty* dvp;
+    dvp = vtkSMDoubleVectorProperty::SafeDownCast(proxy->GetProperty("Speed"));
+    return dvp->GetElement(0);
+  }
+};
+
 // ----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSMVRGrabTransformStyleProxy);
 
@@ -119,6 +131,8 @@ vtkStandardNewMacro(vtkSMVRGrabTransformStyleProxy);
 vtkSMVRGrabTransformStyleProxy::vtkSMVRGrabTransformStyleProxy()
   : Superclass()
 {
+  this->Internals = new vtkInternals();
+
   this->AddButtonRole("Navigate world");
   this->AddButtonRole("Reset world");
   this->EnableNavigate = false;
@@ -127,7 +141,10 @@ vtkSMVRGrabTransformStyleProxy::vtkSMVRGrabTransformStyleProxy()
 
 // ----------------------------------------------------------------------------
 // Destructor method
-vtkSMVRGrabTransformStyleProxy::~vtkSMVRGrabTransformStyleProxy() = default;
+vtkSMVRGrabTransformStyleProxy::~vtkSMVRGrabTransformStyleProxy()
+{
+  delete this->Internals;
+}
 
 // ----------------------------------------------------------------------------
 // PrintSelf() method
@@ -137,41 +154,6 @@ void vtkSMVRGrabTransformStyleProxy::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "EnableNavigate: " << this->EnableNavigate << endl;
   os << indent << "IsInitialRecorded: " << this->IsInitialRecorded << endl;
-}
-
-// ----------------------------------------------------------------------------
-// GetCamera() method
-//
-// NOTE: in the vtkVRSpaceNavigatorGrabWorldStyle.cxx code, the multiple steps used to
-//   get the "rview->getProxy()" value is simply replaced with "this->ControlledProxy".
-//   I would like to get an explanation so we know if we can do the same here.
-vtkCamera* vtkSMVRGrabTransformStyleProxy::GetCamera()
-{
-  vtkCamera* camera = nullptr;
-  pqActiveObjects& activeObjs = pqActiveObjects::instance();
-
-  /* Alert!  The following conditional uses a lazy assignment/evaluation -- the "=" is not a bug
-   * (BS: I assume) */
-  if (pqView* pqview = activeObjs.activeView())
-  {
-    /* Alert!  The following conditional uses a lazy assignment/evaluation -- the "=" is not a bug
-     * (BS: I assume) */
-    if (pqRenderView* rview = qobject_cast<pqRenderView*>(pqview))
-    {
-      /* Alert!  The following conditional uses a lazy assignment/evaluation -- the "=" is not a bug
-       * (BS: I assume) */
-      if (vtkSMRenderViewProxy* rviewPxy = vtkSMRenderViewProxy::SafeDownCast(rview->getProxy()))
-      {
-        camera = rviewPxy->GetActiveCamera();
-      }
-    }
-  }
-  if (!camera)
-  {
-    vtkWarningMacro(<< "Cannot grab active camera.");
-  }
-
-  return camera;
 }
 
 // ----------------------------------------------------------------------------
@@ -190,173 +172,86 @@ void vtkSMVRGrabTransformStyleProxy::HandleButton(const vtkVREvent& event)
   }
   else if (event.data.button.state && role == "Reset world")
   {
+    if (this->ControlledProxy == nullptr)
+    {
+      vtkErrorMacro("No controlled proxy set!");
+      return;
+    }
     vtkNew<vtkMatrix4x4> transformMatrix;
-    if (this->ControlledProxy != nullptr)
-    {
-      vtkSMPropertyHelper(this->ControlledProxy, this->ControlledPropertyName)
-        .Set(&transformMatrix.GetPointer()->Element[0][0], 16);
-    }
-    else
-    {
-      cout << "ERROR: this->ControlledProxy is NULL.  This should not happen.\n";
-    }
+
+    vtkSMPropertyHelper(this->ControlledProxy, this->ControlledPropertyName)
+      .Set(&transformMatrix.GetPointer()->Element[0][0], 16);
+    this->ControlledProxy->UpdateVTKObjects();
+
     this->IsInitialRecorded = false;
   }
 }
 
 // ----------------------------------------------------------------------------
-// HandleTracker() method
 void vtkSMVRGrabTransformStyleProxy::HandleTracker(const vtkVREvent& event)
 {
   static double lastspeed = -1.0;
 
   vtkCamera* camera = nullptr;
   std::string role = this->GetTrackerRole(event.name);
+
   if (role != "Tracker")
     return;
+
+  if (this->ControlledProxy == nullptr)
+  {
+    vtkErrorMacro("No controlled proxy set!");
+    return;
+  }
+
   if (this->EnableNavigate)
   {
-    camera = vtkSMVRGrabTransformStyleProxy::GetCamera();
-    if (!camera)
-    {
-      vtkWarningMacro(<< " HandleTracker: Cannot grab active camera.");
-      return;
-    }
-    double speed = GetSpeedFactor(camera, camera->GetModelViewTransformMatrix());
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-    sendLocationToPVtest(5, 1, -3.0, speed * 3,
-      0.0); /* exaggerate it a bit to be able to see what's happening better */
-    sendMatrixToPVtest(1, 0, camera->GetModelViewTransformMatrix());
-#endif
-#if 1 /* fix the "speed" factor at 1.0 */
-    speed = 1.0;
-#endif
-
     if (!this->IsInitialRecorded)
     {
-      // save the ModelView Matrix the Wand Matrix
-      this->SavedModelViewMatrix->DeepCopy(
-        camera->GetModelViewTransformMatrix()); /* WRS: model-view instead */
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-      sendMatrixToPVtest(4, 1, this->SavedModelViewMatrix.GetPointer());
-#endif
+      vtkSMPropertyHelper(this->ControlledProxy, this->ControlledPropertyName)
+        .Get(&(this->SavedModelViewMatrix->Element[0][0]), 16);
 
-      this->SavedModelViewMatrix->DeepCopy(camera->GetModelTransformMatrix());
-      /* WRS: Nikhil's original */ /* WRS: NOTE: this should really make use of the Proxy/Property
-                                      value since that's where we're going to write the altered
-                                      value back to */
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-      sendMatrixToPVtest(3, 1, this->SavedModelViewMatrix.GetPointer());
-#endif
       this->SavedInverseWandMatrix->DeepCopy(event.data.tracker.matrix);
 
-#if 1
-      if (std::isnan(speed))
+      double speed = this->Internals->GetSpeed(this);
+      if (speed != 1.0)
       {
-        fprintf(stderr, "Hey, 'speed' is not-a-number! -- last value was %f\n", lastspeed);
+        std::cout << "GrabTransform using speed " << speed << std::endl;
+        this->SavedInverseWandMatrix->SetElement(
+          0, 3, this->SavedInverseWandMatrix->GetElement(0, 3) * speed);
+        this->SavedInverseWandMatrix->SetElement(
+          1, 3, this->SavedInverseWandMatrix->GetElement(1, 3) * speed);
+        this->SavedInverseWandMatrix->SetElement(
+          2, 3, this->SavedInverseWandMatrix->GetElement(2, 3) * speed);
       }
-      else
-      {
-        this->SavedInverseWandMatrix->SetElement(0, 3, event.data.tracker.matrix[3] * speed);
-        this->SavedInverseWandMatrix->SetElement(1, 3, event.data.tracker.matrix[7] * speed);
-        this->SavedInverseWandMatrix->SetElement(2, 3, event.data.tracker.matrix[11] * speed);
-        lastspeed = speed;
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-        sendMatrixToPVtest(6, 1,
-          this->SavedInverseWandMatrix.GetPointer()); /* send a copy of matrix prior to inversion */
-      }
-#endif
-#endif
-      vtkMatrix4x4::Invert(
-        this->SavedInverseWandMatrix.GetPointer(), this->SavedInverseWandMatrix.GetPointer());
+
+      vtkMatrix4x4::Invert(this->SavedInverseWandMatrix, this->SavedInverseWandMatrix);
+
       this->IsInitialRecorded = true;
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-      sendMatrixToPVtest(2, 1, this->SavedInverseWandMatrix.GetPointer());
-#endif
-      // vtkWarningMacro(<< "button is pressed");
     }
     else
     {
       // Apply the transformation and get the new transformation matrix
       vtkNew<vtkMatrix4x4> transformMatrix;
       transformMatrix->DeepCopy(event.data.tracker.matrix);
-#if 1
-      if (std::isnan(speed))
-      {
-        fprintf(stderr, "Hey, 'speed' is not-a-number! -- last value was %f\n", lastspeed);
-      }
-      else
-      {
-        transformMatrix->SetElement(0, 3, event.data.tracker.matrix[3] * speed);
-        transformMatrix->SetElement(1, 3, event.data.tracker.matrix[7] * speed);
-        transformMatrix->SetElement(2, 3, event.data.tracker.matrix[11] * speed);
-        lastspeed = speed;
-      }
-#endif
 
-      /* swapping order of both multiplies */
-      vtkMatrix4x4::Multiply4x4(transformMatrix.GetPointer(),
-        this->SavedInverseWandMatrix.GetPointer(), transformMatrix.GetPointer());
-      vtkMatrix4x4::Multiply4x4(transformMatrix.GetPointer(),
-        this->SavedModelViewMatrix.GetPointer(), transformMatrix.GetPointer());
-#ifdef OUTPUT_DATA_FOR_DEBUGGING
-      sendMatrixToPVtest(0, 0, transformMatrix.GetPointer());
-#endif
+      double speed = this->Internals->GetSpeed(this);
+      if (speed != 1.0)
+      {
+        std::cout << "GrabTransform using speed " << speed << std::endl;
+        transformMatrix->SetElement(0, 3, transformMatrix->GetElement(0, 3) * speed);
+        transformMatrix->SetElement(1, 3, transformMatrix->GetElement(1, 3) * speed);
+        transformMatrix->SetElement(2, 3, transformMatrix->GetElement(2, 3) * speed);
+      }
+
+      // swapping order of both multiplies
+      vtkMatrix4x4::Multiply4x4(transformMatrix, this->SavedInverseWandMatrix, transformMatrix);
+      vtkMatrix4x4::Multiply4x4(transformMatrix, this->SavedModelViewMatrix, transformMatrix);
 
       // Set the new matrix for the proxy.
-      if (this->ControlledProxy != nullptr)
-      {
-        vtkSMPropertyHelper(this->ControlledProxy, this->ControlledPropertyName)
-          .Set(&transformMatrix->Element[0][0], 16);
-        this->ControlledProxy->UpdateVTKObjects();
-        // vtkWarningMacro(<< "button is continuously pressed");
-      }
-      else
-      {
-        cout << "ERROR: this->ControlledProxy is NULL.  This shouldn't happen.\n";
-      }
+      vtkSMPropertyHelper(this->ControlledProxy, this->ControlledPropertyName)
+        .Set(&(transformMatrix->Element[0][0]), 16);
+      this->ControlledProxy->UpdateVTKObjects();
     }
   }
-}
-
-// ----------------------------------------------------------------------------
-float vtkSMVRGrabTransformStyleProxy::GetSpeedFactor(vtkCamera* cam, vtkMatrix4x4* mvmatrix)
-{
-  // Return the distance between the camera and the focal point.
-  // WRS: and the distance between the camera and the focal point is a speed factor???
-  double pos[3];
-  double foc[3];
-  float result;
-
-#if 1 /* Aashish's method from SC13  (if set to "1") */
-  cam->GetEyePosition(pos);
-  foc[0] = mvmatrix->GetElement(0, 3);
-  foc[1] = mvmatrix->GetElement(1, 3);
-  foc[2] = mvmatrix->GetElement(2, 3);
-  result =
-    std::log(sqrt((pos[0] - foc[0]) * (pos[0] - foc[0]) + (pos[1] - foc[1]) * (pos[1] - foc[1]) +
-      (pos[2] - foc[2]) *
-        (pos[2] - foc[2]))); /* WRS: I added the squaring of each component -- otherwise nan-city */
-#else                        /* pre-SC13 method */
-  /* WRS: Note the "Grab-Transform" version of this used to not square each component, resulting in
-   * many nan results */
-  cam->GetPosition(pos);
-  cam->GetFocalPoint(foc);
-  pos[0] -= foc[0];
-  pos[1] -= foc[1];
-  pos[2] -= foc[2];
-  pos[0] *= pos[0];
-  pos[1] *= pos[1];
-  pos[2] *= pos[2];
-  result = sqrt(pos[0] + pos[1] + pos[2]);
-#endif
-
-  if (std::isnan(result))
-  {
-    fprintf(stderr, "GetSpeedFactor -- nan -- pos = (%f %f %f), foc = (%f %f %f)\n", pos[0], pos[1],
-      pos[2], foc[0], foc[1], foc[2]);
-    return 1.0;
-  }
-
-  return result;
 }
