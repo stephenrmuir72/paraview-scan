@@ -70,7 +70,7 @@ vtkPVMaterialLibrary::vtkPVMaterialLibrary()
   // where materials might be in relation to that
   std::vector<std::string> prefixes = {
     "materials"
-#if not defined(_WIN32) && not defined(__APPLE__)
+#if !defined(_WIN32) && !defined(__APPLE__)
     ,
     "share/paraview-" PARAVIEW_VERSION "/materials"
 #endif
