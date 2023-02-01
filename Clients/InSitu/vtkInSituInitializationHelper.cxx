@@ -308,7 +308,17 @@ vtkSMSourceProxy* vtkInSituInitializationHelper::GetProducer(const std::string& 
 
   auto& internals = (*vtkInSituInitializationHelper::Internals);
   auto iter = internals.Producers.find(channelName);
-  return iter != internals.Producers.end() ? iter->second.GetPointer() : nullptr;
+  bool found = iter != internals.Producers.end();
+  if (!found && !internals.Producers.empty())
+  {
+    vtkLogF(WARNING, "Could not find channel '%s'", channelName.c_str());
+    for (auto ii = internals.Producers.begin(); ii != internals.Producers.end(); ii++)
+    {
+      vtkLogF(WARNING, "Available channel(s) '%s'", ii->first.c_str());
+    }
+  }
+
+  return found == true ? iter->second.GetPointer() : nullptr;
 }
 
 //----------------------------------------------------------------------------
