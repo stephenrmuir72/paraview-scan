@@ -207,6 +207,7 @@ public:
     }
   }
 
+  double FontMagnification = 1.0;
   virtual vtkVector2i GetSize() const = 0;
 
   /**
@@ -224,6 +225,10 @@ public:
       bool approx = false;
       this->Magnification =
         vtkSMSaveScreenshotProxy::GetScaleFactorsAndSize(size, cursize, &approx);
+      // Font magnification needs to be treated separately.
+      // It is only a function of the resolution change from the original size to cursize
+      this->FontMagnification = std::max(static_cast<double>(this->OriginalSize[0]) / cursize[0],
+        static_cast<double>(this->OriginalSize[1]) / cursize[1]);
       if (approx)
       {
         const vtkVector2i approxSize = cursize * this->Magnification;
@@ -308,20 +313,26 @@ protected:
   void SetViewFontScaling(vtkSMViewProxy* view, int mode)
   {
     assert(view);
-    if (mode == SCALE_FONTS_PROPORTIONALLY)
-    {
-      return; // nothing to do.
-    }
-
-    assert(mode == DISABLE_FONT_SCALING);
 
     vtkSMPropertyHelper vppi(view, "PPI");
     ViewPPIState dpis;
     dpis.View = view;
     dpis.ViewPPI = vppi.GetAsInt();
     this->SavedPPIValues.push_back(dpis);
-    // not entirely sure how to best scale ppi.
-    vppi.Set(vppi.GetAsInt() / std::max(this->Magnification[0], this->Magnification[1]));
+
+    // If we scale fonts proportionally:
+    //   We need to compensate the resolution change induced by GetScaleFactorsAndSize.
+    //   If the new view's size is 1/3 of the original view, we need to divide by 3.
+    //   We pick the dimension with the least distorsion to avoid having text overflow the image
+    //   in the dimension that didn't change much.
+    // If we don't scale fonts:
+    //   We want the font to be defined per pixel rather than in proportion of the view.
+    //   We just need to divide by the magnification that was computed in GetScaleFactorsAndSize.
+    //   This will ensure constant pixel size of the printed text.
+    vppi.Set(vppi.GetAsInt() /
+      (mode == SCALE_FONTS_PROPORTIONALLY
+          ? this->FontMagnification
+          : std::max(this->Magnification[0], this->Magnification[1])));
     view->UpdateVTKObjects();
   }
 
