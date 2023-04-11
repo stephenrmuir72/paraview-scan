@@ -1,12 +1,13 @@
 #ifndef CatalystAdaptor_h
 #define CatalystAdaptor_h
 
-#include "conduit.hpp"
+#include "catalyst.hpp"
+#include "conduit_cpp_to_c.hpp"
 
 namespace CatalystAdaptor
 {
-  void Initialize(conduit::Node& node);
-  void Execute(conduit::Node& node);
+  void Initialize(conduit_cpp::Node& node);
+  void Execute(conduit_cpp::Node& node);
   void Finalize();
 }
 

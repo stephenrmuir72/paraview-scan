@@ -6,31 +6,33 @@
 
 namespace CatalystAdaptor
 {
-void Initialize(conduit::Node& node)
+void Initialize(conduit_cpp::Node& node)
 {
-  catalyst_status err = catalyst_initialize(conduit::c_node(&node));
+  conduit_node* c_node = nullptr;
+  c_node = conduit_cpp::c_node(&node);
+  catalyst_status err = catalyst_initialize(c_node);
   if (err != catalyst_status_ok)
   {
     std::cerr << "Failed to initialize Catalyst: " << err << std::endl;
   }
 }
 
-void Execute(conduit::Node& node)
+void Execute(conduit_cpp::Node& node)
 {
-  catalyst_status err = catalyst_execute(conduit::c_node(&node));
-  if (err != catalyst_status_ok)
-  {
-    std::cerr << "Failed to execute Catalyst: " << err << std::endl;
-  }
+  // catalyst_status err = catalyst_execute(conduit::c_node(&node));
+  // if (err != catalyst_status_ok)
+  // {
+  //   std::cerr << "Failed to execute Catalyst: " << err << std::endl;
+  // }
 }
 
 void Finalize()
 {
-  conduit::Node node;
-  catalyst_status err = catalyst_finalize(conduit::c_node(&node));
-  if (err != catalyst_status_ok)
-  {
-    std::cerr << "Failed to finalize Catalyst: " << err << std::endl;
-  }
+  // conduit::Node node;
+  // catalyst_status err = catalyst_finalize(conduit::c_node(&node));
+  // if (err != catalyst_status_ok)
+  // {
+  //   std::cerr << "Failed to finalize Catalyst: " << err << std::endl;
+  // }
 }
 }

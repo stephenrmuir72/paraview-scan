@@ -10,11 +10,8 @@
   representation of our simulation data we could pass this Conduit
   information to multiple in situ tools.
 */
-#include "conduit.hpp"
-
-// I tried commenting out the above #include "conduit.hpp" and use the below includes instead but got the same issue
-// #include "catalyst.hpp"
-// #include "conduit_cpp_to_c.hpp"
+#include "catalyst.hpp"
+#include "conduit_cpp_to_c.hpp"
 
 #include "CatalystAdaptor.h"
 //#include <iostream>
@@ -24,7 +21,7 @@ namespace ConduitAdaptor
 {
 void Initialize(int argc, char* argv[])
  {
-  conduit::Node node;
+  conduit_cpp::Node node;
   //node.ACB(); // ACB debugging -- not in real conduit API so this must be removed!
   for (int cc = 1; cc < argc; ++cc)
   {
@@ -38,7 +35,7 @@ void Initialize(int argc, char* argv[])
 
 void Execute(int cycle, double time, Grid& grid, Attributes& attribs)
 {
-  conduit::Node exec_params;
+  conduit_cpp::Node exec_params;
 
   // add time/cycle information
   auto state = exec_params["catalyst/state"];
