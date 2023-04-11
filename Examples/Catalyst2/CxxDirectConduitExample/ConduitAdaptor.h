@@ -11,6 +11,11 @@
   information to multiple in situ tools.
 */
 #include "conduit.hpp"
+
+// I tried commenting out the above #include "conduit.hpp" and use the below includes instead but got the same issue
+// #include "catalyst.hpp"
+// #include "conduit_cpp_to_c.hpp"
+
 #include "CatalystAdaptor.h"
 //#include <iostream>
 #include <string>
@@ -20,7 +25,7 @@ namespace ConduitAdaptor
 void Initialize(int argc, char* argv[])
  {
   conduit::Node node;
-  node.ACB(); // ACB debugging -- not in real conduit API so this must be removed!
+  //node.ACB(); // ACB debugging -- not in real conduit API so this must be removed!
   for (int cc = 1; cc < argc; ++cc)
   {
     node["catalyst/scripts/script" + std::to_string(cc - 1)].set_string(argv[cc]);

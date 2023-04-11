@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_definitions(-Dconduit_c_EXPORTS) # probably not needed but this is how conduit_node.cpp is compiled
+
 # Since this example uses MPI, find and link against it.
 find_package(MPI COMPONENTS C CXX)
 if (NOT MPI_FOUND)
