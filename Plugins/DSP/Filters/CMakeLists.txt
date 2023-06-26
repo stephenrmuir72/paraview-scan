@@ -1,4 +1,5 @@
 set(MODULE_CLASSES
+  vtkDummyDSPFilter
   vtkMeanPowerSpectralDensity
   vtkMergeReduceTableBlocks
   vtkProjectSpectrumMagnitude

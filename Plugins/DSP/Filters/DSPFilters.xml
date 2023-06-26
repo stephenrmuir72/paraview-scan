@@ -801,6 +801,24 @@
       </Hints>
 
     </SourceProxy>
+    <!-- ================================================================== -->
+    <SourceProxy class="vtkDummyDSPFilter"
+                 name="DummyDSPFilter">
+      <Documentation short_help="TODO">
+        TODO
+      </Documentation>
+      <InputProperty name="Input"
+                     command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type" composite_data_supported="1">
+          <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkTable"/>
+        </DataTypeDomain>
+      </InputProperty>
+    </SourceProxy>
   </ProxyGroup>
 
   <ParaViewFilters>
