@@ -41,6 +41,13 @@ stages:
 #         - .linux_builder_tags
 #         - .run_scheduled
 
+spack-macos:build:
+    extends:
+        - .macos
+        - .spack_build_linux
+        - .macos_builder_tags
+        - .run_scheduled
+
 ## Linux
 
 el7-mindeps-shared-mpi-python:build:
