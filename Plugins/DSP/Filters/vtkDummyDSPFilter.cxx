@@ -16,42 +16,81 @@
 #include "vtkTable.h"
 #include "vtkTypeList.h"
 
+#include <memory>
+
 namespace
 {
 //-----------------------------------------------------------------------------
-struct SetIndexWorker
+class Worker
 {
-  // Set Index for vtkMultiDimensional arrays
-  template <typename ArrayType>
-  void operator()(ArrayType* inArray, int idx)
+public:
+  virtual void SetIndex(vtkIdType index) = 0;
+  virtual bool IsDoneWithTraversal(vtkIdType index) = 0;
+};
+
+//-----------------------------------------------------------------------------
+template<typename MDArrayT>
+class TypedWorker : public Worker
+{
+public:
+  TypedWorker(MDArrayT* typedArray) : Array(typedArray) {}
+
+  virtual void SetIndex(vtkIdType index)
   {
-    inArray->SetIndex(idx);
+    this->Array->SetIndex(index);
+  }
+
+  virtual bool IsDoneWithTraversal(vtkIdType index)
+  {
+    return (index >= this->Array->GetNumberOfArrays());
+  }
+
+private:
+  MDArrayT* Array = nullptr;
+};
+
+//-----------------------------------------------------------------------------
+struct WorkerCreator
+{
+  template<typename ArrayT>
+  void operator()(ArrayT* array, std::shared_ptr<Worker>& worker)
+  {
+    worker = std::make_shared<TypedWorker<ArrayT>>(array);
   }
 };
 
 //-----------------------------------------------------------------------------
-struct IsDoneWorker
+std::vector<std::shared_ptr<Worker>> DispatchInitialize(vtkTable* table)
 {
-  // Check if vtkMultiDimensional array is done with traversal
-  template <typename ArrayType>
-  void operator()(ArrayType* inArray, int idx, int& isDoneWithTraversal)
+  using MDArrayList = vtkTypeList::Create<
+    vtkMultiDimensionalArray<double>,
+    vtkMultiDimensionalArray<float>,
+    vtkMultiDimensionalArray<int>,
+    vtkMultiDimensionalArray<unsigned char>,
+    vtkMultiDimensionalArray<vtkIdType>>;
+  using MDDispatcher = vtkArrayDispatch::DispatchByArray<MDArrayList>;
+
+  WorkerCreator workerCreator;
+
+  std::vector<std::shared_ptr<Worker>> workers;
+  for (vtkIdType iArr = 0; iArr < table->GetNumberOfColumns(); ++iArr)
   {
-    isDoneWithTraversal = (idx >= inArray->GetNumberOfArrays());
+    vtkDataArray* array = vtkDataArray::SafeDownCast(table->GetColumn(iArr));
+    if(!array)
+    {
+      continue;
+    }
+
+    std::shared_ptr<Worker> typeErasedWorker;
+    MDDispatcher::Execute(array, workerCreator, typeErasedWorker);
+    if (typeErasedWorker)
+    {
+      workers.emplace_back(typeErasedWorker);
+    }
   }
-};
 
-//-----------------------------------------------------------------------------
-typedef vtkTypeList::Unique<                 //
-  vtkTypeList::Create<                       //
-    vtkMultiDimensionalArray<double>,        //
-    vtkMultiDimensionalArray<float>,         //
-    vtkMultiDimensionalArray<int>,           //
-    vtkMultiDimensionalArray<unsigned char>, //
-    vtkMultiDimensionalArray<vtkIdType>      //
-    >>::Result MultiDimArrays;
-
-//-----------------------------------------------------------------------------
-typedef vtkArrayDispatch::DispatchByArray<::MultiDimArrays> Dispatcher;
+  return workers;
+}
 
 //-----------------------------------------------------------------------------
 class vtkMultiDimensionalTableIterator: public vtkCompositeDataIterator
@@ -60,56 +99,33 @@ public:
   static vtkMultiDimensionalTableIterator* New();
   vtkTypeMacro(vtkMultiDimensionalTableIterator, vtkCompositeDataIterator);
 
-  void setTable(vtkTable* table)
+  void SetTable(vtkTable* table)
   {
     this->Table = table;
+    this->Workers = ::DispatchInitialize(table); // Keep ?
   }
 
   void GoToFirstItem() override
   {
-    ::SetIndexWorker indexWorker;
-
-    for (int i = 0; i < this->Table->GetNumberOfColumns(); i++)
-    {
-      vtkDataArray* array = vtkDataArray::SafeDownCast(this->Table->GetColumn(i));
-      if (!Dispatcher::Execute(array, indexWorker, this->CurrentIdx))
-      {
-        cout << "Not a multi dimensional array !" << endl;
-        return;
-      }
-    }
-
     this->CurrentIdx = 0;
+    std::for_each(this->Workers.begin(), this->Workers.end(),
+        [&](std::shared_ptr<::Worker>& worker) { worker->SetIndex(this->CurrentIdx); });
   }
 
   void GoToNextItem() override
   {
-    ::SetIndexWorker indexWorker;
-
-    for (int i = 0; i < this->Table->GetNumberOfColumns(); i++)
-    {
-      vtkDataArray* array = vtkDataArray::SafeDownCast(this->Table->GetColumn(i));
-      if (!Dispatcher::Execute(array, indexWorker, this->CurrentIdx))
-      {
-        cout << "Not a multi dimensional array !" << endl;
-        return;
-      }
-    }
-
     this->CurrentIdx ++;
+    std::for_each(this->Workers.begin(), this->Workers.end(),
+        [&](std::shared_ptr<::Worker>& worker) { worker->SetIndex(this->CurrentIdx); });
   }
 
   int IsDoneWithTraversal() override
   {
-    ::IsDoneWorker isDoneWorker;
-
-    vtkDataArray* array = vtkDataArray::SafeDownCast(this->Table->GetColumn(0));
-    int isDoneWithTraversal = 0;
-    if (!Dispatcher::Execute(array, isDoneWorker, this->CurrentIdx, isDoneWithTraversal))
+    if (!this->Workers.empty())
     {
-      cout << "Not a multi dimensional array !" << endl;
+      return this->Workers[0]->IsDoneWithTraversal(this->CurrentIdx);
     }
-    return isDoneWithTraversal;
+    return true;
   }
 
   vtkDataObject* GetCurrentDataObject() override
@@ -135,6 +151,7 @@ private:
   void operator=(const vtkMultiDimensionalTableIterator&) = delete;
 
   vtkSmartPointer<vtkTable> Table;
+  std::vector<std::shared_ptr<Worker>> Workers;
   int CurrentIdx = 0; // No GetIndex method on mdArray ...
 };
 vtkStandardNewMacro(vtkMultiDimensionalTableIterator)
@@ -166,7 +183,7 @@ public:
         std::cerr << "Can't cast iterator !" << endl;
         return false;
       }
-      mdtIt->setTable(table);
+      mdtIt->SetTable(table);
     }
     else
     {
