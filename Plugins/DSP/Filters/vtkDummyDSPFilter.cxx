@@ -6,6 +6,7 @@
 #include "vtkCompositeDataIterator.h"
 #include "vtkDataObject.h"
 #include "vtkDataObjectTreeIterator.h"
+#include "vtkDSPIterator.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMultiBlockDataSet.h"
@@ -254,7 +255,14 @@ int vtkDummyDSPFilter::RequestData(vtkInformation* vtkNotUsed(request),
     return 0;
   }
 
-  vtkNew<vtkDSPIterator> dspIterator;
+  // vtkNew<vtkDSPIterator> dspIterator;
+
+  auto dspIterator = vtkDSPIterator2::GetInstance(input);
+  if (!dspIterator)
+  {
+    vtkErrorMacro("Unable to generate iterator !");
+    return 0;
+  }
   if (!dspIterator->Initialize(input))
   {
     vtkErrorMacro("Unable to initialize the DSP iterator");
