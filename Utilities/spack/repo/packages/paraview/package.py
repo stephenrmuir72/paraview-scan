@@ -42,7 +42,7 @@ class LocalStrategy(VCSFetchStrategy):
 
 def _determine_paraview_source_dir():
     source_dir = __file__
-    return source_dir[:source_dir.rfind("/Utilities/spack/repo/packages/paraview/package.py")]
+    return 'file://' + source_dir[:source_dir.rfind("/Utilities/spack/repo/packages/paraview/package.py")]
 
 enable_local_fetch_strategy = True
 
@@ -59,7 +59,7 @@ class Paraview(CMakePackage, CudaPackage):
     maintainers("danlipsa", "vicentebolea", "kwryankrattiger")
 
     if enable_local_fetch_strategy:
-        version('develop', file=_determine_paraview_source_dir(), preferred=True)
+        version('develop', url=_determine_paraview_source_dir(), preferred=True)
     else:
         version('master', branch='master', submodules=True)
         version('5.9.1', sha256='0d486cb6fbf55e428845c9650486f87466efcb3155e40489182a7ea85dfd4c8d', preferred=True)
