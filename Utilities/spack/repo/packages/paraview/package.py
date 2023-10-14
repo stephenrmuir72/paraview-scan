@@ -56,7 +56,7 @@ class Paraview(CMakePackage, CudaPackage):
     list_depth = 1
     git      = "https://gitlab.kitware.com/paraview/paraview.git"
 
-    maintainers = ['chuckatkins', 'danlipsa', 'vicentebolea']
+    maintainers("danlipsa", "vicentebolea", "kwryankrattiger")
 
     if enable_local_fetch_strategy:
         version('develop', file=_determine_paraview_source_dir(), preferred=True)
