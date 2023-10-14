@@ -59,7 +59,7 @@ class Paraview(CMakePackage, CudaPackage):
     maintainers("danlipsa", "vicentebolea", "kwryankrattiger")
 
     if enable_local_fetch_strategy:
-        version('develop', url=_determine_paraview_source_dir(), preferred=True)
+        version('develop', url=_determine_paraview_source_dir(), preferred=True, expand=False)
     else:
         version('master', branch='master', submodules=True)
         version('5.9.1', sha256='0d486cb6fbf55e428845c9650486f87466efcb3155e40489182a7ea85dfd4c8d', preferred=True)
