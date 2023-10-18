@@ -71,6 +71,17 @@
       <Documentation>
         Grab Transform
       </Documentation>
+      <DoubleVectorProperty default_values="1.0"
+                            name="Speed"
+                            number_of_elements="1">
+        <DoubleRangeDomain min="0"
+                           name="range" />
+        <Documentation>
+          Set the multiplication factor used to increase/decrease the amount of
+          transformation.  Values between 0 and 1 represent a decrease, while
+          values greater than one represent an increase.
+        </Documentation>
+      </DoubleVectorProperty>
     </VRGrabTransformStyleProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>
