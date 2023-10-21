@@ -43,6 +43,7 @@ PRIVATE_DEPENDS
   VTK::ChartsCore
 OPTIONAL_DEPENDS
   VTK::FiltersParallelMPI
+  VTK::IOADIOS2
   VTK::IOImage
 TEST_DEPENDS
   VTK::CommonSystem
