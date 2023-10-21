@@ -63,6 +63,7 @@ OPTIONAL_DEPENDS
   ParaView::nvpipe
   VTK::AcceleratorsVTKmFilters
   VTK::FiltersOpenTURNS
+  VTK::IOADIOS2
   VTK::ParallelMPI
   VTK::RenderingRayTracing
   VTK::vtkm

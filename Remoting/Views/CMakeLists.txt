@@ -179,6 +179,11 @@ set(classes
   vtkVolumeRepresentation
   vtkXYChartRepresentation)
 
+if (PARAVIEW_ENABLE_ADIOS2)
+  list(APPEND classes
+    vtkSMESimMonExtractWriterProxy)
+endif ()
+
 set(private_headers
   vtkPVDataDeliveryManagerInternals.h
   vtkGeometryRepresentationInternal.h
@@ -235,12 +240,20 @@ vtk_module_add_module(ParaView::RemotingViews
   SOURCES ${vtk_object_factory_source} ${sources}
   PRIVATE_HEADERS ${vtk_object_factory_header} ${private_headers})
 
+set(xmls
+  Resources/3dwidgets_remotingviews.xml
+  Resources/extractors_json.xml
+  Resources/extractors_remotingviews.xml
+  Resources/rendering.xml
+  Resources/sources_remotingviews.xml
+  Resources/utilities_remotingviews.xml
+  Resources/views_and_representations.xml
+)
+
+if(PARAVIEW_ENABLE_ADIOS2)
+  list(APPEND xmls "Resources/extractors_adios2.xml")
+endif()
+
 paraview_add_server_manager_xmls(
-  XMLS Resources/2dwidgets_remotingviews.xml
-       Resources/3dwidgets_remotingviews.xml
-       Resources/extractors_remotingviews.xml
-       Resources/extractors_json.xml
-       Resources/rendering.xml
-       Resources/sources_remotingviews.xml
-       Resources/utilities_remotingviews.xml
-       Resources/views_and_representations.xml)
+  XMLS ${xmls}
+)
