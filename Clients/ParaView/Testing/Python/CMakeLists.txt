@@ -233,3 +233,39 @@ paraview_add_test_python(
 
 set_tests_properties(paraviewPython-TestPV_PLUGIN_PATH
         PROPERTIES ENVIRONMENT "PV_PLUGIN_PATH=${CMAKE_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/")
+
+#------------------------------------------------------------------------------
+if(PARAVIEW_ENABLE_ADIOS2)
+  find_package(ADIOS2 2.4 REQUIRED
+    COMPONENTS CXX
+    OPTIONAL_COMPONENTS MPI)
+
+  # A Test tha creates  extracts using the eSimMon extractor
+  paraview_add_test_python(
+    NO_VALID NO_RT
+    TesteSimMonExtractor.py)
+
+  set_tests_properties(paraviewPython-TesteSimMonExtractor
+    PROPERTIES
+      FIXTURES_SETUP    paraviewPython-TesteSimMonExtractor-data)
+
+  # A validator for the generted extracts
+  add_executable(CxxeSimMonValidate
+    ValidateeSimMonExtractor.cxx)
+
+  target_link_libraries(CxxeSimMonValidate
+    PRIVATE
+      VTK::IOInfovis
+      adios2::adios2
+    )
+
+  add_test(
+    NAME paraviewPython-CxxeSimMonValidate
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CxxeSimMonValidate
+            ${CMAKE_CURRENT_BINARY_DIR}/extracts/LineChartView1.bp
+            ${CMAKE_CURRENT_BINARY_DIR}/extracts/data.csv)
+
+  set_tests_properties(paraviewPython-CxxeSimMonValidate
+    PROPERTIES
+      FIXTURES_REQUIRED    paraviewPython-TesteSimMonExtractor-data)
+endif()
