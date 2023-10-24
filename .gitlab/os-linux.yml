@@ -22,7 +22,7 @@
 
 .fedora35:
     extends: .linux
-    image: "kitware/paraview:ci-fedora35-20230808"
+    image: "kitware/paraview:ci-fedora35-20231024"
 
 .el7_mindeps:
     extends: .linux
@@ -30,7 +30,7 @@
 
 .el8_icc:
     extends: .linux
-    image: "kitware/paraview:ci-el8-icc-20220809"
+    image: "kitware/paraview:ci-el8-icc-20231024"
 
     variables:
         CC: icx
