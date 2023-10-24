@@ -34,6 +34,11 @@ if (PARAVIEW_ENABLE_NVPIPE)
     vtkNvPipeCompressor)
 endif ()
 
+if (PARAVIEW_ENABLE_ADIOS2)
+  list(APPEND classes
+    vtkESimMonChartExporter)
+endif ()
+
 vtk_module_add_module(ParaView::VTKExtensionsFiltersRendering
   CLASSES ${classes})
 

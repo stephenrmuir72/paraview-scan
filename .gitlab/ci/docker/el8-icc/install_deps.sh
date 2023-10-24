@@ -43,6 +43,9 @@ dnf install -y --setopt=install_weak_deps=False \
     python3-pandas python3-sphinx python3-pip \
     python3-mpi4py-mpich python3-mpi4py-openmpi python3-matplotlib
 
+# wslink needs latest pip for pip install be able to get all dependencies
+python3 -m pip install --upgrade pip
+
 python3 -m pip install wslink
 
 # Plugin dependencies

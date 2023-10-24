@@ -16,6 +16,8 @@ if (PARAVIEW_USE_QT)
   endforeach()
 endif()
 
+message(STATUS "vtk ${_vtk_build_test}")
+
 vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   NO_DATA NO_VALID
   TestAdjustRange.cxx
@@ -30,10 +32,12 @@ vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   TestValidateProxies.cxx
   TestXMLSaveLoadState.cxx)
 
+message(STATUS "vtk ${_vtk_build_test}")
 vtk_add_test_cxx(vtkRemotingServerManagerCxxTests tests
   NO_DATA NO_VALID NO_OUTPUT
   ${test_sources})
 
+message(STATUS "vtk ${_vtk_build_test}")
 vtk_test_cxx_executable(vtkRemotingServerManagerCxxTests tests
   ${extra_sources})
 
