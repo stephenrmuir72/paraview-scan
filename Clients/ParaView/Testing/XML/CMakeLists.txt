@@ -250,6 +250,10 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraLink-Parallel_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraLink-Perspective.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraLink-Perspective_1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraWidgetViewLink-CameraView.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraWidgetViewLink-Selection-CameraView.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraWidgetViewLink-Selection-WidgetView.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CameraWidgetViewLink-WidgetView.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CategoricalAutomaticAnnotationsInterA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CategoricalAutomaticAnnotationsInterB.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/CategoricalAutomaticAnnotationsInterC.png}"
@@ -1184,7 +1188,6 @@ list(APPEND TESTS_WITH_BASELINES
   CalcParens.xml
   Calculator.xml
   CalculatorInput.xml
-  CameraWidgetViewLink.xml
   CameraWidgetViewLinkState.xml
   CategoriesWithNaN.xml
   CGNSIOSSReader.xml
@@ -1730,6 +1733,7 @@ if(PARAVIEW_USE_PYTHON)
     set(SpreadSheetSelectionTrace_DISABLE_CRS TRUE)
 
     list(APPEND TESTS_WITH_INLINE_COMPARES
+      CameraWidgetViewLink.xml
       FindDataTrace.xml
       FindDataQueries.xml
       TestTableFFT.xml # needs programmable filter + numpy
