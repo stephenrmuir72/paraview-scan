@@ -95,6 +95,18 @@ pqCameraWidgetViewLink::~pqCameraWidgetViewLink()
 }
 
 //-----------------------------------------------------------------------------
+vtkCamera3DRepresentation* pqCameraWidgetViewLink::getRepresentation() const
+{
+  return this->Internal->CameraRepresentation;
+}
+
+//-----------------------------------------------------------------------------
+vtkCamera3DWidget* pqCameraWidgetViewLink::getWidget() const
+{
+  return this->Internal->CameraWidget;
+}
+
+//-----------------------------------------------------------------------------
 void pqCameraWidgetViewLink::saveXMLState(vtkPVXMLElement* xml)
 {
   xml->AddAttribute("DisplayViewProxy",
