@@ -21,6 +21,7 @@ set(classes
   pqCalculatorWidget
   pqCameraDialog
   pqCameraKeyFrameWidget
+  pqCameraWidgetManager
   pqChangeInputDialog
   pqCollaborationPanel
   pqColorChooserButtonWithPalettes

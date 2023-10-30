@@ -666,7 +666,7 @@ void pqLinksModel::addProxyLink(
     }
   }
 
-  Q_EMIT this->linkAdded(pqLinksModel::Proxy);
+  Q_EMIT this->linkAdded(pqLinksModel::Proxy, name);
   CLEAR_UNDO_STACK();
 
   SM_SCOPED_TRACE(CallFunction)
@@ -692,7 +692,7 @@ void pqLinksModel::addCameraWidgetLink(
 
   this->createCameraWidgetViewLink(name, inputProxy, outputProxy);
 
-  Q_EMIT this->linkAdded(pqLinksModel::CameraWidget);
+  Q_EMIT this->linkAdded(pqLinksModel::CameraWidget, name);
   CLEAR_UNDO_STACK();
 }
 
@@ -706,7 +706,7 @@ void pqLinksModel::addCameraLink(
   pxm->RegisterLink(name.toUtf8().data(), link);
   link->LinkProxies(inputProxy, outputProxy);
 
-  Q_EMIT this->linkAdded(pqLinksModel::Camera);
+  Q_EMIT this->linkAdded(pqLinksModel::Camera, name);
   CLEAR_UNDO_STACK();
 
   SM_SCOPED_TRACE(CallFunction)
@@ -821,7 +821,7 @@ void pqLinksModel::addPropertyLink(const QString& name, vtkSMProxy* inputProxy,
   link->AddLinkedProperty(outputProxy, outputProp.toUtf8().data(), vtkSMLink::INPUT);
   link->AddLinkedProperty(inputProxy, inputProp.toUtf8().data(), vtkSMLink::OUTPUT);
   link->Delete();
-  Q_EMIT this->linkAdded(pqLinksModel::Property);
+  Q_EMIT this->linkAdded(pqLinksModel::Property, name);
   CLEAR_UNDO_STACK();
 }
 
@@ -841,7 +841,7 @@ void pqLinksModel::addSelectionLink(
   link->AddLinkedSelection(inputProxy, vtkSMLink::INPUT);
 
   link->Delete();
-  Q_EMIT this->linkAdded(pqLinksModel::Selection);
+  Q_EMIT this->linkAdded(pqLinksModel::Selection, name);
   CLEAR_UNDO_STACK();
 
   SM_SCOPED_TRACE(CallFunction)

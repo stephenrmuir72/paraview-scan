@@ -11,6 +11,7 @@
 #include <QPointer>
 
 class pqAnimationManager;
+class pqCameraWidgetManager;
 class pqPythonManager;
 class pqSelectionManager;
 class pqTestUtility;
@@ -53,6 +54,12 @@ public:
    */
   // animation subsystem -- saving movies, creating scenes etc.
   pqAnimationManager* animationManager() const;
+
+  /**
+   * Provides access to the camera widget manager. It helps with the paraview events
+   * registered for the widget.
+   */
+  pqCameraWidgetManager* cameraWidgetManager() const;
 
   /**
    * Provides access to the test utility.
@@ -112,6 +119,7 @@ protected:
 
   QPointer<pqSelectionManager> SelectionManager;
   QPointer<pqAnimationManager> AnimationManager;
+  QPointer<pqCameraWidgetManager> CameraWidgetManager;
 
   pqPythonManager* PythonManager;
   QList<QPointer<QWidget>> QuickLaunchMenus;

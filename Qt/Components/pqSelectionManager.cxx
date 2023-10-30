@@ -72,8 +72,8 @@ pqSelectionManager::pqSelectionManager(QObject* _parent /*=nullptr*/)
   // When a selection link is added or removed, we need to update the pqSelectionManager
   // So it keeps the SelectedPorts up to date and render any selection that
   // may have been updated
-  QObject::connect(pqApplicationCore::instance()->getLinksModel(), SIGNAL(linkAdded(int)), this,
-    SLOT(onLinkAdded(int)));
+  QObject::connect(pqApplicationCore::instance()->getLinksModel(),
+    SIGNAL(linkAdded(int, const QString&)), this, SLOT(onLinkAdded(int)));
   QObject::connect(pqApplicationCore::instance()->getLinksModel(),
     SIGNAL(linkRemoved(const QString&)), this, SLOT(onLinkRemoved()));
 }
