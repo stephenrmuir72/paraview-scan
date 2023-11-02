@@ -6,10 +6,12 @@
 #include <catalyst_conduit.hpp>
 #include <catalyst_conduit_blueprint.hpp>
 #include <catalyst_stub.h>
+#include <vtksys/SystemTools.hxx>
 
 #include "vtkCallbackCommand.h"
 #include "vtkCatalystBlueprint.h"
 #include "vtkCommand.h"
+#include "vtkConduitArrayUtilities.h"
 #include "vtkConduitSource.h"
 #include "vtkDataObjectToConduit.h"
 #include "vtkInSituInitializationHelper.h"
@@ -41,7 +43,8 @@
 
 static bool update_producer_mesh_blueprint(const std::string& channel_name,
   const conduit_node* node, const conduit_node* global_fields, bool multimesh,
-  const conduit_node* assemblyNode, bool multiblock, bool amr)
+  const conduit_node* assemblyNode, bool multiblock, bool amr,
+  vtkConduitArrayUtilities::MemorySpaceTypes memorySpace)
 {
   auto producer = vtkInSituInitializationHelper::GetProducer(channel_name);
   if (producer == nullptr)
@@ -59,6 +62,7 @@ static bool update_producer_mesh_blueprint(const std::string& channel_name,
 
   auto algo = vtkConduitSource::SafeDownCast(producer->GetClientSideObject());
   algo->SetNode(node);
+  algo->SetMemorySpace(memorySpace);
   algo->SetGlobalFieldsNode(global_fields);
   algo->SetUseMultiMeshProtocol(multimesh);
   algo->SetOutputMultiBlock(multiblock);
@@ -489,9 +493,36 @@ enum catalyst_status catalyst_execute_paraview(const conduit_node* params)
           auto anode = channel_node["assembly"];
           assembly = conduit_cpp::c_node(&anode);
         }
+        auto memorySpace = vtkConduitArrayUtilities::MemorySpaceTypes::Serial;
+        if (channel_node.has_path("memoryspace"))
+        {
+          auto memorySpaceStr =
+            vtksys::SystemTools::LowerCase(channel_node["memoryspace"].as_string());
+          // cast only when integer is within range of enum values.
+          if (memorySpaceStr == "serial")
+          {
+            memorySpace = vtkConduitArrayUtilities::Serial;
+          }
+          else if (memorySpaceStr == "cuda")
+          {
+            memorySpace = vtkConduitArrayUtilities::CUDA;
+          }
+          else if (memorySpaceStr == "tbb")
+          {
+            memorySpace = vtkConduitArrayUtilities::TBB;
+          }
+          else if (memorySpaceStr == "openmp")
+          {
+            memorySpace = vtkConduitArrayUtilities::OpenMP;
+          }
+          else if (memorySpaceStr == "kokkos")
+          {
+            memorySpace = vtkConduitArrayUtilities::Kokkos;
+          }
+        }
         update_producer_mesh_blueprint(channel_name, conduit_cpp::c_node(&data_node),
           conduit_cpp::c_node(&fields), type == "multimesh", assembly,
-          channel_output_multiblock != 0, type == "amrmesh");
+          channel_output_multiblock != 0, type == "amrmesh", memorySpace);
       }
       else if (type == "ioss")
       {

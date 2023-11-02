@@ -9,6 +9,10 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
 
+#if VTK_MODULE_ENABLE_VTK_vtkvtkm
+#include <vtkm/cont/Initialize.h>
+#endif
+
 #if VTK_MODULE_ENABLE_ParaView_PythonCatalyst
 #include "vtkCPPythonScriptV2Helper.h"
 #else
@@ -75,6 +79,22 @@ bool vtkInSituPipelinePython::Initialize()
   // call some Python API.
   auto status = Py_IsInitialized();
   (void)status;
+#if VTK_MODULE_ENABLE_VTK_vtkvtkm
+  {
+    char** argv = new char*[this->Arguments.size()];
+    int argc = 0;
+    for (std::size_t i = 0; i < this->Arguments.size(); ++i, ++argc)
+    {
+      argv[i] = vtksys::SystemTools::DuplicateString(this->Arguments[i].c_str());
+    }
+    vtkm::cont::Initialize(argc, argv);
+    for (std::size_t i = 0; i < this->Arguments.size(); ++i)
+    {
+      delete[] argv[i];
+    }
+    delete[] argv;
+  }
+#endif
   return this->Helper->PrepareFromScript(this->FileName) && this->Helper->Import(this->Arguments) &&
     this->Helper->CatalystInitialize();
 #else
