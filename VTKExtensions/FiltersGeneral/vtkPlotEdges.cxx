@@ -1063,6 +1063,10 @@ void vtkPlotEdges::SaveToMultiBlockDataSet(vtkCollection* segments, vtkMultiBloc
       data = srcPointData->GetAbstractArray(i);
       newData = data->NewInstance(); // instantiate same type of object
       newData->SetNumberOfComponents(data->GetNumberOfComponents());
+      for (int compId = 0; compId < data->GetNumberOfComponents(); compId++)
+      {
+        newData->SetComponentName(compId, data->GetComponentName(compId));
+      }
       newData->SetName(data->GetName());
       if (data->HasInformation())
       {
