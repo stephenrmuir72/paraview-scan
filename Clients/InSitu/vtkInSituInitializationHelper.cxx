@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <set>
 #include <string>
 
 #if VTK_MODULE_ENABLE_ParaView_PythonCatalyst
@@ -74,6 +75,7 @@ public:
   bool InExecutePipelines = false;
   int TimeStep = 0;
   double Time = 0.0;
+  std::set<std::string> CheckedInputs;
 };
 
 template <typename PropertyType>
@@ -330,7 +332,23 @@ vtkSMSourceProxy* vtkInSituInitializationHelper::GetProducer(const std::string& 
 
   auto& internals = (*vtkInSituInitializationHelper::Internals);
   auto iter = internals.Producers.find(channelName);
-  return iter != internals.Producers.end() ? iter->second.GetPointer() : nullptr;
+  bool found = iter != internals.Producers.end();
+  if (!found && !internals.Producers.empty())
+  {
+    vtkLogF(WARNING, "Could not find channel '%s'", channelName.c_str());
+    for (auto ii = internals.Producers.begin(); ii != internals.Producers.end(); ii++)
+    {
+      vtkLogF(WARNING, "Available channel(s) '%s'", ii->first.c_str());
+    }
+  }
+  else if (internals.Producers.empty() &&
+    internals.CheckedInputs.find(channelName) == internals.CheckedInputs.end())
+  {
+    vtkLogF(WARNING, "No channels available");
+  }
+  internals.CheckedInputs.insert(channelName);
+
+  return found == true ? iter->second.GetPointer() : nullptr;
 }
 
 //----------------------------------------------------------------------------
