@@ -32,6 +32,9 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkViewport.h"
 
+#include "vtkPVLogoSource.h"
+#include "vtkNetworkImageSource.h"
+
 #include <limits>
 #include <map>
 
@@ -680,10 +683,20 @@ void vtkContext2DScalarBarActor::PaintColorBar(vtkContext2D* painter, double siz
   else
   // Continuous color map
   {
-    vtkNew<vtkImageData> image;
-    this->UpdateScalarBarTexture(image.GetPointer());
+    vtkNew<vtkNetworkImageSource> imageSource;
+    imageSource->SetFileName("/home/tgalland/EDF/Issue_106/map2d/bremm.png");
+    imageSource->UpdateImage();
+    imageSource->Update();
 
-    painter->DrawImage(barRect, image.GetPointer());
+    barRect.SetWidth(barRect.GetHeight());
+
+    auto* image = vtkImageData::SafeDownCast(imageSource->GetOutput());
+    painter->DrawImage(barRect, image);
+
+    // vtkNew<vtkImageData> image;
+    // this->UpdateScalarBarTexture(image.GetPointer());
+
+    // painter->DrawImage(barRect, image.GetPointer());
 
     // Draw the out-of-range colors if enabled
     // pen->SetLineType(vtkPen::NO_PEN);
@@ -1260,6 +1273,9 @@ void vtkContext2DScalarBarActor::PaintAnnotations(
 {
   // Set the annotation text properties
   painter->ApplyTextProp(this->Axis->GetLabelProperties());
+
+  // this->PaintAnnotationsHorizontally(painter, size, annotationAnchors);
+  // this->PaintAnnotationsVertically(painter, size, annotationAnchors);
 
   if (this->Orientation == VTK_ORIENT_VERTICAL)
   {
