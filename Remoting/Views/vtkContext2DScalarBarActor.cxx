@@ -683,15 +683,28 @@ void vtkContext2DScalarBarActor::PaintColorBar(vtkContext2D* painter, double siz
   else
   // Continuous color map
   {
-    vtkNew<vtkNetworkImageSource> imageSource;
-    imageSource->SetFileName("/home/tgalland/EDF/Issue_106/map2d/bremm.png");
-    imageSource->UpdateImage();
-    imageSource->Update();
+    // vtkNew<vtkNetworkImageSource> imageSource;
+    // imageSource->SetFileName("/home/tgalland/EDF/Issue_106/map2d/bremm.png");
+    // imageSource->UpdateImage();
+    // imageSource->Update();
 
-    barRect.SetWidth(barRect.GetHeight());
+    if (this->Texture)
+    {
+      cout << "Texture !" << endl;
+      barRect.SetWidth(barRect.GetHeight());
 
-    auto* image = vtkImageData::SafeDownCast(imageSource->GetOutput());
-    painter->DrawImage(barRect, image);
+      vtkNew<vtkPVLogoSource> logoSource;
+      logoSource->SetTexture(this->Texture);
+      logoSource->Update();
+
+      auto* image = vtkImageData::SafeDownCast(logoSource->GetOutput());
+      painter->DrawImage(barRect, image);
+    }
+
+    // barRect.SetWidth(barRect.GetHeight());
+
+    // auto* image = vtkImageData::SafeDownCast(imageSource->GetOutput());
+    // painter->DrawImage(barRect, image);
 
     // vtkNew<vtkImageData> image;
     // this->UpdateScalarBarTexture(image.GetPointer());

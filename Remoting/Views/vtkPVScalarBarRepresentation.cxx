@@ -83,6 +83,21 @@ int vtkPVScalarBarRepresentation::RenderOverlay(vtkViewport* viewport)
 }
 
 //------------------------------------------------------------------------------
+void vtkPVScalarBarRepresentation::SetTexture(vtkTexture* texture)
+{
+  // Query scalar bar size given the viewport
+  vtkContext2DScalarBarActor* actor =
+    vtkContext2DScalarBarActor::SafeDownCast(this->GetScalarBarActor());
+  if (!actor)
+  {
+    vtkErrorMacro(<< "Actor expected to be of type vtkContext2DScalarBarActor");
+    return;
+  }
+
+  actor->SetTexture(texture);
+}
+
+//------------------------------------------------------------------------------
 void vtkPVScalarBarRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

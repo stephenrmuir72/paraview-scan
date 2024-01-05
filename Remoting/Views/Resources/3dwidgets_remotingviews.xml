@@ -722,6 +722,7 @@
             <Property name="WindowLocation" />
             <Property name="Position" />
             <Property name="PositionInfo" />
+            <Property name="Texture" />
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
@@ -2800,6 +2801,26 @@
         <ProxyGroupDomain name="groups">
           <Group name="annotations" />
         </ProxyGroupDomain>
+      </ProxyProperty>
+      <ProxyProperty command="SetTexture"
+                     name="Texture"
+                     panel_widget="texture_selector"
+                     null_on_empty="1" >
+        <Documentation>
+          Set the diffuse color texture.
+        </Documentation>
+        <ProxyGroupDomain name="groups">
+          <Group name="textures" />
+        </ProxyGroupDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="visibility"
+                                   property="Interpolation"
+                                   value="3"
+                                   inverse="1" />
+          <TextureSelectorWidget check_tcoords="1" />
+          <!-- enable the texture selector only when tcoords is available. -->
+        </Hints>
       </ProxyProperty>
     </Proxy>
     <!-- ================================================================== -->

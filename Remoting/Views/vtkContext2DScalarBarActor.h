@@ -21,6 +21,8 @@
 #include "vtkRect.h"         // for functions that return vtkRects
 #include "vtkSmartPointer.h" // for smart pointers
 
+#include "vtkTexture.h"
+
 class vtkAxis;
 class vtkColorLegend;
 class vtkColorTransferFunctionItem;
@@ -292,6 +294,15 @@ public:
   vtkGetMacro(DataRangeMax, double);
   ///@}
 
+  //@{
+  /**
+   * Set/get the Logo source representation.
+   * This representation is used to reprent the current 2D texture as a logo
+   * in the current render view.
+   */
+  vtkSetSmartPointerMacro(Texture, vtkTexture);
+  //@}
+
 protected:
   vtkContext2DScalarBarActor();
   ~vtkContext2DScalarBarActor() override;
@@ -317,6 +328,8 @@ protected:
 private:
   vtkContext2DScalarBarActor(const vtkContext2DScalarBarActor&) = delete;
   void operator=(const vtkContext2DScalarBarActor&) = delete;
+
+  vtkSmartPointer<vtkTexture> Texture;
 
   vtkContextActor* ActorDelegate;
 
