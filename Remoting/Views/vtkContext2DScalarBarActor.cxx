@@ -690,7 +690,6 @@ void vtkContext2DScalarBarActor::PaintColorBar(vtkContext2D* painter, double siz
 
     if (this->Texture)
     {
-      cout << "Texture !" << endl;
       barRect.SetWidth(barRect.GetHeight());
 
       vtkNew<vtkPVLogoSource> logoSource;
