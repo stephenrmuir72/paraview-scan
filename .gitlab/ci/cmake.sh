@@ -68,7 +68,7 @@ if [ "$( uname -s )" = "Darwin" ]; then
     ln -s CMake.app/Contents/bin cmake/bin
 fi
 
-if [ "$CI_JOB_NAME" = "build:spack-centos7" ]; then
+if [ "$CI_JOB_NAME" = "spack-centos7:build" ]; then
     mkdir -p "$CI_PROJECT_DIR/build/spack"
     sed \
         -e "s/CMAKE_VERSION/$version/" \

@@ -1,4 +1,4 @@
-FROM kitware/paraview:ci-superbuild-centos7-20201028
+FROM kitware/paraview:ci-superbuild-centos7-20230915
 MAINTAINER Utkarsh Ayachit <utkarsh.ayachit@kitware.com>
 
 COPY install_deps.sh /root/install_deps.sh
