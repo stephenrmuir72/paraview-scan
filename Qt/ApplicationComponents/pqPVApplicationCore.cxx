@@ -8,6 +8,7 @@
 #include "pqAnimationManager.h"
 #include "pqApplicationComponentsInit.h"
 #include "pqApplicationCore.h"
+#include "pqCameraWidgetManager.h"
 #include "pqComponentsTestUtility.h"
 #include "pqCoreConfiguration.h"
 #include "pqCoreUtilities.h"
@@ -19,6 +20,7 @@
 #include "pqSelectionManager.h"
 #include "pqSetName.h"
 #include "pqSpreadSheetViewModel.h"
+
 #include "vtkPVLogger.h"
 #include "vtkProcessModule.h"
 
@@ -43,6 +45,7 @@ pqPVApplicationCore::pqPVApplicationCore(int& argc, char** argv, vtkCLIOptions* 
   pqApplicationComponentsInit();
 #endif
   this->AnimationManager = new pqAnimationManager(this);
+  this->CameraWidgetManager = new pqCameraWidgetManager(this);
   this->SelectionManager = new pqSelectionManager(this);
 
   pqApplicationCore::instance()->registerManager("SELECTION_MANAGER", this->SelectionManager);
@@ -85,6 +88,7 @@ pqPVApplicationCore::pqPVApplicationCore(int& argc, char** argv, vtkCLIOptions* 
 pqPVApplicationCore::~pqPVApplicationCore()
 {
   delete this->AnimationManager;
+  delete this->CameraWidgetManager;
   delete this->SelectionManager;
 #if VTK_MODULE_ENABLE_ParaView_pqPython
   delete this->PythonManager;
@@ -173,6 +177,12 @@ pqSelectionManager* pqPVApplicationCore::selectionManager() const
 pqAnimationManager* pqPVApplicationCore::animationManager() const
 {
   return this->AnimationManager;
+}
+
+//-----------------------------------------------------------------------------
+pqCameraWidgetManager* pqPVApplicationCore::cameraWidgetManager() const
+{
+  return this->CameraWidgetManager;
 }
 
 //-----------------------------------------------------------------------------

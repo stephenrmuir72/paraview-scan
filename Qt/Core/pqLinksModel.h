@@ -6,6 +6,7 @@
 #define pqLinksModel_h
 
 #include "pqCoreModule.h"
+#include "vtkParaViewDeprecation.h"
 #include <QAbstractItemModel>
 
 class vtkCollection;
@@ -194,7 +195,12 @@ Q_SIGNALS:
   /**
    * Fired when a link is added
    */
+  PARAVIEW_DEPRECATED_IN_5_12_0("Emit signal with the link name instead.")
   void linkAdded(int linkType);
+  /**
+   * Fired when a link is added
+   */
+  void linkAdded(int linkType, const QString& name);
 
   /**
    * Fired when a link is removed

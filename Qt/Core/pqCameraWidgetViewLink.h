@@ -10,6 +10,8 @@
 #include <memory> // for unique_ptr
 
 class pqRenderView;
+class vtkCamera3DRepresentation;
+class vtkCamera3DWidget;
 class vtkPVXMLElement;
 
 /**
@@ -26,6 +28,15 @@ class PQCORE_EXPORT pqCameraWidgetViewLink : public QObject
 public:
   pqCameraWidgetViewLink(pqRenderView* displayView, pqRenderView* linkedView);
   ~pqCameraWidgetViewLink() override;
+
+  /**
+   * Get the widget representation of the camera widget view link.
+   */
+  vtkCamera3DRepresentation* getRepresentation() const;
+  /**
+   * Get the widget of the camera widget view link.
+   */
+  vtkCamera3DWidget* getWidget() const;
 
   // Save this camera widget view link in xml node
   virtual void saveXMLState(vtkPVXMLElement* xml);
