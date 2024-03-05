@@ -191,7 +191,7 @@
     <!-- End of UniformGridRepresentation Extension -->
     </Extension>
 
-    <RepresentationProxy name="BivariateTextureRepresentation"
+    <BivariateTextureRepresentationProxy name="BivariateTextureRepresentation"
       class="vtkBivariateTextureRepresentation"
       processes="client|renderserver|dataserver"
       base_proxygroup="representations"
@@ -242,7 +242,7 @@
         </Proxy>
       </SubProxy>
     <!-- End of BivariateTextureRepresentation -->
-    </RepresentationProxy>
+    </BivariateTextureRepresentationProxy>
 
     <Extension name="GeometryRepresentation">
       <Documentation>

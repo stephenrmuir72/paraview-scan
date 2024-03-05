@@ -2,6 +2,7 @@ set(classes
   vtkBivariateNoiseMapper
   vtkBivariateNoiseRepresentation
   vtkBivariateTextureRepresentation
+  vtkSMBivariateTextureRepresentationProxy
   vtkOpenGLBivariateNoiseMapperDelegator)
 
 vtk_module_add_module(BivariateRepresentations::vtkBivariateRepresentations
