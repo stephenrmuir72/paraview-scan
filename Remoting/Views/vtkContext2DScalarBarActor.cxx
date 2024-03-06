@@ -683,14 +683,16 @@ void vtkContext2DScalarBarActor::PaintColorBar(vtkContext2D* painter, double siz
   else
   // Continuous color map
   {
-    // vtkNew<vtkNetworkImageSource> imageSource;
-    // imageSource->SetFileName("/home/tgalland/EDF/Issue_106/map2d/bremm.png");
-    // imageSource->UpdateImage();
-    // imageSource->Update();
-
     if (this->Texture)
     {
-      barRect.SetWidth(barRect.GetHeight());
+      if (this->Orientation == VTK_ORIENT_VERTICAL)
+      {
+        barRect.SetWidth(barRect.GetHeight());
+      }
+      else
+      {
+        barRect.SetHeight(barRect.GetWidth());
+      }
 
       vtkNew<vtkPVLogoSource> logoSource;
       logoSource->SetTexture(this->Texture);
@@ -699,16 +701,12 @@ void vtkContext2DScalarBarActor::PaintColorBar(vtkContext2D* painter, double siz
       auto* image = vtkImageData::SafeDownCast(logoSource->GetOutput());
       painter->DrawImage(barRect, image);
     }
-
-    // barRect.SetWidth(barRect.GetHeight());
-
-    // auto* image = vtkImageData::SafeDownCast(imageSource->GetOutput());
-    // painter->DrawImage(barRect, image);
-
-    // vtkNew<vtkImageData> image;
-    // this->UpdateScalarBarTexture(image.GetPointer());
-
-    // painter->DrawImage(barRect, image.GetPointer());
+    else
+    {
+      vtkNew<vtkImageData> image;
+      this->UpdateScalarBarTexture(image.GetPointer());
+      painter->DrawImage(barRect, image.GetPointer());
+    }
 
     // Draw the out-of-range colors if enabled
     // pen->SetLineType(vtkPen::NO_PEN);
@@ -1254,10 +1252,33 @@ bool vtkContext2DScalarBarActor::Paint(vtkContext2D* painter)
   }
 
   this->PaintColorBar(painter, size);
-  this->PaintAxis(painter, size);
-  // IMPORTANT: this needs to be done *after* this->Axis->Update() is called
-  // in PaintAxis() so that we get an accurate axis bounding rectangle.
-  this->PaintTitle(painter, size);
+  if (this->Texture)
+  {
+    double newSize[2] = { size[0], size[1] };
+    if (this->Orientation == VTK_ORIENT_VERTICAL)
+    {
+      newSize[0] = size[1];
+    }
+    else
+    {
+      newSize[1] = size[0];
+    }
+    auto tempOrientation = this->Orientation;
+    this->Orientation = VTK_ORIENT_VERTICAL;
+    this->PaintAxis(painter, newSize);
+    this->PaintTitle(painter, newSize);
+    this->Orientation = VTK_ORIENT_HORIZONTAL;
+    this->PaintAxis(painter, newSize);
+    this->PaintTitle(painter, newSize);
+    this->Orientation = tempOrientation;
+  }
+  else
+  {
+    this->PaintAxis(painter, size);
+    // IMPORTANT: this needs to be done *after* this->Axis->Update() is called
+    // in PaintAxis() so that we get an accurate axis bounding rectangle.
+    this->PaintTitle(painter, size);
+  }
 
   // Restore settings
   pen->DeepCopy(savePen.GetPointer());
