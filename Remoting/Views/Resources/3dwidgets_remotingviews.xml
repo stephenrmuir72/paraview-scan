@@ -736,9 +736,16 @@
           <Property name="LookupTable" panel_visibility="never"/>
           <PropertyGroup label="Title Texts">
             <Property name="Title" />
+            <Property name="Title2" />
             <Property name="ComponentTitle" />
             <Property name="TitleJustification" />
             <Property name="HorizontalTitle" />
+          </PropertyGroup>
+
+          <!-- test -->
+          <PropertyGroup label="Axis">
+            <Property name="FirstRange" />
+            <Property name="SecondRange" />
           </PropertyGroup>
 
           <!-- properties for Title -->

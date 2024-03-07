@@ -52,7 +52,7 @@ bool vtkBivariateTextureRepresentation::AddToView(vtkView* view)
   }
   if (this->LogoSourceRepresentation)
   {
-    view->AddRepresentation(this->LogoSourceRepresentation);
+    // view->AddRepresentation(this->LogoSourceRepresentation);
   }
   return true;
 }
@@ -62,7 +62,7 @@ bool vtkBivariateTextureRepresentation::RemoveFromView(vtkView* view)
 {
   if (this->LogoSourceRepresentation)
   {
-    view->RemoveRepresentation(this->LogoSourceRepresentation);
+    // view->RemoveRepresentation(this->LogoSourceRepresentation);
   }
   if (!this->Superclass::RemoveFromView(view))
   {
@@ -129,8 +129,18 @@ int vtkBivariateTextureRepresentation::RequestData(
     this->TCoordsArray->SetNumberOfComponents(2);
     this->TCoordsArray->SetNumberOfTuples(array1->GetNumberOfTuples());
 
+    // Update arrays name & ranges
     auto* range1 = array1->GetRange();
+    this->FirstArrayRange[0] = range1[0];
+    this->FirstArrayRange[1] = range1[1];
+    this->FirstArrayName = array1->GetName();
+
     auto* range2 = array2->GetRange();
+    this->SecondArrayRange[0] = range2[0];
+    this->SecondArrayRange[1] = range2[1];
+    this->SecondArrayName = array2->GetName();
+
+    this->Modified();
 
     for (int i = 0; i < this->TCoordsArray->GetNumberOfTuples(); i++)
     {

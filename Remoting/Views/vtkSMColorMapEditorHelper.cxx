@@ -3031,25 +3031,25 @@ bool vtkSMColorMapEditorHelper::SetScalarBarTexture(vtkSMProxy* proxy, vtkSMProx
 {
   if (!proxy || !view)
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 1");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 1");
     return false;
   }
   vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(proxy);
   if (!repr)
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 2");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 2");
     return false;
   }
   vtkSMProperty* lutProperty = proxy->GetProperty("LookupTable");
   if (!lutProperty)
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 3");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 3");
     return false;
   }
   vtkSMPropertyHelper lutPropertyHelper(lutProperty);
   if (lutPropertyHelper.GetNumberOfElements() == 0 || !lutPropertyHelper.GetAsProxy())
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 4");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 4");
     return false;
   }
   vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
@@ -3058,21 +3058,21 @@ bool vtkSMColorMapEditorHelper::SetScalarBarTexture(vtkSMProxy* proxy, vtkSMProx
       vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, view));
   if (!sbProxy)
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 5");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 5");
     return false;
   }
 
   vtkSMProperty* textureProperty = sbProxy->GetProperty("Texture");
   if (!textureProperty)
   {
-    vtkGenericWarningMacro("SetScalarBarTexture: 6");
+    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 6");
     return false;
   }
 
   vtkSMPropertyHelper texturePropertyHelper(textureProperty);
   if (texturePropertyHelper.GetNumberOfElements() == 0 || !texturePropertyHelper.GetAsProxy())
   {
-    vtkGenericWarningMacro("No texture defined yet. Adding one ...");
+    vtkDebugWithObjectMacro(nullptr, "No texture defined yet. Adding one ...");
 
     // Create texture
     vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
@@ -3094,7 +3094,7 @@ bool vtkSMColorMapEditorHelper::SetScalarBarTexture(vtkSMProxy* proxy, vtkSMProx
     return true;
   }
 
-  vtkGenericWarningMacro("SetScalarBarTexture: OK");
+  vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: OK");
   return true;
 }
 

@@ -59,6 +59,13 @@ public:
   vtkGetSmartPointerMacro(LogoSourceRepresentation, vtkLogoSourceRepresentation);
   //@}
 
+  // TODO
+  vtkGetVectorMacro(FirstArrayRange, double, 2);
+  vtkGetVectorMacro(SecondArrayRange, double, 2);
+
+  vtkGetMacro(FirstArrayName, std::string);
+  vtkGetMacro(SecondArrayName, std::string);
+
   /**
    * Overriden to initialize the internal vtkLogoSourceRepresentation as well.
    */
@@ -109,6 +116,12 @@ private:
 
   vtkNew<vtkDoubleArray> TCoordsArray;
   vtkNew<vtkPVLogoSource> LogoSource;
+
+  double FirstArrayRange[2] = { 0, 0 };
+  double SecondArrayRange[2] = { 0, 0 };
+
+  std::string FirstArrayName;
+  std::string SecondArrayName;
 };
 
 #endif

@@ -234,6 +234,34 @@
           coordinates (second component).
         </Documentation>
       </StringVectorProperty>
+      <DoubleVectorProperty
+         name="FirstArrayRange"
+         command="GetFirstArrayRange"
+         number_of_elements="2"
+         default_values="0 0"
+         information_only="1">
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+         name="SecondArrayRange"
+         command="GetSecondArrayRange"
+         number_of_elements="2"
+         default_values="0 0"
+         information_only="1">
+      </DoubleVectorProperty>
+      <StringVectorProperty
+         name="FirstArrayName"
+         command="GetFirstArrayName"
+         number_of_elements="1"
+         default_values=""
+         information_only="1">
+      </StringVectorProperty>
+      <StringVectorProperty
+         name="SecondArrayName"
+         command="GetSecondArrayName"
+         number_of_elements="1"
+         default_values=""
+         information_only="1">
+      </StringVectorProperty>
 
       <SubProxy command="SetLogoSourceRepresentation">
         <Proxy name="LogoSourceRepresentation"

@@ -303,6 +303,17 @@ public:
   vtkSetSmartPointerMacro(Texture, vtkTexture);
   //@}
 
+  vtkSetVector2Macro(FirstRange, double);
+  vtkSetVector2Macro(SecondRange, double);
+
+  ///@{
+  /**
+   * Set/Get the title of the scalar bar actor,
+   */
+  vtkSetStringMacro(Title2);
+  vtkGetStringMacro(Title2);
+  ///@}
+
 protected:
   vtkContext2DScalarBarActor();
   ~vtkContext2DScalarBarActor() override;
@@ -494,6 +505,10 @@ private:
    * Set up the axis title. Returns the bounding rect of all elements in the color legend.
    */
   void PaintTitle(vtkContext2D* painter, double size[2]);
+  /**
+   * Set up the axis title. Returns the bounding rect of all elements in the color legend.
+   */
+  void PaintTitle2(vtkContext2D* painter, double size[2]);
 
   /**
    * Adds the min and max range of the displayed representations on the scalar bar.
@@ -530,6 +545,12 @@ private:
    * Range data height.
    */
   float VerticalRangeDataHeight;
+
+  double FirstRange[2] = { 0, 0 };
+  double SecondRange[2] = { 0, 0 };
+
+  // Test
+  char* Title2 = nullptr;
 };
 
 #endif // vtkContext2DScalarBarActor_h

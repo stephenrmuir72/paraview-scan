@@ -73,7 +73,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   vtkSMProperty* textureProperty = this->GetProperty("Texture");
   if (!textureProperty)
   {
-    cout << "No texture property." << endl;
+    vtkDebugMacro( << "No texture property." );
     return;
   }
 
@@ -81,28 +81,28 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   vtkSMProxy* textureProxy = texturePropertyHelper.GetAsProxy();
   if (!textureProxy)
   {
-    cout << "No texture proxy." << endl;
+    vtkDebugMacro( << "No texture proxy." );
     return;
   }
 
   vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
   if (!lutProperty)
   {
-    cout << "No LUT property." << endl;
+    vtkDebugMacro( << "No LUT property." );
     return;
   }
 
   vtkSMPropertyHelper lutPropertyHelper(lutProperty);
-  // if (lutPropertyHelper.GetNumberOfElements() == 0 || !lutPropertyHelper.GetAsProxy())
-  // {
-  //   cout << "LUT property helper fail." << endl;
-  //   return;
-  // }
+  if (lutPropertyHelper.GetNumberOfElements() == 0 || !lutPropertyHelper.GetAsProxy())
+  {
+    vtkDebugMacro( << "LUT property helper fail." );
+    return;
+  }
 
 
   if (!this->CurrentView)
   {
-    cout << "No current view." << endl;
+    vtkDebugMacro( << "No current view." );
     return;
   }
 
@@ -113,26 +113,122 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
 
   if (!sbProxy)
   {
-    cout << "No scalar bar proxy." << endl;
+    vtkDebugMacro( << "No scalar bar proxy." );
     return;
   }
 
   vtkSMProperty* sbTextureProperty = sbProxy->GetProperty("Texture");
   if (!sbTextureProperty)
   {
-    cout << "No SB texture property" << endl;
+    vtkDebugMacro( << "No SB texture property" );
     return;
   }
 
   vtkSMPropertyHelper sbTexturePropertyHelper(sbTextureProperty);
   // if (texturePropertyHelper.GetNumberOfElements() == 0 || !texturePropertyHelper.GetAsProxy())
   // {
-  //   cout << "SB texture property helper fail." << endl;
+  //   vtkDebugMacro( << "SB texture property helper fail." );
   //   return;
   // }
 
   // Set texture to scalar bar
   sbTexturePropertyHelper.Set(textureProxy);
+  sbProxy->UpdateVTKObjects();
+
+  this->UpdatePropertyInformation();
+
+  // Now take care of axis for 1st and 2nd array
+  vtkSMProperty* firstArray = this->GetProperty("FirstArrayRange");
+  if (!firstArray)
+  {
+    vtkDebugMacro( << "No first array range." );
+    return;
+  }
+  vtkSMPropertyHelper firstArrayHelper(firstArray);
+  double range1[2] = { 0, 0 };
+  firstArrayHelper.Get(range1, 2);
+  vtkDebugMacro( << "Range 1 : " << range1[0] << " " << range1[1] );
+
+  vtkSMProperty* secondArray = this->GetProperty("SecondArrayRange");
+  if (!secondArray)
+  {
+    vtkDebugMacro( << "No second array range." );
+    return;
+  }
+  vtkSMPropertyHelper secondArrayHelper(secondArray);
+  double range2[2] = { 0, 0 };
+  secondArrayHelper.Get(range2, 2);
+  vtkDebugMacro( << "Range 2 : " << range2[0] << " " << range2[1] );
+
+  vtkSMProperty* firstRange = sbProxy->GetProperty("FirstRange");
+  if (!firstRange)
+  {
+    vtkDebugMacro( << "No first range." );
+    return;
+  }
+  vtkSMPropertyHelper firstRangeHelper(firstRange);
+  firstRangeHelper.Set(range1, 2);
+
+  vtkSMProperty* secondRange = sbProxy->GetProperty("SecondRange");
+  if (!secondRange)
+  {
+    vtkDebugMacro( << "No second range." );
+    return;
+  }
+  vtkSMPropertyHelper secondRangeHelper(secondRange);
+  secondRangeHelper.Set(range2, 2);
+  sbProxy->UpdateVTKObjects();
+
+  // Now take care of titles for 1st and 2nd array
+  vtkSMProperty* firstArrayName = this->GetProperty("FirstArrayName");
+  if (!firstArrayName)
+  {
+    vtkDebugMacro( << "No first array name." );
+    return;
+  }
+  vtkSMPropertyHelper firstArrayNameHelper(firstArrayName);
+  
+  if (!firstArrayNameHelper.GetAsString())
+  {
+    vtkDebugMacro( << "No first array name as string." );
+    return;
+  }
+  std::string name1(firstArrayNameHelper.GetAsString());
+  vtkDebugMacro( << "Name 1 : " << name1 );
+
+  vtkSMProperty* secondArrayName = this->GetProperty("SecondArrayName");
+  if (!secondArrayName)
+  {
+    vtkDebugMacro( << "No second array name." );
+    return;
+  }
+  vtkSMPropertyHelper secondArrayNameHelper(secondArrayName);
+  if (!secondArrayNameHelper.GetAsString())
+  {
+    vtkDebugMacro( << "No second array name as string." );
+    return;
+  }
+  std::string name2(secondArrayNameHelper.GetAsString());
+  vtkDebugMacro( << "Name 2 : " << name2 );
+
+  vtkSMProperty* sbFirstName = sbProxy->GetProperty("Title");
+  if (!sbFirstName)
+  {
+    vtkDebugMacro( << "No Title 1" );
+    return;
+  }
+  vtkSMPropertyHelper sbFirstNameHelper(sbFirstName);
+  sbFirstNameHelper.Set(name1.c_str());
+
+  vtkSMProperty* sbSecondName = sbProxy->GetProperty("Title2");
+  if (!sbSecondName)
+  {
+    vtkDebugMacro( << "No Title 2" );
+    return;
+  }
+  vtkSMPropertyHelper sbSecondNameHelper(sbSecondName);
+  sbSecondNameHelper.Set(name2.c_str());
+
   sbProxy->UpdateVTKObjects();
 }
 
