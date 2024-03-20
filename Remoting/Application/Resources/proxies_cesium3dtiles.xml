@@ -30,6 +30,28 @@ multiblock dataset.
                        file_description="Cesium3DTiles tileset" />
       </Hints>
     </SourceProxy>
+
+    <SourceProxy class="vtkCesiumB3DMReader"
+                 label="CesiumB3DM Reader"
+                 name="CesiumB3DM Reader">
+      <Documentation short_help="Reads Cesium B3DM data files.">
+vtkCesium3DTilesReader is a reader for Cesium B3DM files, which are a container for GLB files. The output is a
+multiblock dataset.
+      </Documentation>
+      <StringVectorProperty animateable="0"
+                            command="SetFileName"
+                            name="FileName"
+                            number_of_elements="1">
+        <FileListDomain name="files" />
+        <Documentation>Specify file name of the Cesium3DTiles tileset to read.</Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <ReaderFactory extensions="b3dm"
+                       file_description="Cesium B3DM tile" />
+      </Hints>
+    </SourceProxy>
+
     <!-- End Cesium3DTilesReader -->
   </ProxyGroup>
 </ServerManagerConfiguration>
