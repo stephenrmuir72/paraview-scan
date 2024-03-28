@@ -81,9 +81,9 @@
         output grid is guaranteed to contain that of the input tree, but the
         former might be strictly larger than the latter. This is not a bug
         but an expected behavior of which the user should be aware.
-        Note that this geometric extension of the output grid is linked to
-        the fact that we display a coarse cell in place of its daughter cells.
-        The value retained is then that which was assigned to the coarse cell.
+        These geometric expansions in the output grid can be explained by
+        the display of coarse cells in place of its daugther cells.
+        The value retained is the one initially assigned to the coarse cell.
         This value can be modified by the vtkHyperTreeGridEvaluateCoarse filter
         which allows the value of the coarse cells to be recalculated using
         different operating modes.
@@ -103,7 +103,7 @@
                          default_values="0"
                          number_of_elements="1">
         <Documentation>
-          Maximum inclusive depth to which the exit grille must be limited.
+          Maximum inclusive depth to which the output grid must be limited.
           The smallest value is 0.
         </Documentation>
         <IntRangeDomain min="0"
