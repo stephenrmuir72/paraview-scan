@@ -234,6 +234,15 @@ void pqAnimationTimeWidget::pqInternals::render(pqAnimationTimeWidget* self)
       }
       idx++;
     }
+    if (idx >= state.timeSteps().size())
+    {
+      // We went through all our time values and never found one greater
+      // than or equal to the time value.  So just use the last timestep
+      // we have to avoid indexing the vector out of bounds.
+      vtkGenericWarningMacro(<< "Found no time greater than " << state.time()
+                             << ", using last value");
+      idx = static_cast<int>(state.timeSteps().size()) - 1;
+    }
     ui.timestepValue->setValue(idx);
     ui.timestepValue->setSuffix(state.timeSteps()[idx] == state.time() ? "" : " (?)");
     ui.timestepCountLabel->setText(tr("max is %1").arg(count - 1));
