@@ -5,6 +5,7 @@
 
 #include "pqActiveObjects.h"
 #include "pqCoreUtilities.h"
+#include "vtkSMTrace.h"
 #include "vtkSMViewLayoutProxy.h"
 
 #include <QMainWindow>
@@ -24,13 +25,31 @@ void pqEqualizeLayoutReaction::onTriggered()
   switch (this->ActionOrientation)
   {
     case Orientation::HORIZONTAL:
-      currentLayout->EqualizeViews(vtkSMViewLayoutProxy::HORIZONTAL);
+      {
+        SM_SCOPED_TRACE(CallFunction)
+          .arg("EqualizeViewsHorizontally")
+          .arg("layout", currentLayout)
+          .arg("comment", "equalize view sizes in layout horizontally");
+        currentLayout->EqualizeViews(vtkSMViewLayoutProxy::HORIZONTAL);
+      }
       break;
     case Orientation::VERTICAL:
-      currentLayout->EqualizeViews(vtkSMViewLayoutProxy::VERTICAL);
+      {
+        SM_SCOPED_TRACE(CallFunction)
+          .arg("EqualizeViewsVertically")
+          .arg("layout", currentLayout)
+          .arg("comment", "equalize view sizes in layout vertically");
+        currentLayout->EqualizeViews(vtkSMViewLayoutProxy::VERTICAL);
+      }
       break;
     case Orientation::BOTH:
-      currentLayout->EqualizeViews();
+      {
+        SM_SCOPED_TRACE(CallFunction)
+          .arg("EqualizeViewsBoth")
+          .arg("layout", currentLayout)
+          .arg("comment", "equalize view sizes in layout both vertically and horizontally");
+        currentLayout->EqualizeViews();
+      }
       break;
     default:
       break;
