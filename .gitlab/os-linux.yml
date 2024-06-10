@@ -109,6 +109,7 @@
     variables:
         CMAKE_CONFIGURATION: fedora35_shared_mpi_python_qt
         CMAKE_BUILD_TYPE: Debug
+        CMAKE_CXX_FLAGS_DEBUG: "-O3 -g"
 
 .fedora35_shared_mpi_python_qt_vtkmoverride:
     extends:
