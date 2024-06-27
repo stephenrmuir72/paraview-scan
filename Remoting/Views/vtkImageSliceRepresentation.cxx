@@ -32,6 +32,7 @@ vtkImageSliceRepresentation::vtkImageSliceRepresentation()
   this->Actor = vtkPVLODActor::New();
   this->Actor->SetMapper(this->SliceMapper);
   this->Actor->GetProperty()->LightingOff();
+  this->SampleRateX = this->SampleRateY = this->SampleRateZ = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -48,6 +49,36 @@ void vtkImageSliceRepresentation::SetSliceMode(int mode)
   if (this->SliceMode != mode)
   {
     this->SliceMode = mode;
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkImageSliceRepresentation::SetSampleRateX(int rate)
+{
+  if (this->SampleRateX != rate)
+  {
+    this->SampleRateX = rate;
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkImageSliceRepresentation::SetSampleRateY(int rate)
+{
+  if (this->SampleRateY != rate)
+  {
+    this->SampleRateY = rate;
+    this->MarkModified();
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkImageSliceRepresentation::SetSampleRateZ(int rate)
+{
+  if (this->SampleRateZ != rate)
+  {
+    this->SampleRateZ = rate;
     this->MarkModified();
   }
 }
@@ -176,23 +207,36 @@ void vtkImageSliceRepresentation::UpdateSliceData(vtkInformationVector** inputVe
   dims[1] = inWholeExtent[3] - inWholeExtent[2] + 1;
   dims[2] = inWholeExtent[5] - inWholeExtent[4] + 1;
 
+  bool resetOrigin = true;
   unsigned int slice = this->Slice;
   switch (this->SliceMode)
   {
     case YZ_PLANE:
       slice = (static_cast<int>(slice) >= dims[0]) ? dims[0] - 1 : slice;
       outExt[0] = outExt[1] = outExt[0] + slice;
+      if (this->SampleRateY > 1 || this->SampleRateZ > 1)
+      {
+        resetOrigin = false;
+      }
       break;
 
     case XZ_PLANE:
       slice = (static_cast<int>(slice) >= dims[1]) ? dims[1] - 1 : slice;
       outExt[2] = outExt[3] = outExt[2] + slice;
+      if (this->SampleRateX > 1 || this->SampleRateZ > 1)
+      {
+        resetOrigin = false;
+      }
       break;
 
     case XY_PLANE:
     default:
       slice = (static_cast<int>(slice) >= dims[2]) ? dims[2] - 1 : slice;
       outExt[4] = outExt[5] = outExt[4] + slice;
+      if (this->SampleRateX > 1 || this->SampleRateY > 1)
+      {
+        resetOrigin = false;
+      }
       break;
   }
 
@@ -202,7 +246,13 @@ void vtkImageSliceRepresentation::UpdateSliceData(vtkInformationVector** inputVe
   if (outExt[0] <= outExt[1] && outExt[2] <= outExt[3] && outExt[4] <= outExt[5])
   {
     vtkExtractVOI* voi = vtkExtractVOI::New();
+    std::cout << "Slice: " << slice << std::endl;
+    std::cout << "Out extent: ["
+              << outExt[0] << ", " << outExt[1] << ", "
+              << outExt[2] << ", " << outExt[3] << ", "
+              << outExt[4] << ", " << outExt[5] << "]" << std::endl;
     voi->SetVOI(outExt);
+    voi->SetSampleRate(this->SampleRateX, this->SampleRateY, this->SampleRateZ);
     voi->SetInputData(input);
     voi->Update();
 
@@ -216,7 +266,11 @@ void vtkImageSliceRepresentation::UpdateSliceData(vtkInformationVector** inputVe
 
   // vtkExtractVOI is passing the origin for the individual slice.
   // We want to use the input origin/spacing to compute the bounds.
-  this->SliceData->SetOrigin(input->GetOrigin());
+  if (resetOrigin)
+  {
+    std::cout << "Resetting origin" << std::endl;
+    this->SliceData->SetOrigin(input->GetOrigin());
+  }
 }
 
 //----------------------------------------------------------------------------
