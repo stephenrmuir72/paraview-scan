@@ -24,6 +24,27 @@ class vtkPVArrayInformation;
 class VTKREMOTINGCORE_EXPORT vtkPVDataSetAttributesInformation : public vtkObject
 {
 public:
+  /**
+   * @brief Iterator over a `vtkPVDataSetAttributesInformation`'s arrays; yielding their
+   * `vtkPVArrayInformation`. This iterator is slower thant looping over arrays using
+   * `GetNumberOfArrays()` and `GetArrayInformation(idx)` but returns the arrays ordered by name.
+   * Prefer the other approach unless you explicitely need the ordered arrays.
+   */
+  class VTKREMOTINGCORE_EXPORT AlphabeticalArrayInformationIterator
+  {
+  public:
+    AlphabeticalArrayInformationIterator(vtkPVDataSetAttributesInformation*);
+
+    void GoToFirstItem();
+    void GoToNextItem();
+    bool IsDoneWithTraversal();
+    vtkPVArrayInformation* GetCurrentArrayInformation();
+
+  private:
+    struct vtkInternals;
+    vtkInternals* Internals;
+  };
+
   static vtkPVDataSetAttributesInformation* New();
   vtkTypeMacro(vtkPVDataSetAttributesInformation, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -56,6 +77,7 @@ public:
   ///@{
   /**
    * Returns array information for the chosen array either by name or by index.
+   * Note that the index version significantelly is faster.
    */
   vtkPVArrayInformation* GetArrayInformation(int idx) const;
   vtkPVArrayInformation* GetArrayInformation(const char* name) const;
@@ -72,6 +94,14 @@ public:
    * attribute.
    */
   int IsArrayAnAttribute(int arrayIndex);
+
+  /**
+   * @brief Returns a new iterator to traverse array informations alphabetically.
+   * This approach is noticably slower than looping over array indices. Prefer doing so
+   * unless you explicitely need the ordered arrays.
+   * Caller is responsible for releasing the iterator memory.
+   */
+  AlphabeticalArrayInformationIterator* NewAlphabeticalArrayInformationIterator();
 
 protected:
   vtkPVDataSetAttributesInformation();
