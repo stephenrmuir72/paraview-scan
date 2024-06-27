@@ -33,6 +33,7 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSmartPointer.h"
+#include <memory>
 #include <vtksys/SystemTools.hxx>
 
 #include <tuple>
@@ -138,9 +139,14 @@ void pqArraysModel::setDataInformation(vtkPVDataInformation* dinfo)
     if (auto dsa = dinfo->GetAttributeInformation(cc))
     {
       this->AttributeInformations[cc] = dsa;
-      for (int kk = 0, max = dsa->GetNumberOfArrays(); kk < max; ++kk)
+
+      std::shared_ptr<vtkPVDataSetAttributesInformation::AlphabeticalArrayInformationIterator> iter(
+        dsa->NewAlphabeticalArrayInformationIterator());
+      int kk = 0;
+      for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
       {
-        this->ArrayInformations.emplace_back(cc, kk, dsa->GetArrayInformation(kk));
+        this->ArrayInformations.emplace_back(cc, kk, iter->GetCurrentArrayInformation());
+        ++kk;
       }
     }
     else
