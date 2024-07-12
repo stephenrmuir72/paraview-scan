@@ -57,6 +57,7 @@ set(classes
   pqCustomizeShortcutsReaction
   pqCustomizeShortcutsDialog
   pqCheckableProperty
+  pqConePropertyWidget
   pqCoordinateFramePropertyWidget
   pqCustomViewpointsController
   pqCustomViewpointsDefaultController
@@ -230,6 +231,7 @@ set(ui_files
   Resources/UI/pqColorMapEditor.ui
   Resources/UI/pqColorOpacityEditorWidget.ui
   Resources/UI/pqColorToolbar.ui
+  Resources/UI/pqConePropertyWidget.ui
   Resources/UI/pqConfigureCategoriesDialog.ui
   Resources/UI/pqCustomResolutionDialog.ui
   Resources/UI/pqCylinderPropertyWidget.ui
