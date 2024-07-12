@@ -13,6 +13,7 @@ set(classes
   vtkPVExtractHistogram2D
   vtkPVBox
   vtkPVChangeOfBasisHelper
+  vtkPVCone
   vtkPVCylinder
   vtkPVMergeTables
   vtkPVMergeTablesMultiBlock
