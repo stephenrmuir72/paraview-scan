@@ -265,7 +265,7 @@
         - test -n "$GITHUB_SSH_PRIVATE_KEY" && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i $GITHUB_SSH_PRIVATE_KEY"
         - test -n "$GITHUB_SSH_PRIVATE_KEY" && chmod 600 $GITHUB_SSH_PRIVATE_KEY
         - test -n "$GITHUB_SSH_PRIVATE_KEY" && PARAVIEW_DOCS_REPO="ssh://git@github.com/kitware/paraview-docs"
-        - git clone $PARAVIEW_DOCS_REPO paraview-docs
+        - git clone -b upload-to-file-server https://github.com/vicentebolea/paraview-docs.git paraview-docs
         - mkdir -p build
         - cd build
         - echo "$PARAVIEW_DOCS_REPO  $GIT_SSH_COMMAND"
