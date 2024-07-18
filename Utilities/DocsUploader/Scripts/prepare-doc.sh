@@ -45,7 +45,7 @@ curl -OL "${PV_URL}/versions.json"
 # -----------------------------------------------------------------------------
 mkdir -p "${WORK_DIR}/paraview-docs/${VERSION}"
 cp -r "${PV_BUILD}/doc/cxx" "${WORK_DIR}/paraview-docs/${VERSION}/cxx"
-cp -r "${PV_BUILD}/doc/python" "${WORK_DIR}/paraview-docs/${VERSION}/python"
+#cp -r "${PV_BUILD}/doc/python" "${WORK_DIR}/paraview-docs/${VERSION}/python"
 rm -rf "${WORK_DIR}/paraview-docs/${VERSION}/python/.doctrees"
 
 # -----------------------------------------------------------------------------
@@ -82,6 +82,12 @@ cat << EOF > versions.json
 $GENERATED_TAGS
 ]
 EOF
+
+# -----------------------------------------------------------------------------
+# Copy Dist/paraview-version.js
+# -----------------------------------------------------------------------------
+
+cp -v "${PV_SRC}/Utilities/DocsUploader/Dist/paraview-version.js" .
 
 # -----------------------------------------------------------------------------
 # Commit to server
