@@ -77,7 +77,7 @@ public:
   ///@{
   /**
    * Returns array information for the chosen array either by name or by index.
-   * Note that the index version significantelly is faster.
+   * Note that the index version significantly is faster.
    */
   vtkPVArrayInformation* GetArrayInformation(int idx) const;
   vtkPVArrayInformation* GetArrayInformation(const char* name) const;
@@ -97,7 +97,7 @@ public:
 
   /**
    * @brief Returns a new iterator to traverse array informations alphabetically.
-   * This approach is noticably slower than looping over array indices. Prefer doing so
+   * This approach is noticeably slower than looping over array indices. Prefer doing so
    * unless you explicitely need the ordered arrays.
    * Caller is responsible for releasing the iterator memory.
    */
