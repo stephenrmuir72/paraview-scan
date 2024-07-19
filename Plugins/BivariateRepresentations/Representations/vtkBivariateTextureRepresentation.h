@@ -108,6 +108,8 @@ protected:
    */
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
+  void UpdateColoringParameters() override;
+
 private:
   vtkBivariateTextureRepresentation(const vtkBivariateTextureRepresentation&) = delete;
   void operator=(const vtkBivariateTextureRepresentation&) = delete;

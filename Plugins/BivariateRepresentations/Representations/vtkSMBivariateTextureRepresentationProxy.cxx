@@ -25,7 +25,10 @@
 vtkStandardNewMacro(vtkSMBivariateTextureRepresentationProxy);
 
 //----------------------------------------------------------------------------
-vtkSMBivariateTextureRepresentationProxy::vtkSMBivariateTextureRepresentationProxy() = default;
+vtkSMBivariateTextureRepresentationProxy::vtkSMBivariateTextureRepresentationProxy()
+{
+  this->SetDebug(true);
+}
 
 //----------------------------------------------------------------------------
 vtkSMBivariateTextureRepresentationProxy::~vtkSMBivariateTextureRepresentationProxy() = default;

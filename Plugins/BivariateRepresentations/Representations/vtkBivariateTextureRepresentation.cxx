@@ -91,13 +91,16 @@ int vtkBivariateTextureRepresentation::RequestData(
   }
 
   // Retrieve input array names
-  vtkInformation* info = this->GetInputArrayInformation(1);
+  vtkInformation* info = this->GetInputArrayInformation(0);
   std::string arrayName1 =
     info->Has(vtkDataObject::FIELD_NAME()) ? info->Get(vtkDataObject::FIELD_NAME()) : "";
 
-  info = this->GetInputArrayInformation(2);
+  info = this->GetInputArrayInformation(1);
   std::string arrayName2 =
     info->Has(vtkDataObject::FIELD_NAME()) ? info->Get(vtkDataObject::FIELD_NAME()) : "";
+
+  cout << "Array 1 : " << arrayName1 << endl;
+  cout << "Array 2 : " << arrayName2 << endl;
 
   if (!arrayName1.empty() && !arrayName2.empty())
   {
@@ -160,10 +163,15 @@ int vtkBivariateTextureRepresentation::RequestData(
 }
 
 //----------------------------------------------------------------------------
+void vtkBivariateTextureRepresentation::UpdateColoringParameters()
+{
+}
+
+//----------------------------------------------------------------------------
 void vtkBivariateTextureRepresentation::SetInputArrayToProcess(
   int idx, int port, int connection, int fieldAssociation, const char* attributeTypeorName)
 {
-  if ((idx == 1 || idx == 2) &&
+  if ((idx == 0 || idx == 1) &&
     fieldAssociation == vtkDataObject::FieldAssociations::FIELD_ASSOCIATION_POINTS)
   {
     this->MarkModified(); // To force a new RequestData pass
