@@ -58,22 +58,19 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
   // ensure that all representations have valid Representations domain.
   this->UpdatePropertyInformation();
 
-  // Whenever the "Representation" property is modified, we ensure that the
-  // this->InvalidateDataInformation() is called.
+  // XXX : look for property links and do everrything on proxy side
   this->AddObserver(
-    vtkCommand::UpdatePropertyEvent, this, &vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated);
+    vtkCommand::UpdateDataEvent, this, &vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated);
 }
 
 //----------------------------------------------------------------------------
-void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, unsigned long, void* calldata)
+void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, unsigned long, void* vtkNotUsed(calldata))
 {
-  const char* pname = reinterpret_cast<const char*>(calldata);
-  if (pname && strcmp(pname, "Representation") == 0)
-  {
-    this->InvalidateDataInformation();
-  }
+  // XXX: see if when it's needed
+  // this->InvalidateDataInformation();
 
-  vtkSMProperty* textureProperty = this->GetProperty("Texture");
+  vtkSMProperty* textureProperty = this->GetProperty("BivariateTexture");
+
   if (!textureProperty)
   {
     vtkDebugMacro( << "No texture property." );
@@ -180,10 +177,10 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   }
   vtkSMPropertyHelper secondRangeHelper(secondRange);
   secondRangeHelper.Set(range2, 2);
-  sbProxy->UpdateVTKObjects();
 
   // Now take care of titles for 1st and 2nd array
   vtkSMProperty* firstArrayName = this->GetProperty("FirstArrayName");
+  // this->UpdatePropertyInformation(firstArrayName);
   if (!firstArrayName)
   {
     vtkDebugMacro( << "No first array name." );
@@ -231,6 +228,10 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   }
   vtkSMPropertyHelper sbSecondNameHelper(sbSecondName);
   sbSecondNameHelper.Set(name2.c_str());
+
+  // firstArrayName->AddLinkedProperty(sbSecondName);
+  // secondArrayName->AddLinkedProperty(sbSecondName);
+  // this->UpdatePropertyInformation(); // ?
 
   sbProxy->UpdateVTKObjects();
 }

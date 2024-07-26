@@ -200,7 +200,7 @@
         This representation generates 2D texture coordinates from 2 choosen point data arrays
         and provide default textures to visualize bi-variate data.
       </Documentation>
-      <StringVectorProperty name="FirstArray"
+      <StringVectorProperty name="SecondArray"
                             command="SetInputArrayToProcess"
                             number_of_elements="5"
                             element_types="int int int int str"
@@ -213,27 +213,21 @@
           </RequiredProperties>
         </ArrayListDomain>
         <Documentation>
-          This property specifies the name of the first point data array used to compute texture
-          coordinates (first component).
-        </Documentation>
-      </StringVectorProperty>
-      <StringVectorProperty name="SecondArray"
-                            command="SetInputArrayToProcess"
-                            number_of_elements="5"
-                            element_types="int int int int str"
-                            default_values="2 0 0 0 0">
-        <ArrayListDomain name="array_list"
-                         attribute_type="Scalars"
-                         input_domain_name="input_array_point_1">
-          <RequiredProperties>
-            <Property name="Input" function="Input"/>
-          </RequiredProperties>
-        </ArrayListDomain>
-        <Documentation>
           This property specifies the name of the second point data array used to compute texture
           coordinates (second component).
         </Documentation>
       </StringVectorProperty>
+      <ProxyProperty command="SetTexture"
+                     name="BivariateTexture"
+                     panel_widget="texture_selector"
+                     null_on_empty="1" >
+        <Documentation>
+          Set the diffuse color texture.
+        </Documentation>
+        <ProxyGroupDomain name="groups">
+          <Group name="textures" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
       <DoubleVectorProperty
          name="FirstArrayRange"
          command="GetFirstArrayRange"
@@ -294,8 +288,8 @@
         </ShareProperties>
         <ExposedProperties>
           <PropertyGroup label="Bivariate representation">
-            <Property name="FirstArray"/>
             <Property name="SecondArray"/>
+            <Property name="BivariateTexture"/>
             <Hints>
               <PropertyWidgetDecorator type="GenericDecorator"
                                        mode="visibility"
@@ -330,8 +324,8 @@
         </ShareProperties>
         <ExposedProperties>
           <PropertyGroup label="Bivariate representation">
-            <Property name="FirstArray"/>
             <Property name="SecondArray"/>
+            <Property name="BivariateTexture"/>
             <Hints>
               <PropertyWidgetDecorator type="GenericDecorator"
                                        mode="visibility"
@@ -366,8 +360,8 @@
         </ShareProperties>
         <ExposedProperties>
           <PropertyGroup label="Bivariate representation">
-            <Property name="FirstArray"/>
             <Property name="SecondArray"/>
+            <Property name="BivariateTexture"/>
             <Hints>
               <PropertyWidgetDecorator type="GenericDecorator"
                                        mode="visibility"

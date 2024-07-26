@@ -11,6 +11,18 @@
 #include "vtkPointData.h"
 #include "vtkView.h"
 
+#include "vtkAlgorithmOutput.h"
+#include "vtkDataObjectTypes.h"
+#include "vtkInformationVector.h"
+#include "vtkMultiProcessController.h"
+#include "vtkPVTrivialProducer.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
+
+#include "vtkPolyData.h"
+#include "vtkCompositeDataSet.h"
+#include "vtkDataObjectTreeIterator.h"
+#include "vtkDataObjectTree.h"
+
 #include <algorithm>
 
 vtkStandardNewMacro(vtkBivariateTextureRepresentation);
@@ -83,6 +95,19 @@ void vtkBivariateTextureRepresentation::SetTexture(vtkTexture* texture)
 int vtkBivariateTextureRepresentation::RequestData(
   vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Don't keep tcoords if all conditions are not met
+  auto* out = vtkDataObjectTree::SafeDownCast(this->GetRenderedDataObject(0));
+  if (out)
+  {
+    auto iter = vtk::TakeSmartPointer(out->NewTreeIterator());
+    iter->SkipEmptyNodesOn();
+    iter->VisitOnlyLeavesOn();
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+    {
+      iter->GetCurrentDataObject()->GetAttributes(vtkDataObject::POINT)->SetTCoords(nullptr);
+    }
+  }
+
   if (this->LogoSourceRepresentation)
   {
     // Setup the internal pipeline
@@ -99,11 +124,9 @@ int vtkBivariateTextureRepresentation::RequestData(
   std::string arrayName2 =
     info->Has(vtkDataObject::FIELD_NAME()) ? info->Get(vtkDataObject::FIELD_NAME()) : "";
 
-  cout << "Array 1 : " << arrayName1 << endl;
-  cout << "Array 2 : " << arrayName2 << endl;
-
   if (!arrayName1.empty() && !arrayName2.empty())
   {
+    // XXX: add support to MB
     vtkDataSet* inputDS = vtkDataSet::GetData(inputVector[0], 0);
     if (!inputDS)
     {
@@ -126,6 +149,11 @@ int vtkBivariateTextureRepresentation::RequestData(
       return this->Superclass::RequestData(request, inputVector, outputVector);
     }
 
+    if (array1->GetNumberOfComponents() != 1 || array2->GetNumberOfComponents() != 1)
+    {
+      return this->Superclass::RequestData(request, inputVector, outputVector);
+    }
+
     // Compute texture coordinates from input array
     this->TCoordsArray->Initialize();
     this->TCoordsArray->SetName("BivariateTCoords");
@@ -136,14 +164,14 @@ int vtkBivariateTextureRepresentation::RequestData(
     auto* range1 = array1->GetRange();
     this->FirstArrayRange[0] = range1[0];
     this->FirstArrayRange[1] = range1[1];
-    this->FirstArrayName = array1->GetName();
+    this->FirstArrayName = arrayName1;
 
     auto* range2 = array2->GetRange();
     this->SecondArrayRange[0] = range2[0];
     this->SecondArrayRange[1] = range2[1];
-    this->SecondArrayName = array2->GetName();
+    this->SecondArrayName = arrayName2;
 
-    this->Modified();
+    // this->Modified(); // ?
 
     for (int i = 0; i < this->TCoordsArray->GetNumberOfTuples(); i++)
     {
@@ -152,11 +180,18 @@ int vtkBivariateTextureRepresentation::RequestData(
       this->TCoordsArray->SetTuple2(i, firstValue, secondValue);
     }
 
-    // XXX: Modyfing the input point data is not clean.
-    // We should find a way to add the computed TCoords array
-    // to the list of available arrays without doing this in
-    // a future work.
-    inputDS->GetPointData()->SetTCoords(this->TCoordsArray);
+    // Modify renderer DO TCoords
+    out = vtkDataObjectTree::SafeDownCast(this->GetRenderedDataObject(0));
+    if (out)
+    {
+      auto iter = vtk::TakeSmartPointer(out->NewTreeIterator());
+      iter->SkipEmptyNodesOn();
+      iter->VisitOnlyLeavesOn();
+      for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      {
+        iter->GetCurrentDataObject()->GetAttributes(vtkDataObject::POINT)->SetTCoords(this->TCoordsArray);
+      }
+    }
   }
 
   return this->Superclass::RequestData(request, inputVector, outputVector);
@@ -165,7 +200,14 @@ int vtkBivariateTextureRepresentation::RequestData(
 //----------------------------------------------------------------------------
 void vtkBivariateTextureRepresentation::UpdateColoringParameters()
 {
+  // Do not color by color array
 }
+
+// //----------------------------------------------------------------------------
+// bool vtkBivariateTextureRepresentation::NeedsOrderedCompositing()
+// {
+//   return false;
+// }
 
 //----------------------------------------------------------------------------
 void vtkBivariateTextureRepresentation::SetInputArrayToProcess(
