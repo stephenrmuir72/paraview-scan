@@ -2,10 +2,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkFieldData.h"
 #include "vtkFloatArray.h"
+#include "vtkLogger.h"
 #include "vtkMathUtilities.h"
 #include "vtkNew.h"
 #include "vtkPVArrayInformation.h"
 #include "vtkSmartPointer.h"
+
+#include <algorithm>
+#include <cstdlib>
+#include <string>
 
 vtkSmartPointer<vtkFloatArray> GetPolyData()
 {
@@ -19,6 +24,34 @@ vtkSmartPointer<vtkFloatArray> GetPolyData()
     array->SetTypedComponent(cc, 0, static_cast<float>(cc));
   }
   return array;
+}
+
+bool AreArrayInformationsEqual(vtkPVArrayInformation* lhs, vtkPVArrayInformation* rhs)
+{
+  bool equal = true;
+  equal &= lhs->GetIsPartial() == rhs->GetIsPartial();
+  equal &= lhs->GetDataTypeAsString() == rhs->GetDataTypeAsString();
+  equal &= lhs->GetNumberOfComponents() == rhs->GetNumberOfComponents();
+  equal &= lhs->GetNumberOfTuples() == rhs->GetNumberOfTuples();
+  equal &= std::string(lhs->GetName()) == std::string(rhs->GetName());
+
+  for (int compIdx = 0; compIdx < lhs->GetNumberOfComponents(); ++compIdx)
+  {
+    equal &=
+      std::string(lhs->GetComponentName(compIdx)) == std::string(rhs->GetComponentName(compIdx));
+
+    std::array<double, 2> lhRange, rhRange;
+    lhs->GetComponentRange(compIdx, lhRange.data());
+    rhs->GetComponentRange(compIdx, rhRange.data());
+    equal &= std::equal(lhRange.begin(), lhRange.end(), rhRange.begin());
+
+    std::array<double, 2> lhFiniteRange, rhFiniteRange;
+    lhs->GetComponentRange(compIdx, lhFiniteRange.data());
+    rhs->GetComponentRange(compIdx, rhFiniteRange.data());
+    equal &= std::equal(lhFiniteRange.begin(), lhFiniteRange.end(), rhFiniteRange.begin());
+  }
+
+  return equal;
 }
 
 int TestPVArrayInformation(int, char*[])
@@ -127,6 +160,18 @@ int TestPVArrayInformation(int, char*[])
   if (!vtkMathUtilities::FuzzyCompare(rangeArray[1], 100.0))
   {
     cerr << "ERROR: failed to find finite range maximum: " << rangeArray[1] << " " << 100.0 << endl;
+    return EXIT_FAILURE;
+  }
+
+  // Compare CopyFromArray overloads
+  vtkNew<vtkPVArrayInformation> infoCopiedFromArray;
+  infoCopiedFromArray->CopyFromArray(array);
+
+  if (!AreArrayInformationsEqual(info, infoCopiedFromArray))
+  {
+    vtkLogF(ERROR,
+      "Copying information from array as simple array or as field data did not yield the same "
+      "result");
     return EXIT_FAILURE;
   }
 
