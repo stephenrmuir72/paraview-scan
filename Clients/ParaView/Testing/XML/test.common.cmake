@@ -911,9 +911,9 @@ set(ZoomToData_TIMEOUT 150)
 list (APPEND TESTS_WITHOUT_BASELINES
   AboutDialog.xml
   AddFieldArrays.xml
+  AnimateProperty.xml
   ArrayBoundsScaleDomain.xml
   ArraySelectionWidget.xml
-  AnimateProperty.xml
   ComputeArrayMagnitudeSetting.xml
   CustomOutputFormat.xml
   DefaultReadersSetting.xml
@@ -1122,6 +1122,7 @@ if(NOT APPLE)
 endif()
 
 list(APPEND TESTS_WITH_BASELINES
+  AutoSaveState.xml
   AxisAlignedCutterAMR.xml
   AxisAlignedCutterHTG.xml
   AxisAlignedCutterMBHierarchy.xml
@@ -1749,6 +1750,7 @@ set (AnimatePipelineTime_FORCE_SERIAL TRUE)
 set (AnimateProperty_FORCE_SERIAL TRUE) # since this uses popup window
 set (AnimationCache_FORCE_SERIAL TRUE) # since this uses popup window
 set (AnimationFollowPath_FORCE_SERIAL TRUE) # since this uses popup window
+set (AutoSaveState_FORCE_SERIAL TRUE) # since this modifies settings
 set (BlockContextMenu_FORCE_SERIAL TRUE) # requires context menu
 set (CGNSReaderDataLocation_FORCE_SERIAL TRUE)  # since this uses popup-menu
 set (CTHAMRBaseline_FORCE_SERIAL TRUE)  # since this uses popup-menu
