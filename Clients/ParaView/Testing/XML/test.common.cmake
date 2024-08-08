@@ -334,6 +334,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ComputeNormalInRepresentation-Default.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ComputeNormalInRepresentation-SurfaceEdgesRepr.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ComputeNormalInRepresentation-WithAngle.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ConeWidget.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ConnectivityCountAscending.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ConnectivityCountDescending.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/Contour1.png}"
@@ -1131,6 +1132,7 @@ list(APPEND TESTS_WITH_BASELINES
   CameraOrientationWidget.xml
   ChartsClearSelection.xml
   CleanToGridRemovePoints.xml
+  ConeWidget.xml
   ConstantShadingPerObject.xml
   CONVERGECFDCGNSReader.xml
   DataAxesGrid.xml
