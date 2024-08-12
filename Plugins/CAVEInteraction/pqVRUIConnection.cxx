@@ -661,17 +661,17 @@ void pqVRUIConnection::getNextPacket()
 // ----------------------------------------------------------------------------
 void pqVRUIConnection::newValuatorValue(std::vector<float>* data)
 {
-  vtkVREvent temp;
-  temp.connId = this->Address;
-  temp.name = name(VALUATOR_EVENT);
-  temp.eventType = VALUATOR_EVENT;
-  temp.timeStamp = QDateTime::currentDateTime().toTime_t();
-  temp.data.valuator.num_channels = (int)(*data).size();
   for (unsigned int i = 0; i < (*data).size(); ++i)
   {
-    temp.data.valuator.channel[i] = (*data)[i];
+    vtkVREvent temp;
+    temp.connId = this->Address;
+    temp.name = name(VALUATOR_EVENT);
+    temp.eventType = VALUATOR_EVENT;
+    temp.timeStamp = QDateTime::currentDateTime().toTime_t();
+    temp.data.valuator.channel_id = static_cast<int>(i);
+    temp.data.valuator.channel_value = (*data)[i];
+    this->EventQueue->Enqueue(temp);
   }
-  this->EventQueue->Enqueue(temp);
 }
 
 // ----------------------------------------------------------------------------

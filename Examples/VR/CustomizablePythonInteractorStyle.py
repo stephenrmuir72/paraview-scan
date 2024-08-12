@@ -1,7 +1,7 @@
 from paraview.simple import *
 from vtkmodules.vtkCommonMath import vtkMatrix4x4
 from vtkmodules.vtkCommonTransforms import vtkTransform
-from paraview.incubator import vtkPVIncubatorCAVEInteractionStyles
+from paraview.incubator.pythoninteractorbase import PythonInteractorBase
 
 
 #
@@ -21,7 +21,7 @@ def create_interactor_style():
     return CustomInteractorStyle()
 
 
-class CustomInteractorStyle(object):
+class CustomInteractorStyle(PythonInteractorBase):
     def __init__(self):
         self.flyAmount = 0.05
 
@@ -120,7 +120,7 @@ class CustomInteractorStyle(object):
             rvProxy.SetPropertyWithName("ModelTransformMatrix", m_elts)
             rvProxy.UpdateVTKObjects()
 
-    def HandleValuator(self, vtkSelf, role, numChannels, channelData):
+    def HandleValuator(self, vtkSelf, role, channel, value):
         """Handle an valuator event.
 
         Given the valuator event data in the method parameters, take
@@ -134,9 +134,9 @@ class CustomInteractorStyle(object):
                 your interactor style role bindings.  Named roles
                 can be defined for the different event types in your
                 Initialize() method.
-            numChannels: The number of channels of valuator data present in
-                channelData parameter (i.e. the length of the array)
-            channelData: The array of valuator data values.
+            channel: The numeric identifier of the channel associated
+                with the valuator data.
+            value: The data value.
 
         """
-        print(f"HandleValuator() -> number of channels: {numChannels}, role: {role}")
+        print(f"HandleValuator() -> role: {role}, channel: {channel}, value: {value}")

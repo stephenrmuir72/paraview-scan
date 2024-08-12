@@ -28,5 +28,5 @@ class PythonInteractorBase():
     def HandleButton(self, vtkSelf, role, button, state):
         pass
 
-    def HandleValuator(self, vtkSelf, role, numChannels, channelData):
+    def HandleValuator(self, vtkSelf, role, channel, value):
         pass

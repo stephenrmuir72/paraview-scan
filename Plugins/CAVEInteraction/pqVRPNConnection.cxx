@@ -209,17 +209,18 @@ void pqVRPNConnection::stop()
 // ---------------------------------------------------------------------private
 void pqVRPNConnection::newAnalogValue(vrpn_ANALOGCB data)
 {
-  vtkVREvent event;
-  event.connId = this->Address;
-  event.name = name(VALUATOR_EVENT);
-  event.eventType = VALUATOR_EVENT;
-  event.timeStamp = QDateTime::currentDateTime().toTime_t();
-  event.data.valuator.num_channels = data.num_channel;
+  // Generate one event per channel
   for (int i = 0; i < data.num_channel; ++i)
   {
-    event.data.valuator.channel[i] = data.channel[i];
+    vtkVREvent event;
+    event.connId = this->Address;
+    event.name = name(VALUATOR_EVENT, i);
+    event.eventType = VALUATOR_EVENT;
+    event.timeStamp = QDateTime::currentDateTime().toTime_t();
+    event.data.valuator.channel_id = i;
+    event.data.valuator.channel_value = data.channel[i];
+    this->EventQueue->Enqueue(event);
   }
-  this->EventQueue->Enqueue(event);
 }
 
 // ---------------------------------------------------------------------private
@@ -348,28 +349,41 @@ std::string pqVRPNConnection::name(int eventType, int id)
     returnStr << this->Name << ".";
   else
     returnStr << this->Address << ".";
+
   switch (eventType)
   {
     case VALUATOR_EVENT:
       eventStr << "valuator." << id;
       if (this->ValuatorMapping.find(eventStr.str()) != this->ValuatorMapping.end())
+      {
         returnStr << this->ValuatorMapping[eventStr.str()];
+      }
       else
+      {
         returnStr << eventStr.str();
+      }
       break;
     case BUTTON_EVENT:
       eventStr << "button." << id;
       if (this->ButtonMapping.find(eventStr.str()) != this->ButtonMapping.end())
+      {
         returnStr << this->ButtonMapping[eventStr.str()];
+      }
       else
+      {
         returnStr << eventStr.str();
+      }
       break;
     case TRACKER_EVENT:
       eventStr << "tracker." << id;
       if (this->TrackerMapping.find(eventStr.str()) != this->TrackerMapping.end())
+      {
         returnStr << this->TrackerMapping[eventStr.str()];
+      }
       else
+      {
         returnStr << eventStr.str();
+      }
       break;
   }
   return returnStr.str();

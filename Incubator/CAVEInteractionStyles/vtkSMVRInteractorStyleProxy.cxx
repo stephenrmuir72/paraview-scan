@@ -398,14 +398,28 @@ bool vtkSMVRInteractorStyleProxy::HandleEvent(const vtkVREvent& event)
 {
   switch (event.eventType)
   {
+    // Filter events as follows: If an interactor style proxy has not
+    // bound a named role for an event, do not deliver the event to it.
+    // However, internal interactor style proxies are not shown in the UI,
+    // and can thus not have named roles bound to events.  So we'll deliver
+    // all events to internal interactor style proxies.
     case BUTTON_EVENT:
-      this->HandleButton(event);
+      if (this->GetIsInternal() || this->GetButtonRole(event.name).compare("") != 0)
+      {
+        this->HandleButton(event);
+      }
       break;
     case VALUATOR_EVENT:
-      this->HandleValuator(event);
+      if (this->GetIsInternal() || this->GetValuatorRole(event.name).compare("") != 0)
+      {
+        this->HandleValuator(event);
+      }
       break;
     case TRACKER_EVENT:
-      this->HandleTracker(event);
+      if (this->GetIsInternal() || this->GetTrackerRole(event.name).compare("") != 0)
+      {
+        this->HandleTracker(event);
+      }
       break;
   }
   return false;

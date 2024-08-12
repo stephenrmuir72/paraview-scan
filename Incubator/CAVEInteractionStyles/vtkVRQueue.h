@@ -25,8 +25,8 @@ struct vtkTracker
 
 struct vtkValuator
 {
-  int num_channels;                         // how many channels
-  double channel[VTK_VALUATOR_CHANNEL_MAX]; // channel diliever valuator values
+  int channel_id;       // which channel
+  double channel_value; // valuator data value
 };
 
 struct vtkButton

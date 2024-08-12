@@ -91,8 +91,8 @@ void vtkSMVRSkeletonStyleProxy::HandleValuator(const vtkVREvent& event)
 
   if (role == "X")
   {
-    cout << "Got a value for 'X' of " << event.data.valuator.num_channels << " : "
-         << event.data.valuator.channel[0] << " " << event.data.valuator.channel[1] << "\n";
+    cout << "Got a value for 'X', channel id: " << event.data.valuator.channel_id
+         << ", channel value : " << event.data.valuator.channel_value << endl;
   }
 }
 
