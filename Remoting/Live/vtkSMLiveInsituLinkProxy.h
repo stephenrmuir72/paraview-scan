@@ -95,6 +95,8 @@ private:
 
   class vtkInternals;
   vtkInternals* Internals;
+
+  unsigned long PropertyObserverId = 0;
 };
 
 #endif
