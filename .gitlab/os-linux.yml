@@ -186,6 +186,7 @@
 
     script:
         - *before_script_linux
+        - .gitlab/ci/ssh-test-conf.sh
         # For libnvindex.so
         - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
         - ctest -V --output-on-failure -S .gitlab/ci/ctest_test.cmake
