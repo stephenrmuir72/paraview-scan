@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# Skip if we're not in a `fedora` job.
+if ! echo "$CMAKE_CONFIGURATION" | grep -q -e 'fedora'; then
+  exit 0
+fi
+
 # TODO add to docker image
 yum -y install openssh-server xterm
 
