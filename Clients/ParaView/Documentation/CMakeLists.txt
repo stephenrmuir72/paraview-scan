@@ -56,7 +56,10 @@ target_link_libraries(vtkParaViewDocumentation
   PRIVATE
     "Qt${PARAVIEW_QT_MAJOR_VERSION}::Core")
 
-install(
+set_property(GLOBAL PROPERTY qch_build_dir "${paraview_qch}")
+set_property(GLOBAL PROPERTY qch_install_dir "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}/paraview.qch")
+
+install(                                               
   FILES       "${paraview_qch}"
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
   COMPONENT   doc)

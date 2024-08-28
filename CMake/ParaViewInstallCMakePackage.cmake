@@ -194,3 +194,29 @@ if (PARAVIEW_USE_QT)
     RENAME      "${cmake_xml_file_name}"
     COMPONENT   "development")
 endif ()
+
+# Expose ParaView_QCH_DIR variable used to locate where the paraview.qch help file is.
+# To handle his location, which can vary between build and install dir, it is exposed via
+# a specifc cmake file generate at build time.
+if (PARAVIEW_USE_QT)
+  get_property(qch_build_dir GLOBAL PROPERTY qch_build_dir)
+  get_property(qch_install_dir GLOBAL PROPERTY qch_install_dir)
+
+  set(cmake_qch_name "ParaView-client-qch.cmake")
+  set(cmake_qch_build_file "${paraview_cmake_build_dir}/${cmake_qch_name}")
+  set(cmake_qch_install_file "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${cmake_qch_name}.install")
+
+  file(WRITE "${cmake_qch_build_file}" "")
+  file(WRITE "${cmake_qch_install_file}" "")
+
+  file(APPEND "${cmake_qch_build_file}"
+    "set(\"\${CMAKE_FIND_PACKAGE_NAME}_QCH_DIR\" \"${qch_build_dir}\")\n")
+  file(APPEND "${cmake_qch_install_file}"
+    "set(\"\${CMAKE_FIND_PACKAGE_NAME}_QCH_DIR\" \"${qch_install_dir}\")\n")
+
+  install(
+    FILES       "${cmake_qch_install_file}"
+    DESTINATION "${paraview_cmake_destination}"
+    RENAME      "${cmake_qch_name}"
+    COMPONENT   "development")
+endif()
