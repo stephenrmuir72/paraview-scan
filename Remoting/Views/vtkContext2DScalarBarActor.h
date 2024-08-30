@@ -453,7 +453,7 @@ private:
    * coordinates. The painter parameter is needed to calculate the thickness
    * of the scalar bar in terms of the selected font size.
    */
-  void GetSize(double size[2], vtkContext2D* painter);
+  void GetSize(double size[2], vtkContext2D* painter, int orientation);
 
   /**
    * Compute the rect where the color bar will be displayed. This is
@@ -494,21 +494,17 @@ private:
   /**
    * Paint the color bar itself.
    */
-  void PaintColorBar(vtkContext2D* painter, double size[2]);
+  void PaintColorBar(vtkContext2D* painter, double size[2], vtkImageData* texture);
 
   /**
    * Paint the axis and label positions.
    */
-  void PaintAxis(vtkContext2D* painter, double size[2]);
+  void PaintAxis(vtkContext2D* painter, double size[2], int orientation);
 
   /**
    * Set up the axis title. Returns the bounding rect of all elements in the color legend.
    */
-  void PaintTitle(vtkContext2D* painter, double size[2]);
-  /**
-   * Set up the axis title. Returns the bounding rect of all elements in the color legend.
-   */
-  void PaintTitle2(vtkContext2D* painter, double size[2]);
+  void PaintTitle(vtkContext2D* painter, double size[2], const std::string& title, int orientation);
 
   /**
    * Adds the min and max range of the displayed representations on the scalar bar.
