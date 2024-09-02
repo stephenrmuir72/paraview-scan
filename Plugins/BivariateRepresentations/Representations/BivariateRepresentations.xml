@@ -204,7 +204,7 @@
                             command="SetInputArrayToProcess"
                             number_of_elements="5"
                             element_types="int int int int str"
-                            default_values="1 0 0 0 0">
+                            no_custom_default="1">
         <ArrayListDomain name="array_list"
                          attribute_type="Scalars"
                          input_domain_name="input_array_point_1">

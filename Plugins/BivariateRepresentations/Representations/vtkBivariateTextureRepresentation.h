@@ -108,8 +108,11 @@ protected:
    */
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
-  void UpdateColoringParameters() override;
-  // bool NeedsOrderedCompositing() override;
+  /**
+   * Overriden to prevent coloring with color array, i.e. when we only select
+   * the "first array".
+   */
+  void UpdateColoringParameters() override {};
 
 private:
   vtkBivariateTextureRepresentation(const vtkBivariateTextureRepresentation&) = delete;
