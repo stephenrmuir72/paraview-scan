@@ -12,7 +12,10 @@
 #include "vtkBivariateRepresentationsModule.h" // for export macro
 #include "vtkSMRepresentationProxy.h"
 
+#include <list>
+
 class vtkPVArrayInformation;
+class vtkSMLink;
 
 class VTKBIVARIATEREPRESENTATIONS_EXPORT vtkSMBivariateTextureRepresentationProxy : public vtkSMRepresentationProxy
 {
@@ -43,6 +46,15 @@ private:
   void operator=(const vtkSMBivariateTextureRepresentationProxy&) = delete;
 
   vtkSMProxy* CurrentView = nullptr;
+
+  /**
+   * Setup all links between properties and informations. It also update properties
+   * information before anything else. Usually called in CreateVTKObject() function.
+   */
+  void SetupPropertiesLinks();
+
+  typedef std::list<vtkSmartPointer<vtkSMLink>> LinksType;
+  LinksType Links;
 };
 
 #endif

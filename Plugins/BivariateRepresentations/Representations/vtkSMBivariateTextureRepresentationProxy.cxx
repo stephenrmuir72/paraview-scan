@@ -12,8 +12,10 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSMArrayListDomain.h"
 #include "vtkSMColorMapEditorHelper.h"
+#include "vtkSMLink.h"
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkSMPropertyLink.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -27,7 +29,7 @@ vtkStandardNewMacro(vtkSMBivariateTextureRepresentationProxy);
 //----------------------------------------------------------------------------
 vtkSMBivariateTextureRepresentationProxy::vtkSMBivariateTextureRepresentationProxy()
 {
-  this->SetDebug(true);
+  // this->SetDebug(true);
 }
 
 //----------------------------------------------------------------------------
@@ -58,9 +60,54 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
   // ensure that all representations have valid Representations domain.
   this->UpdatePropertyInformation();
 
-  // XXX : look for property links and do everrything on proxy side
+  // this->SetupPropertiesLinks();
+
+  // XXX : look for property links and do everything on proxy side
   this->AddObserver(
     vtkCommand::UpdateDataEvent, this, &vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated);
+  // this->AddObserver(
+  //   vtkCommand::UpdateDataEvent, this, &vtkSMBivariateTextureRepresentationProxy::SetupPropertiesLinks);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSMBivariateTextureRepresentationProxy::SetupPropertiesLinks()
+{
+  // Since links copy values from input to output,
+  // we need to make sure that input properties i.e. the info
+  // properties are not empty.
+  this->UpdatePropertyInformation();
+
+  // Clean current property links
+  this->Links.clear();
+
+  // If there is no view, we will not have any scalar bar so we 
+  // don't need to go further.
+  if (!this->CurrentView)
+  {
+    cout << "no current view" << endl;
+    return;
+  }
+
+  // Retrieve the lut property of the bivariate texture representation
+  vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
+  if (!lutProperty) { cout << "no lut property" << endl; return; }
+  vtkSMPropertyHelper lutPropertyHelper(lutProperty);
+
+  // Retrieve the scalar bar proxy given the lut and the active view
+  vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
+  if (!lutProxy) { cout << "no lut proxy" << endl; return; }
+  vtkSMScalarBarWidgetRepresentationProxy* sbProxy =
+    vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
+      vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, this->CurrentView));
+  if (!sbProxy) { cout << "no sb proxy" << endl; return; }
+
+  // Link the texture property of the representation with the texture
+  // property of the scalar bar
+  vtkSMPropertyLink* link = vtkSMPropertyLink::New();
+  link->AddLinkedProperty(this, "BivariateTexture", vtkSMLink::INPUT);
+  link->AddLinkedProperty(sbProxy, "Texture", vtkSMLink::OUTPUT);
+  this->Links.push_back(link);
+  link->Delete();
 }
 
 //----------------------------------------------------------------------------
