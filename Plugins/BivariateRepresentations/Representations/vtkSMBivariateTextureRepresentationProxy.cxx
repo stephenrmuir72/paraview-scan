@@ -22,6 +22,9 @@
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMScalarBarWidgetRepresentationProxy.h"
 
+#include "vtkSMProxyClipboard.h"
+#include "vtkSMProxyManager.h"
+
 #include <string>
 
 vtkStandardNewMacro(vtkSMBivariateTextureRepresentationProxy);
@@ -171,6 +174,59 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
     return;
   }
 
+  vtkSMProperty* sbActorProperty = sbProxy->GetProperty("ScalarBarActor");
+  if (!sbActorProperty)
+  {
+    vtkDebugMacro(<< "Cannot retrieve ScalarBarActor property.");
+    return;
+  }
+
+  vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
+  vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
+  vtkSmartPointer<vtkSMProxy> scalarBarActor2Proxy;
+  scalarBarActor2Proxy.TakeReference(pxm->NewProxy("annotations", "ScalarBarActor2"));
+  pxm->RegisterProxy("annotations", scalarBarActor2Proxy);
+
+  vtkSMPropertyHelper sbActorPropertyHelper(sbActorProperty);
+  vtkSMProxy* oldActorProxy = sbActorPropertyHelper.GetAsProxy();
+  if (!oldActorProxy)
+  {
+    vtkDebugMacro(<< "Cannot retrieve old actor property !");
+    return;
+  }
+
+  scalarBarActor2Proxy->Copy(oldActorProxy);
+  scalarBarActor2Proxy->UpdateVTKObjects();
+  // vtkNew<vtkSMProxyClipboard> clipboard;
+  // clipboard->Copy(oldActorProxy);
+  // clipboard->Paste(scalarBarActor2Proxy);
+
+  // vtkSMProperty* sbLUTProperty = oldActorProxy->GetProperty("LookupTable");
+  // if (!sbLUTProperty)
+  // {
+  //   vtkDebugMacro( << "Cannot retrieve old actor's LUT property." );
+  //   return;
+  // }
+  // vtkSMPropertyHelper sbLUTPropertyHelper(sbLUTProperty);
+  // vtkSMProxy* oldActorLUT = sbLUTPropertyHelper.GetAsProxy();
+  // if (!oldActorLUT)
+  // {
+  //   vtkDebugMacro( << "Cannot retrieve old actor LUT proxy !" );
+  //   return;
+  // }
+
+  // vtkSMProperty* newSbLUTProperty = scalarBarActor2Proxy->GetProperty("LookupTable");
+  // if (!newSbLUTProperty)
+  // {
+  //   vtkDebugMacro( << "Cannot retrieve new actor's LUT property." );
+  //   return;
+  // }
+  // vtkSMPropertyHelper newSbLUTPropertyHelper(newSbLUTProperty);
+  // newSbLUTPropertyHelper.Set(oldActorLUT);
+
+  sbActorPropertyHelper.Set(scalarBarActor2Proxy);
+  sbProxy->UpdateVTKObjects();
+
   vtkSMPropertyHelper sbTexturePropertyHelper(sbTextureProperty);
   // if (texturePropertyHelper.GetNumberOfElements() == 0 || !texturePropertyHelper.GetAsProxy())
   // {
@@ -281,6 +337,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   // this->UpdatePropertyInformation(); // ?
 
   sbProxy->UpdateVTKObjects();
+  // scalarBarActor2Proxy->UpdateVTKObjects();
 }
 
 //----------------------------------------------------------------------------

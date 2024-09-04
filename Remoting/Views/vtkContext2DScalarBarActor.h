@@ -336,11 +336,18 @@ protected:
    */
   int VerticalOffset = 0;
 
+  vtkSmartPointer<vtkTexture> Texture;
+  
+  double FirstRange[2] = { 0, 0 };
+  double SecondRange[2] = { 0, 0 };
+
+  // Test
+  char* Title2 = nullptr;
+
 private:
   vtkContext2DScalarBarActor(const vtkContext2DScalarBarActor&) = delete;
   void operator=(const vtkContext2DScalarBarActor&) = delete;
-
-  vtkSmartPointer<vtkTexture> Texture;
+  
 
   vtkContextActor* ActorDelegate;
 
@@ -541,12 +548,6 @@ private:
    * Range data height.
    */
   float VerticalRangeDataHeight;
-
-  double FirstRange[2] = { 0, 0 };
-  double SecondRange[2] = { 0, 0 };
-
-  // Test
-  char* Title2 = nullptr;
 };
 
 #endif // vtkContext2DScalarBarActor_h

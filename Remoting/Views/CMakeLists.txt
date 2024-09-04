@@ -18,6 +18,7 @@ set(classes
   vtkChartWarning
   vtkCompositeRepresentation
   vtkContext2DScalarBarActor
+  vtkContext2DScalarBarActor2
   vtkDataLabelRepresentation
   vtkFeatureEdgesRepresentation
   vtkGeometryRepresentation

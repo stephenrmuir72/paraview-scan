@@ -2402,6 +2402,13 @@
     </Proxy>
 
     <!-- ================================================================== -->
+    <Proxy class="vtkContext2DScalarBarActor2"
+           name="ScalarBarActor2"
+           base_proxygroup="annotations"
+           base_proxyname="ScalarBarActor">
+    </Proxy>
+
+    <!-- ================================================================== -->
     <Proxy class="vtkFlagpoleLabel"
            name="FlagpoleLabel"
            processes="client|dataserver|renderserver"

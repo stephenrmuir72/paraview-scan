@@ -714,6 +714,7 @@
                proxyname="ScalarBarRepresentation"></Proxy>
         <ExposedProperties>
           <Property name="Visibility" panel_visibility="never"/>
+          <Property name="ScalarBarActor" panel_visibility="never"/>
           <PropertyGroup label="Layout">
             <Property name="AutoOrient" />
             <Property name="AutoOrientInfo" />
