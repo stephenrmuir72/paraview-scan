@@ -156,6 +156,9 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
 
     # https://gitlab.kitware.com/paraview/paraview/-/issues/22427
     "\\.ShaderReplacements$"
+
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/21752
+    "\\.ComparativeViewOverlay$"
     )
 endif ()
 
