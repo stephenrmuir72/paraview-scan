@@ -153,6 +153,9 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     # Random segfault that would require deep investigation
     # https://gitlab.kitware.com/paraview/paraview/-/issues/21484
     "\\.ColorOpacityTableEditing$"
+
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/22427
+    "\\.ShaderReplacements$"
     )
 endif ()
 
