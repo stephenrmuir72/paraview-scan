@@ -149,6 +149,10 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
 
     # https://gitlab.kitware.com/paraview/paraview/-/issues/22696
     "^pv\\.LagrangianSurfaceHelperComposite$"
+
+    # Random segfault that would require deep investigation
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/21484
+    "\\.ColorOpacityTableEditing$"
     )
 endif ()
 
