@@ -40,6 +40,7 @@ protected:
 
   // Test
   void OnPropertyUpdated(vtkObject*, unsigned long, void* calldata);
+  void Test(vtkObject*, unsigned long, void* calldata);
 
 private:
   vtkSMBivariateTextureRepresentationProxy(const vtkSMBivariateTextureRepresentationProxy&) = delete;
@@ -52,6 +53,10 @@ private:
    * information before anything else. Usually called in CreateVTKObject() function.
    */
   void SetupPropertiesLinks();
+  // vtkSMProxy* FindScalarBarRepresentation();
+
+  vtkSMProxy* MySbProxy = nullptr;
+  bool setup = true;
 
   typedef std::list<vtkSmartPointer<vtkSMLink>> LinksType;
   LinksType Links;

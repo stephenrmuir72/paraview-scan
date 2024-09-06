@@ -374,4 +374,175 @@
     <!-- End of UniformGridRepresentation Extension -->
     </Extension>
   </ProxyGroup>
+
+  <ProxyGroup name="annotations">
+      <!-- ================================================================== -->
+    <Proxy class="vtkContext2DScalarBarActor2"
+           name="ScalarBarActor2"
+           base_proxygroup="annotations"
+           base_proxyname="ScalarBarActor">
+    </Proxy>
+  </ProxyGroup>
+
+  <ProxyGroup name="CustomScalarBarWidgetRepresentation">
+    <ScalarBarWidgetRepresentationProxy class="vtk3DWidgetRepresentation"
+                                        name="ScalarBarWidgetRepresentation">
+      <Documentation>ScalarBarWidgetRepresentation is a representation for a
+      scalar bar including a widget to control the position and orientation of
+      the scalar bar.</Documentation>
+      <IntVectorProperty command="SetEnabled"
+                         default_values="1"
+                         name="Enabled"
+                         number_of_elements="1"
+                         panel_visibility="never" >
+        <BooleanDomain name="bool" />
+        <Documentation>Enable/Disable widget interaction.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetUseNonCompositedRenderer"
+                         default_values="1"
+                         name="UseNonCompositedRenderer"
+                         number_of_elements="1"
+                         panel_visibility="never"></IntVectorProperty>
+      <IntVectorProperty default_values="0"
+                         name="LockPosition"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set this to 1 if you don't want the application to change the scalar bar position
+          when placing automatically.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="StickyVisible"
+                         default_values="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          If the user manually toggles the scalar bar visibility, we keep that information
+          in the scalar bar representation, and will never / always show it until the
+          scalar bar button is toggled again on this array.
+        </Documentation>
+      </IntVectorProperty>
+      <SubProxy>
+        <Proxy name="Prop2D"
+               proxygroup="3d_widget_representations"
+               proxyname="ScalarBarRepresentation"></Proxy>
+        <ExposedProperties>
+          <Property name="Visibility" panel_visibility="never"/>
+          <Property name="ScalarBarActor" panel_visibility="never"/>
+          <PropertyGroup label="Layout">
+            <Property name="AutoOrient" default_values="false" panel_visibility="never"/>
+            <Property name="AutoOrientInfo" />
+            <Property name="Orientation" />
+            <Property name="OrientationInfo" />
+            <Property name="WindowLocation" />
+            <Property name="Position" />
+            <Property name="PositionInfo" />
+            <Property name="Texture" />
+          </PropertyGroup>
+        </ExposedProperties>
+      </SubProxy>
+      <SubProxy>
+        <Proxy name="Prop2DActor"
+               proxygroup="annotations"
+               proxyname="ScalarBarActor2"></Proxy>
+
+        <ExposedProperties>
+          <Property name="EstimatedNumberOfAnnotations" panel_visibility="never"/>
+          <Property name="LookupTable" panel_visibility="never"/>
+          <PropertyGroup label="Title Texts">
+            <Property name="Title" />
+            <Property name="Title2" />
+            <Property name="ComponentTitle" />
+            <Property name="TitleJustification" />
+            <Property name="HorizontalTitle" />
+          </PropertyGroup>
+
+          <!-- test -->
+          <PropertyGroup label="Axis">
+            <Property name="FirstRange" />
+            <Property name="SecondRange" />
+          </PropertyGroup>
+
+          <!-- properties for Title -->
+          <PropertyGroup label="Title Font Properties"
+                         panel_widget="FontEditor">
+            <Property name="TitleColor" function="Color"/>
+            <Property name="TitleOpacity" function="Opacity"/>
+            <Property name="TitleFontFamily" function="Family"/>
+            <Property name="TitleFontFile" function="File"/>
+            <Property name="TitleBold" function="Bold" />
+            <Property name="TitleItalic" function="Italics"/>
+            <Property name="TitleShadow" function="Shadow" />
+            <Property name="TitleFontSize" function="Size"
+                      number_of_elements="1" default_values="16" />
+          </PropertyGroup>
+
+          <!-- properties for Label -->
+
+          <PropertyGroup label="Text/Annotation Font Properties"
+                         panel_widget="FontEditor">
+            <Property name="LabelColor" function="Color"/>
+            <Property name="LabelOpacity" function="Opacity" />
+            <Property name="LabelFontFamily" function="Family"/>
+            <Property name="LabelFontFile" function="File"/>
+            <Property name="LabelBold" function="Bold" />
+            <Property name="LabelItalic" function="Italics" />
+            <Property name="LabelShadow" function="Shadow" />
+            <Property name="LabelFontSize" function="Size"
+                      number_of_elements="1" default_values="16"/>
+          </PropertyGroup>
+
+          <PropertyGroup label="Appearance">
+            <Property name="ScalarBarThickness" />
+            <Property name="ScalarBarLength" />
+            <Property name="DrawBackground" panel_visibility="advanced" />
+            <Property name="BackgroundColor" panel_visibility="advanced" />
+            <Property name="BackgroundPadding" panel_visibility="advanced" />
+            <Property name="DrawScalarBarOutline" panel_visibility="advanced" />
+            <Property name="ScalarBarOutlineColor" panel_visibility="advanced" />
+            <Property name="ScalarBarOutlineThickness" panel_visibility="advanced" />
+          </PropertyGroup>
+
+          <PropertyGroup label="Labels">
+            <Property name="AutomaticLabelFormat" panel_visibility="advanced" />
+            <Property name="LabelFormat" panel_visibility="advanced" />
+            <Property name="DrawTickMarks" panel_visibility="advanced" />
+            <Property name="DrawTickLabels" panel_visibility="advanced" />
+            <Property name="UseCustomLabels" panel_visibility="advanced" />
+            <Property name="CustomLabels" panel_visibility="advanced" />
+            <Property name="AddRangeLabels" panel_visibility="advanced" />
+            <Property name="DataRangeMin" />
+            <Property name="DataRangeMax" />
+            <Property name="RangeLabelFormat" panel_visibility="advanced" />
+          </PropertyGroup>
+
+          <PropertyGroup label="Visible Data Range">
+            <Property name="DrawDataRange" />
+            <Property  name="DataRangeLabelFormat" />
+          </PropertyGroup>
+
+          <PropertyGroup label="Annotations">
+            <Property name="DrawAnnotations" />
+            <Property name="AddRangeAnnotations" panel_visibility="advanced" />
+            <Property name="AutomaticAnnotations" panel_visibility="advanced" />
+            <Property name="DrawNanAnnotation" panel_visibility="advanced" />
+            <Property name="NanAnnotation" panel_visibility="advanced" />
+            <Property name="TextPosition" />
+            <Property name="ReverseLegend" />
+          </PropertyGroup>
+        </ExposedProperties>
+      </SubProxy>
+      <SubProxy>
+        <Proxy name="Widget"
+               proxygroup="3d_widgets"
+               proxyname="ScalarBarWidget"></Proxy>
+        <ExposedProperties>
+          <Property name="Selectable" panel_visibility="never"/>
+          <Property name="Resizable" panel_visibility="never"/>
+          <Property name="Repositionable" panel_visibility="never"/>
+        </ExposedProperties>
+      </SubProxy>
+    </ScalarBarWidgetRepresentationProxy>
+  </ProxyGroup>
 </ServerManagerConfiguration>

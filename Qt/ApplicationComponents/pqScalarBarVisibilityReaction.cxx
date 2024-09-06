@@ -193,8 +193,8 @@ void pqScalarBarVisibilityReaction::setScalarBarVisibility(bool visible)
   BEGIN_UNDO_SET(extraInfo);
   this->ColorMapEditorHelper->SetSelectedScalarBarVisibility(
     repr->getProxy(), repr->getView()->getProxy(), visible);
-  vtkSMColorMapEditorHelper::SetScalarBarTexture(
-    repr->getProxy(), repr->getView()->getProxy());
+  // vtkSMColorMapEditorHelper::SetScalarBarTexture(
+  //   repr->getProxy(), repr->getView()->getProxy());
   END_UNDO_SET();
   repr->renderViewEventually();
 }

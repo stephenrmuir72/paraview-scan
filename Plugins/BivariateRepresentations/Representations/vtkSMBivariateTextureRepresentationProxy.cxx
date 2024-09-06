@@ -21,6 +21,10 @@
 
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMScalarBarWidgetRepresentationProxy.h"
+#include "vtkSMParaViewPipelineController.h"
+#include "vtkSMViewProxy.h"
+#include "vtkSMSession.h"
+#include "vtkSMTransferFunctionManager.h" // TO REMOVE
 
 #include "vtkSMProxyClipboard.h"
 #include "vtkSMProxyManager.h"
@@ -32,11 +36,15 @@ vtkStandardNewMacro(vtkSMBivariateTextureRepresentationProxy);
 //----------------------------------------------------------------------------
 vtkSMBivariateTextureRepresentationProxy::vtkSMBivariateTextureRepresentationProxy()
 {
+  cout << "Bivariate Created" << endl;
   // this->SetDebug(true);
 }
 
 //----------------------------------------------------------------------------
-vtkSMBivariateTextureRepresentationProxy::~vtkSMBivariateTextureRepresentationProxy() = default;
+vtkSMBivariateTextureRepresentationProxy::~vtkSMBivariateTextureRepresentationProxy()
+{
+
+}
 
 //----------------------------------------------------------------------------
 void vtkSMBivariateTextureRepresentationProxy::ViewUpdated(vtkSMProxy* view)
@@ -45,9 +53,78 @@ void vtkSMBivariateTextureRepresentationProxy::ViewUpdated(vtkSMProxy* view)
   this->Superclass::ViewUpdated(view);
 }
 
+// //----------------------------------------------------------------------------
+// vtkSMProxy* vtkSMBivariateTextureRepresentationProxy::FindScalarBarRepresentation()
+// {
+//   if (!this->CurrentView || !this->CurrentView->GetProperty("Representations"))
+//   {
+//     vtkDebugMacro("No view");
+//     return nullptr;
+//   }
+
+//   vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
+//   if (!lutProperty) { cout << "no lut property" << endl; return nullptr; }
+//   vtkSMPropertyHelper lutPropertyHelper(lutProperty);
+
+//   vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
+
+//   vtkSMPropertyHelper reprHelper(this->CurrentView, "Representations");
+//   for (unsigned int cc = 0; cc < reprHelper.GetNumberOfElements(); cc++)
+//   {
+//     vtkSMProxy* current = reprHelper.GetAsProxy(cc);
+//     if (current && current->GetXMLName() &&
+//       strcmp(current->GetXMLName(), "ScalarBarWidgetRepresentation2") == 0 &&
+//       current->GetProperty("LookupTable"))
+//     {
+//       if (vtkSMPropertyHelper(current, "LookupTable").GetAsProxy() == this)
+//       {
+//         vtkDebugMacro("Can't retrieve LUT");
+//         return current;
+//       }
+//     }
+//   }
+//   return nullptr;
+// }
+
+
 //----------------------------------------------------------------------------
 void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
 {
+  cout << "Create VTK Objects" << endl;
+    
+  if (setup)
+  {
+    // vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
+    // if (!lutProperty) { cout << "no lut property" << endl; return; }
+    // vtkSMPropertyHelper lutPropertyHelper(lutProperty);
+
+    // vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
+    // vtkSMScalarBarWidgetRepresentationProxy* oldSbProxy =
+    //   vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
+    //     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, this->CurrentView));
+    
+    if (this->MySbProxy)
+    {
+      cout << "Unregister previous proxy..." << endl;
+      vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
+      vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
+      vtkSMPropertyHelper(this->CurrentView, "Representations").Remove(this->MySbProxy);
+      this->CurrentView->UpdateVTKObjects();
+      pxm->UnRegisterProxy(this->MySbProxy);
+      this->MySbProxy = nullptr;
+
+      // auto* view = vtkSMViewProxy::SafeDownCast(this->CurrentView);
+      // if (view)
+      // {
+      //   cout << "Update View" << endl;
+      //   view->GetSession()->PrepareProgress();
+      //   view->StillRender();
+      //   view->GetSession()->CleanupPendingProgress();
+      // }
+    }
+    setup = false;
+  }
+
   if (this->ObjectsCreated)
   {
     return;
@@ -114,11 +191,18 @@ void vtkSMBivariateTextureRepresentationProxy::SetupPropertiesLinks()
 }
 
 //----------------------------------------------------------------------------
+void vtkSMBivariateTextureRepresentationProxy::Test(vtkObject*, unsigned long, void* vtkNotUsed(calldata))
+{
+  cout << "SUCESS" << endl;
+}
+
+//----------------------------------------------------------------------------
 void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, unsigned long, void* vtkNotUsed(calldata))
 {
   // XXX: see if when it's needed
   // this->InvalidateDataInformation();
 
+  cout << "On property updated" << endl;
   vtkSMProperty* textureProperty = this->GetProperty("BivariateTexture");
 
   if (!textureProperty)
@@ -156,16 +240,45 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
     return;
   }
 
+  vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
+  vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
+
   vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
-  vtkSMScalarBarWidgetRepresentationProxy* sbProxy =
+  vtkSMScalarBarWidgetRepresentationProxy* oldSbProxy =
     vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
       vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, this->CurrentView));
+  
+  if (oldSbProxy)
+  {
+    cout << "Unregister previous proxy..." << endl;
+    vtkSMPropertyHelper(this->CurrentView, "Representations").Remove(oldSbProxy);
+    pxm->UnRegisterProxy(oldSbProxy); 
+    // oldSbProxy->Delete();
+  }
 
+  cout << "Creating new scalar bar proxy" << endl;
+  vtkSMProxy* sbProxy = pxm->NewProxy("CustomScalarBarWidgetRepresentation", "ScalarBarWidgetRepresentation");
   if (!sbProxy)
   {
-    vtkDebugMacro( << "No scalar bar proxy." );
+    vtkDebugMacro( << "Failed to create bar proxy." );
     return;
   }
+  
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(sbProxy);
+  vtkSMPropertyHelper(sbProxy, "LookupTable").Set(lutProxy);
+  controller->PostInitializeProxy(sbProxy);
+
+  pxm->RegisterProxy("scalar_bars", sbProxy);
+  this->MySbProxy = sbProxy;
+  sbProxy->FastDelete();
+
+  // TO REMOVE
+  vtkNew<vtkSMTransferFunctionManager> tmgr;
+  tmgr->UpdateScalarBarsComponentTitle(lutProxy, this);
+
+  vtkSMPropertyHelper(this->CurrentView, "Representations").Add(sbProxy);
+  this->CurrentView->UpdateVTKObjects();
 
   vtkSMProperty* sbTextureProperty = sbProxy->GetProperty("Texture");
   if (!sbTextureProperty)
@@ -174,58 +287,60 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
     return;
   }
 
-  vtkSMProperty* sbActorProperty = sbProxy->GetProperty("ScalarBarActor");
-  if (!sbActorProperty)
-  {
-    vtkDebugMacro(<< "Cannot retrieve ScalarBarActor property.");
-    return;
-  }
+  sbTextureProperty
+    ->AddObserver(vtkCommand::ModifiedEvent, this,
+      &vtkSMBivariateTextureRepresentationProxy::Test);
 
-  vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
-  vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
-  vtkSmartPointer<vtkSMProxy> scalarBarActor2Proxy;
-  scalarBarActor2Proxy.TakeReference(pxm->NewProxy("annotations", "ScalarBarActor2"));
-  pxm->RegisterProxy("annotations", scalarBarActor2Proxy);
-
-  vtkSMPropertyHelper sbActorPropertyHelper(sbActorProperty);
-  vtkSMProxy* oldActorProxy = sbActorPropertyHelper.GetAsProxy();
-  if (!oldActorProxy)
-  {
-    vtkDebugMacro(<< "Cannot retrieve old actor property !");
-    return;
-  }
-
-  scalarBarActor2Proxy->Copy(oldActorProxy);
-  scalarBarActor2Proxy->UpdateVTKObjects();
-  // vtkNew<vtkSMProxyClipboard> clipboard;
-  // clipboard->Copy(oldActorProxy);
-  // clipboard->Paste(scalarBarActor2Proxy);
-
-  // vtkSMProperty* sbLUTProperty = oldActorProxy->GetProperty("LookupTable");
-  // if (!sbLUTProperty)
+  // vtkSMProperty* sbActorProperty = sbProxy->GetProperty("ScalarBarActor");
+  // if (!sbActorProperty)
   // {
-  //   vtkDebugMacro( << "Cannot retrieve old actor's LUT property." );
-  //   return;
-  // }
-  // vtkSMPropertyHelper sbLUTPropertyHelper(sbLUTProperty);
-  // vtkSMProxy* oldActorLUT = sbLUTPropertyHelper.GetAsProxy();
-  // if (!oldActorLUT)
-  // {
-  //   vtkDebugMacro( << "Cannot retrieve old actor LUT proxy !" );
+  //   vtkDebugMacro(<< "Cannot retrieve ScalarBarActor property.");
   //   return;
   // }
 
-  // vtkSMProperty* newSbLUTProperty = scalarBarActor2Proxy->GetProperty("LookupTable");
-  // if (!newSbLUTProperty)
+  // vtkSmartPointer<vtkSMProxy> scalarBarActor2Proxy;
+  // scalarBarActor2Proxy.TakeReference(pxm->NewProxy("annotations", "ScalarBarActor2"));
+  // pxm->RegisterProxy("annotations", scalarBarActor2Proxy);
+
+  // vtkSMPropertyHelper sbActorPropertyHelper(sbActorProperty);
+  // vtkSMProxy* oldActorProxy = sbActorPropertyHelper.GetAsProxy();
+  // if (!oldActorProxy)
   // {
-  //   vtkDebugMacro( << "Cannot retrieve new actor's LUT property." );
+  //   vtkDebugMacro(<< "Cannot retrieve old actor property !");
   //   return;
   // }
-  // vtkSMPropertyHelper newSbLUTPropertyHelper(newSbLUTProperty);
-  // newSbLUTPropertyHelper.Set(oldActorLUT);
 
-  sbActorPropertyHelper.Set(scalarBarActor2Proxy);
-  sbProxy->UpdateVTKObjects();
+  // scalarBarActor2Proxy->Copy(oldActorProxy);
+  // scalarBarActor2Proxy->UpdateVTKObjects();
+  // // vtkNew<vtkSMProxyClipboard> clipboard;
+  // // clipboard->Copy(oldActorProxy);
+  // // clipboard->Paste(scalarBarActor2Proxy);
+
+  // // vtkSMProperty* sbLUTProperty = oldActorProxy->GetProperty("LookupTable");
+  // // if (!sbLUTProperty)
+  // // {
+  // //   vtkDebugMacro( << "Cannot retrieve old actor's LUT property." );
+  // //   return;
+  // // }
+  // // vtkSMPropertyHelper sbLUTPropertyHelper(sbLUTProperty);
+  // // vtkSMProxy* oldActorLUT = sbLUTPropertyHelper.GetAsProxy();
+  // // if (!oldActorLUT)
+  // // {
+  // //   vtkDebugMacro( << "Cannot retrieve old actor LUT proxy !" );
+  // //   return;
+  // // }
+
+  // // vtkSMProperty* newSbLUTProperty = scalarBarActor2Proxy->GetProperty("LookupTable");
+  // // if (!newSbLUTProperty)
+  // // {
+  // //   vtkDebugMacro( << "Cannot retrieve new actor's LUT property." );
+  // //   return;
+  // // }
+  // // vtkSMPropertyHelper newSbLUTPropertyHelper(newSbLUTProperty);
+  // // newSbLUTPropertyHelper.Set(oldActorLUT);
+
+  // sbActorPropertyHelper.Set(scalarBarActor2Proxy);
+  // sbProxy->UpdateVTKObjects();
 
   vtkSMPropertyHelper sbTexturePropertyHelper(sbTextureProperty);
   // if (texturePropertyHelper.GetNumberOfElements() == 0 || !texturePropertyHelper.GetAsProxy())
@@ -236,9 +351,11 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
 
   // Set texture to scalar bar
   sbTexturePropertyHelper.Set(textureProxy);
-  sbProxy->UpdateVTKObjects();
+  // sbProxy->UpdateVTKObjects();
 
+  setup = false;
   this->UpdatePropertyInformation();
+  setup = true;
 
   // Now take care of axis for 1st and 2nd array
   vtkSMProperty* firstArray = this->GetProperty("FirstArrayRange");
@@ -335,6 +452,10 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   // firstArrayName->AddLinkedProperty(sbSecondName);
   // secondArrayName->AddLinkedProperty(sbSecondName);
   // this->UpdatePropertyInformation(); // ?
+
+  // // Need to manually think them - bad
+  // scalarBarActor2Proxy->Copy(oldActorProxy);
+  // scalarBarActor2Proxy->UpdateVTKObjects();
 
   sbProxy->UpdateVTKObjects();
   // scalarBarActor2Proxy->UpdateVTKObjects();
