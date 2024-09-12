@@ -380,6 +380,26 @@
            name="TexturedScalarBarActor"
            base_proxygroup="annotations"
            base_proxyname="ScalarBarActor">
+    <ProxyProperty command="SetTexture"
+                    name="Texture"
+                    panel_widget="texture_selector"
+                    null_on_empty="1" >
+      <Documentation>
+        Set the diffuse color texture.
+      </Documentation>
+      <ProxyGroupDomain name="groups">
+        <Group name="textures" />
+      </ProxyGroupDomain>
+      <Hints>
+        <PropertyWidgetDecorator type="GenericDecorator"
+                                  mode="visibility"
+                                  property="Interpolation"
+                                  value="3"
+                                  inverse="1" />
+        <TextureSelectorWidget check_tcoords="1" />
+        <!-- enable the texture selector only when tcoords is available. -->
+      </Hints>
+    </ProxyProperty>
     <!-- End of TexturedScalarBarActor -->
     </Proxy>
   </ProxyGroup>
@@ -441,7 +461,6 @@
             <Property name="WindowLocation" />
             <Property name="Position" />
             <Property name="PositionInfo" />
-            <Property name="Texture" />
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
@@ -453,6 +472,9 @@
         <ExposedProperties>
           <Property name="EstimatedNumberOfAnnotations" panel_visibility="never"/>
           <Property name="LookupTable" panel_visibility="never"/>
+          <PropertyGroup label="Texture">
+            <Property name="Texture" />
+          </PropertyGroup>
           <PropertyGroup label="Title Texts">
             <Property name="Title" />
             <Property name="Title2" />

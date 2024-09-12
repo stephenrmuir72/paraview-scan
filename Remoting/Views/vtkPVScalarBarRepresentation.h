@@ -18,8 +18,6 @@
 
 #include "vtkScalarBarRepresentation.h"
 
-class vtkTexture;
-
 class VTKREMOTINGVIEWS_EXPORT vtkPVScalarBarRepresentation : public vtkScalarBarRepresentation
 {
 public:
@@ -32,8 +30,6 @@ public:
    * of the representation.
    */
   int RenderOverlay(vtkViewport*) override;
-
-  void SetTexture(vtkTexture* texture);
 
 protected:
   vtkPVScalarBarRepresentation() = default;

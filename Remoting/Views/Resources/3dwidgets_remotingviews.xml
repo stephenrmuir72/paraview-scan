@@ -714,7 +714,6 @@
                proxyname="ScalarBarRepresentation"></Proxy>
         <ExposedProperties>
           <Property name="Visibility" panel_visibility="never"/>
-          <Property name="ScalarBarActor" panel_visibility="never"/>
           <PropertyGroup label="Layout">
             <Property name="AutoOrient" />
             <Property name="AutoOrientInfo" />
@@ -723,7 +722,6 @@
             <Property name="WindowLocation" />
             <Property name="Position" />
             <Property name="PositionInfo" />
-            <Property name="Texture" />
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy>
@@ -737,16 +735,9 @@
           <Property name="LookupTable" panel_visibility="never"/>
           <PropertyGroup label="Title Texts">
             <Property name="Title" />
-            <Property name="Title2" />
             <Property name="ComponentTitle" />
             <Property name="TitleJustification" />
             <Property name="HorizontalTitle" />
-          </PropertyGroup>
-
-          <!-- test -->
-          <PropertyGroup label="Axis">
-            <Property name="FirstRange" />
-            <Property name="SecondRange" />
           </PropertyGroup>
 
           <!-- properties for Title -->
@@ -2809,26 +2800,6 @@
         <ProxyGroupDomain name="groups">
           <Group name="annotations" />
         </ProxyGroupDomain>
-      </ProxyProperty>
-      <ProxyProperty command="SetTexture"
-                     name="Texture"
-                     panel_widget="texture_selector"
-                     null_on_empty="1" >
-        <Documentation>
-          Set the diffuse color texture.
-        </Documentation>
-        <ProxyGroupDomain name="groups">
-          <Group name="textures" />
-        </ProxyGroupDomain>
-        <Hints>
-          <PropertyWidgetDecorator type="GenericDecorator"
-                                   mode="visibility"
-                                   property="Interpolation"
-                                   value="3"
-                                   inverse="1" />
-          <TextureSelectorWidget check_tcoords="1" />
-          <!-- enable the texture selector only when tcoords is available. -->
-        </Hints>
       </ProxyProperty>
     </Proxy>
     <!-- ================================================================== -->
