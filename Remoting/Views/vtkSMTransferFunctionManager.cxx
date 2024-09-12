@@ -230,7 +230,7 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetScalarBarRepresentation(
     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(colorTransferFunction, view);
   if (scalarBarProxy)
   {
-    cout << "FOUND !" << endl;
+    // cout << "FOUND !" << endl;
     return scalarBarProxy;
   }
 

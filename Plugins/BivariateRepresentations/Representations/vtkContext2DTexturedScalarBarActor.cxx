@@ -111,12 +111,6 @@ protected:
 };
 
 //----------------------------------------------------------------------------
-// Hide use of std::map from public interface
-class vtkContext2DTexturedScalarBarActor::vtkAnnotationMap : public std::map<double, std::string>
-{
-};
-
-//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkContext2DTexturedScalarBarActor);
 
 //----------------------------------------------------------------------------
@@ -125,17 +119,13 @@ vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
   this->ActorDelegate = vtkContextActor::New();
 
   this->TitleJustification = VTK_TEXT_LEFT;
-  this->ForceHorizontalTitle = false;
 
-  this->ScalarBarThickness = 16;
   this->ScalarBarLength = 0.33;
 
   this->AutomaticLabelFormat = 1;
 
   this->DrawDataRange = false;
   this->AddRangeLabels = 1;
-  this->AutomaticAnnotations = 0;
-  this->AddRangeAnnotations = 0;
   this->RangeLabelFormat = nullptr;
   this->SetRangeLabelFormat("%g");
   this->DataRangeLabelFormat = nullptr;
@@ -335,7 +325,7 @@ void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* p
   // if the thickness size is 12, that matches the height of a "|"
   // character in a 12 point font.
   vtkNew<vtkTextProperty> textProp;
-  textProp->SetFontSize(this->ScalarBarThickness);
+  textProp->SetFontSize(16);
   painter->ApplyTextProp(textProp.Get());
 
   float bounds[4];
@@ -379,15 +369,6 @@ vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2], boo
   double sizeReduction = 0;
   if (includeSwatch)
   {
-    if (this->DrawNanAnnotation)
-    {
-      if (this->Orientation == VTK_ORIENT_VERTICAL)
-      {
-        shift += swatchSize + this->Spacer;
-      }
-      sizeReduction += swatchSize + this->Spacer;
-    }
-
     vtkDiscretizableColorTransferFunction* ctf =
       vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
     if (ctf && ctf->GetUseAboveRangeColor())
@@ -410,157 +391,6 @@ vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2], boo
   {
     rect.SetX(rect.GetX() + shift);
     rect.SetWidth(rect.GetWidth() - sizeReduction);
-  }
-
-  return rect;
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetFullColorBarRect(double size[2])
-{
-  // This will end up with the full color bar rect
-  vtkRectf fullRect = this->GetColorBarRect(size);
-
-  // Add these rects in if they have non-zero size
-  vtkRectf aboveRect = this->GetAboveRangeColorRect(size);
-  if (aboveRect.GetWidth() > 0 && aboveRect.GetHeight() > 0)
-  {
-    fullRect.AddRect(aboveRect);
-  }
-
-  vtkRectf belowRect = this->GetBelowRangeColorRect(size);
-  if (belowRect.GetWidth() > 0 && belowRect.GetHeight() > 0)
-  {
-    fullRect.AddRect(belowRect);
-  }
-
-  return fullRect;
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetAboveRangeColorRect(double size[2])
-{
-  vtkRectf rect(0, 0, 0, 0);
-
-  vtkDiscretizableColorTransferFunction* ctf =
-    vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-  if (!ctf)
-  {
-    if (this->LookupTable)
-    {
-      vtkErrorMacro(<< "Lookup table should be a vtkDiscretizableColorTransferFunction but was a "
-                    << this->LookupTable->GetClassName());
-    }
-    else
-    {
-      vtkErrorMacro(<< "Lookup table was NULL");
-    }
-    return rect;
-  }
-
-  if (ctf->GetUseAboveRangeColor())
-  {
-    rect = this->GetOutOfRangeColorRectInternal(vtkContext2DTexturedScalarBarActor::ABOVE_RANGE, size);
-  }
-  return rect;
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetBelowRangeColorRect(double size[2])
-{
-  vtkRectf rect(0, 0, 0, 0);
-
-  vtkDiscretizableColorTransferFunction* ctf =
-    vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-  if (!ctf)
-  {
-    if (this->LookupTable)
-    {
-      vtkErrorMacro(<< "Lookup table should be a vtkDiscretizableColorTransferFunction but was a "
-                    << this->LookupTable->GetClassName());
-    }
-    else
-    {
-      vtkErrorMacro(<< "Lookup table was NULL");
-    }
-    return rect;
-  }
-
-  if (ctf->GetUseBelowRangeColor())
-  {
-    rect = this->GetOutOfRangeColorRectInternal(vtkContext2DTexturedScalarBarActor::BELOW_RANGE, size);
-  }
-  return rect;
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetOutOfRangeColorRectInternal(
-  vtkContext2DTexturedScalarBarActor::OutOfRangeType type, double size[2])
-{
-  vtkRectf rect(0, 0, 0, 0);
-  bool graphicallyAbove = type == vtkContext2DTexturedScalarBarActor::ABOVE_RANGE && !this->ReverseLegend;
-  if (graphicallyAbove)
-  {
-    if (this->Orientation == VTK_ORIENT_VERTICAL)
-    {
-      double width = size[0];
-      rect = vtkRectf(0, size[1] - width + this->VerticalRangeDataHeight, width, width);
-    }
-    else
-    {
-      // Horizontal
-      double nanSpace = this->GetNaNColorRect(size).GetWidth();
-      if (nanSpace > 0)
-      {
-        nanSpace += this->Spacer;
-      }
-      double height = size[1];
-
-      // Move it all the way to the right, minus the NaN swatch
-      rect = vtkRectf(size[0] - nanSpace - height, 0, height, height);
-    }
-  }
-  else
-  {
-    if (this->Orientation == VTK_ORIENT_VERTICAL)
-    {
-      double nanSpace = this->GetNaNColorRect(size).GetHeight();
-      if (nanSpace > 0)
-      {
-        nanSpace += this->Spacer;
-      }
-
-      double height = size[0];
-      rect = vtkRectf(0, nanSpace + this->VerticalRangeDataHeight, height, height);
-    }
-    else
-    {
-      double width = size[1];
-      rect = vtkRectf(0, 0, width, width);
-    }
-  }
-  return rect;
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetNaNColorRect(double size[2])
-{
-  // Initialize to 0 width, 0 height
-  vtkRectf rect(0, 0, 0, 0);
-
-  if (this->DrawNanAnnotation)
-  {
-    if (this->Orientation == VTK_ORIENT_VERTICAL)
-    {
-      double width = size[0];
-      rect = vtkRectf(0, this->VerticalRangeDataHeight, width, width);
-    }
-    else
-    {
-      // Horizontal
-      double height = size[1];
-      rect = vtkRectf(size[0] - height, 0, height, height);
-    }
   }
 
   return rect;
@@ -618,218 +448,45 @@ void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, do
 
   // Disable pen to prevent an outline around the color swatches
   vtkPen* pen = painter->GetPen();
-  pen->SetLineType(vtkPen::NO_PEN);
 
-  // Create a map from anchor values to annotations. Since maps sort by key,
-  // when we iterate over the annotations later on, we will be doing it from
-  // smallest to greatest annotation value.
-  vtkAnnotationMap annotationAnchors;
+  assert(image);
+  painter->DrawImage(barRect, image);
 
-  if (ctf->GetIndexedLookup())
+  // Finally, draw a rect around the scalar bar and out-of-range
+  // colors, if they are enabled.  We should probably draw four
+  // lines instead.
+  if (this->DrawScalarBarOutline)
   {
-    // Divide up the color bar rect into the number of indexed colors
-    int numIndexedColors = ctf->GetNumberOfAnnotatedValues();
-    double indexedColorSwatchLength =
-      this->Orientation == VTK_ORIENT_VERTICAL ? barRect.GetHeight() : barRect.GetWidth();
+    vtkRectf outlineRect = this->GetColorBarRect(size);
 
-    // Subtract spaces between swatches
-    if (numIndexedColors > 0)
-    {
-      indexedColorSwatchLength -= (numIndexedColors - 1) * this->Spacer;
-      indexedColorSwatchLength /= numIndexedColors;
-    }
-
-    // Now loop over indexed colors and draw swatches
-    double x, y;
-    for (int i = 0; i < numIndexedColors; ++i)
-    {
-      double shift = i * (indexedColorSwatchLength + this->Spacer);
-      double indexedColor[4];
-      vtkVariant annotatedValue = ctf->GetAnnotatedValue(i);
-      ctf->GetIndexedColor(i, indexedColor);
-      std::string annotation = ctf->GetAnnotation(i);
-      brush->SetColorF(indexedColor);
-      if (this->Orientation == VTK_ORIENT_VERTICAL)
-      {
-        x = barRect.GetX();
-        if (this->ReverseLegend)
-        {
-          y = barRect.GetY() + shift;
-        }
-        else
-        {
-          y = barRect.GetY() + barRect.GetHeight() - shift - indexedColorSwatchLength;
-        }
-        painter->DrawRect(x, y, barRect.GetWidth(), indexedColorSwatchLength);
-        annotationAnchors[y + 0.5 * indexedColorSwatchLength] = annotation;
-      }
-      else
-      {
-        // Horizontal
-        if (this->ReverseLegend)
-        {
-          x = barRect.GetX() + barRect.GetWidth() - shift - indexedColorSwatchLength;
-        }
-        else
-        {
-          x = barRect.GetX() + shift;
-        }
-        y = barRect.GetY();
-        painter->DrawRect(x, y, indexedColorSwatchLength, barRect.GetHeight());
-        annotationAnchors[x + 0.5 * indexedColorSwatchLength] = annotation;
-      }
-    }
-  }
-  else
-  // Continuous color map
-  {
-    assert(image);
-    painter->DrawImage(barRect, image);
-
-    // Draw the out-of-range colors if enabled
-    // pen->SetLineType(vtkPen::NO_PEN);
-    if (ctf->GetUseAboveRangeColor())
-    {
-      vtkRectf rect = this->GetAboveRangeColorRect(size);
-      brush->SetColorF(ctf->GetAboveRangeColor());
-      pen->SetLineType(vtkPen::NO_PEN);
-      painter->DrawRect(rect.GetX(), rect.GetY(), rect.GetWidth(), rect.GetHeight());
-    }
-
-    if (ctf->GetUseBelowRangeColor())
-    {
-      vtkRectf rect = this->GetBelowRangeColorRect(size);
-      brush->SetColorF(ctf->GetBelowRangeColor());
-      pen->SetLineType(vtkPen::NO_PEN);
-      painter->DrawRect(rect.GetX(), rect.GetY(), rect.GetWidth(), rect.GetHeight());
-    }
-
-    // Finally, draw a rect around the scalar bar and out-of-range
-    // colors, if they are enabled.  We should probably draw four
-    // lines instead.
-    if (this->DrawScalarBarOutline)
-    {
-      vtkRectf outlineRect = this->GetFullColorBarRect(size);
-
-      brush->SetOpacity(0);
-      pen->SetLineType(vtkPen::SOLID_LINE);
-      pen->SetColorF(this->ScalarBarOutlineColor);
-      pen->SetWidth(static_cast<float>(this->ScalarBarOutlineThickness));
-      painter->DrawRect(
-        outlineRect.GetX(), outlineRect.GetY(), outlineRect.GetWidth(), outlineRect.GetHeight());
-    }
-
-    // Now set up annotation anchor point map
-    double lutRange[2];
-    lutRange[0] = this->LookupTable->GetRange()[0];
-    lutRange[1] = this->LookupTable->GetRange()[1];
-    if (this->LookupTable->UsingLogScale())
-    {
-      lutRange[0] = log10(lutRange[0]);
-      lutRange[1] = log10(lutRange[1]);
-    }
-
-    double low = barRect.GetX();
-    double high = low + barRect.GetWidth();
-    if (this->Orientation == VTK_ORIENT_VERTICAL)
-    {
-      low = barRect.GetY();
-      high = low + barRect.GetHeight();
-    }
-    if (this->ReverseLegend)
-    {
-      std::swap(high, low);
-    }
-
-    if (this->GetAutomaticAnnotations())
-    {
-      // How many annotations should there be?
-      vtkIdType numValues = ctf->GetNumberOfAvailableColors();
-      if (ctf && ctf->GetDiscretize() && this->AutomaticAnnotations && numValues)
-      {
-        double step = (lutRange[1] - lutRange[0]) / numValues;
-        for (vtkIdType i = 0; i <= numValues; i++)
-        {
-          double annotatedValue = lutRange[0] + step * i;
-
-          double normalizedValue = (annotatedValue - lutRange[0]) / (lutRange[1] - lutRange[0]);
-
-          double barPosition = normalizedValue * (high - low) + low;
-          if (normalizedValue >= 0.0 - std::numeric_limits<double>::epsilon() &&
-            normalizedValue <= 1.0 + std::numeric_limits<double>::epsilon() &&
-            !vtkMath::IsNan(barPosition))
-          {
-            char annotation[1024];
-            if (this->LookupTable->UsingLogScale())
-            {
-              annotatedValue = pow(10.0, annotatedValue);
-            }
-            SNPRINTF(annotation, 1023, this->LabelFormat, annotatedValue);
-            annotationAnchors[barPosition] = annotation;
-          }
-        }
-      }
-    }
-    else // Manual annotations
-    {
-      int numAnnotations = ctf->GetNumberOfAnnotatedValues();
-      for (int i = 0; i < numAnnotations; ++i)
-      {
-        // Figure out placement of annotation value along color bar.
-        double annotatedValue = ctf->GetAnnotatedValue(i).ToDouble();
-        if (this->LookupTable->UsingLogScale())
-        {
-          // Scale in log space
-          annotatedValue = log10(annotatedValue);
-        }
-
-        double normalizedValue = (annotatedValue - lutRange[0]) / (lutRange[1] - lutRange[0]);
-
-        double barPosition = normalizedValue * (high - low) + low;
-        if (normalizedValue >= 0.0 && normalizedValue <= 1.0 && !vtkMath::IsNan(barPosition))
-        {
-          std::string annotation = ctf->GetAnnotation(i);
-          annotationAnchors[barPosition] = annotation;
-        }
-      }
-    }
-
-    if (this->AddRangeAnnotations)
-    {
-      char annotation[1024];
-
-      SNPRINTF(annotation, 1023, this->RangeLabelFormat, lutRange[0]);
-      annotationAnchors[low] = annotation;
-
-      SNPRINTF(annotation, 1023, this->RangeLabelFormat, lutRange[1]);
-      annotationAnchors[high] = annotation;
-    }
-
-  } // Continuous color map
-
-  // For all types of color maps, draw the NaN annotation.
-  if (this->DrawNanAnnotation)
-  {
-    // Paint NaN color swatch
-    vtkRectf rect = this->GetNaNColorRect(size);
-    brush->SetOpacity(255);
-    brush->SetColorF(ctf->GetNanColor());
-    pen->SetLineType(vtkPen::NO_PEN);
-    painter->DrawRect(rect.GetX(), rect.GetY(), rect.GetWidth(), rect.GetHeight());
-
-    // Add NaN annotation
-    double nanAnchor = rect.GetY() + 0.5 * rect.GetHeight();
-    if (this->Orientation == VTK_ORIENT_HORIZONTAL)
-    {
-      nanAnchor = rect.GetX() + 0.5 * rect.GetWidth();
-    }
-    annotationAnchors[nanAnchor] = this->GetNanAnnotation();
+    brush->SetOpacity(0);
+    pen->SetLineType(vtkPen::SOLID_LINE);
+    pen->SetColorF(this->ScalarBarOutlineColor);
+    pen->SetWidth(static_cast<float>(this->ScalarBarOutlineThickness));
+    painter->DrawRect(
+      outlineRect.GetX(), outlineRect.GetY(), outlineRect.GetWidth(), outlineRect.GetHeight());
   }
 
-  // Draw the annotations
-  if (this->GetDrawAnnotations())
+  // Now set up annotation anchor point map
+  double lutRange[2];
+  lutRange[0] = this->LookupTable->GetRange()[0];
+  lutRange[1] = this->LookupTable->GetRange()[1];
+  if (this->LookupTable->UsingLogScale())
   {
-    this->PaintAnnotations(painter, size, annotationAnchors);
+    lutRange[0] = log10(lutRange[0]);
+    lutRange[1] = log10(lutRange[1]);
+  }
+
+  double low = barRect.GetX();
+  double high = low + barRect.GetWidth();
+  if (this->Orientation == VTK_ORIENT_VERTICAL)
+  {
+    low = barRect.GetY();
+    high = low + barRect.GetHeight();
+  }
+  if (this->ReverseLegend)
+  {
+    std::swap(high, low);
   }
 
   if (this->DrawDataRange)
@@ -1021,7 +678,7 @@ void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, doubl
 
   // Apply the text property so that title size is up to date.
   double titleOrientation = 0.0;
-  if (orientation == VTK_ORIENT_VERTICAL && !this->GetForceHorizontalTitle())
+  if (orientation == VTK_ORIENT_VERTICAL)
   {
     titleOrientation = 90.0;
   }
@@ -1056,7 +713,7 @@ void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, doubl
 
   float titleX = barAndAxisRect.GetX() + 0.5 * barAndAxisRect.GetWidth();
   float titleY = colorBarRect.GetY() + 0.5 * colorBarRect.GetHeight();
-  if (orientation == VTK_ORIENT_HORIZONTAL || this->ForceHorizontalTitle)
+  if (orientation == VTK_ORIENT_HORIZONTAL)
   {
     if (this->GetTitleJustification() == VTK_TEXT_LEFT)
     {
@@ -1078,12 +735,6 @@ void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, doubl
         axisRect.SetHeight(colorBarRect.GetHeight());
       }
       titleY = axisRect.GetY() + axisRect.GetHeight() + 0.25 * titleHeight;
-    }
-
-    // Move title to the top if the title is forced horizontal
-    if (this->ForceHorizontalTitle && orientation != VTK_ORIENT_HORIZONTAL)
-    {
-      titleY = barAndAxisRect.GetY() + barAndAxisRect.GetHeight() + 0.25 * titleHeight;
     }
   }
   else // Vertical orientation
@@ -1310,289 +961,7 @@ vtkRectf vtkContext2DTexturedScalarBarActor::GetBoundingRect()
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintAnnotations(
-  vtkContext2D* painter, double size[2], const vtkAnnotationMap& annotationAnchors)
-{
-  // Set the annotation text properties
-  painter->ApplyTextProp(this->Axis->GetLabelProperties());
-
-  // this->PaintAnnotationsHorizontally(painter, size, annotationAnchors);
-  // this->PaintAnnotationsVertically(painter, size, annotationAnchors);
-
-  if (this->Orientation == VTK_ORIENT_VERTICAL)
-  {
-    this->PaintAnnotationsVertically(painter, size, annotationAnchors);
-  }
-  else
-  {
-    this->PaintAnnotationsHorizontally(painter, size, annotationAnchors);
-  }
-}
-
-namespace
-{
-
-//----------------------------------------------------------------------------
-typedef struct AI
-{
-  double Anchor;
-  double Position;
-  std::string Annotation;
-  double Span;
-} AnnotationInfo;
-
-//----------------------------------------------------------------------------
-void DistributeAnnotations(std::vector<AnnotationInfo>& annotations, float spacer)
-{
-  // Look for clusters of overlapping annotations. We'll space these
-  // annotations about the center of mass of each cluster. This winds
-  // up looking nice.
-
-  // Process clusters.
-  // 1. Find centroid of cluster.
-  // 2. Compute lower and upper bounds of cluster.
-  // 3. Layout the labels.
-  bool overlapDetected = false;
-  int tries = 0;
-  int maxTries = 20;
-
-  // Keep track of adjacent annotations that overlap at any point in
-  // the placement process. This is to prevent annotations from
-  // potentially jumping from cluster to cluster during the layout
-  // process. overlaps[j] == true means that annotations j and j+1
-  // overlapped at some point.
-  std::vector<bool> overlaps(annotations.size(), false);
-
-  // Iterate repeatedely in case repositioning of clustered
-  // annotations causes new overlap.
-  do
-  {
-    overlapDetected = false;
-    double clusterWidth = 0.0;
-    size_t clusterCount = 0;
-    for (size_t j = 0; j < annotations.size(); ++j)
-    {
-      // Check for overlap with neighbors
-      bool overlapsNext = false;
-      double lowerMax = 0.0;
-      double upperMin = 0.0;
-
-      if (j < annotations.size() - 1)
-      {
-        lowerMax = annotations[j].Position + 0.5 * annotations[j].Span + 0.5 * spacer;
-        upperMin = annotations[j + 1].Position - 0.5 * annotations[j + 1].Span - 0.5 * spacer;
-        overlapsNext = lowerMax > upperMin;
-        overlapDetected = overlapDetected || overlapsNext;
-      }
-
-      if (overlapDetected)
-      {
-        clusterWidth += annotations[j].Span;
-        clusterCount++;
-      }
-
-      if (overlapsNext)
-      {
-        overlaps[j] = true;
-      }
-
-      if (!overlaps[j])
-      {
-        // Cluster ended. Go back and change the annotation positions
-        // based on the cluster centroid.
-        if (clusterCount > 0)
-        {
-          // Weight centers of each label by width
-          double clusterCenter = 0.0;
-          for (size_t k = j - clusterCount + 1; k <= j; ++k)
-          {
-            double weight = annotations[k].Span / clusterWidth;
-            clusterCenter += annotations[k].Anchor * weight;
-          }
-
-          double accumWidth = 0.0;
-          clusterWidth += spacer * (clusterCount - 1); // Add in spacer width
-          for (size_t k = 0; k < clusterCount; ++k)
-          {
-            // Start from the right (bigger coordinate) side and work toward the left.
-            annotations[j - k].Position =
-              clusterCenter + 0.5 * clusterWidth - accumWidth - 0.5 * annotations[j - k].Span;
-            accumWidth += annotations[j - k].Span + spacer;
-          }
-        }
-
-        // Reset cluster stats
-        clusterWidth = 0.0;
-        clusterCount = 0;
-      }
-    }
-
-    ++tries;
-  } while (overlapDetected && tries < maxTries);
-}
-
-} // end anonymous namespace
-
-//----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintAnnotationsVertically(
-  vtkContext2D* painter, double size[2], const vtkAnnotationMap& annotationAnchors)
-{
-  vtkRectf barRect = this->GetColorBarRect(size);
-
-  // Copy annotations and position info into a vector.
-  std::vector<AnnotationInfo> annotations;
-  annotations.reserve(annotationAnchors.size());
-  vtkAnnotationMap::const_iterator annotationMapIter;
-  for (annotationMapIter = annotationAnchors.begin(); annotationMapIter != annotationAnchors.end();
-       ++annotationMapIter)
-  {
-    float bounds[4]; // bounds contains x, y, width, height
-    painter->ComputeStringBounds(annotationMapIter->second, bounds);
-
-    AnnotationInfo p;
-    p.Anchor = annotationMapIter->first;
-    p.Position = annotationMapIter->first;
-    p.Annotation = annotationMapIter->second;
-    p.Span = bounds[3]; // height
-    annotations.push_back(p);
-  }
-
-  vtkWindow* renWin = this->CurrentViewport->GetVTKWindow();
-  int tileScale[2];
-  renWin->GetTileScale(tileScale);
-
-  // Calculate the annotation labels
-  const float spacer = 1 * tileScale[0]; // vertical space between annotations
-  DistributeAnnotations(annotations, spacer);
-
-  // Iterate over anchors and draw annotations
-  std::vector<AnnotationInfo>::iterator vectorIter;
-  for (vectorIter = annotations.begin(); vectorIter != annotations.end(); ++vectorIter)
-  {
-    const int annotationLeader = 8 * tileScale[0];
-    double anchorPt[2] = { barRect.GetX(), vectorIter->Anchor };
-    double labelPt[2] = { anchorPt[0] - annotationLeader, vectorIter->Position };
-
-    painter->GetTextProp()->SetJustification(VTK_TEXT_RIGHT);
-
-    if (this->TextPosition == PrecedeScalarBar)
-    {
-      anchorPt[0] = barRect.GetX() + barRect.GetWidth();
-      labelPt[0] = anchorPt[0] + annotationLeader;
-
-      painter->GetTextProp()->SetJustification(VTK_TEXT_LEFT);
-    }
-
-    vtkPen* pen = painter->GetPen();
-    pen->SetOpacity(255);
-    pen->SetLineType(vtkPen::SOLID_LINE);
-    pen->SetColorF(this->Axis->GetLabelProperties()->GetColor());
-
-    painter->DrawLine(anchorPt[0], anchorPt[1], labelPt[0], labelPt[1]);
-    painter->GetTextProp()->SetVerticalJustification(VTK_TEXT_CENTERED);
-    painter->DrawString(labelPt[0], labelPt[1], vectorIter->Annotation);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintAnnotationsHorizontally(
-  vtkContext2D* painter, double size[2], const vtkAnnotationMap& annotationAnchors)
-{
-  vtkRectf barRect = this->GetColorBarRect(size);
-
-  // Copy annotations and position info into a vector.
-  std::vector<AnnotationInfo> annotations;
-  annotations.reserve(annotationAnchors.size());
-  vtkAnnotationMap::const_iterator annotationMapIter;
-  for (annotationMapIter = annotationAnchors.begin(); annotationMapIter != annotationAnchors.end();
-       ++annotationMapIter)
-  {
-    float bounds[4]; // bounds contains x, y, width, height
-    painter->ComputeStringBounds(annotationMapIter->second, bounds);
-    AnnotationInfo p;
-    p.Anchor = annotationMapIter->first;
-    p.Position = annotationMapIter->first;
-    p.Annotation = annotationMapIter->second;
-    p.Span = bounds[2]; // width
-    annotations.push_back(p);
-  }
-
-  vtkWindow* renWin = this->CurrentViewport->GetVTKWindow();
-  int tileScale[2];
-  renWin->GetTileScale(tileScale);
-
-  // Get horizontal spacing distance as a function of the font
-  // properties. Use width of '-' as spacing between annotations.
-  float bounds[4];
-  painter->ComputeStringBounds("-", bounds);
-  const float spacer = bounds[2] * tileScale[0];
-
-  // Calculate the annotation labels
-  DistributeAnnotations(annotations, spacer);
-
-  this->HorizontalAnnotationHeight = 0.0f;
-
-  // Iterate over anchors and draw annotations
-  std::vector<AnnotationInfo>::iterator vectorIter;
-  for (vectorIter = annotations.begin(); vectorIter != annotations.end(); ++vectorIter)
-  {
-    const int annotationLeader = 8 * tileScale[0];
-    double anchorPt[2] = { vectorIter->Anchor, barRect.GetY() };
-    double labelPt[2] = { vectorIter->Position, anchorPt[1] - annotationLeader };
-    double labelOffset = 3;
-
-    painter->GetTextProp()->SetJustification(VTK_TEXT_CENTERED);
-    painter->GetTextProp()->SetVerticalJustification(VTK_TEXT_TOP);
-    if (this->TextPosition == PrecedeScalarBar)
-    {
-      anchorPt[1] = barRect.GetY() + barRect.GetHeight();
-      labelPt[1] = anchorPt[1] + annotationLeader;
-      labelOffset *= -1.0;
-
-      painter->GetTextProp()->SetVerticalJustification(VTK_TEXT_BOTTOM);
-    }
-
-    // Get range size
-    float annotationBounds[4];
-    painter->ComputeStringBounds(vectorIter->Annotation, annotationBounds);
-
-    painter->DrawString(labelPt[0], labelPt[1] - labelOffset, vectorIter->Annotation);
-
-    vtkPen* pen = painter->GetPen();
-    pen->SetOpacity(255);
-    pen->SetLineType(vtkPen::SOLID_LINE);
-    pen->SetColorF(this->Axis->GetLabelProperties()->GetColor());
-
-    painter->DrawLine(anchorPt[0], anchorPt[1], labelPt[0], labelPt[1]);
-
-    this->HorizontalAnnotationHeight =
-      std::max(annotationBounds[3] + static_cast<float>(anchorPt[1] - labelPt[1]),
-        this->HorizontalAnnotationHeight);
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkContext2DTexturedScalarBarActor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-int vtkContext2DTexturedScalarBarActor::GetEstimatedNumberOfAnnotations()
-{
-  vtkDiscretizableColorTransferFunction* ctf =
-    vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-  if (!ctf)
-  {
-    return 0;
-  }
-  if (this->GetAutomaticAnnotations() && !ctf->GetIndexedLookup())
-  {
-    // How many annotations should there be?
-    return ctf->GetNumberOfAvailableColors();
-  }
-  else // Manual annotations
-  {
-    return ctf->GetNumberOfAnnotatedValues();
-  }
 }

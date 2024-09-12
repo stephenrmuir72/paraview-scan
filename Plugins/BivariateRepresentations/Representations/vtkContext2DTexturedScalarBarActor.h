@@ -52,16 +52,6 @@ public:
   vtkSetClampMacro(TitleJustification, int, VTK_TEXT_LEFT, VTK_TEXT_RIGHT);
   ///@}
 
-  ///@{
-  /**
-   * If this flag is on, the title will be drawn horizontally above the
-   * scalar bar. Off by default.
-   */
-  vtkSetMacro(ForceHorizontalTitle, bool);
-  vtkGetMacro(ForceHorizontalTitle, bool);
-  vtkBooleanMacro(ForceHorizontalTitle, bool);
-  ///@}
-
   enum
   {
     PrecedeScalarBar = 0,
@@ -73,17 +63,6 @@ public:
     BELOW_RANGE = 0,
     ABOVE_RANGE = 1,
   };
-
-  ///@{
-  /**
-   * Set the scalar bar thickness. When the orientation is
-   * VTK_ORIENT_VERTICAL, this sets the scalar bar width.  When the
-   * orientation is VTK_ORIENT_HORIZONTAL, this sets the scalar bar
-   * height. Specified in points akin to font size.
-   */
-  vtkSetClampMacro(ScalarBarThickness, int, 0, VTK_INT_MAX);
-  vtkGetMacro(ScalarBarThickness, int);
-  ///@}
 
   ///@{
   /**
@@ -173,26 +152,6 @@ public:
 
   ///@{
   /**
-   * Set whether annotions are automatically created according the number
-   * of discrete colors. Default is FALSE;
-   */
-  vtkSetMacro(AutomaticAnnotations, int);
-  vtkGetMacro(AutomaticAnnotations, int);
-  vtkBooleanMacro(AutomaticAnnotations, int);
-  ///@}
-
-  ///@{
-  /**
-   * Set whether the scalar data range endpoints (minimum and maximum)
-   * are added as annotations.
-   */
-  vtkGetMacro(AddRangeAnnotations, int);
-  vtkSetMacro(AddRangeAnnotations, int);
-  vtkBooleanMacro(AddRangeAnnotations, int);
-  ///@}
-
-  ///@{
-  /**
    * Set/get whether tick marks should be drawn.
    */
   vtkSetMacro(DrawTickMarks, bool);
@@ -255,14 +214,6 @@ public:
    * coordinates.
    */
   vtkRectf GetBoundingRect();
-
-  /**
-   * Get an estimated number of annotations emulating loosely the
-   * algorithm generating the annotations. The actual number of annotations
-   * can be slightly lower than the return of this method when using
-   * automatic annotations.
-   */
-  int GetEstimatedNumberOfAnnotations();
 
   ///@{
   /**
@@ -336,14 +287,6 @@ protected:
    */
   int VerticalOffset = 0;
 
-  vtkSmartPointer<vtkTexture> Texture;
-  
-  double FirstRange[2] = { 0, 0 };
-  double SecondRange[2] = { 0, 0 };
-
-  // Test
-  char* Title2 = nullptr;
-
 private:
   vtkContext2DTexturedScalarBarActor(const vtkContext2DTexturedScalarBarActor&) = delete;
   void operator=(const vtkContext2DTexturedScalarBarActor&) = delete;
@@ -354,20 +297,9 @@ private:
   int TitleJustification;
 
   /**
-   * Force the title orientation to horizontal when the scalar bar is in
-   * vertical orientation.
-   */
-  bool ForceHorizontalTitle;
-
-  /**
    * Color of the scalar bar outline.
    */
   double ScalarBarOutlineColor[3];
-
-  /**
-   * Thickness of the color bar.
-   */
-  int ScalarBarThickness;
 
   /**
    * Background Color. Includes opacity in the fourth element.
@@ -387,8 +319,6 @@ private:
   int AutomaticLabelFormat;
 
   int AddRangeLabels;
-  int AutomaticAnnotations;
-  int AddRangeAnnotations;
   char* RangeLabelFormat;
   char* DataRangeLabelFormat;
 
@@ -470,30 +400,6 @@ private:
   vtkRectf GetColorBarRect(double size[2], bool includeSwatch = true);
 
   /**
-   * Compute the rect that contains the out-of-range color swatches
-   * and the color map, but not the NaN color swatch.
-   */
-  vtkRectf GetFullColorBarRect(double size[2]);
-
-  /**
-   * Get the rect for the above-range color swatch.
-   */
-  vtkRectf GetAboveRangeColorRect(double size[2]);
-
-  /**
-   * Get the rect for the below-range color swatch.
-   */
-  vtkRectf GetBelowRangeColorRect(double size[2]);
-
-  vtkRectf GetOutOfRangeColorRectInternal(
-    vtkContext2DTexturedScalarBarActor::OutOfRangeType type, double size[2]);
-
-  /**
-   * Get the rect for the NaN color swatch.
-   */
-  vtkRectf GetNaNColorRect(double size[2]);
-
-  /**
    * Copy appropriate text properties to the axis text properties.
    */
   void UpdateTextProperties();
@@ -518,27 +424,6 @@ private:
    */
   void PaintRange(vtkContext2D* painter, double size[2]);
 
-  class vtkAnnotationMap;
-
-  /**
-   * Draw annotations. These are notes anchored to values in
-   * continuous color maps and the center of color swatches for
-   * indexed color maps.
-   */
-  void PaintAnnotations(vtkContext2D* painter, double size[2], const vtkAnnotationMap& map);
-
-  /**
-   * Responsible for painting the annoations vertically.
-   */
-  void PaintAnnotationsVertically(
-    vtkContext2D* painter, double size[2], const vtkAnnotationMap& map);
-
-  /**
-   * Responsible for painting the annotations horizontally.
-   */
-  void PaintAnnotationsHorizontally(
-    vtkContext2D* painter, double size[2], const vtkAnnotationMap& map);
-
   /**
    * Annotation height when the scalar bar is in horizontal mode.
    */
@@ -548,6 +433,14 @@ private:
    * Range data height.
    */
   float VerticalRangeDataHeight;
+
+  vtkSmartPointer<vtkTexture> Texture;
+  
+  double FirstRange[2] = { 0, 0 };
+  double SecondRange[2] = { 0, 0 };
+
+  // Test
+  char* Title2 = nullptr;
 };
 
 #endif // vtkContext2DTexturedScalarBarActor_h
