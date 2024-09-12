@@ -3,6 +3,7 @@ set(classes
   vtkBivariateNoiseRepresentation
   vtkBivariateTextureRepresentation
   vtkContext2DTexturedScalarBarActor
+  vtkContext2DTexturedScalarBarRepresentation
   vtkSMBivariateTextureRepresentationProxy
   vtkOpenGLBivariateNoiseMapperDelegator)
 

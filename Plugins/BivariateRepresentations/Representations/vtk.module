@@ -9,4 +9,6 @@ DEPENDS
   VTK::RenderingOpenGL2
 PRIVATE_DEPENDS
   VTK::CommonCore
+  VTK::RenderingContextOpenGL2
   ParaView::RemotingMisc
+  ParaView::VTKExtensionsFiltersRendering

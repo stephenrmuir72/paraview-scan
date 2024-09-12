@@ -408,6 +408,113 @@
   <!-- Has to be the same than the one defined in ParaView. This proxy name is used to retrieve the scalar bar -->
   <!-- proxy and is not parametrable yet. -->
   <ProxyGroup name="CustomScalarBarWidgetRepresentation">
+    <Proxy class="vtkContext2DTexturedScalarBarRepresentation"
+           name="ScalarBarRepresentation">
+      <IntVectorProperty animateable="1"
+                         command="SetVisibility"
+                         default_values="1"
+                         name="Visibility"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetPosition"
+                            default_values="0.89 0.02"
+                            information_property="PositionInfo"
+                            name="Position"
+                            number_of_elements="2">
+        <DoubleRangeDomain max="1 1"
+                           min="0 0"
+                           name="range" />
+        <Documentation>
+          Specify the anchor position (bottom-left corner of the scalar bar) in normalized
+          viewport coordinates in range [0, 1]. This is used only when **Window Location**
+          is set to **AnyLocation**.
+        </Documentation>
+        <Hints>
+          <!-- Enable "Position" widget only when WindowLocation == AnyLocation -->
+          <PropertyWidgetDecorator type="GenericDecorator"
+            mode="enabled_state"
+            property="WindowLocation"
+            value="0" />
+        </Hints>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="GetPosition"
+                            information_only="1"
+                            name="PositionInfo">
+        <SimpleDoubleInformationHelper />
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetAutoOrient"
+                         default_values="0"
+                         name="AutoOrient"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Hints>
+          <NoDefault />
+        </Hints>
+        <Documentation>Set if color legend's orientation will be updated based on its position.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="GetAutoOrient"
+                         information_only="1"
+                         name="AutoOrientInfo">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+      <IntVectorProperty command="SetOrientation"
+                         default_values="1"
+                         information_property="OrientationInfo"
+                         name="Orientation"
+                         number_of_elements="1">
+        <Hints>
+          <PropertyWidgetDecorator type="EnableWidgetDecorator">
+            <Property name="AutoOrient" function="boolean_invert" index="0" />
+          </PropertyWidgetDecorator>
+          <NoDefault />
+        </Hints>
+        <EnumerationDomain name="enum">
+          <Entry text="Horizontal"
+                 value="0" />
+          <Entry text="Vertical"
+                 value="1" />
+        </EnumerationDomain>
+        <Documentation>
+          Specify orientation of the color legend. Can be used only if Auto Orient is disabled.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="GetOrientation"
+                         information_only="1"
+                         name="OrientationInfo">
+        <SimpleIntInformationHelper />
+      </IntVectorProperty>
+      <IntVectorProperty command="SetWindowLocation"
+                         default_values="2"
+                         name="WindowLocation"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="Any Location"
+                 value="0" />
+          <Entry text="Lower Left Corner"
+                 value="1" />
+          <Entry text="Lower Right Corner"
+                 value="2" />
+          <Entry text="Lower Center"
+                 value="3" />
+          <Entry text="Upper Left Corner"
+                 value="4" />
+          <Entry text="Upper Right Corner"
+                 value="5" />
+          <Entry text="Upper Center"
+                 value="6" />
+        </EnumerationDomain>
+        <Documentation>Specify placement of the color legend.</Documentation>
+      </IntVectorProperty>
+      <ProxyProperty command="SetScalarBarActor"
+                     name="ScalarBarActor">
+        <ProxyGroupDomain name="groups">
+          <Group name="annotations" />
+        </ProxyGroupDomain>
+      </ProxyProperty>
+      <!-- End of ScalarBarRepresentation -->
+    </Proxy>
+
     <ScalarBarWidgetRepresentationProxy class="vtk3DWidgetRepresentation"
                                         name="ScalarBarWidgetRepresentation">
       <Documentation>ScalarBarWidgetRepresentation is a representation for a
@@ -448,7 +555,7 @@
       </IntVectorProperty>
       <SubProxy>
         <Proxy name="Prop2D"
-               proxygroup="3d_widget_representations"
+               proxygroup="CustomScalarBarWidgetRepresentation"
                proxyname="ScalarBarRepresentation"></Proxy>
         <ExposedProperties>
           <Property name="Visibility" panel_visibility="never"/>
