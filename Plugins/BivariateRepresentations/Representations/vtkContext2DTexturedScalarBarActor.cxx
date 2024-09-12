@@ -71,6 +71,15 @@
 //   + +
 // (0, 0)
 
+namespace
+{
+//----------------------------------------------------------------------------
+vtkRectf GetColorBarRect(double size)
+{
+  return vtkRectf(0, 0, size, size);
+}
+}
+
 // This class is a vtkContextItem that can be added to a vtkContextScene.
 //----------------------------------------------------------------------------
 class vtkContext2DTexturedScalarBarActor::vtkScalarBarItem : public vtkContextItem
@@ -184,23 +193,12 @@ void vtkContext2DTexturedScalarBarActor::ReleaseGraphicsResources(vtkWindow* win
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* painter)
+double vtkContext2DTexturedScalarBarActor::GetSize()
 {
   if (!this->CurrentViewport)
   {
-    return;
+    return 0.;
   }
-
-  // The scalar bar thickness is defined in terms of points. That is,
-  // if the thickness size is 12, that matches the height of a "|"
-  // character in a 12 point font.
-  vtkNew<vtkTextProperty> textProp;
-  textProp->SetFontSize(16);
-  painter->ApplyTextProp(textProp.Get());
-
-  float bounds[4];
-  painter->ComputeStringBounds("|", bounds);
-  double thickness = bounds[3];
 
   // Convert scalar bar length from normalized viewport coordinates to pixels
   vtkNew<vtkCoordinate> lengthCoord;
@@ -208,17 +206,7 @@ void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* p
   lengthCoord->SetValue(0.0, this->ScalarBarLength);
   int* lengthOffset = lengthCoord->GetComputedDisplayValue(this->CurrentViewport);
 
-  size[0] = thickness;
-  size[1] = lengthOffset[1];
-}
-
-//----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2])
-{
-  vtkRectf rect = vtkRectf(0, 0, size[0], size[1]);
-  rect.SetY(rect.GetY());
-  rect.SetHeight(rect.GetHeight());
-  return rect;
+  return lengthOffset[1];
 }
 
 //----------------------------------------------------------------------------
@@ -256,16 +244,14 @@ void vtkContext2DTexturedScalarBarActor::UpdateTextProperties()
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, double size[2], vtkImageData* image)
+void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, double size)
 {
-  vtkRectf barRect = this->GetColorBarRect(size);
+  vtkNew<vtkPVLogoSource> logoSource;
+  logoSource->SetTexture(this->Texture);
+  logoSource->Update();
 
-  vtkBrush* brush = painter->GetBrush();
-
-  // Disable pen to prevent an outline around the color swatches
-  vtkPen* pen = painter->GetPen();
-
-  assert(image);
+  vtkImageData* image = vtkImageData::SafeDownCast(logoSource->GetOutput());
+  vtkRectf barRect = ::GetColorBarRect(size);
   painter->DrawImage(barRect, image);
 
   // Finally, draw a rect around the scalar bar and out-of-range
@@ -273,21 +259,24 @@ void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, do
   // lines instead.
   if (this->DrawScalarBarOutline)
   {
-    vtkRectf outlineRect = this->GetColorBarRect(size);
-
+    vtkBrush* brush = painter->GetBrush();
     brush->SetOpacity(0);
+
+    vtkPen* pen = painter->GetPen();
     pen->SetLineType(vtkPen::SOLID_LINE);
     pen->SetColorF(this->ScalarBarOutlineColor);
     pen->SetWidth(static_cast<float>(this->ScalarBarOutlineThickness));
+    
+    vtkRectf outlineRect = ::GetColorBarRect(size);
     painter->DrawRect(
       outlineRect.GetX(), outlineRect.GetY(), outlineRect.GetWidth(), outlineRect.GetHeight());
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double size[2], int orientation)
+void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double size, int orientation)
 {
-  vtkRectf rect = this->GetColorBarRect(size);
+  vtkRectf rect = ::GetColorBarRect(size);
 
   // Use the length of the character "|" at the label font size for various
   // measurements.
@@ -310,21 +299,10 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
 
   // Compute tick lengths and label offsets based on the label font size
   float tickLength = 0.75 * pipeHeight;
-  if (orientation == VTK_ORIENT_VERTICAL)
-  {
-    this->Axis->SetTickLength(tickLength);
+  this->Axis->SetTickLength(tickLength);
 
-    // Offset the labels from the tick marks a bit
-    float labelOffset = tickLength + (0.5 * tickLength);
-    this->Axis->SetLabelOffset(labelOffset);
-  }
-  else
-  {
-    this->Axis->SetTickLength(tickLength);
-
-    float labelOffset = tickLength + (0.3 * tickLength);
-    this->Axis->SetLabelOffset(labelOffset);
-  }
+  float offset = orientation == VTK_ORIENT_VERTICAL ? 0.5 : 0.3;
+  this->Axis->SetLabelOffset(tickLength + offset * tickLength);
 
   // Position the axis
   if (this->TextPosition == PrecedeScalarBar)
@@ -364,20 +342,12 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
     }
   }
 
-  double range[2] = { 0., 0. };
-  if (orientation == VTK_ORIENT_VERTICAL)
-  {
-    range[0] = this->FirstRange[0];
-    range[1] = this->FirstRange[1];
-  }
-  else
-  {
-    range[0] = this->SecondRange[0];
-    range[1] = this->SecondRange[1];
-  }
-
   vtkPen* axisPen = this->Axis->GetPen();
   axisPen->SetColorF(this->LabelTextProperty->GetColor());
+
+  auto* range = orientation == VTK_ORIENT_VERTICAL ? this->FirstRange : this->SecondRange;
+  auto notation = this->AutomaticLabelFormat ? vtkAxis::STANDARD_NOTATION : vtkAxis::PRINTF_NOTATION;
+  auto* cutomLabels = this->UseCustomLabels ? this->CustomLabels : nullptr;
 
   // NOTE: the order of calls to this->Axis is important and should be
   // changed only with extreme care.
@@ -389,30 +359,12 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
   this->Axis->SetLabelsVisible(this->DrawTickLabels == 1);
   this->Axis->SetTicksVisible(this->DrawTickMarks);
   this->Axis->SetGridVisible(false);
-
-  if (this->AutomaticLabelFormat)
-  {
-    this->Axis->SetNotation(vtkAxis::STANDARD_NOTATION);
-  }
-  else
-  {
-    this->Axis->SetNotation(vtkAxis::PRINTF_NOTATION);
-  }
+  this->Axis->SetNotation(notation);
   this->Axis->SetLabelFormat(std::string(this->LabelFormat));
   this->Axis->AutoScale();
   this->Axis->SetRangeLabelsVisible(this->AddRangeLabels == 1);
   this->Axis->SetRangeLabelFormat(std::string(this->RangeLabelFormat));
-
-  if (this->UseCustomLabels)
-  {
-    this->Axis->SetCustomTickPositions(this->CustomLabels);
-  }
-  else
-  {
-    this->Axis->SetCustomTickPositions(nullptr);
-  }
-
-  this->Axis->SetUnscaledRange(range);
+  this->Axis->SetCustomTickPositions(cutomLabels);
   this->Axis->RecalculateTickSpacing();
 
   this->Axis->Update();
@@ -420,7 +372,7 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, double size[2], const std::string& title, int orientation)
+void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, double size, const std::string& title, int orientation)
 {
   std::string combinedTitle(title);
   if (this->ComponentTitle && strlen(this->ComponentTitle) > 0)
@@ -461,7 +413,7 @@ void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, doubl
   vtkRectf axisRect = boundingDevice->GetBoundingRect();
 
   vtkRectf barAndAxisRect = axisRect;
-  vtkRectf colorBarRect = this->GetColorBarRect(size);
+  vtkRectf colorBarRect = ::GetColorBarRect(size);
   barAndAxisRect.AddRect(colorBarRect);
 
   float titleX = barAndAxisRect.GetX() + 0.5 * barAndAxisRect.GetWidth();
@@ -551,8 +503,7 @@ bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
   // so that things like tile scale and DPI are correct.
   this->Axis->GetScene()->SetRenderer(vtkRenderer::SafeDownCast(this->CurrentViewport));
 
-  double size[2] = { 0., 0. };
-  this->GetSize(size, painter);
+  double size = this->GetSize();
 
   // Paint the various components
   vtkNew<vtkTransform2D> tform;
@@ -572,19 +523,7 @@ bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
       this->CurrentBoundingRect.GetHeight() + 2.0 * this->BackgroundPadding);
   }
 
-  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-
-  const float squareSize = (std::max)(size[0], size[1]);
-  size[0] = squareSize;
-  size[1] = squareSize;
-
-  vtkNew<vtkPVLogoSource> logoSource;
-  logoSource->SetTexture(this->Texture);
-  logoSource->Update();
-
-  image = vtkImageData::SafeDownCast(logoSource->GetOutput());
-
-  this->PaintColorBar(painter, size, image);
+  this->PaintColorBar(painter, size);
 
   this->PaintAxis(painter, size, VTK_ORIENT_VERTICAL);
   this->PaintTitle(painter, size, this->Title, VTK_ORIENT_VERTICAL);

@@ -226,7 +226,7 @@ private:
   /**
    * Length of the color bar.
    */
-  double ScalarBarLength = 0.33;
+  double ScalarBarLength = 0.15;
 
   bool AutomaticLabelFormat = true;
 
@@ -289,14 +289,7 @@ private:
    * coordinates. The painter parameter is needed to calculate the thickness
    * of the scalar bar in terms of the selected font size.
    */
-  void GetSize(double size[2], vtkContext2D* painter);
-
-  /**
-   * Compute the rect where the color bar will be displayed. This is
-   * the rect containing only the color map, not the out-of-range
-   * or NaN color swatches.
-   */
-  vtkRectf GetColorBarRect(double size[2]);
+  double GetSize();
 
   /**
    * Copy appropriate text properties to the axis text properties.
@@ -306,22 +299,22 @@ private:
   /**
    * Paint the color bar itself.
    */
-  void PaintColorBar(vtkContext2D* painter, double size[2], vtkImageData* texture);
+  void PaintColorBar(vtkContext2D* painter, double size);
 
   /**
    * Paint the axis and label positions.
    */
-  void PaintAxis(vtkContext2D* painter, double size[2], int orientation);
+  void PaintAxis(vtkContext2D* painter, double size, int orientation);
 
   /**
    * Set up the axis title. Returns the bounding rect of all elements in the color legend.
    */
-  void PaintTitle(vtkContext2D* painter, double size[2], const std::string& title, int orientation);
+  void PaintTitle(vtkContext2D* painter, double size, const std::string& title, int orientation);
 
   /**
    * Adds the min and max range of the displayed representations on the scalar bar.
    */
-  void PaintRange(vtkContext2D* painter, double size[2]);
+  void PaintRange(vtkContext2D* painter, double size);
 
   vtkSmartPointer<vtkTexture> Texture;
   

@@ -491,7 +491,7 @@
         </Hints>
       </DoubleVectorProperty>
       <DoubleVectorProperty command="SetScalarBarLength"
-                            default_values="0.33"
+                            default_values="0.15"
                             name="ScalarBarLength"
                             label="Color Bar Length"
                             number_of_elements="1">
