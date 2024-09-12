@@ -52,26 +52,10 @@ public:
   vtkSetClampMacro(TitleJustification, int, VTK_TEXT_LEFT, VTK_TEXT_RIGHT);
   ///@}
 
-  enum
-  {
-    PrecedeScalarBar = 0,
-    SucceedScalarBar
-  };
-
-  enum OutOfRangeType
-  {
-    BELOW_RANGE = 0,
-    ABOVE_RANGE = 1,
-  };
-
   ///@{
   /**
-   * Set the scalar bar length. When the orientation is VTK_ORIENT_VERTICAL,
-   * this sets the scalar bar height. When the orientation is
-   * VTK_ORIENT_HORIZONTAL, this sets the scalar bar width. Specified in
-   * normalized viewport coordinates, meaning the value is the fractional span
-   * of the viewport's width or height in the range [0, 1], depending on
-   * orientation.
+   * Set the scalar bar sides length, specified in normalized viewport coordinates.
+   * This means the value is the fractional span of the viewport's width in the range [0, 1].
    */
   vtkSetClampMacro(ScalarBarLength, double, 0, 1);
   vtkGetMacro(ScalarBarLength, double);
@@ -158,14 +142,6 @@ public:
 
   ///@{
   /**
-   * Printf format for range labels.
-   */
-  vtkSetStringMacro(DataRangeLabelFormat);
-  vtkGetStringMacro(DataRangeLabelFormat);
-  ///@}
-
-  ///@{
-  /**
    * Set number of custom labels.
    */
   void SetNumberOfCustomLabels(vtkIdType numLabels);
@@ -205,36 +181,6 @@ public:
    */
   vtkRectf GetBoundingRect();
 
-  ///@{
-  /**
-   * If true, the ranges of the arrays linked to the scalar bar are displayed
-   * in the widget. By default, it is set to false.
-   */
-  vtkSetMacro(DrawDataRange, bool);
-  vtkGetMacro(DrawDataRange, bool);
-  vtkBooleanMacro(DrawDataRange, bool);
-  ///@}
-
-  ///@{
-  /**
-   * Set/Get the minimum value of arrays linked to this scalar bar actor.
-   * This value can be set to a minimum value that is not the same as the LUT range and is displayed
-   * in the color legend when `"DrawDataRange"` is set to `true`.
-   */
-  vtkSetMacro(DataRangeMin, double);
-  vtkGetMacro(DataRangeMin, double);
-  ///@}
-
-  ///@{
-  /**
-   * Set/Get the maximum value of arrays linked to this scalar bar actor.
-   * This value can be set to a minimum value that is not the same as the LUT range and is displayed
-   * in the color legend when `"DrawDataRange"` is set to `true`.
-   */
-  vtkSetMacro(DataRangeMax, double);
-  vtkGetMacro(DataRangeMax, double);
-  ///@}
-
   //@{
   /**
    * Set/get the Logo source representation.
@@ -259,28 +205,9 @@ protected:
   vtkContext2DTexturedScalarBarActor();
   ~vtkContext2DTexturedScalarBarActor() override;
 
-  /**
-   * Flag to show the range on the scalar bar.
-   */
-  bool DrawDataRange;
-
-  ///@{
-  /**
-   * Range to be displayed.
-   */
-  double DataRangeMin = 0;
-  double DataRangeMax = 0;
-  ///@}
-
-  /**
-   * Offset applied to scalar bar when `DrawDataRange` is true.
-   */
-  int VerticalOffset = 0;
-
 private:
   vtkContext2DTexturedScalarBarActor(const vtkContext2DTexturedScalarBarActor&) = delete;
   void operator=(const vtkContext2DTexturedScalarBarActor&) = delete;
-  
 
   vtkContextActor* ActorDelegate;
 
@@ -310,7 +237,6 @@ private:
 
   int AddRangeLabels;
   char* RangeLabelFormat;
-  char* DataRangeLabelFormat;
 
   /**
    * Flag that controls whether an outline is drawn around the scalar bar.
@@ -321,12 +247,6 @@ private:
    * Thickness of color bar outline.
    */
   int ScalarBarOutlineThickness;
-
-  /**
-   * Spacer between color swatches in the long dimension of the scalar
-   * bar. Defined in terms of display coordinates.
-   */
-  double Spacer;
 
   /**
    * Should ticks be drawn?
@@ -369,7 +289,7 @@ private:
    * coordinates. The painter parameter is needed to calculate the thickness
    * of the scalar bar in terms of the selected font size.
    */
-  void GetSize(double size[2], vtkContext2D* painter, int orientation);
+  void GetSize(double size[2], vtkContext2D* painter);
 
   /**
    * Compute the rect where the color bar will be displayed. This is
@@ -402,16 +322,6 @@ private:
    * Adds the min and max range of the displayed representations on the scalar bar.
    */
   void PaintRange(vtkContext2D* painter, double size[2]);
-
-  /**
-   * Annotation height when the scalar bar is in horizontal mode.
-   */
-  float HorizontalAnnotationHeight;
-
-  /**
-   * Range data height.
-   */
-  float VerticalRangeDataHeight;
 
   vtkSmartPointer<vtkTexture> Texture;
   
