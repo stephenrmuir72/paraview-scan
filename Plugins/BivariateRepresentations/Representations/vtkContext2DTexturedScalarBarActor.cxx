@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-License-Identifier: BSD-3-Clause
-#include "vtkContext2DScalarBarActor2.h"
+#include "vtkContext2DTexturedScalarBarActor.h"
 
 #include "vtkAxis.h"
 #include "vtkBoundingRectContextDevice2D.h"
@@ -19,7 +19,6 @@
 #include "vtkMath.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkOpenGLContextDevice2D.h"
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkPen.h"
 #include "vtkPointData.h"
@@ -32,7 +31,6 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkViewport.h"
 
-#include "vtkNetworkImageSource.h"
 #include "vtkPVLogoSource.h"
 
 #include <limits>
@@ -45,16 +43,16 @@
 #endif
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkContext2DScalarBarActor2);
+vtkStandardNewMacro(vtkContext2DTexturedScalarBarActor);
 
 //----------------------------------------------------------------------------
-vtkContext2DScalarBarActor2::vtkContext2DScalarBarActor2()
+vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
 {
   cout << "NEW ACTOR USED !" << endl;
 }
 
 //----------------------------------------------------------------------------
-bool vtkContext2DScalarBarActor2::Paint(vtkContext2D* painter)
+bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
 {
   this->Texture->Print(std::cout);
   cout << "First range: " << this->FirstRange[0] << " " << this->FirstRange[1] << endl;
@@ -66,7 +64,7 @@ bool vtkContext2DScalarBarActor2::Paint(vtkContext2D* painter)
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DScalarBarActor2::PrintSelf(ostream& os, vtkIndent indent)
+void vtkContext2DTexturedScalarBarActor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

@@ -376,14 +376,17 @@
   </ProxyGroup>
 
   <ProxyGroup name="annotations">
-      <!-- ================================================================== -->
-    <Proxy class="vtkContext2DScalarBarActor2"
-           name="ScalarBarActor2"
+    <Proxy class="vtkContext2DTexturedScalarBarActor"
+           name="TexturedScalarBarActor"
            base_proxygroup="annotations"
            base_proxyname="ScalarBarActor">
+    <!-- End of TexturedScalarBarActor -->
     </Proxy>
   </ProxyGroup>
 
+  <!-- ProxyGroup should be different from "representations" since this ScalarBarWidgetRepresentationProxy name -->
+  <!-- Has to be the same than the one defined in ParaView. This proxy name is used to retrieve the scalar bar -->
+  <!-- proxy and is not parametrable yet. -->
   <ProxyGroup name="CustomScalarBarWidgetRepresentation">
     <ScalarBarWidgetRepresentationProxy class="vtk3DWidgetRepresentation"
                                         name="ScalarBarWidgetRepresentation">
@@ -433,7 +436,7 @@
           <PropertyGroup label="Layout">
             <Property name="AutoOrient" default_values="false" panel_visibility="never"/>
             <Property name="AutoOrientInfo" />
-            <Property name="Orientation" />
+            <Property name="Orientation" panel_visibility="never"/>
             <Property name="OrientationInfo" />
             <Property name="WindowLocation" />
             <Property name="Position" />
@@ -445,7 +448,7 @@
       <SubProxy>
         <Proxy name="Prop2DActor"
                proxygroup="annotations"
-               proxyname="ScalarBarActor2"></Proxy>
+               proxyname="TexturedScalarBarActor"></Proxy>
 
         <ExposedProperties>
           <Property name="EstimatedNumberOfAnnotations" panel_visibility="never"/>
@@ -543,6 +546,7 @@
           <Property name="Repositionable" panel_visibility="never"/>
         </ExposedProperties>
       </SubProxy>
+      <!-- End of ScalarBarWidgetRepresentation -->
     </ScalarBarWidgetRepresentationProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>

@@ -34,7 +34,11 @@ protected:
   ~vtkSMBivariateTextureRepresentationProxy() override;
 
   /**
-   * Test
+   * Called each time the internal representation of the composite representation is 
+   * changed (the bivariate texture representation being one of them).
+   * In addition to instanciate the VTK objects if needed, takes care to unregister
+   * the custom textured scalar bar proxy to avoid other internal representations
+   * to use it when switching back to them.
    */
   void CreateVTKObjects() override;
 
@@ -55,8 +59,8 @@ private:
   void SetupPropertiesLinks();
   // vtkSMProxy* FindScalarBarRepresentation();
 
-  vtkSMProxy* MySbProxy = nullptr;
-  bool setup = true;
+  vtkSMProxy* TexturedScalarBarProxy = nullptr;
+  bool Initialized = true;
 
   typedef std::list<vtkSmartPointer<vtkSMLink>> LinksType;
   LinksType Links;

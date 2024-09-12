@@ -92,7 +92,7 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
 {
   cout << "Create VTK Objects" << endl;
     
-  if (setup)
+  if (this->Initialized)
   {
     // vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
     // if (!lutProperty) { cout << "no lut property" << endl; return; }
@@ -103,15 +103,15 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
     //   vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
     //     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, this->CurrentView));
     
-    if (this->MySbProxy)
+    if (this->TexturedScalarBarProxy)
     {
       cout << "Unregister previous proxy..." << endl;
       vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
       vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
-      vtkSMPropertyHelper(this->CurrentView, "Representations").Remove(this->MySbProxy);
+      vtkSMPropertyHelper(this->CurrentView, "Representations").Remove(this->TexturedScalarBarProxy);
       this->CurrentView->UpdateVTKObjects();
-      pxm->UnRegisterProxy(this->MySbProxy);
-      this->MySbProxy = nullptr;
+      pxm->UnRegisterProxy(this->TexturedScalarBarProxy);
+      this->TexturedScalarBarProxy = nullptr;
 
       // auto* view = vtkSMViewProxy::SafeDownCast(this->CurrentView);
       // if (view)
@@ -122,7 +122,7 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
       //   view->GetSession()->CleanupPendingProgress();
       // }
     }
-    setup = false;
+    this->Initialized = false;
   }
 
   if (this->ObjectsCreated)
@@ -270,7 +270,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   controller->PostInitializeProxy(sbProxy);
 
   pxm->RegisterProxy("scalar_bars", sbProxy);
-  this->MySbProxy = sbProxy;
+  this->TexturedScalarBarProxy = sbProxy;
   sbProxy->FastDelete();
 
   // TO REMOVE
@@ -299,7 +299,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   // }
 
   // vtkSmartPointer<vtkSMProxy> scalarBarActor2Proxy;
-  // scalarBarActor2Proxy.TakeReference(pxm->NewProxy("annotations", "ScalarBarActor2"));
+  // scalarBarActor2Proxy.TakeReference(pxm->NewProxy("annotations", "TexturedScalarBarActor"));
   // pxm->RegisterProxy("annotations", scalarBarActor2Proxy);
 
   // vtkSMPropertyHelper sbActorPropertyHelper(sbActorProperty);
@@ -353,9 +353,9 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   sbTexturePropertyHelper.Set(textureProxy);
   // sbProxy->UpdateVTKObjects();
 
-  setup = false;
+  this->Initialized = false;
   this->UpdatePropertyInformation();
-  setup = true;
+  this->Initialized = true;
 
   // Now take care of axis for 1st and 2nd array
   vtkSMProperty* firstArray = this->GetProperty("FirstArrayRange");
