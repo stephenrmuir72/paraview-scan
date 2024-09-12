@@ -155,8 +155,6 @@ vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
   // Create an array for the custom labels
   this->CustomLabels = vtkDoubleArray::New();
 
-  this->ReverseLegend = false;
-
   this->ScalarBarItem = vtkScalarBarItem::New();
   this->ScalarBarItem->Actor = this;
 
@@ -256,64 +254,6 @@ void vtkContext2DTexturedScalarBarActor::ReleaseGraphicsResources(vtkWindow* win
 }
 
 //----------------------------------------------------------------------------
-void vtkContext2DTexturedScalarBarActor::UpdateScalarBarTexture(vtkImageData* image)
-{
-  if (this->Orientation == VTK_ORIENT_VERTICAL)
-  {
-    image->SetDimensions(1, 256, 1);
-  }
-  else
-  {
-    image->SetDimensions(256, 1, 1);
-  }
-  image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
-
-  vtkUnsignedCharArray* colors =
-    vtkUnsignedCharArray::SafeDownCast(image->GetPointData()->GetArray(0));
-
-  vtkDiscretizableColorTransferFunction* ctf =
-    vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-  if (!ctf)
-  {
-    return;
-  }
-
-  double* lutRange = ctf->GetRange();
-  const int numColors = 256;
-  unsigned char color[4];
-  for (int i = 0; i < numColors; ++i)
-  {
-
-    // Probably use MapScalarsThroughTable2 here instead.
-    // Update only when LUT changes
-    double originalValue = (((double)i / numColors) * (lutRange[1] - lutRange[0])) + lutRange[0];
-    double value = originalValue;
-    if (this->LookupTable->UsingLogScale())
-    {
-      value = log10(lutRange[0]) + i * (log10(lutRange[1]) - log10(lutRange[0])) / numColors;
-      value = pow(10.0, value);
-    }
-
-    const unsigned char* colorTmp = ctf->MapValue(value);
-
-    // The opacity function does not take into account the logarithmic
-    // mapping, so we use the original value here.
-    color[0] = colorTmp[0];
-    color[1] = colorTmp[1];
-    color[2] = colorTmp[2];
-    color[3] = static_cast<unsigned char>(255.0 * ctf->GetOpacity(originalValue) + 0.5);
-    if (this->ReverseLegend)
-    {
-      colors->SetTypedTuple(numColors - i - 1, color);
-    }
-    else
-    {
-      colors->SetTypedTuple(i, color);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* painter, int orientation)
 {
   if (!this->CurrentViewport)
@@ -355,32 +295,13 @@ void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* p
 }
 
 //----------------------------------------------------------------------------
-vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2], bool includeSwatch)
+vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2])
 {
   vtkRectf rect = vtkRectf(0, 0, size[0], size[1]);
-
-  // Color swatches are squares with sides equal to the width of the
-  // color bar when in vertical orientation and equal to the height
-  // when in horizontal orientation.
-  double swatchSize = this->Orientation == VTK_ORIENT_VERTICAL ? size[0] : size[1];
 
   // Count up the swatches
   double shift = 0;
   double sizeReduction = 0;
-  if (includeSwatch)
-  {
-    vtkDiscretizableColorTransferFunction* ctf =
-      vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-    if (ctf && ctf->GetUseAboveRangeColor())
-    {
-      sizeReduction += swatchSize;
-    }
-    if (ctf && ctf->GetUseBelowRangeColor())
-    {
-      shift += swatchSize;
-      sizeReduction += swatchSize;
-    }
-  }
 
   if (this->Orientation == VTK_ORIENT_VERTICAL)
   {
@@ -437,15 +358,6 @@ void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, do
 
   vtkBrush* brush = painter->GetBrush();
 
-  //-----------------------------
-  // Draw scalar bar itself
-  vtkDiscretizableColorTransferFunction* ctf =
-    vtkDiscretizableColorTransferFunction::SafeDownCast(this->LookupTable);
-  if (!ctf)
-  {
-    return;
-  }
-
   // Disable pen to prevent an outline around the color swatches
   vtkPen* pen = painter->GetPen();
 
@@ -465,28 +377,6 @@ void vtkContext2DTexturedScalarBarActor::PaintColorBar(vtkContext2D* painter, do
     pen->SetWidth(static_cast<float>(this->ScalarBarOutlineThickness));
     painter->DrawRect(
       outlineRect.GetX(), outlineRect.GetY(), outlineRect.GetWidth(), outlineRect.GetHeight());
-  }
-
-  // Now set up annotation anchor point map
-  double lutRange[2];
-  lutRange[0] = this->LookupTable->GetRange()[0];
-  lutRange[1] = this->LookupTable->GetRange()[1];
-  if (this->LookupTable->UsingLogScale())
-  {
-    lutRange[0] = log10(lutRange[0]);
-    lutRange[1] = log10(lutRange[1]);
-  }
-
-  double low = barRect.GetX();
-  double high = low + barRect.GetWidth();
-  if (this->Orientation == VTK_ORIENT_VERTICAL)
-  {
-    low = barRect.GetY();
-    high = low + barRect.GetHeight();
-  }
-  if (this->ReverseLegend)
-  {
-    std::swap(high, low);
   }
 
   if (this->DrawDataRange)
@@ -577,37 +467,21 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
 
   //-----------------------------
   // Get the range of the lut
-  const double* lutRange = this->LookupTable->GetRange();
   double range[2];
 
-  if (this->Texture)
+  if (orientation == VTK_ORIENT_VERTICAL)
   {
-    if (orientation == VTK_ORIENT_VERTICAL)
-    {
-      range[0] = this->FirstRange[0];
-      range[1] = this->FirstRange[1];
-    }
-    else
-    {
-      range[0] = this->SecondRange[0];
-      range[1] = this->SecondRange[1];
-    }
+    range[0] = this->FirstRange[0];
+    range[1] = this->FirstRange[1];
   }
   else
   {
-    range[0] = lutRange[0];
-    range[1] = lutRange[1];
-  }
-
-  if (this->ReverseLegend)
-  {
-    std::swap(range[0], range[1]);
+    range[0] = this->SecondRange[0];
+    range[1] = this->SecondRange[1];
   }
 
   vtkPen* axisPen = this->Axis->GetPen();
   axisPen->SetColorF(this->LabelTextProperty->GetColor());
-
-  bool indexedMode = this->LookupTable->GetIndexedLookup() == 1;
 
   // NOTE: the order of calls to this->Axis is important and should be
   // changed only with extreme care.
@@ -616,8 +490,8 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
   this->Axis->SetUnscaledMaximumLimit(std::numeric_limits<double>::max());
   this->Axis->SetUnscaledRange(range);
   this->Axis->SetAxisVisible(false);
-  this->Axis->SetLabelsVisible(!indexedMode && this->DrawTickLabels == 1);
-  this->Axis->SetTicksVisible(!indexedMode && this->DrawTickMarks);
+  this->Axis->SetLabelsVisible(this->DrawTickLabels == 1);
+  this->Axis->SetTicksVisible(this->DrawTickMarks);
   this->Axis->SetGridVisible(false);
 
   if (this->AutomaticLabelFormat)
@@ -629,9 +503,8 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
     this->Axis->SetNotation(vtkAxis::PRINTF_NOTATION);
   }
   this->Axis->SetLabelFormat(std::string(this->LabelFormat));
-  this->Axis->SetLogScale(this->LookupTable->UsingLogScale() == 1);
   this->Axis->AutoScale();
-  this->Axis->SetRangeLabelsVisible(!indexedMode && this->AddRangeLabels == 1);
+  this->Axis->SetRangeLabelsVisible(this->AddRangeLabels == 1);
   this->Axis->SetRangeLabelFormat(std::string(this->RangeLabelFormat));
 
   if (this->UseCustomLabels)
@@ -785,7 +658,7 @@ void vtkContext2DTexturedScalarBarActor::PaintRange(vtkContext2D* painter, doubl
   vtkRectf axisRect = boundingDevice->GetBoundingRect();
 
   vtkRectf barAndAxisRect = axisRect;
-  vtkRectf colorBarRect = this->GetColorBarRect(size, false /* includeSwatch */);
+  vtkRectf colorBarRect = this->GetColorBarRect(size);
   barAndAxisRect.AddRect(colorBarRect);
 
   if (this->GetOrientation() == VTK_ORIENT_VERTICAL)
@@ -906,39 +779,24 @@ bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
   }
 
   vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-  if (this->Texture)
-  {
-    const float squareSize = (std::max)(size[0], size[1]);
-    size[0] = squareSize;
-    size[1] = squareSize;
 
-    vtkNew<vtkPVLogoSource> logoSource;
-    logoSource->SetTexture(this->Texture);
-    logoSource->Update();
+  const float squareSize = (std::max)(size[0], size[1]);
+  size[0] = squareSize;
+  size[1] = squareSize;
 
-    image = vtkImageData::SafeDownCast(logoSource->GetOutput());
-  }
-  else
-  {
-    this->UpdateScalarBarTexture(image.GetPointer());
-  }
+  vtkNew<vtkPVLogoSource> logoSource;
+  logoSource->SetTexture(this->Texture);
+  logoSource->Update();
+
+  image = vtkImageData::SafeDownCast(logoSource->GetOutput());
+
 
   this->PaintColorBar(painter, size, image);
 
-  if (this->Texture)
-  {
-    this->PaintAxis(painter, size, VTK_ORIENT_VERTICAL);
-    this->PaintTitle(painter, size, this->Title, VTK_ORIENT_VERTICAL);
-    this->PaintAxis(painter, size, VTK_ORIENT_HORIZONTAL);
-    this->PaintTitle(painter, size, this->Title2, VTK_ORIENT_HORIZONTAL);
-  }
-  else
-  {
-    this->PaintAxis(painter, size, this->Orientation);
-    // IMPORTANT: this needs to be done *after* this->Axis->Update() is called
-    // in PaintAxis() so that we get an accurate axis bounding rectangle.
-    this->PaintTitle(painter, size, this->Title, this->Orientation);
-  }
+  this->PaintAxis(painter, size, VTK_ORIENT_VERTICAL);
+  this->PaintTitle(painter, size, this->Title, VTK_ORIENT_VERTICAL);
+  this->PaintAxis(painter, size, VTK_ORIENT_HORIZONTAL);
+  this->PaintTitle(painter, size, this->Title2, VTK_ORIENT_HORIZONTAL);
 
   // Restore settings
   pen->DeepCopy(savePen.GetPointer());

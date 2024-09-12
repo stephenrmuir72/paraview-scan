@@ -122,16 +122,6 @@ public:
 
   ///@{
   /**
-   * Set whether the scalar bar is reversed ie from high
-   * to low instead of from low to high. Default is false;
-   */
-  vtkSetMacro(ReverseLegend, bool);
-  vtkGetMacro(ReverseLegend, bool);
-  vtkBooleanMacro(ReverseLegend, bool);
-  ///@}
-
-  ///@{
-  /**
    * If true (the default), the printf format used for the labels will be
    * automatically generated to make the numbers best fit within the widget.  If
    * false, the LabelFormat ivar will be used.
@@ -344,11 +334,6 @@ private:
   bool DrawTickMarks;
 
   /**
-   * Flag that controls if the whole color legend should be reversed
-   */
-  bool ReverseLegend;
-
-  /**
    * Charts API subclass we use to redirect the Paint() request back
    * to vtkContext2DTexturedScalarBarActor::Paint().
    */
@@ -380,12 +365,6 @@ private:
   vtkRectf CurrentBoundingRect;
 
   /**
-   * Update the image data used to display the colors in a continuous
-   * color map.
-   */
-  void UpdateScalarBarTexture(vtkImageData* image);
-
-  /**
    * Get the size of the color bar area as determined by the position
    * coordinates. The painter parameter is needed to calculate the thickness
    * of the scalar bar in terms of the selected font size.
@@ -397,7 +376,7 @@ private:
    * the rect containing only the color map, not the out-of-range
    * or NaN color swatches.
    */
-  vtkRectf GetColorBarRect(double size[2], bool includeSwatch = true);
+  vtkRectf GetColorBarRect(double size[2]);
 
   /**
    * Copy appropriate text properties to the axis text properties.
