@@ -136,8 +136,8 @@ public:
   /**
    * Printf format for range labels.
    */
-  vtkSetStringMacro(RangeLabelFormat);
-  vtkGetStringMacro(RangeLabelFormat);
+  vtkSetMacro(RangeLabelFormat, std::string);
+  vtkGetMacro(RangeLabelFormat, std::string);
   ///@}
 
   ///@{
@@ -197,8 +197,8 @@ public:
   /**
    * Set/Get the title of the scalar bar actor,
    */
-  vtkSetStringMacro(Title2);
-  vtkGetStringMacro(Title2);
+  vtkSetMacro(Title2, std::string);
+  vtkGetMacro(Title2, std::string);
   ///@}
 
 protected:
@@ -231,7 +231,7 @@ private:
   bool AutomaticLabelFormat = true;
 
   bool AddRangeLabels = true;
-  char* RangeLabelFormat = nullptr;
+  std::string RangeLabelFormat = "%g";
 
   /**
    * Flag that controls whether an outline is drawn around the scalar bar.
@@ -258,7 +258,7 @@ private:
    * to vtkContext2DTexturedScalarBarActor::Paint().
    */
   class vtkScalarBarItem;
-  vtkScalarBarItem* ScalarBarItem;
+  vtkNew<vtkScalarBarItem> ScalarBarItem;
 
   /**
    * Needed to convert Position{2}Coordinate to display coordinates.
@@ -268,12 +268,12 @@ private:
   /**
    * Axis for value labels, etc.
    */
-  vtkAxis* Axis;
+  vtkNew<vtkAxis> Axis;
 
   /**
    * Keep track of whether we are currently computing the bounds.
    */
-  bool InGetBoundingRect;
+  bool InGetBoundingRect = false;
 
   /**
    * Stores the rect containing the full scalar bar actor.
@@ -329,7 +329,7 @@ private:
   double SecondRange[2] = { 0, 0 };
 
   // Test
-  char* Title2 = nullptr;
+  std::string Title2;
 };
 
 #endif // vtkContext2DTexturedScalarBarActor_h

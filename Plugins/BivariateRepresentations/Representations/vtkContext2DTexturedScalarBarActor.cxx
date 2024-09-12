@@ -109,36 +109,21 @@ vtkStandardNewMacro(vtkContext2DTexturedScalarBarActor);
 //----------------------------------------------------------------------------
 vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
 {
-  this->SetRangeLabelFormat("%g");
-
   // Declared in superclass
   this->CustomLabels = vtkDoubleArray::New();
 
-  this->ScalarBarItem = vtkScalarBarItem::New();
+  // Setup internal ressources
   this->ScalarBarItem->Actor = this;
 
   vtkNew<vtkContextScene> localScene;
   this->ActorDelegate->SetScene(localScene);
   localScene->AddItem(this->ScalarBarItem);
 
-  this->Axis = vtkAxis::New();
   this->Axis->SetScene(localScene);
-
-  this->InGetBoundingRect = false;
 }
 
 //----------------------------------------------------------------------------
-vtkContext2DTexturedScalarBarActor::~vtkContext2DTexturedScalarBarActor()
-{
-  this->SetLookupTable(nullptr);
-  this->SetTitle(nullptr);
-  this->SetComponentTitle(nullptr);
-  this->ScalarBarItem->Delete();
-  this->SetTitleTextProperty(nullptr);
-  this->SetLabelTextProperty(nullptr);
-  this->Axis->Delete();
-  this->SetRangeLabelFormat(nullptr);
-}
+vtkContext2DTexturedScalarBarActor::~vtkContext2DTexturedScalarBarActor() = default;
 
 //----------------------------------------------------------------------------
 void vtkContext2DTexturedScalarBarActor::SetNumberOfCustomLabels(vtkIdType numLabels)
@@ -168,21 +153,14 @@ void vtkContext2DTexturedScalarBarActor::SetCustomLabel(vtkIdType index, double 
 int vtkContext2DTexturedScalarBarActor::RenderOverlay(vtkViewport* viewport)
 {
   this->CurrentViewport = viewport;
-
   this->CurrentBoundingRect = this->GetBoundingRect();
-
-  int returnValue = 0;
-  
-  returnValue = this->ActorDelegate->RenderOverlay(viewport);
-
-  return returnValue;
+  return this->ActorDelegate->RenderOverlay(viewport);
 }
 
 //----------------------------------------------------------------------------
 int vtkContext2DTexturedScalarBarActor::RenderOpaqueGeometry(vtkViewport* viewport)
 {
   this->CurrentViewport = viewport;
-
   return 1;
 }
 
@@ -238,14 +216,8 @@ void vtkContext2DTexturedScalarBarActor::GetSize(double size[2], vtkContext2D* p
 vtkRectf vtkContext2DTexturedScalarBarActor::GetColorBarRect(double size[2])
 {
   vtkRectf rect = vtkRectf(0, 0, size[0], size[1]);
-
-  // Count up the swatches
-  double shift = 0;
-  double sizeReduction = 0;
-
-  rect.SetY(rect.GetY() + shift);
-  rect.SetHeight(rect.GetHeight() - sizeReduction);
-
+  rect.SetY(rect.GetY());
+  rect.SetHeight(rect.GetHeight());
   return rect;
 }
 
@@ -392,7 +364,7 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
     }
   }
 
-  double range[2];
+  double range[2] = { 0., 0. };
   if (orientation == VTK_ORIENT_VERTICAL)
   {
     range[0] = this->FirstRange[0];
@@ -579,7 +551,7 @@ bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
   // so that things like tile scale and DPI are correct.
   this->Axis->GetScene()->SetRenderer(vtkRenderer::SafeDownCast(this->CurrentViewport));
 
-  double size[2];
+  double size[2] = { 0., 0. };
   this->GetSize(size, painter);
 
   // Paint the various components
