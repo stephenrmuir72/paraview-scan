@@ -209,49 +209,49 @@ private:
   vtkContext2DTexturedScalarBarActor(const vtkContext2DTexturedScalarBarActor&) = delete;
   void operator=(const vtkContext2DTexturedScalarBarActor&) = delete;
 
-  vtkContextActor* ActorDelegate;
+  vtkNew<vtkContextActor> ActorDelegate;
 
-  int TitleJustification;
-
-  /**
-   * Color of the scalar bar outline.
-   */
-  double ScalarBarOutlineColor[3];
+  int TitleJustification = VTK_TEXT_LEFT;
 
   /**
    * Background Color. Includes opacity in the fourth element.
    */
-  double BackgroundColor[4];
+  double BackgroundColor[4] = { 1.0, 1.0, 1.0 , 0.5 };
 
   /**
    * Padding to add to the background rectangle around the contents of the color legend.
    */
-  double BackgroundPadding;
+  double BackgroundPadding = 2.0;
 
   /**
    * Length of the color bar.
    */
-  double ScalarBarLength;
+  double ScalarBarLength = 0.33;
 
-  int AutomaticLabelFormat;
+  bool AutomaticLabelFormat = true;
 
-  int AddRangeLabels;
-  char* RangeLabelFormat;
+  bool AddRangeLabels = true;
+  char* RangeLabelFormat = nullptr;
 
   /**
    * Flag that controls whether an outline is drawn around the scalar bar.
    */
-  bool DrawScalarBarOutline;
+  bool DrawScalarBarOutline = true;
+
+  /**
+   * Color of the scalar bar outline.
+   */
+  double ScalarBarOutlineColor[3] = { 1.0, 1.0, 1.0 };
 
   /**
    * Thickness of color bar outline.
    */
-  int ScalarBarOutlineThickness;
+  int ScalarBarOutlineThickness = 1;
 
   /**
    * Should ticks be drawn?
    */
-  bool DrawTickMarks;
+  bool DrawTickMarks = true;
 
   /**
    * Charts API subclass we use to redirect the Paint() request back
@@ -263,7 +263,7 @@ private:
   /**
    * Needed to convert Position{2}Coordinate to display coordinates.
    */
-  vtkViewport* CurrentViewport;
+  vtkViewport* CurrentViewport = nullptr;
 
   /**
    * Axis for value labels, etc.

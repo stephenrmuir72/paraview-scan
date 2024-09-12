@@ -71,13 +71,6 @@
 //   + +
 // (0, 0)
 
-namespace
-{
-// This encodes the padding applied to the range displayed when the bar is vertical.
-// The padding equals RANGE_VERTICAL_PADDING * its text height.
-constexpr double RANGE_VERTICAL_PADDING = 1.3;
-} // anonymous namespace
-
 // This class is a vtkContextItem that can be added to a vtkContextScene.
 //----------------------------------------------------------------------------
 class vtkContext2DTexturedScalarBarActor::vtkScalarBarItem : public vtkContextItem
@@ -116,46 +109,17 @@ vtkStandardNewMacro(vtkContext2DTexturedScalarBarActor);
 //----------------------------------------------------------------------------
 vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
 {
-  this->ActorDelegate = vtkContextActor::New();
-
-  this->TitleJustification = VTK_TEXT_LEFT;
-
-  this->ScalarBarLength = 0.33;
-
-  this->AutomaticLabelFormat = 1;
-
-  this->AddRangeLabels = 1;
-  this->RangeLabelFormat = nullptr;
   this->SetRangeLabelFormat("%g");
 
-  this->DrawScalarBarOutline = true;
-  this->ScalarBarOutlineColor[0] = 1.0;
-  this->ScalarBarOutlineColor[1] = 1.0;
-  this->ScalarBarOutlineColor[2] = 1.0;
-  this->ScalarBarOutlineThickness = 1;
-
-  this->DrawBackground = false;
-  this->BackgroundColor[0] = 1.0;
-  this->BackgroundColor[1] = 1.0;
-  this->BackgroundColor[2] = 1.0;
-  this->BackgroundColor[3] = 0.5;
-
-  this->BackgroundPadding = 2.0;
-
-  this->DrawTickMarks = true;
-
-  // Create an array for the custom labels
+  // Declared in superclass
   this->CustomLabels = vtkDoubleArray::New();
 
   this->ScalarBarItem = vtkScalarBarItem::New();
   this->ScalarBarItem->Actor = this;
 
-  vtkContextScene* localScene = vtkContextScene::New();
+  vtkNew<vtkContextScene> localScene;
   this->ActorDelegate->SetScene(localScene);
   localScene->AddItem(this->ScalarBarItem);
-  localScene->Delete();
-
-  this->CurrentViewport = nullptr;
 
   this->Axis = vtkAxis::New();
   this->Axis->SetScene(localScene);
@@ -167,7 +131,6 @@ vtkContext2DTexturedScalarBarActor::vtkContext2DTexturedScalarBarActor()
 vtkContext2DTexturedScalarBarActor::~vtkContext2DTexturedScalarBarActor()
 {
   this->SetLookupTable(nullptr);
-  this->ActorDelegate->Delete();
   this->SetTitle(nullptr);
   this->SetComponentTitle(nullptr);
   this->ScalarBarItem->Delete();
@@ -209,10 +172,8 @@ int vtkContext2DTexturedScalarBarActor::RenderOverlay(vtkViewport* viewport)
   this->CurrentBoundingRect = this->GetBoundingRect();
 
   int returnValue = 0;
-  if (this->ActorDelegate)
-  {
-    returnValue = this->ActorDelegate->RenderOverlay(viewport);
-  }
+  
+  returnValue = this->ActorDelegate->RenderOverlay(viewport);
 
   return returnValue;
 }
@@ -228,8 +189,7 @@ int vtkContext2DTexturedScalarBarActor::RenderOpaqueGeometry(vtkViewport* viewpo
 //----------------------------------------------------------------------------
 void vtkContext2DTexturedScalarBarActor::ReleaseGraphicsResources(vtkWindow* window)
 {
-  if (!this->ActorDelegate || !this->ActorDelegate->GetScene() ||
-    !this->ActorDelegate->GetScene()->GetLastPainter())
+  if (!this->ActorDelegate->GetScene() || !this->ActorDelegate->GetScene()->GetLastPainter())
   {
     return;
   }
@@ -473,23 +433,7 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
 
   if (this->UseCustomLabels)
   {
-    if (this->Axis->GetLogScale())
-    {
-      // Take log of label positions
-      vtkNew<vtkDoubleArray> logCustomLabels;
-      logCustomLabels->SetNumberOfTuples(this->CustomLabels->GetNumberOfTuples());
-      for (vtkIdType id = 0; id < logCustomLabels->GetNumberOfTuples(); ++id)
-      {
-        double d = this->CustomLabels->GetValue(id);
-        d = log10(d);
-        logCustomLabels->SetValue(id, d);
-      }
-      this->Axis->SetCustomTickPositions(logCustomLabels.GetPointer());
-    }
-    else
-    {
-      this->Axis->SetCustomTickPositions(this->CustomLabels);
-    }
+    this->Axis->SetCustomTickPositions(this->CustomLabels);
   }
   else
   {
