@@ -424,7 +424,7 @@
       </DoubleVectorProperty>
       <StringVectorProperty animateable="0"
                             command="SetComponentTitle"
-                            default_values="Component"
+                            default_values=""
                             no_custom_default="1"
                             name="ComponentTitle"
                             number_of_elements="1">
@@ -724,7 +724,7 @@
 
   <!-- ProxyGroup should be different from "representations" since this ScalarBarWidgetRepresentationProxy name -->
   <!-- Has to be the same than the one defined in ParaView. This proxy name is used to retrieve the scalar bar -->
-  <!-- proxy and is not parametrable yet. -->
+  <!-- proxy and is not parametrable yet (see vtkSMTransferFunctionProxy::FindScalarBarRepresentation) -->
   <ProxyGroup name="CustomScalarBarWidgetRepresentation">
     <Proxy class="vtkContext2DTexturedScalarBarRepresentation"
            name="ScalarBarRepresentation">

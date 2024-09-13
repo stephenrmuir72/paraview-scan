@@ -369,11 +369,6 @@ public:
 
   ///@{
   /**
-   * Set the scalar bar texture.
-   */
-  static bool SetScalarBarTexture(vtkSMProxy* proxy, vtkSMProxy* view);
-
-  /**
    * While SetScalarBarVisibility can be used to hide a scalar bar, it will
    * always simply hide the scalar bar even if its being used by some other
    * representation. Use this method instead to only hide the scalar/color bar

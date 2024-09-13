@@ -29,9 +29,6 @@
 #include "vtkStringList.h"
 #include "vtkVariant.h"
 
-#include "vtkSMProxyManager.h"
-#include "vtkSMSessionProxyManager.h"
-
 #include "vtksys/SystemTools.hxx"
 
 #include <algorithm>
@@ -3024,78 +3021,6 @@ std::vector<int> vtkSMColorMapEditorHelper::IsBlocksScalarBarStickyVisible(
     }
   }
   return blockStickyVisibleVec;
-}
-
-//----------------------------------------------------------------------------
-bool vtkSMColorMapEditorHelper::SetScalarBarTexture(vtkSMProxy* proxy, vtkSMProxy* view)
-{
-  if (!proxy || !view)
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 1");
-    return false;
-  }
-  vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(proxy);
-  if (!repr)
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 2");
-    return false;
-  }
-  vtkSMProperty* lutProperty = proxy->GetProperty("LookupTable");
-  if (!lutProperty)
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 3");
-    return false;
-  }
-  vtkSMPropertyHelper lutPropertyHelper(lutProperty);
-  if (lutPropertyHelper.GetNumberOfElements() == 0 || !lutPropertyHelper.GetAsProxy())
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 4");
-    return false;
-  }
-  vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
-  vtkSMScalarBarWidgetRepresentationProxy* sbProxy =
-    vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
-      vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, view));
-  if (!sbProxy)
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 5");
-    return false;
-  }
-
-  vtkSMProperty* textureProperty = sbProxy->GetProperty("Texture");
-  if (!textureProperty)
-  {
-    vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: 6");
-    return false;
-  }
-
-  vtkSMPropertyHelper texturePropertyHelper(textureProperty);
-  if (texturePropertyHelper.GetNumberOfElements() == 0 || !texturePropertyHelper.GetAsProxy())
-  {
-    vtkDebugWithObjectMacro(nullptr, "No texture defined yet. Adding one ...");
-
-    // Create texture
-    vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-    vtkSMSessionProxyManager* spxm = pxm->GetActiveSessionProxyManager();
-    vtkSMProxy* textureProxy = spxm->NewProxy("textures", "ImageTexture");
-    const std::string texturePath = "/home/tgalland/Data/WaterLilies.png";
-    auto textureName = vtksys::SystemTools::GetFilenameWithoutExtension(texturePath);
-    spxm->RegisterProxy("textures", textureName.c_str(), textureProxy);
-    vtkSMPropertyHelper(textureProxy->GetProperty("FileName")).Set(texturePath.c_str());
-    textureProxy->UpdateVTKObjects();
-
-    // Set texture to scalar bar
-    texturePropertyHelper.Set(textureProxy);
-    sbProxy->UpdateVTKObjects();
-
-    // Delete texture proxy
-    textureProxy->Delete();
-
-    return true;
-  }
-
-  vtkDebugWithObjectMacro(nullptr, "SetScalarBarTexture: OK");
-  return true;
 }
 
 //----------------------------------------------------------------------------

@@ -21,8 +21,6 @@
 #include "vtkRect.h"         // for functions that return vtkRects
 #include "vtkSmartPointer.h" // for smart pointers
 
-#include "vtkTexture.h"
-
 class vtkAxis;
 class vtkColorLegend;
 class vtkColorTransferFunctionItem;
@@ -294,26 +292,6 @@ public:
   vtkGetMacro(DataRangeMax, double);
   ///@}
 
-  //@{
-  /**
-   * Set/get the Logo source representation.
-   * This representation is used to reprent the current 2D texture as a logo
-   * in the current render view.
-   */
-  vtkSetSmartPointerMacro(Texture, vtkTexture);
-  //@}
-
-  vtkSetVector2Macro(FirstRange, double);
-  vtkSetVector2Macro(SecondRange, double);
-
-  ///@{
-  /**
-   * Set/Get the title of the scalar bar actor,
-   */
-  vtkSetStringMacro(Title2);
-  vtkGetStringMacro(Title2);
-  ///@}
-
 protected:
   vtkContext2DScalarBarActor();
   ~vtkContext2DScalarBarActor() override;
@@ -336,18 +314,9 @@ protected:
    */
   int VerticalOffset = 0;
 
-  vtkSmartPointer<vtkTexture> Texture;
-  
-  double FirstRange[2] = { 0, 0 };
-  double SecondRange[2] = { 0, 0 };
-
-  // Test
-  char* Title2 = nullptr;
-
 private:
   vtkContext2DScalarBarActor(const vtkContext2DScalarBarActor&) = delete;
   void operator=(const vtkContext2DScalarBarActor&) = delete;
-  
 
   vtkContextActor* ActorDelegate;
 
@@ -460,7 +429,7 @@ private:
    * coordinates. The painter parameter is needed to calculate the thickness
    * of the scalar bar in terms of the selected font size.
    */
-  void GetSize(double size[2], vtkContext2D* painter, int orientation);
+  void GetSize(double size[2], vtkContext2D* painter);
 
   /**
    * Compute the rect where the color bar will be displayed. This is
@@ -501,17 +470,17 @@ private:
   /**
    * Paint the color bar itself.
    */
-  void PaintColorBar(vtkContext2D* painter, double size[2], vtkImageData* texture);
+  void PaintColorBar(vtkContext2D* painter, double size[2]);
 
   /**
    * Paint the axis and label positions.
    */
-  void PaintAxis(vtkContext2D* painter, double size[2], int orientation);
+  void PaintAxis(vtkContext2D* painter, double size[2]);
 
   /**
    * Set up the axis title. Returns the bounding rect of all elements in the color legend.
    */
-  void PaintTitle(vtkContext2D* painter, double size[2], const std::string& title, int orientation);
+  void PaintTitle(vtkContext2D* painter, double size[2]);
 
   /**
    * Adds the min and max range of the displayed representations on the scalar bar.

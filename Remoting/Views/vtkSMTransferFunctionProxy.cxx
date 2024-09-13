@@ -1026,7 +1026,6 @@ vtkSMProxy* vtkSMTransferFunctionProxy::FindScalarBarRepresentation(vtkSMProxy* 
 {
   if (!view || !view->GetProperty("Representations"))
   {
-    vtkDebugMacro("No view");
     return nullptr;
   }
 
@@ -1035,13 +1034,11 @@ vtkSMProxy* vtkSMTransferFunctionProxy::FindScalarBarRepresentation(vtkSMProxy* 
   {
     vtkSMProxy* current = reprHelper.GetAsProxy(cc);
     if (current && current->GetXMLName() &&
-      (strcmp(current->GetXMLName(), "ScalarBarWidgetRepresentation") == 0 
-        /*|| strcmp(current->GetXMLGroup(), "CustomScalarBarWidgetRepresentation") == 0*/) &&
+      strcmp(current->GetXMLName(), "ScalarBarWidgetRepresentation") == 0 &&
       current->GetProperty("LookupTable"))
     {
       if (vtkSMPropertyHelper(current, "LookupTable").GetAsProxy() == this)
       {
-        vtkDebugMacro("Can't retrieve LUT");
         return current;
       }
     }

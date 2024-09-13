@@ -1953,14 +1953,6 @@
           Set the title text with respect to the color legend.
         </Documentation>
       </StringVectorProperty>
-      <StringVectorProperty animateable="0"
-                            command="SetTitle2"
-                            default_values="Name"
-                            no_custom_default="1"
-                            name="Title2"
-                            number_of_elements="1">
-        <Documentation>Set the title text with respect to the color legend.</Documentation>
-      </StringVectorProperty>
       <DoubleVectorProperty animateable="0"
                             command="SetDataRangeMin"
                             default_values="0"
@@ -1982,18 +1974,6 @@
         <Documentation>
           Set the maximum range with respect to the displayed representations.
         </Documentation>
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetFirstRange"
-                            name="FirstRange"
-                            number_of_elements="2"
-                            default_values="0 0">
-        <Documentation>Test</Documentation>
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetSecondRange"
-                            name="SecondRange"
-                            number_of_elements="2"
-                            default_values="0 0">
-        <Documentation>Test</Documentation>
       </DoubleVectorProperty>
       <IntVectorProperty command="SetDrawDataRange"
                          default_values="0"

@@ -156,7 +156,6 @@ void vtkSMScalarBarWidgetRepresentationProxy::PrintSelf(ostream& os, vtkIndent i
 //----------------------------------------------------------------------------
 bool vtkSMScalarBarWidgetRepresentationProxy::UpdateComponentTitle(vtkPVArrayInformation* arrayInfo)
 {
-  cout << "Update component title" << endl;
   vtkSMProperty* compProp = this->GetProperty("ComponentTitle");
   if (compProp == nullptr)
   {

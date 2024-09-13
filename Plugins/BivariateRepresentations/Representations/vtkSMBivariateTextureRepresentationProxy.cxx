@@ -105,6 +105,8 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
     
     if (this->TexturedScalarBarProxy)
     {
+      // Unregister previous textured scalar bar proxy.  vtkSMTransferFunctionManager::GetScalarBarRepresentation
+      // will take care to create a new standard scalar bar when switching to other (internal) representations.
       cout << "Unregister previous proxy..." << endl;
       vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
       vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
@@ -273,9 +275,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   this->TexturedScalarBarProxy = sbProxy;
   sbProxy->FastDelete();
 
-  // TO REMOVE
-  vtkNew<vtkSMTransferFunctionManager> tmgr;
-  tmgr->UpdateScalarBarsComponentTitle(lutProxy, this);
+  // vtkSMTransferFunctionManager::UpdateScalarBarsComponentTitle
 
   vtkSMPropertyHelper(this->CurrentView, "Representations").Add(sbProxy);
   this->CurrentView->UpdateVTKObjects();

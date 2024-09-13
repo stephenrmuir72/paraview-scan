@@ -230,11 +230,8 @@ vtkSMProxy* vtkSMTransferFunctionManager::GetScalarBarRepresentation(
     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(colorTransferFunction, view);
   if (scalarBarProxy)
   {
-    // cout << "FOUND !" << endl;
     return scalarBarProxy;
   }
-
-  cout << "NOT FOUND..." << endl;
 
   // Create a new scalar bar representation.
   vtkSMSessionProxyManager* pxm = colorTransferFunction->GetSessionProxyManager();
