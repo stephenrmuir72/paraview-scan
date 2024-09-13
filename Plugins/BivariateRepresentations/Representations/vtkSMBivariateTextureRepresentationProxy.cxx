@@ -34,58 +34,11 @@
 vtkStandardNewMacro(vtkSMBivariateTextureRepresentationProxy);
 
 //----------------------------------------------------------------------------
-vtkSMBivariateTextureRepresentationProxy::vtkSMBivariateTextureRepresentationProxy()
-{
-  cout << "Bivariate Created" << endl;
-  // this->SetDebug(true);
-}
-
-//----------------------------------------------------------------------------
-vtkSMBivariateTextureRepresentationProxy::~vtkSMBivariateTextureRepresentationProxy()
-{
-
-}
-
-//----------------------------------------------------------------------------
 void vtkSMBivariateTextureRepresentationProxy::ViewUpdated(vtkSMProxy* view)
 {
   this->CurrentView = view;
   this->Superclass::ViewUpdated(view);
 }
-
-// //----------------------------------------------------------------------------
-// vtkSMProxy* vtkSMBivariateTextureRepresentationProxy::FindScalarBarRepresentation()
-// {
-//   if (!this->CurrentView || !this->CurrentView->GetProperty("Representations"))
-//   {
-//     vtkDebugMacro("No view");
-//     return nullptr;
-//   }
-
-//   vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
-//   if (!lutProperty) { cout << "no lut property" << endl; return nullptr; }
-//   vtkSMPropertyHelper lutPropertyHelper(lutProperty);
-
-//   vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
-
-//   vtkSMPropertyHelper reprHelper(this->CurrentView, "Representations");
-//   for (unsigned int cc = 0; cc < reprHelper.GetNumberOfElements(); cc++)
-//   {
-//     vtkSMProxy* current = reprHelper.GetAsProxy(cc);
-//     if (current && current->GetXMLName() &&
-//       strcmp(current->GetXMLName(), "ScalarBarWidgetRepresentation2") == 0 &&
-//       current->GetProperty("LookupTable"))
-//     {
-//       if (vtkSMPropertyHelper(current, "LookupTable").GetAsProxy() == this)
-//       {
-//         vtkDebugMacro("Can't retrieve LUT");
-//         return current;
-//       }
-//     }
-//   }
-//   return nullptr;
-// }
-
 
 //----------------------------------------------------------------------------
 void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
@@ -93,36 +46,15 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
   cout << "Create VTK Objects" << endl;
     
   if (this->Initialized)
-  {
-    // vtkSMProperty* lutProperty = this->GetProperty("LookupTable");
-    // if (!lutProperty) { cout << "no lut property" << endl; return; }
-    // vtkSMPropertyHelper lutPropertyHelper(lutProperty);
-
-    // vtkSMProxy* lutProxy = lutPropertyHelper.GetAsProxy();
-    // vtkSMScalarBarWidgetRepresentationProxy* oldSbProxy =
-    //   vtkSMScalarBarWidgetRepresentationProxy::SafeDownCast(
-    //     vtkSMTransferFunctionProxy::FindScalarBarRepresentation(lutProxy, this->CurrentView));
-    
+  { 
     if (this->TexturedScalarBarProxy)
     {
-      // Unregister previous textured scalar bar proxy.  vtkSMTransferFunctionManager::GetScalarBarRepresentation
-      // will take care to create a new standard scalar bar when switching to other (internal) representations.
-      cout << "Unregister previous proxy..." << endl;
-      vtkSMProxyManager* proxyManager = vtkSMProxyManager::GetProxyManager();
-      vtkSMSessionProxyManager* pxm = proxyManager->GetActiveSessionProxyManager();
+      // Remove the textured scalar bar from the view. This will force vtkSMTransferFunctionManager::GetScalarBarRepresentation
+      // to to create or retrieve a standard scalar bar when switching to other (internal) representations.
+
+      cout << "Hide textured scalar bar" << endl;
       vtkSMPropertyHelper(this->CurrentView, "Representations").Remove(this->TexturedScalarBarProxy);
       this->CurrentView->UpdateVTKObjects();
-      pxm->UnRegisterProxy(this->TexturedScalarBarProxy);
-      this->TexturedScalarBarProxy = nullptr;
-
-      // auto* view = vtkSMViewProxy::SafeDownCast(this->CurrentView);
-      // if (view)
-      // {
-      //   cout << "Update View" << endl;
-      //   view->GetSession()->PrepareProgress();
-      //   view->StillRender();
-      //   view->GetSession()->CleanupPendingProgress();
-      // }
     }
     this->Initialized = false;
   }
@@ -142,11 +74,11 @@ void vtkSMBivariateTextureRepresentationProxy::CreateVTKObjects()
   // ensure that all representations have valid Representations domain.
   this->UpdatePropertyInformation();
 
-  // this->SetupPropertiesLinks();
-
   // XXX : look for property links and do everything on proxy side
   this->AddObserver(
     vtkCommand::UpdateDataEvent, this, &vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated);
+
+  // this->SetupPropertiesLinks();
   // this->AddObserver(
   //   vtkCommand::UpdateDataEvent, this, &vtkSMBivariateTextureRepresentationProxy::SetupPropertiesLinks);
 }
@@ -258,29 +190,32 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
     // oldSbProxy->Delete();
   }
 
-  cout << "Creating new scalar bar proxy" << endl;
-  vtkSMProxy* sbProxy = pxm->NewProxy("CustomScalarBarWidgetRepresentation", "ScalarBarWidgetRepresentation");
-  if (!sbProxy)
+  if (!this->TexturedScalarBarProxy)
   {
-    vtkDebugMacro( << "Failed to create bar proxy." );
-    return;
-  }
-  
-  vtkNew<vtkSMParaViewPipelineController> controller;
-  controller->PreInitializeProxy(sbProxy);
-  vtkSMPropertyHelper(sbProxy, "LookupTable").Set(lutProxy);
-  controller->PostInitializeProxy(sbProxy);
+    cout << "Creating new scalar bar proxy" << endl;
+    vtkSMProxy* sbProxy = pxm->NewProxy("CustomScalarBarWidgetRepresentation", "ScalarBarWidgetRepresentation");
+    if (!sbProxy)
+    {
+      vtkDebugMacro( << "Failed to create bar proxy." );
+      return;
+    }
+    
+    vtkNew<vtkSMParaViewPipelineController> controller;
+    controller->PreInitializeProxy(sbProxy);
+    vtkSMPropertyHelper(sbProxy, "LookupTable").Set(lutProxy);
+    controller->PostInitializeProxy(sbProxy);
 
-  pxm->RegisterProxy("scalar_bars", sbProxy);
-  this->TexturedScalarBarProxy = sbProxy;
-  sbProxy->FastDelete();
+    pxm->RegisterProxy("scalar_bars", sbProxy);
+    this->TexturedScalarBarProxy = sbProxy;
+    sbProxy->FastDelete();
+  }
 
   // vtkSMTransferFunctionManager::UpdateScalarBarsComponentTitle
 
-  vtkSMPropertyHelper(this->CurrentView, "Representations").Add(sbProxy);
+  vtkSMPropertyHelper(this->CurrentView, "Representations").Add(this->TexturedScalarBarProxy);
   this->CurrentView->UpdateVTKObjects();
 
-  vtkSMProperty* sbTextureProperty = sbProxy->GetProperty("Texture");
+  vtkSMProperty* sbTextureProperty = this->TexturedScalarBarProxy->GetProperty("Texture");
   if (!sbTextureProperty)
   {
     vtkDebugMacro( << "No SB texture property" );
@@ -380,7 +315,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   secondArrayHelper.Get(range2, 2);
   vtkDebugMacro( << "Range 2 : " << range2[0] << " " << range2[1] );
 
-  vtkSMProperty* firstRange = sbProxy->GetProperty("FirstRange");
+  vtkSMProperty* firstRange = this->TexturedScalarBarProxy->GetProperty("FirstRange");
   if (!firstRange)
   {
     vtkDebugMacro( << "No first range." );
@@ -389,7 +324,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   vtkSMPropertyHelper firstRangeHelper(firstRange);
   firstRangeHelper.Set(range1, 2);
 
-  vtkSMProperty* secondRange = sbProxy->GetProperty("SecondRange");
+  vtkSMProperty* secondRange = this->TexturedScalarBarProxy->GetProperty("SecondRange");
   if (!secondRange)
   {
     vtkDebugMacro( << "No second range." );
@@ -431,7 +366,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   std::string name2(secondArrayNameHelper.GetAsString());
   vtkDebugMacro( << "Name 2 : " << name2 );
 
-  vtkSMProperty* sbFirstName = sbProxy->GetProperty("Title");
+  vtkSMProperty* sbFirstName = this->TexturedScalarBarProxy->GetProperty("Title");
   if (!sbFirstName)
   {
     vtkDebugMacro( << "No Title 1" );
@@ -440,7 +375,7 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   vtkSMPropertyHelper sbFirstNameHelper(sbFirstName);
   sbFirstNameHelper.Set(name1.c_str());
 
-  vtkSMProperty* sbSecondName = sbProxy->GetProperty("Title2");
+  vtkSMProperty* sbSecondName = this->TexturedScalarBarProxy->GetProperty("Title2");
   if (!sbSecondName)
   {
     vtkDebugMacro( << "No Title 2" );
@@ -457,8 +392,9 @@ void vtkSMBivariateTextureRepresentationProxy::OnPropertyUpdated(vtkObject*, uns
   // scalarBarActor2Proxy->Copy(oldActorProxy);
   // scalarBarActor2Proxy->UpdateVTKObjects();
 
-  sbProxy->UpdateVTKObjects();
+  this->TexturedScalarBarProxy->UpdateVTKObjects();
   // scalarBarActor2Proxy->UpdateVTKObjects();
+  cout << "Property updated done" << endl;
 }
 
 //----------------------------------------------------------------------------

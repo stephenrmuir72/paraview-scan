@@ -215,6 +215,11 @@ public:
   vtkGetMacro(Title2, std::string);
   ///@}
 
+  /**
+   * TODO
+   */
+  int GetEstimatedNumberOfAnnotations() { return 0; }
+
 protected:
   vtkContext2DTexturedScalarBarActor();
   ~vtkContext2DTexturedScalarBarActor() override;
