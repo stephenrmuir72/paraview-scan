@@ -46,30 +46,7 @@
 
 // NOTE FOR DEVELOPERS
 // The color bar is defined so that the origin (0, 0) is the bottom left
-// corner of the region that contains the scalar bar, the out-of-range
-// color swatches, and the NaN color swatches. This is true for both
-// horizontal and vertical orientations.
-//
-// The layout of the color bar for both orientations is as follows:
-//
-// VERTICAL           HORIZONTAL
-//
-//   +-+              Below Range    Above Range  NaN Color
-//   | | Above Range   +-+-------------------+-+ +-+
-//   +-+               | |                   | | | |
-//   | |               +-+-------------------+-+-+-+
-//   | |             (0, 0)    Scalar Bar
-//   | |
-//   | | Scalar Bar
-//   | |
-//   +-+
-//   | | Below Range
-//   +-+
-//
-//   +-+
-//   | | Nan Color
-//   + +
-// (0, 0)
+// corner of the region that contains the scalar bar.
 
 namespace
 {
@@ -372,6 +349,25 @@ void vtkContext2DTexturedScalarBarActor::PaintAxis(vtkContext2D* painter, double
 }
 
 //----------------------------------------------------------------------------
+vtkRectf vtkContext2DTexturedScalarBarActor::ComputeAxisBoundingRect(double size, int orientation)
+{
+  // vtkAxis::GetBoundingRect() is not accurate.  Compute it ourselves.
+  // All the code in this section is needed to get the actual bounds of
+  // the axis including any offsets applied in PaintAxis().
+  vtkNew<vtkBoundingRectContextDevice2D> boundingDevice;
+  vtkNew<vtkContextDevice2D> contextDevice;
+  boundingDevice->SetDelegateDevice(contextDevice.Get());
+  boundingDevice->Begin(this->CurrentViewport);
+  vtkNew<vtkContext2D> context;
+  context->Begin(boundingDevice);
+  this->PaintAxis(context, size, orientation);
+  context->End();
+  boundingDevice->End();
+
+  return boundingDevice->GetBoundingRect();
+}
+
+//----------------------------------------------------------------------------
 void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, double size, const std::string& title, int orientation)
 {
   std::string combinedTitle(title);
@@ -397,21 +393,7 @@ void vtkContext2DTexturedScalarBarActor::PaintTitle(vtkContext2D* painter, doubl
   float titleWidth = titleBounds[2];
   float titleHeight = titleBounds[3];
 
-  // vtkAxis::GetBoundingRect() is not accurate.  Compute it ourselves.
-  // All the code in this section is needed to get the actual bounds of
-  // the axis including any offsets applied in PaintAxis().
-  vtkNew<vtkBoundingRectContextDevice2D> boundingDevice;
-  vtkNew<vtkContextDevice2D> contextDevice;
-  boundingDevice->SetDelegateDevice(contextDevice.Get());
-  boundingDevice->Begin(this->CurrentViewport);
-  vtkNew<vtkContext2D> context;
-  context->Begin(boundingDevice);
-  this->PaintAxis(context, size, orientation);
-  context->End();
-  boundingDevice->End();
-
-  vtkRectf axisRect = boundingDevice->GetBoundingRect();
-
+  vtkRectf axisRect = this->ComputeAxisBoundingRect(size, orientation);
   vtkRectf barAndAxisRect = axisRect;
   vtkRectf colorBarRect = ::GetColorBarRect(size);
   barAndAxisRect.AddRect(colorBarRect);
@@ -523,11 +505,15 @@ bool vtkContext2DTexturedScalarBarActor::Paint(vtkContext2D* painter)
       this->CurrentBoundingRect.GetHeight() + 2.0 * this->BackgroundPadding);
   }
 
+  // Draw texture
   this->PaintColorBar(painter, size);
 
+  // Draw axis
   this->PaintAxis(painter, size, VTK_ORIENT_VERTICAL);
-  this->PaintTitle(painter, size, this->Title, VTK_ORIENT_VERTICAL);
   this->PaintAxis(painter, size, VTK_ORIENT_HORIZONTAL);
+
+  // Draw titles
+  this->PaintTitle(painter, size, this->Title, VTK_ORIENT_VERTICAL);
   this->PaintTitle(painter, size, this->Title2, VTK_ORIENT_HORIZONTAL);
 
   // Restore settings

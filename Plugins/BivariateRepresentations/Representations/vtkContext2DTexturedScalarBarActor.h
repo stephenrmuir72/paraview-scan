@@ -181,21 +181,35 @@ public:
    */
   vtkRectf GetBoundingRect();
 
-  //@{
+  ///@{
   /**
    * Set/get the Logo source representation.
    * This representation is used to reprent the current 2D texture as a logo
    * in the current render view.
    */
   vtkSetSmartPointerMacro(Texture, vtkTexture);
-  //@}
-
-  vtkSetVector2Macro(FirstRange, double);
-  vtkSetVector2Macro(SecondRange, double);
+  vtkGetSmartPointerMacro(Texture, vtkTexture);
+  ///@}
 
   ///@{
   /**
-   * Set/Get the title of the scalar bar actor,
+   * Set/get the range of the first array used to draw the horizontal axis.
+   */
+  vtkSetVector2Macro(FirstRange, double);
+  vtkGetVector2Macro(FirstRange, double);
+  ///@}
+
+  ///@{
+  /**
+   * Set/get the range of the second array used to draw the vertical axis.
+   */
+  vtkSetVector2Macro(SecondRange, double);
+  vtkGetVector2Macro(SecondRange, double);
+  ///@}
+
+  ///@{
+  /**
+   * Set/Get the title of the second axis.
    */
   vtkSetMacro(Title2, std::string);
   vtkGetMacro(Title2, std::string);
@@ -209,49 +223,61 @@ private:
   vtkContext2DTexturedScalarBarActor(const vtkContext2DTexturedScalarBarActor&) = delete;
   void operator=(const vtkContext2DTexturedScalarBarActor&) = delete;
 
+  /**
+   * Used to render the 2D vtkContextScene.
+   */
   vtkNew<vtkContextActor> ActorDelegate;
 
+  /**
+   * Justification of the titles (relative to the axis).
+   */
   int TitleJustification = VTK_TEXT_LEFT;
 
   /**
-   * Background Color. Includes opacity in the fourth element.
+   * Background Parameters.
    */
   double BackgroundColor[4] = { 1.0, 1.0, 1.0 , 0.5 };
-
-  /**
-   * Padding to add to the background rectangle around the contents of the color legend.
-   */
   double BackgroundPadding = 2.0;
 
   /**
-   * Length of the color bar.
+   * Scalar bar size (square sides length).
    */
   double ScalarBarLength = 0.15;
 
+  /**
+   * Label parameters.
+   */
   bool AutomaticLabelFormat = true;
-
   bool AddRangeLabels = true;
   std::string RangeLabelFormat = "%g";
 
   /**
-   * Flag that controls whether an outline is drawn around the scalar bar.
+   * Outline parameters.
    */
   bool DrawScalarBarOutline = true;
-
-  /**
-   * Color of the scalar bar outline.
-   */
   double ScalarBarOutlineColor[3] = { 1.0, 1.0, 1.0 };
-
-  /**
-   * Thickness of color bar outline.
-   */
   int ScalarBarOutlineThickness = 1;
 
   /**
    * Should ticks be drawn?
    */
   bool DrawTickMarks = true;
+
+  /**
+   * Texture being drawn in the scalar bar.
+   */
+  vtkSmartPointer<vtkTexture> Texture;
+  
+  /**
+   * Data range of the horizontal and vertical axis.
+   */
+  double FirstRange[2] = { 0, 0 };
+  double SecondRange[2] = { 0, 0 };
+
+  /**
+   * Title next to the vertical axis.
+   */
+  std::string Title2;
 
   /**
    * Charts API subclass we use to redirect the Paint() request back
@@ -312,17 +338,9 @@ private:
   void PaintTitle(vtkContext2D* painter, double size, const std::string& title, int orientation);
 
   /**
-   * Adds the min and max range of the displayed representations on the scalar bar.
+   * Compute the bounding box of the drawn axis.
    */
-  void PaintRange(vtkContext2D* painter, double size);
-
-  vtkSmartPointer<vtkTexture> Texture;
-  
-  double FirstRange[2] = { 0, 0 };
-  double SecondRange[2] = { 0, 0 };
-
-  // Test
-  std::string Title2;
+  vtkRectf ComputeAxisBoundingRect(double size, int orientation);
 };
 
 #endif // vtkContext2DTexturedScalarBarActor_h
