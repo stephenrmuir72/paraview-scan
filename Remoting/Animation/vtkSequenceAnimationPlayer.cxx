@@ -8,7 +8,7 @@ vtkStandardNewMacro(vtkSequenceAnimationPlayer);
 //----------------------------------------------------------------------------
 vtkSequenceAnimationPlayer::vtkSequenceAnimationPlayer()
 {
-  this->NumberOfFrames = 10;
+  this->NumberOfFrames = 1;
   this->FrameNo = 0;
 }
 

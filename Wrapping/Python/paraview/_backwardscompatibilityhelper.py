@@ -1154,6 +1154,12 @@ def GetProxy(module, key, **kwargs):
     if compatibility_version <= (5, 12):
         if key in ["ParticlePath", "StreakLine"]:
             return builtins.getattr(module, 'Legacy' + key)(**kwargs)
+    if compatibility_version <= (5, 13):
+        if key == "AnimationScene":
+            # in PV 5.14 we changed the Number of Frames property from 10 to 1
+            animationScene = builtins.getattr(module, key)(**kwargs)
+            animationScene.NumberOfFrames = 10
+            return animationScene
 
     # deprecation case
     if type(key) == tuple and len(key) == 2:
