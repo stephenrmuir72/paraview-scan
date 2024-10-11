@@ -1193,6 +1193,9 @@ def get_deprecated_proxies(proxiesNS):
         proxies[proxiesNS.filters] += [("GenerateSurfaceTangents", "SurfaceTangents")]
         proxies[proxiesNS.filters] += [("LevelScalarsOverlappingAMR", "OverlappingAMRLevelIds")]
 
+    if compatibility_version <= (5, 14):
+        proxies[proxiesNS.filters] += [("HyperTreeGridFeatureEdges", "FeatureEdges")]
+
     return proxies
 
 
