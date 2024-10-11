@@ -10,6 +10,7 @@ set(classes
   vtkLogRecorder
   vtkPVCompositeDataPipeline
   vtkPVDataUtilities
+  vtkPVFeatureEdges
   vtkPVInformationKeys
   vtkPVLogger
   vtkPVNullSource
