@@ -1,4 +1,4 @@
-## ParaView's new imaging testing framework
+## ParaView's new image testing framework
 
 ### Overview
 
@@ -53,12 +53,28 @@ Default threshold is recommended.
 Uses the old metric (not recommended).
 For compatibility with previous testing methods.
 
-##### Example:
+##### XML Example:
 
 ```cmake
 set(Test1_METHOD TIGHT_VALID) # Default
 set(Test1_METHOD LOOSE_VALID)
 set(Test2_METHOD LEGACY_VALID)
+```
+
+##### Cxx Example:
+
+```cmake
+vtk_add_test_cxx(TestFoo.cxx,TIGHT_VALID)
+vtk_add_test_cxx(TestFoo.cxx,LOOSE_VALID)
+vtk_add_test_cxx(TestFoo.cxx,LEGACY_VALID)
+```
+
+##### Python Example:
+
+```cmake
+paraview_add_test_python(TestFoo.cxx,TIGHT_VALID)
+paraview_add_test_python(TestFoo.cxx,LOOSE_VALID)
+paraview_add_test_python(TestFoo.cxx,LEGACY_VALID)
 ```
 
 #### Manual Configuration
