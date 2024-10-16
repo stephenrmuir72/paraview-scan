@@ -1201,6 +1201,7 @@ list(APPEND TESTS_WITH_BASELINES
   PointAndCellIdsHTG.xml
   Protractor.xml
   PVCellCentersHyperTreeGrid.xml
+  RegionIds.xml
   RemoveGhostInformationHTG.xml
   ResampleToLine.xml
   ReverseSense.xml
