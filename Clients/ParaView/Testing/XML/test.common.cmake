@@ -1043,6 +1043,7 @@ list (APPEND TESTS_WITH_INLINE_COMPARES
   CalculatorQuotedVariable.xml
   CameraLink.xml
   CGNSReaderDataLocation.xml
+  CGNSReaderSurfacePatches.xml
   ChartDefaultSettings.xml
   ChartLoadNoVariables.xml
   ClampAndUpdateColorMap.xml
