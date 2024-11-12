@@ -35,6 +35,9 @@ int vtkPVGhostCellsGenerator::GhostCellsGeneratorUsingSuperclassInstance(
   instance->SetBuildIfRequired(this->GetBuildIfRequired());
   instance->SetController(this->GetController());
   instance->SetNumberOfGhostLayers(this->GetNumberOfGhostLayers());
+  instance->SetGenerateGlobalIds(this->GetGenerateGlobalIds());
+  instance->SetGenerateProcessIds(this->GetGenerateProcessIds());
+  instance->SetSynchronizeOnly(this->GetSynchronizeOnly());
 
   vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
   vtkDataObject* outputDO = vtkDataObject::GetData(outputVector, 0);
@@ -204,6 +207,12 @@ int vtkPVGhostCellsGenerator::RequestData(
       {
         // Forward the whole PDS to non-HTG GCG.
         vtkNew<vtkGhostCellsGenerator> ghostCellsGenerator;
+        ghostCellsGenerator->SetController(this->GetController());
+        ghostCellsGenerator->SetBuildIfRequired(this->GetBuildIfRequired());
+        ghostCellsGenerator->SetNumberOfGhostLayers(this->GetNumberOfGhostLayers());
+        ghostCellsGenerator->SetGenerateGlobalIds(this->GetGenerateGlobalIds());
+        ghostCellsGenerator->SetGenerateProcessIds(this->GetGenerateProcessIds());
+        ghostCellsGenerator->SetSynchronizeOnly(this->GetSynchronizeOnly());
         ghostCellsGenerator->SetInputData(currentPDS);
         ghostCellsGenerator->Update();
         auto outputPDS = vtkPartitionedDataSet::SafeDownCast(ghostCellsGenerator->GetOutput(0));
