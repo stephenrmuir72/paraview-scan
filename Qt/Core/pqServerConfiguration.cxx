@@ -340,9 +340,14 @@ void pqServerConfiguration::parseSshPortForwardingXML()
             this->PortForwarding = true;
             this->PortForwardingLocalPort = QString(sshForwardXML->GetAttributeOrDefault(
               "local", QString::number(this->resource().port()).toUtf8().data()));
-            resource.setHost("localhost");
-            resource.setPort(this->PortForwardingLocalPort.toInt());
-            this->ActualURI = resource.schemeHostsPorts().toURI();
+            // rc connection should not set the actual URI
+            // as connection is managed server side with pvserver arguments
+            if (!resource.isReverse())
+            {
+              resource.setHost("localhost");
+              resource.setPort(this->PortForwardingLocalPort.toInt());
+              this->ActualURI = resource.schemeHostsPorts().toURI();
+            }
           }
         }
       }
