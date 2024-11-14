@@ -340,9 +340,14 @@ void pqServerConfiguration::parseSshPortForwardingXML()
             this->PortForwarding = true;
             this->PortForwardingLocalPort = QString(sshForwardXML->GetAttributeOrDefault(
               "local", QString::number(this->resource().port()).toUtf8().data()));
-            resource.setHost("localhost");
-            resource.setPort(this->PortForwardingLocalPort.toInt());
-            this->ActualURI = resource.schemeHostsPorts().toURI();
+            // rc connection should not set the actual URI
+            // as connection is managed server side with pvserver arguments
+            if (!resource.isReverse())
+            {
+              resource.setHost("localhost");
+              resource.setPort(this->PortForwardingLocalPort.toInt());
+              this->ActualURI = resource.schemeHostsPorts().toURI();
+            }
           }
         }
       }
@@ -507,18 +512,13 @@ QString pqServerConfiguration::sshFullCommand(
   vtkPVXMLElement* sshForwardXML = sshConfigXML->FindNestedElementByName("PortForwarding");
   if (sshForwardXML)
   {
+    QString sshFlag = "-L ";
     if (this->resource().isReverse())
     {
-      // Reverse tunnelling
-      sshStream << "-R " << QString::number(this->resource().port())
-                << ":localhost:" << this->PortForwardingLocalPort << " ";
+      sshFlag = "-R ";
     }
-    else
-    {
-      // Forward tunnelling
-      sshStream << "-L " << this->PortForwardingLocalPort
-                << ":localhost:" << QString::number(this->resource().port()) << " ";
-    }
+    sshStream << sshFlag << this->PortForwardingLocalPort
+              << ":localhost:" << QString::number(this->resource().port()) << " ";
   }
 
   QString sshUser = sshConfigXML->GetAttributeOrDefault("user", "");
