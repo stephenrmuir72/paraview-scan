@@ -268,6 +268,14 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid8.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid9.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxesGrid10.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterPDCNoHierarchy.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterPDCNoHierarchy_1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterPDCNoHierarchyYAxis.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterPDCNoHierarchyYAxis_1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterMBHierarchy.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterMBHierarchy_1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterMBHierarchyYAxis.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/AxisAlignedCutterMBHierarchyYAxis_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BatchAxesGrid.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BlockContextMenu-bake-HideOneBlock.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/BlockContextMenu-bake-HideTwoBlocks.png}"
@@ -1041,6 +1049,8 @@ endif()
 
 list (APPEND TESTS_WITH_INLINE_COMPARES
   AxesGrid.xml
+  AxisAlignedCutterMBHierarchy.xml
+  AxisAlignedCutterPDCNoHierarchy.xml
   BoundingRuler.xml
   BoxWidget.xml
   BlockContextMenu.xml
@@ -1169,8 +1179,6 @@ list(APPEND TESTS_WITH_BASELINES
   AnnulusWidget.xml
   AxisAlignedCutterAMR.xml
   AxisAlignedCutterHTG.xml
-  AxisAlignedCutterMBHierarchy.xml
-  AxisAlignedCutterPDCNoHierarchy.xml
   BDFReader.xml
   BoxWidgetVisibleBlock.xml
   CameraOrientationWidget.xml
