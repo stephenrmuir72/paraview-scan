@@ -59,6 +59,11 @@ void vtkSMPropDomain::Update(vtkSMProperty* prop)
   {
     vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(helper.GetAsProxy(cc));
 
+    if (!repr)
+    {
+      continue;
+    }
+
     vtkSMPropertyHelper inputHelper(repr, "Input");
     vtkSMSourceProxy* input = vtkSMSourceProxy::SafeDownCast(inputHelper.GetAsProxy());
 
@@ -66,57 +71,12 @@ void vtkSMPropDomain::Update(vtkSMProperty* prop)
       vtkCompositeRepresentation::SafeDownCast(repr->GetClientSideObject());
     if (compInstance->GetVisibility())
     {
+      // Unused
       objectNames.insert({ compInstance->GetRenderedDataObject(0), input->GetLogName() });
+
       propNames.emplace_back(input->GetLogName());
     }
   }
-
-  // if (!activeView)
-  // {
-  //   // error
-  //   return;
-  // }
-
-  // vtkRenderWindow* renWin = rv->GetRenderWindow();
-  // if (!renWin)
-  // {
-  //   // error
-  //   return;
-  // }
-  // vtkRenderer* renderer = renWin->GetRenderers()->GetFirstRenderer();
-  // if (!renderer)
-  // {
-  //   // error
-  //   return;
-  // }
-
-  // vtkPropCollection* renProps = renderer->GetViewProps();
-  // vtkIdType nbProps = renProps->GetNumberOfItems();
-
-  // for (vtkIdType rpIdx = 0; rpIdx < nbProps; rpIdx++)
-  // {
-  //   vtkProp* prop = vtkProp::SafeDownCast(renProps->GetItemAsObject(rpIdx));
-  //   // Skip non-visible actors
-  //   if (!prop || !prop->GetVisibility())
-  //   {
-  //     continue;
-  //   }
-
-  //   // Skip actors with no geometry
-  //   vtkActor* actor = vtkActor::SafeDownCast(prop);
-  //   if (actor)
-  //   {
-  //     vtkMapper* mapper = actor->GetMapper();
-
-  //     vtkDataObject* dataObject = mapper->GetInputDataObject(0, 0);
-
-  //     // Only take data objects into account
-  //     if (dataObject)
-  //     {
-  //       // To remove
-  //     }
-  //   }
-  // }
 
   this->SetStrings(propNames);
   this->DomainModified();
