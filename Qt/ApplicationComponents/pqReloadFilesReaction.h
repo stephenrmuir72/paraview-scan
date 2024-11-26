@@ -10,7 +10,7 @@ class vtkSMSourceProxy;
 /**
  * @ingroup Reactions
  *
- * pqReloadFilesReaction adds handler code to reload the active reader.
+ * pqReloadFilesReaction adds handler code to reload the active reader or all readers.
  * It calls the "reload" property, identified by hints, if present, or calls
  * vtkSMProxy::RecreateVTKObjects().
  */
@@ -20,13 +20,19 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqReloadFilesReaction : public pqReaction
   typedef pqReaction Superclass;
 
 public:
-  pqReloadFilesReaction(QAction* parent = nullptr);
+  enum ReloadModes
+  {
+    ActiveSource,
+    AllSources
+  };
+
+  pqReloadFilesReaction(QAction* parent = nullptr, ReloadModes reloadMode = ActiveSource);
   ~pqReloadFilesReaction() override;
 
   /**
    * reload the active proxy if it supports reload. Returns true on success.
    */
-  static bool reload();
+  bool reload();
 
   /**
    * reload the \c proxy if it supports reload. Returns true on success.
@@ -39,6 +45,8 @@ protected:
 
 private:
   Q_DISABLE_COPY(pqReloadFilesReaction)
+
+  ReloadModes ReloadMode;
 };
 
 #endif
