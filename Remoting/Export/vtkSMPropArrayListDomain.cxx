@@ -24,7 +24,7 @@ vtkStandardNewMacro(vtkSMPropArrayListDomain);
 void vtkSMPropArrayListDomain::Update(vtkSMProperty* prop)
 {
   // ensures that we fire DomainModifiedEvent only once.
-  DeferDomainModifiedEvents defer(this);
+  vtkSMDomain::DeferDomainModifiedEvents defer(this);
 
   vtkSMProxy* parentProxy = prop->GetParent();
   vtkSMRenderViewExporterProxy* exporterProxy =
@@ -112,4 +112,6 @@ int vtkSMPropArrayListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLEle
 void vtkSMPropArrayListDomain::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "Array Type: "
+     << (this->ArrayType == vtkDataObject::AttributeTypes::POINT ? "point" : "cell");
 }
