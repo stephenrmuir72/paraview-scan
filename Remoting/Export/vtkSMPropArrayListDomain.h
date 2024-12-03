@@ -13,7 +13,7 @@
 #define vtkSMPropArrayListDomain_h
 
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include "vtkSMStringListDomain.h"
+#include "vtkSMArrayListDomain.h"
 
 #include <string>
 
@@ -25,7 +25,7 @@ class vtkPVArrayInformation;
 
 class vtkSMPropArrayListDomainInternals;
 
-class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMPropArrayListDomain : public vtkSMStringListDomain
+class VTKREMOTINGSERVERMANAGER_EXPORT vtkSMPropArrayListDomain : public vtkSMArrayListDomain
 {
 public:
   static vtkSMPropArrayListDomain* New();
@@ -35,7 +35,7 @@ public:
   /**
    * Updates the string list based on the available arrays for each prop.
    */
-  void Update(vtkSMProperty* prop, std::string propName);
+  void Update(vtkSMProperty* prop) override;
 
 protected:
   vtkSMPropArrayListDomain() = default;
