@@ -997,6 +997,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ProxyCategoriesFavorites.xml
   ProxyCategoriesMenusDefault.xml
   ProxyCategoriesToolbar.xml
+  QuadraturePointsDS.xml
   QuickLaunchCreateProxy.xml
   QuickLaunchNavigation.xml
   QuickLaunchRequest.xml
@@ -1212,7 +1213,6 @@ list(APPEND TESTS_WITH_BASELINES
   MoleculeScalarBar.xml
   MultiSliceHTG.xml
   NetCDFUGRID.xml
-  QuadraturePointsDS.xml
   PartialFieldDataMultiBlock.xml
   ParticleTracerGlyph.xml
   PassArrays.xml
