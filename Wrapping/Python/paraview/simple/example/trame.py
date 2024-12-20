@@ -16,10 +16,31 @@ This is an adaptation of what was produce in that blog [1] for VTK 9.4 [2]
 
 from paraview import simple
 
-from trame.app import get_server
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import html, paraview as pv_widgets, vuetify3 as v3
-from trame.decorators import TrameApp, change
+try:
+    from trame.app import get_server
+    from trame.ui.vuetify3 import VAppLayout
+    from trame.widgets import html, paraview as pv_widgets, vuetify3 as v3
+    from trame.decorators import TrameApp, change
+except ImportError:
+    import sys
+
+    print(
+        "\nThis example require a virtual environment compatible with your ParaView Python"
+        "\nwhich contains the trame dependencies."
+        "\n"
+        "\nTo setup such environment, you can do the following:"
+        "\n"
+        "\n  $ python3.x -m venv .venv"
+        "\n  $ source .venv/bin/activate"
+        "\n  $ pip install trame trame-vuetify trame-vtk"
+        "\n"
+        "\nThen run it like"
+        "\n"
+        "\n  $ pvpython --venv .venv -m paraview.simple.example.trame"
+        "\n"
+    )
+
+    sys.exit(1)
 
 
 def setup_pv():
