@@ -38,6 +38,8 @@
 
 static const std::string LOG_svol_rvol_prefix = "Sparse volume importer: ";
 
+namespace
+{
 //-------------------------------------------------------------------------------------------------
 inline nv::index::Sparse_volume_voxel_format match_volume_format(const std::string& fmt_string)
 {
@@ -97,6 +99,7 @@ inline mi::Size volume_format_size(const nv::index::Sparse_volume_voxel_format f
     default:
       return 0;
   }
+}
 }
 
 //-------------------------------------------------------------------------------------------------

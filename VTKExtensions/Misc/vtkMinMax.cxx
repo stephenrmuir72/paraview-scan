@@ -22,8 +22,11 @@
 
 vtkStandardNewMacro(vtkMinMax);
 
+namespace
+{
 template <class T>
 void vtkMinMaxExecute(vtkMinMax* self, int numComp, int compIdx, T* idata, T* odata);
+}
 
 //-----------------------------------------------------------------------------
 vtkMinMax::vtkMinMax()
@@ -307,6 +310,8 @@ void vtkMinMax::OperateOnArray(vtkAbstractArray* ia, vtkAbstractArray* oa)
 
 //-----------------------------------------------------------------------------
 // This templated function performs the operation on any type of data.
+namespace
+{
 template <class T>
 void vtkMinMaxExecute(vtkMinMax* self, int numComp, int compIdx, T* idata, T* odata)
 {
@@ -352,6 +357,7 @@ void vtkMinMaxExecute(vtkMinMax* self, int numComp, int compIdx, T* idata, T* od
       }
     }
   }
+}
 }
 
 //-----------------------------------------------------------------------------

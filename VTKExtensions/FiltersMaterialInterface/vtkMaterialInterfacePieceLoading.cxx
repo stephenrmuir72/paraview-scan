@@ -17,6 +17,8 @@ ostream& operator<<(ostream& sout, const vtkMaterialInterfacePieceLoading& fp)
   return sout;
 }
 //
+namespace
+{
 ostream& operator<<(ostream& sout, vector<vector<vtkMaterialInterfacePieceLoading>>& pla)
 {
   size_t nProcs = pla.size();
@@ -31,6 +33,7 @@ ostream& operator<<(ostream& sout, vector<vector<vtkMaterialInterfacePieceLoadin
     sout << endl;
   }
   return sout;
+}
 }
 //
 void PrintPieceLoadingHistogram(vector<vector<vtkIdType>>& pla)

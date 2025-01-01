@@ -169,6 +169,8 @@ unsigned char* vtkAMRDualClipLocator::GetLevelMaskPointer()
   return this->LevelMaskArray->GetPointer(0);
 }
 
+namespace
+{
 //----------------------------------------------------------------------------
 vtkAMRDualClipLocator* vtkAMRDualClipGetBlockLocator(vtkAMRDualGridHelperBlock* block)
 {
@@ -237,6 +239,7 @@ void vtkDualGridClipInitializeLevelMask(
     levelMask += 2 * dims[0];
     scalarPtr += 2 * dims[0];
   }
+}
 }
 
 //----------------------------------------------------------------------------
@@ -1229,6 +1232,8 @@ vtkMultiBlockDataSet* vtkAMRDualClip::DoRequestData(
 //----------------------------------------------------------------------------
 // The only data specific stuff we need to do for the contour.
 //----------------------------------------------------------------------------
+namespace
+{
 template <class T>
 void vtkDualGridContourCastCornerValues(T* ptr, vtkIdType offsets[8], double values[8])
 {
@@ -1240,6 +1245,7 @@ void vtkDualGridContourCastCornerValues(T* ptr, vtkIdType offsets[8], double val
   values[5] = (double)(ptr[offsets[5]]);
   values[6] = (double)(ptr[offsets[6]]);
   values[7] = (double)(ptr[offsets[7]]);
+}
 }
 
 //----------------------------------------------------------------------------

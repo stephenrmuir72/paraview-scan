@@ -36,6 +36,8 @@ class pqRemoteCommandDialogUI : public Ui::pqRemoteCommandDialogForm
 {
 };
 
+namespace
+{
 // command token map, the following tokens may be provided by
 // the user to be substituted into the selected command template
 // at run time.
@@ -52,6 +54,7 @@ enum
 
 const char* tokens[] = { "$TERM_EXEC$", "$TERM_OPTS$", "$SSH_EXEC$", "$FE_URL$", "$PV_HOST$",
   "$PV_PID$" };
+}
 
 // a command set is selected based on host system types.
 // client | server | descr

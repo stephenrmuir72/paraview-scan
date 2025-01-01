@@ -84,6 +84,8 @@ void vtkPVEnSightMasterServerReader2::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
 template <class T>
 int vtkPVEnSightMasterServerReader2SyncValues(
@@ -162,6 +164,7 @@ int vtkPVEnSightMasterServerReader2SyncValues(T*, int, int, vtkMultiProcessContr
   return VTK_OK;
 }
 #endif
+}
 
 //----------------------------------------------------------------------------
 int vtkPVEnSightMasterServerReader2::RequestInformation(vtkInformation* vtkNotUsed(request),

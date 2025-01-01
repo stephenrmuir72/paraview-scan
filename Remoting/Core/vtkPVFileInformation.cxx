@@ -47,6 +47,8 @@
 
 vtkStandardNewMacro(vtkPVFileInformation);
 
+namespace
+{
 inline void vtkPVFileInformationAddTerminatingSlash(std::string& name)
 {
   if (!name.empty())
@@ -61,6 +63,7 @@ inline void vtkPVFileInformationAddTerminatingSlash(std::string& name)
 #endif
     }
   }
+}
 }
 
 #if defined(_WIN32)
@@ -325,6 +328,8 @@ static std::string vtkPVFileInformationResolveLink(const std::string& fname, WIN
 }
 #endif
 
+namespace
+{
 std::string MakeAbsolutePath(const std::string& path, const std::string& working_dir)
 {
   std::string ret = path;
@@ -335,6 +340,7 @@ std::string MakeAbsolutePath(const std::string& path, const std::string& working
     ret = vtksys::SystemTools::CollapseFullPath(path, working_dir.c_str());
   }
   return ret;
+}
 }
 
 //-----------------------------------------------------------------------------
