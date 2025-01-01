@@ -1443,6 +1443,8 @@ void vtkSMSettings::SetSettingDescription(const char* settingName, const char* d
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <class T>
 Json::Value vtkConvertXMLElementToJSON(
   vtkSMVectorProperty* vp, const std::vector<vtkSmartPointer<vtkPVXMLElement>>& elements)
@@ -1524,6 +1526,7 @@ Json::Value vtkConvertXMLElementToJSON<std::string>(
     return value[0];
   }
   return value;
+}
 }
 
 //---------------------------------------------------------------------------

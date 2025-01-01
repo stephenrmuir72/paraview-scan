@@ -36,6 +36,8 @@ public:
 };
 typedef std::map<std::string, Data> MapType;
 
+namespace
+{
 bool DoTest(Data& data, vtkImageCompressor* compressor, vtkUnsignedCharArray* input)
 {
   vtkNew<vtkUnsignedCharArray> outputCompressed;
@@ -67,6 +69,7 @@ bool DoTest(Data& data, vtkImageCompressor* compressor, vtkUnsignedCharArray* in
   data.CompressedSize =
     outputCompressed->GetNumberOfTuples() * outputCompressed->GetNumberOfComponents();
   return true;
+}
 }
 
 int TestImageCompressors(int argc, char* argv[])

@@ -421,6 +421,8 @@ vtkIdType* vtkAMRDualContourEdgeLocator::GetCornerPointer(
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 vtkAMRDualContourEdgeLocator* vtkAMRDualContourGetBlockLocator(vtkAMRDualGridHelperBlock* block)
 {
   if (block->UserData == nullptr)
@@ -444,6 +446,7 @@ vtkAMRDualContourEdgeLocator* vtkAMRDualContourGetBlockLocator(vtkAMRDualGridHel
     return locator;
   }
   return (vtkAMRDualContourEdgeLocator*)(block->UserData);
+}
 }
 
 //----------------------------------------------------------------------------
@@ -1024,6 +1027,8 @@ void vtkAMRDualContour::ProcessBlock(
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <class T>
 void vtkDualGridContourCastCornerValues(T* ptr, vtkIdType offsets[8], double values[8])
 {
@@ -1035,6 +1040,7 @@ void vtkDualGridContourCastCornerValues(T* ptr, vtkIdType offsets[8], double val
   values[5] = (double)(ptr[offsets[5]]);
   values[6] = (double)(ptr[offsets[6]]);
   values[7] = (double)(ptr[offsets[7]]);
+}
 }
 
 // Generic table for clipping a square.
@@ -1670,6 +1676,8 @@ void vtkAMRDualContour::CapCell(
   }
 }
 
+namespace
+{
 //----------------------------------------------------------------------------
 //  Note that the out attribute arrays must be preallocated to correct size.
 template <class T>
@@ -1677,6 +1685,7 @@ double vtkDualGridContourInterpolateAttribute(T* inPtr, vtkIdType inId0, vtkIdTy
 {
   double in0 = (double)(inPtr[inId0]);
   return in0 * (1.0 - k) + k * (double)(inPtr[inId1]);
+}
 }
 
 //============================================================================

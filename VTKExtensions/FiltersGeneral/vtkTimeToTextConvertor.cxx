@@ -53,9 +53,12 @@ int vtkTimeToTextConvertor::RequestInformation(
   return 1;
 }
 //----------------------------------------------------------------------------
+namespace
+{
 inline double vtkTimeToTextConvertor_ForwardConvert(double T0, double shift, double scale)
 {
   return T0 * scale + shift;
+}
 }
 //----------------------------------------------------------------------------
 int vtkTimeToTextConvertor::RequestData(vtkInformation* vtkNotUsed(request),

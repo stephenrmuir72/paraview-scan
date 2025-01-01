@@ -473,6 +473,8 @@ vtkClientServerStream& vtkClientServerStream::operator<<(const vtkStdString& val
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <typename iterT>
 void vtkClientServerPutArrayVariant(vtkClientServerStream& css, iterT* it)
 {
@@ -481,6 +483,7 @@ void vtkClientServerPutArrayVariant(vtkClientServerStream& css, iterT* it)
   {
     css << it->GetValue(i);
   }
+}
 }
 
 //----------------------------------------------------------------------------
@@ -535,6 +538,8 @@ vtkClientServerStream& vtkClientServerStream::operator<<(bool x)
 
 //----------------------------------------------------------------------------
 // Template and macro to implement all insertion operators in the same way.
+namespace
+{
 template <class T>
 vtkClientServerStream& vtkClientServerStreamOperatorSL(vtkClientServerStream* self, T x)
 {
@@ -542,6 +547,7 @@ vtkClientServerStream& vtkClientServerStreamOperatorSL(vtkClientServerStream* se
   typedef VTK_CSS_TYPENAME vtkTypeTraits<T>::SizedType Type;
   *self << vtkClientServerTypeTraits<Type>::Value();
   return vtkClientServerStreamInternals::Write(*self, &x, sizeof(x));
+}
 }
 
 #define VTK_CLIENT_SERVER_OPERATOR(type)                                                           \
@@ -596,6 +602,8 @@ vtkClientServerStream::Array vtkClientServerStream::InsertString(const char* beg
 
 //----------------------------------------------------------------------------
 // Template and macro to implement all InsertArray methods in the same way.
+namespace
+{
 template <class T>
 vtkClientServerStream::Array vtkClientServerStreamInsertArray(const T* data, int length)
 {
@@ -604,6 +612,7 @@ vtkClientServerStream::Array vtkClientServerStreamInsertArray(const T* data, int
   vtkClientServerStream::Array a = { vtkClientServerTypeTraits<Type>::Array(),
     static_cast<vtkTypeUInt32>(length), static_cast<vtkTypeUInt32>(sizeof(Type) * length), data };
   return a;
+}
 }
 
 #define VTK_CLIENT_SERVER_INSERT_ARRAY(type)                                                       \
@@ -632,6 +641,8 @@ VTK_CLIENT_SERVER_INSERT_ARRAY(double)
 // the proper overload when more than one of these functions otherwise
 // looks the same after template instantiation.  This works around the
 // lack of partial ordering of templates in VS6.
+namespace
+{
 template <class SourceType, class T>
 void vtkClientServerStreamGetArgumentCase(
   SourceType*, const unsigned char* src, T* dest, long, long, long)
@@ -666,6 +677,7 @@ void vtkClientServerStreamGetArgumentCase(
   memcpy(&value, src, sizeof(value));
   *dest = value ? true : false;
 }
+}
 
 #define VTK_CSS_GET_ARGUMENT_CASE(TypeId, SourceType)                                              \
   case vtkClientServerStream::TypeId:                                                              \
@@ -675,6 +687,8 @@ void vtkClientServerStreamGetArgumentCase(
   }                                                                                                \
   break
 
+namespace
+{
 int vtkClientServerStreamGetArgument(
   vtkClientServerStream::Types type, const unsigned char* src, vtkTypeInt8* dest)
 {
@@ -937,11 +951,14 @@ int vtkClientServerStreamGetArgument(
   };
   return 1;
 }
+}
 
 #undef VTK_CSS_GET_ARGUMENT_CASE
 
 //----------------------------------------------------------------------------
 // Template and macro to implement value GetArgument methods in the same way.
+namespace
+{
 template <class T>
 int vtkClientServerStreamGetArgumentValue(
   const vtkClientServerStream* self, int midx, int argument, T* value, long)
@@ -978,6 +995,7 @@ int vtkClientServerStreamGetArgumentValue(
   }
   return 0;
 }
+}
 
 #define VTK_CSS_GET_ARGUMENT(type)                                                                 \
   int vtkClientServerStream::GetArgument(int message, int argument, type* value) const             \
@@ -1000,6 +1018,8 @@ VTK_CSS_GET_ARGUMENT(long long)
 VTK_CSS_GET_ARGUMENT(unsigned long long)
 #undef VTK_CSS_GET_ARGUMENT
 
+namespace
+{
 template <typename SourceType, typename DestType>
 int vtkClientServerStreamGetArgumentArrayCase(
   const unsigned char* src, DestType* dest, vtkTypeUInt32 length)
@@ -1019,6 +1039,7 @@ int vtkClientServerStreamGetArgumentArrayCase(
 
   return 0;
 }
+}
 
 #define VTK_CSS_GET_ARGUMENT_ARRAY_CASE(TypeId, SourceType)                                        \
   case vtkClientServerStream::TypeId:                                                              \
@@ -1028,6 +1049,8 @@ int vtkClientServerStreamGetArgumentArrayCase(
 
 //----------------------------------------------------------------------------
 // Template and macro to implement array GetArgument methods in the same way.
+namespace
+{
 template <class T>
 int vtkClientServerStreamGetArgumentArray(
   const vtkClientServerStream* self, int midx, int argument, T* value, vtkTypeUInt32 length)
@@ -1090,6 +1113,7 @@ int vtkClientServerStreamGetArgumentArray(
     }
   }
   return 0;
+}
 }
 
 #define VTK_CSS_GET_ARGUMENT_ARRAY(type)                                                           \
@@ -1229,6 +1253,8 @@ int vtkClientServerStream::GetArgument(int message, int argument, vtkClientServe
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 // Template to implement GetArgument zero-to-nullptr-pointer conversions.
 template <class SourceType>
 int vtkClientServerStreamGetArgumentPointer(
@@ -1245,6 +1271,7 @@ int vtkClientServerStreamGetArgumentPointer(
     return 1;
   }
   return 0;
+}
 }
 
 int vtkClientServerStream::GetArgument(int message, int argument, vtkObjectBase** value) const
@@ -1291,6 +1318,8 @@ int vtkClientServerStream::GetArgument(int message, int argument, vtkObjectBase*
   return result;
 }
 
+namespace
+{
 template <typename T>
 int vtkClientServerGetVariant(
   const vtkClientServerStream* self, int message, int& argument, vtkVariant& out)
@@ -1329,6 +1358,7 @@ int vtkClientServerGetArrayVariant(
     array->SetVariantValue(i, value);
   }
   return result;
+}
 }
 
 int vtkClientServerStream::GetArgument(int message, int& argument, vtkVariant* value) const
@@ -1850,6 +1880,8 @@ const unsigned char* vtkClientServerStream::GetValue(int message, int value) con
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 // Templates to find argument size within a stream.
 template <class T>
 size_t vtkClientServerStreamValueSize(T*)
@@ -1863,6 +1895,7 @@ size_t vtkClientServerStreamArraySize(const unsigned char* data, T*)
   vtkTypeUInt32 len;
   memcpy(&len, data, sizeof(len));
   return sizeof(len) + len * sizeof(T);
+}
 }
 
 vtkClientServerStream::Argument vtkClientServerStream::GetArgument(int message, int argument) const
@@ -2168,6 +2201,8 @@ void vtkClientServerStream::PrintArgumentValue(ostream& os, int message, int arg
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 // Function to convert a value to a string.
 template <class T>
 void vtkClientServerStreamValueToString(
@@ -2241,6 +2276,7 @@ void vtkClientServerStreamPrintArray(
   {
     os << "}\n";
   }
+}
 }
 
 //----------------------------------------------------------------------------
@@ -2658,6 +2694,8 @@ int vtkClientServerStream::AddMessageFromString(
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 int vtkClientServerStreamPointerFromString(
   const char* begin, const char* end, vtkObjectBase** value)
 {
@@ -2881,6 +2919,7 @@ int vtkClientServerStreamArrayFromString(
   }
 
   return result;
+}
 }
 
 //----------------------------------------------------------------------------
