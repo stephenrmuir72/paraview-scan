@@ -24,7 +24,7 @@ using std::string;
 // Description:
 // Get python version
 #if VTK_MODULE_ENABLE_VTK_Python
-string GetPythonVersion()
+static string GetPythonVersion()
 {
   ostringstream oss;
 #if defined(PY_VERSION)
@@ -99,7 +99,7 @@ string GetMPILibraryVersion()
 
 #define safes(arg) ((arg) ? ((const char*)(arg)) : "<null>")
 
-string GetOpenGLInfo()
+static string GetOpenGLInfo()
 {
   ostringstream oss;
   vtkNew<vtkRenderWindow> rwin;

@@ -38,12 +38,15 @@ vtkCxxSetObjectMacro(vtkRedistributePolyData, Controller, vtkMultiProcessControl
 #define NUM_CELL_TYPES 4
 
 #if VTK_REDIST_DO_TIMING
+namespace
+{
 typedef struct
 {
   vtkTimerLog* timer;
   float time;
 } _TimerInfo;
 _TimerInfo timerInfo8;
+}
 #endif
 
 vtkRedistributePolyData::vtkRedistributePolyData()

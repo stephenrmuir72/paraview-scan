@@ -18,6 +18,8 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxy.h"
 
+namespace
+{
 const char* COLOR_PROPERTY = "Background";
 const char* COLOR2_PROPERTY = "Background2";
 const char* GRADIENT_BACKGROUND_PROPERTY = "UseGradientBackground";
@@ -39,6 +41,7 @@ enum BackgroundType
   IMAGE_TYPE,
   SKYBOX_TYPE
 };
+}
 
 class pqBackgroundEditorWidget::pqInternal : public Ui::BackgroundEditorWidget
 {

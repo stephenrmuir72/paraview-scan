@@ -52,6 +52,8 @@ struct vtkPhastaReaderInternal
 
 // Begin of copy from phastaIO
 
+namespace
+{
 std::map<int, char*> LastHeaderKey;
 std::vector<FILE*> fileArray;
 std::vector<int> byte_order;
@@ -61,6 +63,7 @@ int LastHeaderNotFound = 0;
 int Wrong_Endian = 0;
 int Strict_Error = 0;
 int binary_format = 0;
+}
 
 // the caller has the responsibility to delete the returned string
 char* vtkPhastaReader::StringStripper(const char istring[])

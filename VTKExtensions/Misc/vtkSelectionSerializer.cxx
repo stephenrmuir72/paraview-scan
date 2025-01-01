@@ -94,6 +94,8 @@ void vtkSelectionSerializer::PrintXML(
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <class T>
 void vtkSelectionSerializerWriteSelectionList(
   ostream& os, vtkIndent indent, vtkIdType numElems, T* dataPtr)
@@ -104,6 +106,7 @@ void vtkSelectionSerializerWriteSelectionList(
     os << dataPtr[idx] << " ";
   }
   os << endl;
+}
 }
 
 //----------------------------------------------------------------------------

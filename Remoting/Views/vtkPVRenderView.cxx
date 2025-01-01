@@ -2989,6 +2989,8 @@ void vtkPVRenderView::SetStereoRender(int val)
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 inline int vtkGetNumberOfRendersPerFrame(int stereoMode)
 {
   switch (stereoMode)
@@ -3010,6 +3012,7 @@ inline int vtkGetNumberOfRendersPerFrame(int stereoMode)
     default:
       return 1;
   }
+}
 }
 
 //----------------------------------------------------------------------------

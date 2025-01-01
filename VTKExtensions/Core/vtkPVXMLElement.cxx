@@ -468,6 +468,8 @@ int vtkPVXMLElement::GetScalarAttribute(const char* name, vtkIdType* value)
 #endif
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <class T>
 int vtkPVXMLVectorAttributeParse(const char* str, int length, T* data)
 {
@@ -487,6 +489,7 @@ int vtkPVXMLVectorAttributeParse(const char* str, int length, T* data)
     }
   }
   return length;
+}
 }
 
 //----------------------------------------------------------------------------

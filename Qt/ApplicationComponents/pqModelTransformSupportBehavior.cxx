@@ -177,6 +177,8 @@ void pqModelTransformSupportBehavior::disableModelTransform(pqView* view)
 }
 
 //-----------------------------------------------------------------------------
+namespace
+{
 template <class T, int size>
 vtkTuple<T, size> GetValues(const char* aname, vtkSMSourceProxy* producer, int port, bool* pisvalid)
 {
@@ -199,6 +201,7 @@ vtkTuple<T, size> GetValues(const char* aname, vtkSMSourceProxy* producer, int p
     }
   }
   return value;
+}
 }
 
 //-----------------------------------------------------------------------------

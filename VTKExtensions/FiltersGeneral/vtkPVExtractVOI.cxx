@@ -65,6 +65,8 @@ vtkPVExtractVOI::~vtkPVExtractVOI()
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 template <class FilterType>
 void vtkPVExtractVOIProcessRequest(FilterType* filter, vtkPVExtractVOI* self,
   vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
@@ -72,6 +74,7 @@ void vtkPVExtractVOIProcessRequest(FilterType* filter, vtkPVExtractVOI* self,
   filter->SetVOI(self->GetVOI());
   filter->SetSampleRate(self->GetSampleRate());
   filter->ProcessRequest(request, inputVector, outputVector);
+}
 }
 
 //----------------------------------------------------------------------------

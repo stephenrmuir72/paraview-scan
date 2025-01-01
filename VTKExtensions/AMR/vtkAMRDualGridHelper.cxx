@@ -451,6 +451,8 @@ void vtkAMRDualGridHelperBlock::ResetRegionBits()
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
 void vtkAMRDualGridHelperAddBackGhostValues(
   vtkDataArray* inPtr, int inDim[3], vtkDataArray* outPtr, int outDim[3], int offset[3])
 {
@@ -498,6 +500,7 @@ void vtkAMRDualGridHelperAddBackGhostValues(
       indexZ += inIncZ;
     }
   }
+}
 }
 //----------------------------------------------------------------------------
 void vtkAMRDualGridHelperBlock::AddBackGhostLevels(int standardBlockDimensions[3])
@@ -1441,6 +1444,8 @@ void vtkAMRDualGridHelper::DegenerateRegionMessageSize(
 // always go through an intermediate buffer (as if is were remote).
 // THis should not add much overhead to the copy.
 
+namespace
+{
 void vtkDualGridHelperCopyBlockToBlock(vtkDataArray* ptr, vtkDataArray* lowerPtr, int ext[6],
   int levelDiff, int yInc, int zInc, int highResBlockOriginIndex[3], int lowResBlockOriginIndex[3])
 {
@@ -1477,6 +1482,7 @@ void vtkDualGridHelperCopyBlockToBlock(vtkDataArray* ptr, vtkDataArray* lowerPtr
     }
     zIndex += zInc;
   }
+}
 }
 // Ghost volume fraction values are not consistent across levels.
 // We need the degenerate high-res volume fractions
@@ -1573,6 +1579,8 @@ void vtkAMRDualGridHelper::CopyDegenerateRegionBlockToBlock(int regionX, int reg
 // We need the degenerate high-res volume fractions
 // to match corresponding values in low res-blocks.
 // This method copies low-res values to high-res ghost blocks.
+namespace
+{
 template <class T>
 void* vtkDualGridHelperCopyBlockToMessage(
   T* messagePtr, vtkDataArray* lowerPtr, int ext[6], int yInc, int zInc)
@@ -1590,6 +1598,7 @@ void* vtkDualGridHelperCopyBlockToMessage(
     }
   }
   return messagePtr;
+}
 }
 void* vtkAMRDualGridHelper::CopyDegenerateRegionBlockToMessage(
   const vtkAMRDualGridHelperDegenerateRegion& region, void* messagePtr)
@@ -1702,6 +1711,8 @@ void* vtkAMRDualGridHelper::CopyDegenerateRegionBlockToMessage(
 }
 
 // Take the low res message and copy to the high res block.
+namespace
+{
 template <class T>
 const void* vtkDualGridHelperCopyMessageToBlock(vtkDataArray* ptr, const T* messagePtr, int ext[6],
   int messageExt[6], int levelDiff, int yInc, int zInc, int highResBlockOriginIndex[3],
@@ -1745,6 +1756,7 @@ const void* vtkDualGridHelperCopyMessageToBlock(vtkDataArray* ptr, const T* mess
     zIndex += zInc;
   }
   return messagePtr + (messageIncZ * (messageExt[5] - messageExt[4] + 1));
+}
 }
 
 const void* vtkAMRDualGridHelper::CopyDegenerateRegionMessageToBlock(

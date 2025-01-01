@@ -106,6 +106,8 @@ struct PropertyCopier
   }
 };
 
+namespace
+{
 template <typename T>
 void SetPropertyValue(T* prop, vtkDataArray* array)
 {
@@ -116,6 +118,7 @@ void SetPropertyValue(T* prop, vtkDataArray* array)
   {
     copier(array);
   }
+}
 }
 
 int vtkInSituInitializationHelper::WasInitializedOnce;

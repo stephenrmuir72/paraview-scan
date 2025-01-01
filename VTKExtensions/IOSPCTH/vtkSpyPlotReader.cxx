@@ -411,6 +411,8 @@ enum
   VTK_MSG_SPY_READER_GLOBAL_DATASETS_INDEX
 };
 
+namespace
+{
 template <class DataType>
 int vtkSpyPlotRemoveBadGhostCells(DataType* dataType, vtkDataArray* dataArray, int realExtents[6],
   int realDims[3], int ptDims[3], int realPtDims[3])
@@ -464,6 +466,7 @@ int vtkSpyPlotRemoveBadGhostCells(DataType* dataType, vtkDataArray* dataArray, i
   }
   dataArray->SetNumberOfTuples(realDims[0] * realDims[1] * realDims[2]);
   return 1;
+}
 }
 //-----------------------------------------------------------------------------
 int vtkSpyPlotReader::UpdateTimeStep(
@@ -1062,6 +1065,8 @@ void vtkSpyPlotReader::MergeVectors(vtkDataSetAttributes* da)
 }
 
 //-----------------------------------------------------------------------------
+namespace
+{
 // The templated execute function handles all the data types.
 template <class T>
 void vtkMergeVectorComponents(vtkIdType length, T* p1, T* p2, T* p3, T* po)
@@ -1085,6 +1090,7 @@ void vtkMergeVectorComponents(vtkIdType length, T* p1, T* p2, T* p3, T* po)
       *po++ = (T)0;
     }
   }
+}
 }
 
 //-----------------------------------------------------------------------------

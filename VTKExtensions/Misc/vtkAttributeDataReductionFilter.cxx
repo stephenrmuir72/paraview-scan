@@ -67,6 +67,8 @@ int vtkAttributeDataReductionFilter::RequestDataObject(
 }
 
 //-----------------------------------------------------------------------------
+namespace
+{
 template <class iterT>
 void vtkAttributeDataReductionFilterReduce(vtkAttributeDataReductionFilter* self, iterT* toIter,
   iterT* fromIter, double progress_offset, double progress_factor)
@@ -119,7 +121,7 @@ void vtkAttributeDataReductionFilterReduce(
 }
 
 //-----------------------------------------------------------------------------
-static void vtkAttributeDataReductionFilterReduce(vtkDataSetAttributes* output,
+void vtkAttributeDataReductionFilterReduce(vtkDataSetAttributes* output,
   std::vector<vtkDataSetAttributes*> inputs, vtkAttributeDataReductionFilter* self)
 {
   int numInputs = static_cast<int>(inputs.size());
@@ -181,6 +183,7 @@ static void vtkAttributeDataReductionFilterReduce(vtkDataSetAttributes* output,
 
     progress_offset += progress_factor;
   }
+}
 }
 
 //-----------------------------------------------------------------------------
