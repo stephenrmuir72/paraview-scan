@@ -25,7 +25,7 @@ class pqBrowser
 public:
   pqBrowser() = default;
   virtual ~pqBrowser() = default;
-  virtual QWidget* widget() const = 0;
+  [[nodiscard]] virtual QWidget* widget() const = 0;
   virtual void setUrl(const QUrl& url) = 0;
   virtual QUrl url() = 0;
   virtual QUrl goBackward() = 0;
@@ -48,7 +48,7 @@ public:
     this->Widget = T::newInstance(engine, self);
   }
   ~pqBrowserTemplate() override { delete this->Widget; }
-  QWidget* widget() const override { return this->Widget; }
+  [[nodiscard]] QWidget* widget() const override { return this->Widget; }
   void setUrl(const QUrl& url) override { this->Widget->setUrl(url); }
   QUrl url() override { return this->Widget->url(); }
   QUrl goBackward() override { return this->Widget->goBackward(); }

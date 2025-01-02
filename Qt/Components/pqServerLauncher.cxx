@@ -98,7 +98,7 @@ public:
   }
   ~pqWidget() override = default;
 
-  virtual QVariant get() const
+  [[nodiscard]] virtual QVariant get() const
   {
     return this->Widget->property(this->PropertyName.toUtf8().data());
   }
@@ -119,7 +119,7 @@ public:
   {
   }
 
-  QVariant get() const override
+  [[nodiscard]] QVariant get() const override
   {
     QComboBox* combobox = qobject_cast<QComboBox*>(this->Widget);
     return combobox->itemData(combobox->currentIndex());
@@ -148,7 +148,7 @@ public:
   {
   }
 
-  QVariant get() const override
+  [[nodiscard]] QVariant get() const override
   {
     QCheckBox* checkbox = qobject_cast<QCheckBox*>(this->Widget);
     return checkbox->isChecked() ? this->TrueValue : this->FalseValue;

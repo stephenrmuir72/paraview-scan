@@ -26,8 +26,8 @@ public:
   pqCustomFilterDefinitionModelItem(pqCustomFilterDefinitionModelItem* parent = nullptr);
   virtual ~pqCustomFilterDefinitionModelItem();
 
-  virtual QString GetName() const;
-  virtual pqPipelineSource* GetPipelineSource() const { return nullptr; }
+  [[nodiscard]] virtual QString GetName() const;
+  [[nodiscard]] virtual pqPipelineSource* GetPipelineSource() const { return nullptr; }
 
   pqCustomFilterDefinitionModel::ItemType Type;
   pqCustomFilterDefinitionModelItem* Parent;
@@ -42,8 +42,8 @@ public:
     pqCustomFilterDefinitionModelItem* parent = nullptr, pqPipelineSource* source = nullptr);
   ~pqCustomFilterDefinitionModelSource() override = default;
 
-  QString GetName() const override;
-  pqPipelineSource* GetPipelineSource() const override;
+  [[nodiscard]] QString GetName() const override;
+  [[nodiscard]] pqPipelineSource* GetPipelineSource() const override;
 
   pqPipelineSource* Source;
 };
@@ -56,8 +56,8 @@ public:
     pqCustomFilterDefinitionModelSource* link = nullptr);
   ~pqCustomFilterDefinitionModelLink() override = default;
 
-  QString GetName() const override;
-  pqPipelineSource* GetPipelineSource() const override;
+  [[nodiscard]] QString GetName() const override;
+  [[nodiscard]] pqPipelineSource* GetPipelineSource() const override;
 
   pqCustomFilterDefinitionModelSource* Link;
 };

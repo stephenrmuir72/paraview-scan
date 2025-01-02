@@ -286,17 +286,17 @@ public:
   }
 
   template <typename ValueType>
-  QString number(const ValueType& val) const
+  [[nodiscard]] QString number(const ValueType& val) const
   {
     return QString::number(val);
   }
 
-  QString number(const double& val) const
+  [[nodiscard]] QString number(const double& val) const
   {
     return QString::number(val, this->Fixed ? 'f' : 'g', this->Precision);
   }
 
-  QString number(const float& val) const
+  [[nodiscard]] QString number(const float& val) const
   {
     return QString::number(val, this->Fixed ? 'f' : 'g', this->Precision);
   }

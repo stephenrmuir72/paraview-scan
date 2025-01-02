@@ -42,13 +42,13 @@ public:
 
   TreeItem* child(int row) { return this->ChildItems[row]; }
 
-  int childCount() const { return this->ChildItems.size(); }
+  [[nodiscard]] int childCount() const { return this->ChildItems.size(); }
 
-  const QString& name() const { return this->Name; }
+  [[nodiscard]] const QString& name() const { return this->Name; }
 
-  const QString& settingsKey() const { return this->FullKey; }
+  [[nodiscard]] const QString& settingsKey() const { return this->FullKey; }
 
-  QKeySequence keySequence() const { return this->KeySequence; }
+  [[nodiscard]] QKeySequence keySequence() const { return this->KeySequence; }
 
   void setKeySequence(const QKeySequence& shortcut)
   {
@@ -59,9 +59,9 @@ public:
     settings->setValue(settingsKey(), shortcut);
   }
 
-  bool isLeaf() const { return this->IsLeaf; }
+  [[nodiscard]] bool isLeaf() const { return this->IsLeaf; }
 
-  int row() const
+  [[nodiscard]] int row() const
   {
     if (this->ParentItem)
     {
@@ -158,7 +158,8 @@ public:
 
   ~pqCustomizeShortcutsModel() override { delete this->RootItem; }
 
-  QModelIndex index(int row, int column, const QModelIndex& parentIndex) const override
+  [[nodiscard]] QModelIndex index(
+    int row, int column, const QModelIndex& parentIndex) const override
   {
     if (!hasIndex(row, column, parentIndex))
       return QModelIndex();
@@ -185,7 +186,7 @@ public:
     }
   }
 
-  QModelIndex parent(const QModelIndex& idx) const override
+  [[nodiscard]] QModelIndex parent(const QModelIndex& idx) const override
   {
     if (!idx.isValid())
     {
@@ -202,7 +203,7 @@ public:
     return createIndex(parentItem->row(), 0, parentItem);
   }
 
-  int rowCount(const QModelIndex& parentIndex) const override
+  [[nodiscard]] int rowCount(const QModelIndex& parentIndex) const override
   {
     TreeItem* parentItem;
     if (parentIndex.column() > 0)
@@ -221,9 +222,9 @@ public:
     return parentItem->childCount();
   }
 
-  int columnCount(const QModelIndex&) const override { return 2; }
+  [[nodiscard]] int columnCount(const QModelIndex&) const override { return 2; }
 
-  QVariant headerData(
+  [[nodiscard]] QVariant headerData(
     int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override
   {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
@@ -239,7 +240,7 @@ public:
     return QVariant();
   }
 
-  QVariant data(const QModelIndex& idx, int role) const override
+  [[nodiscard]] QVariant data(const QModelIndex& idx, int role) const override
   {
     if (!idx.isValid())
     {
@@ -346,7 +347,8 @@ public:
 
   ~FilterLeavesProxyModel() override = default;
 
-  bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override
+  [[nodiscard]] bool filterAcceptsRow(
+    int source_row, const QModelIndex& source_parent) const override
   {
     auto source = this->sourceModel();
     auto indexInQuestion = source->index(source_row, 0, source_parent);

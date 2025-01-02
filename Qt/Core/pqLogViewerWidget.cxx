@@ -147,7 +147,7 @@ public:
     }
   }
 
-  QString rawText(const QModelIndex& idx) const
+  [[nodiscard]] QString rawText(const QModelIndex& idx) const
   {
     if (!idx.isValid())
     {

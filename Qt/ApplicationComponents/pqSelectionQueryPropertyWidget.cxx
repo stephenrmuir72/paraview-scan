@@ -151,7 +151,7 @@ public:
   /**
    * Returns current user-specified values are a string-list.
    */
-  std::map<QString, QString> value() const
+  [[nodiscard]] std::map<QString, QString> value() const
   {
     std::map<QString, QString> result;
     for (const auto& lineEdit : this->LineEdits)
@@ -336,7 +336,7 @@ public:
   /**
    * Returns an expression.
    */
-  QString expression() const
+  [[nodiscard]] QString expression() const
   {
     auto map = this->Value->value();
     map["term"] = this->currentTerm();
@@ -409,12 +409,12 @@ protected:
   void populateOperators(int termType);
   void populateValue();
 
-  TermType currentTermType() const
+  [[nodiscard]] TermType currentTermType() const
   {
     return static_cast<TermType>(this->Term->currentData(TermTypeRole).toInt());
   }
 
-  QString currentTerm() const { return this->Term->currentData(NameRole).toString(); }
+  [[nodiscard]] QString currentTerm() const { return this->Term->currentData(NameRole).toString(); }
 
   void setCurrentTerm(const QString& name)
   {

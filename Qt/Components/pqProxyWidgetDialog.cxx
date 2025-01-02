@@ -177,7 +177,7 @@ public:
       this->filterWidgets();
     }
   }
-  bool enableSearchBar() const { return this->SearchEnabled; }
+  [[nodiscard]] bool enableSearchBar() const { return this->SearchEnabled; }
 
   void setHideAdvancedProperties(bool val)
   {
@@ -189,7 +189,7 @@ public:
       this->filterWidgets();
     }
   }
-  bool hideAdvancedProperties() const { return this->HideAdvancedProperties; }
+  [[nodiscard]] bool hideAdvancedProperties() const { return this->HideAdvancedProperties; }
 
   void filterWidgets()
   {
@@ -289,7 +289,10 @@ public:
     ui.ResetButton->setVisible(!val);
   }
 
-  bool applyChangesImmediately() const { return this->ProxyWidget->applyChangesImmediately(); }
+  [[nodiscard]] bool applyChangesImmediately() const
+  {
+    return this->ProxyWidget->applyChangesImmediately();
+  }
 };
 
 //-----------------------------------------------------------------------------

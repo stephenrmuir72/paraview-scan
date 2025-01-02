@@ -62,19 +62,19 @@ public:
   {
   }
 
-  const QString& label() const { return this->Label; }
+  [[nodiscard]] const QString& label() const { return this->Label; }
 
-  const QString& filePath() const { return this->FilePath; }
+  [[nodiscard]] const QString& filePath() const { return this->FilePath; }
 
-  vtkPVFileInformation::FileTypes type() const { return this->Type; }
+  [[nodiscard]] vtkPVFileInformation::FileTypes type() const { return this->Type; }
 
-  bool isGroup() const { return !this->Group.empty(); }
+  [[nodiscard]] bool isGroup() const { return !this->Group.empty(); }
 
-  bool isHidden() const { return this->Hidden; }
+  [[nodiscard]] bool isHidden() const { return this->Hidden; }
 
-  const QList<pqFileDialogModelFileInfo>& group() const { return this->Group; }
+  [[nodiscard]] const QList<pqFileDialogModelFileInfo>& group() const { return this->Group; }
 
-  QString extensionTypeString() const
+  [[nodiscard]] QString extensionTypeString() const
   {
     if (this->Type == vtkPVFileInformation::DIRECTORY)
     {
@@ -89,7 +89,7 @@ public:
     }
   }
 
-  QString sizeString() const
+  [[nodiscard]] QString sizeString() const
   {
     if (this->Type == vtkPVFileInformation::DIRECTORY)
     {
@@ -124,15 +124,15 @@ public:
       .arg(QLocale().toString(static_cast<qulonglong>(this->Size)));
   }
 
-  QString modificationTimeString() const
+  [[nodiscard]] QString modificationTimeString() const
   {
     return QLocale::system().toString(
       QDateTime::fromSecsSinceEpoch(this->ModificationTime), QLocale::ShortFormat);
   }
 
-  qulonglong size() const { return static_cast<qulonglong>(this->Size); }
+  [[nodiscard]] qulonglong size() const { return static_cast<qulonglong>(this->Size); }
 
-  QDateTime modificationTime() const
+  [[nodiscard]] QDateTime modificationTime() const
   {
     return QDateTime::fromSecsSinceEpoch(this->ModificationTime);
   }
@@ -518,7 +518,7 @@ public:
   /// Caches information about the set of files within the current path.
   QVector<pqFileDialogModelFileInfo> FileList; // adjacent memory occupation for QModelIndex
 
-  const pqFileDialogModelFileInfo* infoForIndex(const QModelIndex& idx) const
+  [[nodiscard]] const pqFileDialogModelFileInfo* infoForIndex(const QModelIndex& idx) const
   {
     if (idx.isValid() && nullptr == idx.internalPointer() && idx.row() >= 0 &&
       idx.row() < this->FileList.size())
@@ -552,7 +552,7 @@ public:
     setShowDetailedInformationSetting(this->Server, show);
   }
 
-  bool isShowingDetailedInformation() const
+  [[nodiscard]] bool isShowingDetailedInformation() const
   {
     bool currentValue = false;
     if (this->FileInformationHelperProxy)
@@ -570,7 +570,7 @@ public:
 
   void setGroupFiles(bool group) { this->GroupFiles = group; }
 
-  bool isGroupingFiles() const { return this->GroupFiles; }
+  [[nodiscard]] bool isGroupingFiles() const { return this->GroupFiles; }
 
 private:
   // server vs. local implementation private

@@ -267,7 +267,7 @@ public:
     return item;
   }
 
-  pqPropertyWidget* propertyWidget() const { return this->PropertyWidget; }
+  [[nodiscard]] pqPropertyWidget* propertyWidget() const { return this->PropertyWidget; }
 
   void appendToDefaultVisibilityForRepresentations(const QString& val)
   {
@@ -333,7 +333,7 @@ public:
     return true;
   }
 
-  bool enableWidget() const
+  [[nodiscard]] bool enableWidget() const
   {
     if (this->InformationOnly)
     {

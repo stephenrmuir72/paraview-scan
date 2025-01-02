@@ -121,7 +121,8 @@ public:
     painter->restore();
   }
 
-  QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex&) const override
+  [[nodiscard]] QSize sizeHint(
+    const QStyleOptionViewItem& option, const QModelIndex&) const override
   {
     return QSize{ option.rect.width(), option.fontMetrics.height() * 2 };
   }

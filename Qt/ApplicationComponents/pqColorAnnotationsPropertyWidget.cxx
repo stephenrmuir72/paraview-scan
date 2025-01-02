@@ -49,7 +49,7 @@ public:
       Q_EMIT this->visibilityChanged();
     }
   }
-  bool canShowWidget(bool show_advanced) const override
+  [[nodiscard]] bool canShowWidget(bool show_advanced) const override
   {
     return this->IsAdvanced ? show_advanced : true;
   }

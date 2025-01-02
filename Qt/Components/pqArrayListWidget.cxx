@@ -25,7 +25,8 @@ public:
   {
   }
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -75,7 +76,7 @@ public:
     return this->Superclass::headerData(section, orientation, role);
   }
 
-  Qt::ItemFlags flags(const QModelIndex& idx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& idx) const override
   {
     auto value = this->Superclass::flags(idx);
     if (idx.column() == VALUE)

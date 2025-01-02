@@ -58,7 +58,7 @@ struct pqSourceInfo
     this->GeometryInformationValid = false;
   }
 
-  QVariant getName() const
+  [[nodiscard]] QVariant getName() const
   {
     if (this->OutputPort)
     {
@@ -73,7 +73,7 @@ struct pqSourceInfo
     return QVariant("Unknown");
   }
 
-  QVariant getNumberOfCells() const
+  [[nodiscard]] QVariant getNumberOfCells() const
   {
     if (this->DataInformationValid)
     {
@@ -82,7 +82,7 @@ struct pqSourceInfo
     return QVariant("Unavailable");
   }
 
-  QVariant getNumberOfPoints() const
+  [[nodiscard]] QVariant getNumberOfPoints() const
   {
     if (this->DataInformationValid)
     {
@@ -91,7 +91,7 @@ struct pqSourceInfo
     return QVariant("Unavailable");
   }
 
-  QVariant getMemorySize() const
+  [[nodiscard]] QVariant getMemorySize() const
   {
     if (this->DataInformationValid)
     {
@@ -100,7 +100,7 @@ struct pqSourceInfo
     return QVariant("Unavailable");
   }
 
-  QVariant getGeometrySize() const
+  [[nodiscard]] QVariant getGeometrySize() const
   {
     if (this->GeometryInformationValid)
     {
@@ -110,7 +110,7 @@ struct pqSourceInfo
     return QVariant("Unavailable");
   }
 
-  QVariant getBounds() const
+  [[nodiscard]] QVariant getBounds() const
   {
     if (this->DataInformationValid)
     {
@@ -123,7 +123,7 @@ struct pqSourceInfo
     }
     return QVariant("Unavailable");
   }
-  QVariant getTimes() const
+  [[nodiscard]] QVariant getTimes() const
   {
     if (this->DataInformationValid)
     {
@@ -144,7 +144,7 @@ struct pqSourceInfo
   }
 
   // Given a data type ID, returns the string.
-  QString getDataTypeAsString() const
+  [[nodiscard]] QString getDataTypeAsString() const
   {
     if (this->DataInformationValid)
     {
@@ -154,7 +154,7 @@ struct pqSourceInfo
   }
 
   // Given a datatype, returns the icon for that data type.
-  QIcon getDataTypeAsIcon() const
+  [[nodiscard]] QIcon getDataTypeAsIcon() const
   {
     if (!this->DataInformationValid)
     {

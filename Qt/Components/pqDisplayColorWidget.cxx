@@ -155,7 +155,7 @@ protected:
   }
 
   /// called to get the current value for the ServerManager Property.
-  QVariant currentServerManagerValue(bool use_unchecked) const override
+  [[nodiscard]] QVariant currentServerManagerValue(bool use_unchecked) const override
   {
     assert(use_unchecked == false);
     Q_UNUSED(use_unchecked);
@@ -182,7 +182,7 @@ protected:
   }
 
   /// called to get the UI value.
-  QVariant currentQtValue() const override
+  [[nodiscard]] QVariant currentQtValue() const override
   {
     const ValueType curVal =
       qobject_cast<pqDisplayColorWidget*>(this->objectQt())->arraySelection();
