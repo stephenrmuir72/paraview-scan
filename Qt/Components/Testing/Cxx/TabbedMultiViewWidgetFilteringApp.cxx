@@ -108,7 +108,7 @@ public:
     return true;
   }
 
-  bool validate(const QStringList& labels) const
+  [[nodiscard]] bool validate(const QStringList& labels) const
   {
     if (this->TMVWidget->visibleTabLabels() != labels)
     {

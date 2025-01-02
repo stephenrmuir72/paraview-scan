@@ -131,7 +131,7 @@ public:
     }
   }
 
-  pqOutputPort* outputPort() const { return this->OutputPort; }
+  [[nodiscard]] pqOutputPort* outputPort() const { return this->OutputPort; }
   void setOutputPort(pqOutputPort* port)
   {
     if (this->OutputPort != port)
@@ -141,7 +141,7 @@ public:
     }
   }
 
-  pqDataRepresentation* representation() const { return this->Representation; }
+  [[nodiscard]] pqDataRepresentation* representation() const { return this->Representation; }
   void setRepresentation(pqDataRepresentation* repr)
   {
     if (this->Representation != repr)

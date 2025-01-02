@@ -35,7 +35,7 @@ public:
   ~pqYoungsMaterialPropertyLinksConnection() override = default;
 
 protected:
-  QVariant currentServerManagerValue(bool use_unchecked) const override
+  [[nodiscard]] QVariant currentServerManagerValue(bool use_unchecked) const override
   {
     return pqSMAdaptor::getMultipleElementProperty(
       this->propertySM(), (use_unchecked ? pqSMAdaptor::UNCHECKED : pqSMAdaptor::CHECKED));

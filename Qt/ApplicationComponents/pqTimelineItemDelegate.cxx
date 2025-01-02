@@ -86,13 +86,13 @@ struct pqTimelineItemDelegate::pqInternals
 
   bool isGrabbing() { return this->Interaction == InteractionMode::GrabMark; }
 
-  QString lockTooltip() const
+  [[nodiscard]] QString lockTooltip() const
   {
     return QCoreApplication::translate("pqTimelineItemDelegate",
       "%1 is unlocked. Lock to avoid auto-update when adding/removing time sources.");
   }
 
-  QString unlockTooltip() const
+  [[nodiscard]] QString unlockTooltip() const
   {
     return QCoreApplication::translate("pqTimelineItemDelegate",
       "%1 is locked. Unlock to allow auto-update when adding/removing time sources.");

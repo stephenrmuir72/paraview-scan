@@ -205,7 +205,7 @@ public:
     this->updateDecorations();
   }
 
-  const QSize& previewSize() const { return this->PreviewSize; }
+  [[nodiscard]] const QSize& previewSize() const { return this->PreviewSize; }
 
   void setCustomDevicePixelRatio(double sf)
   {
@@ -227,7 +227,7 @@ public:
     this->updateDecorations();
   }
 
-  bool decorationsVisibility() const { return this->DecorationsVisibility; }
+  [[nodiscard]] bool decorationsVisibility() const { return this->DecorationsVisibility; }
 
   void updateDecorations()
   {
@@ -253,7 +253,7 @@ public:
       }
     }
   }
-  const QSize& lockedSize() const { return this->LockedSize; }
+  [[nodiscard]] const QSize& lockedSize() const { return this->LockedSize; }
 
 private:
   QPointer<pqViewFrame> MaximizedWidget;

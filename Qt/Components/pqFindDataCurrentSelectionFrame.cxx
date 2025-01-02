@@ -148,9 +148,9 @@ public:
 
   ~pqInternals() { this->deleteSpreadSheet(); }
 
-  vtkSmartPointer<vtkSMViewProxy> GetViewProxy() const { return ViewProxy; }
+  [[nodiscard]] vtkSmartPointer<vtkSMViewProxy> GetViewProxy() const { return ViewProxy; }
 
-  QPointer<pqSpreadSheetViewModel> GetModel() const { return Model; }
+  [[nodiscard]] QPointer<pqSpreadSheetViewModel> GetModel() const { return Model; }
 
   //---------------------------------------------------------------------------
   // setup the proxies needed for the spreadsheet view.
@@ -320,7 +320,7 @@ public:
     this->UpdateSpreadSheetTimer.stop();
   }
 
-  pqOutputPort* showingPort() const { return this->ShowingPort; }
+  [[nodiscard]] pqOutputPort* showingPort() const { return this->ShowingPort; }
 };
 
 //-----------------------------------------------------------------------------

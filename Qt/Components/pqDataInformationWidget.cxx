@@ -36,7 +36,7 @@ public:
 protected:
   /// subclasses can override this method to provide model specific selection
   /// overrides such as QItemSelection::Rows or QItemSelection::Columns etc.
-  QItemSelectionModel::SelectionFlag qtSelectionFlags() const override
+  [[nodiscard]] QItemSelectionModel::SelectionFlag qtSelectionFlags() const override
   {
     return QItemSelectionModel::Rows;
   }
@@ -57,7 +57,7 @@ protected:
   }
 
   /// Maps a QModelIndex to a pqServerManagerModelItem.
-  pqServerManagerModelItem* mapToItem(const QModelIndex& index) const override
+  [[nodiscard]] pqServerManagerModelItem* mapToItem(const QModelIndex& index) const override
   {
     const pqDataInformationModel* pM =
       qobject_cast<const pqDataInformationModel*>(this->getQModel());

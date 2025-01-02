@@ -36,11 +36,11 @@ class pqTableModel : public QAbstractTableModel
   QVector<QVariant> Labels;
   bool AllowIntegralValuesOnly;
 
-  int computeOffset(const QModelIndex& idx) const
+  [[nodiscard]] int computeOffset(const QModelIndex& idx) const
   {
     return idx.row() * this->NumberOfColumns + idx.column();
   }
-  QModelIndex computeIndex(int offset) const
+  [[nodiscard]] QModelIndex computeIndex(int offset) const
   {
     return this->index(offset / this->NumberOfColumns, offset % this->NumberOfColumns);
   }
@@ -68,23 +68,23 @@ public:
   void setAllowIntegerValuesOnly(bool allow) { this->AllowIntegralValuesOnly = allow; }
 
   // QAbstractTableModel API -------------------------------------------------
-  Qt::ItemFlags flags(const QModelIndex& idx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& idx) const override
   {
     return this->Superclass::flags(idx) | Qt::ItemIsEditable;
   }
 
-  int rowCount(const QModelIndex& prnt = QModelIndex()) const override
+  [[nodiscard]] int rowCount(const QModelIndex& prnt = QModelIndex()) const override
   {
     Q_UNUSED(prnt);
     return this->Values.size() / this->NumberOfColumns;
   }
-  int columnCount(const QModelIndex& prnt = QModelIndex()) const override
+  [[nodiscard]] int columnCount(const QModelIndex& prnt = QModelIndex()) const override
   {
     Q_UNUSED(prnt);
     return this->NumberOfColumns;
   }
 
-  QVariant headerData(
+  [[nodiscard]] QVariant headerData(
     int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override
   {
     if (section < this->Labels.size() && orientation == Qt::Horizontal && role == Qt::DisplayRole)
@@ -95,7 +95,7 @@ public:
     return this->Superclass::headerData(section, orientation, role);
   }
 
-  QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override
+  [[nodiscard]] QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override
   {
     if (role == Qt::DisplayRole || role == Qt::ToolTipRole || role == Qt::EditRole)
     {
@@ -191,7 +191,7 @@ public:
       }
     }
   }
-  QVector<QVariant> value() const { return this->Values; }
+  [[nodiscard]] QVector<QVariant> value() const { return this->Values; }
 
   QModelIndex addRow(const QModelIndex& after = QModelIndex())
   {

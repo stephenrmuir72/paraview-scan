@@ -32,20 +32,20 @@ public:
 
   ~SplineTableModel() override = default;
 
-  int rowCount(const QModelIndex& prnt = QModelIndex()) const override
+  [[nodiscard]] int rowCount(const QModelIndex& prnt = QModelIndex()) const override
   {
     Q_UNUSED(prnt);
     return static_cast<int>(this->Points.size());
   }
 
-  int columnCount(const QModelIndex& /*parent*/) const override { return 3; }
+  [[nodiscard]] int columnCount(const QModelIndex& /*parent*/) const override { return 3; }
 
-  Qt::ItemFlags flags(const QModelIndex& idx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& idx) const override
   {
     return this->Superclass::flags(idx) | Qt::ItemIsEditable;
   }
 
-  QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override
+  [[nodiscard]] QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override
   {
     if (role == Qt::DisplayRole)
     {
@@ -59,7 +59,8 @@ public:
     return QVariant();
   }
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -92,7 +93,7 @@ public:
     return false;
   }
 
-  const std::vector<vtkVector3d>& points() const { return this->Points; }
+  [[nodiscard]] const std::vector<vtkVector3d>& points() const { return this->Points; }
 
   int setPoint(int idx, double x, double y, double z)
   {

@@ -44,14 +44,14 @@ public:
     vtkSMPropertyHelper(this->PVLookupTable, "ScalarOpacityFunction").Set(this->PiecewiseFunction);
   }
 
-  vtkSMProxy* lookupTable() const
+  [[nodiscard]] vtkSMProxy* lookupTable() const
   {
     this->PVLookupTable->ResetPropertiesToXMLDefaults();
     this->PVLookupTable->UpdateVTKObjects();
     return this->PVLookupTable;
   }
 
-  vtkSMProxy* piecewiseFunction() const
+  [[nodiscard]] vtkSMProxy* piecewiseFunction() const
   {
     this->PiecewiseFunction->ResetPropertiesToXMLDefaults();
     this->PiecewiseFunction->UpdateVTKObjects();

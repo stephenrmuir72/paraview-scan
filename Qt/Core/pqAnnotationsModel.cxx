@@ -133,7 +133,7 @@ public:
   /**
    * Get the underlying data to display for the given column.
    */
-  QVariant data(int index) const
+  [[nodiscard]] QVariant data(int index) const
   {
     switch (index)
     {

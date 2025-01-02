@@ -31,8 +31,8 @@ struct BaseOperation
 
   void add(pqPropertyWidgetDecorator* op) { this->Decorators.push_back(op); }
 
-  virtual bool canShowWidget(bool show_advanced) const = 0;
-  virtual bool enableWidget() const = 0;
+  [[nodiscard]] virtual bool canShowWidget(bool show_advanced) const = 0;
+  [[nodiscard]] virtual bool enableWidget() const = 0;
 
   virtual ~BaseOperation() = default;
 };
@@ -40,7 +40,7 @@ struct BaseOperation
 template <typename BinaryOperation, bool init_value, bool default_value = init_value>
 struct Operation : public BaseOperation
 {
-  bool canShowWidget(bool show_advanced) const override
+  [[nodiscard]] bool canShowWidget(bool show_advanced) const override
   {
     if (this->Expressions.empty() && this->Decorators.empty())
     {
@@ -62,7 +62,7 @@ struct Operation : public BaseOperation
     return result;
   }
 
-  bool enableWidget() const override
+  [[nodiscard]] bool enableWidget() const override
   {
     if (this->Expressions.empty() && this->Decorators.empty())
     {

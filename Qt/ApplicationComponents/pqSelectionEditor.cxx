@@ -206,7 +206,7 @@ public:
    */
   ~pqSelectionProxyModel() override = default;
 
-  Qt::ItemFlags flags(const QModelIndex& idx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& idx) const override
   {
     // Color column should be editable to changes the color of the selected selection
     if (idx.column() == 2)
@@ -318,7 +318,8 @@ public:
   /**
    * Construct the header data for this model.
    */
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -339,7 +340,7 @@ public:
    * Returns the row count of the 2D array. This corresponds to the number of selections
    * hold by the data producer.
    */
-  int rowCount(const QModelIndex&) const override
+  [[nodiscard]] int rowCount(const QModelIndex&) const override
   {
     return static_cast<int>(this->SavedSelections.size());
   }
@@ -347,7 +348,7 @@ public:
   /**
    * Returns the number of columns (three in our case).
    */
-  int columnCount(const QModelIndex&) const override { return 3; }
+  [[nodiscard]] int columnCount(const QModelIndex&) const override { return 3; }
 
   /**
    * Returns the data at index with role.

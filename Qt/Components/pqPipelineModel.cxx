@@ -184,7 +184,7 @@ public:
     return this->Parent->Children.indexOf(this);
   }
 
-  QString getIconType() const
+  [[nodiscard]] QString getIconType() const
   {
     switch (this->Type)
     {
@@ -325,14 +325,14 @@ public:
     return ret_val;
   }
 
-  bool isModified() const
+  [[nodiscard]] bool isModified() const
   {
     pqProxy* proxy = qobject_cast<pqProxy*>(this->Object);
     return (proxy && (proxy->modifiedState() != pqProxy::UNMODIFIED));
   }
 
 private:
-  QString getBreakpointVisibilityIcon() const
+  [[nodiscard]] QString getBreakpointVisibilityIcon() const
   {
     pqLiveInsituManager* server = pqLiveInsituManager::instance();
     return (server->hasBreakpoint() ? PipelineModelIconType::INSITU_BREAKPOINT

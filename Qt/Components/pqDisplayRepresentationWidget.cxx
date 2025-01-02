@@ -101,7 +101,7 @@ public:
     return (idx != -1);
   }
 
-  const QString& representationText() const { return this->RepresentationText; }
+  [[nodiscard]] const QString& representationText() const { return this->RepresentationText; }
 };
 
 //-----------------------------------------------------------------------------

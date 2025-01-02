@@ -71,10 +71,10 @@ public:
     bool ValueDerived = true;
 
   public:
-    const QVariant& value() const { return this->Value; };
+    [[nodiscard]] const QVariant& value() const { return this->Value; };
 
     template <typename T>
-    T value() const
+    [[nodiscard]] T value() const
     {
       return this->Value.value<T>();
     }
@@ -84,7 +84,7 @@ public:
       this->ValueDerived = is_derived || !var.isValid();
     }
 
-    bool isDerived() const { return this->ValueDerived; }
+    [[nodiscard]] bool isDerived() const { return this->ValueDerived; }
   };
 
   vtkMTimeType DataAssemblyTimeStamp = 0;
