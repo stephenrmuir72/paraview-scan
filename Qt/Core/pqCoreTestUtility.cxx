@@ -75,10 +75,10 @@
 
 const char* pqCoreTestUtility::PQ_COMPAREVIEW_PROPERTY_NAME = "PQ_COMPAREVIEW_PROPERTY_NAME";
 
-static constexpr const char* DASHBOARD_MODE_ENV_VAR = "DASHBOARD_TEST_FROM_CTEST";
-
 namespace
 {
+constexpr const char* DASHBOARD_MODE_ENV_VAR = "DASHBOARD_TEST_FROM_CTEST";
+
 template <typename WriterT>
 bool saveImage(vtkWindowToImageFilter* Capture, const QFileInfo& File)
 {
