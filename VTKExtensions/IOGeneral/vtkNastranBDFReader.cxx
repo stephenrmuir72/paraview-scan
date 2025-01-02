@@ -20,18 +20,18 @@
 
 vtkStandardNewMacro(vtkNastranBDFReader);
 
-static const std::string COMMENT_KEY = "$";
-static const std::vector<std::string> IGNORED_KEYS = { COMMENT_KEY, "BEGIN BULK", "ENDDATA",
-  "PSHELL", "MAT1" };
-
-static const std::string CTRIA3_KEY = "CTRIA3";
-static const std::string GRID_KEY = "GRID";
-static const std::string PLOAD2_KEY = "PLOAD2";
-static const std::string TIME_KEY = "TIME";
-static const std::string TITLE_KEY = "TITLE";
-
 namespace
 {
+const std::string COMMENT_KEY = "$";
+const std::vector<std::string> IGNORED_KEYS = { COMMENT_KEY, "BEGIN BULK", "ENDDATA", "PSHELL",
+  "MAT1" };
+
+const std::string CTRIA3_KEY = "CTRIA3";
+const std::string GRID_KEY = "GRID";
+const std::string PLOAD2_KEY = "PLOAD2";
+const std::string TIME_KEY = "TIME";
+const std::string TITLE_KEY = "TITLE";
+
 // Returns if `line` starts with the string `keyword`
 bool StartsWith(const std::string& line, const std::string& keyword)
 {
