@@ -108,7 +108,7 @@ public:
     }
   }
 
-  int rowCount() const { return this->Rows.size(); }
+  [[nodiscard]] int rowCount() const { return this->Rows.size(); }
 
   void setToolTips(const QStringList& txts)
   {
@@ -119,7 +119,7 @@ public:
     }
   }
 
-  QStringList toolTips() const
+  [[nodiscard]] QStringList toolTips() const
   {
     QStringList tips;
     for (const auto& arow : this->Rows)
@@ -137,7 +137,7 @@ public:
     this->Rows[index].ToolTipEdit->setFocus();
   }
 
-  QString toolTip(int index) const
+  [[nodiscard]] QString toolTip(int index) const
   {
     assert(index >= 0 && index < this->Rows.size());
     return this->Rows[index].ToolTipEdit->text();

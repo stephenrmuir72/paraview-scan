@@ -113,7 +113,7 @@ class pqKeyFrameInterpolationItem : public pqKeyFrameItem
 public:
   pqKeyFrameInterpolationItem() = default;
   // get data from combo box on key frame editor
-  QVariant data(int role) const override
+  [[nodiscard]] QVariant data(int role) const override
   {
     int idx = this->Widget.typeComboBox()->currentIndex();
     QAbstractItemModel* comboModel = this->Widget.typeComboBox()->model();
@@ -137,7 +137,7 @@ public:
   }
 
   // get data from widget
-  QVariant data(int role) const override
+  [[nodiscard]] QVariant data(int role) const override
   {
     if (role == Qt::DisplayRole)
     {

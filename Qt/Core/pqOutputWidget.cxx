@@ -342,7 +342,7 @@ public:
     }
   }
 
-  const QString& settingsKey() const { return this->SettingsKey; }
+  [[nodiscard]] const QString& settingsKey() const { return this->SettingsKey; }
 
   /**
    * add a list of strings to be subpressed

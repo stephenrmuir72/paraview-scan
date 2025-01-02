@@ -323,7 +323,7 @@ public:
     this->invalidateFilter();
   }
 
-  int currentGroupColumn() const { return this->CurrentGroupColumn; }
+  [[nodiscard]] int currentGroupColumn() const { return this->CurrentGroupColumn; }
   void setCurrentGroupColumn(int currentGroupCol)
   {
     this->CurrentGroupColumn = currentGroupCol;
@@ -332,7 +332,7 @@ public:
   }
 
 protected:
-  bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
+  [[nodiscard]] bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
   {
     if (!this->Superclass::filterAcceptsRow(sourceRow, sourceParent))
     {
@@ -380,12 +380,12 @@ public:
   }
   ~pqPresetDialogReflowModel() override = default;
 
-  QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
+  [[nodiscard]] QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
   {
     return this->index(sourceIndex.row() / this->NumColumns, sourceIndex.row() % this->NumColumns);
   }
 
-  QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
+  [[nodiscard]] QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
     auto resultRow = proxyIndex.row() * this->NumColumns + proxyIndex.column();
     if (resultRow < sourceModel()->rowCount())
@@ -397,15 +397,19 @@ public:
     return QModelIndex();
   }
 
-  int rowCount(const QModelIndex& parent = QModelIndex()) const override
+  [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override
   {
     auto parentRowCount = sourceModel()->rowCount(parent);
     return parentRowCount / this->NumColumns + (parentRowCount % this->NumColumns == 0 ? 0 : 1);
   }
 
-  int columnCount(const QModelIndex& = QModelIndex()) const override { return this->NumColumns; }
+  [[nodiscard]] int columnCount(const QModelIndex& = QModelIndex()) const override
+  {
+    return this->NumColumns;
+  }
 
-  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
+  [[nodiscard]] QVariant data(
+    const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
   {
     auto resultRow = proxyIndex.row() * this->NumColumns + proxyIndex.column();
     if (resultRow < sourceModel()->rowCount())
@@ -418,7 +422,7 @@ public:
     }
   }
 
-  Qt::ItemFlags flags(const QModelIndex& proxyIndex) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& proxyIndex) const override
   {
     auto resultRow = proxyIndex.row() * this->NumColumns + proxyIndex.column();
     if (resultRow < sourceModel()->rowCount())
@@ -431,12 +435,13 @@ public:
     }
   }
 
-  QModelIndex index(int row, int column, const QModelIndex& = QModelIndex()) const override
+  [[nodiscard]] QModelIndex index(
+    int row, int column, const QModelIndex& = QModelIndex()) const override
   {
     return createIndex(row, column);
   }
 
-  QModelIndex parent(const QModelIndex&) const override { return QModelIndex(); }
+  [[nodiscard]] QModelIndex parent(const QModelIndex&) const override { return QModelIndex(); }
 
 private:
   Q_DISABLE_COPY(pqPresetDialogReflowModel);

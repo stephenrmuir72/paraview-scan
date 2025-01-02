@@ -148,8 +148,8 @@ public:
     }
   }
 
-  bool isExecuting() const { return this->ExecutionCounter > 0; }
-  bool isInterpreterInitialized() const { return this->InterpreterInitialized; }
+  [[nodiscard]] bool isExecuting() const { return this->ExecutionCounter > 0; }
+  [[nodiscard]] bool isInterpreterInitialized() const { return this->InterpreterInitialized; }
 
   /**
    * Resets the interpreter. Unlike `initializeInterpreter`, this will have no
@@ -164,7 +164,7 @@ public:
     }
   }
 
-  vtkPythonInteractiveInterpreter* interpreter() const { return this->Interpreter; }
+  [[nodiscard]] vtkPythonInteractiveInterpreter* interpreter() const { return this->Interpreter; }
 
 private:
   /**

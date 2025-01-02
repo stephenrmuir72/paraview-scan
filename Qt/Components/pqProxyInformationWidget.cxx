@@ -76,15 +76,16 @@ public:
    * Get/Set the vtkPVDataInformation instance.
    */
   void setDataInformation(vtkPVDataInformation* info);
-  vtkPVDataInformation* dataInformation() const { return this->DataInformation; }
+  [[nodiscard]] vtkPVDataInformation* dataInformation() const { return this->DataInformation; }
 
-  int rowCount(const QModelIndex&) const override
+  [[nodiscard]] int rowCount(const QModelIndex&) const override
   {
     return static_cast<int>(this->ArrayInformations.size());
   }
-  int columnCount(const QModelIndex&) const override { return 3; }
-  QVariant data(const QModelIndex& indx, int role) const override;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] int columnCount(const QModelIndex&) const override { return 3; }
+  [[nodiscard]] QVariant data(const QModelIndex& indx, int role) const override;
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (role != Qt::DisplayRole || orientation != Qt::Horizontal)
     {
@@ -102,7 +103,7 @@ public:
     }
     return this->Superclass::headerData(section, orientation, role);
   }
-  Qt::ItemFlags flags(const QModelIndex& indx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& indx) const override
   {
     // make editable to allow copy/paste of text (see
     // pqNonEditableStyledItemDelegate).
@@ -239,14 +240,14 @@ public:
     return false;
   }
 
-  int rowCount(const QModelIndex&) const override
+  [[nodiscard]] int rowCount(const QModelIndex&) const override
   {
     return static_cast<int>(this->TimeSteps.size());
   }
 
-  int columnCount(const QModelIndex&) const override { return 2; }
+  [[nodiscard]] int columnCount(const QModelIndex&) const override { return 2; }
 
-  QVariant data(const QModelIndex& indx, int role) const override
+  [[nodiscard]] QVariant data(const QModelIndex& indx, int role) const override
   {
     if (role == Qt::DisplayRole || role == Qt::ToolTipRole || role == Qt::EditRole)
     {
@@ -261,7 +262,8 @@ public:
     return QVariant();
   }
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
@@ -276,7 +278,7 @@ public:
     return this->Superclass::headerData(section, orientation, role);
   }
 
-  Qt::ItemFlags flags(const QModelIndex& indx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& indx) const override
   {
     // make editable to allow copy/paste of text (see
     // pqNonEditableStyledItemDelegate).
@@ -291,7 +293,7 @@ private:
 
 class pqProxyInformationWidget::pqInternals
 {
-  QItemSelectionModel* activeSelectionModel() const
+  [[nodiscard]] QItemSelectionModel* activeSelectionModel() const
   {
     if (this->Ui.compositeTree->isVisible())
     {
@@ -303,7 +305,7 @@ class pqProxyInformationWidget::pqInternals
     }
     return nullptr;
   }
-  vtkDataAssembly* activeGrouping() const
+  [[nodiscard]] vtkDataAssembly* activeGrouping() const
   {
     if (this->Ui.compositeTree->isVisible())
     {
@@ -327,19 +329,19 @@ public:
   QPointer<pqOutputPort> Port;
   vtkNew<vtkPVDataInformation> SubsetDataInformation;
 
-  vtkSMSourceProxy* sourceProxy() const
+  [[nodiscard]] vtkSMSourceProxy* sourceProxy() const
   {
     return this->Port ? this->Port->getSourceProxy() : nullptr;
   }
 
   // returns true of we want to show any subset of the data information.
-  bool showSubsetInformation() const
+  [[nodiscard]] bool showSubsetInformation() const
   {
     auto selModel = this->activeSelectionModel();
     return (selModel && selModel->currentIndex().isValid());
   }
 
-  vtkPVDataInformation* subsetDataInformation() const
+  [[nodiscard]] vtkPVDataInformation* subsetDataInformation() const
   {
     auto dinfo = this->Port ? this->Port->getDataInformation() : nullptr;
     if (!this->showSubsetInformation() || !this->Port)

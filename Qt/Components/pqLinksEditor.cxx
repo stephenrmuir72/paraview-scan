@@ -133,7 +133,7 @@ public:
     } u;
   };
 
-  void* encodeIndex(const RowIndex& row) const
+  [[nodiscard]] void* encodeIndex(const RowIndex& row) const
   {
     RowIndex ri = row;
     ri.u.idx.type++;
@@ -147,7 +147,7 @@ public:
     return ri;
   }
 
-  QModelIndex index(int row, int column, const QModelIndex& pidx) const override
+  [[nodiscard]] QModelIndex index(int row, int column, const QModelIndex& pidx) const override
   {
     if (this->rowCount(pidx) <= row)
     {
@@ -169,7 +169,7 @@ public:
     return this->createIndex(row, column, this->encodeIndex(ri));
   }
 
-  QModelIndex parent(const QModelIndex& idx) const override
+  [[nodiscard]] QModelIndex parent(const QModelIndex& idx) const override
   {
     if (!idx.isValid() || idx.internalPointer() == nullptr)
     {
@@ -188,13 +188,13 @@ public:
     return this->createIndex(row, idx.column(), p);
   }
 
-  vtkSMProxyListDomain* proxyListDomain(const QModelIndex& idx) const
+  [[nodiscard]] vtkSMProxyListDomain* proxyListDomain(const QModelIndex& idx) const
   {
     vtkSMProxy* pxy = this->getProxy(idx);
     return pqLinksModel::proxyListDomain(pxy);
   }
 
-  int rowCount(const QModelIndex& idx) const override
+  [[nodiscard]] int rowCount(const QModelIndex& idx) const override
   {
     if (!idx.isValid())
     {
@@ -228,11 +228,11 @@ public:
     return 0;
   }
 
-  int columnCount(const QModelIndex& /*idx*/) const override { return 1; }
+  [[nodiscard]] int columnCount(const QModelIndex& /*idx*/) const override { return 1; }
 
-  QVariant headerData(int, Qt::Orientation, int) const override { return QVariant(); }
+  [[nodiscard]] QVariant headerData(int, Qt::Orientation, int) const override { return QVariant(); }
 
-  QVariant data(const QModelIndex& idx, int role) const override
+  [[nodiscard]] QVariant data(const QModelIndex& idx, int role) const override
   {
     if (!idx.isValid())
     {
@@ -354,7 +354,7 @@ public:
     return QModelIndex();
   }
 
-  vtkSMProxy* getProxy(const QModelIndex& idx) const
+  [[nodiscard]] vtkSMProxy* getProxy(const QModelIndex& idx) const
   {
     if (!idx.isValid())
     {

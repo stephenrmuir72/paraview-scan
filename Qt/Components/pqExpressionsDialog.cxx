@@ -143,7 +143,7 @@ protected:
    * Group column should match exactly given group.
    * Name column OR Expression column should match user given string (as regular expression)
    */
-  bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
+  [[nodiscard]] bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
   {
     Q_UNUSED(sourceParent);
     const QModelIndex& groupIdx =
@@ -171,7 +171,7 @@ protected:
   /**
    * Do QString comparison between data from given rows, same column.
    */
-  int compare(int leftRow, int rightRow, int column) const
+  [[nodiscard]] int compare(int leftRow, int rightRow, int column) const
   {
     const QModelIndex& leftStringIdx = this->sourceModel()->index(leftRow, column);
     const QModelIndex& rightStringIdx = this->sourceModel()->index(rightRow, column);
@@ -185,7 +185,7 @@ protected:
    * Reimplement superclass method to do multi-columns sort.
    * Sort order: Group then Name then Expression.
    */
-  bool lessThan(const QModelIndex& left, const QModelIndex& right) const override
+  [[nodiscard]] bool lessThan(const QModelIndex& left, const QModelIndex& right) const override
   {
     int leftRow = left.row();
     int rightRow = right.row();

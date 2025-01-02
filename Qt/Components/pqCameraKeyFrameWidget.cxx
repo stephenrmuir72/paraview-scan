@@ -120,7 +120,7 @@ public:
     this->parallelScale->setTextAndResetCursor(QString("%1").arg(val));
   }
 
-  double getParallelScale() const { return this->parallelScale->text().toDouble(); }
+  [[nodiscard]] double getParallelScale() const { return this->parallelScale->text().toDouble(); }
 };
 
 //-----------------------------------------------------------------------------

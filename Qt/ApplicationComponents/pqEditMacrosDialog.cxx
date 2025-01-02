@@ -37,26 +37,29 @@ struct pqEditMacrosDialog::pqInternals
     // qt item role to store macro path
     static constexpr int MACRO_PATH_ROLE() { return Qt::UserRole + 1; }
 
-    int columnCount(const QModelIndex&) const override { return pqInternals::Columns::Count; }
+    [[nodiscard]] int columnCount(const QModelIndex&) const override
+    {
+      return pqInternals::Columns::Count;
+    }
 
-    int rowCount(const QModelIndex&) const override
+    [[nodiscard]] int rowCount(const QModelIndex&) const override
     {
       return pqPythonMacroSupervisor::getMacrosFilePaths().size();
     }
 
-    QModelIndex index(int row, int column, const QModelIndex&) const override
+    [[nodiscard]] QModelIndex index(int row, int column, const QModelIndex&) const override
     {
       return this->createIndex(row, column);
     }
 
-    QModelIndex parent(const QModelIndex&) const override { return QModelIndex(); }
+    [[nodiscard]] QModelIndex parent(const QModelIndex&) const override { return QModelIndex(); }
 
-    Qt::ItemFlags flags(const QModelIndex& index) const override
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& index) const override
     {
       return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
     }
 
-    QVariant data(const QModelIndex& index, int role) const override
+    [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
@@ -130,7 +133,8 @@ struct pqEditMacrosDialog::pqInternals
       return result;
     }
 
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+    [[nodiscard]] QVariant headerData(
+      int section, Qt::Orientation orientation, int role) const override
     {
       if (role != Qt::DisplayRole)
       {
@@ -257,7 +261,7 @@ struct pqEditMacrosDialog::pqInternals
       }
     }
 
-    QRect calculateButtonRect(const QRect& cellRect) const
+    [[nodiscard]] QRect calculateButtonRect(const QRect& cellRect) const
     {
       // lets the button paint in a rectangle whose width is cell height - 2 pixels
       // so that the button icon doesn't look stretched
@@ -405,12 +409,12 @@ struct pqEditMacrosDialog::pqInternals
     return macroNames.join(separator);
   }
 
-  pqPythonMacrosModel* model() const
+  [[nodiscard]] pqPythonMacrosModel* model() const
   {
     return static_cast<pqPythonMacrosModel*>(this->view()->model());
   }
 
-  QTreeView* view() const { return this->Ui->macrosTree; }
+  [[nodiscard]] QTreeView* view() const { return this->Ui->macrosTree; }
 
   QScopedPointer<Ui::pqEditMacrosDialog> Ui;
 };

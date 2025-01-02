@@ -80,14 +80,14 @@ public:
   }
   ~TableSelectorsModel() override = default;
 
-  int columnCount(const QModelIndex&) const override
+  [[nodiscard]] int columnCount(const QModelIndex&) const override
   {
     return 1; // only one column.
   }
 
-  int rowCount(const QModelIndex&) const override { return this->Values.size(); }
+  [[nodiscard]] int rowCount(const QModelIndex&) const override { return this->Values.size(); }
 
-  Qt::ItemFlags flags(const QModelIndex& indx) const override
+  [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& indx) const override
   {
     return this->Superclass::flags(indx) | Qt::ItemIsEditable;
   }
@@ -112,7 +112,7 @@ public:
     this->setData(values);
   }
 
-  QStringList selectors() const
+  [[nodiscard]] QStringList selectors() const
   {
     QStringList val;
     for (auto& pair : this->Values)
@@ -122,9 +122,10 @@ public:
     return val;
   }
 
-  const QList<QPair<QString, QVariant>>& values() const { return this->Values; }
+  [[nodiscard]] const QList<QPair<QString, QVariant>>& values() const { return this->Values; }
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation != Qt::Horizontal)
     {
@@ -167,7 +168,7 @@ public:
     }
     return false;
   }
-  QVariant data(const QModelIndex& indx, int role) const override
+  [[nodiscard]] QVariant data(const QModelIndex& indx, int role) const override
   {
     const auto& pair = this->Values[indx.row()];
     if (indx.column() == 0)
@@ -341,7 +342,7 @@ public:
     assembly->Visit(visitor);
   }
 
-  QVariant headerData(
+  [[nodiscard]] QVariant headerData(
     int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override
   {
     if (orientation == Qt::Horizontal)
@@ -375,12 +376,12 @@ public:
     return this->Superclass::setHeaderData(section, orientation, value, role);
   }
 
-  int columnCount(const QModelIndex& index = QModelIndex()) const override
+  [[nodiscard]] int columnCount(const QModelIndex& index = QModelIndex()) const override
   {
     return this->Superclass::columnCount(index) + static_cast<int>(this->ExtraColumns.size());
   }
 
-  QVariant data(const QModelIndex& index, int role) const override
+  [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override
   {
     if (index.column() == 0 || !index.isValid())
     {
@@ -442,7 +443,7 @@ public:
   /**
    * Returns the role associated with a column.
    */
-  int roleForColumn(int column) const
+  [[nodiscard]] int roleForColumn(int column) const
   {
     column -= 1;
     try
@@ -455,7 +456,7 @@ public:
     }
   }
 
-  pqMultiBlockPropertiesStateWidget* getStateWidget(const QModelIndex& index) const
+  [[nodiscard]] pqMultiBlockPropertiesStateWidget* getStateWidget(const QModelIndex& index) const
   {
     const int nodeId = this->getNodeId(index);
     const auto& result = this->StateWidgets.find(nodeId);
@@ -465,7 +466,7 @@ public:
 private:
   Q_DISABLE_COPY(pqDAPModel);
 
-  int getNodeId(const QModelIndex& index) const
+  [[nodiscard]] int getNodeId(const QModelIndex& index) const
   {
     auto treeModel = qobject_cast<pqDataAssemblyTreeModel*>(this->sourceModel());
     return treeModel->nodeId(index);
@@ -814,7 +815,10 @@ public:
   // Indicates if input's proxy name is being shown as header.
   bool UseInputNameAsHeader = false;
 
-  vtkDataAssembly* assembly() const { return this->AssemblyTreeModel->dataAssembly(); }
+  [[nodiscard]] vtkDataAssembly* assembly() const
+  {
+    return this->AssemblyTreeModel->dataAssembly();
+  }
 };
 
 //-----------------------------------------------------------------------------

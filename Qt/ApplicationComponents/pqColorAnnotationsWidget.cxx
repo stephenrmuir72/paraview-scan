@@ -123,7 +123,8 @@ public:
   }
 
   // Overriden to update the global checkbox based on filtered elements only.
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  [[nodiscard]] QVariant headerData(
+    int section, Qt::Orientation orientation, int role) const override
   {
     pqAnnotationsModel* sourceModel = qobject_cast<pqAnnotationsModel*>(this->sourceModel());
     if (!sourceModel)
@@ -197,7 +198,7 @@ public:
     return sourceModel->setHeaderData(section, orientation, value, role);
   }
 
-  bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
+  [[nodiscard]] bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
   {
     QModelIndex domainIndex =
       sourceModel()->index(sourceRow, pqAnnotationsModel::VISIBILITY, sourceParent);
@@ -240,7 +241,7 @@ public:
 
   ~pqOpacityRangeDialog() override = default;
 
-  double opacity() const { return this->OpacityWidget->value(); }
+  [[nodiscard]] double opacity() const { return this->OpacityWidget->value(); }
 
 private:
   pqDoubleRangeWidget* OpacityWidget;

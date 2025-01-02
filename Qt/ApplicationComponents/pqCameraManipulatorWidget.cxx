@@ -50,7 +50,7 @@ protected:
   }
 
   /// called to get the current value for the ServerManager Property.
-  QVariant currentServerManagerValue(bool use_unchecked) const override
+  [[nodiscard]] QVariant currentServerManagerValue(bool use_unchecked) const override
   {
     int values[9];
     int max = 0;

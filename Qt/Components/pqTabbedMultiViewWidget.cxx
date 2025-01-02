@@ -241,7 +241,7 @@ public:
     }
   }
 
-  bool decorationsVisibility() const { return this->DecorationsVisibility; }
+  [[nodiscard]] bool decorationsVisibility() const { return this->DecorationsVisibility; }
 
   /// adds a vtkSMViewLayoutProxy to a new tab.
   int addTab(vtkSMViewLayoutProxy* vlayout, pqTabbedMultiViewWidget* self)
@@ -340,7 +340,7 @@ public:
     this->TabWidgets.remove(server);
   }
 
-  QList<QPointer<pqMultiViewWidget>> widgets() const
+  [[nodiscard]] QList<QPointer<pqMultiViewWidget>> widgets() const
   {
     QList<QPointer<pqMultiViewWidget>> wgs;
     for (auto& list : this->TabWidgets)

@@ -46,7 +46,7 @@ protected:
     }
   }
 
-  QVariant currentServerManagerValue(bool use_unchecked) const override
+  [[nodiscard]] QVariant currentServerManagerValue(bool use_unchecked) const override
   {
     vtkSMPropertyHelper helper(this->propertySM());
     helper.SetUseUnchecked(use_unchecked);
