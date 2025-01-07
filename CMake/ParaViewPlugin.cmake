@@ -819,6 +819,19 @@ unset(_vtk_module_import_prefix)\n")
 endfunction ()
 
 #[==[.md
+## Extra path in plugin configuration files
+
+Extra paths in the plugin conf file for finding plugins at runtime can be
+set in the PARAVIEW_PLUGIN_CONF_EXTRA_PATHS list variable.
+These are listed in the conf file, without autoloading found plugins.
+This is analogous to the PARAVIEW_PLUGIN_LOADER_PATHS variable
+(which autoloads found plugins in the Plugin Manager).
+#]==]
+set(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS ""
+  CACHE STRING "Extra paths (as list) in the conf file to search for plugins (no autoload)")
+mark_as_advanced(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS)
+
+#[==[.md
 ## Plugin configuration files
 
 Applications will want to consume plugin targets by discovering their locations
@@ -943,6 +956,20 @@ function (paraview_plugin_write_conf)
         "${_paraview_plugin_conf_plugins_target_xml_install}\n")
     endif ()
   endforeach ()
+
+  if(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS)
+    string (REPLACE ":" ";" _paraview_plugin_conf_extra_paths "${PARAVIEW_PLUGIN_CONF_EXTRA_PATHS}")
+    foreach (_paraview_plugin_conf_extra_path IN LISTS _paraview_plugin_conf_extra_paths)
+      if (_paraview_plugin_conf_plugins_target_xml_build)
+        string(APPEND _paraview_plugin_conf_build_contents
+          "${_paraview_plugin_conf_extra_path}\n")
+      endif ()
+      if (_paraview_plugin_conf_plugins_target_xml_install)
+        string(APPEND _paraview_plugin_conf_install_contents
+          "${_paraview_plugin_conf_extra_path}\n")
+      endif ()
+    endforeach ()
+  endif()
 
   file(GENERATE
     OUTPUT  "${_paraview_plugin_conf_build_file}"
