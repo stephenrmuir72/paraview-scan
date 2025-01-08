@@ -819,19 +819,6 @@ unset(_vtk_module_import_prefix)\n")
 endfunction ()
 
 #[==[.md
-## Extra path in plugin configuration files
-
-Extra paths in the plugin conf file for finding plugins at runtime can be
-set in the PARAVIEW_PLUGIN_CONF_EXTRA_PATHS list variable.
-These are listed in the conf file, without autoloading found plugins.
-This is analogous to the PARAVIEW_PLUGIN_LOADER_PATHS variable
-(which autoloads found plugins in the Plugin Manager).
-#]==]
-set(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS ""
-  CACHE STRING "Extra paths (as list) in the conf file to search for plugins (no autoload)")
-mark_as_advanced(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS)
-
-#[==[.md
 ## Plugin configuration files
 
 Applications will want to consume plugin targets by discovering their locations
@@ -846,6 +833,7 @@ paraview_plugin_write_conf(
   BUILD_DESTINATION <destination>
 
   [INSTALL_DESTINATION <destination>]
+  [PLUGIN_CONF_EXTRA_PATHS <path list>]
   [COMPONENT <component>])
 ```
 
@@ -857,6 +845,10 @@ paraview_plugin_write_conf(
   * `INSTALL_DESTINATION`: Where to install the configuration file in the
     install tree. If not provided, the configuration file will not be
     installed.
+  * `PLUGIN_CONF_EXTRA_PATHS`: (Optional) A list of extra plugin paths
+    searched at runtime to find available plugins without autoloading.
+    Items may be separated by the cmake list separator ';' or by the
+    path separator for the OS (e.g. ':' on linux).
   * `COMPONENT`: (Defaults to `runtime`) The component to use when installing
     the configuration file.
 #]==]
@@ -864,7 +856,7 @@ function (paraview_plugin_write_conf)
   cmake_parse_arguments(_paraview_plugin_conf
     ""
     "NAME;BUILD_DESTINATION;INSTALL_DESTINATION;COMPONENT"
-    "PLUGINS_TARGETS"
+    "PLUGINS_TARGETS;PLUGIN_CONF_EXTRA_PATHS"
     ${ARGN})
 
   if (_paraview_plugin_conf_UNPARSED_ARGUMENTS)
@@ -957,8 +949,9 @@ function (paraview_plugin_write_conf)
     endif ()
   endforeach ()
 
-  if(PARAVIEW_PLUGIN_CONF_EXTRA_PATHS)
-    string (REPLACE ":" ";" _paraview_plugin_conf_extra_paths "${PARAVIEW_PLUGIN_CONF_EXTRA_PATHS}")
+  if(_paraview_plugin_conf_PLUGIN_CONF_EXTRA_PATHS)
+    # ":" might be used as path separator on linux, in which case convert to cmake list
+    string (REPLACE ":" ";" _paraview_plugin_conf_extra_paths "${_paraview_plugin_conf_PLUGIN_CONF_EXTRA_PATHS}")
     foreach (_paraview_plugin_conf_extra_path IN LISTS _paraview_plugin_conf_extra_paths)
       if (_paraview_plugin_conf_plugins_target_xml_build)
         string(APPEND _paraview_plugin_conf_build_contents
