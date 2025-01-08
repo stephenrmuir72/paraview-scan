@@ -793,6 +793,12 @@ void pqPropertiesPanel::apply()
   this->Internals->updateInformationAndDomains();
   this->updateButtonState();
 
+  bool autoSaveProperties = vtkPVGeneralSettings::GetInstance()->GetAutoSaveProperties();
+  if (autoSaveProperties)
+  {
+    this->propertiesSaveAsDefaults();
+  }
+
   Q_EMIT this->applied();
   END_UNDO_SET();
   vtkTimerLog::MarkEndEvent("PropertiesPanel::Apply");

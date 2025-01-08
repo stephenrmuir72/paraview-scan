@@ -958,6 +958,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   AnimateProperty.xml
   ArrayBoundsScaleDomain.xml
   ArraySelectionWidget.xml
+  AutoSaveProperties.xml
   ComputeArrayMagnitudeSetting.xml
   CSVPreview.xml
   CellQualityForPixel.xml
