@@ -60,7 +60,8 @@ paraview_client_add(
     will be called upon startup.
   * `REQUIRED_PLUGINS`: Plugins to load upon startup.
   * `OPTIONAL_PLUGINS`: Plugins to load upon startup if available.
-  * `PLUGIN_CONF_EXTRA_PATHS`: A list of extra plugin paths (no autoload).
+  * `PLUGIN_CONF_EXTRA_PATHS`: A list of folders containing extra
+    plugin configuration files to take into account. 
   * `APPLICATION_NAME`: (Defaults to `<NAME>`) The displayed name of the
     application.
   * `ORGANIZATION`: (Defaults to `Anonymous`) The organization for the

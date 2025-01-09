@@ -113,7 +113,7 @@ set_source_files_properties(vtkPVOptions.cxx
     COMPILE_DEFINITIONS "${vtkPVOptions_defines}")
 
 set(PARAVIEW_PLUGIN_LOADER_PATHS ""
-  CACHE STRING "Extra paths to search for plugins (with autoload)")
+  CACHE STRING "Extra paths to search for plugins that should be automatically loaded")
 mark_as_advanced(PARAVIEW_PLUGIN_LOADER_PATHS)
 if (PARAVIEW_PLUGIN_LOADER_PATHS)
   set_property(SOURCE vtkPVPluginLoader.cxx APPEND
