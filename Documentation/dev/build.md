@@ -629,14 +629,14 @@ plugins may be specified in the build configuration.
 
   * `PARAVIEW_PLUGIN_LOADER_PATHS`: paths to plugins intended to be
     autoloaded
-  * `PARAVIEW_PLUGIN_CONF_EXTRA_PATHS`: paths to plugins intended to be
+  * `PARAVIEW_PLUGIN_CONFIG_FILE_EXTRA_PATHS`: paths to plugins intended to be
     available to users but not autoloaded
 
 The argument to these options is a path variable, with multiple paths
 separated by the path separator for the operating system, e.g. on linux
 
 ```
-cmake -DPARAVIEW_PLUGIN_CONF_EXTRA_PATHS="/usr/share/paraview/plugins:/opt/paraview/plugins"
+cmake -DPARAVIEW_PLUGIN_CONFIG_FILE_EXTRA_PATHS="/usr/share/paraview/plugins:/opt/paraview/plugins"
 ```
 
 (or use `;` as the path separator on Windows)

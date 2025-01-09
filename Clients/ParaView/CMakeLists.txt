@@ -88,7 +88,7 @@ paraview_client_add(
   APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/pvIcon.ico"
   SOURCES           ${sources}
   PLUGINS_TARGETS   ParaView::paraview_plugins
-  PLUGIN_CONF_EXTRA_PATHS "${PARAVIEW_PLUGIN_CONF_EXTRA_PATHS}"
+  PLUGIN_CONFIG_FILE_EXTRA_PATHS "${PARAVIEW_PLUGIN_CONFIG_FILE_EXTRA_PATHS}"
   APPLICATION_XMLS  ${xmls}
   ${_paraview_client_add_translation_args})
 

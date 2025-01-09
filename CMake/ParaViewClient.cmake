@@ -20,7 +20,7 @@ paraview_client_add(
   [PLUGINS_TARGETS  <target>...]
   [REQUIRED_PLUGINS <plugin>...]
   [OPTIONAL_PLUGINS <plugin>...]
-  [PLUGIN_CONF_EXTRA_PATHS <path list>]
+  [PLUGIN_CONFIG_FILE_EXTRA_PATHS <path list>]
 
   [APPLICATION_NAME <name>]
   [ORGANIZATION     <organization>]
@@ -60,7 +60,7 @@ paraview_client_add(
     will be called upon startup.
   * `REQUIRED_PLUGINS`: Plugins to load upon startup.
   * `OPTIONAL_PLUGINS`: Plugins to load upon startup if available.
-  * `PLUGIN_CONF_EXTRA_PATHS`: A list of folders containing extra
+  * `PLUGIN_CONFIG_FILE_EXTRA_PATHS`: A list of folders containing extra
     plugin configuration files to take into account. 
   * `APPLICATION_NAME`: (Defaults to `<NAME>`) The displayed name of the
     application.
@@ -96,7 +96,7 @@ function (paraview_client_add)
   cmake_parse_arguments(_paraview_client
     ""
     "NAME;APPLICATION_NAME;ORGANIZATION;TITLE;SPLASH_IMAGE;BUNDLE_DESTINATION;BUNDLE_ICON;BUNDLE_PLIST;APPLICATION_ICON;MAIN_WINDOW_CLASS;MAIN_WINDOW_INCLUDE;VERSION;FORCE_UNIX_LAYOUT;PLUGINS_TARGET;DEFAULT_STYLE;RUNTIME_DESTINATION;LIBRARY_DESTINATION;NAMESPACE;EXPORT;TRANSLATION_TARGET;TRANSLATE_XML;TRANSLATIONS_DIRECTORY"
-    "REQUIRED_PLUGINS;OPTIONAL_PLUGINS;APPLICATION_XMLS;SOURCES;QCH_FILES;QCH_FILE;PLUGINS_TARGETS;PLUGIN_CONF_EXTRA_PATHS"
+    "REQUIRED_PLUGINS;OPTIONAL_PLUGINS;APPLICATION_XMLS;SOURCES;QCH_FILES;QCH_FILE;PLUGINS_TARGETS;PLUGIN_CONFIG_FILE_EXTRA_PATHS"
     ${ARGN})
 
   if (_paraview_client_UNPARSED_ARGUMENTS)
@@ -469,7 +469,7 @@ IDI_ICON1 ICON \"${_paraview_client_APPLICATION_ICON}\"\n")
       PLUGINS_TARGETS ${_paraview_client_PLUGINS_TARGETS}
       BUILD_DESTINATION   "${_paraview_client_binary_destination}"
       INSTALL_DESTINATION "${_paraview_client_conf_destination}"
-      PLUGIN_CONF_EXTRA_PATHS "${_paraview_client_PLUGIN_CONF_EXTRA_PATHS}"
+      PLUGIN_CONFIG_FILE_EXTRA_PATHS "${_paraview_client_PLUGIN_CONFIG_FILE_EXTRA_PATHS}"
       COMPONENT "runtime")
   endif ()
 
