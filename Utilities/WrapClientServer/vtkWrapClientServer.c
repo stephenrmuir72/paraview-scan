@@ -1107,7 +1107,7 @@ void output_DummyInitFunction(FILE* fp, const char* filename)
   fprintf(fp,
     "#include \"vtkSystemIncludes.h\"\n"
     "#include \"vtkClientServerInterpreter.h\"\n"
-    "void VTK_EXPORT %s_Init(vtkClientServerInterpreter* /*csi*/)\n"
+    "VTK_ABI_EXPORT void %s_Init(vtkClientServerInterpreter* /*csi*/)\n"
     "{\n"
     "}\n",
     basename_dup);
@@ -1130,7 +1130,7 @@ void output_InitFunction(FILE* fp, NewClassInfo* data)
   fprintf(fp,
     "\n"
     "//-------------------------------------------------------------------------auto\n"
-    "void VTK_EXPORT %s_Init(vtkClientServerInterpreter* csi)\n"
+    "VTK_ABI_EXPORT void %s_Init(vtkClientServerInterpreter* csi)\n"
     "{\n"
     "  static vtkClientServerInterpreter* last = nullptr;\n"
     "  if(last != csi)\n"
@@ -1360,7 +1360,7 @@ int main(int argc, char* argv[])
 
   fprintf(fp,
     "\n"
-    "int VTK_EXPORT %sCommand(\n"
+    "VTK_ABI_EXPORT int %sCommand(\n"
     "  vtkClientServerInterpreter *arlu, vtkObjectBase *ob,\n"
     "  const char *method, const vtkClientServerStream& msg,\n"
     "  vtkClientServerStream& resultStream, void* /*ctx*/)\n"
