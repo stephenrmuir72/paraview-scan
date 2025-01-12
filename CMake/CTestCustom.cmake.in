@@ -41,6 +41,10 @@ list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
   "md:.*: warning:" # Disable all warnings in .md files
   "warning: Found ';' while parsing initializer list! \\(doxygen could be confused by a macro call without semicolon\\)"
 
+  # clang-tidy suppressions
+  "/Testing/Cxx/.* \\[misc-use-internal-linkage\\]"
+  "ClientServer\\.cxx:.* \\[misc-use-internal-linkage\\]"
+
   # warnings from moc generated code
   "_autogen"
 
