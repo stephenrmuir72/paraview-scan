@@ -42,6 +42,7 @@ std::vector<std::string> GetWindowsSystemDirectories()
   // https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
   if (vtksys::SystemTools::GetEnv("COMMON_APPDATA", appData))
   {
+    vtkLog(INFO, << "found COMMON_APPDATA env: " << appData);
     paths.push_back(appData);
   }
 
