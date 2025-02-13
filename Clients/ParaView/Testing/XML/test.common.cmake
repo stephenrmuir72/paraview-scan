@@ -980,6 +980,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   HTGFeatureEdgesBackwardCompat.xml
   HTGGhostCellsGeneratorBackwardCompat.xml
   HTGReflectionBackwardCompat.xml
+  HTGPlotSelectionOverTime.xml
   ImportCustomPresets.xml
   InformationPanel.xml
   LogViewer.xml
