@@ -5,6 +5,7 @@
 #include "vtkClientServerInterpreterInitializer.h"
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
+#include "vtkPDirectory.h"
 #include "vtkPResourceFileLocator.h"
 #include "vtkPSystemTools.h"
 #include "vtkPVDynamicInitializerPluginInterface.h"
@@ -338,7 +339,15 @@ void vtkPVPluginTracker::LoadPluginConfigurationXMLConf(
       line = std::string(exe_dir).append("/").append(line);
     }
 
-    this->LoadPluginConfigurationXML(line.c_str(), false);
+    if (vtksys::SystemTools::FileIsDirectory(line))
+    {
+      // load the plugin dir, but without autoload.
+      this->RegisterPluginsFromPath(line.c_str());
+    }
+    else
+    {
+      this->LoadPluginConfigurationXML(line.c_str(), false);
+    }
   }
 }
 
@@ -593,6 +602,84 @@ void vtkPVPluginTracker::LoadPluginConfigurationXMLHinted(
 unsigned int vtkPVPluginTracker::GetNumberOfPlugins()
 {
   return static_cast<unsigned int>(this->PluginsList->size());
+}
+
+//----------------------------------------------------------------------------
+// RegisterPluginsFromPath applies the same logic as vtkPVPluginLoader::LoadPluginsFromPath
+// but only registers plugins without autoloading them
+unsigned int vtkPVPluginTracker::RegisterPluginsFromPath(const char* path)
+{
+  unsigned int num_plugins(0);
+
+  vtkVLogIfF(
+    PARAVIEW_LOG_PLUGIN_VERBOSITY(), path != nullptr, "Registering plugins in Path: %s", path);
+
+  vtkNew<vtkPDirectory> dir;
+  if (dir->Load(path) == false)
+  {
+    vtkVLogIfF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), path != nullptr, "Invalid directory: %s", path);
+    return num_plugins;
+  }
+
+#ifdef _WIN32
+  const char* compiled_extension = ".dll";
+#else
+  const char* compiled_extension = ".so";
+#endif
+
+  for (vtkIdType cc = 0; cc < dir->GetNumberOfFiles(); cc++)
+  {
+    const char* file = dir->GetFile(cc);
+    std::string rel_path;
+    bool has_valid_extension;
+    bool assume_exists = false;
+
+    // If we have a directory, search it for a plugin of the same name.
+    if (dir->FileIsDirectory(file))
+    {
+      rel_path = file;
+      rel_path += '/';
+      rel_path += file;
+      rel_path += compiled_extension;
+      has_valid_extension = true;
+    }
+    else
+    {
+      // We have a file, check to see if its extension is acceptable.
+      rel_path = file;
+      std::string ext = vtksys::SystemTools::GetFilenameLastExtension(rel_path);
+      has_valid_extension =
+        (ext == compiled_extension || ext == ".xml" || ext == ".sl" || ext == ".py");
+      assume_exists = true;
+    }
+
+    // No extension, not a plugin.
+    if (!has_valid_extension)
+    {
+      continue;
+    }
+
+    // Calculate the full path to the plugin.
+    std::string full_file = dir->GetPath();
+    full_file += '/';
+    full_file += rel_path;
+
+    // Check if it exists and is a file.
+    if (!assume_exists && !vtksys::SystemTools::FileExists(full_file, true))
+    {
+      continue;
+    }
+
+    // Register the plugin (without loading)
+    vtkVLogF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "found `%s`", full_file.c_str());
+    unsigned int index = this->RegisterAvailablePlugin(full_file.c_str());
+    std::vector<std::string> xmls;
+    (*this->PluginsList)[index].AutoLoad = false;
+    (*this->PluginsList)[index].DelayedLoad = false;
+    (*this->PluginsList)[index].XMLs = xmls;
+    num_plugins++;
+  }
+  return num_plugins;
 }
 
 //----------------------------------------------------------------------------

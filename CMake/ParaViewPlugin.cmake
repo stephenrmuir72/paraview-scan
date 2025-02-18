@@ -833,6 +833,7 @@ paraview_plugin_write_conf(
   BUILD_DESTINATION <destination>
 
   [INSTALL_DESTINATION <destination>]
+  [PLUGIN_CONFIG_FILE_EXTRA_PATHS <path list>]
   [COMPONENT <component>])
 ```
 
@@ -844,6 +845,10 @@ paraview_plugin_write_conf(
   * `INSTALL_DESTINATION`: Where to install the configuration file in the
     install tree. If not provided, the configuration file will not be
     installed.
+  * `PLUGIN_CONFIG_FILE_EXTRA_PATHS`: (Optional) A list of extra plugin paths
+    searched at runtime to find available plugins without autoloading.
+    Items may be separated by the cmake list separator ';' or by the
+    path separator for the OS (e.g. ':' on linux).
   * `COMPONENT`: (Defaults to `runtime`) The component to use when installing
     the configuration file.
 #]==]
@@ -851,7 +856,7 @@ function (paraview_plugin_write_conf)
   cmake_parse_arguments(_paraview_plugin_conf
     ""
     "NAME;BUILD_DESTINATION;INSTALL_DESTINATION;COMPONENT"
-    "PLUGINS_TARGETS"
+    "PLUGINS_TARGETS;PLUGIN_CONFIG_FILE_EXTRA_PATHS"
     ${ARGN})
 
   if (_paraview_plugin_conf_UNPARSED_ARGUMENTS)
@@ -943,6 +948,21 @@ function (paraview_plugin_write_conf)
         "${_paraview_plugin_conf_plugins_target_xml_install}\n")
     endif ()
   endforeach ()
+
+  if(_paraview_plugin_conf_PLUGIN_CONFIG_FILE_EXTRA_PATHS)
+    # ":" might be used as path separator on linux, in which case convert to cmake list
+    string (REPLACE ":" ";" _paraview_plugin_config_file_extra_paths "${_paraview_plugin_conf_PLUGIN_CONFIG_FILE_EXTRA_PATHS}")
+    foreach (_paraview_plugin_conf_extra_path IN LISTS _paraview_plugin_config_file_extra_paths)
+      if (_paraview_plugin_conf_plugins_target_xml_build)
+        string(APPEND _paraview_plugin_conf_build_contents
+          "${_paraview_plugin_conf_extra_path}\n")
+      endif ()
+      if (_paraview_plugin_conf_plugins_target_xml_install)
+        string(APPEND _paraview_plugin_conf_install_contents
+          "${_paraview_plugin_conf_extra_path}\n")
+      endif ()
+    endforeach ()
+  endif()
 
   file(GENERATE
     OUTPUT  "${_paraview_plugin_conf_build_file}"

@@ -56,6 +56,15 @@ public:
   void RegisterPlugin(vtkPVPlugin*);
 
   /**
+   * This API is used to register available plugins found under the given
+   * path without actually loading them.
+   *
+   * This fires `vtkPVPluginTracker::RegisterAvailablePluginEvent` to notify a
+   * plugins have been made available.
+   */
+  unsigned int RegisterPluginsFromPath(const char* path);
+
+  /**
    * This API is used to register available plugins without actually loading
    * them.
    *
