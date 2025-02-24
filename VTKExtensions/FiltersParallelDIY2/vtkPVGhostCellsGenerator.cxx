@@ -106,6 +106,7 @@ bool vtkPVGhostCellsGenerator::HasHTG(vtkMultiProcessController* controller, vtk
       break;
     }
   }
+  iter->Delete();
 
   // Some ranks may have null pieces, so we detect HTG using a reduction operation:
   // If at least 1 rank has a HTG piece, this means we must forward to the HTG specialized filter.
