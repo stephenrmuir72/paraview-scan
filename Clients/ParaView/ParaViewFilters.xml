@@ -290,6 +290,7 @@
   <Proxy group="filters" name="ArbitrarySourceStreamTracer" />
   <Proxy group="filters" name="AxisAlignedReflectionFilter" />
   <Proxy group="filters" name="AxisAlignedSlice" />
+  <Proxy group="filters" name="AxisAlignedTransform" />
   <Proxy group="filters" name="BlockIdScalars" />
   <Proxy group="filters" name="BlockIds" />
   <Proxy group="filters" name="BoundaryMeshQuality"/>
@@ -476,6 +477,7 @@
   <Proxy group="filters" name="QuadraturePointsGenerator" />
   <Proxy group="filters" name="QuadratureSchemeDictionaryGenerator" />
   <Proxy group="filters" name="QuadricClustering" />
+  <Proxy group="filters" name="QuadricDecimation" />
   <Proxy group="filters" name="RandomAttributeGenerator" />
   <Proxy group="filters" name="RectilinearGridConnectivity" />
   <Proxy group="filters" name="RectilinearGridToPointSet" />
