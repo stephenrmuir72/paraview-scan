@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSMTransferFunctionManager.h"
 
+#include "vtkCompositeRepresentation.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMColorMapEditorHelper.h"
@@ -9,16 +10,22 @@
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyIterator.h"
+#include "vtkSMProxySelectionModel.h"
 #include "vtkSMScalarBarWidgetRepresentationProxy.h"
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
 #include "vtkSMTrace.h"
 #include "vtkSMTransferFunctionProxy.h"
 
+#include "vtkSMViewProxy.h"
+#include "vtkSMRepresentationProxy.h"
+
 #include <cassert>
 #include <set>
 #include <sstream>
 #include <vtksys/RegularExpression.hxx>
+
+#include <unistd.h>
 
 namespace
 {
@@ -269,9 +276,16 @@ void vtkSMTransferFunctionManager::ResetAllTransferFunctionRangesUsingCurrentDat
   vtkNew<vtkSMProxyIterator> iter;
   iter->SetSessionProxyManager(pxm);
   iter->SetModeToOneGroup();
+
+  vtkSMRepresentationProxy* representationProxy = nullptr;
+  for (iter->Begin("representations"); !iter->IsAtEnd(); iter->Next()) {
+    representationProxy = vtkSMRepresentationProxy::SafeDownCast(iter->GetProxy());
+  }
+
   for (iter->Begin("lookup_tables"); !iter->IsAtEnd(); iter->Next())
   {
     vtkSMProxy* lutProxy = iter->GetProxy();
+  
     assert(lutProxy != nullptr);
 
     int rescaleMode = vtkSMPropertyHelper(lutProxy, "AutomaticRescaleRangeMode", true).GetAsInt();
@@ -286,11 +300,19 @@ void vtkSMTransferFunctionManager::ResetAllTransferFunctionRangesUsingCurrentDat
     {
       extend = false;
     }
+    else if (rescaleMode == vtkSMTransferFunctionManager::VISIBLE_RESET_ON_APPLY && !animating)
+    {
+      extend = false;
+    }
     else if (rescaleMode == vtkSMTransferFunctionManager::GROW_ON_APPLY_AND_TIMESTEP && animating)
     {
       extend = true;
     }
     else if (rescaleMode == vtkSMTransferFunctionManager::RESET_ON_APPLY_AND_TIMESTEP && animating)
+    {
+      extend = false;
+    }
+    else if (rescaleMode == vtkSMTransferFunctionManager::VISIBLE_RESET_ON_APPLY_AND_TIMESTEP && animating)
     {
       extend = false;
     }
@@ -306,6 +328,35 @@ void vtkSMTransferFunctionManager::ResetAllTransferFunctionRangesUsingCurrentDat
     }
     else
     {
+      if (rescaleMode == vtkSMTransferFunctionManager::VISIBLE_RESET_ON_APPLY_AND_TIMESTEP ||
+          rescaleMode == vtkSMTransferFunctionManager::VISIBLE_RESET_ON_APPLY)
+      {
+        vtkSMViewProxy* activeView = nullptr;
+        if (vtkSMProxySelectionModel* viewSM = pxm->GetSelectionModel("ActiveView"))
+        {
+          activeView = vtkSMViewProxy::SafeDownCast(viewSM->GetCurrentProxy());
+        }
+
+        vtkSMSourceProxy* activeSource = nullptr;
+        if (vtkSMProxySelectionModel* sourceSM = pxm->GetSelectionModel("ActiveSources"))
+        {
+          activeSource = vtkSMSourceProxy::SafeDownCast(sourceSM->GetCurrentProxy());
+        }
+        
+        vtkSMRepresentationProxy* activeRepr;
+        if (!activeSource)
+          activeRepr = representationProxy;
+        else {
+          vtkSMPropertyHelper inputHelper(activeSource, "Input", true);
+          activeRepr = activeView->FindRepresentation(activeSource, inputHelper.GetOutputPort());
+        }
+        if (activeRepr && activeView)
+        {
+          vtkSMColorMapEditorHelper::RescaleTransferFunctionToVisibleRange(activeRepr, activeView);
+        }
+        return;
+      }      
+
       double range[2] = { VTK_DOUBLE_MAX, VTK_DOUBLE_MIN };
       if (vtkSMTransferFunctionProxy::ComputeDataRange(lutProxy, range))
       {
