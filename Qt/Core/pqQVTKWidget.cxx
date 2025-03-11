@@ -56,6 +56,13 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
     vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "Using native-capable context.");
   }
 
+  // Disable touch events. Qt 6 has an unexpected behavior that leads to a
+  // vtkCommand::LeftButtonPressEvent in the widget when using trackpads
+  // on Mac laptops (and possibly others). Because we are not using touch
+  // events for interaction, just disable them. See ParaView issue #22901 and
+  // VTK issue #19073 for more details.
+  baseClass.value<pqQVTKWidgetBase*>()->setEnableTouchEventProcessing(false);
+
   this->setLayout(layout);
 
   // disable HiDPI if we are running tests
