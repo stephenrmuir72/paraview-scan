@@ -12,7 +12,7 @@ class pqMyApplicationStarter : public QObject
   typedef QObject Superclass;
 
 public:
-  pqMyApplicationStarter(QObject* p = 0);
+  pqMyApplicationStarter(QObject* p = nullptr);
   ~pqMyApplicationStarter();
 
   // Callback for shutdown.
