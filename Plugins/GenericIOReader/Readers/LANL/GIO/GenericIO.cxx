@@ -575,7 +575,9 @@ void GenericIO::write()
   const char* EnvStr = getenv("GENERICIO_COMPRESS");
   if (EnvStr)
   {
-    int Mod = atoi(EnvStr);
+    std::stringstream ss(EnvStr);
+    int Mod;
+    ss >> Mod;
     ShouldCompress = (Mod > 0);
   }
 
@@ -583,7 +585,9 @@ void GenericIO::write()
   EnvStr = getenv("GENERICIO_FORCE_BLOCKS");
   if (!NeedsBlockHeaders && EnvStr)
   {
-    int Mod = atoi(EnvStr);
+    std::stringstream ss(EnvStr);
+    int Mod;
+    ss >> Mod;
     NeedsBlockHeaders = (Mod > 0);
   }
 
@@ -1625,12 +1629,18 @@ void GenericIO::readDataSection(size_t readOffset, size_t readNumRows, int EffRa
         int RetryCount = 300;
         const char* EnvStr = getenv("GENERICIO_RETRY_COUNT");
         if (EnvStr)
-          RetryCount = atoi(EnvStr);
+        {
+          std::stringstream ss(EnvStr);
+          ss >> RetryCount;
+        }
 
         int RetrySleep = 100; // ms
         EnvStr = getenv("GENERICIO_RETRY_SLEEP");
         if (EnvStr)
-          RetrySleep = atoi(EnvStr);
+        {
+          std::stringstream ss(EnvStr);
+          ss >> RetrySleep;
+        }
 
         for (; Retry < RetryCount; ++Retry)
         {
@@ -1661,7 +1671,9 @@ void GenericIO::readDataSection(size_t readOffset, size_t readNumRows, int EffRa
           EnvStr = getenv("GENERICIO_VERBOSE");
           if (EnvStr)
           {
-            int Mod = atoi(EnvStr);
+            std::stringstream ss(EnvStr);
+            int Mod;
+            ss >> Mod;
             if (Mod > 0)
             {
               int RankTmp;
@@ -1951,12 +1963,18 @@ void GenericIO::readData(
         int RetryCount = 300;
         const char* EnvStr = getenv("GENERICIO_RETRY_COUNT");
         if (EnvStr)
-          RetryCount = atoi(EnvStr);
+        {
+          std::stringstream ss(EnvStr);
+          ss >> RetryCount;
+        }
 
         int RetrySleep = 100; // ms
         EnvStr = getenv("GENERICIO_RETRY_SLEEP");
         if (EnvStr)
-          RetrySleep = atoi(EnvStr);
+        {
+          std::stringstream ss(EnvStr);
+          ss >> RetrySleep;
+        }
 
         for (; Retry < RetryCount; ++Retry)
         {
@@ -1982,7 +2000,9 @@ void GenericIO::readData(
           EnvStr = getenv("GENERICIO_VERBOSE");
           if (EnvStr)
           {
-            int Mod = atoi(EnvStr);
+            std::stringstream ss(EnvStr);
+            int Mod;
+            ss >> Mod;
             if (Mod > 0)
             {
               int RankTmp;
@@ -2111,7 +2131,9 @@ void GenericIO::readData(
       const char* EnvStr = getenv("GENERICIO_VERBOSE");
       if (EnvStr)
       {
-        int Mod = atoi(EnvStr);
+        std::stringstream ss(EnvStr);
+        int Mod;
+        ss >> Mod;
         if (Mod > 0)
         {
           int RankTmp;
@@ -2180,7 +2202,9 @@ void GenericIO::setNaturalDefaultPartition()
   const char* EnvStr = getenv("GENERICIO_PARTITIONS_USE_NAME");
   if (EnvStr)
   {
-    int Mod = atoi(EnvStr);
+    std::stringstream ss(EnvStr);
+    int Mod;
+    ss >> Mod;
     UseName = (Mod != 0);
   }
 
@@ -2203,7 +2227,9 @@ void GenericIO::setNaturalDefaultPartition()
   EnvStr = getenv("GENERICIO_RANK_PARTITIONS");
   if (EnvStr)
   {
-    int Mod = atoi(EnvStr);
+    std::stringstream ss(EnvStr);
+    int Mod;
+    ss >> Mod;
     if (Mod > 0)
     {
       int Rank;
