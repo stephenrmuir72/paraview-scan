@@ -15,6 +15,8 @@
 #ifndef vtkFileSeriesUtilities_h
 #define vtkFileSeriesUtilities_h
 
+#include "vtkStringScanner.h" // for vtk::from_chars
+
 #include <string>
 
 namespace vtkFileSeriesUtilities
@@ -39,7 +41,7 @@ inline bool CheckVersion(const std::string& version)
   {
     return false;
   }
-  if (std::atoi(version.substr(0, pos).c_str()) > FILE_SERIES_VERSION_MAJ)
+  if (vtk::from_chars<int>(version.substr(0, pos)) > FILE_SERIES_VERSION_MAJ)
   {
     return false;
   }
@@ -47,7 +49,7 @@ inline bool CheckVersion(const std::string& version)
   {
     return false;
   }
-  if (std::atoi(version.substr(pos + 1).c_str()) > FILE_SERIES_VERSION_MIN)
+  if (vtk::from_chars<int>(version.substr(pos + 1)) > FILE_SERIES_VERSION_MIN)
   {
     return false;
   }

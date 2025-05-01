@@ -14,6 +14,7 @@
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMUncheckedPropertyHelper.h"
+#include "vtkStringScanner.h"
 #include "vtkWeakPointer.h"
 
 #include <QtDebug>
@@ -211,7 +212,8 @@ pqGenericPropertyWidgetDecorator::pqGenericPropertyWidgetDecorator(
 
   if (config->GetAttribute("number_of_components"))
   {
-    this->Internals->NumberOfComponents = atoi(config->GetAttribute("number_of_components"));
+    this->Internals->NumberOfComponents =
+      vtk::from_chars<int>(config->GetAttribute("number_of_components"));
   }
 
   pqCoreUtilities::connect(this->Internals->Property, vtkCommand::UncheckedPropertyModifiedEvent,

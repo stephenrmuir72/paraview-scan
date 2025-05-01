@@ -8,6 +8,7 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSISourceProxy.h"
 #include "vtkSMMessage.h"
+#include "vtkStringScanner.h"
 
 #include <vtksys/SystemTools.hxx>
 
@@ -246,17 +247,20 @@ bool vtkSIStringVectorProperty::Push(const vtkVectorOfStrings& values)
       // Convert to the appropriate type and add to stream
       int type =
         (i < static_cast<int>(this->ElementTypes->size())) ? (*this->ElementTypes)[i] : STRING;
-      switch (type)
+      if (!values[i].empty())
       {
-        case INT:
-          stream << atoi(values[i].c_str());
-          break;
-        case DOUBLE:
-          stream << atof(values[i].c_str());
-          break;
-        case STRING:
-          stream << values[i].c_str();
-          break;
+        switch (type)
+        {
+          case INT:
+            stream << vtk::from_chars<int>(values[i]);
+            break;
+          case DOUBLE:
+            stream << vtk::from_chars<float>(values[i]);
+            break;
+          case STRING:
+            stream << values[i].c_str();
+            break;
+        }
       }
     }
     stream << vtkClientServerStream::End;
@@ -292,10 +296,10 @@ bool vtkSIStringVectorProperty::Push(const vtkVectorOfStrings& values)
         switch (type)
         {
           case INT:
-            stream << atoi(values[i * this->NumberOfElementsPerCommand + j].c_str());
+            stream << vtk::from_chars<int>(values[i * this->NumberOfElementsPerCommand + j]);
             break;
           case DOUBLE:
-            stream << atof(values[i * this->NumberOfElementsPerCommand + j].c_str());
+            stream << vtk::from_chars<float>(values[i * this->NumberOfElementsPerCommand + j]);
             break;
           case STRING:
             stream << values[i * this->NumberOfElementsPerCommand + j].c_str();
