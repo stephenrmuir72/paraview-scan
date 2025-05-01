@@ -27,6 +27,7 @@
 #include "vtkSMTransferFunctionManager.h"
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkStringList.h"
+#include "vtkStringScanner.h"
 #include "vtkVariant.h"
 
 #include "vtksys/SystemTools.hxx"
@@ -224,7 +225,7 @@ std::vector<std::string> vtkSMColorMapEditorHelper::GetColorArraysBlockSelectors
   if (!blockColorArray)
   {
     vtkDebugWithObjectMacro(proxy, "No `BlockColorArrayNames` property found.");
-    return std::vector<std::string>();
+    return {};
   }
   std::vector<std::string> blockSelectors;
   for (unsigned int i = 0; i < blockColorArray->GetNumberOfElements(); i += 3)
@@ -232,19 +233,11 @@ std::vector<std::string> vtkSMColorMapEditorHelper::GetColorArraysBlockSelectors
     const std::string blockSelector = blockColorArray->GetElement(i);
     const std::string attributeTypeStr = blockColorArray->GetElement(i + 1);
     const std::string arrayName = blockColorArray->GetElement(i + 2);
-    try
+    int attributeType;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(attributeTypeStr, attributeType, {});
+    if (vtkSMColorMapEditorHelper::IsColorArrayValid(std::make_pair(attributeType, arrayName)))
     {
-      const int attributeType = std::stoi(attributeTypeStr);
-      if (vtkSMColorMapEditorHelper::IsColorArrayValid(std::make_pair(attributeType, arrayName)))
-      {
-        blockSelectors.push_back(blockSelector);
-      }
-    }
-    catch (const std::invalid_argument& e)
-    {
-      (void)e;
-      vtkDebugWithObjectMacro(proxy, "Invalid attribute type: " << attributeTypeStr << e.what());
-      break;
+      blockSelectors.push_back(blockSelector);
     }
   }
   return blockSelectors;
@@ -1635,10 +1628,11 @@ void vtkSMColorMapEditorHelper::SetBlocksColor(
   std::map<std::string, Color> blockColorsMap;
   for (unsigned int i = 0; i < blockColorsProp->GetNumberOfElements(); i += 4)
   {
-    blockColorsMap[blockColorsProp->GetElement(i)] = {
-      std::stod(blockColorsProp->GetElement(i + 1)), std::stod(blockColorsProp->GetElement(i + 2)),
-      std::stod(blockColorsProp->GetElement(i + 3))
-    };
+    double r, g, b;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 1), r, );
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 2), g, );
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 3), b, );
+    blockColorsMap[blockColorsProp->GetElement(i)] = { r, g, b };
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -1678,10 +1672,11 @@ void vtkSMColorMapEditorHelper::RemoveBlocksColors(
   std::map<std::string, Color> blockColorsMap;
   for (unsigned int i = 0; i < blockColorsProp->GetNumberOfElements(); i += 4)
   {
-    blockColorsMap[blockColorsProp->GetElement(i)] = {
-      std::stod(blockColorsProp->GetElement(i + 1)), std::stod(blockColorsProp->GetElement(i + 2)),
-      std::stod(blockColorsProp->GetElement(i + 3))
-    };
+    double r, g, b;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 1), r, );
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 2), g, );
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 3), b, );
+    blockColorsMap[blockColorsProp->GetElement(i)] = { r, g, b };
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -1748,11 +1743,12 @@ std::vector<vtkSMColorMapEditorHelper::Color> vtkSMColorMapEditorHelper::GetBloc
   }
   const auto blockColorsProp =
     vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("BlockColors"));
+  const auto defaultValue =
+    std::vector<Color>{ blockSelectors.size(), { VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX } };
   if (!blockColorsProp)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockColors' property found.");
-    return std::vector<Color>{ blockSelectors.size(),
-      { VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX } };
+    return defaultValue;
   }
   std::vector<Color> colors(
     blockSelectors.size(), { VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX });
@@ -1762,9 +1758,11 @@ std::vector<vtkSMColorMapEditorHelper::Color> vtkSMColorMapEditorHelper::GetBloc
     {
       if (blockColorsProp->GetElement(i) == blockSelectors[j])
       {
-        colors[j] = { std::stod(blockColorsProp->GetElement(i + 1)),
-          std::stod(blockColorsProp->GetElement(i + 2)),
-          std::stod(blockColorsProp->GetElement(i + 3)) };
+        double r, g, b;
+        VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 1), r, defaultValue);
+        VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 2), g, defaultValue);
+        VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorsProp->GetElement(i + 3), b, defaultValue);
+        colors[j] = { r, g, b };
         break;
       }
     }
@@ -1860,9 +1858,10 @@ void vtkSMColorMapEditorHelper::SetBlocksColorArray(vtkSMProxy* proxy,
   std::map<std::string, vtkSMProxy*> blockLUTsMap;
   for (unsigned int i = 0; i < blockLUTs->GetNumberOfProxies(); ++i)
   {
+    int attrType;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorArrayNames->GetElement(3 * i + 1), attrType, );
     blockColorArrayMap[blockColorArrayNames->GetElement(3 * i)] =
-      std::make_pair(std::stoi(blockColorArrayNames->GetElement(3 * i + 1)),
-        std::string(blockColorArrayNames->GetElement(3 * i + 2)));
+      std::make_pair(attrType, std::string(blockColorArrayNames->GetElement(3 * i + 2)));
     blockLUTsMap[blockColorArrayNames->GetElement(3 * i)] = blockLUTs->GetProxy(i);
   }
   for (const std::string& blockSelector : blockSelectors)
@@ -1909,9 +1908,10 @@ void vtkSMColorMapEditorHelper::RemoveBlocksColorArrays(
   std::map<std::string, ColorArray> blockColorArrayMap;
   for (unsigned int i = 0; i < blockColorArrayNames->GetNumberOfElements(); i += 3)
   {
+    int attrType;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorArrayNames->GetElement(i + 1), attrType, );
     blockColorArrayMap[blockColorArrayNames->GetElement(i)] =
-      std::make_pair(std::stoi(blockColorArrayNames->GetElement(i + 1)),
-        std::string(blockColorArrayNames->GetElement(i + 2)));
+      std::make_pair(attrType, std::string(blockColorArrayNames->GetElement(i + 2)));
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -1951,10 +1951,11 @@ std::vector<vtkSMColorMapEditorHelper::ColorArray> vtkSMColorMapEditorHelper::Ge
   }
   const auto blockColorArray =
     vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("BlockColorArrayNames"));
+  const auto defaultValue = std::vector<ColorArray>(blockSelectors.size(), std::make_pair(-1, ""));
   if (!blockColorArray)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockColorArrayNames' property found.");
-    return std::vector<ColorArray>(blockSelectors.size(), std::make_pair(-1, ""));
+    return defaultValue;
   }
   assert(blockColorArray->GetNumberOfElementsPerCommand() == 3);
   std::vector<ColorArray> colorArrays(blockSelectors.size(), std::make_pair(-1, ""));
@@ -1964,8 +1965,9 @@ std::vector<vtkSMColorMapEditorHelper::ColorArray> vtkSMColorMapEditorHelper::Ge
     {
       if (blockColorArray->GetElement(i) == blockSelectors[j])
       {
-        colorArrays[j] = std::make_pair(
-          std::stoi(blockColorArray->GetElement(i + 1)), blockColorArray->GetElement(i + 2));
+        int attrType;
+        VTK_FROM_CHARS_IF_ERROR_RETURN(blockColorArray->GetElement(i + 1), attrType, defaultValue);
+        colorArrays[j] = std::make_pair(attrType, blockColorArray->GetElement(i + 2));
         break;
       }
     }
@@ -2060,8 +2062,8 @@ void vtkSMColorMapEditorHelper::SetBlocksUseSeparateColorMap(
   std::map<std::string, bool> blockUseSeparateColorMapsMap;
   for (unsigned int i = 0; i < blockUseSeparateColorMaps->GetNumberOfElements(); i += 2)
   {
-    blockUseSeparateColorMapsMap[blockUseSeparateColorMaps->GetElement(i)] =
-      std::stoi(blockUseSeparateColorMaps->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockUseSeparateColorMaps->GetElement(i + 1),
+      blockUseSeparateColorMapsMap[blockUseSeparateColorMaps->GetElement(i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2151,6 +2153,7 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksUseSeparateColorMaps(
   }
   const auto blockUseSeparateColorMaps =
     vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("BlockUseSeparateColorMaps"));
+  const auto defaultValue = std::vector<int>(blockSelectors.size(), -1);
   if (!blockUseSeparateColorMaps)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockUseSeparateColorMaps' property found.");
@@ -2164,7 +2167,8 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksUseSeparateColorMaps(
     {
       if (blockUseSeparateColorMaps->GetElement(i) == blockSelectors[j])
       {
-        useSeparateColorMapsVec[j] = std::stoi(blockUseSeparateColorMaps->GetElement(i + 1));
+        VTK_FROM_CHARS_IF_ERROR_RETURN(
+          blockUseSeparateColorMaps->GetElement(i + 1), useSeparateColorMapsVec[j], defaultValue);
         break;
       }
     }
@@ -2228,8 +2232,8 @@ void vtkSMColorMapEditorHelper::SetBlocksMapScalars(
   std::map<std::string, bool> blockMapScalarsMap;
   for (unsigned int i = 0; i < blockMapScalars->GetNumberOfElements(); i += 2)
   {
-    blockMapScalarsMap[blockMapScalars->GetElement(i)] =
-      std::stoi(blockMapScalars->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(
+      blockMapScalars->GetElement(i + 1), blockMapScalarsMap[blockMapScalars->GetElement(i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2318,6 +2322,7 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksMapScalars(
   }
   const auto blockMapScalars =
     vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("BlockMapScalars"));
+  const auto defaultValue = std::vector<int>(blockSelectors.size(), -1);
   if (!blockMapScalars)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockMapScalars' property found.");
@@ -2331,7 +2336,8 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksMapScalars(
     {
       if (blockMapScalars->GetElement(i) == blockSelectors[j])
       {
-        blockMapScalarsVec[j] = std::stoi(blockMapScalars->GetElement(i + 1));
+        VTK_FROM_CHARS_IF_ERROR_RETURN(
+          blockMapScalars->GetElement(i + 1), blockMapScalarsVec[j], defaultValue);
         break;
       }
     }
@@ -2398,8 +2404,9 @@ void vtkSMColorMapEditorHelper::SetBlocksInterpolateScalarsBeforeMapping(
   std::map<std::string, bool> blockInterpolateScalarsBeforeMappingMap;
   for (unsigned int i = 0; i < blockInterpolateScalarsBeforeMapping->GetNumberOfElements(); i += 2)
   {
-    blockInterpolateScalarsBeforeMappingMap[blockInterpolateScalarsBeforeMapping->GetElement(i)] =
-      std::stoi(blockInterpolateScalarsBeforeMapping->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockInterpolateScalarsBeforeMapping->GetElement(i + 1),
+      blockInterpolateScalarsBeforeMappingMap[blockInterpolateScalarsBeforeMapping->GetElement(
+        i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2439,8 +2446,9 @@ void vtkSMColorMapEditorHelper::RemoveBlocksInterpolateScalarsBeforeMappings(
   std::map<std::string, bool> blockInterpolateScalarsBeforeMappingMap;
   for (unsigned int i = 0; i < blockInterpolateScalarsBeforeMapping->GetNumberOfElements(); i += 2)
   {
-    blockInterpolateScalarsBeforeMappingMap[blockInterpolateScalarsBeforeMapping->GetElement(i)] =
-      std::stoi(blockInterpolateScalarsBeforeMapping->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(blockInterpolateScalarsBeforeMapping->GetElement(i + 1),
+      blockInterpolateScalarsBeforeMappingMap[blockInterpolateScalarsBeforeMapping->GetElement(
+        i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2492,10 +2500,11 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksInterpolateScalarsBeforeMap
   }
   const auto blockInterpolateScalarsBeforeMapping = vtkSMStringVectorProperty::SafeDownCast(
     proxy->GetProperty("BlockInterpolateScalarsBeforeMappings"));
+  const auto defaultValue = std::vector<int>(blockSelectors.size(), -1);
   if (!blockInterpolateScalarsBeforeMapping)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockInterpolateScalarsBeforeMappings' property found.");
-    return std::vector<int>(blockSelectors.size(), -1);
+    return defaultValue;
   }
   assert(blockInterpolateScalarsBeforeMapping->GetNumberOfElementsPerCommand() == 2);
   std::vector<int> interpolateScalarsBeforeMappingVec(blockSelectors.size(), -1);
@@ -2505,8 +2514,8 @@ std::vector<int> vtkSMColorMapEditorHelper::GetBlocksInterpolateScalarsBeforeMap
     {
       if (blockInterpolateScalarsBeforeMapping->GetElement(i) == blockSelectors[j])
       {
-        interpolateScalarsBeforeMappingVec[j] =
-          std::stoi(blockInterpolateScalarsBeforeMapping->GetElement(i + 1));
+        VTK_FROM_CHARS_IF_ERROR_RETURN(blockInterpolateScalarsBeforeMapping->GetElement(i + 1),
+          interpolateScalarsBeforeMappingVec[j], defaultValue);
         break;
       }
     }
@@ -2582,7 +2591,8 @@ void vtkSMColorMapEditorHelper::SetBlocksOpacity(
   std::map<std::string, double> blockOpacitiesMap;
   for (unsigned int i = 0; i < blockOpacities->GetNumberOfElements(); i += 2)
   {
-    blockOpacitiesMap[blockOpacities->GetElement(i)] = std::stod(blockOpacities->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(
+      blockOpacities->GetElement(i + 1), blockOpacitiesMap[blockOpacities->GetElement(i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2621,7 +2631,8 @@ void vtkSMColorMapEditorHelper::RemoveBlocksOpacities(
   std::map<std::string, double> blockOpacitiesMap;
   for (unsigned int i = 0; i < blockOpacities->GetNumberOfElements(); i += 2)
   {
-    blockOpacitiesMap[blockOpacities->GetElement(i)] = std::stod(blockOpacities->GetElement(i + 1));
+    VTK_FROM_CHARS_IF_ERROR_RETURN(
+      blockOpacities->GetElement(i + 1), blockOpacitiesMap[blockOpacities->GetElement(i)], );
   }
   for (const std::string& blockSelector : blockSelectors)
   {
@@ -2671,10 +2682,11 @@ std::vector<double> vtkSMColorMapEditorHelper::GetBlocksOpacities(
   }
   const auto blockOpacities =
     vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("BlockOpacities"));
+  const auto defaultValue = std::vector<double>(blockSelectors.size(), VTK_DOUBLE_MAX);
   if (!blockOpacities)
   {
     vtkDebugWithObjectMacro(proxy, "No 'BlockOpacities' property found.");
-    return std::vector<double>(blockSelectors.size(), VTK_DOUBLE_MAX);
+    return defaultValue;
   }
   assert(blockOpacities->GetNumberOfElementsPerCommand() == 2);
   std::vector<double> blockOpacitiesVec(blockSelectors.size(), VTK_DOUBLE_MAX);
@@ -2684,7 +2696,8 @@ std::vector<double> vtkSMColorMapEditorHelper::GetBlocksOpacities(
     {
       if (blockOpacities->GetElement(i) == blockSelectors[j])
       {
-        blockOpacitiesVec[j] = std::stod(blockOpacities->GetElement(i + 1));
+        VTK_FROM_CHARS_IF_ERROR_RETURN(
+          blockOpacities->GetElement(i + 1), blockOpacitiesVec[j], defaultValue);
         break;
       }
     }

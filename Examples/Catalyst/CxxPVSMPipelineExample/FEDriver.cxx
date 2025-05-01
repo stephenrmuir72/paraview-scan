@@ -5,6 +5,7 @@
 
 #ifdef USE_CATALYST
 #include "FEAdaptor.h"
+#include "vtkStringScanner.h"
 #include <cstdlib>
 #include <iostream>
 #endif
@@ -42,7 +43,9 @@ int main(int argc, char* argv[])
   {
     doCoProcessing = true;
     // pass in the number of time steps and base file name.
-    FEAdaptor::Initialize(atoi(argv[1]), argv[2]);
+    int numberOfTimeSteps;
+    VTK_FROM_CHARS_IF_ERROR_RETURN(argv[1], numberOfTimeSteps, EXIT_FAILURE);
+    FEAdaptor::Initialize(numberOfTimeSteps, argv[2]);
   }
   else
   {

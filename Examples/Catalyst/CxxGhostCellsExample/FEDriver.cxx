@@ -10,6 +10,7 @@
 #include <vtkCPPythonPipeline.h>
 #include <vtkLogger.h>
 #include <vtkNew.h>
+#include <vtkStringScanner.h>
 
 // Sample C++ simulation code that provides different levels of ghost cells
 // for either a vtkUnstructuredGrid of vtkImageData. This example is
@@ -54,12 +55,8 @@ int main(int argc, char* argv[])
     }
     else if (strcmp("-l", argv[i]) == 0 && i < argc - 1)
     {
-      int tmp = atoi(argv[i + 1]);
-      if (tmp > 0)
-      {
-        numGhostLevels = tmp;
-      }
-      else
+      VTK_FROM_CHARS_IF_ERROR_RETURN(argv[i + 1], numGhostLevels, EXIT_FAILURE);
+      if (numGhostLevels <= 0)
       {
         cerr << "Bad ghost level of " << tmp << endl;
         PrintUsage();
