@@ -19,6 +19,7 @@
 #include <vtkPointData.h>
 #include <vtkSMSourceProxy.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkStringScanner.h>
 #include <vtkTemporalDataSetCache.h>
 #include <vtkTemporalStatistics.h>
 #include <vtkUnstructuredGrid.h>
@@ -217,7 +218,7 @@ void Initialize(int argc, char* argv[])
     }
     else if (!strcmp(argv[a], "-CACHESIZE") && a < argc - 1)
     {
-      tcachesize = atoi(argv[a + 1]);
+      tcachesize = vtk::from_chars<int>(argv[a + 1]);
       a += 1;
     }
     else if (!strcmp(argv[a], "-ENABLECXXPIPELINE"))

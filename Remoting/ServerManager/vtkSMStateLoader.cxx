@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <vector>
+#include <vtkStringScanner.h>
 
 vtkObjectFactoryNewMacro(vtkSMStateLoader);
 vtkCxxSetObjectMacro(vtkSMStateLoader, ProxyLocator, vtkSMProxyLocator);
@@ -275,7 +276,7 @@ bool vtkSMStateLoader::UpdateRegistrationInfo(
   {
     // a helper proxy groupname, must update it.
     std::string pid = group.substr(len);
-    vtkTypeUInt32 gid = static_cast<vtkTypeUInt32>(std::atoi(pid.c_str()));
+    vtkTypeUInt32 gid = static_cast<vtkTypeUInt32>(vtk::from_chars<int>(pid));
     if (vtkSMProxy* helpedProxy = this->ProxyLocator->LocateProxy(gid))
     {
       group = helper_proxies_prefix;
@@ -293,7 +294,7 @@ bool vtkSMStateLoader::UpdateRegistrationInfo(
       // This will change any "Separate_OLDGID_ArrayName" into "Separate_NEWGID_ArrayName"
       size_t gidLen = name.find_first_of('_', separateLen) - separateLen;
       std::string gidStr = name.substr(separateLen, gidLen);
-      vtkTypeUInt32 gid = static_cast<vtkTypeUInt32>(std::atoi(gidStr.c_str()));
+      vtkTypeUInt32 gid = static_cast<vtkTypeUInt32>(vtk::from_chars<int>(gidStr));
       if (vtkSMProxy* helpedProxy = this->ProxyLocator->LocateProxy(gid))
       {
         name.replace(separateLen, gidLen, helpedProxy->GetGlobalIDAsString());

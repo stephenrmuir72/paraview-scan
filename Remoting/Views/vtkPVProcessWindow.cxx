@@ -10,6 +10,8 @@
 #include "vtkRemotingCoreConfiguration.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkStringScanner.h"
+
 #include <vtksys/SystemTools.hxx>
 
 #include <algorithm>
@@ -209,13 +211,13 @@ vtkRenderWindow* vtkPVProcessWindow::NewTileDisplayWindow()
     auto parts = vtksys::SystemTools::SplitString(pv_shared_window_size, 'x');
     if (parts.size() == 2)
     {
-      const int w = std::max(50, std::atoi(parts[0].c_str()));
-      const int h = std::max(50, std::atoi(parts[1].c_str()));
+      const int w = std::max(50, vtk::from_chars<int>(parts[0]));
+      const int h = std::max(50, vtk::from_chars<int>(parts[1]));
       window->SetSize(w, h);
     }
     else
     {
-      const int sz = std::max(50, std::atoi(parts[0].c_str()));
+      const int sz = std::max(50, vtk::from_chars<int>(parts[0]));
       window->SetSize(sz, sz);
     }
   }
@@ -282,13 +284,13 @@ vtkRenderWindow* vtkPVProcessWindow::NewCAVEWindow()
     auto parts = vtksys::SystemTools::SplitString(pv_shared_window_size, 'x');
     if (parts.size() == 2)
     {
-      const int w = std::max(50, std::atoi(parts[0].c_str()));
-      const int h = std::max(50, std::atoi(parts[1].c_str()));
+      const int w = std::max(50, vtk::from_chars<int>(parts[0]));
+      const int h = std::max(50, vtk::from_chars<int>(parts[1]));
       window->SetSize(w, h);
     }
     else
     {
-      const int sz = std::max(50, std::atoi(parts[0].c_str()));
+      const int sz = std::max(50, vtk::from_chars<int>(parts[0]));
       window->SetSize(sz, sz);
     }
     window->SetBorders(1);

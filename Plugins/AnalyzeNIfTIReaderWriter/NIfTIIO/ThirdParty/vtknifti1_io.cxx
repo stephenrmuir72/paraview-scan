@@ -6,6 +6,7 @@
 #include "vtknifti1_io.h" /* typedefs, prototypes, macros, etc. */
 
 #include "vtkObjectFactory.h"
+#include "vtkStringScanner.h"
 
 /*****===================================================================*****/
 /*****     Sample functions to deal with NIFTI-1 and ANALYZE files       *****/
@@ -6873,7 +6874,7 @@ int vtknifti1_io::unescape_string(char* str)
         int kk = ii + 3;
         while (kk < ll && kk != ';')
           kk++;
-        sscanf(str + ii + 2, "%u", &val);
+        val = vtk::scan_int<unsigned int>(std::string_view(str + ii + 2))->value();
         str[jj] = (char)val;
         ii = kk;
         nn++;
@@ -6886,7 +6887,7 @@ int vtknifti1_io::unescape_string(char* str)
         int kk = ii + 4;
         while (kk < ll && kk != ';')
           kk++;
-        sscanf(str + ii + 3, "%x", &val);
+        val = vtk::scan<unsigned int>(std::string_view(str + ii + 3), "{:x}")->value();
         str[jj] = (char)val;
         ii = kk;
         nn++;
@@ -7312,8 +7313,8 @@ int vtknifti1_io::nifti_short_order(void) /* determine this CPU's byte order */
    interpret rhs string as a number, and put it into nim->"n2" */
 
 #define QQNUM(n1, n2, tt)                                                                          \
-  if (strcmp(lhs, #n1) == 0)                                                                       \
-  nim->n2 = (tt)strtod(rhs, NULL)
+  if (lhs == #n1)                                                                                  \
+  nim->n2 = vtk::scan_value<tt>(rhs)->value()
 
 /* same, but where "n1" == "n2" */
 
@@ -7323,7 +7324,7 @@ int vtknifti1_io::nifti_short_order(void) /* determine this CPU's byte order */
    put rhs string into nim->"nam" string, with max length = "ml" */
 
 #define QSTR(nam, ml)                                                                              \
-  if (strcmp(lhs, #nam) == 0)                                                                      \
+  if (lhs == #nam == 0)                                                                            \
   strncpy(nim->nam, rhs, ml), nim->nam[ml] = '\0'
 
 /*---------------------------------------------------------------------------*/
@@ -7337,7 +7338,7 @@ int vtknifti1_io::nifti_short_order(void) /* determine this CPU's byte order */
 *//*-------------------------------------------------------------------------*/
 nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_read)
 {
-  char lhs[1024], rhs[1024];
+  char rhs[1024];
   int ii, spos, nn;
   nifti_image* nim; /* will be output */
 
@@ -7347,10 +7348,13 @@ nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_re
   /* scan for opening string */
 
   spos = 0;
-  ii = sscanf(str + spos, "%1023s%n", lhs, &nn);
-  spos += nn;
-  if (ii == 0 || strcmp(lhs, "<nifti_image") != 0)
+  std::string_view strView(str);
+  auto result1 = vtk::scan<std::string_view>(strView.substr(spos), "{:1023s}");
+  if (!result1 || result1->value() != "<nifti_image")
     return NULL;
+  auto lhs = result1->value();
+  nn = lhs.size();
+  spos += nn;
 
   /* create empty image struct */
 
@@ -7371,7 +7375,7 @@ nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_re
         lhs = 'rhs'
      and assign rhs values into the struct component named by lhs */
 
-  while (1)
+  while (true)
   {
 
     while (isspace((int)str[spos]))
@@ -7381,10 +7385,12 @@ nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_re
 
     /* get lhs string */
 
-    ii = sscanf(str + spos, "%1023s%n", lhs, &nn);
+    auto result2 = vtk::scan<std::string_view>(strView.substr(spos), "{:1023s}");
+    if (!result2 || result2->value() != "/>")
+      break;
+    lhs = result1->value();
+    nn = lhs.size();
     spos += nn;
-    if (ii == 0 || strcmp(lhs, "/>") == 0)
-      break; /* end of input? */
 
     /* skip whitespace and the '=' marker */
 
@@ -7410,17 +7416,23 @@ nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_re
     }
     else
     {
-      ii = sscanf(str + spos, "%1023s%n", rhs, &nn);
-      spos += nn;
-      if (ii == 0)
+      auto result3 = vtk::scan<std::string_view>(strView.substr(spos), "{:1023s}");
+      if (!result3)
+      {
         break; /* nothing found? */
+      }
+      auto rhsView = result3->value();
+      nn = rhsView.size();
+      spos += nn;
+      memcpy(rhs, rhsView.data(), nn);
+      rhs[nn] = '\0';
     }
     unescape_string(rhs); /* remove any XML escape sequences */
 
     /* Now can do the assignment, based on lhs string.
        Start with special cases that don't fit the QNUM/QSTR macros. */
 
-    if (strcmp(lhs, "nifti_type") == 0)
+    if (lhs == "nifti_type")
     {
       if (strcmp(rhs, "ANALYZE-7.5") == 0)
         nim->nifti_type = NIFTI_FTYPE_ANALYZE;
@@ -7431,24 +7443,27 @@ nifti_image* vtknifti1_io::nifti_image_from_ascii(const char* str, int* bytes_re
       else if (strcmp(rhs, "NIFTI-1A") == 0)
         nim->nifti_type = NIFTI_FTYPE_ASCII;
     }
-    else if (strcmp(lhs, "header_filename") == 0)
+    else if (lhs == "header_filename")
     {
       nim->fname = nifti_strdup(rhs);
     }
-    else if (strcmp(lhs, "image_filename") == 0)
+    else if (lhs == "image_filename")
     {
       nim->iname = nifti_strdup(rhs);
     }
-    else if (strcmp(lhs, "sto_xyz_matrix") == 0)
+    else if (lhs == "sto_xyz_matrix")
     {
-      sscanf(rhs, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", &(nim->sto_xyz.m[0][0]),
-        &(nim->sto_xyz.m[0][1]), &(nim->sto_xyz.m[0][2]), &(nim->sto_xyz.m[0][3]),
-        &(nim->sto_xyz.m[1][0]), &(nim->sto_xyz.m[1][1]), &(nim->sto_xyz.m[1][2]),
-        &(nim->sto_xyz.m[1][3]), &(nim->sto_xyz.m[2][0]), &(nim->sto_xyz.m[2][1]),
-        &(nim->sto_xyz.m[2][2]), &(nim->sto_xyz.m[2][3]), &(nim->sto_xyz.m[3][0]),
-        &(nim->sto_xyz.m[3][1]), &(nim->sto_xyz.m[3][2]), &(nim->sto_xyz.m[3][3]));
+      auto resultMatrix = vtk::scan<float, float, float, float, float, float, float, float, float,
+        float, float, float, float, float, float, float>(std::string_view(rhs),
+        "{:f} {:f} {:f} {:f} {:f} {:f} {:f} {:f} "
+        "{:f} {:f} {:f} {:f} {:f} {:f} {:f} {:f}");
+      std::tie(nim->sto_xyz.m[0][0], nim->sto_xyz.m[0][1], nim->sto_xyz.m[0][2],
+        nim->sto_xyz.m[0][3], nim->sto_xyz.m[1][0], nim->sto_xyz.m[1][1], nim->sto_xyz.m[1][2],
+        nim->sto_xyz.m[1][3], nim->sto_xyz.m[2][0], nim->sto_xyz.m[2][1], nim->sto_xyz.m[2][2],
+        nim->sto_xyz.m[2][3], nim->sto_xyz.m[3][0], nim->sto_xyz.m[3][1], nim->sto_xyz.m[3][2],
+        nim->sto_xyz.m[3][3]) = resultMatrix->values();
     }
-    else if (strcmp(lhs, "byteorder") == 0)
+    else if (lhs == "byteorder")
     {
       if (strcmp(rhs, "MSB_FIRST") == 0)
         nim->byteorder = MSB_FIRST;
@@ -8251,9 +8266,9 @@ int vtknifti1_io::make_pivot_list(
 int* vtknifti1_io::nifti_get_intlist(int nvals, const char* str)
 {
   int* subv = NULL;
-  int ii, ipos, nout, slen;
+  int ii, ipos, nout;
   int ibot, itop, istep, nused;
-  char* cpt;
+  const char* cpt;
 
   /* Meaningless input? */
   if (nvals < 1)
@@ -8281,8 +8296,8 @@ int* vtknifti1_io::nifti_get_intlist(int nvals, const char* str)
 
   /**- for each sub-selector until end of input... */
 
-  slen = (int)strlen(str);
-  while (ipos < slen && !ISEND(str[ipos]))
+  std::string_view str_view(str);
+  while (ipos < str_view.size() && !ISEND(str[ipos]))
   {
 
     while (isspace((int)str[ipos]))
@@ -8299,7 +8314,7 @@ int* vtknifti1_io::nifti_get_intlist(int nvals, const char* str)
     }
     else
     { /* decode an integer */
-      ibot = strtol(str + ipos, &cpt, 10);
+      cpt = vtk::from_chars(str_view.substr(ipos), ibot).ptr;
       if (ibot < 0)
       {
         fprintf(stderr, "** ERROR: list index %d is out of range 0..%d\n", ibot, nvals - 1);
@@ -8371,7 +8386,7 @@ int* vtknifti1_io::nifti_get_intlist(int nvals, const char* str)
     }
     else
     { /* decode an integer */
-      itop = strtol(str + ipos, &cpt, 10);
+      cpt = vtk::from_chars(str_view.substr(ipos), itop).ptr;
       if (itop < 0)
       {
         fprintf(stderr, "** ERROR: index %d is out of range 0..%d\n", itop, nvals - 1);
@@ -8406,7 +8421,7 @@ int* vtknifti1_io::nifti_get_intlist(int nvals, const char* str)
     if (str[ipos] == '(')
     { /* decode an integer */
       ipos++;
-      istep = strtol(str + ipos, &cpt, 10);
+      cpt = vtk::from_chars(str_view.substr(ipos), istep).ptr;
       if (istep == 0)
       {
         fprintf(stderr, "** ERROR: index loop step is 0!\n");

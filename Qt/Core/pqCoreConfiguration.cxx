@@ -4,6 +4,7 @@
 #include "pqCoreConfiguration.h"
 
 #include "vtkCLIOptions.h"
+#include "vtkStringScanner.h"
 #include "vtk_cli11.h"
 
 namespace
@@ -107,7 +108,7 @@ bool pqCoreConfiguration::populateOptions(vtkCLIOptions* options)
         }
         for (size_t cc = 0; cc < args.size(); ++cc)
         {
-          this->TestScripts[static_cast<int>(cc)].Threshold = std::atof(args[cc].c_str());
+          this->TestScripts[static_cast<int>(cc)].Threshold = vtk::from_chars<float>(args[cc]);
         }
         return true;
       },

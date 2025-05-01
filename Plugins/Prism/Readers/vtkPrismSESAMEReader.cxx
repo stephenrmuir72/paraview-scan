@@ -17,6 +17,7 @@
 #include "vtkSMPTools.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkStringArray.h"
+#include "vtkStringScanner.h"
 
 #include "vtksys/SystemTools.hxx"
 
@@ -83,7 +84,6 @@ void vtkPrismSESAMEReader::PrintSelf(ostream& os, vtkIndent indent)
 namespace
 {
 constexpr int SESAME_NUM_CHARS = 512;
-const std::string TableLineFormat = "%2i%6i%6i";
 
 //------------------------------------------------------------------------------
 struct TablesInformation
@@ -286,14 +286,10 @@ bool vtkPrismSESAMEReader::OpenFile(std::FILE*& file)
 //------------------------------------------------------------------------------
 bool vtkPrismSESAMEReader::ReadTableHeader(char* buffer, int& tableId)
 {
-  int dummy;
-  int internalId;
-  int table;
-
   // see if the line matches the  " 0 9999 602" format
-  if (sscanf(buffer, TableLineFormat.c_str(), &dummy, &internalId, &table) == 3)
+  if (auto result1 = vtk::scan<int, int, int>(std::string_view(buffer), "{:2d}{:6d}{:6d}"))
   {
-    tableId = table;
+    tableId = std::get<2>(result1->values());
     this->FileFormat = SESAMEFormat::LANL;
     return true;
   }
@@ -308,10 +304,12 @@ bool vtkPrismSESAMEReader::ReadTableHeader(char* buffer, int& tableId)
 
     if (recordPos != std::string::npos && typePos != std::string::npos)
     {
-      char buffer2[SESAME_NUM_CHARS];
-      if (sscanf(buffer, "%s%s%s%d%s", buffer2, buffer2, buffer2, &table, buffer2) == 5)
+      auto result2 =
+        vtk::scan<std::string_view, std::string_view, std::string_view, int, std::string_view>(
+          std::string_view(buffer, header.size()), "{:s}{:s}{:s}{:d}{:s}");
+      if (result2)
       {
-        tableId = table;
+        tableId = std::get<3>(result2->values());
         this->FileFormat = SESAMEFormat::ASC;
         return true;
       }
@@ -375,7 +373,13 @@ int vtkPrismSESAMEReader::ReadTableValueLine(
         // ignore the last 5 characters of the line (see notes above)
         buffer[75] = '\0';
       }
-      numRead = sscanf(buffer, "%e%e%e%e%e", v1, v2, v3, v4, v5);
+      auto result = vtk::scan<float, float, float, float, float>(
+        std::string_view(buffer), "{:e}{:e}{:e}{:e}{:e}");
+      if (result)
+      {
+        std::tie(*v1, *v2, *v3, *v4, *v5) = result->values();
+        numRead = 5;
+      }
     }
   }
 

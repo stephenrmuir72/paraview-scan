@@ -13,6 +13,7 @@
 #include "vtkPointData.h"
 #include "vtkPoints.h"
 #include "vtkStringArray.h"
+#include "vtkStringScanner.h"
 #include "vtkTriangle.h"
 #include "vtkUnstructuredGrid.h"
 
@@ -101,7 +102,7 @@ vtkNastranBDFReader::vtkNastranBDFReader()
 //------------------------------------------------------------------------------
 vtkIdType vtkNastranBDFReader::GetVTKPointId(const std::string& arg)
 {
-  vtkIdType elt = std::stol(arg);
+  vtkIdType elt = vtk::from_chars<vtkIdType>(arg);
   return this->PointsIds.find(elt) != this->PointsIds.end() ? this->PointsIds.find(elt)->second
                                                             : -1;
 }
@@ -121,7 +122,7 @@ bool vtkNastranBDFReader::AddTimeInfo(const std::vector<std::string>& args)
 {
   vtkNew<vtkDoubleArray> data;
   data->SetName(::TIME_KEY.c_str());
-  data->InsertNextValue(std::stod(args[0]));
+  data->InsertNextValue(vtk::from_chars<double>(args[0]));
   this->GetOutput()->GetFieldData()->AddArray(data);
   return true;
 }
@@ -141,9 +142,9 @@ bool vtkNastranBDFReader::AddPoint(const std::vector<std::string>& args)
     return false;
   }
 
-  vtkIdType originalId = std::stod(args[0]);
-  vtkIdType id =
-    this->Points->InsertNextPoint(std::stod(args[2]), std::stod(args[3]), std::stod(args[4]));
+  vtkIdType originalId = vtk::from_chars<vtkIdType>(args[0]);
+  vtkIdType id = this->Points->InsertNextPoint(vtk::from_chars<double>(args[2]),
+    vtk::from_chars<double>(args[3]), vtk::from_chars<double>(args[4]));
   this->OriginalPointIds->InsertNextValue(originalId);
   this->PointsIds[originalId] = id;
 
@@ -187,7 +188,7 @@ bool vtkNastranBDFReader::AddTriangle(const std::vector<std::string>& args)
   }
 
   vtkIdType id = this->Cells->InsertNextCell(tri);
-  this->CellsIds[std::stol(args[0])] = id;
+  this->CellsIds[vtk::from_chars<vtkIdType>(args[0])] = id;
 
   return true;
 }
@@ -219,7 +220,8 @@ bool vtkNastranBDFReader::AddPload2Data(const std::vector<std::string>& args)
     this->Pload2->SetName(::PLOAD2_KEY.c_str());
   }
 
-  this->Pload2->InsertValue(this->CellsIds[std::stol(args[2])], std::stod(args[1]));
+  this->Pload2->InsertValue(
+    this->CellsIds[vtk::from_chars<vtkIdType>(args[2])], vtk::from_chars<double>(args[1]));
   return true;
 }
 
