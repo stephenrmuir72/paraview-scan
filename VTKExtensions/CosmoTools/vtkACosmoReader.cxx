@@ -19,6 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkStringScanner.h"
 #include "vtkUnstructuredGrid.h"
 
 #include "vtksys/FStream.hxx"
@@ -160,13 +161,13 @@ void vtkACosmoReader::ReadMetaDataFile(const int levelIdx, std::string file)
     block_t block;
     block.Level = levelIdx;
     block.IndexWithinLevel = blockCount;
-    block.FileOffSet = atoi(tokens[0].c_str());
-    block.Bounds[0] = atof(tokens[1].c_str()); // x-min
-    block.Bounds[1] = atof(tokens[2].c_str()); // x-max
-    block.Bounds[2] = atof(tokens[3].c_str()); // y-min
-    block.Bounds[3] = atof(tokens[4].c_str()); // y-max
-    block.Bounds[4] = atof(tokens[5].c_str()); // z-min
-    block.Bounds[5] = atof(tokens[6].c_str()); // z-max
+    block.FileOffSet = vtk::from_chars<int>(tokens[0]);
+    block.Bounds[0] = vtk::from_chars<float>(tokens[1]); // x-min
+    block.Bounds[1] = vtk::from_chars<float>(tokens[2]); // x-max
+    block.Bounds[2] = vtk::from_chars<float>(tokens[3]); // y-min
+    block.Bounds[3] = vtk::from_chars<float>(tokens[4]); // y-max
+    block.Bounds[4] = vtk::from_chars<float>(tokens[5]); // z-min
+    block.Bounds[5] = vtk::from_chars<float>(tokens[6]); // z-max
 
     // Push to list of blocks
     this->ParticleBlocks.push_back(block);
@@ -237,8 +238,8 @@ bool ExtractFileNameComponents(
   }
 
   basename = tokens[0];
-  process = atoi(tokens[1].c_str());
-  number_of_levels = atoi(tokens[2].c_str());
+  process = vtk::from_chars<int>(tokens[1]);
+  number_of_levels = vtk::from_chars<int>(tokens[2]);
   return true;
 }
 }

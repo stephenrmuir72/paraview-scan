@@ -4,9 +4,9 @@
 
 #include "vtkSMTestDriver.h"
 #include "vtkSMTestDriverConfig.h"
+#include "vtkStringScanner.h"
 
 #include <vtksys/RegularExpression.hxx>
-#include <vtksys/String.hxx>
 #include <vtksys/SystemTools.hxx>
 
 #include <algorithm>
@@ -27,7 +27,7 @@ bool GetHostAndPort(const std::string& output, std::string& hostname, int& port)
   if (regEx.find(output))
   {
     hostname = regEx.match(1);
-    port = atoi(regEx.match(2).c_str());
+    port = vtk::from_chars<int>(regEx.match(2));
     return true;
   }
   return false;
@@ -122,7 +122,7 @@ void vtkSMTestDriver::CollectConfiguredOptions()
 #endif
   if (vtksys::SystemTools::HasEnv("SMTESTDRIVER_MPI_NUMPROCS"))
   {
-    serverNumProc = std::atoi(vtksys::SystemTools::GetEnv("SMTESTDRIVER_MPI_NUMPROCS"));
+    serverNumProc = vtk::from_chars<int>(vtksys::SystemTools::GetEnv("SMTESTDRIVER_MPI_NUMPROCS"));
   }
   serverNumProc = std::max(1, serverNumProc);
   renderNumProc = std::max(1, serverNumProc - 1);
@@ -243,7 +243,7 @@ int vtkSMTestDriver::ProcessCommandLine(int argc, char* argv[])
     }
     if (strcmp(argv[i], "--test-multi-servers") == 0)
     {
-      this->NumberOfServers = atoi(argv[i + 1]);
+      this->NumberOfServers = vtk::from_chars<int>(argv[i + 1]);
       fprintf(stderr, "Test multi-servers with %d servers.\n", this->NumberOfServers);
     }
     if (strcmp(argv[i], "--script-np") == 0)
@@ -263,7 +263,7 @@ int vtkSMTestDriver::ProcessCommandLine(int argc, char* argv[])
     }
     if (strncmp(argv[i], "--server-exit-timeout", strlen("--server-exit-timeout")) == 0)
     {
-      this->ServerExitTimeOut = atoi(argv[i + 1]);
+      this->ServerExitTimeOut = vtk::from_chars<int>(argv[i + 1]);
       fprintf(stderr, "The server exit timeout was set to %f.\n", this->ServerExitTimeOut);
     }
     if (strncmp(argv[i], "--server-preflags", 17) == 0)

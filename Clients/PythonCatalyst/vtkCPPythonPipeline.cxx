@@ -11,6 +11,7 @@
 #include "vtkPythonInterpreter.h"
 #include "vtkPythonUtil.h"
 #include "vtkSmartPyObject.h"
+#include "vtkStringScanner.h"
 
 #include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
@@ -126,8 +127,8 @@ int vtkCPPythonPipeline::DetectScriptVersion(const char* fname)
     {
       if (regex1.find(&buffer[0]))
       {
-        int major = std::atoi(regex1.match(1).c_str());
-        int minor = std::atoi(regex1.match(2).c_str());
+        int major = vtk::from_chars<int>(regex1.match(1));
+        int minor = vtk::from_chars<int>(regex1.match(2));
         if (major > 5 || (major == 5 && minor >= 9))
         {
           vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(),
@@ -146,11 +147,11 @@ int vtkCPPythonPipeline::DetectScriptVersion(const char* fname)
       {
         vtkVLogF(
           PARAVIEW_LOG_CATALYST_VERBOSITY(), "Found 'script-version: %s'", regex2.match(1).c_str());
-        if (std::atoi(regex2.match(1).c_str()) == 2)
+        if (vtk::from_chars<int>(regex2.match(1)) == 2)
         {
           version = 2;
         }
-        else if (std::atoi(regex2.match(1).c_str()) == 1)
+        else if (vtk::from_chars<int>(regex2.match(1)) == 1)
         {
           version = 1;
         }

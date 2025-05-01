@@ -23,6 +23,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkSocketCommunicator.h"
 #include "vtkSocketController.h"
+#include "vtkStringScanner.h"
 
 #include <cassert>
 #include <map>
@@ -134,7 +135,7 @@ public:
     std::string client_url;
     if (pvserver.find(url))
     {
-      int port = atoi(pvserver.match(3).c_str());
+      int port = vtk::from_chars<int>(pvserver.match(3));
       port = (port < 0) ? 11111 : port;
 
       std::ostringstream stream;
@@ -147,7 +148,7 @@ public:
     else if (pvserver_reverse.find(url))
     {
       std::string hostname = pvserver_reverse.match(1);
-      int port = atoi(pvserver_reverse.match(3).c_str());
+      int port = vtk::from_chars<int>(pvserver_reverse.match(3));
       port = (port <= 0) ? 11111 : port;
       std::ostringstream stream;
       stream << "tcp://" << hostname.c_str() << ":" << port << "?" << handshake.str();
@@ -155,10 +156,10 @@ public:
     }
     else if (pvrenderserver.find(url))
     {
-      int dsport = atoi(pvrenderserver.match(3).c_str());
+      int dsport = vtk::from_chars<int>(pvrenderserver.match(3));
       dsport = (dsport < 0) ? 11111 : dsport;
 
-      int rsport = atoi(pvrenderserver.match(6).c_str());
+      int rsport = vtk::from_chars<int>(pvrenderserver.match(6));
       rsport = (rsport < 0) ? 22221 : rsport;
 
       if (vtkProcessModule::GetProcessType() == vtkProcessModule::PROCESS_RENDER_SERVER)
@@ -180,11 +181,11 @@ public:
     else if (pvrenderserver_reverse.find(url))
     {
       std::string dataserverhost = pvrenderserver_reverse.match(1);
-      int dsport = atoi(pvrenderserver_reverse.match(3).c_str());
+      int dsport = vtk::from_chars<int>(pvrenderserver_reverse.match(3));
       dsport = (dsport <= 0) ? 11111 : dsport;
 
       std::string renderserverhost = pvrenderserver_reverse.match(4);
-      int rsport = atoi(pvrenderserver_reverse.match(6).c_str());
+      int rsport = vtk::from_chars<int>(pvrenderserver_reverse.match(6));
       rsport = (rsport <= 0) ? 22221 : rsport;
 
       if (vtkProcessModule::GetProcessType() == vtkProcessModule::PROCESS_RENDER_SERVER)

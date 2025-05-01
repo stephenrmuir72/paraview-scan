@@ -7,14 +7,15 @@
 #include "pqCoreUtilities.h"
 #include "pqFileDialog.h"
 
+#include "vtkPVSession.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMProxy.h"
+#include "vtkSMSessionProxyManager.h"
 #include "vtkSMUncheckedPropertyHelper.h"
+#include "vtkStringScanner.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 
-#include "vtkPVSession.h"
-#include "vtkSMSessionProxyManager.h"
 #include "vtksys/SystemTools.hxx"
 
 #include <QComboBox>
@@ -22,25 +23,9 @@
 #include <QMetaProperty>
 #include <QStyledItemDelegate>
 
-#include <sstream>
-
 //=============================================================================
 namespace
 {
-template <typename T>
-T lexical_cast(const std::string& s)
-{
-  std::stringstream ss(s);
-
-  T result;
-  if ((ss >> result).fail() || !(ss >> std::ws).eof())
-  {
-    throw std::bad_cast();
-  }
-
-  return result;
-}
-
 //=============================================================================
 class SESAMETableConversions
 {
@@ -362,12 +347,12 @@ public:
     for (unsigned int i = 0; i < flatArraysOfTablesHelper.GetNumberOfElements(); ++i)
     {
       const auto str = flatArraysOfTablesHelper.GetAsString(i);
-      try
+      auto result = vtk::scan_int<int>(std::string_view(str));
+      if (result)
       {
-        int value = lexical_cast<int>(str);
-        currentTableId = value;
+        currentTableId = result->value();
       }
-      catch (const std::bad_cast&)
+      else
       {
         if (currentTableId != -1)
         {
@@ -375,14 +360,11 @@ public:
         }
       }
     }
-    if (arraysOfTables.find(tableId) != arraysOfTables.end())
+    if (arraysOfTables.contains(tableId))
     {
       return arraysOfTables[tableId];
     }
-    else
-    {
-      return QVector<QString>();
-    }
+    return QVector<QString>();
   }
 
   /**
@@ -452,12 +434,12 @@ public:
         SESAMETableConversions tableData;
 
         std::string data_str = tableElement->GetAttribute("Id");
-        sscanf(data_str.c_str(), "%d", &tableData.TableId);
+        tableData.TableId = vtk::scan_int<int>(data_str)->value();
 
         for (int v = 0; v < tableElement->GetNumberOfNestedElements(); v++)
         {
           vtkXMLDataElement* variableElement = tableElement->GetNestedElement(v);
-          std::string variableString = variableElement->GetName();
+          std::string_view variableString = variableElement->GetName();
           if (variableString == "Variable")
           {
             SESAMETableConversions::ConversionVariable variableData;
@@ -466,11 +448,11 @@ public:
             variableData.SESAMEUnits = variableElement->GetAttribute("SESAME_Units");
 
             data_str = variableElement->GetAttribute("SESAME_SI");
-            sscanf(data_str.c_str(), "%lf", &variableData.SIConversion);
+            variableData.SIConversion = vtk::scan_value<double>(data_str)->value();
             variableData.SIUnits = variableElement->GetAttribute("SESAME_SI_Units");
 
             data_str = variableElement->GetAttribute("SESAME_cgs");
-            sscanf(data_str.c_str(), "%lf", &variableData.CGSConversion);
+            variableData.CGSConversion = vtk::scan_value<double>(data_str)->value();
             variableData.CGSUnits = variableElement->GetAttribute("SESAME_cgs_Units");
 
             tableData.VariableConversions.insert(variableData.Name, variableData);

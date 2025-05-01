@@ -30,6 +30,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTooltipSelectionPipeline.h"
+#include "vtkStringScanner.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -220,7 +221,7 @@ void pqRenderViewSelectionReaction::updateEnableState()
           vtkSMStringVectorProperty::SafeDownCast(proxy->GetProperty("ColorArrayName"));
         if (prop)
         {
-          int association = std::atoi(prop->GetElement(3));
+          int association = vtk::from_chars<int>(prop->GetElement(3));
           const char* arrayName = prop->GetElement(4);
 
           vtkPVDataInformation* dataInfo = this->Representation->getInputDataInformation();
@@ -700,7 +701,7 @@ void pqRenderViewSelectionReaction::preSelection()
           vtkSMStringVectorProperty::SafeDownCast(repr->getProxy()->GetProperty("ColorArrayName"));
         if (prop)
         {
-          int association = std::atoi(prop->GetElement(3));
+          int association = vtk::from_chars<int>(prop->GetElement(3));
           const char* arrayName = prop->GetElement(4);
 
           if (association == vtkDataObject::CELL &&
@@ -789,7 +790,7 @@ void pqRenderViewSelectionReaction::fastPreSelection()
           vtkSMStringVectorProperty::SafeDownCast(repr->getProxy()->GetProperty("ColorArrayName"));
         if (prop)
         {
-          int association = std::atoi(prop->GetElement(3));
+          int association = vtk::from_chars<int>(prop->GetElement(3));
           const char* arrayName = prop->GetElement(4);
 
           if (association == vtkDataObject::CELL &&
@@ -962,7 +963,7 @@ void pqRenderViewSelectionReaction::onLeftButtonRelease()
           vtkSMStringVectorProperty::SafeDownCast(repr->getProxy()->GetProperty("ColorArrayName"));
         if (prop)
         {
-          int association = std::atoi(prop->GetElement(3));
+          int association = vtk::from_chars<int>(prop->GetElement(3));
           const char* arrayName = prop->GetElement(4);
 
           if (association == vtkDataObject::CELL)
