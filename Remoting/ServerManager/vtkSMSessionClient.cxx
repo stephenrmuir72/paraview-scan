@@ -29,6 +29,7 @@
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSettings.h"
 #include "vtkSocketCommunicator.h"
+#include "vtkStringScanner.h"
 #include "vtkTimerLog.h"
 
 #include <sstream>
@@ -204,7 +205,7 @@ bool vtkSMSessionClient::Connect(const char* url, int timeout, bool (*callback)(
   if (pvserver.find(url))
   {
     std::string hostname = pvserver.match(1);
-    int port = atoi(pvserver.match(3).c_str());
+    int port = vtk::from_chars<int>(pvserver.match(3));
     port = (port <= 0) ? 11111 : port;
 
     std::ostringstream stream;
@@ -214,7 +215,7 @@ bool vtkSMSessionClient::Connect(const char* url, int timeout, bool (*callback)(
   else if (pvserver_reverse.find(url))
   {
     // 0 ports are acceptable for reverse connections.
-    int port = atoi(pvserver_reverse.match(3).c_str());
+    int port = vtk::from_chars<int>(pvserver_reverse.match(3));
     port = (port < 0) ? 11111 : port;
     std::ostringstream stream;
     stream << "tcp://localhost:" << port << "?listen=true&nonblocking=true&" << timeoutString.str()
@@ -224,11 +225,11 @@ bool vtkSMSessionClient::Connect(const char* url, int timeout, bool (*callback)(
   else if (pvrenderserver.find(url))
   {
     std::string dataserverhost = pvrenderserver.match(1);
-    int dsport = atoi(pvrenderserver.match(2).c_str());
+    int dsport = vtk::from_chars<int>(pvrenderserver.match(2));
     dsport = (dsport <= 0) ? 11111 : dsport;
 
     std::string renderserverhost = pvrenderserver.match(3);
-    int rsport = atoi(pvrenderserver.match(4).c_str());
+    int rsport = vtk::from_chars<int>(pvrenderserver.match(4));
     rsport = (rsport <= 0) ? 22221 : rsport;
 
     std::ostringstream stream;
@@ -244,9 +245,9 @@ bool vtkSMSessionClient::Connect(const char* url, int timeout, bool (*callback)(
   else if (pvrenderserver_reverse.find(url))
   {
     // 0 ports are acceptable for reverse connections.
-    int dsport = atoi(pvrenderserver_reverse.match(4).c_str());
+    int dsport = vtk::from_chars<int>(pvrenderserver_reverse.match(4));
     dsport = (dsport < 0) ? 11111 : dsport;
-    int rsport = atoi(pvrenderserver_reverse.match(7).c_str());
+    int rsport = vtk::from_chars<int>(pvrenderserver_reverse.match(7));
     rsport = (rsport < 0) ? 22221 : rsport;
 
     std::ostringstream stream;

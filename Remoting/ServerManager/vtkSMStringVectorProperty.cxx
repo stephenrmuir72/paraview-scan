@@ -315,31 +315,36 @@ int vtkSMStringVectorProperty::ReadXMLAttributes(vtkSMProxy* proxy, vtkPVXMLElem
   {
     const char* tmp = element->GetAttribute("default_values");
     const char* delimiter = element->GetAttribute("default_values_delimiter");
-    if (tmp && delimiter)
+    if (tmp)
     {
-      std::string initVal = tmp;
-      std::string delim = delimiter;
-      std::string::size_type pos1 = 0;
-      std::string::size_type pos2 = 0;
-      for (int i = 0; i < numEls && pos2 != std::string::npos; i++)
+      if (numEls > 1)
       {
-        if (i != 0)
+        const char delim = delimiter && *delimiter ? delimiter[0] : ' ';
+        const auto lines = vtksys::SystemTools::SplitString(tmp, delim);
+        if (static_cast<int>(lines.size()) == numEls)
         {
-          pos1 += delim.size();
+          for (unsigned int cc = 0; cc < lines.size(); cc++)
+          {
+            this->SetElement(cc, lines[cc].c_str());
+          }
+          this->Internals->DefaultValues = std::move(lines);
+          this->Internals->DefaultsValid = true;
         }
-        pos2 = initVal.find(delimiter, pos1);
-        std::string v = pos1 == pos2 ? "" : initVal.substr(pos1, pos2 - pos1);
-        this->Internals->DefaultValues.push_back(v);
-        this->Internals->DefaultsValid = true;
-        this->SetElement(i, v.c_str());
-        pos1 = pos2;
+        else
+        {
+          // TODO: The definition of all faulty string properties need to change
+          // so that an error can be returned here.
+          this->SetElement(0, tmp);
+          this->Internals->DefaultValues.push_back(tmp);
+          this->Internals->DefaultsValid = true;
+        }
       }
-    }
-    else if (tmp)
-    {
-      this->SetElement(0, tmp);
-      this->Internals->DefaultValues.push_back(tmp);
-      this->Internals->DefaultsValid = true;
+      else
+      {
+        this->SetElement(0, tmp);
+        this->Internals->DefaultValues.push_back(tmp);
+        this->Internals->DefaultsValid = true;
+      }
     }
   }
   return 1;

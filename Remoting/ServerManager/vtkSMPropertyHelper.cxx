@@ -15,6 +15,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h"
+#include "vtkStringScanner.h"
 
 #include <sstream>
 
@@ -54,9 +55,12 @@ inline int vtkSMPropertyHelper::GetProperty(unsigned int index) const
       return this->UseUnchecked ? this->IdTypeVectorProperty->GetUncheckedElement(index)
                                 : this->IdTypeVectorProperty->GetElement(index);
     case STRING:
-      return this->UseUnchecked ? std::atoi(this->StringVectorProperty->GetUncheckedElement(index))
-                                : std::atoi(this->StringVectorProperty->GetElement(index));
-
+    {
+      const std::string_view str = this->UseUnchecked
+        ? this->StringVectorProperty->GetUncheckedElement(index)
+        : this->StringVectorProperty->GetElement(index);
+      return !str.empty() ? vtk::from_chars<int>(str) : 0;
+    }
     default:
       return 0;
   }
@@ -77,11 +81,13 @@ inline double vtkSMPropertyHelper::GetProperty(unsigned int index) const
     case IDTYPE:
       return this->UseUnchecked ? this->IdTypeVectorProperty->GetUncheckedElement(index)
                                 : this->IdTypeVectorProperty->GetElement(index);
-
     case STRING:
-      return this->UseUnchecked ? std::atof(this->StringVectorProperty->GetUncheckedElement(index))
-                                : std::atof(this->StringVectorProperty->GetElement(index));
-
+    {
+      const std::string_view str = this->UseUnchecked
+        ? this->StringVectorProperty->GetUncheckedElement(index)
+        : this->StringVectorProperty->GetElement(index);
+      return !str.empty() ? vtk::from_chars<double>(str) : 0;
+    }
     default:
       return 0;
   }
@@ -979,7 +985,7 @@ int vtkSMPropertyHelper::GetStatus(const char* key, int default_value /*=0*/) co
   std::ostringstream str;
   str << default_value;
   const char* value = vtkSMPropertyHelper::GetStatus(key, str.str().c_str());
-  return std::atoi(value);
+  return vtk::from_chars<int>(value);
 }
 
 //----------------------------------------------------------------------------
@@ -1083,7 +1089,7 @@ bool vtkSMPropertyHelper::GetStatus(const char* key, double* values, int num_val
       {
         for (int kk = 0; kk < num_values; kk++)
         {
-          values[kk] = atof(svp->GetElement(cc + kk + 1));
+          values[kk] = vtk::from_chars<double>(svp->GetElement(cc + kk + 1));
         }
         return true;
       }
@@ -1544,8 +1550,9 @@ int vtkSMPropertyHelper::GetInputArrayAssociation() const
       return -1;
     }
 
-    return svp->GetNumberOfUncheckedElements() == 2 ? std::atoi(svp->GetUncheckedElement(0))
-                                                    : std::atoi(svp->GetUncheckedElement(3));
+    return svp->GetNumberOfUncheckedElements() == 2
+      ? vtk::from_chars<int>(svp->GetUncheckedElement(0))
+      : vtk::from_chars<int>(svp->GetUncheckedElement(3));
   }
   else
   {
@@ -1555,8 +1562,8 @@ int vtkSMPropertyHelper::GetInputArrayAssociation() const
       return -1;
     }
 
-    return svp->GetNumberOfElements() == 2 ? std::atoi(svp->GetElement(0))
-                                           : std::atoi(svp->GetElement(3));
+    return svp->GetNumberOfElements() == 2 ? vtk::from_chars<int>(svp->GetElement(0))
+                                           : vtk::from_chars<int>(svp->GetElement(3));
   }
 }
 

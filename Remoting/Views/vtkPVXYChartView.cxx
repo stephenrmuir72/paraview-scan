@@ -27,6 +27,7 @@
 #include "vtkXYChartRepresentation.h"
 
 #include <cmath>
+#include <vtkStringScanner.h>
 #include <vtksys/SystemTools.hxx>
 
 // PARAVIEW_DEPRECATED_IN_5_14_0
@@ -742,21 +743,7 @@ void vtkPVXYChartView::SetAxisLabels(
 {
   if (axis >= 0 && axis < 4)
   {
-    double dv = 0.;
-    bool conversionStatus = false;
-    try
-    {
-      dv = std::stod(value);
-      conversionStatus = true;
-    }
-    catch (const std::invalid_argument&)
-    {
-    }
-    catch (const std::out_of_range&)
-    {
-    }
-
-    this->Internals->CustomLabelPositions[axis]->SetValue(i, conversionStatus ? dv : 0.);
+    this->Internals->CustomLabelPositions[axis]->SetValue(i, vtk::from_chars<double>(value));
 
     std::string text = label.empty() ? value : label;
     this->Internals->CustomLabelTexts[axis]->SetValue(i, text);

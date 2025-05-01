@@ -8,6 +8,7 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringScanner.h"
 
 #include <vtk_cli11.h>
 #include <vtksys/SystemInformation.hxx>
@@ -165,7 +166,7 @@ int vtkRemotingCoreConfiguration::GetEGLDeviceIndex()
   {
     try
     {
-      this->EGLDeviceIndex = std::stoi(display);
+      this->EGLDeviceIndex = vtk::from_chars<int>(display);
       vtkLogF(TRACE, "Setting EGLDeviceIndex to %d", this->EGLDeviceIndex);
       return this->EGLDeviceIndex;
     }

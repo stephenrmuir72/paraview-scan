@@ -17,6 +17,7 @@
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMUncheckedPropertyHelper.h"
 #include "vtkStringList.h"
+#include "vtkStringScanner.h"
 
 #include <algorithm>
 #include <cassert>
@@ -510,7 +511,7 @@ int vtkSMArrayListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
       else
       {
         // maybe the strategy was coded as an integer.
-        strat = atoi(strategy.c_str());
+        strat = vtk::from_chars<int>(strategy);
       }
       this->AddInformationKey(location.c_str(), name.c_str(), strat);
     }
@@ -630,7 +631,7 @@ int vtkSMArrayListDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement
       }
       else
       {
-        int maybeType = atoi(thisType.c_str()); //?
+        int maybeType = vtk::from_chars<int>(thisType); //?
         this->ALDInternals->DataTypes.push_back(maybeType);
       }
     }

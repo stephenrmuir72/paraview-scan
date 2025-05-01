@@ -30,6 +30,7 @@
 #include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringArray.h"
+#include "vtkStringScanner.h"
 #include "vtkUnsignedIntArray.h"
 #include "vtkView.h"
 
@@ -202,7 +203,7 @@ bool vtkSMSelectionHelper::CombineSelection(vtkSMSourceProxy* appendSelections1,
     // remove the S prefix
     selectionName.erase(0, vtkSMSelectionHelper::SubSelectionBaseName.size());
     // get the id
-    maxId = std::max(maxId, std::stoi(selectionName));
+    maxId = std::max(maxId, vtk::from_chars<int>(selectionName));
   }
 
   // create new expression and selection names from appendSelections2's selections sources
@@ -217,7 +218,7 @@ bool vtkSMSelectionHelper::CombineSelection(vtkSMSourceProxy* appendSelections1,
     // remove the S prefix
     newSelectionName.erase(0, vtkSMSelectionHelper::SubSelectionBaseName.size());
     // compute new selection name id
-    int selectionNameId = std::atoi(newSelectionName.c_str()) + maxId + 1;
+    int selectionNameId = vtk::from_chars<int>(newSelectionName) + maxId + 1;
     newSelectionName = vtkSMSelectionHelper::SubSelectionBaseName + std::to_string(selectionNameId);
     // save new selection name
     newSelectionNamesAP2.push_front(newSelectionName);

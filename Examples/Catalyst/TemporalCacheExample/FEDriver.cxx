@@ -30,6 +30,7 @@ PythonPipeline... //One or more Catalyst Python Pipelines
 #include <mpi.h>
 
 #include <vtkSmartPointer.h>
+#include <vtkStringScanner.h>
 #include <vtkTimerLog.h>
 
 int main(int argc, char* argv[])
@@ -47,23 +48,23 @@ int main(int argc, char* argv[])
     {
       for (int j = 0; j < 3; j++)
       {
-        numPoints[j] = atoi(argv[i + j + 1]);
+        numPoints[j] = vtk::from_chars<int>(argv[i + j + 1]);
       }
       i += 3;
     }
     else if (!strcmp(argv[i], "-TSTEPS"))
     {
-      numberOfTimeSteps = atoi(argv[i + 1]);
+      numberOfTimeSteps = vtk::from_chars<int>(argv[i + 1]);
       i += 1;
     }
     else if (!strcmp(argv[i], "-DELAY"))
     {
-      delay = atoi(argv[i + 1]);
+      delay = vtk::from_chars<int>(argv[i + 1]);
       i += 1;
     }
     else if (!strcmp(argv[i], "-NUMPARTICLES"))
     {
-      numparticles = atoi(argv[i + 1]);
+      numparticles = vtk::from_chars<int>(argv[i + 1]);
       i += 1;
     }
     else

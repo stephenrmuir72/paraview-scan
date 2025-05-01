@@ -16,6 +16,7 @@
 #include "vtkPointData.h"
 #include "vtkPointSet.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringScanner.h"
 #include "vtkUnstructuredGrid.h"
 
 vtkStandardNewMacro(vtkPhastaReader);
@@ -221,11 +222,10 @@ int vtkPhastaReader::readHeader(FILE* fileObject, const char phrase[], int* para
       {
         FOUND = 1;
         token = strtok(nullptr, " ,;<>");
-        skip_size = atoi(token);
         int i;
         for (i = 0; i < expect && (token = strtok(nullptr, " ,;<>")); i++)
         {
-          params[i] = atoi(token);
+          params[i] = vtk::from_chars<int>(token);
         }
         if (i < expect)
         {
@@ -252,7 +252,7 @@ int vtkPhastaReader::readHeader(FILE* fileObject, const char phrase[], int* para
       {
         /* some other header, so just skip over */
         token = strtok(nullptr, " ,;<>");
-        skip_size = atoi(token);
+        skip_size = vtk::from_chars<int>(token);
         if (::binary_format)
         {
           fseek(fileObject, skip_size, SEEK_CUR);

@@ -13,6 +13,7 @@
 #include "vtkSMProperty.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMUncheckedPropertyHelper.h"
+#include "vtkStringScanner.h"
 
 #include <vtksys/SystemTools.hxx>
 
@@ -287,7 +288,7 @@ int vtkSMInputArrayDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElemen
     this->AcceptableNumbersOfComponents.clear();
     for (VStrings::const_iterator iter = numbers.begin(); iter != numbers.end(); ++iter)
     {
-      this->AcceptableNumbersOfComponents.push_back(atoi(iter->c_str()));
+      this->AcceptableNumbersOfComponents.push_back(vtk::from_chars<int>(*iter));
     }
   }
 
@@ -310,7 +311,7 @@ int vtkSMInputArrayDomain::ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElemen
 
   if (const char* autoConvert = element->GetAttributeOrDefault("auto_convert_association", "0"))
   {
-    this->AutoConvertProperties = std::atoi(autoConvert) == 1;
+    this->AutoConvertProperties = vtk::from_chars<int>(autoConvert) == 1;
   }
 
   return 1;

@@ -9,6 +9,7 @@
 #include "vtkSMDomainIterator.h"
 #include "vtkSMProxy.h"
 #include "vtkSMVectorProperty.h"
+#include "vtkStringScanner.h"
 
 #include <cstring>
 #include <sstream>
@@ -59,7 +60,7 @@ public:
           values = new double[this->NumberOfValues];
           for (unsigned int cc = 0; cc < this->NumberOfValues; cc++)
           {
-            values[cc] = atof(parts[cc].c_str());
+            values[cc] = vtk::from_chars<float>(parts[cc]);
           }
         }
       }

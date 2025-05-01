@@ -8,6 +8,7 @@
 #include "vtkPVXMLElement.h"
 #include "vtkSISourceProxy.h"
 #include "vtkSMMessage.h"
+#include "vtkStringScanner.h"
 
 #include <vtksys/SystemTools.hxx>
 
@@ -172,31 +173,35 @@ bool vtkSIStringVectorProperty::ReadXMLAttributes(vtkSIProxy* proxy, vtkPVXMLEle
   bool hasDefaultValues = false;
   if (number_of_elements > 0)
   {
-    values.resize(number_of_elements);
     const char* tmp = element->GetAttribute("default_values");
     const char* delimiter = element->GetAttribute("default_values_delimiter");
     hasDefaultValues = (tmp != nullptr);
-    if (tmp && delimiter)
+    if (tmp)
     {
-      std::string initVal = tmp;
-      std::string delim = delimiter;
-      std::string::size_type pos1 = 0;
-      std::string::size_type pos2 = 0;
-      for (int i = 0; i < number_of_elements && pos2 != std::string::npos; i++)
+      values.resize(number_of_elements);
+      if (number_of_elements > 1)
       {
-        if (i != 0)
+        // std::cout << "Default values: " << tmp << std::endl;
+        const char delim = delimiter && *delimiter ? delimiter[0] : ' ';
+        const auto lines = vtksys::SystemTools::SplitString(tmp, delim);
+        if (static_cast<int>(lines.size()) == number_of_elements)
         {
-          pos1 += delim.size();
+          for (std::size_t i = 0; i < lines.size(); ++i)
+          {
+            values[i] = std::move(lines[i]);
+          }
         }
-        pos2 = initVal.find(delimiter, pos1);
-        std::string value = (pos1 == pos2) ? "" : initVal.substr(pos1, pos2 - pos1);
-        values[i] = value;
-        pos1 = pos2;
+        else
+        {
+          // TODO: The definition of all faulty string properties need to change
+          // so that an error can be returned here.
+          values[0] = tmp;
+        }
       }
-    }
-    else if (tmp)
-    {
-      values[0] = tmp;
+      else
+      {
+        values[0] = tmp;
+      }
     }
   }
 
@@ -244,18 +249,20 @@ bool vtkSIStringVectorProperty::Push(const vtkVectorOfStrings& values)
     for (iter = values.begin(); iter != values.end(); ++iter, ++i)
     {
       // Convert to the appropriate type and add to stream
-      int type =
+      const int type =
         (i < static_cast<int>(this->ElementTypes->size())) ? (*this->ElementTypes)[i] : STRING;
+      const auto& value = values[i];
       switch (type)
       {
         case INT:
-          stream << atoi(values[i].c_str());
+          stream << (!value.empty() ? vtk::from_chars<int>(value) : 0);
           break;
         case DOUBLE:
-          stream << atof(values[i].c_str());
+          stream << (!value.empty() ? vtk::from_chars<float>(value) : 0.0);
           break;
         case STRING:
-          stream << values[i].c_str();
+        default:
+          stream << value;
           break;
       }
     }
@@ -287,18 +294,20 @@ bool vtkSIStringVectorProperty::Push(const vtkVectorOfStrings& values)
       for (int j = 0; j < this->NumberOfElementsPerCommand; j++)
       {
         // Convert to the appropriate type and add to stream
-        int type =
+        const int type =
           (j < static_cast<int>(this->ElementTypes->size())) ? (*this->ElementTypes)[j] : STRING;
+        const auto& value = values[i * this->NumberOfElementsPerCommand + j];
         switch (type)
         {
           case INT:
-            stream << atoi(values[i * this->NumberOfElementsPerCommand + j].c_str());
+            stream << (!value.empty() ? vtk::from_chars<int>(value) : 0);
             break;
           case DOUBLE:
-            stream << atof(values[i * this->NumberOfElementsPerCommand + j].c_str());
+            stream << (!value.empty() ? vtk::from_chars<float>(value) : 0.0);
             break;
           case STRING:
-            stream << values[i * this->NumberOfElementsPerCommand + j].c_str();
+          default:
+            stream << value;
             break;
         }
       }
