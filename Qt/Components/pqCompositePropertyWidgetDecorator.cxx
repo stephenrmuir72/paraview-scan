@@ -50,14 +50,12 @@ struct Operation : public BaseOperation
     bool result = init_value;
 
     result = std::accumulate(this->Decorators.begin(), this->Decorators.end(), result,
-      [=](const bool& lhs, const QPointer<pqPropertyWidgetDecorator>& rhs) {
-        return BinaryOperation()(lhs, rhs->canShowWidget(show_advanced));
-      });
+      [=](const bool& lhs, const QPointer<pqPropertyWidgetDecorator>& rhs)
+      { return BinaryOperation()(lhs, rhs->canShowWidget(show_advanced)); });
 
     result = std::accumulate(this->Expressions.begin(), this->Expressions.end(), result,
-      [=](const bool& lhs, const std::shared_ptr<BaseOperation>& rhs) {
-        return BinaryOperation()(lhs, rhs->canShowWidget(show_advanced));
-      });
+      [=](const bool& lhs, const std::shared_ptr<BaseOperation>& rhs)
+      { return BinaryOperation()(lhs, rhs->canShowWidget(show_advanced)); });
 
     return result;
   }
@@ -72,14 +70,12 @@ struct Operation : public BaseOperation
     bool result = init_value;
 
     result = std::accumulate(this->Decorators.begin(), this->Decorators.end(), result,
-      [](const bool& lhs, const QPointer<pqPropertyWidgetDecorator>& rhs) {
-        return BinaryOperation()(lhs, rhs->enableWidget());
-      });
+      [](const bool& lhs, const QPointer<pqPropertyWidgetDecorator>& rhs)
+      { return BinaryOperation()(lhs, rhs->enableWidget()); });
 
     result = std::accumulate(this->Expressions.begin(), this->Expressions.end(), result,
-      [=](const bool& lhs, const std::shared_ptr<BaseOperation>& rhs) {
-        return BinaryOperation()(lhs, rhs->enableWidget());
-      });
+      [=](const bool& lhs, const std::shared_ptr<BaseOperation>& rhs)
+      { return BinaryOperation()(lhs, rhs->enableWidget()); });
 
     return result;
   }

@@ -442,17 +442,19 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
     ->add_option("--displays-assignment-mode", this->DisplaysAssignmentMode,
       "Specify how to assign displays (specified using '--displays=') among rendering ranks. "
       "Supported values are 'contiguous' and 'round-robin'. Default is 'round-robin'.")
-    ->transform([](const std::string& value) {
-      if (value == "contiguous")
+    ->transform(
+      [](const std::string& value)
       {
-        return std::to_string(vtkRemotingCoreConfiguration::CONTIGUOUS);
-      }
-      if (value == "round-robin")
-      {
-        return std::to_string(vtkRemotingCoreConfiguration::ROUNDROBIN);
-      }
-      throw CLI::ValidationError("Invalid displays-assignment-mode specified.");
-    })
+        if (value == "contiguous")
+        {
+          return std::to_string(vtkRemotingCoreConfiguration::CONTIGUOUS);
+        }
+        if (value == "round-robin")
+        {
+          return std::to_string(vtkRemotingCoreConfiguration::ROUNDROBIN);
+        }
+        throw CLI::ValidationError("Invalid displays-assignment-mode specified.");
+      })
     ->needs("--displays")
     ->default_str("round-robin");
 
@@ -491,9 +493,8 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
     caveGroup
       ->add_option(
         "--pvx",
-        [this](const CLI::results_t& args) {
-          return this->DisplayConfiguration->LoadPVX(args.front().c_str());
-        },
+        [this](const CLI::results_t& args)
+        { return this->DisplayConfiguration->LoadPVX(args.front().c_str()); },
         "ParaView CAVE configuration file (typically a `.pvx` file) that "
         "provides the configuration for screens in a CAVE.")
       ->take_first();
@@ -502,9 +503,8 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
     auto pvx = caveGroup
                  ->add_option(
                    "'.pvx' file",
-                   [this](const CLI::results_t& args) {
-                     return this->DisplayConfiguration->LoadPVX(args.front().c_str());
-                   },
+                   [this](const CLI::results_t& args)
+                   { return this->DisplayConfiguration->LoadPVX(args.front().c_str()); },
                    "ParaView CAVE configuration file.")
                  ->excludes("--pvx")
                  ->take_first();

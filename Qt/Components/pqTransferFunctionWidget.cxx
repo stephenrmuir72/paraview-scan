@@ -308,13 +308,15 @@ pqTransferFunctionWidget::pqTransferFunctionWidget(QWidget* parentObject)
   , Internals(new pqInternals(this))
 {
   // whenever the rendering timer times out, we render the widget.
-  QObject::connect(&this->Internals->Timer, &QTimer::timeout, [this]() {
-    auto renWin = this->Internals->ContextView->GetRenderWindow();
-    if (this->isVisible())
+  QObject::connect(&this->Internals->Timer, &QTimer::timeout,
+    [this]()
     {
-      renWin->Render();
-    }
-  });
+      auto renWin = this->Internals->ContextView->GetRenderWindow();
+      if (this->isVisible())
+      {
+        renWin->Render();
+      }
+    });
 
   this->Internals->initializeCheckerBoardBrush();
   this->Internals->setUseCheckerBoardBrush(true);
@@ -477,14 +479,16 @@ void pqTransferFunctionWidget::initialize(
       pwf, vtkCommand::ModifiedEvent, &this->Internals->RangeTimer, SLOT(start()));
 
     // whenever the range timer times out, we try to change the range
-    QObject::connect(&this->Internals->RangeTimer, &QTimer::timeout, [pwf, this]() {
-      if (this->Internals->ChartXY->SetTFRange(vtkVector2d(pwf->GetRange())))
+    QObject::connect(&this->Internals->RangeTimer, &QTimer::timeout,
+      [pwf, this]()
       {
-        // The range have actually been changed, rerender and Q_EMIT the signal
-        this->render();
-        Q_EMIT this->chartRangeModified();
-      }
-    });
+        if (this->Internals->ChartXY->SetTFRange(vtkVector2d(pwf->GetRange())))
+        {
+          // The range have actually been changed, rerender and Q_EMIT the signal
+          this->render();
+          Q_EMIT this->chartRangeModified();
+        }
+      });
     this->Internals->ChartXY->SetTFRange(vtkVector2d(pwf->GetRange()));
   }
   if (ctf)
@@ -493,14 +497,16 @@ void pqTransferFunctionWidget::initialize(
       ctf, vtkCommand::ModifiedEvent, &this->Internals->RangeTimer, SLOT(start()));
 
     // whenever the range timer times out, we try to change the range
-    QObject::connect(&this->Internals->RangeTimer, &QTimer::timeout, [ctf, this]() {
-      if (this->Internals->ChartXY->SetTFRange(vtkVector2d(ctf->GetRange())))
+    QObject::connect(&this->Internals->RangeTimer, &QTimer::timeout,
+      [ctf, this]()
       {
-        // The range has actually been changed, rerender and Q_EMIT the signal
-        this->render();
-        Q_EMIT this->chartRangeModified();
-      }
-    });
+        if (this->Internals->ChartXY->SetTFRange(vtkVector2d(ctf->GetRange())))
+        {
+          // The range has actually been changed, rerender and Q_EMIT the signal
+          this->render();
+          Q_EMIT this->chartRangeModified();
+        }
+      });
     this->Internals->ChartXY->SetTFRange(vtkVector2d(ctf->GetRange()));
   }
 
