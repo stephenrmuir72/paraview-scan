@@ -350,3 +350,29 @@ def ListColorPresetNames():
     return [
         presets.GetPresetName(index) for index in range(presets.GetNumberOfPresets())
     ]
+
+
+# -----------------------------------------------------------------------------
+
+
+def GenerateRGBPoints(preset_name=None, range_min=None, range_max=None):
+    # NOTE: this function might be used by old state files.
+    # As such, we must not break backward-compatibility with it.
+
+    # Create a default PVLookupTable
+    lut = servermanager.rendering.PVLookupTable()
+
+    # If a preset name was provided, apply the preset
+    if preset_name is not None:
+        lut.SMProxy.ApplyPreset(preset_name)
+
+    any_rescale = any(x is not None for x in (range_min, range_max))
+    if any_rescale:
+        if range_min is None:
+            range_min = lut.RGBPoints[0]
+        if range_max is None:
+            range_max = lut.RGBPoints[-4]
+
+        lut.SMProxy.RescaleTransferFunction([range_min, range_max])
+
+    return lut.RGBPoints
