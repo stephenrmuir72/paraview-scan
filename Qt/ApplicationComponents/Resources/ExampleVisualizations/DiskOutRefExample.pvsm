@@ -3217,7 +3217,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="43608.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelOffset" id="43608.PolarLabelOffset" number_of_elements="1">
         <Element index="0" value="10"/>
@@ -9497,7 +9497,7 @@
         <Domain name="range" id="42784.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="42784.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="42784.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -9771,7 +9771,7 @@
         <Domain name="range" id="43002.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="43002.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="43002.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -10045,7 +10045,7 @@
         <Domain name="range" id="43410.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="43410.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="43410.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -10319,7 +10319,7 @@
         <Domain name="range" id="43418.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="43418.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="43418.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

@@ -1757,7 +1757,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="10432.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelOffset" id="10432.PolarLabelOffset" number_of_elements="1">
         <Element index="0" value="10"/>
@@ -3066,7 +3066,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="10721.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelOffset" id="10721.PolarLabelOffset" number_of_elements="1">
         <Element index="0" value="10"/>
@@ -6669,7 +6669,7 @@
         <Domain name="range" id="10591.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="10591.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="10591.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -6944,7 +6944,7 @@
         <Domain name="range" id="10597.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="10597.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="10597.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -7218,7 +7218,7 @@
         <Domain name="range" id="10606.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="10606.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="10606.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

@@ -1099,7 +1099,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="8972.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="8972.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -2148,7 +2148,7 @@
         <Domain name="range" id="9174.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="9174.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="9174.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

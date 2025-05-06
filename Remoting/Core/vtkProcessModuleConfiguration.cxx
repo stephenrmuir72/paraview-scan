@@ -7,6 +7,7 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringFormatter.h"
 
 #include <vtk_cli11.h>
 #include <vtksys/SystemInformation.hxx>
@@ -45,7 +46,7 @@ bool vtkProcessModuleConfiguration::PopulateOptions(
         {
           throw CLI::ValidationError("Invalid verbosity specified!");
         }
-        return std::to_string(xformedValue);
+        return vtk::to_string(xformedValue);
       },
       "verbosity");
 
@@ -136,7 +137,7 @@ std::string vtkProcessModuleConfiguration::GetRankAnnotatedFileName(const std::s
 
   auto controller = vtkMultiProcessController::GetGlobalController();
   return (controller && controller->GetNumberOfProcesses() > 1)
-    ? fname + "." + std::to_string(controller->GetLocalProcessId())
+    ? fname + "." + vtk::to_string(controller->GetLocalProcessId())
     : fname;
 }
 
