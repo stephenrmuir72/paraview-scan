@@ -5563,7 +5563,7 @@
       </Property>
       <Property name="CustomLabels" id="28666.CustomLabels"/>
       <Property name="DataRangeLabelFormat" id="28666.DataRangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.1e"/>
+        <Element index="0" value="{:&lt;#6.1e}"/>
       </Property>
       <Property name="DataRangeMax" id="28666.DataRangeMax" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -5633,7 +5633,7 @@
         <Domain name="range" id="28666.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="28666.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:&lt;#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="28666.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -5674,7 +5674,7 @@
         <Element index="1" value="0.05"/>
       </Property>
       <Property name="RangeLabelFormat" id="28666.RangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%4.3e"/>
+        <Element index="0" value="{:4.3e}"/>
       </Property>
       <Property name="Repositionable" id="28666.Repositionable" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -5837,7 +5837,7 @@
       </Property>
       <Property name="CustomLabels" id="28892.CustomLabels"/>
       <Property name="DataRangeLabelFormat" id="28892.DataRangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.1e"/>
+        <Element index="0" value="{:&lt;#6.1e}"/>
       </Property>
       <Property name="DataRangeMax" id="28892.DataRangeMax" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -5907,7 +5907,7 @@
         <Domain name="range" id="28892.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="28892.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:&lt;#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="28892.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -5948,7 +5948,7 @@
         <Element index="1" value="0.05"/>
       </Property>
       <Property name="RangeLabelFormat" id="28892.RangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%4.3e"/>
+        <Element index="0" value="{:4.3e}"/>
       </Property>
       <Property name="Repositionable" id="28892.Repositionable" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -6111,7 +6111,7 @@
       </Property>
       <Property name="CustomLabels" id="28898.CustomLabels"/>
       <Property name="DataRangeLabelFormat" id="28898.DataRangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.1e"/>
+        <Element index="0" value="{:&lt;#6.1e}"/>
       </Property>
       <Property name="DataRangeMax" id="28898.DataRangeMax" number_of_elements="1">
         <Element index="0" value="NaN"/>
@@ -6181,7 +6181,7 @@
         <Domain name="range" id="28898.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="28898.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:&lt;#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="28898.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -6222,7 +6222,7 @@
         <Element index="1" value="0.05"/>
       </Property>
       <Property name="RangeLabelFormat" id="28898.RangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%4.3e"/>
+        <Element index="0" value="{:4.3e}"/>
       </Property>
       <Property name="Repositionable" id="28898.Repositionable" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -6385,7 +6385,7 @@
       </Property>
       <Property name="CustomLabels" id="29326.CustomLabels"/>
       <Property name="DataRangeLabelFormat" id="29326.DataRangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.1e"/>
+        <Element index="0" value="{:&lt;#6.1e}"/>
       </Property>
       <Property name="DataRangeMax" id="29326.DataRangeMax" number_of_elements="1">
         <Element index="0" value="1.6971551179885864"/>
@@ -6455,7 +6455,7 @@
         <Domain name="range" id="29326.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="29326.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:&lt;#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="29326.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -6496,7 +6496,7 @@
         <Element index="1" value="0.05"/>
       </Property>
       <Property name="RangeLabelFormat" id="29326.RangeLabelFormat" number_of_elements="1">
-        <Element index="0" value="%4.3e"/>
+        <Element index="0" value="{:4.3e}"/>
       </Property>
       <Property name="Repositionable" id="29326.Repositionable" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -6951,7 +6951,7 @@
       </Property>
       <Property name="FaceVariablesInfo" id="28678.FaceVariablesInfo"/>
       <Property name="FilePattern" id="28678.FilePattern" number_of_elements="1">
-        <Element index="0" value="%s"/>
+        <Element index="0" value="{:s}"/>
         <Domain name="default_value" id="28678.FilePattern.default_value"/>
       </Property>
       <Property name="FilePrefix" id="28678.FilePrefix" number_of_elements="1">
