@@ -26,6 +26,7 @@
 #include "vtkSMTransferFunction2DProxy.h"
 #include "vtkSMTransferFunctionManager.h"
 #include "vtkSMTransferFunctionProxy.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringList.h"
 #include "vtkStringScanner.h"
 #include "vtkVariant.h"
@@ -1643,9 +1644,9 @@ void vtkSMColorMapEditorHelper::SetBlocksColor(
   for (const auto& blockColor : blockColorsMap)
   {
     blockColorsVec.push_back(blockColor.first);
-    blockColorsVec.push_back(std::to_string(blockColor.second[0]));
-    blockColorsVec.push_back(std::to_string(blockColor.second[1]));
-    blockColorsVec.push_back(std::to_string(blockColor.second[2]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[0]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[1]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[2]));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -1687,9 +1688,9 @@ void vtkSMColorMapEditorHelper::RemoveBlocksColors(
   for (const auto& blockColor : blockColorsMap)
   {
     blockColorsVec.push_back(blockColor.first);
-    blockColorsVec.push_back(std::to_string(blockColor.second[0]));
-    blockColorsVec.push_back(std::to_string(blockColor.second[1]));
-    blockColorsVec.push_back(std::to_string(blockColor.second[2]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[0]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[1]));
+    blockColorsVec.push_back(vtk::to_string(blockColor.second[2]));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -1874,7 +1875,7 @@ void vtkSMColorMapEditorHelper::SetBlocksColorArray(vtkSMProxy* proxy,
   for (const auto& colorArray : blockColorArrayMap)
   {
     blockColorArrayVec.push_back(colorArray.first);
-    blockColorArrayVec.push_back(std::to_string(colorArray.second.first));
+    blockColorArrayVec.push_back(vtk::to_string(colorArray.second.first));
     blockColorArrayVec.push_back(colorArray.second.second);
     blockLUTsVec.push_back(blockLUTsMap[colorArray.first]);
   }
@@ -1920,7 +1921,7 @@ void vtkSMColorMapEditorHelper::RemoveBlocksColorArrays(
   for (const auto& colorArray : blockColorArrayMap)
   {
     blockColorArrayVec.push_back(colorArray.first);
-    blockColorArrayVec.push_back(std::to_string(colorArray.second.first));
+    blockColorArrayVec.push_back(vtk::to_string(colorArray.second.first));
     blockColorArrayVec.push_back(colorArray.second.second);
   }
   // the following trace is not needed because this function is not supposed to be publicly called
@@ -2071,7 +2072,8 @@ void vtkSMColorMapEditorHelper::SetBlocksUseSeparateColorMap(
   for (const auto& blockUseSeparateColorMap : blockUseSeparateColorMapsMap)
   {
     blockUseSeparateColorMapsVec.push_back(blockUseSeparateColorMap.first);
-    blockUseSeparateColorMapsVec.push_back(std::to_string(blockUseSeparateColorMap.second));
+    blockUseSeparateColorMapsVec.push_back(
+      vtk::to_string(static_cast<int>(blockUseSeparateColorMap.second)));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -2240,7 +2242,7 @@ void vtkSMColorMapEditorHelper::SetBlocksMapScalars(
   for (const auto& blockMapScalar : blockMapScalarsMap)
   {
     blockMapScalarsVec.push_back(blockMapScalar.first);
-    blockMapScalarsVec.push_back(std::to_string(blockMapScalar.second));
+    blockMapScalarsVec.push_back(vtk::to_string(static_cast<int>(blockMapScalar.second)));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -2413,7 +2415,8 @@ void vtkSMColorMapEditorHelper::SetBlocksInterpolateScalarsBeforeMapping(
   for (const auto& blockInterpolate : blockInterpolateScalarsBeforeMappingMap)
   {
     blockInterpolateScalarsBeforeMappingVec.push_back(blockInterpolate.first);
-    blockInterpolateScalarsBeforeMappingVec.push_back(std::to_string(blockInterpolate.second));
+    blockInterpolateScalarsBeforeMappingVec.push_back(
+      vtk::to_string(static_cast<int>(blockInterpolate.second)));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -2455,7 +2458,8 @@ void vtkSMColorMapEditorHelper::RemoveBlocksInterpolateScalarsBeforeMappings(
   for (const auto& blockInterpolate : blockInterpolateScalarsBeforeMappingMap)
   {
     blockInterpolateScalarsBeforeMappingVec.push_back(blockInterpolate.first);
-    blockInterpolateScalarsBeforeMappingVec.push_back(std::to_string(blockInterpolate.second));
+    blockInterpolateScalarsBeforeMappingVec.push_back(
+      vtk::to_string(static_cast<int>(blockInterpolate.second)));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -2597,7 +2601,7 @@ void vtkSMColorMapEditorHelper::SetBlocksOpacity(
   for (const auto& blockOpacity : blockOpacitiesMap)
   {
     blockOpacitiesVec.push_back(blockOpacity.first);
-    blockOpacitiesVec.push_back(std::to_string(blockOpacity.second));
+    blockOpacitiesVec.push_back(vtk::to_string(blockOpacity.second));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
@@ -2637,7 +2641,7 @@ void vtkSMColorMapEditorHelper::RemoveBlocksOpacities(
   for (const auto& blockOpacity : blockOpacitiesMap)
   {
     blockOpacitiesVec.push_back(blockOpacity.first);
-    blockOpacitiesVec.push_back(std::to_string(blockOpacity.second));
+    blockOpacitiesVec.push_back(vtk::to_string(blockOpacity.second));
   }
   SM_SCOPED_TRACE(PropertiesModified)
     .arg("proxy", proxy)
