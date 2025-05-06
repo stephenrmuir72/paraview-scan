@@ -8,6 +8,7 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringScanner.h"
 
 #include <vtk_cli11.h>
@@ -446,11 +447,11 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
     ->transform([](const std::string& value) {
       if (value == "contiguous")
       {
-        return std::to_string(vtkRemotingCoreConfiguration::CONTIGUOUS);
+        return vtk::to_string(vtkRemotingCoreConfiguration::CONTIGUOUS);
       }
       if (value == "round-robin")
       {
-        return std::to_string(vtkRemotingCoreConfiguration::ROUNDROBIN);
+        return vtk::to_string(vtkRemotingCoreConfiguration::ROUNDROBIN);
       }
       throw CLI::ValidationError("Invalid displays-assignment-mode specified.");
     })
@@ -466,7 +467,7 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
       "'Red-Blue', 'Interlaced', 'Dresden', 'Anaglyph', 'Checkerboard', or "
       "'SplitViewportHorizontal'.")
     ->needs("--stereo")
-    ->transform([](const std::string& value) { return std::to_string(::ParseStereoType(value)); });
+    ->transform([](const std::string& value) { return vtk::to_string(::ParseStereoType(value)); });
 
   stereoGroup
     ->add_option("--eye-separation", this->EyeSeparation, "Specify eye separation distance.")

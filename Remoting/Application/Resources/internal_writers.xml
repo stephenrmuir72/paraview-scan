@@ -198,7 +198,7 @@
       </IntVectorProperty>
 
       <StringVectorProperty command="SetFileNameSuffix"
-                            default_values="_%d"
+                            default_values="_{:d}"
                             label = "File name suffix"
                             name="FileNameSuffix"
                             number_of_elements="1">
@@ -348,7 +348,7 @@
       </IntVectorProperty>
 
       <StringVectorProperty command="SetFileNameSuffix"
-                            default_values="_%d"
+                            default_values="_{:d}"
                             label = "File name suffix"
                             name="FileNameSuffix"
                             number_of_elements="1">
@@ -486,7 +486,7 @@
       </IntVectorProperty>
 
       <StringVectorProperty command="SetFileNameSuffix"
-                            default_values="_%d"
+                            default_values="_{:d}"
                             label = "File name suffix"
                             name="FileNameSuffix"
                             number_of_elements="1">
@@ -555,7 +555,7 @@
       </IntVectorProperty>
 
       <StringVectorProperty command="SetFileNameSuffix"
-                            default_values="_%d"
+                            default_values="_{:d}"
                             label = "File name suffix"
                             name="FileNameSuffix"
                             number_of_elements="1">
