@@ -5005,7 +5005,7 @@
         <Domain name="range" id="53680.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="53680.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="53680.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -5279,7 +5279,7 @@
         <Domain name="range" id="53896.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="53896.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="53896.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

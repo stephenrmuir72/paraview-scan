@@ -1355,7 +1355,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="5044.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="5044.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -2464,7 +2464,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="5288.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="5288.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>

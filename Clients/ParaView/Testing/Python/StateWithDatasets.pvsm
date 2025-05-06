@@ -1358,7 +1358,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="11572.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="11572.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -2864,7 +2864,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="11907.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="11907.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -4370,7 +4370,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="12214.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelVisibility" id="12214.PolarLabelVisibility" number_of_elements="1">
         <Element index="0" value="1"/>
@@ -7573,7 +7573,7 @@
         <Domain name="range" id="11804.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="11804.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="11804.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -7809,7 +7809,7 @@
         <Domain name="range" id="12118.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="12118.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="12118.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -8045,7 +8045,7 @@
         <Domain name="range" id="12148.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="12148.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="12148.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

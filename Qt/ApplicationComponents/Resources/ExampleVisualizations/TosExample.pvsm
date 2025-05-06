@@ -1394,7 +1394,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="21740.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelOffset" id="21740.PolarLabelOffset" number_of_elements="1">
         <Element index="0" value="10"/>
@@ -2620,7 +2620,7 @@
         </Domain>
       </Property>
       <Property name="PolarLabelFormat" id="22000.PolarLabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="PolarLabelOffset" id="22000.PolarLabelOffset" number_of_elements="1">
         <Element index="0" value="10"/>
@@ -5709,7 +5709,7 @@
         <Domain name="range" id="21888.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="21888.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="21888.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>

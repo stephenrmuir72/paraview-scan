@@ -4023,7 +4023,7 @@
         <Domain name="range" id="105775.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="105775.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="105775.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -4251,7 +4251,7 @@
         <Domain name="range" id="105783.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="105783.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="105783.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -4479,7 +4479,7 @@
         <Domain name="range" id="105789.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="105789.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="105789.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
@@ -4707,7 +4707,7 @@
         <Domain name="range" id="105912.LabelFontSize.range"/>
       </Property>
       <Property name="LabelFormat" id="105912.LabelFormat" number_of_elements="1">
-        <Element index="0" value="%-#6.3g"/>
+        <Element index="0" value="{:<#6.3g}"/>
       </Property>
       <Property name="LabelItalic" id="105912.LabelItalic" number_of_elements="1">
         <Element index="0" value="0"/>
