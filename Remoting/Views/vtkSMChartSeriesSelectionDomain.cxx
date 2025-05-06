@@ -20,6 +20,7 @@
 #include "vtkSMTransferFunctionPresets.h"
 #include "vtkSMTransferFunctionProxy.h"
 #include "vtkSMUncheckedPropertyHelper.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringList.h"
 
 #include <vtk_jsoncpp.h>
@@ -210,7 +211,7 @@ void vtkSMChartSeriesSelectionDomain::Update(vtkSMProperty*)
       blockName = dataInfo->GetBlockName(compositeIndexHelper.GetAsInt(cc));
       if (blockName.empty())
       {
-        blockName = std::to_string(compositeIndexHelper.GetAsInt(cc));
+        blockName = vtk::to_string(compositeIndexHelper.GetAsInt(cc));
       }
     }
 
