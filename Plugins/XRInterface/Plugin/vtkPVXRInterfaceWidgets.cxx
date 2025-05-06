@@ -39,6 +39,7 @@
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
 #include "vtkStringArray.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringScanner.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
@@ -1122,7 +1123,7 @@ bool vtkPVXRInterfaceWidgets::FindCellImage(
         if (fname == "from")
         {
           image += "&dp=";
-          image += std::to_string(da->GetComponent(currCell, 0));
+          image += vtk::to_string(da->GetComponent(currCell, 0));
           return true;
         }
       }
