@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: NONE
-// SPDX-License-Identifier: LicenseRef-PublicDomain-nifti 
+// SPDX-License-Identifier: LicenseRef-PublicDomain-nifti
 
 /*=========================================================================
 
   Program:   Visualization Toolkit
   Module:    vtkznzlib.h
- 
+
 *****            This code is released to the public domain.            *****
 
 *****  Author: Mark Jenkinson, FMRIB Centre, University of Oxford       *****
@@ -18,7 +18,7 @@
 
 This library provides an interface to both compressed (gzip/zlib) and
 uncompressed (normal) file IO.  The functions are written to have the
-same interface as the standard file IO functions.  
+same interface as the standard file IO functions.
 
 To use this library instead of normal file IO, the following changes
 are required:
@@ -28,7 +28,7 @@ are required:
  - add a third parameter to all calls to znzopen (previously fopen)
    that specifies whether to use compression (1) or not (0)
  - use znz_isnull rather than any (pointer == NULL) comparisons in the code
- 
+
 NB: seeks for writable files with compression are quite restricted
 
 *****  Converted to C++ by: Joseph Hennessey,                           *****
@@ -38,10 +38,10 @@ NB: seeks for writable files with compression are quite restricted
 =========================================================================*/
 // .NAME vtkznzlib - vtkznzlib
 // .SECTION Description
-// vtkznzlib 
+// vtkznzlib
 //
 // .SECTION See Also
-// 
+//
 
 #ifndef vtkznzlib_h
 #define vtkznzlib_h
@@ -70,26 +70,26 @@ NB: seeks for writable files with compression are quite restricted
 #endif
 #endif
 
-//#include "vtk_znzlib_mangle.h"
+// #include "vtk_znzlib_mangle.h"
 
-struct znzptr {
+struct znzptr
+{
   int withz;
   FILE* nzfptr;
 #ifdef HAVE_ZLIB
   gzFile zfptr;
 #endif
-} ;
+};
 
 /* the type for all file pointers */
-typedef struct znzptr * znzFile;
-
+typedef struct znzptr* znzFile;
 
 /* int znz_isnull(znzFile f); */
 /* int znzclose(znzFile f); */
 #define znz_isnull(f) ((f) == NULL)
-#define znzclose(f)   Xznzclose(&(f))
+#define znzclose(f) Xznzclose(&(f))
 
-/* Note extra argument (use_compression) where 
+/* Note extra argument (use_compression) where
    use_compression==0 is no compression
    use_compression!=0 uses zlib (gzip) compression
 */
@@ -97,46 +97,44 @@ typedef struct znzptr * znzFile;
 class vtkznzlib : public vtkObject
 {
 public:
-  static vtkznzlib *New();
-  vtkTypeMacro(vtkznzlib,vtkObject);
+  static vtkznzlib* New();
+  vtkTypeMacro(vtkznzlib, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-static znzFile znzopen(const char *path, const char *mode, int use_compression);
+  static znzFile znzopen(const char* path, const char* mode, int use_compression);
 
-static znzFile znzdopen(int fd, const char *mode, int use_compression);
+  static znzFile znzdopen(int fd, const char* mode, int use_compression);
 
-static int Xznzclose(znzFile * file);
+  static int Xznzclose(znzFile* file);
 
-static size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file);
+  static size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file);
 
-static size_t znzwrite(const void* buf, size_t size, size_t nmemb, znzFile file);
+  static size_t znzwrite(const void* buf, size_t size, size_t nmemb, znzFile file);
 
-static long znzseek(znzFile file, long offset, int whence);
+  static long znzseek(znzFile file, long offset, int whence);
 
-static int znzrewind(znzFile stream);
+  static int znzrewind(znzFile stream);
 
-static long znztell(znzFile file);
+  static long znztell(znzFile file);
 
-static int znzputs(const char *str, znzFile file);
+  static int znzputs(const char* str, znzFile file);
 
-static char * znzgets(char* str, int size, znzFile file);
+  static char* znzgets(char* str, int size, znzFile file);
 
-static int znzputc(int c, znzFile file);
+  static int znzputc(int c, znzFile file);
 
-static int znzgetc(znzFile file);
+  static int znzgetc(znzFile file);
 
 protected:
   vtkznzlib();
   ~vtkznzlib() override;
 
-static int znzflush(znzFile file);
-static int znzeof(znzFile file);
-
+  static int znzflush(znzFile file);
+  static int znzeof(znzFile file);
 
 private:
   vtkznzlib(const vtkznzlib&) = delete;
   void operator=(const vtkznzlib&) = delete;
-
 };
 
 #endif
