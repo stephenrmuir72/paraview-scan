@@ -850,7 +850,8 @@ bool vtkSMTransferFunctionProxy::ApplyPreset(const Json::Value& arg, bool rescal
   }
   if (vtkSMSettings::DeserializeFromJSON(this, preset))
   {
-    this->NameOfLastPresetApplied = preset.get("Name", "").asString();
+    auto presetName = preset.get("Name", "").asString();
+    vtkSMPropertyHelper(this, "NameOfLastPresetApplied").Set(presetName.c_str());
     this->UpdateVTKObjects();
     return true;
   }
