@@ -447,11 +447,11 @@ bool vtkRemotingCoreConfiguration::PopulateRenderingOptions(
     ->transform([](const std::string& value) {
       if (value == "contiguous")
       {
-        return vtk::to_string(vtkRemotingCoreConfiguration::CONTIGUOUS);
+        return vtk::to_string(static_cast<int>(vtkRemotingCoreConfiguration::CONTIGUOUS));
       }
       if (value == "round-robin")
       {
-        return vtk::to_string(vtkRemotingCoreConfiguration::ROUNDROBIN);
+        return vtk::to_string(static_cast<int>(vtkRemotingCoreConfiguration::ROUNDROBIN));
       }
       throw CLI::ValidationError("Invalid displays-assignment-mode specified.");
     })

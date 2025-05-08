@@ -10,6 +10,7 @@
 #include "vruiThread.h"
 #include "vtkMath.h"
 #include "vtkSMCaveRenderViewProxy.h"
+#include "vtkStringFormatter.h"
 #include <QMutex>
 #include <QTcpSocket>
 #include <QWaitCondition>
@@ -76,7 +77,7 @@ void VRUI_CALLBACK handleTrackerPosQuat(void *userdata,
   if ( ++tData->t_counts[t.sensor] >= tracker_stride )
     {
     tData->t_counts[t.sensor] = 0;
-    printf("Tracker %s, sensor %d:\n        pos (%5.2f, %5.2f, %5.2f); quat (%5.2f, %5.2f, %5.2f, %5.2f)\n",
+    vtk::print("Tracker {:s}, sensor %d:\n        pos ({:%5.2f}, {:%5.2f}, {:%5.2f}); quat ({:%5.2f}, {:%5.2f}, {:%5.2f}, {:%5.2f})\n",
            tData->t_name,
            t.sensor,
            t.pos[0], t.pos[1], t.pos[2],
