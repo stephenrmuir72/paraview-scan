@@ -5,6 +5,8 @@
 
 #include <cstdio>
 
+#include "vtkStringFormatter.h"
+
 #include <QDebug>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -53,25 +55,25 @@ void QTestApp::messageHandler(QtMsgType type, const QMessageLogContext& context,
   switch (type)
   {
     case QtDebugMsg:
-      fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.data(), context.file, context.line,
-        context.function);
+      vtk::print(stderr, "Debug: {:s} ({:s}:{:d}, {:s})\n", localMsg.data(), context.file,
+        context.line, context.function);
       break;
     case QtInfoMsg:
-      fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.data(), context.file, context.line,
-        context.function);
+      vtk::print(stderr, "Info: {:s} ({:s}:{:d}, {:s})\n", localMsg.data(), context.file,
+        context.line, context.function);
       break;
     case QtWarningMsg:
-      fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.data(), context.file, context.line,
-        context.function);
+      vtk::print(stderr, "Warning: {:s} ({:s}:{:d}, {:s})\n", localMsg.data(), context.file,
+        context.line, context.function);
       break;
     case QtCriticalMsg:
-      fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.data(), context.file, context.line,
-        context.function);
+      vtk::print(stderr, "Critical: {:s} ({:s}:{:d}, {:s})\n", localMsg.data(), context.file,
+        context.line, context.function);
       Error++;
       break;
     case QtFatalMsg:
-      fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.data(), context.file, context.line,
-        context.function);
+      vtk::print(stderr, "Fatal: {:s} ({:s}:{:d}, {:s})\n", localMsg.data(), context.file,
+        context.line, context.function);
       abort();
   }
 }
