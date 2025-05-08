@@ -46,7 +46,7 @@ bool vtkProcessModuleConfiguration::PopulateOptions(
         {
           throw CLI::ValidationError("Invalid verbosity specified!");
         }
-        return vtk::to_string(xformedValue);
+        return vtk::to_string(static_cast<int>(xformedValue));
       },
       "verbosity");
 

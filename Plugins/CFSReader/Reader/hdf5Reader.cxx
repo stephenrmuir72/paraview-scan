@@ -437,8 +437,8 @@ void Hdf5Reader::GetMeshResult(unsigned int sequenceStep, unsigned int stepNum, 
       groupName += "Elements";
       break;
     default:
-      throw std::runtime_error(
-        "unknown mesh result type " + vtk::to_string(result->resultInfo->listType));
+      throw std::runtime_error("unknown mesh result type " +
+        vtk::to_string(static_cast<int>(result->resultInfo->listType)));
   }
 
   hid_t resGroup = H5CFS::OpenGroup(stepGroup, groupName);
