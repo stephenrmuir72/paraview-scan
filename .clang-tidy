@@ -27,7 +27,6 @@ bugprone-*,\
 -bugprone-switch-missing-default-case,\
 -bugprone-throw-keyword-missing,\
 -bugprone-unhandled-self-assignment,\
--bugprone-unsafe-functions,\
 clang-analyzer-*,\
 -clang-analyzer-core.CallAndMessage,\
 -clang-analyzer-core.DivideZero,\
@@ -123,5 +122,27 @@ readability-*,\
 -readability-uppercase-literal-suffix,\
 -readability-use-anyofallof,\
 "
+CheckOptions:
+  - key: bugprone-unsafe-functions.ReportDefaultFunctions
+    value: false
+  - key: bugprone-unsafe-functions.ReportMoreUnsafeFunctions
+    value: true
+  - key: bugprone-unsafe-functions.CustomFunctions
+    value: |
+      ^(atof|atoi|atol|atoll)$,vtk::from_chars or vtk::scan_int or vtk::scan_value,Use vtk::from_chars() or vtk::scan_int()/vtk::scan_value();
+      ^(stof|stod|stold|stoi|stol|stoll|stoul|stoull)$,vtk::from_chars or vtk::scan_int or vtk::scan_value,Use vtk::from_chars() or vtk::scan_int()/vtk::scan_value();
+      ^(strtof|strtod|strtold|strtol|strtoll|_strtoi64|strtoul|strtoull)$,vtk::from_chars or vtk::scan_int or vtk::scan_value,Use vtk::from_chars() or vtk::scan_int()/vtk::scan_value();
+      ^(sscanf|sscanf_s|vsscanf|vsscanf_s)$,vtk::scan or vtk::scan_int or vtk::scan_value,Use vtk::scan()/vtk::scan_int()/vtk::scan_value();
+      ^(std::from_chars)$,vtk::from_chars,Use vtk::from_chars();
+      ^(scanf|scanf_s|vscanf|vscanf_s)$,vtk::input or vtk::scan or vtk::scan_value,Use vtk::input()/vtk::scan()/vtk::scan_value();
+      ^(fscanf|fscanf_s|vfscanf|vfscanf_s)$,vtk::scan or vtk::scan_value,Use vtk::scan()/vtk::scan_value();
+      ^(itoa|_itoa|ltoa|_ltoa|lltoa|_i64toa|ultoa|_ultoa|ulltoa|_ulltoa|_ui64toa)$,vtk::to_string or vtk::to_chars,Use vtk::to_string() or vtk::to_chars();
+      ^(sprintf|sprintf_s|vsprintf|vsprintf_s|strftime)$,vtk::format or vtk::format_to,Use vtk::format() or vtk::format_to();
+      ^(snprintf|snprintf_s|vsnprintf|vsnprintf_s)$,vtk::format_to_n,Use vtk::format_to_n();
+      ^(std::to_chars)$,vtk::to_chars,Use vtk::to_chars();
+      ^(std::to_string)$,vtk::to_string,Use vtk::to_string();
+      ^(printf|printf_s|vprintf|vprintf_s)$,vtk::print or vtk::println,Use vtk::print() or vtk::println();
+      ^(fprintf|fprintf_s|vfprintf|vfprintf_s)$,vtk::print or vtk::println,Use vtk::print() or vtk::println();
+
 #WarningsAsErrors: "*"
 ...
