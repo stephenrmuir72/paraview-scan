@@ -88,6 +88,20 @@ public:
 
   ///@{
   /**
+   * Get/Set the sample rate in each of the directions.  These are
+   * passed to vtkExtractVOI, and as such, must be greater than
+   * or equal to 1.  The default sample rate is 1.
+   */
+  virtual void SetSampleRateX(int value);
+  virtual void SetSampleRateY(int value);
+  virtual void SetSampleRateZ(int value);
+  vtkGetMacro(SampleRateX, int);
+  vtkGetMacro(SampleRateY, int);
+  vtkGetMacro(SampleRateZ, int);
+  ///@}
+
+  ///@{
+  /**
    * Get/Set the direction in which to slice a 3D input data.
    */
   virtual void SetSliceMode(int);
@@ -160,6 +174,9 @@ protected:
 
   int SliceMode;
   unsigned int Slice;
+  int SampleRateX;
+  int SampleRateY;
+  int SampleRateZ;
 
   vtkPVImageSliceMapper* SliceMapper;
   vtkPVLODActor* Actor;

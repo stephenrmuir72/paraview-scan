@@ -5610,6 +5610,15 @@ OSPRay pathtracer may need to transfer default materials from client to server. 
             <Property name="Slice"
                       panel_visibility="advanced"
                       panel_visibility_default_for_representation="slice" />
+            <Property name="SampleRateX"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="slice" />
+            <Property name="SampleRateY"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="slice" />
+            <Property name="SampleRateZ"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="slice" />
             <Hints>
               <PropertyWidgetDecorator type="GenericDecorator"
                                        mode="visibility"
@@ -8226,6 +8235,33 @@ OSPRay pathtracer may need to transfer default materials from client to server. 
           <Entry text="XZ Plane"
                  value="7" />
         </EnumerationDomain>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetSampleRateX"
+                         default_values="1"
+                         label="Sample Rate X"
+                         name="SampleRateX"
+                         number_of_elements="1">
+        <Documentation>Set the sample rate in the X direction, values greater than
+        1 result in subsampling.</Documentation>
+        <IntRangeDomain min="1" name="range" />
+      </IntVectorProperty>
+      <IntVectorProperty command="SetSampleRateY"
+                         default_values="1"
+                         label="Sample Rate Y"
+                         name="SampleRateY"
+                         number_of_elements="1">
+        <Documentation>Set the sample rate in the Y direction, values greater than
+        1 result in subsampling.</Documentation>
+        <IntRangeDomain min="1" name="range" />
+      </IntVectorProperty>
+      <IntVectorProperty command="SetSampleRateZ"
+                         default_values="1"
+                         label="Sample Rate Z"
+                         name="SampleRateZ"
+                         number_of_elements="1">
+        <Documentation>Set the sample rate in the Z direction, values greater than
+        1 result in subsampling.</Documentation>
+        <IntRangeDomain min="1" name="range" />
       </IntVectorProperty>
       <IntVectorProperty command="SetMapScalars"
                          default_values="1"
