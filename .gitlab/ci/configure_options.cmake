@@ -62,4 +62,4 @@ elseif ("$ENV{CMAKE_CONFIGURATION}" MATCHES "static")
 endif ()
 
 # vtkmoverride
-configuration_flag(VTK_ENABLE_VTKM_OVERRIDES "vtkmoverride")
+configuration_flag(VTK_ENABLE_VISKORES_OVERRIDES "vtkmoverride")
