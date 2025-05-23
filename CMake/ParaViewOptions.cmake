@@ -106,6 +106,9 @@ option(PARAVIEW_USE_CUDA "Support CUDA compilation" OFF)
 
 vtk_deprecated_setting(default_use_viskores PARAVIEW_USE_VISKORES PARAVIEW_USE_VTKM "${PARAVIEW_ENABLE_NONESSENTIAL}")
 option(PARAVIEW_USE_VISKORES "Enable Viskores accelerated algorithms" "${default_use_viskores}")
+if (PARAVIEW_USE_VISKORES)
+  set(Viskores_MODULE_ENABLE_viskores_filter_scalar_topology "NO" CACHE INTERNAL "")
+endif()
 
 if (UNIX AND NOT APPLE)
   option(PARAVIEW_USE_MEMKIND  "Build support for extended memory" OFF)
