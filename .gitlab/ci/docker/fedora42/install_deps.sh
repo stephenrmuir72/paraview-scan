@@ -52,7 +52,7 @@ dnf install -y --setopt=install_weak_deps=False \
     python3-pandas python3-pandas-datareader python3-sphinx python3-pip \
     python3-mpi4py-mpich python3-mpi4py-openmpi python3-matplotlib
 
-python3 -m pip install wslink cftime
+python3 -m pip install wslink cftime openPMD-api
 
 # Plugin dependencies
 dnf install -y --setopt=install_weak_deps=False \
@@ -64,7 +64,7 @@ dnf install -y --setopt=install_weak_deps=False \
 
 # RPMFusion
 dnf install -y --setopt=install_weak_deps=False \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-35.noarch.rpm
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm
 
 dnf install -y --setopt=install_weak_deps=False \
     ffmpeg-devel
