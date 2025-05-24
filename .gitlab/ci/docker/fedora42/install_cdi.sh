@@ -3,14 +3,17 @@
 set -e
 
 readonly cdi_repo="https://gitlab.dkrz.de/mpim-sw/libcdi.git"
-readonly cdi_commit="cdi-2.1.0"
+readonly cdi_commit="cdi-2.5.2.1"
 
 readonly cdi_root="$HOME/cdi"
 readonly cdi_src="$cdi_root/src"
-git clone -b "$cdi_commit" "$cdi_repo" "$cdi_src"
+readonly cdi_build_root="$cdi_root/build"
+
+git clone "$cdi_repo" "$cdi_src"
+git -C "$cdi_src" checkout "$cdi_commit"
 
 dnf install -y --setopt=install_weak_deps=False \
-    libtool
+    libtool eccodes eccodes-devel
 
 cdi_build () {
     local subdir="$1"
@@ -19,21 +22,24 @@ cdi_build () {
     local prefix="$1"
     shift
 
-    cd "$cdi_src"
-    git worktree add "$cdi_root/$subdir" "$cdi_commit"
-    cd "$cdi_root/$subdir"
-
-    ./autogen.sh
-    ./configure --prefix=$prefix --with-netcdf=yes "$@"
-    make -j$(nproc)
-    make install
+    ln "$cdi_src"/cmake/FindNetCDF.cmake "$cdi_src"/cmake/FindnetCDF.cmake
+    cmake -GNinja \
+        -S "$cdi_src" \
+        -B "$cdi_build_root/$subdir" \
+        -DCMAKE_MODULE_PATH="$cdi_src/cmake" \
+        -DCDI_NETCDF=ON \
+        -DBUILD_SHARED_LIBS=ON \
+        -DBUILD_TESTING=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_C_FLAGS="-DHAVE_GETLINE=1" \
+        "-DCMAKE_INSTALL_PREFIX=$prefix" \
+        "$@"
+    cmake --build "$cdi_build_root/$subdir" --target install
 }
 
 # MPI-less
 cdi_build nompi /usr \
-    --enable-mpi=no
-
-cd
+    -DCMAKE_INSTALL_LIBDIR=lib
 
 rm -rf "$cdi_root"
 
