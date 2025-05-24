@@ -7,11 +7,11 @@ dnf install -y --setopt=install_weak_deps=False \
     'dnf-command(config-manager)'
 
 # Install the CUDA repository.
-dnf config-manager --add-repo \
-    https://developer.download.nvidia.com/compute/cuda/repos/fedora35/x86_64/cuda-fedora35.repo
+dnf config-manager addrepo \
+    --from-repofile=https://developer.download.nvidia.com/compute/cuda/repos/fedora41/x86_64/cuda-fedora41.repo
 
 # CUDA toolchain
 dnf install -y --setopt=install_weak_deps=False \
-   cuda-compiler-11-6 cuda-cudart-devel-11-6 cuda-toolkit-11-6
+    cuda-compiler-12-9 cuda-cudart-devel-12-9 cuda-toolkit-12-9
 
 dnf clean all
