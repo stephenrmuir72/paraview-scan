@@ -14,6 +14,7 @@ dnf install -y --setopt=install_weak_deps=False \
 dnf install -y --setopt=install_weak_deps=False \
     libasan libtsan libubsan clang-tools-extra \
     gcc gcc-c++ gcc-gfortran \
+    gcc14 gcc14-c++ gcc14-gfortran \
     ninja-build
 
 # MPI dependencies
