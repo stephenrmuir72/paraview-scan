@@ -3,7 +3,7 @@
 set -e
 
 readonly openturns_repo="https://github.com/openturns/openturns.git"
-readonly openturns_commit="v1.24rc1"
+readonly openturns_commit="v1.24"
 
 readonly openturns_root="$HOME/openturns"
 readonly openturns_src="$openturns_root/src"
@@ -50,7 +50,6 @@ openturns_build () {
         -DCMAKE_BUILD_TYPE=Release \
         "-DCMAKE_INSTALL_PREFIX=$prefix" \
         "$@"
-    cmake --build "$openturns_build_root/$subdir"
     cmake --build "$openturns_build_root/$subdir" --target install
 }
 
