@@ -64,7 +64,7 @@ dnf install -y --setopt=install_weak_deps=False \
 
 # RPMFusion
 dnf install -y --setopt=install_weak_deps=False \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-35.noarch.rpm
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm
 
 dnf install -y --setopt=install_weak_deps=False \
     ffmpeg-devel
