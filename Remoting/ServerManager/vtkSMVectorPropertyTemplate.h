@@ -152,12 +152,12 @@ public:
   }
 
   //---------------------------------------------------------------------------
-  T* GetElements() { return !this->Values.empty() ? &this->Values[0] : nullptr; }
+  T* GetElements() { return !this->Values.empty() ? this->Values.data() : nullptr; }
 
   //---------------------------------------------------------------------------
   T* GetUncheckedElements()
   {
-    return (!this->UncheckedValues.empty()) ? &this->UncheckedValues[0] : nullptr;
+    return (!this->UncheckedValues.empty()) ? this->UncheckedValues.data() : nullptr;
   }
   //---------------------------------------------------------------------------
   T& GetUncheckedElement(unsigned int idx)
@@ -392,7 +392,7 @@ public:
     }
     if (!new_values.empty())
     {
-      this->SetElements(&new_values[0], static_cast<unsigned int>(new_values.size()));
+      this->SetElements(new_values.data(), static_cast<unsigned int>(new_values.size()));
     }
     else
     {
