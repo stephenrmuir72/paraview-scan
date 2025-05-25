@@ -644,7 +644,7 @@ bool vtkResampleToHyperTreeGrid::IntersectedVolume(const double bboxBounds[6], v
           sligthlyOutside = true;
         }
         else if (weights[vertexId] >= 1.0 - TOL)
-          if (0)
+          if (false)
           {
             switch (boxVertexId)
             {
