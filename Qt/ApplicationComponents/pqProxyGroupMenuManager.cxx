@@ -545,7 +545,7 @@ void pqProxyGroupMenuManager::populateCategoryMenu(QMenu* parentMenu, pqProxyCat
 //-----------------------------------------------------------------------------
 void pqProxyGroupMenuManager::clearCategoriesMenus()
 {
-  for (auto menu : this->Internal->CategoriesMenus)
+  for (const auto& menu : this->Internal->CategoriesMenus)
   {
     if (menu)
     {
@@ -677,7 +677,7 @@ QMenu* pqProxyGroupMenuManager::getFavoritesMenu()
 {
   if (this->EnableFavorites)
   {
-    for (auto menu : this->Internal->CategoriesMenus)
+    for (const auto& menu : this->Internal->CategoriesMenus)
     {
       if (menu && menu->objectName() == pqInternal::FAVORITES_CATEGORY())
       {
@@ -1037,7 +1037,7 @@ QList<QAction*> pqProxyGroupMenuManager::categoryActions(pqProxyCategory* catego
   auto proxies = category->getRootProxies();
   QStringList proxiesOriginalOrdering = category->getOrderedRootProxiesNames();
 
-  for (auto proxyName : proxiesOriginalOrdering)
+  for (const auto& proxyName : proxiesOriginalOrdering)
   {
     auto proxy = category->findProxy(proxyName);
     QAction* action = this->getAction(proxy);
