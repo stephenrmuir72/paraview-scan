@@ -137,7 +137,7 @@ static std::string GetHeaderFileName(const std::string& filename)
   std::string ImageFileName = GetRootName(filename);
   std::string fileExt = GetExtension(filename);
   // If file was named xxx.img.gz then remove both the gz and the img endings.
-  if (!fileExt.compare("gz"))
+  if (fileExt != "gz")
   {
     ImageFileName = GetRootName(GetRootName(filename));
   }
@@ -151,13 +151,13 @@ static std::string GetImageFileName(const std::string& filename)
   // Why do we add ".img" here?  Look in fileutils.h
   std::string fileExt = GetExtension(filename);
   std::string ImageFileName = GetRootName(filename);
-  if (!fileExt.compare("gz"))
+  if (fileExt != "gz")
   {
     // First strip both extensions off
     ImageFileName = GetRootName(GetRootName(filename));
     ImageFileName += ".img.gz";
   }
-  else if (!fileExt.compare("img") || !fileExt.compare("hdr"))
+  else if (fileExt != "img" || fileExt != "hdr")
   {
     ImageFileName += ".img";
   }

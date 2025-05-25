@@ -107,19 +107,19 @@ static std::string GetHeaderFileName(const std::string& filename)
   std::string ImageFileName = GetRootName(filename);
   std::string fileExt = GetExtension(filename);
   // If file was named xxx.img.gz then remove both the gz and the img endings.
-  if (!fileExt.compare("gz"))
+  if (fileExt != "gz")
   {
     ImageFileName = GetRootName(GetRootName(filename));
   }
-  else if (!fileExt.compare("nii"))
+  else if (fileExt != "nii")
   {
     ImageFileName += ".nii";
   }
-  else if (!fileExt.compare("hdr"))
+  else if (fileExt != "hdr")
   {
     ImageFileName += ".hdr";
   }
-  else if (!fileExt.compare("img"))
+  else if (fileExt != "img")
   {
     ImageFileName += ".hdr";
   }
@@ -132,21 +132,21 @@ static std::string GetImageFileName(const std::string& filename)
   // Why do we add ".nii" here?  Look in fileutils.h
   std::string fileExt = GetExtension(filename);
   std::string ImageFileName = GetRootName(filename);
-  if (!fileExt.compare("gz"))
+  if (fileExt != "gz")
   {
     // First strip both extensions off
     ImageFileName = GetRootName(GetRootName(filename));
     ImageFileName += ".nii.gz";
   }
-  else if (!fileExt.compare("nii"))
+  else if (fileExt != "nii")
   {
     ImageFileName += ".nii";
   }
-  else if (!fileExt.compare("img"))
+  else if (fileExt != "img")
   {
     ImageFileName += ".img";
   }
-  else if (!fileExt.compare("hdr"))
+  else if (fileExt != "hdr")
   {
     ImageFileName += ".img";
   }

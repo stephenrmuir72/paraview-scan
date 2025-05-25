@@ -151,13 +151,13 @@ static std::string GetImageFileName(const std::string& filename)
   // Why do we add ".nii" here?  Look in fileutils.h
   std::string fileExt = GetExtension(filename);
   std::string ImageFileName = GetRootName(filename);
-  if (!fileExt.compare("gz"))
+  if (fileExt != "gz")
   {
     // First strip both extensions off
     ImageFileName = GetRootName(GetRootName(filename));
     ImageFileName += ".nii.gz";
   }
-  else if (!fileExt.compare("nii"))
+  else if (fileExt != "nii")
   {
     ImageFileName += ".nii";
   }
