@@ -1645,8 +1645,10 @@ void vtkResampleToHyperTreeGrid::ExtrapolateValuesOnGaps(vtkHyperTreeGrid* htg)
         ++invalidNeighbors;
       }
     }
+    // NOLINTBEGIN(performance-move-const-arg)
     buf.emplace_back(key + static_cast<vtkIdType>(qe.InvalidNeighborIds.size()) - invalidNeighbors,
       id, std::move(means), std::move(qe.InvalidNeighborIds));
+    // NOLINTEND(performance-move-const-arg)
     pq.pop();
     if (pq.empty() || pq.top().Key != key)
     {
@@ -1654,7 +1656,7 @@ void vtkResampleToHyperTreeGrid::ExtrapolateValuesOnGaps(vtkHyperTreeGrid* htg)
       {
         if (element.Means[0] != element.Means[0] || !element.Key)
         {
-          pq.emplace(std::move(element));
+          pq.emplace(element);
         }
         else
         {
