@@ -1500,7 +1500,7 @@ void vtkGeometryRepresentation::AddBlockSelector(const char* selector)
     std::find(this->BlockSelectors.begin(), this->BlockSelectors.end(), selector) ==
       this->BlockSelectors.end())
   {
-    this->BlockSelectors.push_back(selector);
+    this->BlockSelectors.emplace_back(selector);
     this->BlockAttrChanged = true;
   }
 }
@@ -2081,7 +2081,7 @@ void vtkGeometryRepresentation::UpdateShaderReplacements()
       return;
     }
     std::string replacement = repl["replacement"].asString();
-    replacements.push_back(std::make_tuple(shaderType, original, replacement));
+    replacements.emplace_back(shaderType, original, replacement);
   }
 
   for (const auto& r : replacements)
