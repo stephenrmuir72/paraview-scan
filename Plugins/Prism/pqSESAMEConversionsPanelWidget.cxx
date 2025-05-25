@@ -565,7 +565,7 @@ public:
         {
           conversionLabel.append(variableIter.value().Name);
           conversionLabel.append(" - ");
-          const auto variableData = variableIter.value();
+          const auto& variableData = variableIter.value();
 
           switch (this->ConversionUnits)
           {
