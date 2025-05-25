@@ -57,7 +57,7 @@ using pqCheckState = int;
 
 namespace
 {
-static QString propertyType(vtkSMProperty* p)
+QString propertyType(vtkSMProperty* p)
 {
   vtkSMIntVectorProperty* ivp = vtkSMIntVectorProperty::SafeDownCast(p);
   if (ivp)
