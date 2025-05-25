@@ -342,7 +342,7 @@ int vtkCTHSource::FillInputData(vtkCPInputDataDescription* input)
       Block& b = this->Blocks[i];
       datasets[b.level]++;
     }
-    AMRSet->Initialize(this->MaxLevel + 1, &datasets[0]);
+    AMRSet->Initialize(this->MaxLevel + 1, datasets.data());
 
     this->NeighborArray->SetNumberOfTuples(0);
     for (size_t i = 0; i < Blocks.size(); i++)
