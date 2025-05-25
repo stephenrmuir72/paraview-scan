@@ -310,7 +310,7 @@ public:
       return false;
     }
 
-    property->SetElements(&vector[0]);
+    property->SetElements(vector.data());
 
     return true;
   }
@@ -333,7 +333,7 @@ public:
       return false;
     }
 
-    property->SetElements(&vector[0]);
+    property->SetElements(vector.data());
 
     return true;
   }
