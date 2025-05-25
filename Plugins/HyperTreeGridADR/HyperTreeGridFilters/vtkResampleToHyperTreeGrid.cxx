@@ -1654,7 +1654,7 @@ void vtkResampleToHyperTreeGrid::ExtrapolateValuesOnGaps(vtkHyperTreeGrid* htg)
       {
         if (element.Means[0] != element.Means[0] || !element.Key)
         {
-          pq.emplace(std::move(element));
+          pq.emplace(element);
         }
         else
         {
