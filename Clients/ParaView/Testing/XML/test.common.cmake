@@ -1569,6 +1569,7 @@ list(APPEND TESTS_WITH_BASELINES
   PointInterpolator.xml
   PointVolumeInterpolator.xml
   PolarAxes.xml
+  PolarAxesRasterizedText.xml
   PolarAxesRemoteRendering.xml
   PolarAxes2D.xml
   PolyLineAndSplineSources.xml
