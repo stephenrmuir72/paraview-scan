@@ -116,7 +116,12 @@ bool pqFlatTreeViewEventPlayer::playEvent(
       type = Command == "mouseMove" ? QEvent::MouseMove : type;
       type = Command == "mouseRelease" ? QEvent::MouseButtonRelease : type;
       type = Command == "mouseDblClick" ? QEvent::MouseButtonDblClick : type;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
       QMouseEvent e(type, pt, button, buttons, keym);
+#else
+      QPoint globalPt = object->viewport()->mapToGlobal(pt);
+      QMouseEvent e(type, pt, globalPt, globalPt, button, buttons, keym);
+#endif
       qApp->notify(object->viewport(), &e);
       pqEventDispatcher::processEventsAndWait(1);
       return true;
