@@ -115,6 +115,11 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "fedora")
 
     # https://gitlab.kitware.com/paraview/paraview/-/issues/22743
     "^pv.SimpleSSHServerTermExec$"
+
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/22988
+    "\\.CDISimpleRead$"
+    "\\.CDIUseMask$"
+    "\\.CDIDimensionsTest$"
     )
 
   if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "static")
