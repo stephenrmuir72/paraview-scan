@@ -15,8 +15,12 @@
 #include "vtkNetworkAccessManager.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVLogger.h"
+#include "vtkPVProgressHandler.h"
 #include "vtkPVServerInformation.h"
+#include "vtkPVSessionCore.h"
 #include "vtkProcessModule.h"
+#include "vtkSIProxy.h"
 #include "vtkSMCollaborationManager.h"
 #include "vtkSMMessage.h"
 #include "vtkSMParaViewPipelineController.h"
@@ -506,6 +510,29 @@ void pqServer::sendToOtherClients(vtkSMMessage* msg)
     this->Internals->CollaborationCommunicator->SendToOtherClients(msg);
   }
 }
+
+//-----------------------------------------------------------------------------
+void pqServer::onClientAbort()
+{
+  if (this->Session)
+  {
+    auto progressHandler = this->Session->GetProgressHandler();
+    auto id = progressHandler->GetLastProgressId();
+    if (auto* sessionCore = this->Session->GetSessionCore(); id > 0)
+    {
+      if (auto* siProxy = vtkSIProxy::SafeDownCast(sessionCore->GetSIObject(id)))
+      {
+        if (auto* algorithm = vtkAlgorithm::SafeDownCast(siProxy->GetVTKObject()))
+        {
+          vtkVLog(PARAVIEW_LOG_APPLICATION_VERBOSITY(),
+            "abort gid=" << id << ",object=" << algorithm->GetObjectDescription());
+          algorithm->SetAbortExecuteAndUpdateTime();
+        }
+      }
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------
 bool pqServer::isProcessingPending() const
 {

@@ -103,6 +103,19 @@ protected:
    */
   void updateUI();
 
+  /**
+   * Overriden to change the application cursor to a "ArrowCursor" when the progress bar is showing
+   * progress and the mouse enters the progress widget. This makes it intuitive for the user to know
+   * that they can clik on the abort button to stop the progress.
+   */
+  void enterEvent(QEnterEvent* e) override;
+
+  /**
+   * Overriden to restore the cursor to the default cursor when the mouse leaves
+   * the progress widget.
+   */
+  void leaveEvent(QEvent* e) override;
+
 private:
   Q_DISABLE_COPY(pqProgressWidget);
   QString ReadyText;
