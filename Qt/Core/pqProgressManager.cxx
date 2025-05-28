@@ -42,6 +42,7 @@ void pqProgressManager::onServerAdded(pqServer* server)
   pqCoreUtilities::connect(progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()));
   pqCoreUtilities::connect(
     progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)));
+  this->connect(this, SIGNAL(abort()), server, SLOT(onClientAbort()));
 }
 
 //-----------------------------------------------------------------------------
@@ -120,9 +121,7 @@ void pqProgressManager::setProgress(const QString& message, int progress_val)
     // mainly because of subtle timing issues from QTimers that are expected
     // to expire in a certain order
 
-    // we are disabling this for the 3.12 release so we are sure we don't
-    // get tag mismatches in the release product
-    // pqCoreUtilities::processEvents(QEventLoop::ExcludeUserInputEvents);
+    pqCoreUtilities::processEvents();
   }
   this->InUpdate = false;
 }
@@ -176,12 +175,14 @@ void pqProgressManager::onStartProgress()
 {
   Q_EMIT progressStartEvent();
   this->setEnableProgress(true);
+  this->setEnableAbort(true);
 }
 
 //-----------------------------------------------------------------------------
 void pqProgressManager::onEndProgress()
 {
   this->setEnableProgress(false);
+  this->setEnableAbort(false);
   Q_EMIT progressEndEvent();
 }
 
