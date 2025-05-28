@@ -90,7 +90,7 @@
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkAxisAlignedReflectionFilter"
-                 label="Axis-Aligned Reflection Filter"
+                 label="Axis-Aligned Reflect"
                  name="AxisAlignedReflectionFilter">
       <Documentation long_help="This filter reflects the input over an axis-aligned plane."
                      short_help="Reflect input over an axis aligned plane.">
@@ -188,7 +188,7 @@
 
     <!-- ==================================================================== -->
     <SourceProxy class="vtkAxisAlignedTransformFilter"
-                 label="Axis-Aligned Transform Filter"
+                 label="Axis-Aligned Transform"
                  name="AxisAlignedTransformFilter">
       <Documentation long_help="This filter applies an axis-aligned affine transformation (translation, scaling, and rotation) ."
                      short_help="Apply an axis-aligned affine transformation.">

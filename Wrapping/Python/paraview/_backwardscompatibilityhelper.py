@@ -521,8 +521,7 @@ def setattr(proxy, pname, value):
             raise NotSupportedException(
                 "'FlipTextures' is obsolete.  Use 'TextureTransform' property of representation instead.")
 
-
-    # 5.13 -> 6.0 HyperTreeGridAxisReflection replaced by AxisAlignedReflectionFilter
+    # 5.13 -> 6.0 HyperTreeGridAxisReflection replaced by AxisAlignedReflect
     # PlaneNormal and PlanePosition have been replaced by a vtkPlane 'ReflectionPlane'
     if proxy.SMProxy and proxy.SMProxy.GetXMLName() in ("HyperTreeGridAxisReflection", "AxisAlignedReflectionFilter"):
         if pname == "PlaneNormal":
@@ -549,7 +548,7 @@ def setattr(proxy, pname, value):
             else:
                 raise NotSupportedException("'PlanePosition' property has been removed in ParaView 6.0. Please use ReflectionPlane to define the plane instead.")
 
-    # 5.13 -> 6.0 Reflect replaced by AxisAlignedReflectionFilter
+    # 5.13 -> 6.0 Reflect replaced by AxisAlignedReflect
     # Plane and Center have been replaced by a vtkPlane 'ReflectionPlane'
     if proxy.SMProxy and proxy.SMProxy.GetXMLName() in ("ReflectionFilter", "AxisAlignedReflectionFilter"):
         if pname == "Plane":
@@ -1173,7 +1172,7 @@ def getattr(proxy, pname):
             else:
                 raise NotSupportedException("'PolarTicksVisibility' was renamed in 'AllTicksVisibility' since ParaView 6.0")
 
-    # 5.13 -> 6.0 HyperTreeGridAxisReflection replaced by AxisAlignedReflectionFilter
+    # 5.13 -> 6.0 HyperTreeGridAxisReflection replaced by AxisAlignedReflect
     # PlaneNormal and PlanePosition have been replaced by a vtkPlane 'ReflectionPlane'
     if proxy.SMProxy and proxy.SMProxy.GetXMLName() in ("HyperTreeGridAxisReflection", "AxisAlignedReflectionFilter"):
         if pname == "PlaneNormal":
@@ -1200,7 +1199,7 @@ def getattr(proxy, pname):
             else:
                 raise NotSupportedException("'PlanePosition' property has been removed in ParaView 6.0. Please use ReflectionPlane to define the plane instead.")
 
-    # 5.13 -> 6.0 Reflect replaced by AxisAlignedReflectionFilter
+    # 5.13 -> 6.0 Reflect replaced by AxisAlignedReflect
     # Plane and Center have been replaced by a vtkPlane 'ReflectionPlane'
     if proxy.SMProxy and proxy.SMProxy.GetXMLName() in ("ReflectionFilter", "AxisAlignedReflectionFilter"):
         if pname == "Plane":
@@ -1343,9 +1342,9 @@ def get_deprecated_proxies(proxiesNS):
         proxies[proxiesNS.filters] += [("HyperTreeGridCellCenters", "CellCenters")]
         proxies[proxiesNS.filters] += [("HyperTreeGridFeatureEdgesFilter", "FeatureEdges")]
         proxies[proxiesNS.filters] += [("HyperTreeGridGhostCellsGenerator", "GhostCells")]
-        proxies[proxiesNS.filters] += [("HyperTreeGridAxisReflection", "AxisAlignedReflectionFilter")]
+        proxies[proxiesNS.filters] += [("HyperTreeGridAxisReflection", "AxisAlignedReflect")]
         proxies[proxiesNS.filters] += [("ProcessIdScalars", "ProcessIds")]
-        proxies[proxiesNS.filters] += [("Reflect", "AxisAlignedReflectionFilter")]
+        proxies[proxiesNS.filters] += [("Reflect", "AxisAlignedReflect")]
         proxies[proxiesNS.filters] += [("HyperTreeGridVisibleLeavesSize", "HyperTreeGridGenerateFields")]
 
     return proxies
