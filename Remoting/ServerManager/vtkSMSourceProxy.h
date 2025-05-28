@@ -200,6 +200,15 @@ public:
 
   ///@{
   /**
+   * Overridden to handle selections.
+   */
+  using Superclass::SaveXMLState;
+  vtkPVXMLElement* SaveXMLState(vtkPVXMLElement* root, vtkSMPropertyIterator* iter) override;
+  int LoadXMLState(vtkPVXMLElement* element, vtkSMProxyLocator* locator) override;
+  ///@}
+
+  ///@{
+  /**
    * This returns information about whether the VTK algorithm supports
    * multiple processes or not. SINGLE_PROCESS means that this algorithm
    * works only in serial, MULTIPLE_PROCESSES means that it will only
@@ -235,6 +244,16 @@ public:
    * Overridden to reserve additional IDs for use by "ExtractSelection" proxies.
    */
   vtkTypeUInt32 GetGlobalID() override;
+
+  ///@{
+  /**
+   * Get/Set the ID and port of the proxy refered by this selection proxy.
+   */
+  unsigned int GetSelectionId();
+  unsigned int GetSelectionPort();
+  void SetSelectionId(unsigned int id);
+  void SetSelectionPort(unsigned int port);
+  ///@}
 
   enum ProcessSupportType
   {
