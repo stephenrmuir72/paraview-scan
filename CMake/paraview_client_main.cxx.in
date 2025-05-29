@@ -35,6 +35,9 @@
 
 int main(int argc, char* argv[])
 {
+  // 1) Initialise *all* C-lib categories from the environment
+  //    (requires LANG or LC_* to include a UTF-8 encoding):
+  setlocale(LC_ALL, "");
 #if defined(_WIN32)
   auto converter = vtksys::Encoding::CommandLineArguments::Main(argc, nullptr);
   const char* const* utf8data = converter.argv();
@@ -112,13 +115,14 @@ int main(int argc, char* argv[])
   argc += 2;
   argv = new_argc.data();
 #endif
+  // 2) Create the Qt application (caches the system locale internally):
   QApplication qtapp(argc, argv);
-  // QApplication docs suggest resetting to "C" after the QApplication is
-  // initialized.
-  setlocale(LC_NUMERIC, "C");
 
-  // However, this is needed to address BUG #17225, #17226.
-  QLocale::setDefault(QLocale::c());
+  // 3) Seal in *that* system locale for all Qt formatting:
+  QLocale::setDefault(QLocale::system());
+
+  // 4 QApplication docs suggest resetting to "C" after the QApplication is initialized.
+  setlocale(LC_NUMERIC, "C");
 
   using InitializerT = pq@_paraview_client_NAME@Initializer;
 
