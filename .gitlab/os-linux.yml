@@ -23,6 +23,8 @@
 .fedora42:
     extends: .linux
     image: "spyridon97/paraview:ci-fedora42-20250804"
+    variables:
+        LC_ALL: "en_US.utf8"
 
 .el7_mindeps:
     extends: .linux
@@ -66,7 +68,7 @@
 .el7_mindeps_shared_mpi_python:
     extends:
         - .el7_mindeps
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: el7_shared_mindeps_mpi_python
@@ -82,7 +84,7 @@
 .fedora42_documentation:
     extends:
         - .fedora42
-        - .fedora_mpich_addon
+        - .fedora_openmpi_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_documentation_mpi_python
@@ -97,7 +99,7 @@
 .fedora42_shared_mpi_offscreen_osmesa_python_qt_viskoresoverride:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_offscreen_osmesa_python_qt_viskoresoverride
@@ -106,7 +108,7 @@
 .fedora42_shared_mpi_core:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_core
@@ -114,7 +116,7 @@
 .fedora42_shared_mpi_python_core:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_python_core
@@ -122,7 +124,7 @@
 .fedora42_shared_debug_mpi_python_qt:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_python_qt
@@ -131,7 +133,7 @@
 .fedora42_shared_mpi_python_qt_viskoresoverride:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_python_qt_viskoresoverride
@@ -139,7 +141,7 @@
 .fedora42_tidy:
     extends:
         - .fedora42
-        - .fedora_openmpi_addon
+        - .fedora_mpich_addon
 
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_python_qt_tidy
