@@ -23,6 +23,8 @@
 .fedora42:
     extends: .linux
     image: "spyridon97/paraview:ci-fedora42-20250721"
+    variables:
+        LC_ALL: "en_US.utf8"
 
 .el7_mindeps:
     extends: .linux
