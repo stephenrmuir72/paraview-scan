@@ -144,7 +144,7 @@ if (PARAVIEW_USE_PYTHON)
 endif ()
 
 set(qt_components
-  Widgets)
+  Widgets Test)
 
 if (PARAVIEW_QT_MAJOR_VERSION GREATER "5")
   list(APPEND qt_components
@@ -193,7 +193,7 @@ vtk_module_add_module(ParaView::pqCore
   HEADERS ${headers})
 vtk_module_link(ParaView::pqCore
   PRIVATE
-    "Qt${PARAVIEW_QT_MAJOR_VERSION}::Widgets")
+    "Qt${PARAVIEW_QT_MAJOR_VERSION}::Widgets" "Qt${PARAVIEW_QT_MAJOR_VERSION}::Test")
 
 if (PARAVIEW_QT_MAJOR_VERSION GREATER "5")
   vtk_module_link(ParaView::pqCore

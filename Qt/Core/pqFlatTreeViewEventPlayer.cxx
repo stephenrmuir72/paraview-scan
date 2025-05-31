@@ -5,11 +5,9 @@
 #include "pqFlatTreeViewEventPlayer.h"
 #include "pqQtDeprecated.h"
 
-#include <QApplication>
 #include <QHeaderView>
-#include <QKeyEvent>
-#include <QMouseEvent>
 #include <QtDebug>
+#include <QtTest/QTest>
 
 #include "pqEventDispatcher.h"
 #include "pqFlatTreeView.h"
@@ -103,7 +101,6 @@ bool pqFlatTreeViewEventPlayer::playEvent(
     if (args.size() == 6)
     {
       Qt::MouseButton button = static_cast<Qt::MouseButton>(args[0].toInt());
-      Qt::MouseButtons buttons = static_cast<Qt::MouseButton>(args[1].toInt());
       Qt::KeyboardModifiers keym = static_cast<Qt::KeyboardModifier>(args[2].toInt());
       int x = args[3].toInt();
       int y = args[4].toInt();
@@ -112,12 +109,22 @@ bool pqFlatTreeViewEventPlayer::playEvent(
       QRect r;
       object->getVisibleRect(idx, r);
       pt = r.topLeft() + QPoint(x, y);
-      QEvent::Type type = QEvent::MouseButtonPress;
-      type = Command == "mouseMove" ? QEvent::MouseMove : type;
-      type = Command == "mouseRelease" ? QEvent::MouseButtonRelease : type;
-      type = Command == "mouseDblClick" ? QEvent::MouseButtonDblClick : type;
-      QMouseEvent e(type, pt, button, buttons, keym);
-      qApp->notify(object->viewport(), &e);
+      if (Command == "mouseMove")
+      {
+        QTest::mouseMove(object, pt);
+      }
+      else if (Command == "mouseDblClick")
+      {
+        QTest::mouseDClick(object, button, keym, pt);
+      }
+      else if (Command == "mouseRelease")
+      {
+        QTest::mouseRelease(object, button, keym, pt);
+      }
+      else // if (command == "mousePress")
+      {
+        QTest::mousePress(object, button, keym, pt);
+      }
       pqEventDispatcher::processEventsAndWait(1);
       return true;
     }
