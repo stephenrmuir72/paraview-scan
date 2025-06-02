@@ -41,11 +41,21 @@ Please remove this comment.
   - Integrate changes.
     - Make a commit for each of these `release` changes on a single topic
       (suggested branch name: `update-to-v@VERSION@`):
+      - [ ] Move individual notes from `Documentation/release/dev` to
+        `Documentation/release/@MAJOR@.@MINOR@/`, keeping sample-topic.md.
+<!-- if @RC@ == "" -->
+      - [ ] Remove `Documentation/release/@MAJOR@.@MINOR@/`
       - [ ] Assemble release notes into `Documentation/release/ParaView-@VERSION@.md`.
+<!-- endif -->
 <!-- if RC1 and patch == 0 -->
       - [ ] Update `version.txt` to bump the minor version number.
 <!-- endif -->
     - Make a commit for each of these `release`-only changes
+<!-- if RC1 and patch == 0 -->
+      - [ ] `.gitmodules` to track the `paraview/release` branch of VTK
+<!-- endif -->
+      - [ ] Update `.gitlab/ci/cdash-groups.json` to track the `release` CDash
+            groups
       - [ ] Update `version.txt` and tag the commit (tag this commit below)
         ```
         git checkout -b update-to-v@VERSION@@RC@ @BRANCHPOINT@
@@ -74,9 +84,6 @@ Please remove this comment.
         - [ ] Merge the VTK `paraview/release` update MR
         - [ ] Update kwrobot with the new `paraview/release` branch rules
               (`@utils/maintainers/ghostflow`)
-      - [ ] `.gitmodules` to track the `paraview/release` branch of VTK
-      - [ ] Update `.gitlab/ci/cdash-groups.json` to track the `release` CDash
-            groups
     - Create a merge request targeting `release`
       - [ ] Obtain a GitLab API token for the `kwrobot.release.paraview` user
             (ask `@utils/maintainers/release` if you do not have one)
@@ -143,13 +150,13 @@ git submodule update --recursive --init
     - Make a commit for each of these `release`-only changes
       - [ ] Update `.gitlab/ci/cdash-groups.json` to track the `release` CDash
             groups (if `@BASEBRANCH@` is `master`)
-      - [ ] Create a commit which will be tagged:
-        - [ ] `git commit --allow-empty -m "paraview: add release @VERSION@"`
-        - [ ] Create tag: `git tag -a -m 'ParaView superbuild @VERSION@@RC@' v@VERSION@@RC@ HEAD`
 <!-- if RC1 and patch == 0 -->
       - [ ] Create a commit that changes the paraview _DEFAULT_ source to the git
             url source in the `versions.cmake` file.
 <!-- endif -->
+      - [ ] Create a commit which will be tagged:
+        - [ ] `git commit --allow-empty -m "paraview: add release @VERSION@"`
+        - [ ] Create tag: `git tag -a -m 'ParaView superbuild @VERSION@@RC@' v@VERSION@@RC@ HEAD`
       - [ ] Force `@VERSION@@RC@` in CMakeLists.txt
         - [ ] Append to the top of CMakeLists.txt (After project...) The following
             ```
