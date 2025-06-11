@@ -58,6 +58,8 @@
 #include <QVBoxLayout>
 
 #include <cassert>
+#include <qabstractbutton.h>
+#include <qitemselectionmodel.h>
 #include <set>
 
 namespace
@@ -176,10 +178,103 @@ public:
     this->Ui.ColorTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     this->Ui.ColorTable->horizontalHeader()->setStretchLastSection(true);
 
+    QObject::connect(this->Ui.AddColorPoint, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        const auto currentIndex = this->Ui.ColorTable->currentIndex();
+        const size_t loc = currentIndex.isValid() ? static_cast<size_t>(currentIndex.row() + 1)
+                                                  : this->ColorTableModel.points().size();
+        this->ColorTableModel.insertPoint(loc);
+        this->Ui.ColorTable->setCurrentIndex(this->ColorTableModel.index(static_cast<int>(loc), 0));
+      });
+    QObject::connect(this->Ui.RemoveColorPoint, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        const auto selModel = this->Ui.ColorTable->selectionModel();
+        const auto& pts = this->ColorTableModel.points();
+        std::vector<vtkVector<double, 6>> newpts;
+        newpts.reserve(pts.size());
+        for (int cc = 0; cc < static_cast<int>(pts.size()); ++cc)
+        {
+          if (cc == 0 || cc == static_cast<int>(pts.size()) - 1)
+          {
+            // Always keep the first and last points.
+            newpts.push_back(pts[cc]);
+          }
+          else if (!selModel->isRowSelected(cc, QModelIndex()))
+          {
+            newpts.push_back(pts[cc]);
+          }
+        }
+        this->ColorTableModel.setPoints(newpts);
+      });
+    // Enable the remove button only when one or more rows are selected.
+    this->Ui.RemoveColorPoint->setEnabled(false);
+    QObject::connect(this->Ui.ColorTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+      self,
+      [this]()
+      {
+        this->Ui.RemoveColorPoint->setEnabled(
+          this->Ui.ColorTable->selectionModel()->selectedRows().count() > 0);
+      });
+    QObject::connect(this->Ui.DeleteAllColorPoints, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        this->Ui.ColorTable->clearSelection();
+        this->ColorTableModel.setPoints({});
+      });
+
     this->Ui.OpacityTable->setModel(&this->OpacityTableModel);
     this->Ui.OpacityTable->horizontalHeader()->setHighlightSections(false);
     this->Ui.OpacityTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     this->Ui.OpacityTable->horizontalHeader()->setStretchLastSection(true);
+
+    QObject::connect(this->Ui.AddOpacityPoint, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        const auto currentIndex = this->Ui.OpacityTable->currentIndex();
+        const size_t loc = currentIndex.isValid() ? static_cast<size_t>(currentIndex.row() + 1)
+                                                  : this->OpacityTableModel.points().size();
+        this->OpacityTableModel.insertPoint(loc);
+        this->Ui.OpacityTable->setCurrentIndex(
+          this->OpacityTableModel.index(static_cast<int>(loc), 0));
+      });
+    QObject::connect(this->Ui.RemoveOpacityPoint, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        const auto selModel = this->Ui.OpacityTable->selectionModel();
+        const auto& pts = this->OpacityTableModel.points();
+        std::vector<vtkVector4d> newpts;
+        newpts.reserve(pts.size());
+        for (int cc = 0; cc < static_cast<int>(pts.size()); ++cc)
+        {
+          if (cc == 0 || cc == static_cast<int>(pts.size()) - 1)
+          {
+            // Always keep the first and last points.
+            newpts.push_back(pts[cc]);
+          }
+          else if (!selModel->isRowSelected(cc, QModelIndex()))
+          {
+            newpts.push_back(pts[cc]);
+          }
+        }
+        this->OpacityTableModel.setPoints(newpts);
+      });
+    // Enable the remove button only when one or more rows are selected.
+    this->Ui.RemoveOpacityPoint->setEnabled(false);
+    QObject::connect(this->Ui.OpacityTable->selectionModel(),
+      &QItemSelectionModel::selectionChanged, self,
+      [this]()
+      {
+        this->Ui.RemoveOpacityPoint->setEnabled(
+          this->Ui.OpacityTable->selectionModel()->selectedRows().count() > 0);
+      });
+    QObject::connect(this->Ui.DeleteAllOpacityPoints, &QAbstractButton::clicked, self,
+      [this]()
+      {
+        this->Ui.OpacityTable->clearSelection();
+        this->OpacityTableModel.setPoints({});
+      });
 
     QObject::connect(this->ChoosePresetReaction.data(), SIGNAL(presetApplied(const QString&)), self,
       SLOT(presetApplied()));
