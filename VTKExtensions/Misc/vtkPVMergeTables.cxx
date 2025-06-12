@@ -37,6 +37,13 @@ vtkExecutive* vtkPVMergeTables::CreateDefaultExecutive()
 //----------------------------------------------------------------------------
 void vtkPVMergeTables::MergeTables(vtkTable* output, const std::vector<vtkTable*>& tables)
 {
+  assert(!tables.empty());
+  if (tables.size() == 1)
+  {
+    output->ShallowCopy(tables[0]);
+    return;
+  }
+
   vtkDataSetAttributes::FieldList fields;
   for (auto& curTable : tables)
   {
@@ -66,6 +73,18 @@ void vtkPVMergeTables::MergeTables(vtkTable* output, const std::vector<vtkTable*
     outStartRow += inNumRows;
     ++fieldsInputIdx;
   }
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkTable> vtkPVMergeTables::MergeTables(const std::vector<vtkTable*>& tables)
+{
+  if (tables.empty())
+  {
+    return nullptr;
+  }
+  auto result = vtkSmartPointer<vtkTable>::New();
+  vtkPVMergeTables::MergeTables(result, tables);
+  return result;
 }
 
 //----------------------------------------------------------------------------
