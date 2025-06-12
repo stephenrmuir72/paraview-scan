@@ -3,7 +3,7 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
-#include "vtkPVMergeTablesMultiBlock.h"
+#include "vtkPVMergeTablesComposite.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
@@ -30,7 +30,7 @@ vtkSmartPointer<vtkTable> ReadAsTable(const char* fname)
 }
 }
 
-extern int TestMergeTablesMultiBlock(int argc, char* argv[])
+extern int TestMergeTablesComposite(int argc, char* argv[])
 {
   char* fname0 = vtkTestUtilities::ExpandDataFileName(argc, argv, "Testing/Data/table_0.vtt");
   auto data0 = ReadAsTable(fname0);
@@ -47,14 +47,15 @@ extern int TestMergeTablesMultiBlock(int argc, char* argv[])
   vtkNew<vtkMultiBlockDataSet> mb1;
   mb1->SetBlock(0, data1);
 
-  vtkNew<vtkPVMergeTablesMultiBlock> merger;
+  vtkNew<vtkPVMergeTablesComposite> merger;
   merger->SetInputDataObject(0, mb0);
   merger->AddInputDataObject(0, mb1);
   merger->Update();
 
+  auto mergerOutput = vtkMultiBlockDataSet::SafeDownCast(merger->GetOutput());
   if (true)
   {
-    vtkTable* result = vtkTable::SafeDownCast(merger->GetOutput()->GetBlock(0));
+    vtkTable* result = vtkTable::SafeDownCast(mergerOutput->GetBlock(0));
     expect(result->GetNumberOfRows() == data0->GetNumberOfRows() + data1->GetNumberOfRows(),
       "mismatched rows");
     expect(result->GetNumberOfColumns() == data0->GetNumberOfColumns(), "columns mismatched.");
@@ -84,10 +85,11 @@ extern int TestMergeTablesMultiBlock(int argc, char* argv[])
   mb1->SetBlock(0, nullptr);
   mb1->SetBlock(1, data1);
   merger->Update();
+  mergerOutput = vtkMultiBlockDataSet::SafeDownCast(merger->GetOutput());
 
   if (true)
   {
-    vtkTable* result0 = vtkTable::SafeDownCast(merger->GetOutput()->GetBlock(0));
+    vtkTable* result0 = vtkTable::SafeDownCast(mergerOutput->GetBlock(0));
     expect(result0->GetNumberOfRows() == data0->GetNumberOfRows(), "mismatched rows");
     expect(result0->GetNumberOfColumns() == data0->GetNumberOfColumns(), "columns mismatched.");
     for (vtkIdType rr = 0; rr < data0->GetNumberOfRows(); rr++)
@@ -98,7 +100,7 @@ extern int TestMergeTablesMultiBlock(int argc, char* argv[])
           "data0 value mismatched at (" << rr << "," << cc << ")");
       }
     }
-    vtkTable* result1 = vtkTable::SafeDownCast(merger->GetOutput()->GetBlock(1));
+    vtkTable* result1 = vtkTable::SafeDownCast(mergerOutput->GetBlock(1));
     expect(result1->GetNumberOfRows() == data1->GetNumberOfRows(), "mismatched rows");
     expect(result1->GetNumberOfColumns() == data1->GetNumberOfColumns(), "columns mismatched.");
     for (vtkIdType rr = 0; rr < data1->GetNumberOfRows(); rr++)
