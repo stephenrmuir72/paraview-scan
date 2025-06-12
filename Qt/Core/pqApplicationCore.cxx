@@ -756,10 +756,15 @@ QHelpEngine* pqApplicationCore::helpEngine()
   {
     QTemporaryFile tFile;
     tFile.open();
-    this->HelpEngine = new QHelpEngine(tFile.fileName() + ".qhc", this);
+    QString collectionFileName = tFile.fileName() + ".qhc";
+    this->HelpEngine = new QHelpEngine(collectionFileName, this);
+    this->HelpEngine->setReadOnly(false);
     this->connect(
       this->HelpEngine, SIGNAL(warning(const QString&)), SLOT(onHelpEngineWarning(const QString&)));
-    this->HelpEngine->setupData();
+    if (!this->HelpEngine->setupData())
+    {
+      qWarning() << tr("paraview", "Cannot set up help engine from %1").arg(collectionFileName);
+    }
     // register the application's qch file. An application specific qch file can
     // be compiled into the executable in the build_paraview_client() cmake
     // function. If this file is provided, then that gets registered as
@@ -780,7 +785,11 @@ QHelpEngine* pqApplicationCore::helpEngine()
         QString(":/%1/Documentation/%2").arg(QApplication::applicationName()).arg(filename);
       this->registerDocumentation(qch_file);
     }
-    this->HelpEngine->setupData();
+    bool success = this->HelpEngine->setupData();
+    if (!success)
+    {
+      qWarning() << "Failed to setup help engine data.";
+    }
   }
 #endif
 
@@ -801,7 +810,14 @@ void pqApplicationCore::registerDocumentation(const QString& filename)
     // localFile has autoRemove ON by default, so the file will be deleted with
     // the application quits.
     localFile->setParent(engine);
-    engine->registerDocumentation(localFile->fileName());
+    auto localFileName = localFile->fileName();
+    bool success = engine->registerDocumentation(localFileName);
+    if (!success)
+    {
+      qWarning() << tr("Failed to register documentation in %1 via file: %2")
+                      .arg(filename)
+                      .arg(localFile->fileName());
+    }
   }
   else
   {
