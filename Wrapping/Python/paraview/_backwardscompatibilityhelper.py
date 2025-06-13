@@ -37,10 +37,8 @@ from . import servermanager as sm
 
 NotSupportedException = paraview.NotSupportedException
 
-
 class _Cache:
     LastCompatibilityVersion = None
-
 
 def get_paraview_compatibility_version():
     """
@@ -67,10 +65,8 @@ def get_paraview_compatibility_version():
             % (compatibility_version, current_version))
     return compatibility_version
 
-
 class Continue(Exception):
     pass
-
 
 class _CubeAxesHelper(object):
     def __init__(self):
@@ -113,9 +109,7 @@ class _CubeAxesHelper(object):
         self.StickyAxes = 0
         self.CenterStickyAxes = 0
 
-
 _ACubeAxesHelper = _CubeAxesHelper()
-
 
 def setattr(proxy, pname, value):
     """
@@ -596,13 +590,28 @@ def setattr(proxy, pname, value):
             else:
                 raise NotSupportedException("'FlipAllInputArrays' was renamed in 'ReflectAllInputArrays' since ParaView 6.0")
 
+    # 6.0 -> 6.1 vtkParticleTracerBase have been reworked
+    # Caching is now automated, DisableResetCache has been removed
+    # TerminationTime is not exposed anymore
+    if pname == "DisableResetCache" and proxy.SMProxy.GetXMLName() in ["LegacyStreakLine", "StreakLine"]:
+        if compatibility_version <= (6, 0):
+            return
+        else:
+            raise NotSupportedException(
+                "%s now automates caching, simply remove DisableResetCache usages." % proxy.SMProxy.GetXMLName())
+    if pname == "TerminationTime" and proxy.SMProxy.GetXMLName() == "ParticlePath":
+        if compatibility_version <= (6, 0):
+            return
+        else:
+            raise NotSupportedException(
+                "ParticlePath does not support setting TerminationTime anymore, simply remove it.")
+
 
     if not hasattr(proxy, pname):
         raise AttributeError()
     proxy.__dict__[pname] = value
 
     raise Continue()
-
 
 def setattr_fix_value(proxy, pname, value, setter_func):
     compatibility_version = get_paraview_compatibility_version()
@@ -677,7 +686,6 @@ def setattr_fix_value(proxy, pname, value, setter_func):
 
     # Always keep this line last
     raise ValueError("'%s' is not a valid value for %s!" % (value, pname))
-
 
 def getattr(proxy, pname):
     """
@@ -1119,7 +1127,6 @@ def getattr(proxy, pname):
             else:
                 raise NotSupportedException("'Position' property has been removed in ParaView 5.13")
 
-
     # 5.13 -> 6.0 breaking change in PolarAxes representation
     # Properties Renaming
     if proxy.SMProxy and proxy.SMProxy.GetXMLName() == "PolarAxesRepresentation":
@@ -1238,7 +1245,6 @@ def getattr(proxy, pname):
 
     raise Continue()
 
-
 # Depending on the compatibility version that has been set, older functionalities
 # are restored in this function. Note that the 'key' variable refers to a proxy
 # label and not its name.
@@ -1308,7 +1314,6 @@ def GetProxy(module, key, **kwargs):
 
     return builtins.getattr(module, key)(**kwargs)
 
-
 def get_deprecated_proxies(proxiesNS):
     """
     Provide a map between deprecated proxies and their fallback proxy
@@ -1348,7 +1353,6 @@ def get_deprecated_proxies(proxiesNS):
         proxies[proxiesNS.filters] += [("HyperTreeGridVisibleLeavesSize", "HyperTreeGridGenerateFields")]
 
     return proxies
-
 
 def lookupTableUpdate(lutName):
     """
