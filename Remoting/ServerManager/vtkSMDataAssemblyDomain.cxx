@@ -210,11 +210,19 @@ int vtkSMDataAssemblyDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unch
       if (dInfo && activeAssembly && this->Assembly)
       {
         const std::string name{ vtkSMUncheckedPropertyHelper(activeAssembly).GetAsString(0) };
-        vtkDataAssembly* dataAssembly = name == "Assembly" ? dInfo->GetDataAssembly() : nullptr;
-        auto selectors = vtkDataAssemblyUtilities::GetSelectorsForCompositeIds(
-          { static_cast<unsigned int>(dInfo->GetFirstLeafCompositeIndex()) }, dInfo->GetHierarchy(),
-          dataAssembly);
-        const std::string& selector = selectors.front();
+        std::string selector;
+        if (name == "Assembly")
+        {
+          selector = vtkDataAssemblyUtilities::GetSelectorsForCompositeIds(
+            { static_cast<unsigned int>(dInfo->GetFirstLeafCompositeIndex()) },
+            dInfo->GetHierarchy(), dInfo->GetDataAssembly())
+                       .front();
+        }
+        else
+        {
+          selector = vtkDataAssemblyUtilities::GetSelectorForCompositeId(
+            dInfo->GetFirstLeafCompositeIndex(), dInfo->GetHierarchy());
+        }
         if (!selector.empty())
         {
           helper.Set(0, selector.c_str());
