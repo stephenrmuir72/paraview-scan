@@ -86,9 +86,9 @@ void vtkPVImageChartRepresentation::PrepareForRendering()
   vtkSmartPointer<vtkImageData> localGrid;
   if (this->LocalOutput)
   {
-    for (unsigned int idx = 0; idx < this->LocalOutput->GetNumberOfBlocks(); ++idx)
+    for (unsigned int idx = 0; idx < this->LocalOutput->GetNumberOfChildren(); ++idx)
     {
-      localGrid = vtkImageData::SafeDownCast(this->LocalOutput->GetBlock(idx));
+      localGrid = vtkImageData::SafeDownCast(this->LocalOutput->GetChild(idx));
       if (localGrid)
       {
         chart->SetInputData(localGrid);
