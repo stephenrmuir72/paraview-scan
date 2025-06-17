@@ -38,6 +38,6 @@ set(PARAVIEW_XRInterface_OpenXR_Support OFF CACHE BOOL "")
 set(VTK_MODULE_ENABLE_VTK_RenderingOpenXR NO CACHE STRING "")
 
 # enable optimizations for debug build because new imaging testing framework is slow otherwise
-set(CMAKE_CXX_FLAGS_DEBUG "-Og -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -g" CACHE STRING "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora42.cmake")
