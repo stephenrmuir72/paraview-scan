@@ -65,6 +65,20 @@ function(paraview_contract_test)
     set(build_extra_args ${_paraview_contract_test_EXTRA_BUILD_ARGUMENTS})
   endif()
 
+  # Pass toolset information. These corespond to --build-generator-platform and
+  # --build-generator-toolset  flags of ctest. This snippet comes from
+  # Examples/RunExample.cmake.
+
+  set(cmake_arguments)
+  if (platform)
+    list(APPEND cmake_arguments
+      -A "${platform}")
+  endif ()
+  if (toolset)
+    list(APPEND cmake_arguments
+      -T "${toolset}")
+  endif ()
+
   # Add a test that builds and tests the plugin, but does not install it.
   add_test(NAME ${test_name}
     COMMAND ${CMAKE_CTEST_COMMAND}
@@ -72,6 +86,7 @@ function(paraview_contract_test)
     --build-generator ${CMAKE_GENERATOR}
     ${ctest_extra_args}
     --build-options
+      ${cmake_arguments}
       -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
       -DBUILD_TESTING=ON
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
