@@ -7,6 +7,7 @@
 
   <pqevent object="pqClientMainWindow/MainControlsToolbar/actionOpenData" command="activate" arguments="" />
   <pqevent object="pqClientMainWindow/FileOpenDialog" command="filesSelected" arguments="$PARAVIEW_DATA_ROOT/Testing/Data/combxyz.bin" />
+  <pqevent object="pqClientMainWindow" command="pause" arguments="2000"/>
   <pqevent object="pqSelectReaderDialog/listWidget" command="currentChangedbyItemName" arguments="PLOT3D Reader" />
   <pqevent object="pqSelectReaderDialog/okButton" command="activate" arguments="" />
   <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/SearchBox/AdvancedButton" command="set_boolean" arguments="true" />

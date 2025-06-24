@@ -20,6 +20,7 @@
   <!-- test BUG #19431; save CSV and make sure it's not empty -->
   <pqevent object="pqClientMainWindow/MainControlsToolbar/actionSaveData" command="activate" arguments="" />
   <pqevent object="pqClientMainWindow/FileSaveDialog" command="filesSelected" arguments="$PARAVIEW_TEST_ROOT/PlotDataOverTime-NonDistributed.csv" />
+  <pqevent object="pqClientMainWindow" command="pause" arguments="2000"/>
   <pqevent object="pqClientMainWindow/WriterSettingsDialog/widget/OKButton" command="activate" arguments="" />
   <pqevent object="pqClientMainWindow/MainControlsToolbar/actionOpenData" command="activate" arguments="" />
   <pqevent object="pqClientMainWindow/FileOpenDialog" command="filesSelected" arguments="$PARAVIEW_TEST_ROOT/PlotDataOverTime-NonDistributed.csv" />
