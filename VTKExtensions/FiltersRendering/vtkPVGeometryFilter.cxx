@@ -611,6 +611,13 @@ void vtkPVGeometryFilter::CleanupOutputData(vtkPolyData* output)
     this->FeatureEdgesFilter->Update();
     output->ShallowCopy(this->FeatureEdgesFilter->GetOutput());
   }
+#if defined(__APPLE__) && defined(__arm64__)
+  // https://gitlab.kitware.com/paraview/paraview/-/issues/22636
+  if (!output->GetCellData()->GetNormals())
+  {
+    output->GetCellData()->SetNormals(vtkPolyDataNormals::GetCellNormals(output));
+  }
+#endif
   if (this->GenerateCellNormals || this->GeneratePointNormals)
   {
     this->ExecuteNormalsComputation(output);
