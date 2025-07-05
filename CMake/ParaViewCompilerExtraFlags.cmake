@@ -6,6 +6,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   set(paraview_extra_warning_flags
     -Wnon-virtual-dtor
     -Wno-long-long
+    -Wno-stringop-overflow # VTK issue 19306
+    -Wno-stringop-overread # VTK issue 19307
     -ansi
     -Wcast-align
     -Wchar-subscripts
