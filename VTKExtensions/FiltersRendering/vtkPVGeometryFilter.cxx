@@ -186,7 +186,11 @@ vtkPVGeometryFilter::vtkPVGeometryFilter()
   // it is especially noticeable with the OpenGL2 backend.  Leaving
   // it on for the old backend as some tests rely on the cell normals
   // to be there as they use them for other purposes/etc.
+#if defined(__APPLE__) && defined(__arm64__)
+  this->GenerateCellNormals = true;
+#else
   this->GenerateCellNormals = false;
+#endif
   this->GeneratePointNormals = false;
   this->Splitting = 1;
   this->FeatureAngle = 30.0;
