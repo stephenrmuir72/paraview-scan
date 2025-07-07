@@ -575,7 +575,7 @@ int vtkHierarchicalFractal::RequestData(vtkInformation* vtkNotUsed(request),
 
   this->OutputUtil = vtkSmartPointer<HierarchicalFractalOutputUtil>::New();
   this->OutputUtil->Initialize(
-    this->TwoDimensional ? VTK_XY_PLANE : VTK_XYZ_GRID, this->TopLevelSpacing);
+    this->TwoDimensional ? vtkStructuredData::VTK_STRUCTURED_XY_PLANE : vtkStructuredData::VTK_STRUCTURED_XYZ_GRID, this->TopLevelSpacing);
 
   int ext[6];
   ext[0] = ext[2] = ext[4] = 0;
