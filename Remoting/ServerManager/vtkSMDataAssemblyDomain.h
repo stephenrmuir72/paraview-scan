@@ -21,9 +21,9 @@
  *                      panel_visibility="default"
  *                      repeat_command="1"
  *                      animateable="0">
- *     <DataAssemblyDomain name="data_assembly" (optional)entity_type=3>
- *       <RequiredProperties>
- *         <Property function="Input" name="Input" />
+ *     <DataAssemblyDomain name="data_assembly" (optional)entity_type=3
+ * (optional)default_mode="nonempty-leaf"> <RequiredProperties> <Property function="Input"
+ * name="Input" />
  *       </RequiredProperties>
  *     </DataAssemblyDomain>
  *     <Documentation>
@@ -117,6 +117,23 @@ public:
 
   int SetDefaultValues(vtkSMProperty* prop, bool use_unchecked_values) override;
 
+  enum DefaultModes
+  {
+    DEFAULT = 0,
+    NONEMPTY_LEAF = 1
+  };
+
+  ///@{
+  /**
+   * DefaultMode controls how the default value for the property is set by
+   * SetDefaultValues(). DEFAULT implies the default value is picked based on
+   * the default strategy for the selected Mode. NONEMPTY_LEAF indicates that
+   * the first non-empty leaf node is set as the default value, if possible.
+   */
+  vtkGetMacro(DefaultMode, int);
+  vtkSetMacro(DefaultMode, int);
+  ///@}
+
 protected:
   vtkSMDataAssemblyDomain();
   ~vtkSMDataAssemblyDomain() override;
@@ -141,6 +158,7 @@ private:
   std::string AssemblyXMLContents;
   std::string Name;
   int EntityType = -1;
+  int DefaultMode = DEFAULT;
 };
 
 #endif
