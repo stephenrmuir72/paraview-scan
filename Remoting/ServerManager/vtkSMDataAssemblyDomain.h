@@ -152,6 +152,8 @@ private:
    */
   int ReadXMLAttributes(vtkSMProperty* prop, vtkPVXMLElement* element) override;
 
+  void OnDomainModified();
+
   int LastTag = 0;
 
   vtkSmartPointer<vtkDataAssembly> Assembly;
