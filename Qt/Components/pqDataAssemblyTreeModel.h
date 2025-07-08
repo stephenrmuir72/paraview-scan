@@ -83,7 +83,7 @@ public:
    * @sa vtkDataAssembly::SelectNodes
    */
   void setCheckedNodes(const QStringList& paths);
-  QStringList checkedNodes() const;
+  QStringList checkedNodes(bool leaveNodesOnly = false) const;
   ///@}
 
   /**
