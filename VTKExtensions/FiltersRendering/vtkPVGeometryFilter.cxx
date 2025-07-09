@@ -505,11 +505,11 @@ int vtkPVGeometryFilter::RequestData(
   {
     vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::RequestData");
     vtkGarbageCollector::DeferredCollectionPush();
-    if (input->IsA("vtkUniformGridAMR"))
-    {
-      this->RequestAMRData(request, inputVector, outputVector);
-    }
-    else
+    /*    if (input->IsA("vtkUniformGridAMR"))
+        {
+          this->RequestAMRData(request, inputVector, outputVector);
+        }
+        else*/
     {
       this->RequestDataObjectTree(request, inputVector, outputVector);
     }
