@@ -327,6 +327,13 @@ bool pqPythonTabWidget::saveOnClose()
       rValue &= widget->saveOnClose();
     }
   }
+  if (rValue)
+  {
+    // reset all tabs in the widget after clearing
+    this->clear();
+    this->addNewTabWidget();
+    this->createNewEmptyTab();
+  }
 
   return rValue;
 }
