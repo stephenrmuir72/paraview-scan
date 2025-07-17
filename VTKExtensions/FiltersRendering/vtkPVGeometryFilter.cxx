@@ -505,11 +505,11 @@ int vtkPVGeometryFilter::RequestData(
   {
     vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::RequestData");
     vtkGarbageCollector::DeferredCollectionPush();
-    /*    if (input->IsA("vtkUniformGridAMR"))
-        {
-          this->RequestAMRData(request, inputVector, outputVector);
-        }
-        else*/
+    if (input->IsA("vtkUniformGridAMR"))
+    {
+      this->RequestAMRData(request, inputVector, outputVector);
+    }
+    else
     {
       this->RequestDataObjectTree(request, inputVector, outputVector);
     }
@@ -678,7 +678,6 @@ int vtkPVGeometryFilter::RequestAMRData(
     vtkErrorMacro("Input vtkUniformGridAMR is nullptr.");
     return 0;
   }
-  output->CopyStructure(amr);
 
   // STEP 1: Check Attributes
   vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::CheckAttributes");
@@ -706,9 +705,11 @@ int vtkPVGeometryFilter::RequestAMRData(
     recvAmrBBox.GetBounds(bounds);
   }
 
+  output->SetNumberOfPartitionedDataSets(amr->GetNumberOfLevels());
   for (unsigned int level = 0; level < amr->GetNumberOfLevels(); ++level)
   {
     const unsigned int num_datasets = amr->GetNumberOfBlocks(level);
+    output->SetNumberOfPartitions(level, num_datasets);
     for (unsigned int partitionIdx = 0; partitionIdx < num_datasets; ++partitionIdx)
     {
       vtkUniformGrid* ug = amr->GetDataSet(level, partitionIdx);
