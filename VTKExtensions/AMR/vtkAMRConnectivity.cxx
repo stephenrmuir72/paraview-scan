@@ -21,6 +21,7 @@
 #include "vtkIntArray.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNonOverlappingAMR.h"
+#include "vtkRectilinearGrid.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkUniformGrid.h"
@@ -340,7 +341,7 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
   for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
   {
     // Go through each block and create an array RegionId set all zero.
-    vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(iter->GetCurrentDataObject());
+    vtkDataSet* grid = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
     if (!grid)
     {
       vtkErrorMacro("NonOverlappingAMR not made up of UniformGrids");
@@ -372,8 +373,19 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
 
     // within each block find all fragments
     int extents[6];
-    grid->GetExtent(extents);
 
+    vtkUniformGrid* ug = vtkUniformGrid::SafeDownCast(grid);
+    vtkRectilinearGrid* rg = vtkRectilinearGrid::SafeDownCast(grid);
+    if (ug)
+    {
+      ug->GetExtent(extents);
+    }
+    else // if (rg)
+    {
+      rg->GetExtent(extents);
+    }
+
+    // TODO AMR
     for (int i = extents[0]; i < extents[1]; i++)
     {
       for (int j = extents[2]; j < extents[3]; j++)
@@ -381,13 +393,13 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
         for (int k = extents[4]; k < extents[5]; k++)
         {
           int ijk[3] = { i, j, k };
-          vtkIdType cellId = grid->ComputeCellId(ijk);
+          vtkIdType cellId = ug->ComputeCellId(ijk);
           if (regionId->GetTuple1(cellId) == 0 &&
             volArray->GetTuple1(cellId) > this->VolumeFractionSurfaceValue &&
             (ghostArray->GetValue(cellId) & vtkDataSetAttributes::DUPLICATECELL) == 0)
           {
             // wave propagation sets the region id as it propagates
-            this->WavePropagation(cellId, grid, regionId, volArray, ghostArray);
+            this->WavePropagation(cellId, ug, regionId, volArray, ghostArray);
             // increment this way so the region id remains globally unique
             this->NextRegionId += numProcs;
           }
@@ -505,7 +517,7 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
           {
             continue;
           }
-          vtkUniformGrid* grid = volume->GetDataSet(block->Level, block->BlockId);
+          vtkDataSet* grid = volume->GetDataSet(block->Level, block->BlockId, true);
           vtkIdTypeArray* regionIdArray =
             vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
           if (regionIdArray == nullptr)
@@ -604,7 +616,7 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
     vtkSmartPointer<vtkIdList> cellIds = vtkIdList::New();
     for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
-      vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(iter->GetCurrentDataObject());
+      vtkDataSet* grid = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
       vtkIdTypeArray* regionIdArray =
         vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
       vtkDataArray* volArray = grid->GetCellData()->GetArray(volumeName);
@@ -648,6 +660,7 @@ int vtkAMRConnectivity::DoRequestData(vtkNonOverlappingAMR* volume, const char* 
 }
 
 //----------------------------------------------------------------------------
+// TODO AMR
 int vtkAMRConnectivity::WavePropagation(vtkIdType cellIdStart, vtkUniformGrid* grid,
   vtkIdTypeArray* regionId, vtkDataArray* volArray, vtkUnsignedCharArray* ghostArray)
 {
@@ -774,7 +787,8 @@ void vtkAMRConnectivity::ProcessBoundaryAtBlock(vtkNonOverlappingAMR* volume,
 
   if (block->ProcessId == myProc)
   {
-    vtkUniformGrid* grid = volume->GetDataSet(block->Level, block->BlockId);
+    // TODO AMR
+    vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(volume->GetDataSet(block->Level, block->BlockId, true));
     vtkIdTypeArray* regionId =
       vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
 
@@ -901,7 +915,8 @@ void vtkAMRConnectivity::ProcessBoundaryAtBlock(vtkNonOverlappingAMR* volume,
   }
   else if (neighbor->ProcessId == myProc)
   {
-    vtkUniformGrid* grid = volume->GetDataSet(neighbor->Level, neighbor->BlockId);
+    // TODO AMR
+    vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(volume->GetDataSet(neighbor->Level, neighbor->BlockId, true));
     // estimate the size of the receive by the extent of this neighbor
     int extent[6];
     grid->GetExtent(extent);
@@ -1204,7 +1219,8 @@ void vtkAMRConnectivity::ProcessBoundaryAtNeighbor(
     return;
   }
 
-  vtkUniformGrid* grid = volume->GetDataSet(neighbor->Level, neighbor->BlockId);
+  // TODO AMR
+  vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(volume->GetDataSet(neighbor->Level, neighbor->BlockId, true));
   vtkIdTypeArray* regionId =
     vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
 
