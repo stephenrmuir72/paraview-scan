@@ -250,7 +250,7 @@ protected:
    * This does not handle producing outlines. Call only when this->UseOutline ==
    * 0; \c extractface mask it is used to determine external faces.
    */
-  void ExecuteAMRBlock(vtkUniformGrid* input, vtkPolyData* output, const bool extractface[6]);
+  void ExecuteAMRBlock(vtkDataSet* input, vtkPolyData* output, const bool extractface[6]);
 
   /**
    * Used instead of ExecuteAMRBlock() when this->UseOutline is true.

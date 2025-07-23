@@ -1172,6 +1172,7 @@ public:
         structuredIndices->SetNumberOfComponents(3);
         structuredIndices->Allocate(output->GetNumberOfRows() * 3);
         structuredIndices->SetName("Structured Coordinates");
+        std::cout<<"Structured Coordinates"<<std::endl;
 
         vtkIdTypeArray* idsArray =
           vtkIdTypeArray::SafeDownCast(output->GetColumnByName("vtkOriginalIndices"));
