@@ -187,7 +187,8 @@ void addgridfield_(
   unsigned int level = 0;
   unsigned int blockId = *my_id;
 
-  vtkUniformGrid* img = vtkUniformGrid::SafeDownCast(grid->GetDataSet(level, blockId));
+  // TODO AMR
+  vtkUniformGrid* img = vtkUniformGrid::SafeDownCast(grid->GetDataSet(level, blockId, true));
   vtkIdType numCells = (*mx + 1) * (*my + 1) * (*mz + 1);
 
   if (*down_convert)

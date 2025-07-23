@@ -2303,7 +2303,8 @@ int vtkAMRDualGridHelper::Initialize(vtkNonOverlappingAMR* input)
     {
       //      vtkAMRBox box;
       //      vtkImageData* image = input->GetDataSet(level,blockId,box);
-      vtkImageData* image = input->GetDataSet(level, blockId);
+      // TODO AMR
+      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSet(level, blockId, true));
       if (image)
       {
         this->AddBlock(level, blockId, image);
@@ -2345,7 +2346,7 @@ int vtkAMRDualGridHelper::SetupData(vtkNonOverlappingAMR* input, const char* arr
     numBlocks = input->GetNumberOfBlocks(level);
     for (blockId = 0; blockId < numBlocks; ++blockId)
     {
-      vtkImageData* image = input->GetDataSet(level, blockId);
+      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSet(level, blockId, true));
       if (image)
       {
         vtkDataArray* da = image->GetCellData()->GetArray(this->ArrayName);
@@ -2733,7 +2734,8 @@ void vtkAMRDualGridHelper::ComputeGlobalMetaData(vtkNonOverlappingAMR* input)
     {
       //      vtkAMRBox box;
       //      vtkImageData* image = input->GetDataSet(level,blockId,box);
-      vtkImageData* image = input->GetDataSet(level, blockId);
+      // TODO AMR
+      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSet(level, blockId, true));
       if (image)
       {
         ++this->NumberOfBlocksInThisProcess;
