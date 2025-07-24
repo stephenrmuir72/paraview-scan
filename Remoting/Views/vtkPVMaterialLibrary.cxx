@@ -61,9 +61,9 @@ vtkPVMaterialLibrary::vtkPVMaterialLibrary()
 
   // where materials might be in relation to that
   std::vector<std::string> prefixes = {
-#if defined(_WIN32) || defined(__APPLE__)
     "materials"
-#else
+#if !defined(_WIN32) && !defined(__APPLE__)
+    ,
     "share/paraview-" PARAVIEW_VERSION "/materials"
 #endif
   };
