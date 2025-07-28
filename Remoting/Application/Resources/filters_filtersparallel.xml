@@ -704,34 +704,6 @@
     </SourceProxy>
 
     <!-- ==================================================================== -->
-    <SourceProxy class="vtkHyperTreeGridGhostCellsGenerator"
-                 label="HyperTreeGrid Ghost Cells Generator"
-                 name="HyperTreeGridGhostCellsGenerator">
-      <Deprecated deprecated_in="6.0" to_remove_in="6.2">
-        This filter has been replaced by 'Ghost Cells', that supports HyperTree Grids.
-        Please consider using that instead.
-      </Deprecated>
-      <Documentation long_help="Generate Ghost Cells for HyperTreeGrid."
-                     short_help="Generate Ghost Cells for HyperTreeGrid.">
-        This filter generates ghost cells for hyper tree grid for multi processing purposes.
-      </Documentation>
-      <InputProperty command="SetInputConnection"
-                     name="Input">
-        <ProxyGroupDomain name="groups">
-          <Group name="sources"/>
-          <Group name="filters"/>
-        </ProxyGroupDomain>
-        <DataTypeDomain name="input_types">
-          <DataType value="vtkHyperTreeGrid"/>
-        </DataTypeDomain>
-        <Documentation>
-          This property specifies the input to the ghost cell generator.
-        </Documentation>
-      </InputProperty>
-      <!-- End vtkHyperTreeGridGhostCellsGenerator -->
-    </SourceProxy>
-
-    <!-- ==================================================================== -->
     <SourceProxy class="vtkIntegrateAttributes"
                  label="Integrate Variables"
                  name="IntegrateAttributes">
