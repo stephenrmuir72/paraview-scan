@@ -7,7 +7,8 @@ set(classes
   vtkExtrusionRepresentation)
 
 set(shaders
-  shaders/vtkExtrudeCell_gs.glsl)
+  shaders/vtkExtrudeCell_gs.glsl
+  shaders/vtkExtrudePoint_gs.glsl)
 set(sources)
 set(private_headers)
 
