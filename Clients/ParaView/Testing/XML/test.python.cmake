@@ -96,6 +96,7 @@ if (numpy_found)
     IndexedLookupInitialization.xml # needs Python Calculator/numpy
     PlotOverLine_surface.xml # needs find data
     ProgrammableAnnotation.xml
+    SelectionSaveStatePVM.xml # find data needs python/numpy
     SpreadSheetSelectionTrace.xml
     StructuredGridCellBlanking.xml
     VolumeNoMapScalars.xml # needs programmable filter + numpy
