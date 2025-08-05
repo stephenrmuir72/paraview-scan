@@ -176,6 +176,22 @@ public:
   virtual bool Export(vtkAbstractChartExporter* vtkNotUsed(exporter)) { return false; }
   ///@}
 
+  enum
+  {
+    ALL = 0,
+    LEAVES = 1,
+  };
+
+  ///@{
+  /**
+   * BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+   * LEAVES means arrays are selected independently for each leaf block.
+   * ALL means arrays are selected once and applied to all blocks.
+   */
+  vtkGetMacro(BlockSelectionMode, int);
+  vtkSetClampMacro(BlockSelectionMode, int, ALL, LEAVES);
+  ///@}
+
   ///@{
   /**
    * Set/Get the placeholder data type.
@@ -278,6 +294,7 @@ protected:
   int FieldAssociation;
   vtkWeakPointer<vtkPVContextView> ContextView;
   int FlattenTable;
+  int BlockSelectionMode = ALL;
 
   // This is used to be able to create the correct placeHolder in RequestData for the client
   int PlaceHolderDataType = VTK_PARTITIONED_DATA_SET_COLLECTION;
