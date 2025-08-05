@@ -2399,6 +2399,7 @@ struct Process_6_0_to_6_1
       "BagPlotMatrixRepresentation", "XYBagChartRepresentation",
       "XYFunctionalBagChartRepresentation" };
 
+    UniqueIdGenerator generator(document);
     for (const auto& chartName : chartProxyNames)
     {
       const std::string nodePath = "//ServerManagerState/Proxy[@group='representations' and "
@@ -2411,6 +2412,28 @@ struct Process_6_0_to_6_1
         auto node = xpath_node.node();
         node.attribute("name").set_value("BlockSelectors");
         ConvertCompositeIdsToSelectors(node);
+        // add a BlockSelectionMode property to the representation and set its default value to 1
+        auto blockSelectionModeId = std::to_string(generator.GetNextUniqueId());
+        auto parent = node.parent();
+        auto blockSelectionModeNode = parent.append_child("Property");
+        blockSelectionModeNode.append_attribute("name").set_value("BlockSelectionMode");
+        blockSelectionModeNode.append_attribute("id").set_value(
+          (blockSelectionModeId + ".BlockSelectionMode").c_str());
+        blockSelectionModeNode.append_attribute("number_of_elements").set_value(1);
+        auto elementNode = blockSelectionModeNode.append_child("Element");
+        elementNode.append_attribute("index").set_value(0);
+        elementNode.append_attribute("value").set_value("1");
+        // create the domain of the property
+        auto domainNode = blockSelectionModeNode.append_child("Domain");
+        domainNode.append_attribute("name").set_value("enum");
+        domainNode.append_attribute("id").set_value(
+          (blockSelectionModeId + ".BlockSelectionMode.enum").c_str());
+        auto allNode = domainNode.append_child("Entry");
+        allNode.append_attribute("value").set_value("0");
+        allNode.append_attribute("text").set_value("All");
+        auto leavesNode = domainNode.append_child("Entry");
+        leavesNode.append_attribute("value").set_value("1");
+        leavesNode.append_attribute("text").set_value("Leaves");
       }
     }
 
