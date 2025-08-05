@@ -183,7 +183,7 @@ int vtkImageVolumeRepresentation::RequestData(
     if (auto inputID = vtkImageData::GetData(inputVector[0], 0))
     {
       vtkSmartPointer<vtkImageData> cache = nullptr;
-      if (auto inputUG = vtkUniformGrid::GetData(inputVector[0], 0))
+      if (auto inputUG = vtkImageData::GetData(inputVector[0], 0))
       {
         cache = vtkSmartPointer<vtkUniformGrid>::New();
         cache->ShallowCopy(inputUG);
