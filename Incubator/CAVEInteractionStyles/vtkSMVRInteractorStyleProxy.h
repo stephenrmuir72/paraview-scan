@@ -1,6 +1,16 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
 // SPDX-License-Identifier: BSD-3-Clause
+/**
+ * @class   vtkSMVRInteractorStyleProxy
+ * @brief   the base class for all interactor styles
+ *
+ * vtkSMVRInteractorStyleProxy is derived from vtkSMProxy and is the base class
+ * for all interactor style classes. Deriving from vtkSMProxy allows describing
+ * each subclasses properties in xml, which allows UI to be generated for
+ * properties automatically, and supports interacting with the classes from
+ * Python.
+ */
 #ifndef vtkSMVRInteractorStyleProxy_h
 #define vtkSMVRInteractorStyleProxy_h
 
@@ -158,6 +168,8 @@ protected:
 private:
   vtkSMVRInteractorStyleProxy(const vtkSMVRInteractorStyleProxy&) = delete;
   void operator=(const vtkSMVRInteractorStyleProxy&) = delete;
+
+  vtkNew<vtkMatrix4x4> NavigationMatrix;
 };
 
 #endif
