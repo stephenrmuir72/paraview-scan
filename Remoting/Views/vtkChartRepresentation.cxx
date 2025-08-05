@@ -231,6 +231,7 @@ vtkSmartPointer<vtkDataObject> vtkChartRepresentation::ReduceDataToRoot(vtkDataO
 
   vtkNew<vtkReductionFilter> reductionFilter;
   vtkNew<vtkPVMergeTablesComposite> algo;
+  algo->SetMergeStrategy(this->BlockSelectionMode);
   reductionFilter->SetPostGatherHelper(algo.GetPointer());
   reductionFilter->SetInputConnection(preprocessor->GetOutputPort());
   reductionFilter->Update();

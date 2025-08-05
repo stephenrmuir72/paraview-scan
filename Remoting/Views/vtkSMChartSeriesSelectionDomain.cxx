@@ -185,11 +185,14 @@ void vtkSMChartSeriesSelectionDomain::Update(vtkSMProperty*)
     vtkSMStringVectorProperty::SafeDownCast(this->GetRequiredProperty("ActiveAssembly"));
   const auto selectors =
     vtkSMStringVectorProperty::SafeDownCast(this->GetRequiredProperty("Selectors"));
+  const auto blockSelectionMode =
+    vtkSMIntVectorProperty::SafeDownCast(this->GetRequiredProperty("BlockSelectionMode"));
 
   // clear old component names.
   this->Internals->VisibilityOverrides.clear();
 
-  if (!activeAssembly || !selectors || !dataInfo->IsCompositeDataSet())
+  if (!activeAssembly || !selectors || !dataInfo->IsCompositeDataSet() ||
+    (blockSelectionMode && blockSelectionMode->GetUncheckedElement(0) == 0 /*ALL*/))
   {
     // since there's no way to choose which dataset from a composite one to use,
     // just look at the top-level array information (skipping partial arrays).

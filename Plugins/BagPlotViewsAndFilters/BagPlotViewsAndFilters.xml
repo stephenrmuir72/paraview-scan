@@ -147,6 +147,27 @@
                               name="BagPlotMatrixRepresentation"
                               processes="client|dataserver|renderserver">
       <Documentation>Representation used by BagPlotMatrixView.</Documentation>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -172,6 +193,7 @@
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -252,6 +274,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -280,6 +323,7 @@
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -596,6 +640,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -617,10 +682,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -672,6 +738,7 @@
           <RequiredProperties>
             <Property function="Input" name="Input" />
             <Property function="FieldDataSelection" name="AttributeType" />
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesListDomain>
         <Hints>

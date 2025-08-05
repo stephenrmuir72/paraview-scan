@@ -5292,6 +5292,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -5315,10 +5336,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -5387,7 +5409,7 @@
       </SubProxy>
     </ChartRepresentationProxy>
 
-<!-- =================================================================== -->
+    <!-- =================================================================== -->
     <ChartRepresentationProxy class="vtkChartLogoRepresentation"
                               name="ChartLogoRepresentation"
                               processes="client|dataserver|renderserver">
@@ -5536,6 +5558,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -5559,10 +5602,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -5643,6 +5687,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
         <Hints>
@@ -5666,6 +5711,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -5684,6 +5730,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -5703,6 +5750,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -5722,6 +5770,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6046,6 +6095,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -6067,10 +6137,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -6115,6 +6186,7 @@
             <Property function="FieldDataSelection" name="FieldAssociation"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
         <Hints>
@@ -6254,6 +6326,27 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -6275,10 +6368,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -6323,6 +6417,7 @@
             <Property function="FieldDataSelection" name="FieldAssociation"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
         <Hints>
@@ -6346,6 +6441,7 @@
             <Property function="FieldDataSelection" name="FieldAssociation"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6513,6 +6609,7 @@
             <Property function="FieldDataSelection" name="FieldAssociation"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
         <Hints>
@@ -6640,6 +6737,27 @@
                               name="PlotMatrixRepresentation"
                               processes="client|dataserver|renderserver">
       <Documentation>Representation used by PlotMatrixView.</Documentation>
+      <IntVectorProperty command="SetBlockSelectionMode"
+                         default_values="0"
+                         name="BlockSelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="All"
+                 value="0"/>
+          <Entry text="Leaves"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          BlockSelectionMode controls how arrays are selected for charting in composite datasets.
+          Leaves means arrays are selected independently for each leaf block.
+          All means arrays are selected once and applied to all blocks.
+        </Documentation>
+      </IntVectorProperty>
       <StringVectorProperty name="Assembly"
                             command="SetActiveAssembly"
                             number_of_elements="1"
@@ -6661,10 +6779,11 @@
                             panel_visibility="multiblock_inspector"
                             number_of_elements="1"
                             default_values="/">
-        <DataAssemblyDomain name="data_assembly" mode="leaves">
+        <DataAssemblyDomain name="data_assembly">
           <RequiredProperties>
             <Property function="Input" name="Input"/>
             <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </DataAssemblyDomain>
         <Documentation>
@@ -6707,6 +6826,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6726,6 +6846,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6745,6 +6866,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6764,6 +6886,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6821,6 +6944,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6839,6 +6963,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6857,6 +6982,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
@@ -6875,6 +7001,7 @@
             <Property function="FieldDataSelection" name="AttributeType"/>
             <Property function="ActiveAssembly" name="Assembly"/>
             <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="BlockSelectionMode" name="BlockSelectionMode"/>
           </RequiredProperties>
         </ChartSeriesSelectionDomain>
       </StringVectorProperty>
