@@ -960,6 +960,7 @@ set(ZoomToData_TIMEOUT 150)
 list (APPEND TESTS_WITHOUT_BASELINES
   AboutDialog.xml
   AddFieldArrays.xml
+  AllPropertiesSaveStatePython.xml
   AnimateProperty.xml
   ArrayBoundsScaleDomain.xml
   ArraySelectionWidget.xml
