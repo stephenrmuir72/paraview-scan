@@ -26,9 +26,7 @@
 #include <vtksys/RegularExpression.hxx>
 
 #include <cassert>
-#include <map>
 #include <memory>
-#include <set>
 #include <sstream>
 #include <vector>
 
@@ -156,6 +154,20 @@ int vtkSMChartSeriesSelectionDomain::ReadXMLAttributes(
   return 1;
 }
 
+namespace
+{
+//----------------------------------------------------------------------------
+// Convert Keys from std::map<Key. Value> as std::vector<T>.
+template <typename Key, typename Value>
+std::vector<Key> GetKeys(const std::map<Key, Value>& map)
+{
+  std::vector<Key> result(map.size());
+  std::transform(map.begin(), map.end(), result.begin(),
+    [](const std::pair<Key, Value>& pair) { return pair.first; });
+  return result;
+}
+} // namespace
+
 //----------------------------------------------------------------------------
 void vtkSMChartSeriesSelectionDomain::Update(vtkSMProperty*)
 {
@@ -189,17 +201,17 @@ void vtkSMChartSeriesSelectionDomain::Update(vtkSMProperty*)
   {
     // since there's no way to choose which dataset from a composite one to use,
     // just look at the top-level array information (skipping partial arrays).
-    std::vector<std::string> column_names;
     const int fieldAssociation = fieldDataSelection->GetUncheckedElement(0);
-    this->PopulateAvailableArrays(
-      std::string(), column_names, dataInfo, fieldAssociation, this->FlattenTable);
-    this->SetStrings(column_names);
+    auto columnNameOverrides =
+      this->CollectAvailableArrays("", dataInfo, fieldAssociation, this->FlattenTable);
+    this->SetDefaultVisibilityOverrides(columnNameOverrides, false);
+    this->SetStrings(GetKeys(columnNameOverrides));
     return;
   }
 
   assert(activeAssembly->GetNumberOfUncheckedElements() == 1);
 
-  std::vector<std::string> column_names;
+  std::vector<std::string> columnNames;
   const int fieldAssociation = fieldDataSelection->GetUncheckedElement(0);
   const unsigned int numElems = selectors->GetNumberOfUncheckedElements();
   for (unsigned int cc = 0; cc < numElems; cc++)
@@ -214,33 +226,32 @@ void vtkSMChartSeriesSelectionDomain::Update(vtkSMProperty*)
 
     auto childInfo = this->GetInputSubsetDataInformation(
       selectors->GetUncheckedElement(cc), activeAssembly->GetUncheckedElement(0), "Input");
-    this->PopulateAvailableArrays(
-      blockName, column_names, childInfo, fieldAssociation, this->FlattenTable);
+    auto blockColumnNameOverrides =
+      this->CollectAvailableArrays(blockName, childInfo, fieldAssociation, this->FlattenTable);
+    this->SetDefaultVisibilityOverrides(blockColumnNameOverrides, false);
+    auto block_column_names = GetKeys(blockColumnNameOverrides);
+    columnNames.insert(columnNames.end(), block_column_names.begin(), block_column_names.end());
   }
-  this->SetStrings(column_names);
+  this->SetStrings(columnNames);
 }
 
 //----------------------------------------------------------------------------
 // Add arrays from dataInfo to strings. If blockName is non-empty, then it's
 // used to "uniquify" the array names.
-void vtkSMChartSeriesSelectionDomain::PopulateAvailableArrays(const std::string& blockName,
-  std::vector<std::string>& strings, vtkPVDataInformation* dataInfo, int fieldAssociation,
+std::map<std::string, bool> vtkSMChartSeriesSelectionDomain::CollectAvailableArrays(
+  const std::string& blockName, vtkPVDataInformation* dataInfo, int fieldAssociation,
   bool flattenTable)
 {
-  // this method is typically called for leaf nodes (or multi-piece).
-  // assert((dataInfo->GetCompositeDataInformation()->GetDataIsComposite() == 0) ||
-  //   (dataInfo->GetCompositeDataInformation()->GetDataIsMultiPiece() == 0));
   vtkChartRepresentation* chartRepr =
     vtkChartRepresentation::SafeDownCast(this->GetProperty()->GetParent()->GetClientSideObject());
   if (!chartRepr || !dataInfo)
   {
-    return;
+    return {};
   }
 
   // helps use avoid duplicates. duplicates may arise for plot types that treat
   // multiple columns as a single series/plot e.g. quartile plots.
-  std::set<std::string> uniquestrings;
-
+  std::map<std::string, bool> stringOverrides;
   vtkPVDataSetAttributesInformation* dsa = dataInfo->GetAttributeInformation(fieldAssociation);
   if (dsa != nullptr)
   {
@@ -249,25 +260,25 @@ void vtkSMChartSeriesSelectionDomain::PopulateAvailableArrays(const std::string&
     for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
       vtkPVArrayInformation* arrayInfo = iter->GetCurrentArrayInformation();
-      this->PopulateArrayComponents(
-        chartRepr, blockName, strings, uniquestrings, arrayInfo, flattenTable);
+      this->CollectArrayComponents(chartRepr, blockName, stringOverrides, arrayInfo, flattenTable);
     }
   }
 
   if (fieldAssociation == vtkDataObject::FIELD_ASSOCIATION_POINTS)
   {
     vtkPVArrayInformation* pointArrayInfo = dataInfo->GetPointArrayInformation();
-    this->PopulateArrayComponents(
-      chartRepr, blockName, strings, uniquestrings, pointArrayInfo, flattenTable);
+    this->CollectArrayComponents(
+      chartRepr, blockName, stringOverrides, pointArrayInfo, flattenTable);
   }
+  return stringOverrides;
 }
 
 //----------------------------------------------------------------------------
 // Add array component from arrayInfo to strings. If blockName is non-empty, then it's
 // used to "uniquify" the array names.
-void vtkSMChartSeriesSelectionDomain::PopulateArrayComponents(vtkChartRepresentation* chartRepr,
-  const std::string& blockName, std::vector<std::string>& strings,
-  std::set<std::string>& uniquestrings, vtkPVArrayInformation* arrayInfo, bool flattenTable)
+void vtkSMChartSeriesSelectionDomain::CollectArrayComponents(vtkChartRepresentation* chartRepr,
+  const std::string& blockName, std::map<std::string, bool>& stringOverrides,
+  vtkPVArrayInformation* arrayInfo, bool flattenTable)
 {
   if (arrayInfo && (!this->HidePartialArrays || arrayInfo->GetIsPartial() == 0))
   {
@@ -280,16 +291,10 @@ void vtkSMChartSeriesSelectionDomain::PopulateArrayComponents(vtkChartRepresenta
         {
           std::string component_name = vtkSMArrayListDomain::CreateMangledName(arrayInfo, kk);
           component_name = chartRepr->GetDefaultSeriesLabel(blockName, component_name);
-          if (uniquestrings.find(component_name) == uniquestrings.end())
+          if (stringOverrides.find(component_name) == stringOverrides.end())
           {
-            strings.push_back(component_name);
-            uniquestrings.insert(component_name);
-          }
-          if (kk != arrayInfo->GetNumberOfComponents())
-          {
-            // save component names so we can detect them when setting defaults
-            // later.
-            this->SetDefaultVisibilityOverride(component_name, false);
+            // save component names so we can detect them when setting defaults later.
+            stringOverrides.emplace(component_name, kk != arrayInfo->GetNumberOfComponents());
           }
         }
       }
@@ -299,22 +304,17 @@ void vtkSMChartSeriesSelectionDomain::PopulateArrayComponents(vtkChartRepresenta
         if (arrayName != nullptr)
         {
           std::string seriesName = chartRepr->GetDefaultSeriesLabel(blockName, arrayName);
-          if (uniquestrings.find(seriesName) == uniquestrings.end())
+          if (stringOverrides.find(seriesName) == stringOverrides.end())
           {
-            strings.push_back(seriesName);
-            uniquestrings.insert(seriesName);
-
             // Special case for Quartile plots. PlotSelectionOverTime filter, when
             // produces stats, likes to pre-split components in an array into multiple
             // single component arrays. We still want those to be treated as
             // components and not be shown by default. Hence, we use this hack.
             // (See BUG #15512).
             std::string seriesNameWithoutTableName =
-              chartRepr->GetDefaultSeriesLabel(std::string(), arrayName);
-            if (PotentialComponentNameRe.find(seriesNameWithoutTableName))
-            {
-              this->SetDefaultVisibilityOverride(seriesName, false);
-            }
+              chartRepr->GetDefaultSeriesLabel("", arrayName);
+            stringOverrides.emplace(
+              seriesName, PotentialComponentNameRe.find(seriesNameWithoutTableName));
           }
         }
       }
@@ -339,8 +339,8 @@ std::vector<std::string> vtkSMChartSeriesSelectionDomain::GetDefaultValue(const 
   {
     double rgb[3];
     auto presetProp = this->GetProperty()->GetParent()->GetProperty("LastPresetName");
-    this->Internals->GetNextColor(
-      presetProp ? vtkSMPropertyHelper(presetProp).GetAsString() : "Spectrum", rgb);
+    const char* preset = presetProp ? vtkSMPropertyHelper(presetProp).GetAsString() : "Spectrum";
+    this->Internals->GetNextColor(preset, rgb);
     for (int kk = 0; kk < 3; kk++)
     {
       std::ostringstream stream;
@@ -367,7 +367,6 @@ int vtkSMChartSeriesSelectionDomain::SetDefaultValues(
   }
 
   vtkNew<vtkStringList> values;
-  std::set<std::string> seriesNames;
   const std::vector<std::string>& domain_strings = this->GetStrings();
   for (size_t cc = 0; cc < domain_strings.size(); cc++)
   {
@@ -414,10 +413,16 @@ bool vtkSMChartSeriesSelectionDomain::GetDefaultSeriesVisibility(const char* nam
 }
 
 //----------------------------------------------------------------------------
-void vtkSMChartSeriesSelectionDomain::SetDefaultVisibilityOverride(
-  const std::string& arrayname, bool visibility)
+void vtkSMChartSeriesSelectionDomain::SetDefaultVisibilityOverrides(
+  const std::map<std::string, bool>& arrayNames, bool visibility)
 {
-  this->Internals->VisibilityOverrides[arrayname] = visibility;
+  for (const auto& pair : arrayNames)
+  {
+    if (pair.second) // should be overridden
+    {
+      this->Internals->VisibilityOverrides[pair.first] = visibility;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
