@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSMFrameStrideQueryDomain.h"
 
-#include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMProperty.h"
@@ -11,14 +10,11 @@
 
 #include <vtkSMPropertyHelper.h>
 
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSMFrameStrideQueryDomain);
 
 //----------------------------------------------------------------------------
-vtkSMFrameStrideQueryDomain::vtkSMFrameStrideQueryDomain()
-{
-  this->AddObserver(
-    vtkCommand::DomainModifiedEvent, this, &vtkSMFrameStrideQueryDomain::OnDomainModified);
-}
+vtkSMFrameStrideQueryDomain::vtkSMFrameStrideQueryDomain() = default;
 
 //----------------------------------------------------------------------------
 vtkSMFrameStrideQueryDomain::~vtkSMFrameStrideQueryDomain() = default;
@@ -77,15 +73,4 @@ int vtkSMFrameStrideQueryDomain::SetDefaultValues(vtkSMProperty* prop, bool use_
     frameStrideProp->SetElement(0, this->FrameStride);
   }
   return this->Superclass::SetDefaultValues(prop, use_unchecked_values);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMFrameStrideQueryDomain::OnDomainModified()
-{
-  vtkSMProperty* prop = this->GetProperty();
-  this->SetDefaultValues(prop, true);
-  if (prop->GetParent())
-  {
-    prop->GetParent()->UpdateProperty(prop->GetXMLName());
-  }
 }

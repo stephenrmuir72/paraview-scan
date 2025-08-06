@@ -165,9 +165,6 @@ private:
   class vtkInternals;
   vtkInternals* Internals;
 
-  // The EXPERIMENTAL feature: everytime domain is modified we update the
-  // property's value.
-  void OnDomainModified();
   void UpdateDefaultValues(vtkSMProperty*, bool preserve_previous_values);
 };
 

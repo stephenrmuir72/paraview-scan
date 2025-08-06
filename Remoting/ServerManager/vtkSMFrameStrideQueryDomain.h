@@ -67,8 +67,6 @@ private:
   void operator=(const vtkSMFrameStrideQueryDomain&) = delete;
 
   int FrameStride = 1;
-
-  void OnDomainModified();
 };
 
 #endif // vtkSMFrameStrideQueryDomain_h

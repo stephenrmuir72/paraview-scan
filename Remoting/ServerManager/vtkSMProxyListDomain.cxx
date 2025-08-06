@@ -351,10 +351,12 @@ int vtkSMProxyListDomain::SetDefaultValues(vtkSMProperty* prop, bool use_uncheck
   {
     vtkSMPropertyHelper helper(prop);
     helper.SetUseUnchecked(use_unchecked_values);
-    vtkSMProxy* values[1] = { this->GetProxy(this->GetDefaultIndex()) };
-    helper.Set(values, 1);
-    // Save this as the default on the proxy property
-    pp->ResetDefaultsToCurrent();
+    if (auto defaultProxy = this->GetProxy(this->GetDefaultIndex()))
+    {
+      helper.Set(0, defaultProxy);
+      // Save this as the default on the proxy property
+      pp->ResetDefaultsToCurrent();
+    }
     return 1;
   }
 
@@ -455,7 +457,6 @@ vtkSMProxy* vtkSMProxyListDomain::GetProxy(unsigned int index)
   const vtkSMProxyListDomainInternals::VectorOfProxies& proxies = this->Internals->GetProxies();
   if (index >= proxies.size())
   {
-    vtkErrorMacro("Index " << index << " greater than max " << proxies.size());
     return nullptr;
   }
   return this->Internals->GetProxies()[index].Proxy;

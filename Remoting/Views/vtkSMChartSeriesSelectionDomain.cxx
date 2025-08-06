@@ -3,7 +3,6 @@
 #include "vtkSMChartSeriesSelectionDomain.h"
 
 #include "vtkChartRepresentation.h"
-#include "vtkCommand.h"
 #include "vtkDataObject.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -82,9 +81,6 @@ vtkSMChartSeriesSelectionDomain::vtkSMChartSeriesSelectionDomain()
   this->SetDefaultValue("");
   this->FlattenTable = true;
   this->HidePartialArrays = true;
-
-  this->AddObserver(
-    vtkCommand::DomainModifiedEvent, this, &vtkSMChartSeriesSelectionDomain::OnDomainModified);
 }
 
 //----------------------------------------------------------------------------
@@ -445,17 +441,6 @@ bool vtkSMChartSeriesSelectionDomain::GetDefaultSeriesVisibility(const char* nam
   }
 
   return true;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMChartSeriesSelectionDomain::OnDomainModified()
-{
-  vtkSMProperty* prop = this->GetProperty();
-  this->UpdateDefaultValues(prop, true);
-  if (prop->GetParent())
-  {
-    prop->GetParent()->UpdateProperty(prop->GetXMLName());
-  }
 }
 
 //----------------------------------------------------------------------------

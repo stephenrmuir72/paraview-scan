@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSMDataTypeQueryDomain.h"
 
-#include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVDataInformation.h"
 #include "vtkSMIntVectorProperty.h"
@@ -12,11 +11,7 @@
 vtkStandardNewMacro(vtkSMDataTypeQueryDomain);
 
 //----------------------------------------------------------------------------
-vtkSMDataTypeQueryDomain::vtkSMDataTypeQueryDomain()
-{
-  this->AddObserver(
-    vtkCommand::DomainModifiedEvent, this, &vtkSMDataTypeQueryDomain::OnDomainModified);
-}
+vtkSMDataTypeQueryDomain::vtkSMDataTypeQueryDomain() = default;
 
 //----------------------------------------------------------------------------
 vtkSMDataTypeQueryDomain::~vtkSMDataTypeQueryDomain() = default;
@@ -81,15 +76,4 @@ int vtkSMDataTypeQueryDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unc
     placeHolderProp->SetElement(0, this->InputDataType);
   }
   return this->Superclass::SetDefaultValues(prop, use_unchecked_values);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMDataTypeQueryDomain::OnDomainModified()
-{
-  vtkSMProperty* prop = this->GetProperty();
-  this->SetDefaultValues(prop, false);
-  if (prop->GetParent())
-  {
-    prop->GetParent()->UpdateProperty(prop->GetXMLName());
-  }
 }

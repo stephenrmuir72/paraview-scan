@@ -49,7 +49,9 @@ vtkSMDomain::DeferDomainModifiedEvents::~DeferDomainModifiedEvents()
   }
 }
 
+//---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSMDomain);
+
 //---------------------------------------------------------------------------
 vtkSMDomain::vtkSMDomain()
 {
@@ -59,6 +61,8 @@ vtkSMDomain::vtkSMDomain()
 
   this->DeferDomainModifiedEventsCount = 0;
   this->PendingDomainModifiedEvents = false;
+
+  this->AddObserver(vtkCommand::DomainModifiedEvent, this, &vtkSMDomain::OnDomainModified);
 }
 
 //---------------------------------------------------------------------------
@@ -303,6 +307,20 @@ vtkSMProperty* vtkSMDomain::GetProperty()
 void vtkSMDomain::SetProperty(vtkSMProperty* prop)
 {
   this->Internals->DomainProperty = prop;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMDomain::OnDomainModified()
+{
+  vtkSMProperty* prop = this->GetProperty();
+  if (prop)
+  {
+    this->SetDefaultValues(prop, false);
+    if (prop->GetParent())
+    {
+      prop->GetParent()->UpdateProperty(prop->GetXMLName());
+    }
+  }
 }
 
 //---------------------------------------------------------------------------

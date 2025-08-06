@@ -278,6 +278,8 @@ private:
   vtkSMDomain(const vtkSMDomain&) = delete;
   void operator=(const vtkSMDomain&) = delete;
 
+  void OnDomainModified();
+
   friend class DeferDomainModifiedEvents;
   unsigned int DeferDomainModifiedEventsCount;
   bool PendingDomainModifiedEvents;

@@ -69,8 +69,6 @@ private:
   void operator=(const vtkSMDataTypeQueryDomain&) = delete;
 
   int InputDataType = -1;
-
-  void OnDomainModified();
 };
 
 #endif // vtkSMDataTypeQueryDomain_h

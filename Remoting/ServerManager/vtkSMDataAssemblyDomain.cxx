@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSMDataAssemblyDomain.h"
 
-#include "vtkCommand.h"
 #include "vtkDataAssembly.h"
 #if VTK_MODULE_ENABLE_VTK_IOIOSS
 #include "vtkIOSSReader.h"
@@ -18,13 +17,11 @@
 
 #include <sstream>
 
-vtkStandardNewMacro(vtkSMDataAssemblyDomain);
 //----------------------------------------------------------------------------
-vtkSMDataAssemblyDomain::vtkSMDataAssemblyDomain()
-{
-  this->AddObserver(
-    vtkCommand::DomainModifiedEvent, this, &vtkSMDataAssemblyDomain::OnDomainModified);
-}
+vtkStandardNewMacro(vtkSMDataAssemblyDomain);
+
+//----------------------------------------------------------------------------
+vtkSMDataAssemblyDomain::vtkSMDataAssemblyDomain() = default;
 
 //----------------------------------------------------------------------------
 vtkSMDataAssemblyDomain::~vtkSMDataAssemblyDomain() = default;
@@ -248,17 +245,6 @@ int vtkSMDataAssemblyDomain::SetDefaultValues(vtkSMProperty* prop, bool use_unch
     }
   }
   return this->Superclass::SetDefaultValues(prop, use_unchecked_values);
-}
-
-//----------------------------------------------------------------------------
-void vtkSMDataAssemblyDomain::OnDomainModified()
-{
-  vtkSMProperty* prop = this->GetProperty();
-  this->SetDefaultValues(prop, false);
-  if (prop->GetParent())
-  {
-    prop->GetParent()->UpdateProperty(prop->GetXMLName());
-  }
 }
 
 //----------------------------------------------------------------------------
