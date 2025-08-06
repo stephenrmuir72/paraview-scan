@@ -156,16 +156,12 @@ protected:
    */
   bool HidePartialArrays;
 
-  static bool LoadNoVariables;
-
 private:
   vtkSMChartSeriesSelectionDomain(const vtkSMChartSeriesSelectionDomain&) = delete;
   void operator=(const vtkSMChartSeriesSelectionDomain&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;
-
-  void UpdateDefaultValues(vtkSMProperty*, bool preserve_previous_values);
 };
 
 #endif

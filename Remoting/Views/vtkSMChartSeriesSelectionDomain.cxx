@@ -365,50 +365,12 @@ int vtkSMChartSeriesSelectionDomain::SetDefaultValues(
     vtkErrorMacro("Property must be a vtkSMVectorProperty subclass.");
     return 0;
   }
-  if (use_unchecked_values)
-  {
-    vtkWarningMacro("Developer warning: use_unchecked_values not implemented yet.");
-  }
-
-  this->UpdateDefaultValues(property, false);
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-void vtkSMChartSeriesSelectionDomain::UpdateDefaultValues(
-  vtkSMProperty* property, bool preserve_previous_values)
-{
-  vtkSMStringVectorProperty* vp = vtkSMStringVectorProperty::SafeDownCast(property);
-  assert(vp != nullptr);
 
   vtkNew<vtkStringList> values;
   std::set<std::string> seriesNames;
-  if (preserve_previous_values)
-  {
-    // capture old values.
-    unsigned int numElems = vp->GetNumberOfElements();
-    int stepSize =
-      vp->GetNumberOfElementsPerCommand() > 0 ? vp->GetNumberOfElementsPerCommand() : 1;
-
-    for (unsigned int cc = 0; (cc + stepSize) <= numElems; cc += stepSize)
-    {
-      seriesNames.insert(vp->GetElement(cc) ? vp->GetElement(cc) : "");
-      for (int kk = 0; kk < stepSize; kk++)
-      {
-        values->AddString(vp->GetElement(cc + kk));
-      }
-    }
-  }
-
   const std::vector<std::string>& domain_strings = this->GetStrings();
   for (size_t cc = 0; cc < domain_strings.size(); cc++)
   {
-    if (preserve_previous_values && seriesNames.find(domain_strings[cc]) != seriesNames.end())
-    {
-      // skip this. This series had a value set already which we are requested
-      // to preserve.
-      continue;
-    }
     std::vector<std::string> cur_values = this->GetDefaultValue(domain_strings[cc].c_str());
     if (!cur_values.empty())
     {
@@ -420,7 +382,15 @@ void vtkSMChartSeriesSelectionDomain::UpdateDefaultValues(
     }
   }
 
-  vp->SetElements(values.GetPointer());
+  if (use_unchecked_values)
+  {
+    vp->SetUncheckedElements(values.GetPointer());
+  }
+  else
+  {
+    vp->SetElements(values.GetPointer());
+  }
+  return 1;
 }
 
 //----------------------------------------------------------------------------
