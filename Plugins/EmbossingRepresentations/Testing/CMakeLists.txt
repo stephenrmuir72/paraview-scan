@@ -7,7 +7,8 @@ if (BUILD_SHARED_LIBS)
     TEST_DATA_TARGET ParaViewData
     TEST_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/ExtrusionRepresentationPointData.xml
     ${CMAKE_CURRENT_SOURCE_DIR}/ExtrusionRepresentationCellData.xml
-    ${CMAKE_CURRENT_SOURCE_DIR}/BumpMapRepresentationPointData.xml)
+    ${CMAKE_CURRENT_SOURCE_DIR}/BumpMapRepresentationPointData.xml
+    ${CMAKE_CURRENT_SOURCE_DIR}/TestExtrusionRepresentationPointVector.xml)
   paraview_add_client_tests(
     LOAD_PLUGIN "EmbossingRepresentations"
     TEST_DATA_TARGET ParaViewData
