@@ -682,7 +682,7 @@ int vtkPVGeometryFilter::RequestAMRData(
     return 0;
   }
 
-  vtkAMR* amr = vtkAMR::GetData(inputVector[0], 0);
+  vtkAMRDataObject* amr = vtkAMRDataObject::GetData(inputVector[0], 0);
   if (!amr)
   {
     vtkErrorMacro("Input vtkUniformGridAMR is nullptr.");
@@ -722,7 +722,7 @@ int vtkPVGeometryFilter::RequestAMRData(
     for (unsigned int partitionIdx = 0; partitionIdx < num_datasets; ++partitionIdx)
     {
       // TODO amr
-      vtkDataSet* ds = amr->GetDataSet(level, partitionIdx, true);
+      vtkDataSet* ds = amr->GetDataSetAsCartesianGrid(level, partitionIdx);
       if (!ds && ((this->UseOutline == 0) || (!overlappingAMR)))
       {
         // if this->UseOutline == 0, we need uniform grid to be present.
