@@ -197,7 +197,7 @@ vtkUniformGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
     for (unsigned int dataIdx = 0; dataIdx < numDatasets; ++dataIdx)
     {
       // TODO AMR
-      vtkUniformGrid* refGrid = vtkUniformGrid::SafeDownCast(amrds->GetDataSet(l, dataIdx, true));
+      vtkUniformGrid* refGrid = vtkUniformGrid::SafeDownCast(amrds->GetDataSetAsCartesianGrid(l, dataIdx));
       if (refGrid != nullptr)
       {
         return (refGrid);
@@ -1900,7 +1900,7 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
       //      vtkAMRBox box;
       //      vtkImageData* image = input->GetDataSet(level,levelBlockId,box);
       // TODO AMR
-      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSet(level, levelBlockId, true));
+      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSetAsCartesianGrid(level, levelBlockId));
       // TODO: We need to check the CELL_DATA and the correct volume fraction array.
 
       if (image)
@@ -2399,7 +2399,7 @@ void vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacing(vtkNonOverlappingAM
     for (unsigned int dsIdx = 0; dsIdx < dsIdxSize; ++dsIdx)
     {
       // TODO AMR
-      vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(input->GetDataSet(minLevel, dsIdx, true));
+      vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(input->GetDataSetAsCartesianGrid(minLevel, dsIdx));
       if (grid)
       {
         grid->GetDimensions(localBlockSize);
@@ -2537,7 +2537,7 @@ int vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacingOld(vtkNonOverlapping
       //      vtkAMRBox box;
       //      vtkImageData* image = input->GetDataSet(level,blockId,box);
       // TODO AMR
-      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSet(level, blockId, true));
+      vtkImageData* image = vtkImageData::SafeDownCast(input->GetDataSetAsCartesianGrid(level, blockId));
       if (image)
       {
         ++totalNumberOfBlocksInThisProcess;
