@@ -1014,6 +1014,14 @@ public:
 
   ///@{
   /**
+   * Set/Get the ANARI renderer
+   */
+  void SetANARIRenderer(std::string);
+  const char* GetANARIRenderer();
+  ///@}
+
+  ///@{
+  /**
    * Controls whether OSPRay sends casts shadow rays or not.
    */
   void SetShadows(bool);
