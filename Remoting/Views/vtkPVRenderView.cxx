@@ -3853,7 +3853,10 @@ void vtkPVRenderView::SetDenoise(bool v)
   this->Internals->OSPRayDenoise = v;
   vtkRenderer* ren = this->GetRenderer();
   vtkOSPRayRendererNode::SetEnableDenoiser(v, ren);
-  // vtkAnariRendererNode::SetUseDenoiser(v, ren);
+  if (this->Internals->AnariPass)
+  {
+    this->Internals->AnariPass->GetAnariRenderer()->SetParameterb("denoise", v);
+  }
 #else
   (void)v;
 #endif
@@ -3865,6 +3868,12 @@ bool vtkPVRenderView::GetDenoise()
 #if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   vtkRenderer* ren = this->GetRenderer();
   return (vtkOSPRayRendererNode::GetEnableDenoiser(ren) == 1);
+#elif VTK_MODULE_ENABLE_VTK_RenderingAnari
+  if (this->Internals->AnariPass)
+  {
+    return this->Internals->AnariPass->GetAnariRenderer()->GetParameterb("denoise");
+  }
+  return false;
 #else
   return false;
 #endif
