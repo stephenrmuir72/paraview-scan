@@ -174,7 +174,7 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "^pv\\.DecimatePolyline$"
     "^pvcrs\\.DecimatePolyline$"
     "^pvcs\\.DecimatePolyline$"
-    "^pv\\.ExtrusionRepresentationCellData$"
+    "^pv\\.TestExtrusionRepresentationCellData$"
     "^pvcrs\\.GroupDataSetOutputType$"
     "^pvcs\\.GroupDataSetOutputType$"
     "^pv\\.UndoRedo1$"
