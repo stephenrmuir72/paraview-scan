@@ -3,19 +3,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "vtkOpenGLExtrusionMapperDelegator.h"
-#include "vtkBumpMapMapper.h"
 #include "vtkCellArrayIterator.h"
 #include "vtkCompositePolyDataMapper.h"
 #include "vtkCompositePolyDataMapperDelegator.h"
 #include "vtkComputeTriangleNormals_gs.h"
 #include "vtkExtrudeCell_gs.h"
 #include "vtkExtrusionMapper.h"
-#include "vtkFloatArray.h"
 #include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkOpenGLBatchedPolyDataMapper.h"
 #include "vtkOpenGLBufferObject.h"
-#include "vtkOpenGLError.h"
 #include "vtkOpenGLPolyDataMapper.h"
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkOpenGLVertexBufferObject.h"
@@ -27,8 +24,6 @@
 #include "vtkRenderer.h"
 #include "vtkShaderProgram.h"
 #include "vtkTextureObject.h"
-
-#include <array>
 
 VTK_ABI_NAMESPACE_BEGIN
 
@@ -150,10 +145,6 @@ protected:
 
   bool GetNeedToRebuildShaders(vtkOpenGLHelper& cellBO, vtkRenderer* ren, vtkActor* act) override;
 
-  vtkNew<vtkTextureObject> CellExtrudeTexture;
-  vtkNew<vtkOpenGLBufferObject> CellExtrudeBuffer;
-  bool NeedRebuild = false;
-
 private:
   vtkOpenGLBatchedExtrusionMapper(const vtkOpenGLBatchedExtrusionMapper&) = delete;
   void operator=(const vtkOpenGLBatchedExtrusionMapper&) = delete;
@@ -185,6 +176,9 @@ private:
   void GenerateCellScalarsExtrusionShaders(std::map<vtkShader::Type, vtkShader*>& shaders);
 
   ExtrusionDataType ExtrusionVBODataType;
+  vtkNew<vtkTextureObject> CellExtrudeTexture;
+  vtkNew<vtkOpenGLBufferObject> CellExtrudeBuffer;
+  bool NeedRebuild = false;
 };
 
 //----------------------------------------------------------------------------
@@ -216,7 +210,7 @@ void vtkOpenGLBatchedExtrusionMapper::RenderPieceStart(vtkRenderer* ren, vtkActo
 {
   this->Superclass::RenderPieceStart(ren, actor);
 
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   if (parent->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_CELLS)
   {
@@ -229,7 +223,7 @@ void vtkOpenGLBatchedExtrusionMapper::RenderPieceFinish(vtkRenderer* ren, vtkAct
 {
   this->Superclass::RenderPieceFinish(ren, actor);
 
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   if (parent->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_CELLS)
   {
@@ -242,12 +236,12 @@ void vtkOpenGLBatchedExtrusionMapper::BuildBufferObjects(vtkRenderer* ren, vtkAc
 {
   this->Superclass::BuildBufferObjects(ren, act);
 
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   // if we have cell data, we construct a float texture
   if (parent->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_CELLS)
   {
-    this->CellExtrudeTexture->SetContext(static_cast<vtkOpenGLRenderWindow*>(ren->GetVTKWindow()));
+    this->CellExtrudeTexture->SetContext(vtkOpenGLRenderWindow::SafeDownCast(ren->GetVTKWindow()));
 
     std::vector<float> triangleArray;
     ::GetTrianglesFromPolyData(
@@ -309,7 +303,7 @@ void vtkOpenGLBatchedExtrusionMapper::AppendOneBufferObject(vtkRenderer* ren, vt
   GLBatchElement* glBatchElement, vtkIdType& vertex_offset, std::vector<unsigned char>& colors,
   std::vector<float>& norms)
 {
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   if (parent->FieldAssociation != vtkDataObject::FIELD_ASSOCIATION_CELLS)
   {
@@ -338,7 +332,7 @@ void vtkOpenGLBatchedExtrusionMapper::AppendOneBufferObject(vtkRenderer* ren, vt
 void vtkOpenGLBatchedExtrusionMapper::ReplaceShaderValues(
   std::map<vtkShader::Type, vtkShader*> shaders, vtkRenderer* ren, vtkActor* actor)
 {
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   if (parent->GetExtrusionFactor() != 0.f && this->ExtrusionVBODataType != ExtrusionDataType::None)
   {
@@ -490,7 +484,7 @@ void vtkOpenGLBatchedExtrusionMapper::SetShaderValues(
   vtkShaderProgram* prog, GLBatchElement* glBatchElement, size_t primOffset)
 {
   this->Superclass::SetShaderValues(prog, glBatchElement, primOffset); // update uniforms
-  vtkExtrusionMapper* parent = static_cast<vtkExtrusionMapper*>(this->Parent);
+  vtkExtrusionMapper* parent = vtkExtrusionMapper::SafeDownCast(this->Parent);
 
   // Component wise scale, used to scale the displacement before adding the displacement to the
   // vertices.
@@ -573,14 +567,14 @@ void vtkOpenGLExtrusionMapperDelegator::ShallowCopy(vtkCompositePolyDataMapper* 
 //------------------------------------------------------------------------------
 void vtkOpenGLExtrusionMapperDelegator::GetDataRange(double range[2])
 {
-  auto glExtrusionMapper = static_cast<vtkOpenGLBatchedExtrusionMapper*>(this->GLDelegate);
+  auto glExtrusionMapper = vtkOpenGLBatchedExtrusionMapper::SafeDownCast(this->GLDelegate);
   glExtrusionMapper->GetDataRange(range);
 }
 
 //------------------------------------------------------------------------------
 void vtkOpenGLExtrusionMapperDelegator::SetNeedRebuild(bool value)
 {
-  auto glExtrusionMapper = static_cast<vtkOpenGLBatchedExtrusionMapper*>(this->GLDelegate);
+  auto glExtrusionMapper = vtkOpenGLBatchedExtrusionMapper::SafeDownCast(this->GLDelegate);
   glExtrusionMapper->SetNeedRebuild(value);
 }
 
