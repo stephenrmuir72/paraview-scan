@@ -23,4 +23,13 @@ selection for `vtkPartitionedDataSetCollection` and to unify the block selection
 properties, with backward compatibility maintained.
 
 ![Old Chart Block Selector](./old-chart-block-selector.png)
-![New Chart Block Selector](./new-chart-block-selector.png)
+![New Chart Block Selector](./new-chart-block-selector-block-selection-mode-leaves.png)
+
+Additionally, for `vtkPartitionedDataSetCollection` and `vtkMultiBlockDataSet` datasets, chart representations can now
+display all selected blocks (as chosen in the `Multiblock Inspector`) as a single chart entity—such as a line or box
+plot—rather than generating a separate entity for each block. This behavior is controlled by the new
+`BlockSelectionMode` property, which can be set to `All` (new default) or `Leaves` (previous behavior). With this
+improvement, users no longer need to manually select every block and enable each block array individually—a process that
+was especially cumbersome when working with hundreds or thousands of blocks, each containing multiple arrays.
+
+![New Chart Block Selector](./new-chart-block-selector-block-selection-mode-all.png)
