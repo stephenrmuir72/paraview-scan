@@ -1324,13 +1324,13 @@ class RegisterPipelineProxy(TraceItem):
     def __init__(self, proxy, saving_state=False):
         TraceItem.__init__(self)
         self.Proxy = sm._getPyProxy(proxy)
+        self.varname = ""
         self.saving_state = saving_state
 
     def finalize(self):
         pname = Trace.get_registered_name(self.Proxy, "sources")
-        varname = Trace.get_varname(pname)
-        accessor = ProxyAccessor(varname, self.Proxy)
-
+        self.varname = Trace.get_varname(pname)
+        accessor = ProxyAccessor(self.varname, self.Proxy)
         ctor = sm._make_name_valid(self.Proxy.GetXMLLabel())
         trace = TraceOutput()
         trace.append("# create a new '%s'" % self.Proxy.GetXMLLabel())
