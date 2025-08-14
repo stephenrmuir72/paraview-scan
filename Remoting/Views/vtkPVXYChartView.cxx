@@ -26,6 +26,7 @@
 #include "vtkStringScanner.h"
 #include "vtkTextProperty.h"
 #include "vtkXYChartRepresentation.h"
+#include "vtkRenderer.h"
 
 #include <cmath>
 #include <vtksys/SystemTools.hxx>
@@ -70,6 +71,8 @@ vtkPVXYChartView::vtkPVXYChartView()
   // Use the buffer id - performance issues are fixed.
   this->ContextView->GetScene()->SetUseBufferId(true);
   this->LogScaleWarningLabel = nullptr;
+
+  this->GetContextView()->GetRenderer()->SetBackground(0.8, 0.0, 0.8);
 }
 
 //----------------------------------------------------------------------------
