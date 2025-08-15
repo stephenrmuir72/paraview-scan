@@ -426,30 +426,43 @@ void vtkSMChartSeriesSelectionDomain::UpdateDefaultValues(
 
   vtkNew<vtkStringList> values;
   std::set<std::string> seriesNames;
+  std::set<std::string> domainStringsSet;
+
+  // Create a set of current domain strings for fast lookup
+  const std::vector<std::string>& domain_strings = this->GetStrings();
+  for (const auto& domain_string : domain_strings)
+  {
+    domainStringsSet.insert(domain_string);
+  }
+
   if (preserve_previous_values)
   {
-    // capture old values.
+    // capture old values, but only if they still exist in the domain
     unsigned int numElems = vp->GetNumberOfElements();
     int stepSize =
       vp->GetNumberOfElementsPerCommand() > 0 ? vp->GetNumberOfElementsPerCommand() : 1;
 
     for (unsigned int cc = 0; (cc + stepSize) <= numElems; cc += stepSize)
     {
-      seriesNames.insert(vp->GetElement(cc) ? vp->GetElement(cc) : "");
-      for (int kk = 0; kk < stepSize; kk++)
+      const std::string seriesNameStr = vp->GetElement(cc) ? vp->GetElement(cc) : "";
+      // Only preserve if the series still exists in the current domain
+      if (!seriesNameStr.empty() && domainStringsSet.find(seriesNameStr) != domainStringsSet.end())
       {
-        values->AddString(vp->GetElement(cc + kk));
+        seriesNames.insert(seriesNameStr);
+        for (int kk = 0; kk < stepSize; kk++)
+        {
+          values->AddString(vp->GetElement(cc + kk));
+        }
       }
     }
   }
 
-  const std::vector<std::string>& domain_strings = this->GetStrings();
+  // Add default values for series that don't have preserved values
   for (size_t cc = 0; cc < domain_strings.size(); cc++)
   {
     if (preserve_previous_values && seriesNames.find(domain_strings[cc]) != seriesNames.end())
     {
-      // skip this. This series had a value set already which we are requested
-      // to preserve.
+      // skip this. This series had a value set already which we preserved.
       continue;
     }
     std::vector<std::string> cur_values = this->GetDefaultValue(domain_strings[cc].c_str());
