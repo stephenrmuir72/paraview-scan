@@ -159,6 +159,7 @@
 ## Linux-specific scripts
 
 .before_script_linux: &before_script_linux
+    - .gitlab/ci/docker/fedora35/install_catalyst.sh
     - .gitlab/ci/cmake.sh
     - .gitlab/ci/cmake.sh mindeps
     - .gitlab/ci/ninja.sh

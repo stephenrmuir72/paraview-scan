@@ -1,22 +1,27 @@
 #!/bin/sh
 set -x
 
-readonly catalyst_repo="https://gitlab.kitware.com/paraview/catalyst"
+# point to personal repo to test
+readonly catalyst_repo="https://gitlab.kitware.com/christos.tsolakis/catalyst"
 # we are pre-release, use the most recent commit (Dec 19, 2023)
-readonly catalyst_commit="63665051edd818e8a7874444dae5f1dff3c9f48b"
+readonly catalyst_commit="remove-python-from-public-interface"
 
 readonly catalyst_root="$HOME/catalyst"
 readonly catalyst_src="$catalyst_root/src"
 readonly catalyst_build_root="$catalyst_root/build"
 
+# remove previous files
+rm -rf "$catalyst_root"
+
 git clone "$catalyst_repo" "$catalyst_src"
 git -C "$catalyst_src" checkout "$catalyst_commit"
+CATALYST_CMAKE="$catalyst_src"/.gitlab/cmake/bin/cmake
 
 catalyst_prepare () {
   # make sure we have a recent cmake
   pushd "$catalyst_src"
   sh .gitlab/ci/cmake.sh
-  export PATH="$catalyst_src"/.gitlab/cmake/bin:${PATH}
+  #export PATH="$catalyst_src"/.gitlab/cmake/bin:${PATH}
   popd
 }
 catalyst_build () {
@@ -26,7 +31,7 @@ catalyst_build () {
     local prefix="$1"
     shift
 
-    cmake -GNinja \
+    "$CATALYST_CMAKE" -GNinja \
         -S "$catalyst_src" \
         -B "$catalyst_build_root/$subdir" \
         -DCATALYST_BUILD_SHARED_LIBS=ON \
@@ -36,7 +41,7 @@ catalyst_build () {
         -DCATALYST_WRAP_FORTRAN=ON \
         "-DCMAKE_INSTALL_PREFIX=$prefix" \
         "$@"
-    cmake --build "$catalyst_build_root/$subdir" --target install
+    "$CATALYST_CMAKE" --build "$catalyst_build_root/$subdir" --target install
 }
 
 catalyst_prepare
