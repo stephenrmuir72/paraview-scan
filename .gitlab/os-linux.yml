@@ -107,7 +107,7 @@
         - .fedora_mpich_addon
 
     variables:
-        CMAKE_CONFIGURATION: fedora35_shared_mpi_core
+        CMAKE_CONFIGURATION: fedora35_shared_kits_mpi_core
 
 .fedora35_shared_mpi_python_core:
     extends:
