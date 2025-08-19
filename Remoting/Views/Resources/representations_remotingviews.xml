@@ -5151,13 +5151,11 @@
                          default_values="0"
                          name="Interactivity"
                          number_of_elements="1"
-                         panel_visibility="never">
+                         panel_visibility="default">
         <BooleanDomain name="bool" />
         <Documentation>
           Set whether user should be able to interactively place the text in the view.
         </Documentation>
-        <!-- for now, we hide this property since we don't users interact with
-             the text right now -->
       </IntVectorProperty>
 
       <IntVectorProperty command="SetLabelLocation"
