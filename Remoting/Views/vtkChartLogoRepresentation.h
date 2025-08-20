@@ -54,6 +54,10 @@ public:
     vtkInformation* outInfo) override;
   ///@}
 
+  ///@{
+  void SetInteractivity(bool enable);
+  ///@}
+
 protected:
   vtkChartLogoRepresentation();
   ~vtkChartLogoRepresentation() override;
