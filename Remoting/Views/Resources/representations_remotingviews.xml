@@ -5502,6 +5502,20 @@
     </ChartRepresentationProxy>
 
     <!-- =================================================================== -->
+    <ChartRepresentationProxy class="vtkChartRectangleRepresentation"
+                              name="ChartRectangleRepresentation"
+                              processes="client|dataserver|renderserver">
+      <Documentation>TODO: add doc</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <Documentation>Data input for the representation.</Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject" />
+        </DataTypeDomain>
+      </InputProperty>
+    </ChartRepresentationProxy>
+
+    <!-- =================================================================== -->
     <ChartRepresentationProxy base_proxygroup="representations"
                               class="vtkXYChartRepresentation"
                               name="XYChartRepresentationBase"
