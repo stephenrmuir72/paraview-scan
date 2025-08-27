@@ -560,7 +560,7 @@ QString pqApplicationCore::getSettingFileBaseName()
   const bool disableSettings = vtkRemotingCoreConfiguration::GetInstance()->GetDisableRegistry();
   if (disableSettings)
   {
-    fileBaseName += "-dr";
+    fileBaseName += "--dr";
   }
 
   return fileBaseName;
