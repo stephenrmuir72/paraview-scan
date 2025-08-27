@@ -410,9 +410,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/EqualizeLayoutB.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExpandSelection_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExpandSelection_B.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractCellsByType.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractCellsByType2.png}"
-  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractCellsByType3.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractCellsByType_quadrilaterals.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractCellsByType_triangles.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractSubsetWithSeed.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractSubsetWithSeed_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ExtractSubsetWithSeed_2.png}"
@@ -1116,6 +1115,7 @@ list (APPEND TESTS_WITH_INLINE_COMPARES
   EllipseSource.xml
   Ensemble.xml
   EqualizeLayout.xml
+  ExtractCellsByType.xml
   ExtractSubsetWithSeed.xml
   FastUniformGridSource.xml
   FeatureEdgesHTG.xml
@@ -1484,7 +1484,6 @@ list(APPEND TESTS_WITH_BASELINES
   ExportX3dPOVVRML.xml
   ExTimeseries.xml
   ExTimeseries2.xml
-  ExtractCellsByType.xml
   ExtractComponentFilter.xml
   ExtractLevel.xml
   ExtractTimeSteps.xml
