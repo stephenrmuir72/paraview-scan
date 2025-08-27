@@ -1362,7 +1362,8 @@ void vtkSpyPlotReader::PrintBlockList(vtkNonOverlappingAMR* hbds, int vtkNotUsed
     for (i = 0; i < totalNumberOfDataSets; i++)
     {
       // cout<<myProcId<<" dataset="<<i<<"/"<<totalNumberOfDataSets;
-      if (hbds->GetDataSet(level, i) == nullptr)
+      // TODO AMR
+      if (hbds->GetDataSet(level, i, true) == nullptr)
       {
         // cout<<" Void"<<endl;
       }
@@ -2436,7 +2437,8 @@ void vtkSpyPlotReader::SetGlobalLevels(vtkCompositeDataSet* composite)
       {
         for (unsigned int kk = 0; kk < hbDS->GetNumberOfBlocks(level); kk++)
         {
-          vtkUniformGrid* ug = hbDS->GetDataSet(level, kk);
+          // TODO AMR
+          vtkUniformGrid* ug = vtkUniformGrid::SafeDownCast(hbDS->GetDataSet(level, kk, true));
           datasetsAtLevel.emplace_back(ug);
         }
       }
