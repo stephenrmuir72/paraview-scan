@@ -29,6 +29,9 @@ vtkPVGridAxes3DActor::vtkPVGridAxes3DActor()
     this->CustomTransformedBounds[4] = -1.0;
   this->CustomTransformedBounds[1] = this->CustomTransformedBounds[3] =
     this->CustomTransformedBounds[5] = 1.0;
+
+  std::fill(this->DisplayTransformScale, this->DisplayTransformScale + 3, 1.0);
+  this->SetIgnoreDisplayTransformScale(false);
 }
 
 //----------------------------------------------------------------------------
@@ -154,6 +157,47 @@ void vtkPVGridAxes3DActor::ShallowCopy(vtkProp* prop)
     this->SetUseModelTransform(other->GetUseModelTransform());
     this->SetModelBounds(other->GetModelBounds());
     this->SetModelTransformMatrix(reinterpret_cast<double*>(other->ModelTransformMatrix->Element));
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPVGridAxes3DActor::SetDisplayTransformScale(double scaleX, double scaleY, double scaleZ)
+{
+  if (scaleX == this->DisplayTransformScale[0] && scaleY == this->DisplayTransformScale[1] &&
+    scaleZ == this->DisplayTransformScale[2])
+  {
+    return;
+  }
+
+  if (scaleX == 0.0 || scaleY == 0.0 || scaleZ == 0.0)
+  {
+    vtkWarningMacro("One of the scale component are set to 0.0, which will cause a crash due to a "
+                    "division by 0 if Bypass Display Transform option is activated!");
+  }
+
+  this->DisplayTransformScale[0] = scaleX;
+  this->DisplayTransformScale[1] = scaleY;
+  this->DisplayTransformScale[2] = scaleZ;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVGridAxes3DActor::SetIgnoreDisplayTransformScale(bool enabled)
+{
+  if (enabled)
+  {
+    this->SetTickLabelFunction(
+      0, [this](double val) -> double { return val * 1.0 / this->DisplayTransformScale[0]; });
+    this->SetTickLabelFunction(
+      1, [this](double val) -> double { return val * 1.0 / this->DisplayTransformScale[1]; });
+    this->SetTickLabelFunction(
+      2, [this](double val) -> double { return val * 1.0 / this->DisplayTransformScale[2]; });
+  }
+  else
+  {
+    for (int axisIdx = 0; axisIdx < 3; axisIdx++)
+    {
+      this->SetTickLabelFunction(axisIdx, nullptr);
+    }
   }
 }
 
