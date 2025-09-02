@@ -775,9 +775,7 @@ void vtkAMRConnectivity::ProcessBoundaryAtBlock(vtkNonOverlappingAMR* volume,
 
   if (block->ProcessId == myProc)
   {
-    // TODO AMR
-    vtkUniformGrid* grid =
-      vtkUniformGrid::SafeDownCast(volume->GetDataSetAsCartesianGrid(block->Level, block->BlockId));
+    vtkCartesianGrid* grid = volume->GetDataSetAsCartesianGrid(block->Level, block->BlockId);
     vtkIdTypeArray* regionId =
       vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
 
@@ -904,9 +902,7 @@ void vtkAMRConnectivity::ProcessBoundaryAtBlock(vtkNonOverlappingAMR* volume,
   }
   else if (neighbor->ProcessId == myProc)
   {
-    // TODO AMR
-    vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(
-      volume->GetDataSetAsCartesianGrid(neighbor->Level, neighbor->BlockId));
+    vtkCartesianGrid* grid = volume->GetDataSetAsCartesianGrid(neighbor->Level, neighbor->BlockId);
     // estimate the size of the receive by the extent of this neighbor
     int extent[6];
     grid->GetExtent(extent);
@@ -1209,9 +1205,7 @@ void vtkAMRConnectivity::ProcessBoundaryAtNeighbor(
     return;
   }
 
-  // TODO AMR
-  vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(
-    volume->GetDataSetAsCartesianGrid(neighbor->Level, neighbor->BlockId));
+  vtkCartesianGrid* grid = volume->GetDataSetAsCartesianGrid(neighbor->Level, neighbor->BlockId);
   vtkIdTypeArray* regionId =
     vtkIdTypeArray::SafeDownCast(grid->GetCellData()->GetArray(this->RegionName.c_str()));
 

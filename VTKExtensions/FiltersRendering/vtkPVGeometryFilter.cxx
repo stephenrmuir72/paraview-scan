@@ -389,23 +389,13 @@ void vtkPVGeometryFilter::ExecuteAMRBlockOutline(
 
 //----------------------------------------------------------------------------
 void vtkPVGeometryFilter::ExecuteAMRBlock(
-  vtkDataSet* input, vtkPolyData* output, const bool extractface[6])
+  vtkCartesianGrid* input, vtkPolyData* output, const bool extractface[6])
 {
   assert(input != nullptr && output != nullptr && this->UseOutline == 0);
   if (input->GetNumberOfCells() > 0)
   {
     int extent[6];
-    vtkUniformGrid* ug = vtkUniformGrid::SafeDownCast(input);
-    vtkRectilinearGrid* rg = vtkRectilinearGrid::SafeDownCast(input);
-    if (ug)
-    {
-      ug->GetExtent(extent);
-    }
-    else // if (rg)
-    {
-      rg->GetExtent(extent);
-    }
-
+    input->GetExtent(extent);
     this->GeometryFilter->StructuredExecute(input, output, extent, const_cast<bool*>(extractface));
   }
   this->OutlineFlag = 0;
@@ -721,9 +711,8 @@ int vtkPVGeometryFilter::RequestAMRData(
     const unsigned int num_datasets = amr->GetNumberOfBlocks(level);
     for (unsigned int partitionIdx = 0; partitionIdx < num_datasets; ++partitionIdx)
     {
-      // TODO amr
-      vtkDataSet* ds = amr->GetDataSetAsCartesianGrid(level, partitionIdx);
-      if (!ds && ((this->UseOutline == 0) || (!overlappingAMR)))
+      vtkCartesianGrid* cg = amr->GetDataSetAsCartesianGrid(level, partitionIdx);
+      if (!cg && ((this->UseOutline == 0) || (!overlappingAMR)))
       {
         // if this->UseOutline == 0, we need uniform grid to be present.
 
@@ -733,37 +722,40 @@ int vtkPVGeometryFilter::RequestAMRData(
         continue;
       }
 
-      if (overlappingAMR && !this->UseNonOverlappingAMRMetaDataForOutlines && !ds)
+      if (overlappingAMR && !this->UseNonOverlappingAMRMetaDataForOutlines && !cg)
       {
         // for non-overlapping AMR, if we were told to not use meta-data, don't.
         continue;
       }
 
-      double data_bounds[6];
-      double error_margin = 0.01;
+      double dataBounds[6];
+      double errorMargin = 0.01;
 
       // we have different mechanisms for determining if any of the faces of the
       // block are visible and what faces are visible based on the type of amr.
+      // Error margin is computed using spacing when available.
       if (overlappingAMR)
       {
         // for overlappingAMR, we use the meta-data to determine AMR bounds.
-        overlappingAMR->GetBounds(level, partitionIdx, data_bounds);
-        double data_spacing[3];
-        // TODO AMR
-        //        overlappingAMR->GetSpacing(level, data_spacing);
-        //        error_margin = vtkMath::Norm(data_spacing);
+        overlappingAMR->GetBounds(level, partitionIdx, dataBounds);
+        if (overlappingAMR->HasSpacing(level, partitionIdx))
+        {
+          double dataSpacing[3];
+          overlappingAMR->GetSpacing(level, dataSpacing);
+          errorMargin = vtkMath::Norm(dataSpacing);
+        }
       }
-      else if (ds)
+      else if (cg)
       {
         // for non-overlapping AMR, we use the bounds from the heavy-data itself.
-        ds->GetBounds(data_bounds);
-
-        // TODO AMR
-        /*
-        double data_spacing[3];
-        ug->GetSpacing(data_spacing);
-        error_margin = vtkMath::Norm(data_spacing);
-        */
+        cg->GetBounds(dataBounds);
+        vtkUniformGrid* ug = vtkUniformGrid::SafeDownCast(cg);
+        if (ug)
+        {
+          double dataSpacing[3];
+          ug->GetSpacing(dataSpacing);
+          errorMargin = vtkMath::Norm(dataSpacing);
+        }
       }
       else
       {
@@ -792,7 +784,7 @@ int vtkPVGeometryFilter::RequestAMRData(
       }
       else
       {
-        this->ExecuteAMRBlock(ds, outputPartition, extractface);
+        this->ExecuteAMRBlock(cg, outputPartition, extractface);
         // add atttribute arrays when not generating outlines
         this->CleanupOutputData(outputPartition);
         this->AddCompositeIndex(outputPartition, amr->GetAbsoluteBlockIndex(level, partitionIdx));
