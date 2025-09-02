@@ -188,7 +188,7 @@ vtkCxxSetObjectMacro(vtkMaterialInterfaceFilter, ClipFunction, vtkImplicitFuncti
 //============================================================================
 namespace
 {
-vtkUniformGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
+vtkCartesianGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
 {
   unsigned int numLevels = amrds->GetNumberOfLevels();
   for (unsigned int l = 0; l < numLevels; ++l)
@@ -196,9 +196,7 @@ vtkUniformGrid* GetReferenceGrid(vtkNonOverlappingAMR* amrds)
     unsigned int numDatasets = amrds->GetNumberOfBlocks(l);
     for (unsigned int dataIdx = 0; dataIdx < numDatasets; ++dataIdx)
     {
-      // TODO AMR
-      vtkUniformGrid* refGrid =
-        vtkUniformGrid::SafeDownCast(amrds->GetDataSetAsCartesianGrid(l, dataIdx));
+      vtkCartesianGrid* refGrid = amrds->GetDataSetAsCartesianGrid(l, dataIdx);
       if (refGrid != nullptr)
       {
         return (refGrid);
@@ -1898,11 +1896,8 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
     int numBlocks = input->GetNumberOfBlocks(level);
     for (int levelBlockId = 0; levelBlockId < numBlocks; ++levelBlockId)
     {
-      //      vtkAMRBox box;
-      //      vtkImageData* image = input->GetDataSet(level,levelBlockId,box);
-      // TODO AMR
-      vtkImageData* image =
-        vtkImageData::SafeDownCast(input->GetDataSetAsCartesianGrid(level, levelBlockId));
+      vtkCartesianGrid* cg = input->GetDataSetAsCartesianGrid(level, levelBlockId);
+      vtkImageData* image = vtkImageData::SafeDownCast(cg);
       // TODO: We need to check the CELL_DATA and the correct volume fraction array.
 
       if (image)
@@ -1927,6 +1922,10 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
         cumulativeExt[3] = std::max(cumulativeExt[3], ext[3]);
         cumulativeExt[4] = std::min(cumulativeExt[4], ext[4]);
         cumulativeExt[5] = std::max(cumulativeExt[5], ext[5]);
+      }
+      else if (cg)
+      {
+        vtkWarningMacro("Non vtkImageDataBlock are not supported and are skipped");
       }
     }
 
@@ -2400,13 +2399,16 @@ void vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacing(vtkNonOverlappingAM
     unsigned int dsIdxSize = input->GetNumberOfBlocks(minLevel);
     for (unsigned int dsIdx = 0; dsIdx < dsIdxSize; ++dsIdx)
     {
-      // TODO AMR
-      vtkUniformGrid* grid =
-        vtkUniformGrid::SafeDownCast(input->GetDataSetAsCartesianGrid(minLevel, dsIdx));
+      vtkCartesianGrid* cg = input->GetDataSetAsCartesianGrid(minLevel, dsIdx);
+      vtkUniformGrid* grid = vtkUniformGrid::SafeDownCast(cg);
       if (grid)
       {
         grid->GetDimensions(localBlockSize);
         grid->GetSpacing(localSpacing);
+      }
+      else if (cg)
+      {
+        vtkWarningMacro("Non vtkImageDataBlock are not supported and are skipped");
       }
     }
     this->Controller->AllGather(localBlockSize, receivedBlockSize, 3);
@@ -2537,11 +2539,8 @@ int vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacingOld(vtkNonOverlapping
     numBlocks = input->GetNumberOfBlocks(level);
     for (blockId = 0; blockId < numBlocks; ++blockId)
     {
-      //      vtkAMRBox box;
-      //      vtkImageData* image = input->GetDataSet(level,blockId,box);
-      // TODO AMR
-      vtkImageData* image =
-        vtkImageData::SafeDownCast(input->GetDataSetAsCartesianGrid(level, blockId));
+      vtkCartesianGrid* cg = input->GetDataSetAsCartesianGrid(level, blockId);
+      vtkImageData* image = vtkImageData::SafeDownCast(cg);
       if (image)
       {
         ++totalNumberOfBlocksInThisProcess;
@@ -2580,6 +2579,10 @@ int vtkMaterialInterfaceFilter::ComputeOriginAndRootSpacingOld(vtkNonOverlapping
           lowestDims[1] = cellDims[1];
           lowestDims[2] = cellDims[2];
         }
+      }
+      else if (cg)
+      {
+        vtkWarningMacro("Non vtkImageDataBlock are not supported and are skipped");
       }
     }
   }
@@ -3421,7 +3424,7 @@ int vtkMaterialInterfaceFilter::RequestData(vtkInformation* vtkNotUsed(request),
       // Extract all compatible cell data so they could be used by the user
       // to color by. Previously only the array that were used for computation
       // was kept
-      vtkUniformGrid* ds = GetReferenceGrid(hbdsInput);
+      vtkCartesianGrid* ds = ::GetReferenceGrid(hbdsInput);
       if (ds)
       {
         this->NToIntegrate = ds->GetCellData()->GetNumberOfArrays();
