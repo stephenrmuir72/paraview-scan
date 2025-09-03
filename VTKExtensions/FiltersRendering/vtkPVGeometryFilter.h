@@ -17,6 +17,7 @@
 
 #include "vtkNew.h" // for vtkNew
 
+class vtkCartesianGrid;
 class vtkCellGrid;
 class vtkDataSet;
 class vtkDataObjectMeshCache;
@@ -28,7 +29,6 @@ class vtkGenericGeometryFilter;
 class vtkGeometryFilter;
 class vtkHyperTreeGrid;
 class vtkImageData;
-class vtkUniformGrid;
 class vtkInformationIntegerVectorKey;
 class vtkInformationVector;
 class vtkMultiProcessController;

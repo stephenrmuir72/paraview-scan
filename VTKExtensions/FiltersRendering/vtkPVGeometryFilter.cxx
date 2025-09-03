@@ -738,10 +738,12 @@ int vtkPVGeometryFilter::RequestAMRData(
       {
         // for overlappingAMR, we use the meta-data to determine AMR bounds.
         overlappingAMR->GetBounds(level, partitionIdx, dataBounds);
-        if (overlappingAMR->HasSpacing(level, partitionIdx))
+        vtkOverlappingAMRMetaData* overlappingAMRMetaData =
+          overlappingAMR->GetOverlappingAMRMetaData();
+        if (overlappingAMRMetaData && overlappingAMRMetaData->HasSpacing(level))
         {
           double dataSpacing[3];
-          overlappingAMR->GetSpacing(level, dataSpacing);
+          overlappingAMRMetaData->GetSpacing(level, dataSpacing);
           errorMargin = vtkMath::Norm(dataSpacing);
         }
       }
@@ -765,8 +767,8 @@ int vtkPVGeometryFilter::RequestAMRData(
       bool extractface[6] = { true, true, true, true, true, true };
       for (int cc = 0; this->HideInternalAMRFaces && cc < 6; cc++)
       {
-        const double delta = std::abs(data_bounds[cc] - bounds[cc]);
-        extractface[cc] = (delta < error_margin);
+        const double delta = std::abs(dataBounds[cc] - bounds[cc]);
+        extractface[cc] = (delta < errorMargin);
       }
 
       if (!(extractface[0] || extractface[1] || extractface[2] || extractface[3] ||
@@ -779,7 +781,7 @@ int vtkPVGeometryFilter::RequestAMRData(
       const vtkNew<vtkPolyData> outputPartition;
       if (this->UseOutline)
       {
-        this->ExecuteAMRBlockOutline(data_bounds, outputPartition, extractface);
+        this->ExecuteAMRBlockOutline(dataBounds, outputPartition, extractface);
         // don't process attribute arrays when generating outlines.
       }
       else
