@@ -737,14 +737,23 @@ int vtkPVGeometryFilter::RequestAMRData(
       if (overlappingAMR)
       {
         // for overlappingAMR, we use the meta-data to determine AMR bounds.
-        overlappingAMR->GetBounds(level, partitionIdx, dataBounds);
-        vtkOverlappingAMRMetaData* overlappingAMRMetaData =
-          overlappingAMR->GetOverlappingAMRMetaData();
-        if (overlappingAMRMetaData && overlappingAMRMetaData->HasSpacing(level))
+        vtkOverlappingAMRMetaData* oamrMetaData = overlappingAMR->GetOverlappingAMRMetaData();
+        if (oamrMetaData)
         {
-          double dataSpacing[3];
-          overlappingAMRMetaData->GetSpacing(level, dataSpacing);
-          errorMargin = vtkMath::Norm(dataSpacing);
+          unsigned int index = oamrMetaData->GetAbsoluteBlockIndex(level, partitionIdx);
+          bool hasSpacing = oamrMetaData->HasSpacing(level);
+          if (!oamrMetaData->HasBlockBounds(index) && !hasSpacing)
+          {
+            continue; // skip unset block without spacing
+          }
+
+          oamrMetaData->GetBounds(level, partitionIdx, dataBounds);
+          if (hasSpacing)
+          {
+            double dataSpacing[3];
+            oamrMetaData->GetSpacing(level, dataSpacing);
+            errorMargin = vtkMath::Norm(dataSpacing);
+          }
         }
       }
       else if (cg)
