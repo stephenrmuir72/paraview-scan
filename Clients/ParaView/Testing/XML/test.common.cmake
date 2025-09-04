@@ -1227,7 +1227,9 @@ if(NOT APPLE)
 endif()
 
 list(APPEND TESTS_WITH_BASELINES
+  AMRRectGridOutline.xml
   AMRRectGridSurface.xml
+  AMRUniformGridOutline.xml
   AMRUniformGridSurface.xml
   AnnulusWidget.xml
   AxisAlignedCutterAMR.xml
