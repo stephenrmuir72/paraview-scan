@@ -1986,7 +1986,8 @@ set(VolumeSliceBlendMode_DISABLE_CRS TRUE)
 set(VolumeIsosurfaceBlendMode_DISABLE_CRS TRUE)
 set(PointVolumeInterpolator_DISABLE_CRS TRUE)
 
-# TODO Distributed AMR not supported yet
+# Distributed AMR rendering is broken
+# https://gitlab.kitware.com/paraview/paraview/-/issues/23096
 set(AMRRectGridSurface_DISABLE_CS TRUE)
 set(AMRRectGridSurface_DISABLE_CRS TRUE)
 set(AMRUniformGridSurface_DISABLE_CS TRUE)
