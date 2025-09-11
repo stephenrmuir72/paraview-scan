@@ -66,8 +66,15 @@
        <string>Flip Vector</string>
       </property>
      </widget>
+    </item>
+   <item row="6" column="1" colspan="3">
+    <widget class="QPushButton" name="repositionToView">
+      <property name="text">
+      <string>Reposition to view</string>
+      </property>
+    </widget>
    </item>
-   <item row="6" column="0" colspan="4">
+   <item row="7" column="0" colspan="4">
     <widget class="QLabel" name="pickLabel">
      <property name="font">
       <font>
@@ -89,7 +96,7 @@ Use 'X'/'Y'/'Z'/'L' to constrain the movement to the X / Y / Z / Line axis respe
      </property>
     </widget>
    </item>
-   <item row="7" column="0" colspan="4">
+   <item row="8" column="0" colspan="4">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>2</number>
@@ -117,7 +124,7 @@ Use 'X'/'Y'/'Z'/'L' to constrain the movement to the X / Y / Z / Line axis respe
      </item>
     </layout>
    </item>
-   <item row="8" column="0" colspan="4">
+   <item row="9" column="0" colspan="4">
     <widget class="QPushButton" name="centerOnBounds">
      <property name="text">
       <string>Center on Bounds</string>
