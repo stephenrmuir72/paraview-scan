@@ -8,7 +8,7 @@
 #include "vtkArrayDispatch.h"
 #include "vtkCellData.h"
 #include "vtkCellType.h"
-#include "vtkCellTypes.h"
+#include "vtkCellTypeUtilities.h"
 #include "vtkCharArray.h"
 #include "vtkDataArray.h"
 #include "vtkDataSetAttributes.h"
@@ -242,7 +242,8 @@ void AddInverseMapping(
   auto mapIt = mappingRange.begin();
   for (vtkIdType iCell = 0; iCell < input->GetNumberOfCells(); ++iCell)
   {
-    std::pair<std::size_t, std::size_t> dimEnt = { vtkCellTypes::GetDimension(*cTypeIt), *mapIt };
+    std::pair<std::size_t, std::size_t> dimEnt = { vtkCellTypeUtilities::GetDimension(*cTypeIt),
+      *mapIt };
     mapIt++, cTypeIt++;
     auto it = invMap.find(dimEnt);
     if (it == invMap.end())
@@ -297,7 +298,7 @@ void vtkGmshWriter::SetUpEntities()
       for (vtkIdType iCell = 0; iCell < this->Internal->Input->GetNumberOfCells(); ++iCell)
       {
         entityIDs->SetComponent(
-          iCell, 0, vtkCellTypes::GetDimension(cellType->GetValue(iCell)) + 1);
+          iCell, 0, vtkCellTypeUtilities::GetDimension(cellType->GetValue(iCell)) + 1);
       }
     }
   }
