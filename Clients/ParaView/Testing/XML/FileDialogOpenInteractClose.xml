@@ -13,6 +13,8 @@
   <pqevent object="pqClientMainWindow/FileOpenDialog/tabWidget/qt_tabwidget_stackedwidget/Filesystem_0/mainWidget/mainSplitter/splitter/favoritesLayoutWidget/Favorites" command="setCurrent" arguments="0.0" />
   <pqevent object="pqClientMainWindow/FileOpenDialog/tabWidget/qt_tabwidget_stackedwidget/Filesystem_0/mainWidget/mainSplitter/splitter/favoritesLayoutWidget/Favorites" command="setSelection" arguments="0.0,0.0" />
   <pqevent object="pqClientMainWindow/FileOpenDialog/tabWidget/qt_tabwidget_stackedwidget/Filesystem_0/mainWidget/mainSplitter/splitter/favoritesLayoutWidget/Favorites" command="openContextMenu" arguments="0.0" />
+  <!-- Race with Qt6 on macOS in CI; the context menu is not created before it is queried in the following event. -->
+  <pqevent object="pqClientMainWindow" command="pause" arguments="50" />
   <pqevent object="pqClientMainWindow/FileOpenDialog/FileDialogFavoritesContextMenu" command="activate" arguments="Rename label" />
   <pqevent object="pqClientMainWindow/FileOpenDialog/tabWidget/qt_tabwidget_stackedwidget/Filesystem_0/mainWidget/mainSplitter/splitter/favoritesLayoutWidget/Favorites/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="test" />
   <pqevent object="pqClientMainWindow/FileOpenDialog/tabWidget/qt_tabwidget_stackedwidget/Filesystem_0/mainWidget/mainSplitter/splitter/favoritesLayoutWidget/ResetFavortiesToSystemDefault" command="activate" arguments="" />
