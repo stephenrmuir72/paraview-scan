@@ -792,6 +792,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCAVE-tile1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCAVEVolRen-tile0.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCAVEVolRen-tile1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCAVE2DAnnotations-tile0.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCAVE2DAnnotations-tile1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCleanGridPointDataStrategies_0.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCleanGridPointDataStrategies_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/TestCleanGridPointDataStrategies_2.png}"
@@ -2249,6 +2251,9 @@ endif()
 
 paraview_add_cave_tests(2 "${CMAKE_CURRENT_SOURCE_DIR}/LeftRight.pvx"
   TEST_SCRIPTS TestCAVE.xml TestCAVEVolumeRendering.xml)
+
+paraview_add_cave_tests(2 "${CMAKE_CURRENT_SOURCE_DIR}/LeftRightHide2DOverlay.pvx"
+  TEST_SCRIPTS TestCAVE2DAnnotations.xml)
 
 #------------------------------------------------------------------
 # Add tests that test command line arguments (among other things).
