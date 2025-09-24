@@ -1,4 +1,7 @@
 include:
+    # SAST report
+    - component: gitlab.com/components/sast/sast@main
+
     # Metadata shared my many jobs
     - local: .gitlab/rules.yml
     - local: .gitlab/artifacts.yml
