@@ -2,6 +2,8 @@ include:
     # SAST report
     - component: $CI_SERVER_FQDN/third-party/gitlab-sast/sast@main
       inputs:
+        stage: analyze
+        enable_mr_pipelines: true
         image_prefix: "registry.gitlab.com/security-products"
 
     # Metadata shared my many jobs
@@ -15,6 +17,7 @@ include:
     - local: .gitlab/os-windows.yml
 
 stages:
+    - analyze
     - build
     - test
 
