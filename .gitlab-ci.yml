@@ -1,6 +1,8 @@
 include:
     # SAST report
     - component: gitlab.com/components/sast/sast@main
+      inputs:
+        image_prefix: "registry.gitlab.com/security-products"
 
     # Metadata shared my many jobs
     - local: .gitlab/rules.yml
