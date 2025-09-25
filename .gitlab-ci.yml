@@ -1,6 +1,6 @@
 include:
     # SAST report
-    - component: $CI_SERVER_FQDN/third-party/gitlab-sast/sast@main
+    - component: $CI_SERVER_FQDN/third-party/gitlab-sast/sast@kitware
       inputs:
         stage: analyze
         enable_mr_pipelines: true
