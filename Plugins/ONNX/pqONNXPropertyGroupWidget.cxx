@@ -191,6 +191,8 @@ void pqONNXPropertyGroupWidget::updateFromJson()
     {
       pqONNXTimeParameter param(dataObject);
       this->setupTimeValues(param, parameterIndex);
+      this->MultiWidget->addWidget(&param);
+      this->MultiWidget->hideWidget(param.getName());
     }
     else
     {
