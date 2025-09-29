@@ -62,6 +62,11 @@ public:
    */
   void addWidget(pqNumericParameter* param);
 
+  /**
+   * Hide the widgets for given parameter name.
+   */
+  void hideParameter(const QString& name);
+
 Q_SIGNALS:
   /**
    * Emited on any underlying widget value change.
