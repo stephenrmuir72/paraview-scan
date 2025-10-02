@@ -1252,7 +1252,8 @@ std::string vtkPVFileInformation::GetParaViewSharedResourcesDirectory()
     ".."
 #else
     "share/paraview-" PARAVIEW_VERSION,
-    "share/paraview-" PARAVIEW_VERSION_SHORT
+    "share/paraview-" PARAVIEW_VERSION_SHORT,
+    "share/paraview"
 #endif
   };
 
