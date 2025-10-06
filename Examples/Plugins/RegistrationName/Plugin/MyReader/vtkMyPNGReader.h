@@ -16,6 +16,9 @@ public:
   vtkTypeMacro(vtkMyPNGReader, vtkPNGReader);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  /**
+   * Return the name that will be displayed in ParaView when loading a file using this reader.
+   */
   const char* GetRegistrationName();
 
 protected:
@@ -25,6 +28,13 @@ protected:
 private:
   vtkMyPNGReader(const vtkMyPNGReader&) = delete;
   void operator=(const vtkMyPNGReader&) = delete;
+
+  /**
+   * Return the file name of the file path without the extension.
+   */
+  std::string GetFileStem(const std::string& filePath);
+
+  std::string RegistrationName;
 };
 
 #endif
