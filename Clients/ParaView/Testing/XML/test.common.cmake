@@ -1005,6 +1005,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ComputeArrayMagnitudeSetting.xml
   CSVPreview.xml
   CellQualityForPixel.xml
+  ChangeFileNameReaction.xml
   CustomOutputFormat.xml
   DefaultReadersSetting.xml
   DelimitedTextReader.xml
@@ -1917,6 +1918,7 @@ set (AnimationCache_FORCE_SERIAL TRUE) # since this uses popup window
 set (AnimationFollowPath_FORCE_SERIAL TRUE) # since this uses popup window
 set (BlockContextMenu_FORCE_SERIAL TRUE) # requires context menu
 set (CGNSReaderDataLocation_FORCE_SERIAL TRUE)  # since this uses popup-menu
+set (ChangeFileNameReaction_FORCE_SERIAL TRUE) # since it needs to inspect the pipeline source name
 set (CTHAMRBaseline_FORCE_SERIAL TRUE)  # since this uses popup-menu
 set (CTHAMRContour_FORCE_SERIAL TRUE)  # since this uses popup-menu
 set (CTHAMRDualClip_FORCE_SERIAL TRUE)  # since this uses popup-menu
