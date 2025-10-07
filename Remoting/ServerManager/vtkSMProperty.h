@@ -405,7 +405,10 @@ public:
    * nothing in the case. Except for vtkSMProxyProperty. For vtkSMProxyProperty,
    * we don't have any domain that is runtime data dependent and hence we let
    * the property reset itself. This ensures that properties with
-   * vtkSMProxyListDomain, for example, are initialized correctly.
+   * vtkSMProxyListDomain, for example, are initialized correctly. This is also true for
+   * vtkSMSaveAnimationExtractsProxy and vtkSMSaveAnimationProxy since they need time related
+   * information which is guaranteed to be the same on all ranks because a synchronization
+   * happen at the reader level.
    */
   virtual bool ResetToDomainDefaults(bool use_unchecked_values = false);
 
