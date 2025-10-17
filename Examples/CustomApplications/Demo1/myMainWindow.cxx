@@ -19,7 +19,7 @@ myMainWindow::myMainWindow(QWidget* parentObject, Qt::WindowFlags wflags)
 
   // Make a connection to the builtin server
   pqApplicationCore* core = pqApplicationCore::instance();
-  core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
+  core->getObjectBuilder()->createServer(pqServerResource(vtkSMSession::GetBuiltinName()));
 
   // Create render view
   pqRenderView* view =
