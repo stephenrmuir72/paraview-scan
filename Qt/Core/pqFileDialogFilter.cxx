@@ -25,7 +25,42 @@ pqFileDialogFilter::pqFileDialogFilter(pqFileDialogModel* model, QObject* Parent
 
 pqFileDialogFilter::~pqFileDialogFilter() = default;
 
-#include <cstdio>
+namespace
+{
+//------------------------------------------------------------------------------
+// Generate all case variants of a given extension string.
+QStringList GenerateCaseVariants(const QString& ext)
+{
+  QVector<int> alphaIndices;
+  alphaIndices.reserve(ext.size());
+  for (int i = 0; i < ext.size(); ++i)
+  {
+    if (ext[i].isLetter())
+    {
+      alphaIndices.append(i);
+    }
+  }
+
+  const int n = alphaIndices.size();
+  const qsizetype total = 1ull << n;
+
+  QStringList variants;
+  variants.reserve(total);
+  for (qsizetype mask = 0; mask < total; ++mask)
+  {
+    QString variant = ext;
+    for (int bit = 0; bit < n; ++bit)
+    {
+      const int& idx = alphaIndices[bit];
+      auto& c = ext[idx];
+      variant[idx] = (mask >> bit) & 1 ? c.toUpper() : c.toLower();
+    }
+    variants.append(std::move(variant));
+  }
+
+  return variants;
+}
+}
 
 void pqFileDialogFilter::setFilter(const QString& filter)
 {
@@ -52,15 +87,18 @@ void pqFileDialogFilter::setFilter(const QString& filter)
 
     QStringList strings = f.split("|");
     QStringList extensions_list, filepatterns_list;
-    Q_FOREACH (QString string, strings)
+    for (QString string : strings)
     {
       if (string.startsWith("*."))
       {
-        extensions_list.push_back(string.remove(0, 2));
+        auto extension = string.remove(0, 2); // remove "*."
+        auto variants = GenerateCaseVariants(extension);
+        extensions_list.append(variants);
       }
       else
       {
-        filepatterns_list.push_back(string);
+        auto variants = GenerateCaseVariants(string);
+        filepatterns_list.append(variants);
       }
     }
 
