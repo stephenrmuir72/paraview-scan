@@ -36,6 +36,18 @@ pqZSpaceManager::pqZSpaceManager(QObject* p)
 }
 
 //-----------------------------------------------------------------------------
+void pqZSpaceManager::onShutdown()
+{
+  vtkZSpaceSDKManager* sdkManager = vtkZSpaceSDKManager::GetInstance();
+  if (sdkManager)
+  {
+    sdkManager->Reset();
+    sdkManager->InitializeZSpace();
+    sdkManager->ShutDown();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqZSpaceManager::onRenderEnded()
 {
   pqView* view = dynamic_cast<pqView*>(sender());
