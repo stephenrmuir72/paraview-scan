@@ -32,8 +32,15 @@ public:
   pqZSpaceManager(QObject* p = nullptr);
   ~pqZSpaceManager() override = default;
 
-  void onShutdown() {}
+  /**
+   * Called when the plugin is loaded.
+   */
   void onStartup() {}
+
+  /**
+   * Called when the application shuts down. Shut down zSpace context.
+   */
+  void onShutdown();
 
 public Q_SLOTS:
   void onViewAdded(pqView*);
