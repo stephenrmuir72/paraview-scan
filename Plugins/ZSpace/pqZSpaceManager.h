@@ -32,7 +32,7 @@ public:
   pqZSpaceManager(QObject* p = nullptr);
   ~pqZSpaceManager() override = default;
 
-  void onShutdown() {}
+  void onShutdown();
   void onStartup() {}
 
 public Q_SLOTS:
