@@ -4,8 +4,9 @@
  * @class   vtkVRMLSource
  * @brief   Converts importer to a source.
  *
- * Since paraview can only use vtkSources, I am wrapping the VRML importer
- * as a source.  I will loose lights, texture maps and colors,
+ * Since paraview can only use vtkSources, I am wrapping the VRML importer as a source. Lights,
+ * background, texture maps, and other Actor properties are lost. Colors are imported as Point
+ * or Cell scalars.
  */
 
 #ifndef vtkVRMLSource_h
