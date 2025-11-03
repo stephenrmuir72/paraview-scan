@@ -41,8 +41,11 @@ void pqZSpaceManager::onShutdown()
   vtkZSpaceSDKManager* sdkManager = vtkZSpaceSDKManager::GetInstance();
   if (sdkManager)
   {
-    sdkManager->Reset();
-    sdkManager->InitializeZSpace();
+    // This current workaround prevents ParaView from crashing when calling shutdown.
+    // TODO: find a better way to fix this issue with shutdown.
+    // sdkManager->ResetInitialization();
+    // sdkManager->InitializeZSpace();
+
     sdkManager->ShutDown();
   }
 }
