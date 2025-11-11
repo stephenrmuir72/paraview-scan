@@ -52,6 +52,7 @@ public:
    */
   bool CanWrite(vtkSMSourceProxy*, unsigned int outputport);
 
+  ///@{
   /**
    * Create a new writer proxy to write the data from the specified output port
    * to the file specified, if possible.
@@ -68,6 +69,15 @@ public:
   {
     return this->CreateWriter(filename, pxy, 0);
   }
+  vtkSMProxy* CreateWriter(
+    const char* filename, vtkSMSourceProxy*, unsigned int outputport, const char* writerProxyName);
+  ///@}
+
+  /**
+   * Returns a list of possible writers that can write the data from the
+   * specified output port. The list is empty if no writer can be found.
+   */
+  vtkStringList* GetPossibleWriters(vtkSMSourceProxy* source, unsigned int outputport);
 
   /**
    * Returns a formatted string with all supported file types.

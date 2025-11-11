@@ -6,7 +6,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
-#include "vtkPVXMLParser.h"
 #include "vtkSMInputProperty.h"
 #include "vtkSMParaViewPipelineController.h"
 #include "vtkSMPropertyHelper.h"
@@ -19,13 +18,15 @@
 #include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 
+#include <vtksys/SystemTools.hxx>
+
 #include <cassert>
 #include <list>
+#include <map>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <vtksys/SystemTools.hxx>
 
 class vtkSMWriterFactory::vtkInternals
 {
@@ -329,6 +330,36 @@ vtkSMProxy* vtkSMWriterFactory::CreateWriter(
 }
 
 //----------------------------------------------------------------------------
+vtkSMProxy* vtkSMWriterFactory::CreateWriter(const char* filename, vtkSMSourceProxy* source,
+  unsigned int outputport, const char* writerProxyName)
+{
+  if (!filename || filename[0] == 0)
+  {
+    vtkErrorMacro("No filename. Cannot create any writer.");
+    return nullptr;
+  }
+  if (!writerProxyName || writerProxyName[0] == 0)
+  {
+    vtkErrorMacro("No writer proxy name. Cannot create any writer.");
+    return nullptr;
+  }
+
+  // Get ProxyManager
+  vtkSMSessionProxyManager* pxm = source->GetSession()->GetSessionProxyManager();
+
+  // Make sure the source is in an expected state (BUG #13172)
+  source->UpdatePipeline();
+
+  vtkSMProxy* proxy = pxm->NewProxy("writers", writerProxyName);
+  vtkNew<vtkSMParaViewPipelineController> controller;
+  controller->PreInitializeProxy(proxy);
+  vtkSMPropertyHelper(proxy, "FileName").Set(filename);
+  vtkSMPropertyHelper(proxy, "Input").Set(source, outputport);
+  controller->PostInitializeProxy(proxy);
+  return proxy;
+}
+
+//----------------------------------------------------------------------------
 static std::string vtkJoin(const std::set<std::string> exts, const char* prefix, const char* suffix)
 {
   std::ostringstream stream;
@@ -338,6 +369,37 @@ static std::string vtkJoin(const std::set<std::string> exts, const char* prefix,
     stream << prefix << *iter << suffix;
   }
   return stream.str();
+}
+
+//----------------------------------------------------------------------------
+vtkStringList* vtkSMWriterFactory::GetPossibleWriters(
+  vtkSMSourceProxy* source, unsigned int outputport)
+{
+  auto case_insensitive_comp = [](const std::string& s1, const std::string& s2)
+  { return vtksys::SystemTools::Strucmp(s1.c_str(), s2.c_str()) < 0; };
+  std::map<std::string, std::string, decltype(case_insensitive_comp)> sorted_types(
+    case_insensitive_comp);
+
+  for (auto& [name, value] : this->Internals->Prototypes)
+  {
+    if (value.CanCreatePrototype(source) && value.CanWrite(source, outputport))
+    {
+      value.FillInformation(source->GetSession());
+      if (!value.Extensions.empty())
+      {
+        std::string ext_join = ::vtkJoin(value.Extensions, "*.", " ");
+        std::ostringstream stream;
+        stream << value.Description << "(" << ext_join << ")";
+        sorted_types.emplace(stream.str(), value.Name);
+      }
+    }
+  }
+  vtkStringList* writers = vtkStringList::New();
+  for (const auto& [_, name] : sorted_types)
+  {
+    writers->AddString(name.c_str());
+  }
+  return writers;
 }
 
 //----------------------------------------------------------------------------
