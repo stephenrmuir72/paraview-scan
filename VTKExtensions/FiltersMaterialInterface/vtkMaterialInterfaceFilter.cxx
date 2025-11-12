@@ -2,38 +2,27 @@
 // SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkMaterialInterfaceFilter.h"
+#include "vtkMaterialInterfaceUtilities.h"
 
-// Pipeline & VTK
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkMultiProcessController.h"
-#include "vtkObject.h"
-#include "vtkObjectFactory.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-// PV interface
+#include "vtkAppendPolyData.h"
 #include "vtkCallbackCommand.h"
-#include "vtkDataArraySelection.h"
-#include "vtkMath.h"
-// Data sets
-#include "vtkAMRBox.h"
-#include "vtkCompositeDataIterator.h"
-#include "vtkDataSet.h"
-#include "vtkImageData.h"
-#include "vtkMultiBlockDataSet.h"
-#include "vtkMultiPieceDataSet.h"
-#include "vtkNonOverlappingAMR.h"
-#include "vtkPolyData.h"
-#include "vtkUniformGrid.h"
-#include "vtkUnstructuredGrid.h"
-// Data types, Arrays & Containers
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkCharArray.h"
-#include "vtkCollection.h"
+#include "vtkCleanPolyData.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkDataArraySelection.h"
 #include "vtkDataObject.h"
+#include "vtkDataSet.h"
+#include "vtkDataSetSurfaceFilter.h"
 #include "vtkDoubleArray.h"
 #include "vtkFloatArray.h"
+#include "vtkImageData.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
 #include "vtkIntArray.h"
+#include "vtkMarchingCubesTriangleCases.h"
+#include "vtkMaterialInterfaceCommBuffer.h"
 #include "vtkMaterialInterfaceIdList.h"
 #include "vtkMaterialInterfacePieceLoading.h"
 #include "vtkMaterialInterfacePieceTransaction.h"
@@ -41,42 +30,36 @@
 #include "vtkMaterialInterfaceProcessLoading.h"
 #include "vtkMaterialInterfaceProcessRing.h"
 #include "vtkMaterialInterfaceToProcMap.h"
+#include "vtkMath.h"
+#include "vtkMultiBlockDataSet.h"
+#include "vtkMultiPieceDataSet.h"
+#include "vtkMultiProcessController.h"
+#include "vtkNonOverlappingAMR.h"
+#include "vtkOBBTree.h"
+#include "vtkObject.h"
+#include "vtkPlane.h"
 #include "vtkPointAccumulator.h"
 #include "vtkPointData.h"
+#include "vtkPolyData.h"
+#include "vtkSphere.h"
+#include "vtkUniformGrid.h"
 #include "vtkUnsignedCharArray.h"
-#include "vtkUnsignedIntArray.h"
-// IO & IPC
-#include "vtkDataSetWriter.h"
-#include "vtkMaterialInterfaceCommBuffer.h"
+#include "vtkUnstructuredGrid.h"
 #include "vtkXMLPolyDataWriter.h"
-// Filters
-#include "vtkAppendPolyData.h"
-#include "vtkCleanPolyData.h"
-#include "vtkClipPolyData.h"
-#include "vtkContourFilter.h"
-#include "vtkDataSetSurfaceFilter.h"
-#include "vtkMarchingCubesTriangleCases.h"
-#include "vtkOBBTree.h"
-#include "vtkTriangleFilter.h"
+
 // STL
-#include <fstream>
-using std::ofstream;
-#include <sstream>
-using std::ostringstream;
-#include <vector>
-using std::vector;
-#include <string>
-using std::string;
 #include <algorithm>
-// ansi c
 #include <cmath>
 #include <ctime>
-// other
-#include "vtkMaterialInterfaceUtilities.h"
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
-// for paraview cliping
-#include "vtkPlane.h"
-#include "vtkSphere.h"
+using std::ofstream;
+using std::ostringstream;
+using std::string;
+using std::vector;
 
 class InitializeVolumeFractrionArray;
 
@@ -5604,7 +5587,7 @@ void vtkMaterialInterfaceFilter::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-// Save out the blocks surfaces so we can se what is creating so many ghost cells.
+// Save out the blocks surfaces so we can see what is creating so many ghost cells.
 void vtkMaterialInterfaceFilter::SaveBlockSurfaces(const char* fileName)
 {
   vtkPolyData* pd = vtkPolyData::New();
