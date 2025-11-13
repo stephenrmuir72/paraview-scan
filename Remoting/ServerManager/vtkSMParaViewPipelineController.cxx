@@ -13,12 +13,10 @@
 #include "vtkSMProperty.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMPropertyIterator.h"
-#include "vtkSMPropertyLink.h"
 #include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMProxyInitializationHelper.h"
 #include "vtkSMProxyIterator.h"
 #include "vtkSMProxyListDomain.h"
-#include "vtkSMProxyProperty.h"
 #include "vtkSMProxySelectionModel.h"
 #include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
@@ -29,6 +27,8 @@
 #include "vtkSMTrace.h"
 #include "vtkSmartPointer.h"
 #include "vtkWeakPointer.h"
+
+#include <vtksys/SystemTools.hxx>
 
 #include <cassert>
 #include <map>
@@ -991,6 +991,37 @@ bool vtkSMParaViewPipelineController::RegisterLightProxy(
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMParaViewPipelineController::RegisterNamedTextureProxy(
+  vtkSMProxy* proxy, const char* filename, const char* proxyname)
+{
+  if (!proxy)
+  {
+    return false;
+  }
+
+  SM_SCOPED_TRACE(RegisterNamedTextureProxy)
+    .arg("proxy", proxy)
+    .arg("filename", filename)
+    .arg("proxyname", proxyname);
+
+  // Register proxies created for proxy list domains.
+  this->RegisterProxiesForProxyListDomains(proxy);
+
+  // Register the proxy itself.
+  if (filename && proxyname)
+  {
+    proxy->GetSessionProxyManager()->RegisterProxy("textures", proxyname, proxy);
+    vtkSMPropertyHelper(proxy, "FileName").Set(filename);
+    vtkSMPropertyHelper(proxy, "Mode").Set(0);
+  }
+  else
+  {
+    proxy->GetSessionProxyManager()->RegisterProxy("textures", nullptr, proxy);
+  }
+  return true;
+}
+
+//----------------------------------------------------------------------------
 bool vtkSMParaViewPipelineController::RegisterTextureProxy(vtkSMProxy* proxy, const char* filename)
 {
   if (!proxy)
@@ -1004,11 +1035,16 @@ bool vtkSMParaViewPipelineController::RegisterTextureProxy(vtkSMProxy* proxy, co
   this->RegisterProxiesForProxyListDomains(proxy);
 
   // Register the proxy itself.
-  proxy->GetSessionProxyManager()->RegisterProxy("textures", nullptr, proxy);
   if (filename)
   {
+    auto proxyname = vtksys::SystemTools::GetFilenameName(filename);
+    proxy->GetSessionProxyManager()->RegisterProxy("textures", proxyname.c_str(), proxy);
     vtkSMPropertyHelper(proxy, "FileName").Set(filename);
     vtkSMPropertyHelper(proxy, "Mode").Set(0);
+  }
+  else
+  {
+    proxy->GetSessionProxyManager()->RegisterProxy("textures", nullptr, proxy);
   }
   return true;
 }
