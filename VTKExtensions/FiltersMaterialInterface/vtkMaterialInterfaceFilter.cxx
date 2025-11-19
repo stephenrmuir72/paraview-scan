@@ -41,6 +41,7 @@
 #include "vtkPointAccumulator.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
+#include "vtkRectilinearGrid.h"
 #include "vtkSphere.h"
 #include "vtkUniformGrid.h"
 #include "vtkUnsignedCharArray.h"
@@ -465,17 +466,17 @@ class vtkMaterialInterfaceFilterBlock
 {
 public:
   vtkMaterialInterfaceFilterBlock();
-  ~vtkMaterialInterfaceFilterBlock();
+  virtual ~vtkMaterialInterfaceFilterBlock();
 
   // For normal (local) blocks.
-  void Initialize(int blockId, vtkImageData* imageBlock, int level, double globalOrigin[3],
+  virtual void Initialize(int blockId, vtkCartesianGrid* cGrid, int level, double globalOrigin[3],
     double rootSapcing[3], string& volumeFractionArrayName, string& massArrayName,
     vector<string>& volumeWtdAvgArrayNames, vector<string>& massWtdAvgArrayNames,
     vector<string>& summedArrayNames, vector<string>& integratedArrayNames,
-    int invertVolumeFraction, vtkMaterialInterfaceFilterHalfSphere* sphere);
+    int invertVolumeFraction, vtkMaterialInterfaceFilterHalfSphere* sphere) = 0;
 
-  void InitializeVolumeFractionArray(int invertVolumeFraction,
-    vtkMaterialInterfaceFilterHalfSphere* sphere, vtkDataArray* volumeFractionArray);
+  virtual void InitializeVolumeFractionArray(int invertVolumeFraction,
+    vtkMaterialInterfaceFilterHalfSphere* sphere, vtkDataArray* volumeFractionArray) = 0;
 
   // Determine the extent without overlap using the standard block
   // dimensions. (ie indexes region excluding ghosts)
@@ -484,13 +485,16 @@ public:
 
   // For ghost layers received by other processes.
   // The argument list here is getting a bit long ....
-  void InitializeGhostLayer(unsigned char* volFraction, int cellExtent[6], int level,
-    double globalOrigin[3], double rootSpacing[3], int ownerProcessId, int blockId);
+  virtual void InitializeGhostLayer(unsigned char* volFraction, int cellExtent[6], int level,
+    double globalOrigin[3], double rootSpacing[3], int ownerProcessId, int blockId) = 0;
   // This adds a block as our neighbor and makes the reciprical connection too.
   // It is used to connect ghost layer blocks.  Ghost blocks need the reciprical
   // connection to continue the connectivity search.
   // I am hoping this will make the number of fragments to merge smaller.
   void AddNeighbor(vtkMaterialInterfaceFilterBlock* block, int axis, int maxFlag);
+
+  virtual void GetCellSpacing(int cellIdx[3], double spacing[3]) = 0;
+  virtual void GetPointCoordinates(int pointIdx[3], double coords[3]) = 0;
 
   void GetPointExtent(int ext[6]);
   void GetCellExtent(int ext[6]);
@@ -514,14 +518,12 @@ public:
   int GetBaseFlatIndex();
   int* GetFragmentIdPointer() { return this->FragmentIds; }
   int GetLevel() { return this->Level; }
-  double* GetSpacing() { return this->Spacing; }
-  double* GetOrigin() { return this->Origin; }
   // Faces are indexed: 0=xMin, 1=xMax, 2=yMin, 3=yMax, 4=zMin, 5=zMax
   int GetNumberOfFaceNeighbors(int face) { return static_cast<int>(this->Neighbors[face].size()); }
   //
   vtkMaterialInterfaceFilterBlock* GetFaceNeighbor(int face, int neighborId)
   {
-    return (vtkMaterialInterfaceFilterBlock*)(this->Neighbors[face][neighborId]);
+    return this->Neighbors[face][neighborId];
   }
   //
   vtkDataArray* GetVolumeWtdAvgArray(int id)
@@ -550,14 +552,11 @@ public:
   //
   vtkDataArray* GetMassArray() { return this->MassArray; }
 
-  // For basis of face coordinate systems.
-  // -x,x,-y,y,-z,z
-  double HalfEdges[6][3];
   // Just for debugging.
   int LevelBlockId;
   void ExtractExtent(unsigned char* buf, int ext[6]);
 
-private:
+protected:
   unsigned char GhostFlag;
   // Information saved for ghost cells that makes it easier to
   // resolve equivalent fragment ids.
@@ -569,7 +568,7 @@ private:
   // The original image block (worry about rectilinear grids later).
   // We have two ways of managing the memory.  We only keep the
   // image around to keep a reference.
-  vtkImageData* Image;
+  vtkCartesianGrid* CGrid;
   // We keep a pointer to the volulme fraction array.
   // We have to copy the array and manage memory ourself
   // if it is a ghost block, or we are inverting or clipping
@@ -599,19 +598,129 @@ private:
   // The blocks do not follow the convention of sharing an origin.
   // Just save these for placing the faces.  We will have to find
   // another way to compute neighbors.
-  double Spacing[3]; // cell dx this block
-  double Origin[3];  // lower left xyz of this block
   int Level;
   // Store index to neiboring blocks.
   // There may be more than one neighbor because higher levels.
   std::vector<vtkMaterialInterfaceFilterBlock*> Neighbors[6];
 };
 
+class vtkMaterialInterfaceFilterImageBlock : public vtkMaterialInterfaceFilterBlock
+{
+public:
+  vtkMaterialInterfaceFilterImageBlock();
+  ~vtkMaterialInterfaceFilterImageBlock();
+
+  // For normal (local) blocks.
+  void Initialize(int blockId, vtkCartesianGrid* imageBlock, int level, double globalOrigin[3],
+    double rootSapcing[3], string& volumeFractionArrayName, string& massArrayName,
+    vector<string>& volumeWtdAvgArrayNames, vector<string>& massWtdAvgArrayNames,
+    vector<string>& summedArrayNames, vector<string>& integratedArrayNames,
+    int invertVolumeFraction, vtkMaterialInterfaceFilterHalfSphere* sphere) override;
+
+  void InitializeVolumeFractionArray(int invertVolumeFraction,
+    vtkMaterialInterfaceFilterHalfSphere* sphere, vtkDataArray* volumeFractionArray) override;
+
+  void InitializeGhostLayer(unsigned char* volFraction, int cellExtent[6], int level,
+    double globalOrigin[3], double rootSpacing[3], int ownerProcessId, int blockId) override;
+
+  double* GetSpacing() { return this->Spacing; }
+  double* GetOrigin() { return this->Origin; }
+
+  void GetCellSpacing(int vtkNotUsed(cellIdx)[3], double spacing[3]) override
+  {
+    spacing[0] = this->Spacing[0];
+    spacing[1] = this->Spacing[1];
+    spacing[2] = this->Spacing[2];
+  }
+
+  void GetPointCoordinates(int pointIdx[3], double coords[3]) override
+  {
+    coords[0] = this->Origin[0] + pointIdx[0] * this->Spacing[0];
+    coords[1] = this->Origin[1] + pointIdx[1] * this->Spacing[1];
+    coords[2] = this->Origin[2] + pointIdx[2] * this->Spacing[2];
+  }
+
+private:
+  vtkImageData* Image;
+  // For basis of face coordinate systems.
+  // -x,x,-y,y,-z,z
+  double HalfEdges[6][3];
+  double Spacing[3]; // cell dx this block
+  double Origin[3];  // lower left xyz of this block
+};
+
+class vtkMaterialInterfaceFilterRectilinearBlock : public vtkMaterialInterfaceFilterBlock
+{
+public:
+  vtkMaterialInterfaceFilterRectilinearBlock();
+  ~vtkMaterialInterfaceFilterRectilinearBlock();
+
+  void Initialize(int blockId, vtkCartesianGrid* cGrid, int level, double globalOrigin[3],
+    double rootSpacing[3], string& volumeFractionArrayName, string& massArrayName,
+    vector<string>& volumeWtdAvgArrayNames, vector<string>& massWtdAvgArrayNames,
+    vector<string>& summedArrayNames, vector<string>& integratedArrayNames,
+    int invertVolumeFraction, vtkMaterialInterfaceFilterHalfSphere* sphere) override;
+
+  void InitializeVolumeFractionArray(int invertVolumeFraction,
+    vtkMaterialInterfaceFilterHalfSphere* sphere, vtkDataArray* volumeFractionArray) override;
+
+  void InitializeGhostLayer(unsigned char* volFraction, int cellExtent[6], int level,
+    double globalOrigin[3], double rootSpacing[3], int ownerProcessId, int blockId) override;
+
+  void GetCellSpacing(int cellIdx[3], double spacing[3]) override
+  {
+    // For rectilinear grids, compute actual cell spacing
+    int ext[6];
+    this->GetCellExtent(ext);
+
+    // Convert global index to local index
+    int localIdx[3];
+    localIdx[0] = cellIdx[0] - ext[0];
+    localIdx[1] = cellIdx[1] - ext[2];
+    localIdx[2] = cellIdx[2] - ext[4];
+
+    // Get spacing from coordinate arrays
+    double x0 = this->XCoordinates->GetTuple1(localIdx[0]);
+    double x1 = this->XCoordinates->GetTuple1(localIdx[0] + 1);
+    spacing[0] = x1 - x0;
+
+    double y0 = this->YCoordinates->GetTuple1(localIdx[1]);
+    double y1 = this->YCoordinates->GetTuple1(localIdx[1] + 1);
+    spacing[1] = y1 - y0;
+
+    double z0 = this->ZCoordinates->GetTuple1(localIdx[2]);
+    double z1 = this->ZCoordinates->GetTuple1(localIdx[2] + 1);
+    spacing[2] = z1 - z0;
+  }
+
+  void GetPointCoordinates(int pointIdx[3], double coords[3]) override
+  {
+    // For rectilinear grids, get point coordinates from coordinate arrays
+    int ext[6];
+    this->GetCellExtent(ext);
+
+    // Convert global index to local index
+    int localIdx[3];
+    localIdx[0] = pointIdx[0] - ext[0];
+    localIdx[1] = pointIdx[1] - ext[2];
+    localIdx[2] = pointIdx[2] - ext[4];
+
+    coords[0] = this->XCoordinates->GetTuple1(localIdx[0]);
+    coords[1] = this->YCoordinates->GetTuple1(localIdx[1]);
+    coords[2] = this->ZCoordinates->GetTuple1(localIdx[2]);
+  }
+
+private:
+  vtkRectilinearGrid* RGrid;
+  vtkDataArray* XCoordinates;
+  vtkDataArray* YCoordinates;
+  vtkDataArray* ZCoordinates;
+};
+
 //----------------------------------------------------------------------------
 vtkMaterialInterfaceFilterBlock::vtkMaterialInterfaceFilterBlock()
 {
   this->GhostFlag = 0;
-  this->Image = nullptr;
   this->VolumeFractionArray = nullptr;
   this->WeHaveToDeleteTheVolumeFractionMemory = 0;
   this->Level = 0;
@@ -622,22 +731,33 @@ vtkMaterialInterfaceFilterBlock::vtkMaterialInterfaceFilterBlock()
     this->BaseCellExtent[ii] = 0;
   }
   this->FragmentIds = nullptr;
-  this->Spacing[0] = this->Spacing[1] = this->Spacing[2] = 0.0;
-  this->Origin[0] = this->Origin[1] = this->Origin[2] = 0.0;
 
   this->NToIntegrate = 0;
   this->NVolumeWtdAvgs = 0;
   this->NMassWtdAvgs = 0;
   this->NToSum = 0;
 }
+
+//--------------------------------------------------------------------------
+vtkMaterialInterfaceFilterImageBlock::vtkMaterialInterfaceFilterImageBlock()
+{
+  this->Image = nullptr;
+  this->Spacing[0] = this->Spacing[1] = this->Spacing[2] = 0.0;
+  this->Origin[0] = this->Origin[1] = this->Origin[2] = 0.0;
+}
+
+//--------------------------------------------------------------------------
+vtkMaterialInterfaceFilterRectilinearBlock::vtkMaterialInterfaceFilterRectilinearBlock()
+{
+  this->RGrid = nullptr;
+  this->XCoordinates = nullptr;
+  this->YCoordinates = nullptr;
+  this->ZCoordinates = nullptr;
+}
+
 //----------------------------------------------------------------------------
 vtkMaterialInterfaceFilterBlock::~vtkMaterialInterfaceFilterBlock()
 {
-  if (this->Image)
-  {
-    this->Image->UnRegister(nullptr);
-    this->Image = nullptr;
-  }
   if (this->VolumeFractionArray && this->WeHaveToDeleteTheVolumeFractionMemory)
   { // Memory was allocated without an image.
     delete[] this->VolumeFractionArray;
@@ -656,8 +776,6 @@ vtkMaterialInterfaceFilterBlock::~vtkMaterialInterfaceFilterBlock()
     delete[] this->FragmentIds;
     this->FragmentIds = nullptr;
   }
-  this->Spacing[0] = this->Spacing[1] = this->Spacing[2] = 0.0;
-  this->Origin[0] = this->Origin[1] = this->Origin[2] = 0.0;
 
   this->NToIntegrate = 0;
   this->NVolumeWtdAvgs = 0;
@@ -666,11 +784,36 @@ vtkMaterialInterfaceFilterBlock::~vtkMaterialInterfaceFilterBlock()
 }
 
 //----------------------------------------------------------------------------
-void vtkMaterialInterfaceFilterBlock::InitializeVolumeFractionArray(int invertVolumeFraction,
+vtkMaterialInterfaceFilterImageBlock::~vtkMaterialInterfaceFilterImageBlock()
+{
+  if (this->Image)
+  {
+    this->Image->UnRegister(nullptr);
+    this->Image = nullptr;
+  }
+  this->Spacing[0] = this->Spacing[1] = this->Spacing[2] = 0.0;
+  this->Origin[0] = this->Origin[1] = this->Origin[2] = 0.0;
+}
+
+//----------------------------------------------------------------------------
+vtkMaterialInterfaceFilterRectilinearBlock::~vtkMaterialInterfaceFilterRectilinearBlock()
+{
+  if (this->RGrid)
+  {
+    this->RGrid->UnRegister(nullptr);
+    this->RGrid = nullptr;
+  }
+  this->XCoordinates = nullptr;
+  this->YCoordinates = nullptr;
+  this->ZCoordinates = nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkMaterialInterfaceFilterImageBlock::InitializeVolumeFractionArray(int invertVolumeFraction,
   vtkMaterialInterfaceFilterHalfSphere* implicitFunction, vtkDataArray* volumeFractionArray)
 {
   double tmp;
-  unsigned char* inPtr = (unsigned char*)(volumeFractionArray->GetVoidPointer(0));
+  unsigned char* inPtr = vtkUnsignedCharArray::FastDownCast(volumeFractionArray)->GetPointer(0);
 
   if (implicitFunction == nullptr)
   {
@@ -692,17 +835,17 @@ void vtkMaterialInterfaceFilterBlock::InitializeVolumeFractionArray(int invertVo
   unsigned char* outPtr = this->VolumeFractionArray;
   for (int z = ext[4]; z <= ext[5]; ++z)
   {
-    bounds[4] = (double)(z)*spacing[2] + origin[2];
+    bounds[4] = static_cast<double>(z) * spacing[2] + origin[2];
     bounds[5] = bounds[4] + spacing[2];
     for (int y = ext[2]; y <= ext[3]; ++y)
     {
-      bounds[2] = (double)(y)*spacing[1] + origin[1];
+      bounds[2] = static_cast<double>(y) * spacing[1] + origin[1];
       bounds[3] = bounds[2] + spacing[1];
       for (int x = ext[0]; x <= ext[1]; ++x)
       {
-        bounds[0] = (double)(x)*spacing[1] + origin[0];
+        bounds[0] = static_cast<double>(x) * spacing[1] + origin[0];
         bounds[1] = bounds[0] + spacing[0];
-        tmp = (double)(*inPtr++);
+        tmp = static_cast<double>(*inPtr++);
         // Invert the material if the flag is set.
         if (invertVolumeFraction)
         {
@@ -712,7 +855,62 @@ void vtkMaterialInterfaceFilterBlock::InitializeVolumeFractionArray(int invertVo
         {
           tmp = tmp * implicitFunction->EvaluateHalfSphereBox(bounds);
         }
-        *outPtr++ = (unsigned char)(tmp);
+        *outPtr++ = static_cast<unsigned char>(tmp);
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMaterialInterfaceFilterRectilinearBlock::InitializeVolumeFractionArray(
+  int invertVolumeFraction, vtkMaterialInterfaceFilterHalfSphere* implicitFunction,
+  vtkDataArray* volumeFractionArray)
+{
+  double tmp;
+  unsigned char* inPtr = vtkUnsignedCharArray::FastDownCast(volumeFractionArray)->GetPointer(0);
+
+  if (implicitFunction == nullptr)
+  {
+    this->VolumeFractionArray = inPtr;
+    this->WeHaveToDeleteTheVolumeFractionMemory = 0;
+  }
+
+  // Create a new volume fraction array.
+  int ext[6];
+  this->GetCellExtent(ext);
+  double bounds[6];
+  // Note that we are allocating for the cell array and ext is for cells.
+  this->VolumeFractionArray =
+    new unsigned char[(ext[1] - ext[0] + 1) * (ext[3] - ext[2] + 1) * (ext[5] - ext[4] + 1)];
+  this->WeHaveToDeleteTheVolumeFractionMemory = 1;
+  // Copy and modify the array.
+  unsigned char* outPtr = this->VolumeFractionArray;
+  // For rectilinear grids, look up actual coordinates
+  for (int z = ext[4]; z <= ext[5]; ++z)
+  {
+    bounds[4] = this->ZCoordinates->GetTuple1(z);
+    bounds[5] = this->ZCoordinates->GetTuple1(z + 1);
+
+    for (int y = ext[2]; y <= ext[3]; ++y)
+    {
+      bounds[2] = this->YCoordinates->GetTuple1(y);
+      bounds[3] = this->YCoordinates->GetTuple1(y + 1);
+
+      for (int x = ext[0]; x <= ext[1]; ++x)
+      {
+        bounds[0] = this->XCoordinates->GetTuple1(x);
+        bounds[1] = this->XCoordinates->GetTuple1(x + 1);
+
+        tmp = static_cast<double>(*inPtr++);
+        if (invertVolumeFraction)
+        {
+          tmp = 255.0 - tmp;
+        }
+        if (implicitFunction)
+        {
+          tmp = tmp * implicitFunction->EvaluateHalfSphereBox(bounds);
+        }
+        *outPtr++ = static_cast<unsigned char>(tmp);
       }
     }
   }
@@ -720,8 +918,8 @@ void vtkMaterialInterfaceFilterBlock::InitializeVolumeFractionArray(int invertVo
 
 //----------------------------------------------------------------------------
 // The argument list is getting long!
-void vtkMaterialInterfaceFilterBlock::Initialize(int blockId, vtkImageData* image, int level,
-  double globalOrigin[3], double rootSpacing[3], string& volumeFractionArrayName,
+void vtkMaterialInterfaceFilterImageBlock::Initialize(int blockId, vtkCartesianGrid* cGrid,
+  int level, double globalOrigin[3], double rootSpacing[3], string& volumeFractionArrayName,
   string& massArrayName, vector<string>& volumeWtdAvgArrayNames,
   vector<string>& massWtdAvgArrayNames, vector<string>& summedArrayNames,
   vector<string>& integratedArrayNames, int invertVolumeFraction,
@@ -732,6 +930,7 @@ void vtkMaterialInterfaceFilterBlock::Initialize(int blockId, vtkImageData* imag
     vtkGenericWarningMacro("Block already initialized !!!");
     return;
   }
+  auto image = vtkImageData::SafeDownCast(cGrid);
   if (image == nullptr)
   {
     vtkGenericWarningMacro("No image to initialize with.");
@@ -739,6 +938,7 @@ void vtkMaterialInterfaceFilterBlock::Initialize(int blockId, vtkImageData* imag
   }
 
   this->BlockId = blockId;
+  this->CGrid = cGrid;
   this->Image = image;
   this->Image->Register(nullptr);
   this->Level = level;
@@ -845,13 +1045,21 @@ void vtkMaterialInterfaceFilterBlock::Initialize(int blockId, vtkImageData* imag
   this->CellIncrements[1] = imageExt[1] - imageExt[0];
   this->CellIncrements[2] = this->CellIncrements[1] * (imageExt[3] - imageExt[2]);
 
+  std::cout << "root spacing: " << rootSpacing[0] << " " << rootSpacing[1] << " " << rootSpacing[2]
+            << std::endl;
+  std::cout << "block spacing: " << this->Spacing[0] << " " << this->Spacing[1] << " "
+            << this->Spacing[2] << std::endl;
+  std::cout << "level: " << this->Level << " " << (1 << (this->Level)) << std::endl;
+  std::cout << (rootSpacing[0] / this->Spacing[0] + 0.5) << " "
+            << (rootSpacing[1] / this->Spacing[1] + 0.5) << " "
+            << (rootSpacing[2] / this->Spacing[2] + 0.5) << std::endl;
 // As a sanity check, compare spacing and level.
 #ifdef NDEBUG
   (void)rootSpacing; // avoid a compiler warning when assert goes away
 #endif
-  assert("Spacing does not look correct for AMR structure." &&
-    (int)(rootSpacing[0] / this->Spacing[0] + 0.5) == (1 << (this->Level)) &&
-    (int)(rootSpacing[1] / this->Spacing[1] + 0.5) == (1 << (this->Level)));
+  // assert("Spacing does not look correct for AMR structure." &&
+  //   (int)(rootSpacing[0] / this->Spacing[0] + 0.5) == (1 << (this->Level)) &&
+  //   (int)(rootSpacing[1] / this->Spacing[1] + 0.5) == (1 << (this->Level)));
 
   //  2D grids do not follow the same pattern for the z axis.
   //  && (int)(rootSpacing[2] / this->Spacing[2] + 0.5) == (1<<(this->Level)) );
@@ -874,6 +1082,136 @@ void vtkMaterialInterfaceFilterBlock::Initialize(int blockId, vtkImageData* imag
   // We can mdify the volume fractin array for clipping.
   vtkDataArray* volumeFractionArray =
     this->Image->GetCellData()->GetArray(volumeFractionArrayName.c_str());
+  assert("Could not find volume fraction array." && volumeFractionArray);
+  this->InitializeVolumeFractionArray(invertVolumeFraction, sphere, volumeFractionArray);
+}
+
+//----------------------------------------------------------------------------
+void vtkMaterialInterfaceFilterRectilinearBlock::Initialize(int blockId, vtkCartesianGrid* cGrid,
+  int level, double globalOrigin[3], double rootSpacing[3], string& volumeFractionArrayName,
+  string& massArrayName, vector<string>& volumeWtdAvgArrayNames,
+  vector<string>& massWtdAvgArrayNames, vector<string>& summedArrayNames,
+  vector<string>& integratedArrayNames, int invertVolumeFraction,
+  vtkMaterialInterfaceFilterHalfSphere* sphere)
+{
+  if (this->VolumeFractionArray)
+  {
+    vtkGenericWarningMacro("Block already initialized !!!");
+    return;
+  }
+  auto rectGrid = vtkRectilinearGrid::SafeDownCast(cGrid);
+  if (rectGrid == nullptr)
+  {
+    vtkGenericWarningMacro("No rectilinear grid to initialize with.");
+    return;
+  }
+
+  this->BlockId = blockId;
+  this->CGrid = cGrid;
+  this->RGrid = rectGrid;
+  this->Level = level;
+
+  // Store coordinate arrays
+  this->XCoordinates = rectGrid->GetXCoordinates();
+  this->XCoordinates->Register(nullptr);
+  this->YCoordinates = rectGrid->GetYCoordinates();
+  this->YCoordinates->Register(nullptr);
+  this->ZCoordinates = rectGrid->GetZCoordinates();
+  this->ZCoordinates->Register(nullptr);
+
+  // Compute average spacing for this block (used for compatibility)
+  int dims[3];
+  rectGrid->GetDimensions(dims);
+  double bounds[6];
+  rectGrid->GetBounds(bounds);
+
+  int numCells = rectGrid->GetNumberOfCells();
+  this->FragmentIds = new int[numCells];
+  for (int ii = 0; ii < numCells; ++ii)
+  {
+    this->FragmentIds[ii] = -1;
+  }
+
+  int rectExt[6];
+  rectGrid->GetExtent(rectExt);
+
+  // Get array pointers (same as image data version)
+  this->NVolumeWtdAvgs = static_cast<int>(volumeWtdAvgArrayNames.size());
+  this->VolumeWtdAvgArrays.clear();
+  this->VolumeWtdAvgArrays.resize(this->NVolumeWtdAvgs, nullptr);
+  for (int i = 0; i < this->NVolumeWtdAvgs; ++i)
+  {
+    this->VolumeWtdAvgArrays[i] =
+      rectGrid->GetCellData()->GetArray(volumeWtdAvgArrayNames[i].c_str());
+    assert("Could not find array to weighted average." && this->VolumeWtdAvgArrays[i]);
+  }
+
+  this->NMassWtdAvgs = static_cast<int>(massWtdAvgArrayNames.size());
+  this->MassWtdAvgArrays.clear();
+  this->MassWtdAvgArrays.resize(this->NMassWtdAvgs, nullptr);
+  for (int i = 0; i < this->NMassWtdAvgs; ++i)
+  {
+    this->MassWtdAvgArrays[i] = rectGrid->GetCellData()->GetArray(massWtdAvgArrayNames[i].c_str());
+    assert("Could not find array to weighted average." && this->MassWtdAvgArrays[i]);
+  }
+
+  this->NToIntegrate = static_cast<int>(integratedArrayNames.size());
+  this->IntegratedArrays.clear();
+  this->IntegratedArrays.resize(this->NToIntegrate, nullptr);
+  for (int i = 0; i < this->NToIntegrate; ++i)
+  {
+    this->IntegratedArrays[i] = rectGrid->GetCellData()->GetArray(integratedArrayNames[i].c_str());
+    assert("Could not find array to integrate." && this->IntegratedArrays[i]);
+  }
+
+  this->NToSum = static_cast<int>(summedArrayNames.size());
+  this->ArraysToSum.clear();
+  this->ArraysToSum.resize(this->NToSum, nullptr);
+  for (int i = 0; i < this->NToSum; ++i)
+  {
+    this->ArraysToSum[i] = rectGrid->GetCellData()->GetArray(summedArrayNames[i].c_str());
+    assert("Could not find array to sum." && this->ArraysToSum[i]);
+  }
+
+  this->MassArray = nullptr;
+  if (!massArrayName.empty())
+  {
+    this->MassArray = rectGrid->GetCellData()->GetArray(massArrayName.c_str());
+  }
+
+  // The concept of a single Origin/Spacing and shifting
+  // to a global index space is an ImageData artifact. For RectilinearGrid,
+  // we trust that the extents provided by the vtkNonOverlappingAMR input are
+  // already in a consistent logical index space. We simply use them directly.
+  this->CellExtent[0] = rectExt[0];
+  this->CellExtent[1] = rectExt[1] - 1; // Extent is for points, we need cells
+  this->CellExtent[2] = rectExt[2];
+  this->CellExtent[3] = rectExt[3] - 1;
+  this->CellExtent[4] = rectExt[4];
+  this->CellExtent[5] = rectExt[5] - 1;
+
+  this->BaseCellExtent[0] = this->CellExtent[0];
+  this->BaseCellExtent[1] = this->CellExtent[1];
+  this->BaseCellExtent[2] = this->CellExtent[2];
+  this->BaseCellExtent[3] = this->CellExtent[3];
+  this->BaseCellExtent[4] = this->CellExtent[4];
+  this->BaseCellExtent[5] = this->CellExtent[5];
+
+  if (this->BaseCellExtent[4] > this->BaseCellExtent[5])
+  {
+    this->BaseCellExtent[4] = this->BaseCellExtent[5] = 0;
+  }
+
+  this->CellIncrements[0] = 1;
+  this->CellIncrements[1] = rectExt[1] - rectExt[0];
+  this->CellIncrements[2] = this->CellIncrements[1] * (rectExt[3] - rectExt[2]);
+
+  // HalfEdges are no longer stored in the block.
+  // // They will be computed dynamically when needed.
+
+  // Get volume fraction array
+  vtkDataArray* volumeFractionArray =
+    rectGrid->GetCellData()->GetArray(volumeFractionArrayName.c_str());
   assert("Could not find volume fraction array." && volumeFractionArray);
   this->InitializeVolumeFractionArray(invertVolumeFraction, sphere, volumeFractionArray);
 }
@@ -940,7 +1278,7 @@ void vtkMaterialInterfaceFilterBlock::ComputeBaseExtent(
 // Memory is managed differently.
 // Skip much of the initialization because ghost layers produce no surface.
 // Ghost layers need half edges too.
-void vtkMaterialInterfaceFilterBlock::InitializeGhostLayer(unsigned char* volFraction,
+void vtkMaterialInterfaceFilterImageBlock::InitializeGhostLayer(unsigned char* volFraction,
   int cellExtent[6], int level, double globalOrigin[3], double rootSpacing[3], int ownerProcessId,
   int blockId)
 {
@@ -954,6 +1292,7 @@ void vtkMaterialInterfaceFilterBlock::InitializeGhostLayer(unsigned char* volFra
   this->GhostFlag = 1;
   this->BlockId = blockId;
 
+  this->CGrid = nullptr;
   this->Image = nullptr;
   this->Level = level;
   // Skip spacing and origin.
@@ -1010,6 +1349,60 @@ void vtkMaterialInterfaceFilterBlock::InitializeGhostLayer(unsigned char* volFra
     this->HalfEdges[2][ii] = -this->HalfEdges[3][ii];
     this->HalfEdges[4][ii] = -this->HalfEdges[5][ii];
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkMaterialInterfaceFilterRectilinearBlock::InitializeGhostLayer(unsigned char* volFraction,
+  int cellExtent[6], int level, double globalOrigin[3], double rootSpacing[3], int ownerProcessId,
+  int blockId)
+{
+  if (this->VolumeFractionArray)
+  {
+    vtkGenericWarningMacro("Block already initialized !!!");
+    return;
+  }
+
+  this->ProcessId = ownerProcessId;
+  this->GhostFlag = 1;
+  this->BlockId = blockId;
+
+  this->CGrid = nullptr;
+  this->RGrid = nullptr;
+  this->XCoordinates = nullptr;
+  this->YCoordinates = nullptr;
+  this->ZCoordinates = nullptr;
+  this->Level = level;
+
+  int numCells = (cellExtent[1] - cellExtent[0] + 1) * (cellExtent[3] - cellExtent[2] + 1) *
+    (cellExtent[5] - cellExtent[4] + 1);
+  this->FragmentIds = new int[numCells];
+  for (int ii = 0; ii < numCells; ++ii)
+  {
+    this->FragmentIds[ii] = -1;
+  }
+
+  this->VolumeFractionArray = new unsigned char[numCells];
+  memcpy(this->VolumeFractionArray, volFraction, numCells);
+
+  this->CellExtent[0] = cellExtent[0];
+  this->CellExtent[1] = cellExtent[1];
+  this->CellExtent[2] = cellExtent[2];
+  this->CellExtent[3] = cellExtent[3];
+  this->CellExtent[4] = cellExtent[4];
+  this->CellExtent[5] = cellExtent[5];
+
+  this->BaseCellExtent[0] = cellExtent[0];
+  this->BaseCellExtent[1] = cellExtent[1];
+  this->BaseCellExtent[2] = cellExtent[2];
+  this->BaseCellExtent[3] = cellExtent[3];
+  this->BaseCellExtent[4] = cellExtent[4];
+  this->BaseCellExtent[5] = cellExtent[5];
+
+  this->CellIncrements[0] = 1;
+  this->CellIncrements[1] = cellExtent[1] - cellExtent[0] + 1;
+  this->CellIncrements[2] = this->CellIncrements[1] * (cellExtent[3] - cellExtent[2] + 1);
+
+  // No need to calculate Origin, Spacing, or HalfEdges for vtkRectilinearGrid
 }
 
 //----------------------------------------------------------------------------
@@ -1880,18 +2273,17 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
     for (int levelBlockId = 0; levelBlockId < numBlocks; ++levelBlockId)
     {
       vtkCartesianGrid* cg = input->GetDataSetAsCartesianGrid(level, levelBlockId);
-      vtkImageData* image = vtkImageData::SafeDownCast(cg);
       // TODO: We need to check the CELL_DATA and the correct volume fraction array.
-
-      if (image)
+      if (auto image = vtkImageData::SafeDownCast(cg))
       {
-        block = this->InputBlocks[++blockIndex] = new vtkMaterialInterfaceFilterBlock;
+        block = this->InputBlocks[++blockIndex] = new vtkMaterialInterfaceFilterImageBlock;
         // Do we really need the block to know its id?
         // We use it to find neighbors.  We should save pointers
         // directly in neighbor array. We also use it for debugging.
-        block->Initialize(blockIndex, image, level, this->GlobalOrigin, this->RootSpacing,
-          materialFractionArrayName, massArrayName, volumeWtdAvgArrayNames, massWtdAvgArrayNames,
-          summedArrayNames, integratedArrayNames, this->InvertVolumeFraction, sphere);
+        static_cast<vtkMaterialInterfaceFilterImageBlock*>(block)->Initialize(blockIndex, image,
+          level, this->GlobalOrigin, this->RootSpacing, materialFractionArrayName, massArrayName,
+          volumeWtdAvgArrayNames, massWtdAvgArrayNames, summedArrayNames, integratedArrayNames,
+          this->InvertVolumeFraction, sphere);
         // For debugging:
         block->LevelBlockId = levelBlockId;
 
@@ -1906,7 +2298,28 @@ int vtkMaterialInterfaceFilter::InitializeBlocks(vtkNonOverlappingAMR* input,
         cumulativeExt[4] = std::min(cumulativeExt[4], ext[4]);
         cumulativeExt[5] = std::max(cumulativeExt[5], ext[5]);
       }
-      else if (cg)
+      else if (auto rGrid = vtkRectilinearGrid::SafeDownCast(cg))
+      {
+        block = this->InputBlocks[++blockIndex] = new vtkMaterialInterfaceFilterRectilinearBlock;
+        static_cast<vtkMaterialInterfaceFilterRectilinearBlock*>(block)->Initialize(blockIndex,
+          rGrid, level, this->GlobalOrigin, this->RootSpacing, materialFractionArrayName,
+          massArrayName, volumeWtdAvgArrayNames, massWtdAvgArrayNames, summedArrayNames,
+          integratedArrayNames, this->InvertVolumeFraction, sphere);
+        // For debugging:
+        block->LevelBlockId = levelBlockId;
+
+        // Collect information about the blocks in this level.
+        const int* ext;
+        ext = block->GetBaseCellExtent();
+        // We need the cumulative extent to determine the grid extent.
+        cumulativeExt[0] = std::min(cumulativeExt[0], ext[0]);
+        cumulativeExt[1] = std::max(cumulativeExt[1], ext[1]);
+        cumulativeExt[2] = std::min(cumulativeExt[2], ext[2]);
+        cumulativeExt[3] = std::max(cumulativeExt[3], ext[3]);
+        cumulativeExt[4] = std::min(cumulativeExt[4], ext[4]);
+        cumulativeExt[5] = std::max(cumulativeExt[5], ext[5]);
+      }
+      else
       {
         vtkWarningMacro("Non vtkImageData in AMR are not supported and are skipped");
       }
@@ -2873,7 +3286,7 @@ void vtkMaterialInterfaceFilter::ComputeAndDistributeGhostBlocks(
           }
           this->Controller->Receive(buf, dataSize, otherProc, 433240);
           // Make the ghost block and add it to the grid.
-          ghostBlock = new vtkMaterialInterfaceFilterBlock;
+          // ghostBlock = new vtkMaterialInterfaceFilterBlock;
           ghostBlock->InitializeGhostLayer(
             buf, ext, ghostBlockLevel, this->GlobalOrigin, this->RootSpacing, otherProc, id);
           // Save for deleting.
@@ -4132,6 +4545,8 @@ int vtkMaterialInterfaceFilter::SubVoxelPositionCorner(double* point,
   // difficult, we are only considering corner, edge and face directions.
 
   // Half edges of the smallest voxel.
+  double minSpacing[3] = { VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX };
+  double currentSpacing[3];
   double* hEdge0 = nullptr;
   double* hEdge1 = nullptr;
   double* hEdge2 = nullptr;
@@ -4141,9 +4556,19 @@ int vtkMaterialInterfaceFilter::SubVoxelPositionCorner(double* point,
     if (pointNeighborIterators[ii]->Block->GetLevel() > highestLevel)
     {
       highestLevel = pointNeighborIterators[ii]->Block->GetLevel();
-      hEdge0 = pointNeighborIterators[ii]->Block->HalfEdges[1];
-      hEdge1 = pointNeighborIterators[ii]->Block->HalfEdges[3];
-      hEdge2 = pointNeighborIterators[ii]->Block->HalfEdges[5];
+
+      // Get the specific spacing of this neighboring cell
+      pointNeighborIterators[ii]->Block->GetCellSpacing(
+        pointNeighborIterators[ii]->Index, currentSpacing);
+
+      // Find the minimum dimension along each axis
+      minSpacing[0] = std::min(minSpacing[0], currentSpacing[0]);
+      minSpacing[1] = std::min(minSpacing[1], currentSpacing[1]);
+      minSpacing[2] = std::min(minSpacing[2], currentSpacing[2]);
+
+      double hEdge0[3] = { minSpacing[0] * 0.5, 0.0, 0.0 };
+      double hEdge1[3] = { 0.0, minSpacing[1] * 0.5, 0.0 };
+      double hEdge2[3] = { 0.0, 0.0, minSpacing[2] * 0.5 };
     }
   }
 
@@ -4632,8 +5057,6 @@ void vtkMaterialInterfaceFilter::ComputeFacePoints(vtkMaterialInterfaceFilterIte
   vtkMaterialInterfaceFilterIterator* out, int axis, int outMaxFlag)
 {
   vtkMaterialInterfaceFilterIterator* smaller;
-  double* origin;
-  double* spacing;
   int maxFlag;
   int axis1 = (axis + 1) % 3;
   int axis2 = (axis + 2) % 3;
@@ -4648,17 +5071,15 @@ void vtkMaterialInterfaceFilter::ComputeFacePoints(vtkMaterialInterfaceFilterIte
     maxFlag = !outMaxFlag;
   }
 
-  origin = smaller->Block->GetOrigin();
-  spacing = smaller->Block->GetSpacing();
+  double spacing[3];
+  smaller->Block->GetCellSpacing(smaller->Index, spacing);
   double halfSpacing[3];
-  double faceOrigin[3];
   halfSpacing[0] = spacing[0] * 0.5;
   halfSpacing[1] = spacing[1] * 0.5;
   halfSpacing[2] = spacing[2] * 0.5;
   // find the origin of the voxel.
-  faceOrigin[0] = origin[0] + (double)(smaller->Index[0]) * spacing[0];
-  faceOrigin[1] = origin[1] + (double)(smaller->Index[1]) * spacing[1];
-  faceOrigin[2] = origin[2] + (double)(smaller->Index[2]) * spacing[2];
+  double faceOrigin[3];
+  smaller->Block->GetPointCoordinates(smaller->Index, faceOrigin);
   // Move the voxel origin to the face origin.
   if (maxFlag)
   {
@@ -5330,7 +5751,9 @@ void vtkMaterialInterfaceFilter::ConnectFragment(vtkMaterialInterfaceFilterRingB
     if (iterator.Block->GetGhostFlag() == 0)
     {
       // accumulate fragment volume
-      const double* dX = iterator.Block->GetSpacing();
+      // Get cell-specific spacing for rectilinear grids
+      double dX[3];
+      iterator.Block->GetCellSpacing(iterator.Index, dX);
 #ifdef USE_VOXEL_VOLUME
       double voxelVolumeFrac = dX[0] * dX[1] * dX[2];
 #else
@@ -5353,9 +5776,10 @@ void vtkMaterialInterfaceFilter::ConnectFragment(vtkMaterialInterfaceFilterRingB
       {
         vtkDataArray* massArray = iterator.Block->GetMassArray();
         // mass and moments
-        const double* X0 = iterator.Block->GetOrigin();
-        double X[3] = { X0[0] + dX[0] * (0.5 + iterator.Index[0]),
-          X0[1] + dX[1] * (0.5 + iterator.Index[1]), X0[2] + dX[2] * (0.5 + iterator.Index[2]) };
+        // Get actual point coordinates for rectilinear grids
+        double X[3];
+        int pointIdx[3] = { iterator.Index[0], iterator.Index[1], iterator.Index[2] };
+        iterator.Block->GetPointCoordinates(pointIdx, X);
         this->AccumulateMoments(this->FragmentMoment.data(), massArray, iterator.FlatIndex, X);
         // mass weighted averages
         double voxelMass;
@@ -6644,7 +7068,7 @@ void vtkMaterialInterfaceFilter::ComputeGeometricAttributes()
         if (transactionList[0].GetType() == 'S')
         {
           assert("Send has more than 1 transaction." && nTransactions == 1);
-          assert("Send requires a mesh that is not local." && localMesh != 0);
+          assert("Send requires a mesh that is not local." && localMesh != nullptr);
 
           // I am sending geometry, hence this is a piece
           // of a split frgament and I need to treat it as
@@ -6980,7 +7404,7 @@ int vtkMaterialInterfaceFilter::UnPackLoadingArray(
 {
   const int sizeOfPl = vtkMaterialInterfacePieceLoading::SIZE;
 
-  assert("Buffer is null pointer." && buffer != 0);
+  assert("Buffer is null pointer." && buffer != nullptr);
   assert("Buffer size is incorrect." && bufSize % sizeOfPl == 0);
 
   loadingArray.clear();
