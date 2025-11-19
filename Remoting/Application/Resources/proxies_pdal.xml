@@ -1,14 +1,9 @@
 <ServerManagerConfiguration>
-  <ProxyGroup name="sources">
-    <SourceProxy class="vtkPDALReader"
-                 label="PDAL Reader"
-                 name="PDALReader">
-      <Documentation short_help="Reads data using PDAL."
-      long_help="Reads LIDAR data using the PDAL library">The PDAL
-      Reader reads LIDAR data using the PDAL library.  See the readers
-      section on www.pdal.io for the supported formats. It produces a
-      vtkPolyData with point data arrays for attributes such as
-      Intensity, Classification, Color, etc.</Documentation>
+  <ProxyGroup name="internal_sources">
+    <!-- ================================================================== -->
+    <Proxy class="vtkPDALReader"
+           label="PDAL Reader"
+           name="PDALReaderCore">
       <StringVectorProperty animateable="0"
                             command="SetFileName"
                             name="FileName"
@@ -17,12 +12,58 @@
         <Documentation>This property specifies the file name for the
         PDAL reader.</Documentation>
       </StringVectorProperty>
+      <!-- End PDALReaderCore -->
+    </Proxy>
+    <!-- end of "internal_sources" -->
+  </ProxyGroup>
+
+  <!-- ==================================================================== -->
+  <ProxyGroup name="sources">
+    <!-- ================================================================== -->
+    <SourceProxy class="vtkFileSeriesReader"
+                 file_name_method="SetFileName"
+                 label="PDAL Reader Test"
+                 name="PDALReaderTest"
+                 si_class="vtkSIMetaReaderProxy">
+      <Documentation short_help="Reads data using PDAL."
+      long_help="Reads LIDAR data using the PDAL library">The PDAL
+                     Reader reads LIDAR data using the PDAL library.  See the readers
+                     section on www.pdal.io for the supported formats. It produces a
+                     vtkPolyData with point data arrays for attributes such as
+                     Intensity, Classification, Color, etc.</Documentation>
+      <StringVectorProperty animateable="0"
+                            clean_command="RemoveAllFileNames"
+                            command="AddFileName"
+                            information_property="FileNameInfo"
+                            name="FileName"
+                            number_of_elements="1"
+                            panel_visibility="never"
+                            repeat_command="1">
+        <FileListDomain name="files" />
+        <Documentation>The list of files to be read by the reader.</Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty command="GetCurrentFileName"
+                            information_only="1"
+                            name="FileNameInfo">
+        <SimpleStringInformationHelper />
+      </StringVectorProperty>
+      <DoubleVectorProperty information_only="1"
+                            name="TimestepValues"
+                            repeatable="1">
+        <TimeStepsInformationHelper />
+        <Documentation>Available timestep values.</Documentation>
+      </DoubleVectorProperty>
+      <SubProxy>
+        <Proxy name="Reader"
+               proxygroup="internal_sources"
+               proxyname="PDALReaderCore"></Proxy>
+      </SubProxy>
       <Hints>
         <ReaderFactory extensions="bin bpf csd csv greyhound gpkg icebride las laz mat nitf nsf ntf pcd ply pts qi rxp sbet sqlite sid tindex txt h5"
                        file_description="PDAL Files" />
       </Hints>
     </SourceProxy>
-      <!-- End PDALReader -->
+    <!-- End PDALReader -->
   </ProxyGroup>
 
 </ServerManagerConfiguration>
