@@ -15,6 +15,8 @@
 #include "vtkTable.h"
 #include "vtkVariant.h"
 
+#include "vtkLogger.h"
+
 vtkStandardNewMacro(vtkChartTextRepresentation);
 
 //----------------------------------------------------------------------------
@@ -22,6 +24,7 @@ vtkChartTextRepresentation::vtkChartTextRepresentation()
 {
   // don't render any background.
   this->BlockItem->GetBrush()->SetColorF(1.0, 1.0, 1.0, 0.0);
+  this->BlockItem->GetMouseOverBrush()->SetColorF(0.5, 0.5, 0.5, 1.0);
   this->BlockItem->GetPen()->SetLineType(vtkPen::NO_PEN);
 
   this->BlockItem->SetInteractive(false);

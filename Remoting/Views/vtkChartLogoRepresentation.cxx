@@ -15,10 +15,13 @@
 #include "vtkPen.h"
 #include "vtkTable.h"
 
+#include "vtkLogger.h"
+
 vtkStandardNewMacro(vtkChartLogoRepresentation);
 //----------------------------------------------------------------------------
 vtkChartLogoRepresentation::vtkChartLogoRepresentation()
 {
+  this->ImageItem->GetDefaultPen()->SetLineType(vtkPen::NO_PEN);
   this->ImageItem->AddObserver(
     vtkCommand::InteractionEvent, this, &vtkChartLogoRepresentation::OnInteractionEvent);
 }
@@ -31,6 +34,7 @@ void vtkChartLogoRepresentation::OnInteractionEvent()
 {
   float dims[4];
   this->ImageItem->GetPosition(dims);
+  this->ImageItem->SetVisible(true);
   this->SetPosition(dims[0], dims[1]);
   this->InvokeEvent(vtkCommand::InteractionEvent);
 }
@@ -40,6 +44,12 @@ void vtkChartLogoRepresentation::SetVisibility(bool val)
 {
   this->Superclass::SetVisibility(val);
   this->ImageItem->SetVisible(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkChartLogoRepresentation::SetInteractivity(bool enable)
+{
+  this->ImageItem->SetInteractive(enable);
 }
 
 //----------------------------------------------------------------------------

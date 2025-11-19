@@ -5151,13 +5151,11 @@
                          default_values="0"
                          name="Interactivity"
                          number_of_elements="1"
-                         panel_visibility="never">
+                         panel_visibility="default">
         <BooleanDomain name="bool" />
         <Documentation>
           Set whether user should be able to interactively place the text in the view.
         </Documentation>
-        <!-- for now, we hide this property since we don't users interact with
-             the text right now -->
       </IntVectorProperty>
 
       <IntVectorProperty command="SetLabelLocation"
@@ -5430,6 +5428,13 @@
         <BooleanDomain name="bool" />
         <Documentation>Visibility of the representation.</Documentation>
       </IntVectorProperty>
+      <IntVectorProperty command="SetInteractivity"
+                         default_values="0"
+                         name="Interactivity"
+                         number_of_elements="1"
+                         panel_visibility="default">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
       <IntVectorProperty command="SetForceUseCache"
                          default_values="0"
                          is_internal="1"
@@ -5494,6 +5499,20 @@
         <Property name="Position"/>
       </PropertyGroup>
 
+    </ChartRepresentationProxy>
+
+    <!-- =================================================================== -->
+    <ChartRepresentationProxy class="vtkChartRectangleRepresentation"
+                              name="ChartRectangleRepresentation"
+                              processes="client|dataserver|renderserver">
+      <Documentation>TODO: add doc</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <Documentation>Data input for the representation.</Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject" />
+        </DataTypeDomain>
+      </InputProperty>
     </ChartRepresentationProxy>
 
     <!-- =================================================================== -->
