@@ -114,7 +114,8 @@ vtk_module_test_data(
   "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/SaveAnimation_right.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiView_chart_view.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiView_render_view.png"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RecolorableImageExtractor_1.png")
+  "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RecolorableImageExtractor_1.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RescaleTransferFunctionToDataRange.png")
 
 set(PVBATCH_TESTS
   AnnotationVisibility.py
@@ -127,6 +128,7 @@ set(PVBATCH_TESTS
   SaveAnimation.py
   SaveScreenshot.py,NO_VALID
   Simple.py
+  RescaleTransferFunctionToDataRange.py
   TestFetchData.py,NO_VALID
   UserTransformOnRepresentation.py
   )
