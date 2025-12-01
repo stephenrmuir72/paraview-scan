@@ -401,7 +401,7 @@ vtkImageData* vtkPVImageSliceMapper::GetInput()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVImageSliceMapper::Update(int port)
+bool vtkPVImageSliceMapper::Update(int port)
 {
   if (!this->Static)
   {
@@ -422,7 +422,7 @@ void vtkPVImageSliceMapper::Update(int port)
         vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(), this->GhostLevel);
     }
 
-    this->Superclass::Update(port);
+    return this->Superclass::Update(port);
   }
 }
 
