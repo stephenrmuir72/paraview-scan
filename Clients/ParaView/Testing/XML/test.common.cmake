@@ -1808,6 +1808,12 @@ if (TARGET VTK::IOHDF)
   )
 endif()
 
+if (TARGET VTK::IOUSD)
+  list(APPEND TESTS_WITHOUT_BASELINES
+    ExportUSD.xml
+  )
+endif()
+
 # The color dialog is different on MacOS X which makes this test fail.
 if(NOT APPLE)
   list(APPEND TESTS_WITH_BASELINES
