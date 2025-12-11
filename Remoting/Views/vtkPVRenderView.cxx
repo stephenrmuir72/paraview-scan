@@ -3652,7 +3652,6 @@ void vtkPVRenderView::SetEnableANARI(bool v)
     // These defaults are set before ANARI is enabled and then they are not
     // set again, so we need to set them here.
     this->SetANARILibrary("visrtx");
-    this->SetANARIRenderer("default");
   }
   else
   {
@@ -3685,6 +3684,10 @@ void vtkPVRenderView::SetANARILibrary(std::string l [[maybe_unused]])
     vtkLog(INFO, "SetANARILibrary: " << l);
     this->Internals->AnariPass->GetAnariDevice()->SetupAnariDeviceFromLibrary(
       l.c_str(), "default", false);
+    // Proxy properties defaults
+    // These defaults are set before ANARI is enabled and then they are not
+    // set again, so we need to set them here.
+    this->SetANARIRenderer("default");
   }
 #endif
 }
