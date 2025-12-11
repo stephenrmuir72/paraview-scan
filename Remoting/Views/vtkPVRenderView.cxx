@@ -95,7 +95,6 @@
 #include "vtkWeakPointer.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtk_jsoncpp.h"
-#include <anari/frontend/anari_enums.h>
 
 #include "vtk_scn.h"
 // clang-format off
@@ -118,6 +117,7 @@
 #include "vtkAnariPass.h"
 #include "vtkAnariRenderer.h"
 #include "vtkAnariSceneGraph.h"
+#include <anari/frontend/anari_enums.h>
 #endif
 
 #include <cassert>
