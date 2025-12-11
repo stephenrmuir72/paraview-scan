@@ -1180,7 +1180,6 @@ void vtkSMRenderViewProxy::UpdateAnariProperties()
     vtkSMStringVectorProperty* propRendererNames =
       vtkSMStringVectorProperty::SafeDownCast(this->GetProperty("ANARIRendererNames"));
     this->UpdatePropertyInformation(propRendererNames);
-    vtkLog(INFO, "ANARIRenderNames \n" << propRendererNames->GetElement(0));
   }
   this->UpdateProperty("ANARIRenderer");
   if (updateANARIRendererParameters)
