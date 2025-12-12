@@ -416,9 +416,9 @@ void pqDynamicPropertiesWidget::propertyChanged()
     qWarning() << Q_FUNC_INFO << "Invalid property list length.";
     return;
   }
-  QString key = prop.at(0).toString();
-  QString value = prop.at(2).toString();
-  if (this->Internals->widgetMap.empty() && key == "" && value == "")
+  QString key0 = prop.at(0).toString();
+  QString value0 = prop.at(2).toString();
+  if (this->Internals->widgetMap.empty() && key0 == "" && value0 == "")
   {
     return;
   }
@@ -526,7 +526,6 @@ void pqDynamicPropertiesWidget::buildWidget(vtkSMProperty* infoProp)
     root[vtkDynamicProperties::PROPERTIES_KEY].isArray())
   {
     Json::Value properties = root[vtkDynamicProperties::PROPERTIES_KEY];
-    int row = 0;
     for (const auto& property : properties)
     {
       QString description =
