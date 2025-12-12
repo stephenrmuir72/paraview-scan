@@ -1,5 +1,6 @@
 set(classes
-  vtkPVZSpaceView)
+  vtkPVZSpaceView
+  vtkPVZSpaceSettings)
 
 vtk_module_add_module(zSpace::vtkZSpaceView
   CLASSES ${classes})
