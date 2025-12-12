@@ -32,11 +32,11 @@ int vtkSMDynamicPropertiesDomain::IsInDomain(vtkSMProperty* property)
 }
 
 //------------------------------------------------------------------------------
-int vtkSMDynamicPropertiesDomain::SetDefaultValues(vtkSMProperty* property, bool useUnchecked)
+int vtkSMDynamicPropertiesDomain::SetDefaultValues(vtkSMProperty* outProperty, bool useUnchecked)
 {
   vtkSMStringVectorProperty* svpInfo =
     vtkSMStringVectorProperty::SafeDownCast(this->GetInfoProperty());
-  vtkSMStringVectorProperty* svpOut = vtkSMStringVectorProperty::SafeDownCast(property);
+  vtkSMStringVectorProperty* svpOut = vtkSMStringVectorProperty::SafeDownCast(outProperty);
 
   if (svpOut && svpInfo && svpInfo->GetNumberOfElements() == 1)
   {
@@ -58,7 +58,6 @@ int vtkSMDynamicPropertiesDomain::SetDefaultValues(vtkSMProperty* property, bool
       root[vtkDynamicProperties::PROPERTIES_KEY].isArray())
     {
       Json::Value properties = root[vtkDynamicProperties::PROPERTIES_KEY];
-      int row = 0;
       svpOut->SetNumberOfElements(properties.size() * 3);
       int outIdx = 0;
       for (const auto& property : properties)
@@ -81,7 +80,7 @@ int vtkSMDynamicPropertiesDomain::SetDefaultValues(vtkSMProperty* property, bool
       return 1;
     }
   }
-  return this->Superclass::SetDefaultValues(property, useUnchecked);
+  return this->Superclass::SetDefaultValues(outProperty, useUnchecked);
 }
 
 //------------------------------------------------------------------------------
