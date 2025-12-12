@@ -7,7 +7,6 @@
 #include "pqIntRangeWidget.h"
 #include "pqPropertiesPanel.h"
 #include "vtkDynamicProperties.h"
-
 #include "vtkSMDynamicPropertiesDomain.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxy.h"
@@ -34,6 +33,7 @@
 
 #include <QCoreApplication>
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include <qcontainerfwd.h>
 #include <qlogging.h>
@@ -272,6 +272,7 @@ public:
     this->Widget->buildWidget(pullProp);
   }
   pqDynamicPropertiesWidget* Widget = nullptr;
+  vtkSMDomain* Domain = nullptr;
 };
 
 class pqDynamicPropertiesWidget::pqInternals
@@ -308,6 +309,7 @@ public:
   }
 
   WidgetMap widgetMap;
+  vtkNew<DomainModifiedObserver> observer;
 };
 
 //------------------------------------------------------------------------------
@@ -363,14 +365,15 @@ pqDynamicPropertiesWidget::pqDynamicPropertiesWidget(
     this->hide();
   }
 
-  vtkNew<DomainModifiedObserver> observer;
-  observer->Widget = this;
-  domain->AddObserver(vtkCommand::DomainModifiedEvent, observer);
+  this->Internals->observer->Widget = this;
+  this->Internals->observer->Domain = domain;
+  domain->AddObserver(vtkCommand::DomainModifiedEvent, this->Internals->observer);
 }
 
 //------------------------------------------------------------------------------
 pqDynamicPropertiesWidget::~pqDynamicPropertiesWidget()
 {
+  this->Internals->observer->Domain->RemoveObserver(this->Internals->observer);
   delete this->Internals;
   this->Internals = nullptr;
 }
@@ -490,7 +493,6 @@ void pqDynamicPropertiesWidget::clearProperties()
   for (auto it = map.begin(); it != map.end(); ++it)
   {
     auto* widget = it.value();
-    qWarning() << "Remove " << widget->label->text() << " from map";
     widget->deleteLater();
     delete widget;
   }
