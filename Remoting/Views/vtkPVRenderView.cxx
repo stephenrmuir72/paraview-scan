@@ -3749,8 +3749,8 @@ vtkStringArray* vtkPVRenderView::GetANARIRendererNames()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVRenderView::SetANARIRendererParameter(
-  const std::string& key, int type, const std::string& stringValue)
+void vtkPVRenderView::SetANARIRendererParameter(const std::string& key [[maybe_unused]],
+  int type [[maybe_unused]], const std::string& stringValue [[maybe_unused]])
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingAnari
   if (this->Internals->AnariPass)
