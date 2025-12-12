@@ -7,7 +7,6 @@
 #include "pqIntRangeWidget.h"
 #include "pqPropertiesPanel.h"
 #include "vtkDynamicProperties.h"
-#include "vtkLogger.h"
 
 #include "vtkSMDynamicPropertiesDomain.h"
 #include "vtkSMProperty.h"
@@ -37,6 +36,7 @@
 #include <algorithm>
 #include <limits>
 #include <qcontainerfwd.h>
+#include <qlogging.h>
 #include <qnamespace.h>
 #include <qspinbox.h>
 
@@ -481,18 +481,21 @@ void pqDynamicPropertiesWidget::updatePropertyImpl()
 //------------------------------------------------------------------------------
 void pqDynamicPropertiesWidget::clearProperties()
 {
-  for (int i = 0; i < this->Form->rowCount(); ++i)
+  for (int i = this->Form->rowCount() - 1; i >= 0; --i)
   {
     this->Form->takeRow(i);
   }
+  assert(this->Form->rowCount() == 0);
   auto& map = this->Internals->widgetMap;
   for (auto it = map.begin(); it != map.end(); ++it)
   {
     auto* widget = it.value();
+    qWarning() << "Remove " << widget->label->text() << " from map";
     widget->deleteLater();
     delete widget;
   }
   map.clear();
+  assert(this->Internals->widgetMap.empty());
 }
 
 //------------------------------------------------------------------------------
