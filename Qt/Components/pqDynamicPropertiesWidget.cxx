@@ -509,7 +509,6 @@ void pqDynamicPropertiesWidget::buildWidget(vtkSMProperty* infoProp)
   }
 
   std::string stringProperties{ svp->GetElement(0) };
-  vtkLog(INFO, "ANARIRendererParametersInfo \n" << stringProperties);
   Json::Value root;
   Json::CharReaderBuilder readerBuilder;
   std::string errs;

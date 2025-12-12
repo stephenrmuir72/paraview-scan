@@ -41,7 +41,6 @@ int vtkSMDynamicPropertiesDomain::SetDefaultValues(vtkSMProperty* outProperty, b
   if (svpOut && svpInfo && svpInfo->GetNumberOfElements() == 1)
   {
     std::string stringProperties{ svpInfo->GetElement(0) };
-    vtkLog(INFO, "ANARIRendererParametersInfo \n" << stringProperties);
     Json::Value root;
     Json::CharReaderBuilder readerBuilder;
     std::string errs;
