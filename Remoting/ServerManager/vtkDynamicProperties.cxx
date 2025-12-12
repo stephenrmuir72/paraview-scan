@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
 #include "vtkDynamicProperties.h"
 
 const char* vtkDynamicProperties::LIBRARY_KEY = "library";

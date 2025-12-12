@@ -1,10 +1,17 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
 /**
  * @class   vtkDynamicProperties
- * @brief   Select names from an indexed string list.
+ * @brief   Key names and types for dynamic properties
  *
+ * See:
+ * - vtkPVRenderView::GetANARIRendererParameters for the json
+ * description of properties associated with an ANARI renderer
+ * - pqDynamicPropertiesWidget for the panel_widget for these
+ * properties and
+ * - ANARIRenderParameter XML property definiton for the RenderViewProxy
+ * in view_removingviews.xml
  *
- * See the vtkMPASReader proxy in readers.xml for how the properties should be
- * set up for this domain.
  */
 
 #ifndef vtkDynamicProperties_h
