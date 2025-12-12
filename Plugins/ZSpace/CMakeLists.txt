@@ -28,6 +28,7 @@ paraview_add_plugin(zSpace
   SOURCES ${sources}
   MODULES zSpace::vtkZSpaceView
   MODULE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/zSpace/vtk.module"
+  SERVER_MANAGER_XML "${CMAKE_CURRENT_SOURCE_DIR}/zSpace/vtkPVZSpaceSettings.xml"
   XML_DOCUMENTATION OFF)
 
 if (PARAVIEW_USE_QT)
