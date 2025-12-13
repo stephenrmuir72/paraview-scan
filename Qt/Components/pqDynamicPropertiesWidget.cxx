@@ -539,24 +539,24 @@ void pqDynamicPropertiesWidget::buildWidget(vtkSMProperty* infoProp)
     qWarning() << "Error parsing parameters: " << errs;
     return;
   }
-  if (!root.isMember(vtkDynamicProperties::VERSION_KEY))
-  {
-    qWarning() << "Error: No version provided with the properties "
-                  "json specification";
-    return;
-  }
-  if (root[vtkDynamicProperties::VERSION_KEY].asInt() < VTK_DYNAMIC_PROPERTIES_VERSION_NUMBER_QUICK)
-  {
-    qWarning() << "Error: json properties specification version "
-                  "is not supported: "
-               << root[vtkDynamicProperties::VERSION_KEY].asInt()
-               << " expecting: " << VTK_DYNAMIC_PROPERTIES_VERSION_NUMBER_QUICK;
-    return;
-  }
-
   if (root.isObject() && root.isMember(vtkDynamicProperties::PROPERTIES_KEY) &&
     root[vtkDynamicProperties::PROPERTIES_KEY].isArray())
   {
+    if (!root.isMember(vtkDynamicProperties::VERSION_KEY))
+    {
+      qWarning() << "Error: No version provided with the properties "
+                    "json specification";
+      return;
+    }
+    if (root[vtkDynamicProperties::VERSION_KEY].asInt() <
+      VTK_DYNAMIC_PROPERTIES_VERSION_NUMBER_QUICK)
+    {
+      qWarning() << "Error: json properties specification version "
+                    "is not supported: "
+                 << root[vtkDynamicProperties::VERSION_KEY].asInt()
+                 << " expecting: " << VTK_DYNAMIC_PROPERTIES_VERSION_NUMBER_QUICK;
+      return;
+    }
     Json::Value properties = root[vtkDynamicProperties::PROPERTIES_KEY];
     for (const auto& property : properties)
     {
