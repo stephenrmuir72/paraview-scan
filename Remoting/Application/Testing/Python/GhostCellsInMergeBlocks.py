@@ -5,6 +5,8 @@ import sys
 import os
 import os.path
 
+LoadPalette("BlueGrayBackground")
+
 smtesting.ProcessCommandLineArguments()
 
 xmf_file = os.path.join(smtesting.DataDir, "Testing/Data/poisson_3dall_2.xmf")
