@@ -9,6 +9,7 @@ This file tests that the HTG contour using decomposed polyhedra, shows the right
 being more precise than the voxel contour algorithm, which should give a different output.
 """
 
+LoadPalette("BlueGrayBackground")
 
 # Create the first renderview
 renderView1 = CreateView('RenderView')

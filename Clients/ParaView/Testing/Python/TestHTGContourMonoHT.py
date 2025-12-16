@@ -9,6 +9,8 @@ This file is a rendering test of HTG Contour using polyhedron,
 in the case of a one cell grid (see issue Gitlab issue #22324)
 """
 
+LoadPalette("BlueGrayBackground")
+
 # Create first new 'Render View'
 renderView1 = CreateView('RenderView')
 renderView1.ViewSize = [672, 679]

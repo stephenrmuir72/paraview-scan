@@ -4,6 +4,8 @@ from paraview.vtk.vtkTestingRendering import vtkTesting
 from os.path import join
 import sys
 
+LoadPalette("BlueGrayBackground")
+
 # create a new 'Wavelet'
 wavelet1 = Wavelet(registrationName='Wavelet1')
 
