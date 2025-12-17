@@ -529,6 +529,6 @@ void vtkPVXRInterfaceCollaborationClient::UpdateRay(vtkVRModel*, vtkEventDataDev
 void vtkPVXRInterfaceCollaborationClient::ShowBillboard(std::vector<std::string> const&) {}
 void vtkPVXRInterfaceCollaborationClient::HideBillboard() {}
 void vtkPVXRInterfaceCollaborationClient::AddPointToSource(std::string const&, double const*) {}
-void vtkPVXRInterfaceCollaborationClient::SendAvatarUpVector(const double* up) {}
+void vtkPVXRInterfaceCollaborationClient::SendAvatarUpVector(const double*) {}
 void vtkPVXRInterfaceCollaborationClient::ClearPointSource() {}
 #endif

@@ -123,7 +123,7 @@ struct vtkPVXRInterfaceHelper::vtkInternals
       : CollabClient(nullptr)
     {
     }
-    ~vtkNavigationObserver() override {}
+    ~vtkNavigationObserver() override = default;
 
   private:
     vtkNew<vtkMatrix4x4> NavigationMatrix;
