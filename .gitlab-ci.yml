@@ -173,8 +173,8 @@ translations:test:
         - .linux_tester_tags
         - .cmake_translations_artifacts
         - .rules
-    variables:
-        PV_CI_MERGED_ONLY: "true"
+    # variables:
+    #     PV_CI_MERGED_ONLY: "true"
     needs:
         - fedora42-shared-asserts-mpi-python-qt:build
     timeout: 15 minutes
