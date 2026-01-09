@@ -1295,9 +1295,10 @@ list(APPEND TESTS_WITH_BASELINES
   NOAMRUniformGridSurface.xml
   PartialFieldDataMultiBlock.xml
   ParticleTracerGlyph.xml
-  PointDataSetInterpolator.xml
   PassArrays.xml
   PerlinNoise.xml
+  PNGReaderDataOrigin.xml
+  PointDataSetInterpolator.xml
   PointAndCellIdsHTG.xml
   Protractor.xml
   PVCellCentersHyperTreeGrid.xml
