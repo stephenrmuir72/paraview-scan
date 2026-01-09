@@ -20,6 +20,7 @@ set(template_classes
   vtkBinsAccumulator)
 
 vtk_module_add_module(HyperTreeGridFilters
+  FORCE_STATIC  # build static library, to avoid confusion when loading
   CLASSES ${classes}
   HEADERS ${headers}
   TEMPLATE_CLASSES ${template_classes})
