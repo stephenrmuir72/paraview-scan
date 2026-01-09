@@ -8,4 +8,9 @@ paraview_add_plugin(HyperTreeGridADR
 
 if (BUILD_TESTING)
   add_subdirectory(Testing)
+
+  paraview_plugin_test_add_dll_paths(
+    TESTS vtkHyperTreeGridFiltersCxxTests
+    PLUGINS HyperTreeGridADR
+  )
 endif ()
