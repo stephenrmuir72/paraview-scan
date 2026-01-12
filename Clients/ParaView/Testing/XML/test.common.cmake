@@ -1078,6 +1078,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ReflectBackwardCompat.xml
   ReloadCGNSFile.xml
   RenderViewUpdateLOD.xml
+  RulerRepositionToView.xml
   SearchBox.xml
   ServerConnectDialog.xml
   SettingsNoCustomDefault.xml
