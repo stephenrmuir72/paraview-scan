@@ -1027,6 +1027,7 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
   ReaderRegistrationName.xml
   ReadIOHDFAMRMaxLevels.xml
   RescaleVisibleRangeOption.xml
+  RulerRepositionToView.xml
   SpatioTemporalHarmonicsAttribute.xml
   SpatioTemporalHarmonicsSource.xml
   SpreadSheetSelectedCellConnectivity.xml
