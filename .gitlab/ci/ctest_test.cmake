@@ -330,6 +330,10 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "^pv\\.MultipleColorOnSelection$"
     "^pvcs\\.MultipleColorOnSelection$"
 
+    # https://gitlab.kitware.com/paraview/paraview/-/issues/23165
+    "^pv\\.FileDialogAllFavorites$"
+    "^pvcs\\.FileDialogAllFavorites$"
+
     # macOS 15+ local network permission requests. New macOS requires
     # applications to get user permission to access localhost network
     # resources. There is no good way to automate answering these dialogs in CI
