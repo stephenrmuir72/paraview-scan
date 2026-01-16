@@ -1019,9 +1019,13 @@
     </Proxy>
 
     <!-- ================================================================== -->
-    <Proxy class="vtkXMLHierarchicalBoxDataReader"
+    <Proxy class="vtkXMLUniformGridAMRReader"
                  label="XML Hierarchical Box Data reader"
                  name="XMLHierarchicalBoxDataReaderCore">
+      <Deprecated deprecated_in="6.2" to_remove_in="6.3">
+        This reader has been replaced by 'XML UniformGrid AMR reader'.
+        Please consider using that instead.
+      </Deprecated>
       <StringVectorProperty animateable="0"
                             command="SetFileName"
                             name="FileName"
