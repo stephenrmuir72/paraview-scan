@@ -482,3 +482,16 @@ Hide the mouse cursor when hovering a render view.
   </Hints>
 </RenderViewProxy>
 ```
+
+RepositionToView
+--------------------------
+Add an action to reposition the source towards the camera view.
+
+```xml
+<SourceProxy ...>
+  ...
+  <Hints>
+    <RepositionToView />
+  </Hints>
+</SourceProxy>
+```
