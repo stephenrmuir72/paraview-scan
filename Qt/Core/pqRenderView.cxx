@@ -19,6 +19,7 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyManager.h"
 #include "vtkSMProxyProperty.h"
+#include "vtkSMProxySelectionModel.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSelectionHelper.h"
@@ -793,7 +794,6 @@ void pqRenderView::collectSelectionPorts(vtkCollection* selectedRepresentations,
         vtkSMSelectionHelper::IgnoreSelection(prevAppendSelections, newAppendSelections);
         break;
     }
-
     opPort->setSelectionInput(newAppendSelections, 0);
     output_ports.append(opPort);
   }
@@ -948,10 +948,12 @@ void pqRenderView::selectFrustumCells(int rect[4], int selectionModifier)
   vtkNew<vtkCollection> selectedRepresentations;
   vtkNew<vtkCollection> selectionSources;
   QList<pqOutputPort*> output_ports;
+  vtkSMSourceProxy* activeSource = vtkSMSourceProxy::SafeDownCast(getServer()->activeSourcesSelectionModel()->GetCurrentProxy());
+  vtkSMProxy* activeRepr = renderModuleP->FindRepresentation(activeSource, 0);
 
   BEGIN_UNDO_EXCLUDE();
   if (!renderModuleP->SelectFrustumCells(
-        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection))
+        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection, activeRepr))
   {
     END_UNDO_EXCLUDE();
     this->emitSelectionSignal(output_ports, selectionModifier);
@@ -984,10 +986,12 @@ void pqRenderView::selectFrustumPoints(int rect[4], int selectionModifier)
   vtkNew<vtkCollection> selectedRepresentations;
   vtkNew<vtkCollection> selectionSources;
   QList<pqOutputPort*> output_ports;
+  vtkSMSourceProxy* activeSource = vtkSMSourceProxy::SafeDownCast(getServer()->activeSourcesSelectionModel()->GetCurrentProxy());
+  vtkSMProxy* activeRepr = renderModuleP->FindRepresentation(activeSource, 0);
 
   BEGIN_UNDO_EXCLUDE();
   if (!renderModuleP->SelectFrustumPoints(
-        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection))
+        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection, activeRepr))
   {
     END_UNDO_EXCLUDE();
     this->emitSelectionSignal(output_ports, selectionModifier);
@@ -1019,10 +1023,12 @@ void pqRenderView::selectFrustumBlocks(int rect[4], int selectionModifier)
   vtkNew<vtkCollection> selectedRepresentations;
   vtkNew<vtkCollection> selectionSources;
   QList<pqOutputPort*> output_ports;
+  vtkSMSourceProxy* activeSource = vtkSMSourceProxy::SafeDownCast(getServer()->activeSourcesSelectionModel()->GetCurrentProxy());
+  vtkSMProxy* activeRepr = renderModuleP->FindRepresentation(activeSource, 0);
 
   BEGIN_UNDO_EXCLUDE();
   if (!renderModuleP->SelectFrustumCells(
-        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection))
+        rect, selectedRepresentations, selectionSources, this->UseMultipleRepresentationSelection, activeRepr))
   {
     END_UNDO_EXCLUDE();
     this->emitSelectionSignal(output_ports, selectionModifier);
