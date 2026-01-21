@@ -148,10 +148,13 @@ void vtkSMInteractionUndoStackBuilder::EndInteraction()
 //-----------------------------------------------------------------------------
 void vtkSMInteractionUndoStackBuilder::PropertyModified(const char* pname)
 {
-  vtkSMPropertyModificationUndoElement* elem = vtkSMPropertyModificationUndoElement::New();
-  elem->ModifiedProperty(this->RenderView, pname);
-  this->UndoSet->AddElement(elem);
-  elem->Delete();
+  if (this->RenderView)
+  {
+    vtkSMPropertyModificationUndoElement* elem = vtkSMPropertyModificationUndoElement::New();
+    elem->ModifiedProperty(this->RenderView, pname);
+    this->UndoSet->AddElement(elem);
+    elem->Delete();
+  }
 }
 
 //-----------------------------------------------------------------------------
