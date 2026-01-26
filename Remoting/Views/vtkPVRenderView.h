@@ -376,6 +376,8 @@ public:
     this->SelectPoints(r, array);
   }
   void Select(int field_association, int region[4], const char* array = nullptr);
+  void SelectData(
+    int fieldAssociation, vtkDataRepresentation* dataRepr, const char* array, vtkIdType id);
   ///@}
 
   ///@{

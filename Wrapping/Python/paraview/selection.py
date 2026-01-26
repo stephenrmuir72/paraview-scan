@@ -562,3 +562,63 @@ def ShrinkSelection(Source=None, Layers=1):
     :type Layers: int
     :rtype: None"""
     GrowSelection(Source, -Layers)
+
+def SelectPointsData(ArrayName, IdValue=0, Source=None, Modifier=None):
+    """Select points by a value of a vtkIdTypeArray using fast selection.
+
+    :param ArrayName: The name of the array on which to make the selection.
+    :type ArrayName: string
+    :param IdValue: If provided, the id to select in the source. Defaults to 0.
+    :type IdValue: int
+    :param Source: If provided, the source whose selection should be modified. Defaults to the active source.
+    :type Source: Source proxy
+    :param Modifier: 'ADD', 'SUBTRACT', 'TOGGLE', or None to define whether and how the selection
+        should modify the existing selection. None by default.
+    :type Modifier: string
+    """
+    from paraview.vtk import vtkCollection
+
+    view = paraview.simple.GetActiveView()
+
+    if Source == None:
+        Source = paraview.simple.GetActiveSource()
+
+    repr = paraview.simple.GetRepresentation(Source)
+
+    selectedReps = vtkCollection()
+    selectionSources = vtkCollection()
+    view.SelectPointsData(selectedReps, selectionSources, repr, ArrayName, IdValue)
+
+    _collectSelectionPorts(selectedReps, selectionSources, type == 'BLOCK', Modifier=Modifier)
+
+    paraview.simple.Render(view)
+
+def SelectCellsData(ArrayName, IdValue=0, Source=None, Modifier=None):
+    """Select cells by a value of a vtkIdTypeArray using fast selection.
+
+    :param ArrayName: The name of the array on which to make the selection.
+    :type ArrayName: string
+    :param IdValue: If provided, the id to select in the source. Defaults to 0.
+    :type IdValue: int
+    :param Source: If provided, the source whose selection should be modified. Defaults to the active source.
+    :type Source: Source proxy
+    :param Modifier: 'ADD', 'SUBTRACT', 'TOGGLE', or None to define whether and how the selection
+        should modify the existing selection. None by default.
+    :type Modifier: string
+    """
+    from paraview.vtk import vtkCollection
+
+    view = paraview.simple.GetActiveView()
+
+    if Source == None:
+        Source = paraview.simple.GetActiveSource()
+
+    repr = paraview.simple.GetRepresentation(Source)
+
+    selectedReps = vtkCollection()
+    selectionSources = vtkCollection()
+    view.SelectCellsData(selectedReps, selectionSources, repr, ArrayName, IdValue)
+
+    _collectSelectionPorts(selectedReps, selectionSources, type == 'BLOCK', Modifier=Modifier)
+
+    paraview.simple.Render(view)

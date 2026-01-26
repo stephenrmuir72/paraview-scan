@@ -54,6 +54,12 @@ public:
   bool SelectPolygonCells(vtkIntArray* polygon, vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources, bool multiple_selections = false, int modifier = 0,
     bool selectBlocks = false);
+  bool SelectPointsData(vtkCollection* selectedRepresentations, vtkCollection* selectionSources,
+    vtkSMRepresentationProxy* source, const char* arrayName, int idValue,
+    bool multiple_selections = false, int modifier = 0, bool selectBlocks = false);
+  bool SelectCellsData(vtkCollection* selectedRepresentations, vtkCollection* selectionSources,
+    vtkSMRepresentationProxy* source, const char* arrayName, int idValue,
+    bool multiple_selections = false, int modifier = 0, bool selectBlocks = false);
   ///@}
 
   ///@{
@@ -443,6 +449,9 @@ private:
   bool SelectInternal(const vtkClientServerStream& cmd, vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources, bool multiple_selections, int modifier = /* replace */ 0,
     bool selectBlocks = false);
+  bool SelectData(vtkCollection* selectedRepresentations, vtkCollection* selectionSources,
+    vtkSMRepresentationProxy* repr, int fieldAssociation, const char* arrayName, int idValue,
+    bool multiple_selections, int modifier = 0, bool select_blocks = false);
 
   vtkNew<vtkSMViewProxyInteractorHelper> InteractorHelper;
 
