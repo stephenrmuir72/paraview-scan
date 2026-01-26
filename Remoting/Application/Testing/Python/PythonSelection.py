@@ -161,6 +161,52 @@ CheckSelection(numPoints=38, numCells=64)
 ShrinkSelection(Source=s, Layers=3)
 CheckSelection(numPoints=16, numCells=16)
 
+# Select Point/Cell Data
+s1 = Sphere()
+s1.Set(
+    ThetaResolution=10,
+    PhiResolution=10,
+)
+c1 = Calculator(Input=s1)
+c1.Set(
+    Function='0',
+    ResultArrayType='Id Type',
+)
+
+s2 = Sphere()
+s2.Set(
+    ThetaResolution=12,
+    PhiResolution=12,
+)
+
+c2 = Calculator(Input=s2)
+c2.Set(
+    Function='1',
+    ResultArrayType='Id Type',
+)
+datasets = AppendDatasets(Input=[c1, c2])
+Show(datasets)
+Render()
+
+SelectPointsData("Result", 0, datasets)
+CheckSelection(numPoints=82) # ((10 - 1) * (10 - 1)) + 1
+SelectPointsData("Result", 1, datasets)
+CheckSelection(numPoints=122) # ((12 - 1) * (12 - 1)) + 1
+
+c1.Set(
+    AttributeType='Cell Data',
+)
+c2.Set(
+    AttributeType='Cell Data',
+)
+
+SelectCellsData("Result", 0, datasets)
+CheckSelection(numCells=160) # ((10 - 1) * (10 - 1)) * 2 - 2
+SelectCellsData("Result", 1, datasets)
+CheckSelection(numCells=240) # ((12 - 1) * (12 - 1)) * 2 - 2
+HideAll()
+ClearSelection()
+
 try:
     SelectSurfacePoints(Rectangle=[0, 0], Polygon=[0, 0])
     sys.exit(1)  # Should not get here
