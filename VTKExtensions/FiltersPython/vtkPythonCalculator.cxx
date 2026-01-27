@@ -13,6 +13,7 @@
 #include "vtkPythonUtil.h"
 #include "vtkSmartPyObject.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkStringFormatter.h"
 
 #include <regex>
 #include <string>
@@ -212,6 +213,15 @@ void vtkPythonCalculator::Exec(const std::string& expression)
     }
   }
 
+  for (std::size_t i = 0; i < this->InputsName.size(); i++)
+  {
+    // Search for patterns with the input name or with `inputs["name"] with single and double quotes
+    std::regex pattern(
+      "(inputs\\[(['|\"])" + this->InputsName[i] + "\\2\\]|" + this->InputsName[i] + ")");
+    std::string replacement = "inputs[" + vtk::to_string(i) + "]";
+    orgscript = std::regex_replace(orgscript.c_str(), pattern, replacement);
+  }
+
   // ensure Python is initialized (safe to call many times)
   vtkPythonInterpreter::Initialize();
 
@@ -273,8 +283,36 @@ void vtkPythonCalculator::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "Expression: " << this->Expression << endl;
-  os << indent << "MultilineExpression: " << this->MultilineExpression << endl;
-  os << indent << "UseMultilineExpression: " << this->UseMultilineExpression << endl;
-  os << indent << "ArrayName: " << this->ArrayName << endl;
+  os << indent << "Expression: " << this->Expression << std::endl;
+  os << indent << "MultilineExpression: " << this->MultilineExpression << std::endl;
+  os << indent << "UseMultilineExpression: " << this->UseMultilineExpression << std::endl;
+  os << indent << "ArrayName: " << this->ArrayName << std::endl;
+  os << indent << "Input names: " << std::endl;
+  for (std::size_t i = 0; i < this->InputsName.size(); i++)
+  {
+    os << indent << indent << i << " : " << this->InputsName[i] << std::endl;
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPythonCalculator::SetInputName(int index, std::string inputName)
+{
+  if (this->InputsName.size() == 0)
+  {
+    this->InputsName.resize(this->GetTotalNumberOfInputConnections());
+  }
+  if (index < 0 || index >= this->InputsName.size())
+  {
+    vtkErrorMacro("Invalid index specified '" << index << "'.");
+    return;
+  }
+  this->InputsName[index] = inputName;
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkPythonCalculator::ClearInputNames()
+{
+  this->InputsName.clear();
+  this->Modified();
 }
