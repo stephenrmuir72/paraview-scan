@@ -45,6 +45,13 @@ protected Q_SLOTS:
   void placeWidget() override;
   void updateLabels();
 
+private Q_SLOTS:
+  /**
+   * Called when the button "Reposition to view" is clicked.
+   * This will set the position of both points relative to the camera of the active view.
+   */
+  void onRepositionToViewClicked();
+
 private:
   Q_DISABLE_COPY(pqAnglePropertyWidget)
 
