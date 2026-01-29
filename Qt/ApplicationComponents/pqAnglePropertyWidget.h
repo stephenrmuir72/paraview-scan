@@ -4,7 +4,7 @@
 #ifndef pqAnglePropertyWidget_h
 #define pqAnglePropertyWidget_h
 
-#include "pqInteractivePropertyWidget.h"
+#include "pqRepositionablePropertyWidget.h"
 
 #include <QScopedPointer>
 
@@ -17,11 +17,11 @@
  * \li \c HandlePositions: a repeatable 3-tuple vtkSMDoubleVectorProperty that
  * corresponds to the property used to set the selected spline points.
  */
-class PQAPPLICATIONCOMPONENTS_EXPORT pqAnglePropertyWidget : public pqInteractivePropertyWidget
+class PQAPPLICATIONCOMPONENTS_EXPORT pqAnglePropertyWidget : public pqRepositionablePropertyWidget
 {
   Q_OBJECT;
   Q_PROPERTY(QList<QVariant> points READ points WRITE setPoints NOTIFY pointsChanged);
-  typedef pqInteractivePropertyWidget Superclass;
+  typedef pqRepositionablePropertyWidget Superclass;
 
 public:
   pqAnglePropertyWidget(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = nullptr);
@@ -44,6 +44,12 @@ Q_SIGNALS:
 protected Q_SLOTS:
   void placeWidget() override;
   void updateLabels();
+
+  /**
+   * Called when the button "Reposition to view" is clicked.
+   * This will set the position of both points relative to the camera of the active view.
+   */
+  void onRepositionToViewClicked();
 
 private:
   Q_DISABLE_COPY(pqAnglePropertyWidget)
