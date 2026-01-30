@@ -4,15 +4,12 @@
 #include "pqLinePropertyWidget.h"
 #include "ui_pqLinePropertyWidget.h"
 
-#include "pqActiveObjects.h"
 #include "pqCoreUtilities.h"
 #include "pqPipelineSource.h"
 #include "pqPointPickingHelper.h"
-#include "pqRenderView.h"
 #include "vtkBoundingBox.h"
 #include "vtkCommand.h"
 #include "vtkMath.h"
-#include "vtkPVXMLElement.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkSMNewWidgetRepresentationProxy.h"
@@ -21,6 +18,10 @@
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkVector.h"
+
+#include <QToolButton>
+
+#include <vector>
 
 class pqLinePropertyWidget::pqInternals
 {
@@ -135,17 +136,11 @@ pqLinePropertyWidget::pqLinePropertyWidget(
     this->widgetProxy(), vtkCommand::PropertyModifiedEvent, this, SLOT(updateLengthLabel()));
   this->updateLengthLabel();
 
-  vtkPVXMLElement* hints = smproxy->GetHints();
-  if (hints)
+  bool hasRepositionToViewHint = this->getHasRepositionToViewHint();
+  ui.repositionToView->setVisible(hasRepositionToViewHint);
+  if (hasRepositionToViewHint)
   {
-    for (unsigned int i = 0; i < hints->GetNumberOfNestedElements(); i++)
-    {
-      vtkPVXMLElement* hintsElement = hints->GetNestedElement(i);
-      if (strcmp(hintsElement->GetName(), "RepositionToView") == 0)
-      {
-        this->connect(ui.repositionToView, SIGNAL(clicked()), SLOT(onRepositionToViewClicked()));
-      }
-    }
+    this->connect(ui.repositionToView, SIGNAL(clicked()), SLOT(onRepositionToViewClicked()));
   }
 }
 
@@ -155,46 +150,31 @@ pqLinePropertyWidget::~pqLinePropertyWidget() = default;
 //-----------------------------------------------------------------------------
 void pqLinePropertyWidget::onRepositionToViewClicked()
 {
-  pqRenderView* activeView = qobject_cast<pqRenderView*>(pqActiveObjects::instance().activeView());
-  if (!activeView)
+  vtkRenderer* renderer = this->getRenderer();
+  if (!renderer)
   {
     return;
   }
-  vtkSMRenderViewProxy* renderViewProxy =
-    vtkSMRenderViewProxy::SafeDownCast(activeView->getProxy());
-  if (!renderViewProxy)
-  {
-    return;
-  }
-
-  vtkRenderer* renderer = renderViewProxy->GetRenderer();
-
-  // Recover focal point in display coordinates to get the Z coordinate for the new depth position
-  // of the ruler.
-  double cameraFocalPointWorldCoord[3] = { 0.0, 0.0, 0.0 };
-  vtkSMPropertyHelper(renderViewProxy, "CameraFocalPoint").Get(cameraFocalPointWorldCoord, 3);
-  double cameraFocalPointDisplayCoord[3] = { 0.0, 0.0, 0.0 };
-  renderer->SetWorldPoint(cameraFocalPointWorldCoord[0], cameraFocalPointWorldCoord[1],
-    cameraFocalPointWorldCoord[2], 1.0);
-  renderer->WorldToDisplay(cameraFocalPointDisplayCoord[0], cameraFocalPointDisplayCoord[1],
-    cameraFocalPointDisplayCoord[2]);
 
   double viewportWidth = static_cast<double>(renderer->GetSize()[0]);
   double viewportHeight = static_cast<double>(renderer->GetSize()[1]);
+  double focalPointDepth = this->getFocalPointDepth();
 
+  std::vector<vtkVector3d> displayCoordPoints;
   // Point 1
-  vtkVector3d point1DisplayCoord(
-    viewportWidth * 0.25, viewportHeight * 0.5, cameraFocalPointDisplayCoord[2]);
-  vtkVector3d point1WorldCoord = renderer->DisplayToWorld(point1DisplayCoord);
-
+  displayCoordPoints.emplace_back(viewportWidth * 0.25, viewportHeight * 0.5, focalPointDepth);
   // Point 2
-  vtkVector3d point2DisplayCoord(
-    viewportWidth * 0.75, viewportHeight * 0.5, cameraFocalPointDisplayCoord[2]);
-  vtkVector3d point2WorldCoord = renderer->DisplayToWorld(point2DisplayCoord);
+  displayCoordPoints.emplace_back(viewportWidth * 0.75, viewportHeight * 0.5, focalPointDepth);
+  std::vector<vtkVector3d> worldCoordPoints = this->displayToWorldCoordinates(displayCoordPoints);
 
+  std::vector<std::string> pointPropertyNames = { "Point1WorldPosition", "Point2WorldPosition" };
   vtkSMNewWidgetRepresentationProxy* wdgProxy = this->widgetProxy();
-  vtkSMPropertyHelper(wdgProxy, "Point1WorldPosition").Set(point1WorldCoord.GetData(), 3);
-  vtkSMPropertyHelper(wdgProxy, "Point2WorldPosition").Set(point2WorldCoord.GetData(), 3);
+  for (std::size_t i = 0; i < pointPropertyNames.size(); i++)
+  {
+    vtkSMPropertyHelper(wdgProxy, pointPropertyNames[i].c_str())
+      .Set(worldCoordPoints[i].GetData(), 3);
+  }
+
   wdgProxy->UpdateVTKObjects();
   Q_EMIT this->changeAvailable();
   this->render();
