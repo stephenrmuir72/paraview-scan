@@ -5,7 +5,9 @@
 #define pqLinePropertyWidget_h
 
 #include "pqInteractivePropertyWidget.h"
+
 #include <QScopedPointer>
+
 class QColor;
 
 /**
