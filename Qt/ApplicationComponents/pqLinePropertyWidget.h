@@ -4,8 +4,10 @@
 #ifndef pqLinePropertyWidget_h
 #define pqLinePropertyWidget_h
 
-#include "pqInteractivePropertyWidget.h"
+#include "pqRepositionablePropertyWidget.h"
+
 #include <QScopedPointer>
+
 class QColor;
 
 /**
@@ -27,10 +29,10 @@ class QColor;
  * \li \c Input: (optional) a vtkSMInputProperty that is used to get data
  * information for bounds when placing/resetting the widget.
  */
-class PQAPPLICATIONCOMPONENTS_EXPORT pqLinePropertyWidget : public pqInteractivePropertyWidget
+class PQAPPLICATIONCOMPONENTS_EXPORT pqLinePropertyWidget : public pqRepositionablePropertyWidget
 {
   Q_OBJECT
-  typedef pqInteractivePropertyWidget Superclass;
+  typedef pqRepositionablePropertyWidget Superclass;
 
 public:
   pqLinePropertyWidget(vtkSMProxy* proxy, vtkSMPropertyGroup* smgroup, QWidget* parent = nullptr);
