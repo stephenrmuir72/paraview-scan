@@ -435,18 +435,20 @@ foreach (paraview_module IN LISTS paraview_plugin_required_modules_all)
 endforeach ()
 
 set(all_incubator_modules)
-vtk_module_find_modules(paraview_incubator_module_files
-  "${CMAKE_CURRENT_SOURCE_DIR}/Incubator")
-vtk_module_scan(
-  MODULE_FILES            ${paraview_incubator_module_files}
-  REQUEST_MODULES         ParaViewIncubator::Core
-                          ${paraview_incubator_requested_modules}
-  PROVIDES_MODULES        paraview_incubator_modules
-  REQUIRES_MODULES        paraview_incubator_required_modules_all
-  UNRECOGNIZED_MODULES    paraview_incubator_unrecognized_modules
-  WANT_BY_DEFAULT         OFF
-  HIDE_MODULES_FROM_CACHE ON
-  ENABLE_TESTS            "${PARAVIEW_BUILD_TESTING}")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_find_modules(paraview_incubator_module_files
+    "${CMAKE_CURRENT_SOURCE_DIR}/Incubator")
+  vtk_module_scan(
+    MODULE_FILES            ${paraview_incubator_module_files}
+    REQUEST_MODULES         ParaViewIncubator::Core
+                            ${paraview_incubator_requested_modules}
+    PROVIDES_MODULES        paraview_incubator_modules
+    REQUIRES_MODULES        paraview_incubator_required_modules_all
+    UNRECOGNIZED_MODULES    paraview_incubator_unrecognized_modules
+    WANT_BY_DEFAULT         OFF
+    HIDE_MODULES_FROM_CACHE ON
+    ENABLE_TESTS            "${PARAVIEW_BUILD_TESTING}")
+endif()
 
 set(paraview_incubator_required_modules)
 foreach (paraview_module IN LISTS paraview_incubator_required_modules_all)
@@ -918,26 +920,28 @@ vtk_module_build(
   SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
   SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
 
-vtk_module_build(
-  MODULES             ${paraview_incubator_modules}
-  PACKAGE             ParaViewIncubator
-  INSTALL_EXPORT      ParaViewIncubator
-  INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  USE_FILE_SETS       ON
-  HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}/Incubator"
-  CMAKE_DESTINATION   "${paraview_cmake_destination}"
-  LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
-  HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
-  LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
-  VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
-  SOVERSION           "1"
-  TEST_DATA_TARGET    ParaViewData
-  TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
-  TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
-  TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
-  GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
-  SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_build(
+    MODULES             ${paraview_incubator_modules}
+    PACKAGE             ParaViewIncubator
+    INSTALL_EXPORT      ParaViewIncubator
+    INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    USE_FILE_SETS       ON
+    HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}/Incubator"
+    CMAKE_DESTINATION   "${paraview_cmake_destination}"
+    LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
+    HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
+    LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
+    VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
+    SOVERSION           "1"
+    TEST_DATA_TARGET    ParaViewData
+    TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
+    TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
+    TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
+    GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
+    SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
+    SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+endif()
 
 include(vtkModuleJson)
 if (NOT PARAVIEW_USE_EXTERNAL_VTK)
