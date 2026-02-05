@@ -13,7 +13,6 @@
 #include "vtkCollection.h"
 #include "vtkCommand.h"
 #include "vtkCommunicator.h"
-#include "vtkCuller.h"
 #include "vtkDataRepresentation.h"
 #include "vtkDisplayConfiguration.h"
 #include "vtkDynamicProperties.h"
@@ -55,6 +54,7 @@
 #include "vtkPVMaterialLibrary.h"
 #include "vtkPVRenderViewDataDeliveryManager.h"
 #include "vtkPVRenderViewSettings.h"
+#include "vtkPVRendererCuller.h"
 #include "vtkPVServerInformation.h"
 #include "vtkPVSession.h"
 #include "vtkPVStreamingMacros.h"
@@ -232,103 +232,6 @@ public:
 
 namespace
 {
-// In multi-process rendering modes, data delivered to a set of ranks is not
-// not cleared until the data pipeline updates. This avoids having to
-// redeliver data when simply switching between remote and local rendering
-// modes. Now consider this case. You're rendering a Sphere in client-server
-// mode with remote rendering disabled; the geometry is delivered to the
-// client. Next, you switch to force remote-rendering; the geometry delivered
-// to the client is still there and hence will get rendered, even through
-// we'll replace the pixels with those obtained from the server. Hence, we
-// need to cull the props in the composited renderer on the local process when
-// it's not participating in the compositing. This culler enables us to do
-// that. We also add support to add props to the DoNotCullList since the
-// vtkPVGridAxes3DActor is an exception to this rule.
-class vtkPVRendererCuller : public vtkCuller
-{
-public:
-  static vtkPVRendererCuller* New();
-  vtkTypeMacro(vtkPVRendererCuller, vtkCuller);
-
-  double Cull(
-    vtkRenderer* vtkNotUsed(ren), vtkProp** propList, int& listLength, int& initialized) override
-  {
-    double total_time = 0;
-    if (listLength <= 0)
-    {
-      return total_time;
-    }
-    double* allocatedTimeList = new double[listLength];
-    for (int propLoop = 0; propLoop < listLength; ++propLoop)
-    {
-      // Get the prop out of the list
-      vtkProp* prop = propList[propLoop];
-      double prop_time = initialized ? prop->GetRenderTimeMultiplier() : 1.0;
-      if (this->RenderOnLocalProcess == false &&
-        this->DoNotCullList.find(prop) == this->DoNotCullList.end())
-      {
-        prop_time = 0;
-      }
-      prop->SetRenderTimeMultiplier(prop_time);
-      allocatedTimeList[propLoop] = prop_time;
-      total_time += prop_time;
-    }
-
-    // ========================================================================
-    // The following code is borrowed from vtkFrustumCoverageCuller.
-    // ========================================================================
-    // Now traverse the list from the beginning, swapping any zero entries back
-    // in the list, while preserving the order of the non-zero entries. This
-    // requires two indices for the two items we are comparing at any step.
-    // The second index always moves back by one, but the first index moves back
-    // by one only when it is pointing to something that has a non-zero value.
-    int index1 = 0, index2 = 0;
-    for (index2 = 1; index2 < listLength; index2++)
-    {
-      if (allocatedTimeList[index1] == 0.0)
-      {
-        if (allocatedTimeList[index2] != 0.0)
-        {
-          allocatedTimeList[index1] = allocatedTimeList[index2];
-          propList[index1] = propList[index2];
-          propList[index2] = nullptr;
-          allocatedTimeList[index2] = 0.0;
-        }
-        else
-        {
-          propList[index1] = propList[index2] = nullptr;
-          allocatedTimeList[index1] = allocatedTimeList[index2] = 0.0;
-        }
-      }
-      if (allocatedTimeList[index1] != 0.0)
-      {
-        index1++;
-      }
-    }
-    // Compute the new list length - index1 is always pointing to the
-    // first 0.0 entry or the last entry if none were zero (in which case
-    // we won't change the list length)
-    listLength = (allocatedTimeList[index1] == 0.0) ? (index1) : listLength;
-    delete[] allocatedTimeList;
-    return total_time;
-  }
-
-  vtkSetMacro(RenderOnLocalProcess, bool);
-  vtkGetMacro(RenderOnLocalProcess, bool);
-
-  // List of props to never cull.
-  std::set<void*> DoNotCullList;
-
-private:
-  vtkPVRendererCuller()
-    : RenderOnLocalProcess(false)
-  {
-  }
-  ~vtkPVRendererCuller() override = default;
-  bool RenderOnLocalProcess;
-};
-vtkStandardNewMacro(vtkPVRendererCuller);
-
 #if VTK_MODULE_ENABLE_ParaView_icet
 //------------------------------------------------------------------------------
 // vtkIceTCompositePass needs to know the set RenderPass will read from its
@@ -846,7 +749,7 @@ void vtkPVRenderView::AddAnnotationToView(vtkProp* annotation)
   {
     this->AddPropToRenderer(annotation);
     vtkPVRendererCuller* culler = vtkPVRendererCuller::SafeDownCast(this->Culler);
-    culler->DoNotCullList.erase(annotation);
+    culler->RemoveFromDoNotCullList(annotation);
   }
 }
 
@@ -857,7 +760,7 @@ void vtkPVRenderView::RemoveAnnotationFromView(vtkProp* annotation)
   {
     this->RemovePropFromRenderer(annotation);
     vtkPVRendererCuller* culler = vtkPVRendererCuller::SafeDownCast(this->Culler);
-    culler->DoNotCullList.insert(annotation);
+    culler->AddToDoNotCullList(annotation);
   }
 }
 
@@ -903,13 +806,13 @@ void vtkPVRenderView::SetGridAxes3DActor(vtkPVGridAxes3DActor* gridActor)
     if (this->GridAxes3DActor)
     {
       this->GetRenderer()->RemoveViewProp(this->GridAxes3DActor);
-      culler->DoNotCullList.erase(this->GridAxes3DActor);
+      culler->RemoveFromDoNotCullList(this->GridAxes3DActor);
     }
     this->GridAxes3DActor = gridActor;
     if (this->GridAxes3DActor && !in_tile_display_mode)
     {
       this->GetRenderer()->AddViewProp(this->GridAxes3DActor);
-      culler->DoNotCullList.insert(this->GridAxes3DActor);
+      culler->AddToDoNotCullList(this->GridAxes3DActor);
     }
   }
 }

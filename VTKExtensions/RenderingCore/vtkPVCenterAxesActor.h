@@ -12,12 +12,14 @@
 
 #include "vtkLookupTable.h"
 #include "vtkOpenGLActor.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkPVVTKExtensionsRenderingCoreModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                      // For VTK_MARSHALAUTO
 
 class vtkAxes;
 class vtkPolyDataMapper;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVCenterAxesActor : public vtkOpenGLActor
+class VTKPVVTKEXTENSIONSRENDERINGCORE_EXPORT VTK_MARSHALAUTO vtkPVCenterAxesActor
+  : public vtkOpenGLActor
 {
 public:
   static vtkPVCenterAxesActor* New();

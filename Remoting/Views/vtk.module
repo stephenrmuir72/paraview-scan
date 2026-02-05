@@ -24,6 +24,8 @@ IMPLEMENTABLE
 DEPENDS
   ParaView::RemotingServerManager
   ParaView::Versioning
+  ParaView::VTKExtensionsInteractionWidgets
+  ParaView::VTKExtensionsRenderingCore
   VTK::ChartsCore
   VTK::CommonExecutionModel
   VTK::RenderingAnnotation

@@ -32,11 +32,8 @@ set(classes
   vtkMultiSliceContextItem
   vtkOrderedCompositingHelper
   vtkOutlineRepresentation
-  vtkPVAxesActor
-  vtkPVAxesWidget
   vtkPVBoxChartRepresentation
   vtkPVCameraCollection
-  vtkPVCenterAxesActor
   vtkPVClientServerSynchronizedRenderers
   vtkPVComparativeAnimationCue
   vtkPVComparativeView
@@ -48,12 +45,10 @@ set(classes
   vtkPVDataDeliveryManager
   vtkPVDataRepresentation
   vtkPVDataRepresentationPipeline
-  vtkPVDefaultPass
   vtkPVDiscretizableColorTransferFunction
   vtkPVDisplaySizedImplicitPlaneRepresentation
   vtkPVEncodeSelectionForServer
   vtkPVFrustumActor
-  vtkPVGridAxes3DActor
   vtkPVGridAxes3DRepresentation
   vtkPVHardwareSelector
   vtkPVHistogramChartRepresentation
@@ -66,7 +61,6 @@ set(classes
   vtkPVImplicitPlaneRepresentation
   vtkPVInteractiveViewLinkRepresentation
   vtkPVIOSettings
-  vtkPVLODActor
   vtkPVLODVolume
   vtkPVLastSelectionInformation
   vtkPVLight

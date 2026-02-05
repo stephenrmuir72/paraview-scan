@@ -12,10 +12,12 @@
 #ifndef vtkPVDefaultPass_h
 #define vtkPVDefaultPass_h
 
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkPVVTKExtensionsRenderingCoreModule.h" // for export macro/
 #include "vtkRenderPass.h"
+#include "vtkWrappingHints.h" // for VTK_MARSHALAUTO
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVDefaultPass : public vtkRenderPass
+VTK_ABI_NAMESPACE_BEGIN
+class VTKPVVTKEXTENSIONSRENDERINGCORE_EXPORT VTK_MARSHALAUTO vtkPVDefaultPass : public vtkRenderPass
 {
 public:
   static vtkPVDefaultPass* New();
@@ -35,5 +37,5 @@ private:
   vtkPVDefaultPass(const vtkPVDefaultPass&) = delete;
   void operator=(const vtkPVDefaultPass&) = delete;
 };
-
+VTK_ABI_NAMESPACE_END
 #endif

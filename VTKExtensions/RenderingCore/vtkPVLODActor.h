@@ -17,12 +17,13 @@
 #define vtkPVLODActor_h
 
 #include "vtkActor.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkPVVTKExtensionsRenderingCoreModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                      // For VTK_MARSHALAUTO
 
 class vtkMapper;
 class vtkPiecewiseFunction;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVLODActor : public vtkActor
+class VTKPVVTKEXTENSIONSRENDERINGCORE_EXPORT VTK_MARSHALAUTO vtkPVLODActor : public vtkActor
 {
 public:
   vtkTypeMacro(vtkPVLODActor, vtkActor);

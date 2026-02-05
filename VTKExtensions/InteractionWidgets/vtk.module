@@ -1,0 +1,18 @@
+NAME
+  ParaView::VTKExtensionsInteractionWidgets
+LIBRARY_NAME
+  vtkPVVTKExtensionsInteractionWidgets
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+KIT
+  ParaView::CoreKit
+DEPENDS
+  VTK::RenderingCore
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsRenderingCore
+  VTK::CommonDataModel
+TEST_LABELS
+  ParaView
+INCLUDE_MARSHAL
