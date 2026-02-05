@@ -484,14 +484,23 @@ vtk_module_scan(
 move_vtk_modules(paraview_client_required_modules vtk_modules)
 
 move_vtk_modules(paraview_requested_modules vtk_modules)
-set(paraview_source_directories
-  "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
-  "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Web"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
+if (PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  # In standalone extensions mode, only build VTKExtensions and minimal required dependencies
+  set(paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Utilities"
+    "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions")
+else()
+  set(paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Web"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
+endif()
 vtk_module_find_modules(paraview_module_files ${paraview_source_directories})
 vtk_module_find_kits(paraview_kit_files ${paraview_source_directories})
 vtk_module_scan(

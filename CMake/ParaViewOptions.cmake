@@ -52,11 +52,12 @@ set(PARAVIEW_BUILD_EDITION "CANONICAL"
   CACHE STRING "Enable ParaView components essential for requested capabilities.")
 set_property(CACHE PARAVIEW_BUILD_EDITION
   PROPERTY
-    STRINGS "CORE;RENDERING;CATALYST;CATALYST_RENDERING;CANONICAL")
+    STRINGS "CORE;RENDERING;CATALYST;CATALYST_RENDERING;CANONICAL;STANDALONE_EXTENSIONS")
 
 set(PARAVIEW_BUILD_CANONICAL OFF)
 set(PARAVIEW_ENABLE_RENDERING OFF)
 set(PARAVIEW_ENABLE_NONESSENTIAL OFF)
+set(PARAVIEW_BUILD_STANDALONE_EXTENSIONS OFF)
 if (PARAVIEW_BUILD_EDITION STREQUAL "CORE")
   # all are OFF.
 elseif (PARAVIEW_BUILD_EDITION STREQUAL "RENDERING")
@@ -70,6 +71,9 @@ elseif (PARAVIEW_BUILD_EDITION STREQUAL "CANONICAL")
   set(PARAVIEW_ENABLE_RENDERING ON)
   set(PARAVIEW_BUILD_CANONICAL ON)
   set(PARAVIEW_ENABLE_NONESSENTIAL ON)
+elseif (PARAVIEW_BUILD_EDITION STREQUAL "STANDALONE_EXTENSIONS")
+  set(PARAVIEW_ENABLE_RENDERING ON)
+  set(PARAVIEW_BUILD_STANDALONE_EXTENSIONS ON)
 endif()
 
 # We want to warn users if PARAVIEW_BUILD_EDITION is changed after first configure since the default
@@ -85,7 +89,13 @@ if (DEFINED _paraview_build_edition_cached AND
 endif()
 set(_paraview_build_edition_cached "${PARAVIEW_BUILD_EDITION}" CACHE INTERNAL "")
 
-set(VTK_GROUP_ENABLE_PARAVIEW_CORE "YES" CACHE INTERNAL "")
+if (PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  # In standalone extensions mode, don't enable all PARAVIEW_CORE group modules by default
+  # Only explicitly requested modules should be built
+  set(VTK_GROUP_ENABLE_PARAVIEW_CORE "DEFAULT" CACHE INTERNAL "")
+else()
+  set(VTK_GROUP_ENABLE_PARAVIEW_CORE "YES" CACHE INTERNAL "")
+endif()
 if (PARAVIEW_BUILD_CANONICAL)
   set(VTK_GROUP_ENABLE_PARAVIEW_CANONICAL "YES" CACHE INTERNAL "")
 else()
@@ -717,6 +727,30 @@ if (NOT PARAVIEW_ENABLE_RENDERING)
   _paraview_rendering_option_conflict(PARAVIEW_ENABLE_RAYTRACING raytracing)
   _paraview_rendering_option_conflict(PARAVIEW_USE_QT Qt)
 endif()
+
+if (PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  # Request specific VTKExtensions modules
+  list(APPEND paraview_requested_modules
+    ParaView::VTKExtensionsInteractionStyle
+    ParaView::VTKExtensionsInteractionWidgets
+    ParaView::VTKExtensionsRenderingCore)
+  # Reject all Remoting modules in standalone extensions mode
+  list(APPEND paraview_rejected_modules
+    ParaView::RemotingAnimation
+    ParaView::RemotingApplication
+    ParaView::RemotingApplicationComponents
+    ParaView::RemotingClientServerStream
+    ParaView::RemotingCore
+    ParaView::RemotingExport
+    ParaView::RemotingImport
+    ParaView::RemotingLive
+    ParaView::RemotingMisc
+    ParaView::RemotingServerManager
+    ParaView::RemotingServerManagerPython
+    ParaView::RemotingServerManagerSettings
+    ParaView::RemotingViews
+    ParaView::RemotingViewsPython)
+endif ()
 
 if (paraview_requested_modules)
   list(REMOVE_DUPLICATES paraview_requested_modules)
