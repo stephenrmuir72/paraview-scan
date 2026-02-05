@@ -16,12 +16,14 @@
 
 #include "vtkObject.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 
 class vtkCameraManipulatorGUIHelper;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVCameraManipulator : public vtkObject
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVCameraManipulator
+  : public vtkObject
 {
 public:
   static vtkPVCameraManipulator* New();
