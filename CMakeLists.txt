@@ -1003,12 +1003,14 @@ endif()
 set(CMAKE_INSTALL_RPATH
   "${_paraview_CMAKE_INSTALL_RPATH_save}")
 
-vtk_module_wrap_client_server(
-  MODULES   ${paraview_client_modules}
-            ${paraview_modules}
-            ${vtk_modules}
-  TARGET    paraview_client_server
-  INSTALL_EXPORT ParaView)
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_wrap_client_server(
+    MODULES   ${paraview_client_modules}
+              ${paraview_modules}
+              ${vtk_modules}
+    TARGET    paraview_client_server
+    INSTALL_EXPORT ParaView)
+endif()
 
 set(_paraview_server_manager_process_args)
 if (PARAVIEW_BUILD_TRANSLATIONS)
