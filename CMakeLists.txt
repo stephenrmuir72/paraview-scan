@@ -1183,7 +1183,7 @@ if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
   add_subdirectory(Clients)
 endif()
 
-if (PARAVIEW_USE_PYTHON)
+if (PARAVIEW_USE_PYTHON AND NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
   add_subdirectory(Wrapping/Python)
 endif ()
 
