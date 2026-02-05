@@ -412,11 +412,13 @@ endfunction()
 
 set(paraview_plugin_directories
   "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
-paraview_plugin_find_plugins(paraview_plugin_files ${paraview_plugin_directories})
-paraview_plugin_scan(
-  PLUGIN_FILES      ${paraview_plugin_files}
-  PROVIDES_PLUGINS  paraview_plugins
-  REQUIRES_MODULES  paraview_plugin_required_modules_all)
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  paraview_plugin_find_plugins(paraview_plugin_files ${paraview_plugin_directories})
+  paraview_plugin_scan(
+    PLUGIN_FILES      ${paraview_plugin_files}
+    PROVIDES_PLUGINS  paraview_plugins
+    REQUIRES_MODULES  paraview_plugin_required_modules_all)
+endif()
 
 set(paraview_plugin_required_modules)
 foreach (paraview_module IN LISTS paraview_plugin_required_modules_all)
@@ -955,36 +957,38 @@ list(LENGTH paraview_modules paraview_modules_len)
 list(LENGTH paraview_client_modules paraview_client_modules_len)
 message(STATUS "Enabled modules: VTK(${vtk_modules_len}), ParaView(${paraview_modules_len} + ${paraview_client_modules_len})")
 
-set(autoload_plugins)
-foreach (paraview_plugin IN LISTS paraview_plugins)
-  option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
-  mark_as_advanced("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  set(autoload_plugins)
+  foreach (paraview_plugin IN LISTS paraview_plugins)
+    option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
+    mark_as_advanced("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}")
 
-  if (PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin})
-    list(APPEND autoload_plugins
-      "${paraview_plugin}")
-  endif ()
-endforeach ()
+    if (PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin})
+      list(APPEND autoload_plugins
+        "${paraview_plugin}")
+    endif ()
+  endforeach ()
 
-paraview_plugin_build(
-  HEADERS_DESTINATION   "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
-  RUNTIME_DESTINATION   "${CMAKE_INSTALL_BINDIR}"
-  LIBRARY_DESTINATION   "${CMAKE_INSTALL_LIBDIR}"
-  LIBRARY_SUBDIRECTORY  "paraview${paraview_version_suffix}/plugins"
-  CMAKE_DESTINATION     "${paraview_cmake_destination}"
-  PLUGINS_FILE_NAME "paraview.plugins.xml"
-  USE_FILE_SETS     ON
-  TARGET            ParaView::paraview_plugins
-  INSTALL_EXPORT    ParaViewPlugins
-  INSTALL_HEADERS   "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  TARGET_COMPONENT  "development"
-  PLUGINS_COMPONENT "plugins"
-  PLUGINS ${paraview_plugins}
-  AUTOLOAD ${autoload_plugins}
-  DISABLE_XML_DOCUMENTATION "${PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION}"
-  GENERATE_SPDX "${PARAVIEW_GENERATE_SPDX}"
-  SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+  paraview_plugin_build(
+    HEADERS_DESTINATION   "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
+    RUNTIME_DESTINATION   "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY_DESTINATION   "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY_SUBDIRECTORY  "paraview${paraview_version_suffix}/plugins"
+    CMAKE_DESTINATION     "${paraview_cmake_destination}"
+    PLUGINS_FILE_NAME "paraview.plugins.xml"
+    USE_FILE_SETS     ON
+    TARGET            ParaView::paraview_plugins
+    INSTALL_EXPORT    ParaViewPlugins
+    INSTALL_HEADERS   "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    TARGET_COMPONENT  "development"
+    PLUGINS_COMPONENT "plugins"
+    PLUGINS ${paraview_plugins}
+    AUTOLOAD ${autoload_plugins}
+    DISABLE_XML_DOCUMENTATION "${PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION}"
+    GENERATE_SPDX "${PARAVIEW_GENERATE_SPDX}"
+    SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
+    SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+endif()
 
 set(CMAKE_INSTALL_RPATH
   "${_paraview_CMAKE_INSTALL_RPATH_save}")
