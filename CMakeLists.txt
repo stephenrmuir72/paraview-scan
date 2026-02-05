@@ -42,6 +42,9 @@ include(GNUInstallDirs)
 # Used to pass common compiler flags to all modules
 add_library(paraviewbuild INTERFACE)
 add_library(ParaView::paraviewbuild ALIAS paraviewbuild)
+# Used to pass platform specific compiler flags to all consumers
+add_library(paraviewplatform INTERFACE)
+add_library(ParaView::paraviewplatform ALIAS paraviewplatform)
 
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
@@ -116,6 +119,10 @@ include(ParaViewMigrations)
 if (PARAVIEW_USE_QT)
   include(paraviewQt)
 endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  include(ParaViewEmscripten)
+endif ()
 
 # Some flags are really bad for caching. Replace them with better variants.
 if (paraview_replace_uncacheable_flags)
@@ -697,6 +704,13 @@ else ()
     add_custom_target(localization ALL)
   endif()
 
+  if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # Forward wasm build options to VTK.
+    set(VTK_WEBASSEMBLY_64_BIT "${PARAVIEW_USE_WEBASSEMBLY_64_BIT}")
+    set(VTK_WEBASSEMBLY_THREADS "${PARAVIEW_USE_WEBASSEMBLY_THREADS}")
+    set(VTK_WEBASSEMBLY_SMP_THREAD_POOL_SIZE "${PARAVIEW_WEBASSEMBLY_SMP_THREAD_POOL_SIZE}")
+  endif ()
+
   # ParaView assumes these are created. These should probably be moved to
   # distinct modules for easier handling however.
   set(VTK_USE_VIDEO_FOR_WINDOWS ON)
@@ -826,6 +840,7 @@ else ()
     USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
     ENABLE_WRAPPING     ON
     UTILITY_TARGET      "ParaView::paraviewbuild"
+    PLATFORM_TARGET     "ParaView::paraviewplatform"
     TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/VTK/Testing"
     TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/ExternalData/VTK/Testing"
     TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
@@ -834,6 +849,7 @@ else ()
     SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/vtk/vtk/-/tree/master"
     ENABLE_SERIALIZATION    "${PARAVIEW_USE_SERIALIZATION}")
   install(TARGETS paraviewbuild EXPORT "VTK")
+  install(TARGETS paraviewplatform EXPORT "VTK")
 
   if (PARAVIEW_SKIP_CLANG_TIDY_FOR_VTK)
     set(CMAKE_C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY_save}")
@@ -886,6 +902,7 @@ vtk_module_build(
   BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
   USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
   UTILITY_TARGET      "ParaView::paraviewbuild"
+  PLATFORM_TARGET     "ParaView::paraviewplatform"
   TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
   TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
   TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
@@ -895,6 +912,7 @@ vtk_module_build(
   ENABLE_SERIALIZATION    "${PARAVIEW_USE_SERIALIZATION}")
 if (PARAVIEW_USE_EXTERNAL_VTK)
   install(TARGETS paraviewbuild EXPORT "ParaView")
+  install(TARGETS paraviewplatform EXPORT "ParaView")
 endif()
 
 if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
