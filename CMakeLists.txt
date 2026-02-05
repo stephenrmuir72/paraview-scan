@@ -1012,24 +1012,26 @@ if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
     INSTALL_EXPORT ParaView)
 endif()
 
-set(_paraview_server_manager_process_args)
-if (PARAVIEW_BUILD_TRANSLATIONS)
-  list(APPEND _paraview_server_manager_process_args
-    TRANSLATIONS_DIRECTORY "${PARAVIEW_TRANSLATIONS_DIRECTORY}"
-    TRANSLATIONS_TARGET "ServerManager-XMLs.ts")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  set(_paraview_server_manager_process_args)
+    if (PARAVIEW_BUILD_TRANSLATIONS)
+      list(APPEND _paraview_server_manager_process_args
+        TRANSLATIONS_DIRECTORY "${PARAVIEW_TRANSLATIONS_DIRECTORY}"
+        TRANSLATIONS_TARGET "ServerManager-XMLs.ts")
+    endif ()
+
+  paraview_server_manager_process(
+    MODULES   ${paraview_modules}
+              ${vtk_modules}
+    TARGET    paraview_server_manager
+    XML_FILES paraview_server_manager_files
+    INSTALL_EXPORT ParaView
+    ${_paraview_server_manager_process_args})
+
+  if (PARAVIEW_BUILD_TRANSLATIONS)
+    add_dependencies(localization "ServerManager-XMLs.ts")
+  endif()
 endif ()
-
-paraview_server_manager_process(
-  MODULES   ${paraview_modules}
-            ${vtk_modules}
-  TARGET    paraview_server_manager
-  XML_FILES paraview_server_manager_files
-  INSTALL_EXPORT ParaView
-  ${_paraview_server_manager_process_args})
-
-if (PARAVIEW_BUILD_TRANSLATIONS)
-  add_dependencies(localization "ServerManager-XMLs.ts")
-endif()
 
 if (PARAVIEW_USE_PYTHON)
   if (PARAVIEW_USE_EXTERNAL_VTK)
