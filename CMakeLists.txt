@@ -876,7 +876,8 @@ vtk_module_build(
   TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
   GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
   SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master"
+  ENABLE_SERIALIZATION    "${PARAVIEW_USE_SERIALIZATION}")
 if (PARAVIEW_USE_EXTERNAL_VTK)
   install(TARGETS paraviewbuild EXPORT "ParaView")
 endif()
