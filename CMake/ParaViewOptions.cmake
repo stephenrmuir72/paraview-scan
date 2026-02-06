@@ -540,6 +540,11 @@ paraview_require_module(
   EXCLUSIVE)
 
 paraview_require_module(
+  CONDITION CMAKE_SYSTEM_NAME STREQUAL "Emscripten" AND PARAVIEW_USE_SERIALIZATION
+  MODULES   VTK::WebAssemblySession
+  EXCLUSIVE)
+
+paraview_require_module(
   CONDITION PARAVIEW_ENABLE_OCCT
   MODULES   VTK::IOOCCT
   EXCLUSIVE)

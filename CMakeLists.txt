@@ -520,6 +520,14 @@ else()
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
     "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
 endif()
+
+# Add WebAssembly module when compiling for Emscripten, regardless of build mode
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  list(APPEND paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Clients/WebAssembly")
+  list(APPEND paraview_requested_modules
+    ParaView::WebAssembly)
+endif ()
 vtk_module_find_modules(paraview_module_files ${paraview_source_directories})
 vtk_module_find_kits(paraview_kit_files ${paraview_source_directories})
 vtk_module_scan(
