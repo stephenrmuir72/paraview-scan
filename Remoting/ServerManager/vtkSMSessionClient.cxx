@@ -758,7 +758,6 @@ void vtkSMSessionClient::ExecuteStream(
           replyStream, 1, vtkPVSessionServer::STREAM_EXECUTED);
       }
     }
-    std::cout<<"Finish stream execution"<<std::endl;
   }
 
   if ((location & vtkPVSession::CLIENT) != 0)

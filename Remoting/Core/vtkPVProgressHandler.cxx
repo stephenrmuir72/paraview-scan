@@ -18,6 +18,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 #include <iostream>
 
 // define this variable to disable progress all together. This may be useful to
@@ -81,8 +82,9 @@ public:
 class vtkPVProgressHandler::vtkInternals
 {
 public:
-  typedef std::map<void*, int> MapOfObjectToInt;
-  MapOfObjectToInt RegisteredObjects;
+  std::map<vtkObject*, int> RegisteredObjects;
+  std::set<int> AbortedObjectIds;
+  // TODO unregister objects
 
   // Disables progress all together.
   bool DisableProgressHandling;
@@ -234,7 +236,6 @@ bool vtkPVProgressHandler::GetEnableProgress()
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::CleanupPendingProgress()
 {
-  std::cout<<"CleanupPendingProgress"<<std::endl;
   SKIP_IF_DISABLED();
 
   if (!this->Internals->EnableProgress)
@@ -276,7 +277,6 @@ void vtkPVProgressHandler::CleanupPendingProgress()
         }
       }
     }
-    std::cout<<"SEND CLEANUP_TAG"<<std::endl;
     client_controller->Send(&temp, 1, 1, vtkPVProgressHandler::CLEANUP_TAG);
   }
 
@@ -351,6 +351,7 @@ void vtkPVProgressHandler::OnProgressEvent(vtkObject* caller, unsigned long even
   const auto id = this->Internals->GetIDFromObject(caller);
   std::string text = ::vtkGetProgressText(caller);
   this->RefreshProgress(text.c_str(), progress, id);
+  this->CheckAbort(id, caller, nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -380,6 +381,7 @@ void vtkPVProgressHandler::RefreshProgress(
 
     vtkCompositeMultiProcessController* collabController =
       vtkCompositeMultiProcessController::SafeDownCast(client_controller);
+    bool abort_flag = false;
     if (collabController)
     {
       // In collaboration, the all clients need to update their progress
@@ -388,20 +390,12 @@ void vtkPVProgressHandler::RefreshProgress(
         client_controller = collabController->GetController(i);
         client_controller->Send(
           buffer.data(), message_size, 1, vtkPVProgressHandler::PROGRESS_EVENT_TAG);
-        char abort;
-        client_controller->Receive(
-          &abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
-        std::cout<<"Abort: "<<(int)abort<<std::endl;
       }
     }
     else
     {
       client_controller->Send(
         buffer.data(), message_size, 1, vtkPVProgressHandler::PROGRESS_EVENT_TAG);
-      char abort;
-      client_controller->Receive(
-        &abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
-      std::cout<<"Abort: "<<(int)abort<<std::endl;
     }
   }
 
@@ -422,7 +416,7 @@ void vtkPVProgressHandler::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject*, unsigned long eventid, void* calldata)
+bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject* caller, unsigned long eventid, void* calldata)
 {
   if (eventid != vtkCommand::WrongTagEvent)
   {
@@ -454,7 +448,6 @@ bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject*, unsigned long eventid, vo
 
   if (tag == vtkPVProgressHandler::PROGRESS_EVENT_TAG)
   {
-    // Secondary client PrepareProgress is never called by
     // vtkSMSessionClient::PrepareProgressInternal
     // so we call it when it receives a progress event from the server
     if (!this->GetEnableProgress())
@@ -481,22 +474,69 @@ bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject*, unsigned long eventid, vo
     vtkByteSwap::SwapLE(&progress);
 #endif
 
+    std::cout<<"PROGRESS_EVENT_TAG: " << id << std::endl;
+    // Secondary client PrepareProgress is never called by
     this->RefreshProgress(ptr, progress, id);
-
-    char abort = 1;
-    vtkMultiProcessController* ds_controller =
-      this->Session->GetController(vtkPVSession::DATA_SERVER_ROOT);
-    if (ds_controller)
-    {
-      ds_controller->Send(&abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
-    }
-
+    this->CheckAbort(id, nullptr, caller);
     return true;
   }
 
   // We won't handle this event, let the default handler take care of it.
   // Default handler is defined in vtkPVSession::OnWrongTagEvent().
   return false;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVProgressHandler::Abort(vtkTypeUInt32 objectId)
+{
+  this->Internals->AbortedObjectIds.emplace(objectId);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* communicator)
+{
+  // pvcrs doesnt work at all :/
+//  return;
+
+  char abort = 0;
+  vtkMultiProcessController* ds_controller = this->Session->GetController(vtkPVSession::DATA_SERVER_ROOT);
+  vtkMultiProcessController* client_controller = this->Session->GetController(vtkPVSession::CLIENT);
+  vtkMultiProcessController* rs_controller = this->Session->GetController(vtkPVSession::RENDER_SERVER_ROOT);
+  std::cout<<client_controller<<" "<<ds_controller<<" "<<rs_controller<<std::endl;
+  if (ds_controller && !caller && this->Session->HasProcessRole(vtkPVSession::CLIENT) && communicator == ds_controller->GetCommunicator())
+  {
+    std::cout<<"client -> abort " << progress_id <<std::endl;
+    // client
+    // If caller is not set, it means there is a server to send an abort to
+    // TODO better approach?
+
+    if (this->Internals->AbortedObjectIds.find(progress_id) != this->Internals->AbortedObjectIds.end())
+    {
+      abort = 1;
+    }
+    ds_controller->Send(&abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
+  }
+  else if (client_controller && this->Session->HasProcessRole(vtkPVSession::DATA_SERVER))
+  {
+    std::cout<<"abort " << progress_id << " -> data server"<<std::endl;
+    // (data) server
+    client_controller->Receive(&abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
+    std::cout<<"Abort: "<<(int)abort<<std::endl;
+  }
+
+  if (abort == 1 && caller)
+  {
+    // This is true server-side and with client-side objects
+    vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(caller);
+    if (algo)
+    {
+      std::cout<<"vtkAlgorithm::Abort"<<std::endl;
+      algo->SetAbortExecuteAndUpdateTime();
+    }
+    // TODO distributed computing
+  }
+
+  // TODO builtin
 }
 
 //----------------------------------------------------------------------------

@@ -105,6 +105,7 @@ public:
   vtkGetMacro(LastProgressId, vtkTypeUInt32);
   ///@}
 
+  void Abort(vtkTypeUInt32 obejctId);
 protected:
   vtkPVProgressHandler();
   ~vtkPVProgressHandler() override;
@@ -123,13 +124,14 @@ protected:
     MESSAGE_EVENT_TAG_RMI = 188973
   };
 
-  /**
-   * Update the last progress and progress text and invokes a progress event
-   */
-  void RefreshProgress(const char* progress_text, double progress, vtkTypeUInt32 progress_id);
-
   vtkPVSession* Session;
   double ProgressInterval;
+
+  /**
+   * Update the last progress and progress text and invokes a progress event
+   * Return true if it receive abort, false otherwise.
+   */
+  void RefreshProgress(const char* progress_text, double progress, vtkTypeUInt32 progress_id);
 
 private:
   vtkPVProgressHandler(const vtkPVProgressHandler&) = delete;
@@ -156,6 +158,8 @@ private:
    * Update the last message and invokes a message event
    */
   void RefreshMessage(const char* message_text, int eventid, bool is_local);
+
+  void CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* controller);
 
   bool AddedHandlers;
   class vtkInternals;

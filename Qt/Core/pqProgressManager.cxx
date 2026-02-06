@@ -214,7 +214,7 @@ void pqProgressManager::triggerAbort()
           vtkVLog(PARAVIEW_LOG_APPLICATION_VERBOSITY(),
             "abort triggered, but no vtkSMSourceProxy found for gid=" << abortGid);
         }*/
-//        progressHandler->Abort(abortGid); TODO
+        progressHandler->Abort(abortGid);
       }
       else
       {
