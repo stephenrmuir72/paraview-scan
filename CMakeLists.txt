@@ -298,6 +298,12 @@ if (PARAVIEW_USE_FORTRAN)
   enable_language(Fortran OPTIONAL)
 endif ()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  if (CMAKE_GENERATOR STREQUAL "Ninja" AND CMAKE_HOST_WIN32)
+    # emcc.bat receives too many characters, so use response files instead.
+    set(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
+  endif ()
+endif ()
 if (NOT PARAVIEW_USE_EXTERNAL_VTK)
   list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/VTK/CMake")
