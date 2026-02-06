@@ -18,6 +18,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 // define this variable to disable progress all together. This may be useful to
 // doing really large runs.
@@ -233,6 +234,7 @@ bool vtkPVProgressHandler::GetEnableProgress()
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::CleanupPendingProgress()
 {
+  std::cout<<"CleanupPendingProgress"<<std::endl;
   SKIP_IF_DISABLED();
 
   if (!this->Internals->EnableProgress)
@@ -274,6 +276,7 @@ void vtkPVProgressHandler::CleanupPendingProgress()
         }
       }
     }
+    std::cout<<"SEND CLEANUP_TAG"<<std::endl;
     client_controller->Send(&temp, 1, 1, vtkPVProgressHandler::CLEANUP_TAG);
   }
 
@@ -385,12 +388,20 @@ void vtkPVProgressHandler::RefreshProgress(
         client_controller = collabController->GetController(i);
         client_controller->Send(
           buffer.data(), message_size, 1, vtkPVProgressHandler::PROGRESS_EVENT_TAG);
+        char abort;
+        client_controller->Receive(
+          &abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
+        std::cout<<"Abort: "<<(int)abort<<std::endl;
       }
     }
     else
     {
       client_controller->Send(
         buffer.data(), message_size, 1, vtkPVProgressHandler::PROGRESS_EVENT_TAG);
+      char abort;
+      client_controller->Receive(
+        &abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
+      std::cout<<"Abort: "<<(int)abort<<std::endl;
     }
   }
 
@@ -471,6 +482,15 @@ bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject*, unsigned long eventid, vo
 #endif
 
     this->RefreshProgress(ptr, progress, id);
+
+    char abort = 1;
+    vtkMultiProcessController* ds_controller =
+      this->Session->GetController(vtkPVSession::DATA_SERVER_ROOT);
+    if (ds_controller)
+    {
+      ds_controller->Send(&abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
+    }
+
     return true;
   }
 

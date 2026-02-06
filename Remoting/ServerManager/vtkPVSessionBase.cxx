@@ -144,7 +144,7 @@ void vtkPVSessionBase::PullState(vtkSMMessage* msg)
 
 //----------------------------------------------------------------------------
 void vtkPVSessionBase::ExecuteStream(
-  vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors /*=false*/)
+  vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors /*=false*/, bool send_reply)
 {
   this->Activate();
 

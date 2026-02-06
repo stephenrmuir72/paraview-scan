@@ -712,7 +712,7 @@ void vtkSMSessionClient::PullState(vtkSMMessage* message)
 
 //----------------------------------------------------------------------------
 void vtkSMSessionClient::ExecuteStream(
-  vtkTypeUInt32 location, const vtkClientServerStream& cssstream, bool ignore_errors)
+  vtkTypeUInt32 location, const vtkClientServerStream& cssstream, bool ignore_errors, bool send_reply)
 {
   // Prevent to push anything during the Quit process
   if (this->NoMoreDelete)
@@ -741,7 +741,7 @@ void vtkSMSessionClient::ExecuteStream(
 
     vtkMultiProcessStream stream;
     stream << static_cast<int>(vtkPVSessionServer::EXECUTE_STREAM)
-           << static_cast<int>(ignore_errors) << static_cast<int>(size);
+           << static_cast<int>(ignore_errors) << static_cast<int>(send_reply) << static_cast<int>(size);
     std::vector<unsigned char> raw_message;
     stream.GetRawData(raw_message);
 
@@ -751,7 +751,14 @@ void vtkSMSessionClient::ExecuteStream(
         static_cast<int>(raw_message.size()), vtkPVSessionServer::CLIENT_SERVER_MESSAGE_RMI);
       controllers[cc]->Send(
         data, static_cast<int>(size), 1, vtkPVSessionServer::EXECUTE_STREAM_TAG);
+      if (send_reply)
+      {
+        vtkMultiProcessStream replyStream;
+        controllers[cc]->Receive(
+          replyStream, 1, vtkPVSessionServer::STREAM_EXECUTED);
+      }
     }
+    std::cout<<"Finish stream execution"<<std::endl;
   }
 
   if ((location & vtkPVSession::CLIENT) != 0)

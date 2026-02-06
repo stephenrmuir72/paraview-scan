@@ -104,7 +104,7 @@ public:
   void PushState(vtkSMMessage* msg) override;
   void PullState(vtkSMMessage* message) override;
   void ExecuteStream(vtkTypeUInt32 location, const vtkClientServerStream& stream,
-    bool ignore_errors = false) override;
+    bool ignore_errors = false, bool send_reply = false) override;
   const vtkClientServerStream& GetLastResult(vtkTypeUInt32 location) override;
   ///@}
 

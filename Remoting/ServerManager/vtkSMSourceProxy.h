@@ -289,6 +289,9 @@ protected:
   friend class vtkSMInputProperty;
   friend class vtkSMOutputPort;
 
+  void ExecuteStream(
+    const vtkClientServerStream& msg, bool ignore_errors = false, vtkTypeUInt32 location = 0) override;
+
   int OutputPortsCreated;
 
   int ProcessSupport;

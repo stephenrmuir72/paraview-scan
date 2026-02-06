@@ -936,3 +936,24 @@ void vtkSMSourceProxy::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "OutputPortsCreated: " << this->OutputPortsCreated << endl;
   os << indent << "ProcessSupport: " << this->ProcessSupport << endl;
 }
+
+//---------------------------------------------------------------------------
+void vtkSMSourceProxy::ExecuteStream(
+  const vtkClientServerStream& stream, bool ignore_errors /*=false*/, vtkTypeUInt32 location /*=0*/)
+{
+  if (location == 0)
+  {
+    location = this->Location;
+  }
+  if (location == 0 || stream.GetNumberOfMessages() == 0)
+  {
+    return;
+  }
+
+  if (this->GetSession())
+  {
+    this->GetSession()->ExecuteStream(location, stream, ignore_errors, true);
+    //this->GetSession()->ExecuteStream(location, stream, ignore_errors, false);
+  }
+  // if no session, nothing to do.
+}
