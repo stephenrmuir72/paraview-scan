@@ -99,6 +99,7 @@ protected:
    */
   void MarkStartEvent();
   void MarkEndEvent();
+  void ReduceAbort();
   ///@}
 
   char* ExecutiveName;

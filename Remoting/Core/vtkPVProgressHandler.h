@@ -159,7 +159,7 @@ private:
    */
   void RefreshMessage(const char* message_text, int eventid, bool is_local);
 
-  void CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* controller);
+  void CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* controller, double progress);
 
   bool AddedHandlers;
   class vtkInternals;

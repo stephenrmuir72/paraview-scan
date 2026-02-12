@@ -22,6 +22,7 @@
 #include <cassert>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 //*****************************************************************************
 class vtkSISourceProxy::vtkInternals
@@ -82,6 +83,7 @@ bool vtkSISourceProxy::CreateVTKObjects()
   // local timer-log.
   algorithm->AddObserver(vtkCommand::StartEvent, this, &vtkSISourceProxy::MarkStartEvent);
   algorithm->AddObserver(vtkCommand::EndEvent, this, &vtkSISourceProxy::MarkEndEvent);
+  algorithm->AddObserver(vtkCommand::AbortCheckEvent, this, &vtkSISourceProxy::ReduceAbort);
   return true;
 }
 
@@ -348,6 +350,34 @@ void vtkSISourceProxy::MarkEndEvent()
     std::ostringstream filterName;
     filterName << "Execute " << this->GetLogNameOrDefault() << " id: " << this->GetGlobalID();
     vtkTimerLog::MarkEndEvent(filterName.str().c_str());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::ReduceAbort()
+{
+  std::cout<<"ReduceAbort"<<std::endl;
+  vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+  if (!algo)
+  {
+    return;
+  }
+
+  unsigned char abort = algo->GetAbortExecute();
+  std::cout<<(int)abort<<std::endl;
+
+  // Reduce the result to all processes. should be a broadcast TODO
+  // TODO this can cause deadlock for incorrectly implemented filters TODO
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  unsigned char sendAbort = abort, reducedAbort;
+  controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);
+
+  std::cout<<(int)reducedAbort<<std::endl;
+
+  if (reducedAbort)
+  {
+    std::cout<<"aborting"<<std::endl;
+    algo->SetAbortExecuteAndUpdateTime();
   }
 }
 

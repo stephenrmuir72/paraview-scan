@@ -351,7 +351,7 @@ void vtkPVProgressHandler::OnProgressEvent(vtkObject* caller, unsigned long even
   const auto id = this->Internals->GetIDFromObject(caller);
   std::string text = ::vtkGetProgressText(caller);
   this->RefreshProgress(text.c_str(), progress, id);
-  this->CheckAbort(id, caller, nullptr);
+  this->CheckAbort(id, caller, nullptr, 0);
 }
 
 //----------------------------------------------------------------------------
@@ -474,10 +474,9 @@ bool vtkPVProgressHandler::OnWrongTagEvent(vtkObject* caller, unsigned long even
     vtkByteSwap::SwapLE(&progress);
 #endif
 
-    std::cout<<"PROGRESS_EVENT_TAG: " << id << std::endl;
     // Secondary client PrepareProgress is never called by
     this->RefreshProgress(ptr, progress, id);
-    this->CheckAbort(id, nullptr, caller);
+    this->CheckAbort(id, nullptr, caller, progress);
     return true;
   }
 
@@ -493,7 +492,7 @@ void vtkPVProgressHandler::Abort(vtkTypeUInt32 objectId)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* communicator)
+void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* communicator, double progress)
 {
   // pvcrs doesnt work at all :/
 //  return;
@@ -502,15 +501,14 @@ void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* call
   vtkMultiProcessController* ds_controller = this->Session->GetController(vtkPVSession::DATA_SERVER_ROOT);
   vtkMultiProcessController* client_controller = this->Session->GetController(vtkPVSession::CLIENT);
   vtkMultiProcessController* rs_controller = this->Session->GetController(vtkPVSession::RENDER_SERVER_ROOT);
-  std::cout<<client_controller<<" "<<ds_controller<<" "<<rs_controller<<std::endl;
   if (ds_controller && !caller && this->Session->HasProcessRole(vtkPVSession::CLIENT) && communicator == ds_controller->GetCommunicator())
   {
-    std::cout<<"client -> abort " << progress_id <<std::endl;
     // client
     // If caller is not set, it means there is a server to send an abort to
     // TODO better approach?
 
-    if (this->Internals->AbortedObjectIds.find(progress_id) != this->Internals->AbortedObjectIds.end())
+//    if (this->Internals->AbortedObjectIds.find(progress_id) != this->Internals->AbortedObjectIds.end())
+    if (progress > 0.25)
     {
       abort = 1;
     }
@@ -518,19 +516,27 @@ void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* call
   }
   else if (client_controller && this->Session->HasProcessRole(vtkPVSession::DATA_SERVER))
   {
-    std::cout<<"abort " << progress_id << " -> data server"<<std::endl;
     // (data) server
     client_controller->Receive(&abort, 1, 1, vtkPVProgressHandler::ABORT_TAG);
-    std::cout<<"Abort: "<<(int)abort<<std::endl;
   }
+
+  /*
+  vtkMultiProcessController* mpiController = vtkMultiProcessController::GetGlobalController();
+  if (mpiController && mpiController->GetNumberOfProcesses() > 1)
+  {
+    // This assumes all progress event are sent at the same time by all servers, THIS MAY BE WRONG!!!
+    mpiController->AllReduce(&abort, &globalAbort, 1, vtkCommunicator::LOGICAL_OR_OP);
+  }
+  */ // TODO somewhere else
 
   if (abort == 1 && caller)
   {
-    // This is true server-side and with client-side objects
+    // This can be true with client-side objects
+    // This can be true with the main rank server
     vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(caller);
     if (algo)
     {
-      std::cout<<"vtkAlgorithm::Abort"<<std::endl;
+      std::cout<<"Actual Abort Progress Handler"<<std::endl;
       algo->SetAbortExecuteAndUpdateTime();
     }
     // TODO distributed computing
