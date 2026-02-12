@@ -1062,6 +1062,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   FileDialogOpenInteractClose.xml
   ForceStaticMesh.xml
   GradientBackwardsCompatibility.xml
+  ImageBinaryThresholdFilter.xml
   ImportCustomPresets.xml
   LogViewer.xml
   MergeTime.xml
