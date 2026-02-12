@@ -1016,6 +1016,7 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
   HTGGhostCellsGeneratorBackwardCompat.xml
   HTGReflectionBackwardCompat.xml
   HTGVisibleLeavesSizeBackwardCompat.xml
+  ImageBinaryThresholdFilter.xml
   InformationPanel.xml
   IntegrationStrategy.xml
   OverrideProperty.xml
