@@ -1052,6 +1052,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ArrayBoundsScaleDomain.xml
   ArraySelectionWidget.xml
   AutoConvertSingleProperty.xml
+  BinaryThresholdFilter.xml
   CSVPreview.xml
   ChangeFileNameReaction.xml
   CustomOutputFormat.xml
