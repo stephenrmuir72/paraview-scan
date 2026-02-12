@@ -1011,6 +1011,7 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
   ExtractParticlesOverTime.xml
   FluentReaderZoneSelection.xml
   FieldDataToAttribute.xml
+  ImageBinaryThresholdFilter.xml
   HTGCellCentersBackwardCompat.xml
   HTGFeatureEdgesBackwardCompat.xml
   HTGGhostCellsGeneratorBackwardCompat.xml
