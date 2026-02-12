@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-License-Identifier: BSD-3-Clause
+#ifndef pqExtendedSortFilterProxyModel_h
+#define pqExtendedSortFilterProxyModel_h
 
 #include <QSortFilterProxyModel>
 
@@ -137,3 +139,5 @@ private:
   QMap<int, QVariant> UserRequests;
   QMap<int, QVariant> ExclusionRules;
 };
+
+#endif

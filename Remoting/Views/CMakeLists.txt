@@ -259,3 +259,8 @@ paraview_add_server_manager_xmls(
        Resources/utilities_remotingviews.xml
        Resources/viewsinternal_remotingviews.xml
        Resources/views_remotingviews.xml)
+
+# FIXME: vtkImplicitArray.h:568:13: error: expected identifier before numeric constant
+set_property(SOURCE vtkSMRenderViewProxy.cxx vtkPVRenderView.cxx vtkPVRenderingCapabilitiesInformation.cxx
+  PROPERTY
+  SKIP_UNITY_BUILD_INCLUSION ON)
