@@ -1044,6 +1044,9 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
   YieldCriteria.xml
 )
 
+list (APPEND TEST_WITH_BASELINES_CLIENT_ONLY
+  ImageBinaryThresholdFilter.xml)
+
 list (APPEND TESTS_WITHOUT_BASELINES
   AbortExit.xml
   AboutDialog.xml
