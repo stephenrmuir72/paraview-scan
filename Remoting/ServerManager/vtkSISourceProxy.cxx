@@ -266,6 +266,27 @@ void vtkSISourceProxy::UpdatePipeline(int port, double time, bool doTime)
 }
 
 //----------------------------------------------------------------------------
+void vtkSISourceProxy::AbortPipeline()
+{
+  if (this->DisablePipelineExecution)
+  {
+    return;
+  }
+
+  vtkVLogScopeF(PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: abort pipeline",
+    this->GetLogNameOrDefault());
+
+  if (this->GetVTKObject())
+  {
+    vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+    if (algo)
+    {
+      algo->AbortExecuteOn();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkSISourceProxy::UpdatePipelineInformation()
 {
   if (this->DisablePipelineExecution)

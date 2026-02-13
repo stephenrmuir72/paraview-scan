@@ -42,6 +42,11 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
+   * Calls AbortPipeline() on the vtkSISourceProxy server side.
+   */
+  void AbortPipeline();
+
+  /**
    * Calls UpdateInformation() on all sources.
    */
   void UpdatePipelineInformation() override;

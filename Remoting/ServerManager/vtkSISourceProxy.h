@@ -33,6 +33,11 @@ public:
   virtual vtkAlgorithmOutput* GetOutputPort(int port);
 
   /**
+   * Call AbortExecuteOn() on the vtkAlgorithm.
+   */
+  void AbortPipeline();
+
+  /**
    * Triggers UpdateInformation() on vtkObject if possible.
    */
   void UpdatePipelineInformation() override;
