@@ -22,7 +22,6 @@
 #include <cassert>
 #include <sstream>
 #include <vector>
-#include <iostream>
 
 //*****************************************************************************
 class vtkSISourceProxy::vtkInternals
@@ -356,7 +355,6 @@ void vtkSISourceProxy::MarkEndEvent()
 //----------------------------------------------------------------------------
 void vtkSISourceProxy::ReduceAbort()
 {
-  std::cout<<"ReduceAbort"<<std::endl;
   vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
   if (!algo)
   {
@@ -364,7 +362,6 @@ void vtkSISourceProxy::ReduceAbort()
   }
 
   unsigned char abort = algo->GetAbortExecute();
-  std::cout<<(int)abort<<std::endl;
 
   // Reduce the result to all processes. should be a broadcast TODO
   // TODO this can cause deadlock for incorrectly implemented filters TODO
@@ -372,11 +369,8 @@ void vtkSISourceProxy::ReduceAbort()
   unsigned char sendAbort = abort, reducedAbort;
   controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);
 
-  std::cout<<(int)reducedAbort<<std::endl;
-
   if (reducedAbort)
   {
-    std::cout<<"aborting"<<std::endl;
     algo->SetAbortExecuteAndUpdateTime();
   }
 }

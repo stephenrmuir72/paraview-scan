@@ -179,7 +179,7 @@ void pqProgressManager::triggerAbort()
       std::cout<<"progressHandler: " << abortGid <<std::endl;
       if (abortGid > 0)
       {
-        /*
+        
         std::cout<<"AbortPipeline: "<< abortGid <<std::endl;
         if (auto* proxy = vtkSMSourceProxy::SafeDownCast(server->session()->GetRemoteObject(abortGid)))
         {
@@ -213,7 +213,7 @@ void pqProgressManager::triggerAbort()
         {
           vtkVLog(PARAVIEW_LOG_APPLICATION_VERBOSITY(),
             "abort triggered, but no vtkSMSourceProxy found for gid=" << abortGid);
-        }*/
+        }
         progressHandler->Abort(abortGid);
       }
       else
