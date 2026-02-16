@@ -16,7 +16,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wshadow
     -Wunused-parameter
     -fno-check-new
-    -Werror=undef)
+    $<$<NOT:$<BOOL:$<TARGET_PROPERTY:INTERFACE_vtk_module_third_party>>>:-Werror=undef>)
 
   # This flag is useful as not returning from a non-void function is an error
   # with MSVC, but it is not supported on all GCC compiler versions
