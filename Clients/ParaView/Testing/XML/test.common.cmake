@@ -1098,6 +1098,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   TestOpenFOAMRestartFiles.xml
   TextSource.xml
   TestTransformMatrixTab.xml
+  TraceSaveState.xml
   ThresholdBackwardsCompatibility.xml
   TimeManagerPanel.xml
   TimeManagerSequence.xml
