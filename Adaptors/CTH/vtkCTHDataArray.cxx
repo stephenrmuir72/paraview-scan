@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-License-Identifier: BSD-3-Clause
+// PARAVIEW_DEPRECATED_IN_6_1_0()
+#define PARAVIEW_DEPRECATION_LEVEL 0
 
 #include "vtkCTHDataArray.h"
 #include "vtkArrayIteratorTemplate.h"

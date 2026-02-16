@@ -39,6 +39,7 @@ public:
   void GetTuples(vtkIdList* ptIds, vtkAbstractArray* output) override;
   void GetTuples(vtkIdType p1, vtkIdType p2, vtkAbstractArray* output) override;
   void Squeeze() override;
+  PARAVIEW_DEPRECATED_IN_6_1_0("Use vtkArrayDispatch instead.")
   vtkArrayIterator* NewIterator() override;
   vtkIdType LookupValue(vtkVariant value) override;
   void LookupValue(vtkVariant value, vtkIdList* ids) override;
