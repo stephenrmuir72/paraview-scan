@@ -229,6 +229,7 @@ void vtkSMSourceProxy::UpdatePipelineInformation()
   this->InvokeEvent(vtkCommand::UpdateInformationEvent);
   // this->MarkModified(this);
 }
+
 //---------------------------------------------------------------------------
 int vtkSMSourceProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLElement* element)
 {
@@ -267,6 +268,18 @@ int vtkSMSourceProxy::ReadXMLAttributes(vtkSMSessionProxyManager* pm, vtkPVXMLEl
     else
     {
       this->MPIRequired = false;
+    }
+  }
+
+  if (const char* reply = element->GetAttribute("stream_reply"))
+  {
+    if (strcmp(reply, "false") == 0 || strcmp(reply, "0") == 0)
+    {
+      this->StreamReply = false;
+    }
+    else
+    {
+      this->StreamReply = true;
     }
   }
 
@@ -923,4 +936,24 @@ void vtkSMSourceProxy::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
   os << indent << "OutputPortsCreated: " << this->OutputPortsCreated << endl;
   os << indent << "ProcessSupport: " << this->ProcessSupport << endl;
+}
+
+//---------------------------------------------------------------------------
+void vtkSMSourceProxy::ExecuteStream(
+  const vtkClientServerStream& stream, bool ignoreErrors /*=false*/, vtkTypeUInt32 location /*=0*/)
+{
+  if (location == 0)
+  {
+    location = this->Location;
+  }
+  if (location == 0 || stream.GetNumberOfMessages() == 0)
+  {
+    return;
+  }
+
+  if (this->GetSession())
+  {
+    this->GetSession()->ExecuteStream(location, stream, ignoreErrors, this->StreamReply);
+  }
+  // if no session, nothing to do.
 }
