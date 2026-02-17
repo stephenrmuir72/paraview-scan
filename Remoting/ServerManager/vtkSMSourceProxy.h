@@ -284,6 +284,12 @@ protected:
   friend class vtkSMInputProperty;
   friend class vtkSMOutputPort;
 
+  /**
+   * Execute provided stream using the internal session with sendReply to true
+   */
+  void ExecuteStream(const vtkClientServerStream& msg, bool ignoreErrors = false,
+    vtkTypeUInt32 location = 0) override;
+
   int OutputPortsCreated;
 
   int ProcessSupport;
