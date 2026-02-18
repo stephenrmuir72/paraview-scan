@@ -33,6 +33,7 @@
 #include <regex>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkCSVWriter);
@@ -658,13 +659,15 @@ bool vtkCSVWriter::WriteDataAndReturn()
       ? CSVFile::OpenMode::Append
       : CSVFile::OpenMode::Write;
     int error_code = file.Open(filename.str().c_str(), openMode);
+    bool ret = false;
     if (error_code == vtkErrorCode::NoError)
     {
       file.WriteHeader(table, this, openMode);
       file.WriteData(table, this);
+      ret = true;
     }
     this->SetErrorCode(error_code);
-    return false;
+    return ret;
   }
 
   const int myRank = controller->GetLocalProcessId();
@@ -703,7 +706,7 @@ bool vtkCSVWriter::WriteDataAndReturn()
     }
     controller->Broadcast(&error_code, 1, 0);
     this->SetErrorCode(error_code);
-    return false;
+    return error_code != vtkErrorCode::NoError ? false : true;
   }
   else
   {
@@ -775,7 +778,7 @@ bool vtkCSVWriter::WriteDataAndReturn()
     error_code = vtkErrorCode::NoError;
     controller->Broadcast(&error_code, 1, 0);
     this->SetErrorCode(error_code);
-    return false;
+    return error_code != vtkErrorCode::NoError ? false : true;
   }
 
   // the writer can be used for multiple timesteps
