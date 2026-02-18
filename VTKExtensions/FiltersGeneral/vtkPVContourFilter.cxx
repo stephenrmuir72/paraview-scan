@@ -7,7 +7,6 @@
 #include "vtkArrayDispatch.h"
 #include "vtkAssume.h"
 #include "vtkDataArray.h"
-#include "vtkDataArrayAccessor.h"
 #include "vtkDataObject.h"
 #include "vtkDemandDrivenPipeline.h"
 #include "vtkEventForwarderCommand.h"
