@@ -59,10 +59,7 @@ endif()
 
 foreach (module IN LISTS required_modules)
   if (NOT TARGET "${module}")
-    message(#FATAL_ERROR
-      "Skipping example ${PROJECT_NAME}: Missing required module: "
-      "${module}")
-    return ()
+    message(FATAL_ERROR "Cannot build example ${PROJECT_NAME}: Missing required module: ${module}")
   endif ()
 endforeach ()
 
