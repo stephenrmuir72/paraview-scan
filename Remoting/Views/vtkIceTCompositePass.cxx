@@ -378,6 +378,35 @@ void vtkIceTCompositePass::Render(const vtkRenderState* render_state)
 
   float background[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+#ifdef __APPLE__
+  // macOS Metal shader cache workaround:
+  // Metal uses flock() on shared shader cache. When multiple MPI ranks
+  // try to compile shaders simultaneously, they deadlock.
+  // Pre-warm shaders sequentially before the collective IceT render.
+  static bool s_macOSShaderCacheWarmed = false;
+  if (!s_macOSShaderCacheWarmed && this->Controller && this->Controller->GetNumberOfProcesses() > 1)
+  {
+    vtkVLogF(PARAVIEW_LOG_RENDERING_VERBOSITY(), "Pre-warming Metal shader cache sequentially");
+
+    int numProcs = this->Controller->GetNumberOfProcesses();
+    int myRank = this->Controller->GetLocalProcessId();
+
+    for (int r = 0; r < numProcs; r++)
+    {
+      if (myRank == r)
+      {
+        // Trigger shader compilation with a minimal render
+        if (this->RenderPass)
+        {
+          this->RenderPass->Render(render_state);
+        }
+      }
+      this->Controller->Barrier();
+    }
+    s_macOSShaderCacheWarmed = true;
+  }
+#endif
+
   // here is where the actual drawing occurs
   vtkOpenGLRenderUtilities::MarkDebugEvent("vtkIceTCompositePass: icetDrawFrame Start");
   IceTImage renderedImage =

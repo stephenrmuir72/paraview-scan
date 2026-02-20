@@ -173,6 +173,14 @@ The **Polar Grid** and **Legend Grid** annotations are only meaningful when the 
 
 Skybox backgrounds now support rotations, which are also applied to the environment lighting of the objects in the scene. The rotation can be set in the background properties when using a skybox background, using three angles in degrees.
 
+## macOS: Prevent MPI deadlock during Metal shader compilation
+
+Metal serializes access to the shared shader cache using flock().
+Concurrent shader compilation across MPI ranks can deadlock during
+the first render.
+
+Pre-warm shaders sequentially across ranks before the collective
+IceT render to avoid contention.
 
 # Plugin updates
 
