@@ -69,3 +69,6 @@ if (PARAVIEW_CLIENT_RENDER_SERVER_TESTS)
     TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
   )
 endif ()
+
+# A dedicated code path trigger abort in ParaView with this env var
+set_tests_properties(pv.AbortPipeline PROPERTIES ENVIRONMENT "PV_TEST_ABORT_PIPELINE=1")

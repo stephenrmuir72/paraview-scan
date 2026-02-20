@@ -1000,6 +1000,7 @@ set(ZoomToData_TIMEOUT 150)
 
 # Test without baselines and could only run in built-in mode.
 list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
+  AbortPipeline.xml
   CellQualityForPixel.xml
   ComputeArrayMagnitudeSetting.xml
   DefaultReadersSetting.xml
