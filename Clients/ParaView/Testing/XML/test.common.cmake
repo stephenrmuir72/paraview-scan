@@ -1047,6 +1047,7 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
 list (APPEND TESTS_WITHOUT_BASELINES
   AbortExit.xml
   AboutDialog.xml
+  AbortPipeline.xml
   AddFieldArrays.xml
   AnimateProperty.xml
   ArrayBoundsScaleDomain.xml

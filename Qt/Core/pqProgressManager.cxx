@@ -262,4 +262,11 @@ void pqProgressManager::onProgress(vtkObject* caller)
   this->setProgress(text, oldProgress, processEvents);
   */
   this->setProgress(text, oldProgress, true);
+  std::cout<<oldProgress<<std::endl;
+
+  if (vtksys::SystemTools::GetEnv("PV_TEST_ABORT_PIPELINE") && oldProgress >  25)
+  {
+    std::cout<<"trigger abort"<<std::endl;
+    this->triggerAbort();
+  }
 }

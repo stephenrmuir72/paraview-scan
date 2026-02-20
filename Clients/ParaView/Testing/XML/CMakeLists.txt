@@ -69,3 +69,7 @@ if (PARAVIEW_CLIENT_RENDER_SERVER_TESTS)
     TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
   )
 endif ()
+
+set_tests_properties(pv.AbortPipeline PROPERTIES ENVIRONMENT "PV_TEST_ABORT_PIPELINE=1")
+set_tests_properties(pvcs.AbortPipeline PROPERTIES ENVIRONMENT "PV_TEST_ABORT_PIPELINE=1")
+set_tests_properties(pvcrs.AbortPipeline PROPERTIES ENVIRONMENT "PV_TEST_ABORT_PIPELINE=1")
