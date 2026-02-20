@@ -290,6 +290,8 @@ public:
    */
   void MarkDirty(vtkSMProxy* modifiedProxy) override;
 
+
+  void ClearAbortFlags();
 protected:
   vtkSMSourceProxy();
   ~vtkSMSourceProxy() override;

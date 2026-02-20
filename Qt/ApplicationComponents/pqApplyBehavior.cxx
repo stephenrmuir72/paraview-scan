@@ -21,6 +21,7 @@
 #include "vtkPVCatalystChannelInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVGeneralSettings.h"
+#include "vtkPVProgressHandler.h"
 #include "vtkSMAnimationSceneProxy.h"
 #include "vtkSMColorMapEditorHelper.h"
 #include "vtkSMLiveInsituLinkProxy.h"
@@ -41,6 +42,7 @@
 
 #include <cassert>
 
+#include <iostream>
 class pqApplyBehavior::pqInternals
 {
 public:
@@ -48,6 +50,7 @@ public:
   QList<PairType> NewlyCreatedRepresentations;
   pqTimer AutoApplyTimer;
   int PanelCount = 0;
+  bool Aborted = false;
   QMetaObject::Connection ShortcutApplyConnection;
 };
 
@@ -121,17 +124,31 @@ void pqApplyBehavior::unregisterPanel(pqPropertiesPanel* panel)
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied(pqProxy* proxy)
 {
-  pqPropertiesPanel* panel = qobject_cast<pqPropertiesPanel*>(this->sender());
-  if (panel)
+  std::cout<<"onApplied(pqProxy):"<< this->Internals->Aborted <<std::endl;
+  if (!this->Internals->Aborted)
   {
-    this->applied(panel, proxy);
+    pqPropertiesPanel* panel = qobject_cast<pqPropertiesPanel*>(this->sender());
+    if (panel)
+    {
+      this->applied(panel, proxy);
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied()
 {
-  this->applied();
+  std::cout<<"onApplied():"<< this->Internals->Aborted  <<std::endl;
+  if (!this->Internals->Aborted)
+  {
+    this->applied();
+  }
+
+  // onApplied can be triggered multiple times
+  // this ensure that aborting won't retrigger another apply
+  // we remove the flag here because this version of onApplied is always the last call.
+  std::cout<<"FALSE " << this <<std::endl;
+  this->Internals->Aborted = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -154,6 +171,24 @@ void pqApplyBehavior::onResetDone()
 void pqApplyBehavior::applied(pqPropertiesPanel*, pqProxy* pqproxy)
 {
   this->Internals->AutoApplyTimer.stop();
+
+  // Clear all abort flag server side
+  vtkSMSession* session = pqActiveObjects::instance().activeServer()->session();
+  vtkPVProgressHandler* progressHandler = session->GetProgressHandler();
+  if (progressHandler)
+  {
+    std::set<int> abortedIds = progressHandler->GetAbortedObjectIds();
+    for (int id : abortedIds)
+    {
+      if (auto* proxy = vtkSMSourceProxy::SafeDownCast(session->GetRemoteObject(id)))
+      {
+        proxy->ClearAbortFlags();
+        proxy->MarkModified(proxy);
+      }
+    }
+    progressHandler->ClearAborteddObjectIds();
+  }
+
   if (pqproxy->modifiedState() == pqProxy::UNINITIALIZED)
   {
     if (auto pqsource = qobject_cast<pqPipelineSource*>(pqproxy))
@@ -170,7 +205,20 @@ void pqApplyBehavior::applied(pqPropertiesPanel*, pqProxy* pqproxy)
     ADD_UNDO_ELEM(undoElement);
     undoElement->Delete();
   }
+
   pqproxy->setModifiedState(pqProxy::UNMODIFIED);
+    
+  // Abort can happen during the `showData` call
+  if (progressHandler)
+  {
+    std::set<int> abortedIds = progressHandler->GetAbortedObjectIds();
+    if(abortedIds.find(pqproxy->getProxy()->GetGlobalID()) != abortedIds.end())
+    { 
+      pqproxy->setModifiedState(pqProxy::UNINITIALIZED);
+      std::cout<<"TRUE2 " << this <<std::endl;
+      this->Internals->Aborted = true;
+    }
+  }
 
   // Make sure filters menu enable state is updated
   Q_EMIT pqApplicationCore::instance()->forceFilterMenuRefresh();
@@ -205,6 +253,23 @@ void pqApplyBehavior::applied(pqPropertiesPanel* panel)
 {
   this->Internals->AutoApplyTimer.stop();
 
+  // Clear all abort flag server side
+  vtkSMSession* session = pqActiveObjects::instance().activeServer()->session();
+  vtkPVProgressHandler* progressHandler = session->GetProgressHandler();
+  if (progressHandler)
+  {
+    std::set<int> abortedIds = progressHandler->GetAbortedObjectIds();
+    for (int id : abortedIds)
+    {
+      if (auto* proxy = vtkSMSourceProxy::SafeDownCast(session->GetRemoteObject(id)))
+      {
+        proxy->ClearAbortFlags();
+        proxy->MarkModified(proxy);
+      }
+    }
+    progressHandler->ClearAborteddObjectIds();
+  }
+
   // Update all proxies if needed
   if (this->Internals->PanelCount == 0)
   {
@@ -221,7 +286,7 @@ void pqApplyBehavior::applied(pqPropertiesPanel* panel)
   // Update animation timesteps.
   vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
   vtkSMAnimationSceneProxy::UpdateAnimationUsingDataTimeSteps(
-    controller->GetAnimationScene(pqActiveObjects::instance().activeServer()->session()));
+    controller->GetAnimationScene(session));
 
   pqServerManagerModel* smmodel = pqApplicationCore::instance()->getServerManagerModel();
 
@@ -258,6 +323,24 @@ void pqApplyBehavior::applied(pqPropertiesPanel* panel)
       .arg("Update")
       .arg("comment", qPrintable(tr("update the view to ensure updated data information")));
     view->getViewProxy()->Update();
+  }
+
+  // Abort can happen during the `Update` call
+  if (progressHandler)
+  {
+    pqApplicationCore* core = pqApplicationCore::instance();
+    pqServerManagerModel* smModel = core->getServerManagerModel();
+    std::set<int> abortedIds = progressHandler->GetAbortedObjectIds();
+    for (int id : abortedIds)
+    {
+      if (auto* proxy = vtkSMSourceProxy::SafeDownCast(session->GetRemoteObject(id)))
+      {
+        pqProxy* pqproxy = smModel->findItem<pqProxy*>(proxy);
+        pqproxy->setModifiedState(pqProxy::MODIFIED);
+        std::cout<<"TRUE1 " << this <<std::endl;
+        this->Internals->Aborted = true;
+      }
+    }
   }
 
   vtkPVGeneralSettings* gsettings = vtkPVGeneralSettings::GetInstance();
