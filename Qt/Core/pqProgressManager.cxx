@@ -213,7 +213,6 @@ void pqProgressManager::onStartProgress()
 {
   Q_EMIT progressStartEvent();
   this->setEnableProgress(true);
-  this->setEnableAbort(true);
   QApplication::instance()->installEventFilter(this);
 }
 
@@ -222,7 +221,6 @@ void pqProgressManager::onEndProgress()
 {
   QApplication::instance()->removeEventFilter(this);
   this->setEnableProgress(false);
-  this->setEnableAbort(false);
   Q_EMIT progressEndEvent();
 }
 

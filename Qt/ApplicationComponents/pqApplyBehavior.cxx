@@ -10,6 +10,7 @@
 #include "pqObjectBuilder.h"
 #include "pqPVApplicationCore.h"
 #include "pqPipelineFilter.h"
+#include "pqProgressManager.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyModifiedStateUndoElement.h"
 #include "pqRenderView.h"
@@ -124,6 +125,7 @@ void pqApplyBehavior::unregisterPanel(pqPropertiesPanel* panel)
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied(pqProxy* proxy)
 {
+  pqApplicationCore::instance()->getProgressManager()->setEnableAbort(true);
   std::cout<<"onApplied(pqProxy):"<< this->Internals->Aborted <<std::endl;
   if (!this->Internals->Aborted)
   {
@@ -138,6 +140,9 @@ void pqApplyBehavior::onApplied(pqProxy* proxy)
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied()
 {
+  pqProgressManager* progressManager = pqApplicationCore::instance()->getProgressManager();
+  progressManager->setEnableAbort(true);
+   
   std::cout<<"onApplied():"<< this->Internals->Aborted  <<std::endl;
   if (!this->Internals->Aborted)
   {
@@ -148,6 +153,7 @@ void pqApplyBehavior::onApplied()
   // this ensure that aborting won't retrigger another apply
   // we remove the flag here because this version of onApplied is always the last call.
   std::cout<<"FALSE " << this <<std::endl;
+  progressManager->setEnableAbort(false);
   this->Internals->Aborted = false;
 }
 
