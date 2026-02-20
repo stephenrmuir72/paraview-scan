@@ -652,6 +652,22 @@ You can now use composite structures as input for Catalyst-ParaView steering ext
 
 Conduit nodes returned as `catalyst_results` for steering by ParaView now correctly follow the Blueprint mesh/multimesh formalism. In practice, this means that all channels store their data in a "data" group, which was not the case previously.
 
+## Viskores Runtime Initialization
+
+For gpu resident workflows and zero-copy arrays, viskores runtime can be configured using:
+```
+catalyst:
+  viskores:
+    args:
+      - "--viskores-device=cuda"
+      - "--viskores-log-level=INFO"
+```
+
+## Fixes for Python Triggers
+
+The execution parameter snapshot is now refreshed for every Catalyst iteration. Previously, it was only updated as part of pipeline execution, which could result in stale parameters being observed during Python trigger evaluation.
+
+
 # Developer notes
 
 ## Removals in ParaView 6.1
