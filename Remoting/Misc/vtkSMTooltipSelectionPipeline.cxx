@@ -17,6 +17,7 @@
 #include "vtkPVDataUtilities.h"
 #include "vtkPVExtractSelection.h"
 #include "vtkPVRenderView.h"
+#include "vtkPVRepresentedArrayListSettings.h"
 #include "vtkPVSelectionSource.h"
 #include "vtkPointData.h"
 #include "vtkPointSet.h"
@@ -36,6 +37,7 @@
 #include "vtkStringArray.h"
 
 #include <sstream>
+#include <unordered_set>
 
 vtkStandardNewMacro(vtkSMTooltipSelectionPipeline);
 
@@ -187,10 +189,18 @@ bool vtkSMTooltipSelectionPipeline::GetTooltipInfo(
     }
   }
 
+  vtkPVRepresentedArrayListSettings* settings = vtkPVRepresentedArrayListSettings::GetInstance();
+
+  std::unordered_set<std::string> fieldsToHide; // using unordered_set for fast search
+  for (int i = 0; i < settings->GetNumberOfFieldsToHideHover(); i++)
+  {
+    fieldsToHide.insert(settings->GetFieldToHideHover(i));
+  }
+
   std::ostringstream tooltipTextStream;
 
   // Composite dataset name
-  if (compositeFound)
+  if (compositeFound && fieldsToHide.find("Block") == fieldsToHide.end())
   {
     tooltipTextStream << "\n<b>  Block: " << compositeName << "</b>";
   }
@@ -204,14 +214,18 @@ bool vtkSMTooltipSelectionPipeline::GetTooltipInfo(
     vtkPointData* pointData = ds->GetPointData();
     fieldData = pointData;
     originalIds = pointData->GetArray("vtkOriginalPointIds");
-    if (originalIds)
+    if (originalIds && fieldsToHide.find("Id") == fieldsToHide.end())
     {
       tooltipTextStream << "\n  Id: " << originalIds->GetTuple1(0);
     }
 
     // point coords
     ds->GetPoint(0, point);
-    tooltipTextStream << "\n  Coords: (" << point[0] << ", " << point[1] << ", " << point[2] << ")";
+    if (fieldsToHide.find("Coords") == fieldsToHide.end())
+    {
+      tooltipTextStream << "\n  Coords: (" << point[0] << ", " << point[1] << ", " << point[2]
+                        << ")";
+    }
   }
   else if (association == vtkDataObject::FIELD_ASSOCIATION_CELLS)
   {
@@ -219,12 +233,12 @@ bool vtkSMTooltipSelectionPipeline::GetTooltipInfo(
     vtkCellData* cellData = ds->GetCellData();
     fieldData = cellData;
     originalIds = cellData->GetArray("vtkOriginalCellIds");
-    if (originalIds)
+    if (originalIds && fieldsToHide.find("Id") == fieldsToHide.end())
     {
       tooltipTextStream << "\n  Id: " << originalIds->GetTuple1(0);
     }
     // cell type? cell points?
-    if (ds->GetNumberOfCells() > 0)
+    if (ds->GetNumberOfCells() > 0 && fieldsToHide.find("Type") == fieldsToHide.end())
     {
       vtkCell* cell = ds->GetCell(0);
       tooltipTextStream << "\n  Type: "
@@ -239,7 +253,8 @@ bool vtkSMTooltipSelectionPipeline::GetTooltipInfo(
     for (vtkIdType i_arr = 0; i_arr < nbArrays; i_arr++)
     {
       vtkDataArray* array = fieldData->GetArray(i_arr);
-      if (!array || originalIds == array)
+      if (!array || originalIds == array ||
+        fieldsToHide.find(array->GetName()) != fieldsToHide.end())
       {
         continue;
       }
