@@ -143,6 +143,11 @@ private Q_SLOTS:
    */
   void pruneOutOfDomainEntries();
 
+  /**
+   * called when this->Components is changed.
+   */
+  void pruneOutOfDomainComponentEntries();
+
 protected:
   /**
    * Update the UI to show the selected array.
@@ -152,6 +157,11 @@ protected:
    * Update the UI to show the selected component.
    */
   void setComponentNumber(int);
+
+  /**
+   * Update the scalar bars title to show the currently selected array and component
+   */
+  void updateScalarBarsTitle();
 
 private:
   QVariant itemData(int association, const QString& arrayName) const;
@@ -166,6 +176,7 @@ private:
    * Returns the index for the newly added entry.
    */
   int addOutOfDomainEntry(int association, const QString& arrayName);
+  int addOutOfDomainComponentEntry(const QString& componentName, int index);
 
   QScopedPointer<QIcon> CellDataIcon;
   QScopedPointer<QIcon> PointDataIcon;
