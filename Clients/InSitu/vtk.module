@@ -18,6 +18,7 @@ PRIVATE_DEPENDS
   ParaView::RemotingLive
   ParaView::VTKExtensionsCore
 OPTIONAL_DEPENDS
+  VTK::vtkvtkm
   ParaView::PythonCatalyst
   ParaView::PythonInitializer
   VTK::IOCatalystConduit
