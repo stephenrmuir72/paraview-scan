@@ -18,6 +18,7 @@
 #include "vtkSMUncheckedPropertyHelper.h"
 #include "vtkStringList.h"
 #include "vtkStringScanner.h"
+#include "vtkType.h"
 
 #include <algorithm>
 #include <cassert>
@@ -47,11 +48,14 @@ struct vtkSMArrayListDomainArrayInformation
 
   int ArrayAttributeType;
 
+  std::vector<std::string> Components;
+
   vtkSMArrayListDomainArrayInformation()
     : IsPartial(false)
     , FieldAssociation(vtkDataObject::POINT)
     , DomainAssociation(vtkDataObject::POINT)
     , ArrayAttributeType(-1)
+    , Components({})
   {
   }
 
@@ -60,7 +64,7 @@ struct vtkSMArrayListDomainArrayInformation
     return this->ArrayName == other.ArrayName && this->IsPartial == other.IsPartial &&
       this->FieldAssociation == other.FieldAssociation &&
       this->DomainAssociation == other.DomainAssociation &&
-      this->ArrayAttributeType == other.ArrayAttributeType;
+      this->ArrayAttributeType == other.ArrayAttributeType && this->Components == other.Components;
   }
 
   // helps keep the set sorted in preferred order.
@@ -75,6 +79,10 @@ struct vtkSMArrayListDomainArrayInformation
           // don't treat partial and non-partial arrays as different.
           // if (this->IsPartial == other.IsPartial)
           //  {
+          if (this->ArrayAttributeType == other.ArrayAttributeType)
+          {
+            return this->Components < other.Components;
+          }
           return this->ArrayAttributeType < other.ArrayAttributeType;
           //  }
           // return this->IsPartial < other.IsPartial;
@@ -292,6 +300,11 @@ void vtkSMArrayListDomainInternals::BuildArrayList(
         info.FieldAssociation = acceptable_as;
         info.DomainAssociation = type;
         info.ArrayAttributeType = attrInfo->IsArrayAnAttribute(idx);
+        info.Components.reserve(arrayInfo->GetNumberOfComponents());
+        for (vtkIdType i = 0; i < arrayInfo->GetNumberOfComponents(); ++i)
+        {
+          info.Components.emplace_back(arrayInfo->GetComponentName(i));
+        }
         result.insert(info);
       }
       else
@@ -315,6 +328,11 @@ void vtkSMArrayListDomainInternals::BuildArrayList(
           info.FieldAssociation = acceptable_as;
           info.DomainAssociation = type;
           info.ArrayAttributeType = attrInfo->IsArrayAnAttribute(idx);
+          info.Components.reserve(arrayInfo->GetNumberOfComponents());
+          for (vtkIdType i = 0; i < arrayInfo->GetNumberOfComponents(); ++i)
+          {
+            info.Components.emplace_back(arrayInfo->GetComponentName(i));
+          }
           result.insert(info);
         }
       }
