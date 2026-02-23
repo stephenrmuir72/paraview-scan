@@ -361,45 +361,61 @@ enum catalyst_status catalyst_initialize_paraview(const conduit_node* params)
   }
 
 #if VTK_MODULE_ENABLE_VTK_vtkviskores
+  if (cpp_params.has_path("catalyst/viskores"))
   {
-    static bool viskoresInitialized = false;
+    const auto& viskoresNode = cpp_params["catalyst/viskores"];
 
-    if (!viskoresInitialized)
+    std::vector<std::string> args;
+
+    // argv[0] must exist (dummy program name)
+    args.emplace_back("catalyst");
+
+    // Optional "args" list
+    if (viskoresNode.has_path("args"))
     {
-      if (cpp_params.has_path("catalyst/viskores/args"))
+      const auto& argsNode = viskoresNode["args"];
+
+      if (!argsNode.dtype().is_list())
       {
-        const auto& argsNode = cpp_params["catalyst/viskores/args"];
+        vtkLogF(ERROR, "'catalyst/viskores/args' must be a list.");
+        return pvcatalyst_err(invalid_node);
+      }
 
-        std::vector<std::string> args;
+      conduit_index_t nchildren = argsNode.number_of_children();
+      for (conduit_index_t i = 0; i < nchildren; ++i)
+      {
+        const auto child = argsNode.child(i);
 
-        // argv[0] must exist (dummy program name)
-        args.emplace_back("catalyst");
-
-        for (conduit_index_t i = 0; i < argsNode.number_of_children(); ++i)
+        if (!child.dtype().is_string())
         {
-          args.emplace_back(argsNode.child(i).as_string());
+          vtkLogF(ERROR,
+            "Entries in 'catalyst/viskores/args' must be strings. "
+            "Unsupported type '%s' at index %d.",
+            child.dtype().name().c_str(), static_cast<int>(i));
+          return pvcatalyst_err(invalid_node);
         }
 
-        std::vector<char*> argv;
-        argv.reserve(args.size() + 1);
-
-        for (auto& s : args)
-        {
-          argv.push_back(const_cast<char*>(s.c_str()));
-        }
-
-        argv.push_back(nullptr);
-
-        int argc = static_cast<int>(args.size());
-
-        vtkVLogF(
-          PARAVIEW_LOG_CATALYST_VERBOSITY(), "Initializing viskores with %d arguments", argc);
-
-        viskores::cont::Initialize(argc, argv.data());
-
-        viskoresInitialized = true;
+        args.emplace_back(child.as_string());
       }
     }
+
+    // Build argv array
+    std::vector<char*> argv;
+    argv.reserve(args.size() + 1);
+
+    for (std::size_t i = 0; i < args.size(); ++i)
+    {
+      argv.push_back(const_cast<char*>(args[i].c_str()));
+    }
+
+    // Null-terminate argv
+    argv.push_back(nullptr);
+
+    int argc = static_cast<int>(args.size());
+
+    vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(), "Initializing viskores with %d argument(s)", argc);
+
+    viskores::cont::Initialize(argc, argv.data());
   }
 #endif
 
