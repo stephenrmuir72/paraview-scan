@@ -3101,6 +3101,14 @@ bool vtkSMColorMapEditorHelper::UpdateScalarBarRange(
     const int component = vtkSMPropertyHelper(lut, "VectorMode").GetAsInt() != 0
       ? vtkSMPropertyHelper(lut, "VectorComponent").GetAsInt()
       : -1;
+
+    vtkPVArrayInformation* info =
+      vtkSMColorMapEditorHelper::GetArrayInformationForColorArray(proxy);
+    if (info != nullptr && info->GetNumberOfComponents() <= component)
+    {
+      return false;
+    }
+
     sbProxy->GetRange(updatedRange, component);
     minRangePropHelper.Set(updatedRange[0]);
     maxRangePropHelper.Set(updatedRange[1]);
