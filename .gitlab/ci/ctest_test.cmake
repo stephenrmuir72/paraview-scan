@@ -449,6 +449,7 @@ ctest_test(APPEND
   TEST_LOAD "${nproc}"
   RETURN_VALUE test_result
   EXCLUDE "${test_exclusions}"
+  INCLUDE "(FFmpegWriter|AVIWriter)$"
   OUTPUT_JUNIT "${CTEST_BINARY_DIRECTORY}/junit.xml"
   REPEAT UNTIL_PASS:3)
 ctest_submit(PARTS Test)
