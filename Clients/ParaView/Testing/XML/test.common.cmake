@@ -124,6 +124,7 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${paraview_test_data_directory_input}/Data/dualSphereAnimation.pvd}"
   "DATA{${paraview_test_data_directory_input}/Data/dualSphereAnimation/,REGEX:.*}"
   "DATA{${paraview_test_data_directory_input}/Data/dualSphereAnimation4.pvd}"
+  "DATA{${paraview_test_data_directory_input}/Data/DynamicComponentsPlugin.py}"
   "DATA{${paraview_test_data_directory_input}/Data/elements.vtu}"
   "DATA{${paraview_test_data_directory_input}/Data/EngineSector.cgns}"
   "DATA{${paraview_test_data_directory_input}/Data/ensemble-wavelet/,REGEX:.*}"
@@ -346,6 +347,9 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ClampAndUpdateColorMap-TS12-Unchanged.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ClampAndUpdateColorMap-TS6.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorBy.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorByDynamicComponent1.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorByDynamicComponent2.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorByDynamicComponent3.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorFreehandDrawing.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorFreehandDrawing_A.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/ColorOpacityEditorRangeHandles.png}"
@@ -1042,6 +1046,10 @@ list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
   TimeKeeper.xml
   WriteXMLTimeValue.xml
   YieldCriteria.xml
+)
+
+list (APPEND TEST_WITH_BASELINES_CLIENT_ONLY
+  ColorByDynamicComponent.xml
 )
 
 list (APPEND TESTS_WITHOUT_BASELINES
