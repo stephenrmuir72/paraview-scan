@@ -44,6 +44,10 @@ paraview_add_client_tests(
 )
 
 paraview_add_client_tests(
+  TEST_SCRIPTS ${TEST_WITH_BASELINES_CLIENT_ONLY}
+)
+
+paraview_add_client_tests(
   TEST_SCRIPTS ${TESTS_WITHOUT_BASELINES}
 )
 
