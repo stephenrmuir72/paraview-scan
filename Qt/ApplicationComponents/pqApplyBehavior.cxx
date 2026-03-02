@@ -10,6 +10,7 @@
 #include "pqObjectBuilder.h"
 #include "pqPVApplicationCore.h"
 #include "pqPipelineFilter.h"
+#include "pqProgressManager.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyModifiedStateUndoElement.h"
 #include "pqRenderView.h"
@@ -121,6 +122,7 @@ void pqApplyBehavior::unregisterPanel(pqPropertiesPanel* panel)
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied(pqProxy* proxy)
 {
+  pqApplicationCore::instance()->getProgressManager()->setEnableAbort(true);
   pqPropertiesPanel* panel = qobject_cast<pqPropertiesPanel*>(this->sender());
   if (panel)
   {
@@ -131,7 +133,14 @@ void pqApplyBehavior::onApplied(pqProxy* proxy)
 //-----------------------------------------------------------------------------
 void pqApplyBehavior::onApplied()
 {
+  pqProgressManager* progressManager = pqApplicationCore::instance()->getProgressManager();
+  progressManager->setEnableAbort(true);
+
   this->applied();
+
+  // While onApplied(pqProxy* proxy) can be called before, onApplied() is always the last to be
+  // called
+  progressManager->setEnableAbort(false);
 }
 
 //-----------------------------------------------------------------------------
