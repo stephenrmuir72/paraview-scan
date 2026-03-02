@@ -469,7 +469,7 @@ bool vtkDisplayConfiguration::LoadPVX(const char* fname)
 
       int viewerId = idAttr.as_int();
 
-      if (viewerId < 0 || viewerId >= internals.Viewers.size())
+      if (viewerId < 0 || static_cast<std::size_t>(viewerId) >= internals.Viewers.size())
       {
         vtkWarningMacro(<< "Id attributes of Viewer elements must correspond to ViewerId "
                         << "attributes of Machine elements, and " << viewerId << " does "
@@ -477,7 +477,7 @@ bool vtkDisplayConfiguration::LoadPVX(const char* fname)
         continue;
       }
 
-      size_t viewerIndex = static_cast<size_t>(viewerId);
+      size_t viewerIndex = static_cast<std::size_t>(viewerId);
       internals.Viewers[viewerIndex].EyeSeparation = eyeAttr.as_double(this->EyeSeparation);
     }
   }
