@@ -37,5 +37,7 @@ if (PARAVIEW_ENABLE_EXTRA_BUILD_WARNINGS)
   # GCC and actual bugs fixed.
   paraview_add_flag(-Wno-stringop-overflow ${langs}) # VTK issue 19306
   paraview_add_flag(-Wno-stringop-overread ${langs}) # VTK issue 19307
+  paraview_add_flag(-Wno-maybe-uninitialized ${langs}) # VTK issue 19457
+  paraview_add_flag(-Wno-catch-value ${langs}) # VTK issue 19458
   paraview_add_flag(-Wno-vla-extension ${langs})
 endif ()
