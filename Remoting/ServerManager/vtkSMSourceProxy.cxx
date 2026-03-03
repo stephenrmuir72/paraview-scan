@@ -213,6 +213,18 @@ vtkSMDocumentation* vtkSMSourceProxy::GetOutputPortDocumentation(const char* por
 }
 
 //---------------------------------------------------------------------------
+void vtkSMSourceProxy::ClearAbortFlags()
+{
+  if (this->ObjectsCreated)
+  {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke << SIPROXY(this) << "ClearAbortFlags"
+           << vtkClientServerStream::End;
+    this->ExecuteStream(stream);
+  }
+}
+
+//---------------------------------------------------------------------------
 void vtkSMSourceProxy::UpdatePipelineInformation()
 {
   if (this->ObjectsCreated)

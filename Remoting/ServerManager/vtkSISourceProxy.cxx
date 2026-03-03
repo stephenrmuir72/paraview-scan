@@ -215,8 +215,6 @@ void vtkSISourceProxy::UpdatePipeline(int port, double time, bool doTime)
 
   vtkAlgorithm* algo = output_port->GetProducer();
   assert(algo);
-  // reset AbortExecute flag if the algorithm was aborted.
-  algo->SetAbortExecute(false);
 
   auto sddp = vtkStreamingDemandDrivenPipeline::SafeDownCast(algo->GetExecutive());
 
@@ -261,6 +259,29 @@ void vtkSISourceProxy::UpdatePipeline(int port, double time, bool doTime)
               << "There was an error on a server process. Please check the server console or log "
                  "output for details.";
       vtkErrorMacro(<< message.str());
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::ClearAbortFlags()
+{
+  if (this->DisablePipelineExecution)
+  {
+    return;
+  }
+
+  vtkVLogScopeF(
+    PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: clear  abort flags", this->GetLogNameOrDefault());
+
+  if (this->GetVTKObject())
+  {
+    vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+    if (algo)
+    {
+      algo->AbortExecuteOff();
+      // algo->AbortOutputOff(); https://gitlab.kitware.com/vtk/vtk/-/merge_requests/12982
+      algo->SetAbortOutput(false);
     }
   }
 }
