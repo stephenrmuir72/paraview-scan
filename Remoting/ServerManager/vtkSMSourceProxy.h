@@ -290,6 +290,11 @@ public:
    */
   void MarkDirty(vtkSMProxy* modifiedProxy) override;
 
+  /**
+   * Clear abort execute flags on remote vtk objects
+   */
+  void ClearAbortFlags();
+
 protected:
   vtkSMSourceProxy();
   ~vtkSMSourceProxy() override;
