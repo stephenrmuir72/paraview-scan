@@ -69,6 +69,12 @@ protected:
 
 private:
   Q_DISABLE_COPY(pqApplyBehavior)
+
+  /**
+   * Call ClearAbortFlags on all proxies that have been aborted
+   */
+  void clearAbortFlags();
+
   class pqInternals;
   const QScopedPointer<pqInternals> Internals;
 };
