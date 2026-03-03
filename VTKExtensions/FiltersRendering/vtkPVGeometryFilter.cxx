@@ -497,6 +497,13 @@ int vtkPVGeometryFilter::RequestData(
     modifiedInput->ShallowCopy(input);
     if (this->UseCacheIfPossible(modifiedInput, dataObjectOutput))
     {
+      // If the output is a tree, we need to add the vtkBlockColors and vtkCompositeIndex arrays
+      // to all the leaves.
+      if (dataObjectOutput->IsA("vtkDataObjectTree"))
+      {
+        auto realInput = vtkDataObjectTree::GetData(inputVector[0], 0);
+        this->AddArrays(realInput, vtkDataObjectTree::SafeDownCast(dataObjectOutput));
+      }
       return 1;
     }
   }
@@ -875,12 +882,6 @@ int vtkPVGeometryFilter::RequestDataObjectTree(
 
   vtkTimerLog::MarkStartEvent("vtkPVGeometryFilter::ExecuteCompositeDataSet");
 
-  // An iterator to traverse the real input data is needed to get the correct flat index
-  // when the real input has been converted to a vtkPartitionedDataSetCollection.
-  auto realInput = vtkDataObjectTree::GetData(inputVector[0], 0);
-  auto realInIter = vtk::TakeSmartPointer(realInput->NewTreeIterator());
-  realInIter->VisitOnlyLeavesOn();
-  realInIter->SkipEmptyNodesOn();
   auto inIter = vtk::TakeSmartPointer(input->NewTreeIterator());
   inIter->VisitOnlyLeavesOn();
   inIter->SkipEmptyNodesOn();
@@ -895,9 +896,7 @@ int vtkPVGeometryFilter::RequestDataObjectTree(
   int* wholeExtent =
     vtkStreamingDemandDrivenPipeline::GetWholeExtent(inputVector[0]->GetInformationObject(0));
   int numInputs = 0;
-  for (inIter->InitTraversal(), realInIter->InitTraversal();
-       !inIter->IsDoneWithTraversal() && !realInIter->IsDoneWithTraversal();
-       inIter->GoToNextItem(), realInIter->GoToNextItem())
+  for (inIter->InitTraversal(); !inIter->IsDoneWithTraversal(); inIter->GoToNextItem())
   {
     vtkDataObject* block = inIter->GetCurrentDataObject();
     if (!block)
@@ -920,7 +919,6 @@ int vtkPVGeometryFilter::RequestDataObjectTree(
     if (tmpOut->GetNumberOfPoints() > 0)
     {
       output->SetDataSet(inIter, tmpOut);
-      this->AddCompositeIndex(tmpOut, realInIter->GetCurrentFlatIndex());
     }
     this->UpdateProgress(static_cast<float>(++numInputs) / totalNumberOfBlocks);
   }
@@ -968,10 +966,44 @@ int vtkPVGeometryFilter::RequestDataObjectTree(
           reduced_non_null_leaves[index] != 0)
         {
           vtkNew<vtkPolyData> trivalInput;
-          this->AddCompositeIndex(trivalInput, index);
           output->SetDataSet(outIter, trivalInput);
         }
       }
+    }
+  }
+
+  auto realInput = vtkDataObjectTree::GetData(inputVector[0], 0);
+  this->AddArrays(realInput, output);
+
+  vtkTimerLog::MarkEndEvent("vtkPVGeometryFilter::RequestDataObjectTree");
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVGeometryFilter::AddArrays(vtkDataObjectTree* realInput, vtkDataObjectTree* output)
+{
+  if (!output)
+  {
+    // Nothing to do.
+    return;
+  }
+
+  // An iterator to traverse the input data is needed to get the correct flat index
+  // when the input has been converted to a vtkPartitionedDataSetCollection.
+  auto realInIter = vtk::TakeSmartPointer(realInput->NewTreeIterator());
+  realInIter->VisitOnlyLeavesOn();
+  realInIter->SkipEmptyNodesOn();
+
+  auto outIter = vtk::TakeSmartPointer(output->NewTreeIterator());
+  outIter->VisitOnlyLeavesOn();
+  outIter->SkipEmptyNodesOn();
+  for (realInIter->InitTraversal(), outIter->InitTraversal();
+       !realInIter->IsDoneWithTraversal() && !outIter->IsDoneWithTraversal();
+       realInIter->GoToNextItem(), outIter->GoToNextItem())
+  {
+    if (auto polyData = vtkPolyData::SafeDownCast(outIter->GetCurrentDataObject()))
+    {
+      this->AddCompositeIndex(polyData, realInIter->GetCurrentFlatIndex());
     }
   }
 
@@ -1027,9 +1059,6 @@ int vtkPVGeometryFilter::RequestDataObjectTree(
     // Add block colors to root-node's field data to keep it from being flagged as partial.
     this->AddBlockColors(output, 0);
   }
-
-  vtkTimerLog::MarkEndEvent("vtkPVGeometryFilter::RequestDataObjectTree");
-  return 1;
 }
 
 //----------------------------------------------------------------------------
