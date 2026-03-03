@@ -69,6 +69,9 @@ protected:
 
 private:
   Q_DISABLE_COPY(pqApplyBehavior)
+
+  void clearAbortFlags();
+
   class pqInternals;
   const QScopedPointer<pqInternals> Internals;
 };

@@ -58,6 +58,7 @@ public:
    * Overridden to update the output ports.
    */
   void RecreateVTKObjects() override;
+  void ClearAbortFlags();
 
 protected:
   vtkSISourceProxy();
