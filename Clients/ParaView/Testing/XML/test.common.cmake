@@ -2444,3 +2444,20 @@ paraview_add_client_tests(
 paraview_add_client_tests(
     ARGS --plugins=ReaderNamePlugin "--plugin-search-paths=${paraview_test_data_directory_output}/Testing/Data"
     TEST_SCRIPTS PluginCommandLine.xml)
+
+# Add AbortPipeline tests
+# Force NUM_SERVER to 1 for client/server tests
+paraview_add_client_tests(
+  TEST_SCRIPTS AbortPipeline.xml
+  ENVIRONMENT PV_TEST_ABORT_PIPELINE=1
+)
+paraview_add_client_server_tests(
+  TEST_SCRIPTS AbortPipeline.xml
+  NUMSERVERS 1
+  ENVIRONMENT PV_TEST_ABORT_PIPELINE=1
+)
+paraview_add_client_server_render_tests(
+  TEST_SCRIPTS AbortPipeline.xml
+  NUMSERVERS 1
+  ENVIRONMENT PV_TEST_ABORT_PIPELINE=1
+)
