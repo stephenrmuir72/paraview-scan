@@ -246,4 +246,10 @@ void pqProgressManager::onProgress(vtkObject* caller)
   // to expire in a certain order
   processEvents &= (oldProgress > 0);
   this->setProgress(text, oldProgress, processEvents);
+
+  // Dedicated testing code path to test abort feature
+  if (vtksys::SystemTools::GetEnv("PV_TEST_ABORT_PIPELINE") && oldProgress > 25)
+  {
+    this->triggerAbort();
+  }
 }
