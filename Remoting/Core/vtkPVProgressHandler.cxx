@@ -84,6 +84,7 @@ public:
   // abort related
   std::map<vtkObject*, int> RegisteredObjects;
   std::set<int> AbortedObjectIds;
+  std::set<int> EnabledAbortCheckObjectIds;
 
   // Disables progress all together.
   bool DisableProgressHandling;
@@ -496,6 +497,12 @@ std::set<int> vtkPVProgressHandler::GetAbortedObjectIds()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVProgressHandler::EnableAbortCheck(vtkTypeUInt32 objectId)
+{
+  this->Internals->EnabledAbortCheckObjectIds.emplace(objectId);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVProgressHandler::ClearAbortedObjectIds()
 {
   this->Internals->AbortedObjectIds.clear();
@@ -504,6 +511,12 @@ void vtkPVProgressHandler::ClearAbortedObjectIds()
 //----------------------------------------------------------------------------
 void vtkPVProgressHandler::CheckAbort(vtkTypeUInt32 progress_id, vtkObject* caller, vtkObject* communicator)
 {
+  auto enabledIt = this->Internals->EnabledAbortCheckObjectIds.find(progress_id); 
+  if (enabledIt == this->Internals->EnabledAbortCheckObjectIds.end())
+  {
+    return;
+  }
+ 
   // Check abort ids
   char abort = 0;
   auto abortIt = this->Internals->AbortedObjectIds.find(progress_id); 

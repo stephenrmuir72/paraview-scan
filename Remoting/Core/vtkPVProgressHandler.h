@@ -130,6 +130,11 @@ public:
    */
   void ClearAbortedObjectIds();
 
+  /**
+   * Enable abort checking for a specific object
+   */
+  void EnableAbortCheck(vtkTypeUInt32 objectId);
+
 protected:
   vtkPVProgressHandler();
   ~vtkPVProgressHandler() override;

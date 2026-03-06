@@ -9,6 +9,7 @@
 #include "vtkPVArrayInformation.h"
 #include "vtkPVDataInformation.h"
 #include "vtkPVDataSetAttributesInformation.h"
+#include "vtkPVProgressHandler.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMDocumentation.h"
 #include "vtkSMInputProperty.h"
@@ -210,6 +211,22 @@ vtkSMDocumentation* vtkSMSourceProxy::GetOutputPortDocumentation(unsigned int in
 vtkSMDocumentation* vtkSMSourceProxy::GetOutputPortDocumentation(const char* portname)
 {
   return this->GetOutputPortDocumentation(this->GetOutputPortIndex(portname));
+}
+
+//---------------------------------------------------------------------------
+void vtkSMSourceProxy::EnableAbortCheck()
+{
+  if (this->ObjectsCreated && strcmp(this->SIClassName, "vtkSISourceProxy") == 0)
+  {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke << SIPROXY(this) << "EnableAbortCheck"
+           << vtkClientServerStream::End;
+    this->ExecuteStream(stream);
+
+    vtkPVProgressHandler* progressHandler = this->Session->GetProgressHandler();
+    progressHandler->EnableAbortCheck(this->GetGlobalID());
+  }
+
 }
 
 //---------------------------------------------------------------------------
@@ -463,6 +480,11 @@ void vtkSMSourceProxy::CreateVTKObjects()
   // We are going to fix the ports such that we don't have to update the
   // pipeline or even UpdateInformation() to create the ports.
   this->CreateOutputPorts();
+
+   if (this->StreamReply)
+   {
+     this->EnableAbortCheck();
+   } 
 }
 
 //---------------------------------------------------------------------------

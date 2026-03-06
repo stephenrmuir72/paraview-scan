@@ -4,6 +4,8 @@
 
 #include "vtkAlgorithm.h"
 #include "vtkAlgorithmOutput.h"
+#include "vtkClientServerInterpreter.h"
+#include "vtkClientServerStream.h"
 #include "vtkClientServerStreamInstantiator.h"
 #include "vtkCommand.h"
 #include "vtkErrorCode.h"
@@ -260,6 +262,30 @@ void vtkSISourceProxy::UpdatePipeline(int port, double time, bool doTime)
                  "output for details.";
       vtkErrorMacro(<< message.str());
     }
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::EnableAbortCheck()
+{
+  if (this->DisablePipelineExecution)
+  {
+    return;
+  }
+
+  vtkVLogScopeF(PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: disable abort check",
+    this->GetLogNameOrDefault());
+
+  // Disable abort check in progress handler
+  {
+    vtkClientServerStream substream;
+    substream << vtkClientServerStream::Invoke << vtkClientServerID(1) << "GetActiveProgressHandler"
+              << vtkClientServerStream::End;
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke << substream << "EnableAbortCheck"
+           << static_cast<int>(this->GetGlobalID())
+           << vtkClientServerStream::End;
+    this->Interpreter->ProcessStream(stream);
   }
 }
 

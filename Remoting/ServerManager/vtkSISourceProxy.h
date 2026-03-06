@@ -59,6 +59,7 @@ public:
    */
   void RecreateVTKObjects() override;
   void ClearAbortFlags();
+  void EnableAbortCheck();
 
 protected:
   vtkSISourceProxy();
