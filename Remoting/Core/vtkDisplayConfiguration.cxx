@@ -426,7 +426,7 @@ bool vtkDisplayConfiguration::LoadPVX(const char* fname)
 
   for (std::size_t i = 0; i < internals.MachineCountsById.size(); ++i)
   {
-    if (internals.MachineCountsById.count(i) != static_cast<std::size_t>(1))
+    if (internals.MachineCountsById.count(static_cast<int>(i)) != 1)
     {
       vtkErrorMacro(<< "If ViewerId attributes are provided, they must include all "
                     << "values from 0 to count - 1, and only those values.");
