@@ -83,6 +83,12 @@ public:
     return Fallback->Allocate(sz, ext);
   }
 
+  vtkTypeBool ReserveTuples(vtkIdType numTuples) override
+  {
+    BuildFallback();
+    return Fallback->ReserveTuples(numTuples);
+  }
+
   void SetNumberOfComponents(int number) override
   {
     this->Superclass::SetNumberOfComponents(number);
