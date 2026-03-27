@@ -113,6 +113,7 @@ add_example(CustomApplications/Clone2)
 add_example(CustomApplications/Demo0)
 add_example(CustomApplications/Demo1)
 add_example(CustomApplications/MultiServerClient)
+add_example(CustomApplications/ServerManagerRemoteConnection)
 add_example(CustomApplications/SimpleParaView)
 add_example(CustomApplications/Spreadsheet)
 
