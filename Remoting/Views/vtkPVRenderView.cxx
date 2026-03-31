@@ -61,6 +61,7 @@
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkPVTrackballEnvironmentRotate.h"
 #include "vtkPVTrackballMultiRotate.h"
+#include "vtkPVTrackballPanAxisConstrained.h"
 #include "vtkPVTrackballRoll.h"
 #include "vtkPVTrackballRotate.h"
 #include "vtkPVTrackballZoom.h"
@@ -86,7 +87,6 @@
 #include "vtkTexture.h"
 #include "vtkTimerLog.h"
 #include "vtkToneMappingPass.h"
-#include "vtkTrackballPan.h"
 #include "vtkTransform.h"
 #include "vtkType.h"
 #include "vtkValuePass.h"
@@ -536,12 +536,12 @@ vtkPVRenderView::vtkPVRenderView()
     this->ThreeDInteractorStyle->AddManipulator(manip2);
     manip2->Delete();
 
-    vtkTrackballPan* manip3 = vtkTrackballPan::New();
+    vtkPVTrackballPanAxisConstrained* manip3 = vtkPVTrackballPanAxisConstrained::New();
     manip3->SetButton(2);
     this->ThreeDInteractorStyle->AddManipulator(manip3);
     manip3->Delete();
 
-    vtkTrackballPan* manip4 = vtkTrackballPan::New();
+    vtkPVTrackballPanAxisConstrained* manip4 = vtkPVTrackballPanAxisConstrained::New();
     manip4->SetButton(1);
     this->TwoDInteractorStyle->AddManipulator(manip4);
     manip4->Delete();
@@ -3390,11 +3390,11 @@ void vtkPVRenderView::SetCameraManipulators(vtkPVInteractorStyle* style, const i
     for (int button = 0; button < 3; button++)
     {
       int manipType = manipulators[3 * manip + button];
-      vtkSmartPointer<vtkCameraManipulator> cameraManipulator;
+      vtkSmartPointer<vtkPVCameraManipulator> cameraManipulator;
       switch (manipType)
       {
         case PAN:
-          cameraManipulator = vtkSmartPointer<vtkTrackballPan>::New();
+          cameraManipulator = vtkSmartPointer<vtkPVTrackballPanAxisConstrained>::New();
           break;
         case ZOOM:
           cameraManipulator = vtkSmartPointer<vtkPVTrackballZoom>::New();
