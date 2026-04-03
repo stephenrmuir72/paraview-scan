@@ -1446,6 +1446,29 @@
         <Documentation>This property specifies the file name for the VTK
         multiblock reader.</Documentation>
       </StringVectorProperty>
+      <StringVectorProperty name="BlocksInfo"
+                            command="GetBlockSelection"
+                            number_of_elements_per_command="2"
+                            information_only="1"
+                            si_class="vtkSIDataArraySelectionProperty"/>
+
+      <StringVectorProperty name="Blocks"
+                            command="GetBlockSelection"
+                            information_property="BlocksInfo"
+                            number_of_elements_per_command="2"
+                            element_types="2 0"
+                            repeat_command="1"
+                            panel_visibility="default"
+                            si_class="vtkSIDataArraySelectionProperty">
+        <ArraySelectionDomain name="array_list">
+          <RequiredProperties>
+            <Property function="ArrayList" name="BlocksInfo"/>
+          </RequiredProperties>
+        </ArraySelectionDomain>
+        <Documentation>
+          List of blocks to read.
+        </Documentation>
+      </StringVectorProperty>
       <StringVectorProperty information_only="1"
                             name="CellArrayInfo">
         <ArraySelectionInformationHelper attribute_name="Cell" />
@@ -2714,6 +2737,13 @@
                proxygroup="internal_sources"
                proxyname="XMLPartitionedDataSetCollectionReaderCore"></Proxy>
         <ExposedProperties>
+          <PropertyGroup label="Blocks Status"
+                         name="BlocksStatus"
+                         panel_visibility="default"
+                         panel_widget="BlocksStatus">
+            <Property name="BlocksInfo" />
+            <Property name="Blocks" />"
+          </PropertyGroup>
           <PropertyGroup label="Cell/Point Array Status"
                          name="CellPointArrayStatus"
                          panel_visibility="default"
