@@ -177,10 +177,6 @@ spec:
     - .gitlab/ci/doxygen.sh
     - .gitlab/ci/sccache.sh
     - export PATH=$PWD/.gitlab:$PWD/.gitlab/cmake/bin:$PWD/.gitlab/doxygen/bin:$PATH
-    # Download Qt
-    - cmake -P .gitlab/ci/download_qt6.cmake
-    - cmake -P .gitlab/ci/download_onnxruntime.cmake
-    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6:$PWD/.gitlab/onnxruntime
     - cmake --version
     - ninja --version
     - doxygen --version
@@ -193,12 +189,23 @@ spec:
     # Enable the Intel compiler if required.
     - '[ "$CC" = "icx" ] && source /opt/intel/oneapi/setvars.sh || true'
 
+.download_qt6: &download_qt6
+    # Download Qt
+    - cmake -P .gitlab/ci/download_qt6.cmake
+    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6
+
+.download_onnxruntime: &download_onnxruntime
+    - cmake -P .gitlab/ci/download_onnxruntime.cmake
+    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/onnxruntime
+
 .cmake_build_linux:
     stage: build
     extends: .warning_policy
 
     script:
         - *before_script_linux
+        - *download_onnxruntime
+        - *download_qt6
         - .gitlab/ci/clang-tidy-cache.sh
         - sccache --start-server
         - sccache --show-stats
@@ -218,6 +225,8 @@ spec:
 
     script:
         - *before_script_linux
+        - *download_onnxruntime
+        - *download_qt6
         - .gitlab/ci/ssh-test-conf.sh
         # Ignore host keys from the temporary server set up in the above
         # script.
@@ -235,8 +244,7 @@ spec:
 
     script:
         # Download Qt
-        - cmake -P .gitlab/ci/download_qt6.cmake
-        - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6
+        - *download_qt6
         - echo "Pushing translation artifacts"
         - git config --global user.email "kwrobot+paraview-ci@kitware.com"
         - git config --global user.name "gitlab-ci"
