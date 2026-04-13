@@ -163,23 +163,28 @@ if (PARAVIEW_USE_QTHELP AND NOT PARAVIEW_USE_QTWEBENGINE)
   message(STATUS "Using 'QtHelp' without 'QtWebEngine' will ignore embedded javascript and *.js files for documentation")
 endif()
 
-if (PARAVIEW_ENABLE_RAYTRACING AND VTK_ENABLE_OSPRAY)
-  set(paraview_use_materialeditor ON)
-else ()
-  set(paraview_use_materialeditor OFF)
-endif ()
-
 #========================================================================
 # FEATURE OPTIONS:
 # Options that toggle features. These should begin with `PARAVIEW_ENABLE_`.
 #========================================================================
 
-vtk_deprecated_setting(raytracing_default PARAVIEW_ENABLE_RAYTRACING PARAVIEW_USE_RAYTRACING "OFF")
-option(PARAVIEW_ENABLE_RAYTRACING "Build ParaView with OSPray, ANARI and/or OptiX ray-tracing support" "${raytracing_default}")
+option(PARAVIEW_ENABLE_ANARI "Enable Anari Support" OFF)
 
-cmake_dependent_option(PARAVIEW_ENABLE_ANARI
-  "Enable Anari Support" OFF
-  "PARAVIEW_ENABLE_RAYTRACING" ON)
+# Ray tracing will be activated if at least one of ANARI or OSPRay option is activated
+set(raytracing_needed OFF)
+if (PARAVIEW_ENABLE_ANARI OR VTK_ENABLE_OSPRAY)
+  set(raytracing_needed ON)
+endif ()
+vtk_deprecated_setting(raytracing_default PARAVIEW_ENABLE_RAYTRACING PARAVIEW_USE_RAYTRACING "OFF")
+cmake_dependent_option(PARAVIEW_ENABLE_RAYTRACING
+  "Build ParaView with OSPray, ANARI and/or OptiX ray-tracing support" ${raytracing_default}
+  raytracing_needed OFF)
+
+if (PARAVIEW_ENABLE_RAYTRACING AND VTK_ENABLE_OSPRAY)
+  set(paraview_use_materialeditor ON)
+else ()
+  set(paraview_use_materialeditor OFF)
+endif ()
 
 set(paraview_web_default ON)
 if (PARAVIEW_USE_PYTHON AND WIN32)
