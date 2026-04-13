@@ -526,6 +526,7 @@ paraview_require_module(
 paraview_require_module(
   CONDITION PARAVIEW_USE_SERIALIZATION
   MODULES   VTK::SerializationManager
+            VTK::WrappingTools
   EXCLUSIVE)
 
 paraview_require_module(
