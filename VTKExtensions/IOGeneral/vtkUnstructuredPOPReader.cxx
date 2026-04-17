@@ -49,13 +49,13 @@ void FixArrayForGridWrapping(DataType* array, size_t* start, size_t* count, ptrd
   int numberOfDimensions, int fileId, int varidp)
 {
   // first get the new values
-  DataType newValues[count[0] * count[1]];
+  std::vector<DataType> newValues(count[0] * count[1]);
   size_t newCount[3] = { count[0], count[1], 1 };
   size_t newStart[3] = { start[0], start[1], 0 };
   // last newStride shouldn't matter since we're only reading 1 entry in that dimension anyways
   ptrdiff_t newStride[3] = { rStride[0], rStride[1], 1 };
   int offset = numberOfDimensions == 2 ? 1 : 0;
-  nc_get_vars_float(fileId, varidp, newStart + offset, newCount + offset, newStride, newValues);
+  nc_get_vars_float(fileId, varidp, newStart + offset, newCount + offset, newStride, newValues.data());
 
   // shift the values and replace
   DataType value;
