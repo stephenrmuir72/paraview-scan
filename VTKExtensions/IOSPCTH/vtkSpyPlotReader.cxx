@@ -1088,7 +1088,7 @@ struct vtkMergeVectorComponents
   {
     auto a1 = vtk::DataArrayValueRange<1>(array1);
     auto a2 = vtk::DataArrayValueRange<1>(array2);
-    auto result = vtk::DataArrayTupleRange<2>(TArray1::FastDownCast(resultArray));
+    auto result = vtk::DataArrayTupleRange<3>(TArray1::FastDownCast(resultArray));
     vtkIdType numTuples = array1->GetNumberOfTuples();
     for (vtkIdType i = 0; i < numTuples; ++i)
     {
