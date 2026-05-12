@@ -30,6 +30,34 @@ vtkSMFieldDataDomain::vtkSMFieldDataDomain()
 vtkSMFieldDataDomain::~vtkSMFieldDataDomain() = default;
 
 //---------------------------------------------------------------------------
+std::string vtkSMFieldDataDomain::GetElementTypeAsString(
+  vtkPVDataInformation* dataInfo, int attrType)
+{
+  if (!dataInfo)
+  {
+    return "";
+  }
+  auto attributeName = dataInfo->GetAttributeName(attrType);
+  if (!attributeName.empty())
+  {
+    return attributeName;
+  }
+  return "";
+}
+
+//---------------------------------------------------------------------------
+std::string vtkSMFieldDataDomain::GetAttributeTypeAsString(
+  vtkPVDataInformation* dataInfo, int attrType)
+{
+  auto attributeName = vtkSMFieldDataDomain::GetElementTypeAsString(dataInfo, attrType);
+  if (!attributeName.empty())
+  {
+    return attributeName + " Data";
+  }
+  return "";
+}
+
+//---------------------------------------------------------------------------
 const char* vtkSMFieldDataDomain::GetAttributeTypeAsString(int attrType)
 {
   static const char* const vtkSMFieldDataDomainAttributeTypes[] = { "Point Data", "Cell Data",
@@ -185,34 +213,38 @@ void vtkSMFieldDataDomain::Update(vtkSMProperty* vtkNotUsed(prop))
   {
     dataInfo = this->GetInputDataInformation("Input");
   }
-  this->RemoveAllEntries();
-  for (int idx = 0; idx < vtkSMInputArrayDomain::NUMBER_OF_ATTRIBUTE_TYPES; idx++)
+  if (!dataInfo)
   {
-    auto label = this->UseElementTypes ? vtkSMFieldDataDomain::GetElementTypeAsString(idx)
-                                       : vtkSMFieldDataDomain::GetAttributeTypeAsString(idx);
-    if (!label)
+    return;
+  }
+  this->RemoveAllEntries();
+  for (const int& attributeType : dataInfo->GetAttributeTypes())
+  {
+    auto label = this->UseElementTypes
+      ? vtkSMFieldDataDomain::GetElementTypeAsString(dataInfo, attributeType)
+      : vtkSMFieldDataDomain::GetAttributeTypeAsString(dataInfo, attributeType);
+    if (label.empty())
     {
       continue;
     }
-    if (idx == vtkDataObject::FIELD)
+    if (attributeType == vtkDataObject::FIELD)
     {
       continue;
     }
-    if (dataInfo && !dataInfo->IsAttributeValid(idx))
+    if (!dataInfo->IsAttributeValid(attributeType))
     {
       continue;
     }
-    this->AddEntry(label, idx);
+    this->AddEntry(label.c_str(), attributeType);
   }
 
   // FIELD is always considered last
-  if (this->EnableFieldDataSelection &&
-    (!dataInfo || dataInfo->IsAttributeValid(vtkDataObject::FIELD)))
+  if (this->EnableFieldDataSelection && (dataInfo->IsAttributeValid(vtkDataObject::FIELD)))
   {
     auto label = this->UseElementTypes
-      ? vtkSMFieldDataDomain::GetElementTypeAsString(vtkDataObject::FIELD)
-      : vtkSMFieldDataDomain::GetAttributeTypeAsString(vtkDataObject::FIELD);
-    this->AddEntry(label, vtkDataObject::FIELD);
+      ? vtkSMFieldDataDomain::GetElementTypeAsString(dataInfo, vtkDataObject::FIELD)
+      : vtkSMFieldDataDomain::GetAttributeTypeAsString(dataInfo, vtkDataObject::FIELD);
+    this->AddEntry(label.c_str(), vtkDataObject::FIELD);
   }
 
   this->DomainModified();
