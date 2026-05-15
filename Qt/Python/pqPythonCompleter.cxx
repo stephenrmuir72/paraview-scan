@@ -119,11 +119,11 @@ void pqPythonCompleter::appendPyObjectAttributes(PyObject* object, QStringList& 
   {
     PyObject* key;
     PyObject* value;
-    QString keystr;
     int nKeys = PyList_Size(keys);
     for (int i = 0; i < nKeys; ++i)
     {
       key = PyList_GetItem(keys, i);
+
       if (is_dict)
       {
         value = PyDict_GetItem(object, key); // Return value: Borrowed reference.
@@ -131,7 +131,10 @@ void pqPythonCompleter::appendPyObjectAttributes(PyObject* object, QStringList& 
       }
       else
       {
-        value = PyObject_GetAttr(object, key); // Return value: New reference.
+        // Attributes _may_ be unreadable, e.g. when a VTK-style setter for an
+        // attribute exists but no getter. We use PyObject_GetOptionalAttr
+        // to avoid raising an exception.
+        PyObject_GetOptionalAttr(object, key, &value); // Borrowed reference.
       }
       if (!value)
       {
