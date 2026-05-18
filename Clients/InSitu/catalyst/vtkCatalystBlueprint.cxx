@@ -318,6 +318,39 @@ bool verify(const std::string& protocol, const conduit_cpp::Node& n)
       PARAVIEW_LOG_CATALYST_VERBOSITY(), "'multiblock' set to %" PRIi32, n["multiblock"].to_int());
   }
 
+  if (n.has_child("pipelines"))
+  {
+    const auto pipelines_node = n["pipelines"];
+    const conduit_index_t nchildren = pipelines_node.number_of_children();
+    for (conduit_index_t i = 0; i < nchildren; ++i)
+    {
+      const auto entry = pipelines_node.child(i);
+      if (entry.dtype().is_string())
+      {
+        // selection-only entry: just a registered pipeline name
+        continue;
+      }
+      if (!entry.dtype().is_object())
+      {
+        vtkLogF(ERROR,
+          "'state/pipelines' entries must be either a string (name of registered pipeline) "
+          "or an object with 'name' and 'filename' (dynamic registration).");
+        return false;
+      }
+      if (!entry.has_child("name") || !entry["name"].dtype().is_string())
+      {
+        vtkLogF(ERROR, "dynamic 'state/pipelines' entry must have a string 'name' child.");
+        return false;
+      }
+      if (!entry.has_child("filename") || !entry["filename"].dtype().is_string())
+      {
+        vtkLogF(ERROR, "dynamic 'state/pipelines' entry '%s' must have a string 'filename' child.",
+          entry["name"].as_string().c_str());
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 } // namespace state

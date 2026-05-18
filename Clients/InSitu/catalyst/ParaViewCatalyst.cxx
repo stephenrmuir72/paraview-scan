@@ -427,6 +427,86 @@ enum catalyst_status catalyst_execute_paraview(const conduit_node* params)
     return pvcatalyst_err(invalid_node);
   }
 
+  // Dynamic pipeline registration via 'state/pipelines'.
+  // Each child of 'state/pipelines' may be either:
+  //   - a string: name of an already-registered pipeline to execute, or
+  //   - an object: { name, filename, [args] } to register and execute.
+  // For the object form, register the pipeline now if it is not already known.
+  // Name is identity: a dict-form entry referencing an already-registered
+  // name is treated as selection only; if its filename or args differ from
+  // what was registered, the user is warned and the existing registration wins.
+  if (root.has_path("state/pipelines"))
+  {
+    if (vtkInSituInitializationHelper::IsPythonSupported())
+    {
+      const auto state_pipelines = root["state/pipelines"];
+      const conduit_index_t nchildren = state_pipelines.number_of_children();
+      for (conduit_index_t i = 0; i < nchildren; ++i)
+      {
+        const auto entry = state_pipelines.child(i);
+        if (!entry.dtype().is_object())
+        {
+          continue; // plain string: selection only
+        }
+        const std::string name = entry["name"].as_string();
+        const std::string fname = entry["filename"].as_string();
+        auto* existing = vtkInSituInitializationHelper::GetPipeline(name);
+        if (existing != nullptr)
+        {
+          // Name already registered. Warn if this entry carries a different
+          // filename or different args, so the user knows the new values
+          // were ignored.
+          auto* existingPy = vtkInSituPipelinePython::SafeDownCast(existing);
+          if (existingPy != nullptr && existingPy->GetFileName() != nullptr &&
+            fname != existingPy->GetFileName())
+          {
+            vtkLogF(WARNING,
+              "dynamic 'state/pipelines' entry '%s' references an "
+              "already-registered pipeline with a different filename. "
+              "Existing registration is retained; the new filename '%s' "
+              "and any new args are ignored. To use different values, "
+              "register under a new name.",
+              name.c_str(), fname.c_str());
+          }
+          else if (existingPy != nullptr && entry.has_path("args"))
+          {
+            // Filename matches. Compare args against existing.
+            std::vector<std::string> new_args;
+            const auto args_node = entry["args"];
+            const conduit_index_t nargs = args_node.number_of_children();
+            new_args.reserve(nargs);
+            for (conduit_index_t a = 0; a < nargs; ++a)
+            {
+              new_args.push_back(args_node.child(a).as_string());
+            }
+            if (new_args != existingPy->GetArguments())
+            {
+              vtkLogF(WARNING,
+                "dynamic 'state/pipelines' entry '%s' references an "
+                "already-registered pipeline with different args. "
+                "Existing args are retained; the new args are ignored. "
+                "To use different args, register under a new name.",
+                name.c_str());
+            }
+          }
+          continue; // already registered: selection only
+        }
+        vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(),
+          "Dynamically registering analysis script: '%s' (name='%s')", fname.c_str(), name.c_str());
+        auto* pipeline = vtkInSituInitializationHelper::AddPipeline(name, fname);
+        if (pipeline && entry.has_path("args"))
+        {
+          ::process_script_args(vtkInSituPipelinePython::SafeDownCast(pipeline), entry["args"]);
+        }
+      }
+    }
+    else
+    {
+      vtkLogF(
+        WARNING, "Python support not enabled, dynamic 'state/pipelines' entries are ignored.");
+    }
+  }
+
   // catalyst/timestep or catalyst/cycle is used to indicate the timestep
   // catalyst/time is used to provide the time
   const int timestep = root.has_path("state/timestep")
