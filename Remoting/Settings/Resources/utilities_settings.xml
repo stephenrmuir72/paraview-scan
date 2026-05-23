@@ -210,6 +210,24 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="AppearanceMode"
+        number_of_elements="1"
+        default_values="0"
+        panel_visibility="advanced">
+        <Documentation>
+          Select if ParaView UI should use your system mode, light or dark mode.
+        </Documentation>
+        <EnumerationDomain name="enum">
+          <Entry text="System" value="0" />
+          <Entry text="Light" value="1" />
+          <Entry text="Dark" value="2" />
+        </EnumerationDomain>
+        <Hints>
+          <RestartRequired />
+          <SaveInQSettings />
+        </Hints>
+      </IntVectorProperty>
+
       <IntVectorProperty name="AutoApply"
         number_of_elements="1"
         default_values="0"

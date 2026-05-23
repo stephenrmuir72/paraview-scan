@@ -560,6 +560,14 @@ void pqCoreUtilities::remove(const QString& filePath)
 //-----------------------------------------------------------------------------
 bool pqCoreUtilities::isDarkTheme()
 {
+  return true;
+  pqSettings* settings = pqApplicationCore::instance()->settings();
+  int appearanceMode = settings->value("GeneralSettings.AppearanceMode", 0).toInt();
+  // 0: system
+  // 1: light
+  // 2: dark
+  if (appearanceMode == 0)
+  {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   const auto scheme = QGuiApplication::styleHints()->colorScheme();
   return scheme == Qt::ColorScheme::Dark;
@@ -569,4 +577,10 @@ bool pqCoreUtilities::isDarkTheme()
   const auto& window = defaultPalette.color(QPalette::Window);
   return text.lightness() > window.lightness();
 #endif
+  }
+  else
+  {
+    std::cout<<appearanceMode<<std::endl;
+    return appearanceMode == 2;
+  }
 }
