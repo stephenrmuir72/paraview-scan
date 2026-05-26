@@ -663,6 +663,10 @@
                           text="Surface With Edges" />
       <RepresentationType subproxy="CellGridSurfaceWithEdgesAndVerticesRepresentation"
                           text="Surface With Edges And Vertices" />
+      <RepresentationType subproxy="CellGridAllEdgesRepresentation"
+                          text="All Edges" />
+      <RepresentationType subproxy="CellGridAllCornersRepresentation"
+                          text="All Corners" />
       <StringVectorProperty command="GetRepresentationTypes"
                             information_only="1"
                             name="RepresentationTypesInfo"
@@ -871,6 +875,28 @@
           <Exception name="Input" />
           <Exception name="Visibility" />
           <Exception name="SidesToShow" />
+        </ShareProperties>
+      </SubProxy>
+      <SubProxy>
+        <Proxy name="CellGridAllEdgesRepresentation"
+               proxygroup="representations"
+               proxyname="CellGridAllEdgesRepresentation"></Proxy>
+        <ShareProperties subproxy="CellGridSurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+          <Exception name="SidesToShow" />
+          <Exception name="SidesStrategy" />
+        </ShareProperties>
+      </SubProxy>
+      <SubProxy>
+        <Proxy name="CellGridAllCornersRepresentation"
+               proxygroup="representations"
+               proxyname="CellGridAllCornersRepresentation"></Proxy>
+        <ShareProperties subproxy="CellGridSurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+          <Exception name="SidesToShow" />
+          <Exception name="SidesStrategy" />
         </ShareProperties>
       </SubProxy>
       <ProxyProperty name="DataAxesGrid"
