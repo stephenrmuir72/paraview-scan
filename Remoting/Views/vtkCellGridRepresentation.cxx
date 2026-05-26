@@ -13,12 +13,12 @@
 #include "vtkDataObjectTreeIterator.h"
 #include "vtkDataObjectTreeRange.h"
 #include "vtkDataSetAttributes.h"
+#include "vtkGeometryFilterDispatcher.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVLogger.h"
 #include "vtkPVRenderView.h"
@@ -65,7 +65,7 @@ void vtkCellGridRepresentation::SetupDefaults()
   surfaceFilter->SetSelectionType(vtkCellGridComputeSides::SelectionMode::Input);
   this->GeometryFilter = surfaceFilter;
   this->LODOutlineFilter->Delete();
-  this->LODOutlineFilter = vtkPVGeometryFilter::New();
+  this->LODOutlineFilter = vtkGeometryFilterDispatcher::New();
 
   // connect progress bar
   this->GeometryFilter->AddObserver(vtkCommand::ProgressEvent, this,
@@ -132,7 +132,8 @@ void vtkCellGridRepresentation::SetupDefaults()
 
   this->LODOutlineFilter->SetUseOutline(1);
 
-  vtkPVGeometryFilter* geomFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter);
+  vtkGeometryFilterDispatcher* geomFilter =
+    vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter);
   if (geomFilter)
   {
     geomFilter->SetUseOutline(0);

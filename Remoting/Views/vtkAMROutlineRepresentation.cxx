@@ -7,12 +7,12 @@
 #include "vtkAppendCompositeDataLeaves.h"
 #include "vtkCompositeDataPipeline.h"
 #include "vtkCompositePolyDataMapper.h"
+#include "vtkGeometryFilterDispatcher.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOverlappingAMR.h"
-#include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
 #include "vtkPVStreamingMacros.h"
@@ -221,7 +221,7 @@ int vtkAMROutlineRepresentation::RequestData(
     // To keep things simple here, we don't bother about the "flip-book" caching
     // support used for animation playback.
 
-    vtkNew<vtkPVGeometryFilter> geomFilter;
+    vtkNew<vtkGeometryFilterDispatcher> geomFilter;
     geomFilter->SetUseOutline(1);
     geomFilter->SetHideInternalAMRFaces(false);
     // since we want to show the real data boundaries, we force the filter to

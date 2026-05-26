@@ -14,6 +14,7 @@
 #include "vtkDataAssemblyUtilities.h"
 #include "vtkDataObjectTreeRange.h"
 #include "vtkDataObjectTypes.h"
+#include "vtkGeometryFilterDispatcher.h"
 #include "vtkHyperTreeGrid.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -23,7 +24,6 @@
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
-#include "vtkPVGeometryFilter.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVLogger.h"
 #include "vtkPVRenderView.h"
@@ -227,10 +227,10 @@ void vtkGeometryRepresentation::HandleGeometryRepresentationProgress(
 vtkGeometryRepresentation::vtkGeometryRepresentation()
 {
   this->SetActiveAssembly("Hierarchy");
-  this->GeometryFilter = vtkPVGeometryFilter::New();
+  this->GeometryFilter = vtkGeometryFilterDispatcher::New();
   this->MultiBlockMaker = vtkGeometryRepresentationMultiBlockMaker::New();
   this->Decimator = vtkGeometryRepresentation_detail::DecimationFilterType::New();
-  this->LODOutlineFilter = vtkPVGeometryFilter::New();
+  this->LODOutlineFilter = vtkGeometryFilterDispatcher::New();
 
   // connect progress bar
   this->GeometryFilter->AddObserver(vtkCommand::ProgressEvent, this,
@@ -328,7 +328,8 @@ void vtkGeometryRepresentation::SetupDefaults()
 
   this->LODOutlineFilter->SetUseOutline(1);
 
-  vtkPVGeometryFilter* geomFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter);
+  vtkGeometryFilterDispatcher* geomFilter =
+    vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter);
   if (geomFilter)
   {
     geomFilter->SetUseOutline(0);
@@ -355,7 +356,8 @@ void vtkGeometryRepresentation::SetupDefaults()
 //----------------------------------------------------------------------------
 int vtkGeometryRepresentation::GetBlockColorsDistinctValues()
 {
-  vtkPVGeometryFilter* geomFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter);
+  vtkGeometryFilterDispatcher* geomFilter =
+    vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter);
   if (geomFilter)
   {
     return geomFilter->GetBlockColorsDistinctValues();
@@ -366,7 +368,8 @@ int vtkGeometryRepresentation::GetBlockColorsDistinctValues()
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetBlockColorsDistinctValues(int distinctValues)
 {
-  vtkPVGeometryFilter* geomFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter);
+  vtkGeometryFilterDispatcher* geomFilter =
+    vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter);
   if (geomFilter)
   {
     geomFilter->SetBlockColorsDistinctValues(distinctValues);
@@ -1378,7 +1381,7 @@ void vtkGeometryRepresentation::SetCoordinateSystem(int coordSys)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetUseOutline(int val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetUseOutline(val);
   }
@@ -1389,7 +1392,7 @@ void vtkGeometryRepresentation::SetUseOutline(int val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetTriangulate(int val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetTriangulate(val);
   }
@@ -1400,7 +1403,7 @@ void vtkGeometryRepresentation::SetTriangulate(int val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetNonlinearSubdivisionLevel(val);
   }
@@ -1411,7 +1414,7 @@ void vtkGeometryRepresentation::SetNonlinearSubdivisionLevel(int val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetMatchBoundariesIgnoringCellOrder(int val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetMatchBoundariesIgnoringCellOrder(val);
   }
@@ -1422,7 +1425,7 @@ void vtkGeometryRepresentation::SetMatchBoundariesIgnoringCellOrder(int val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetGenerateFeatureEdges(bool val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetGenerateFeatureEdges(val);
   }
@@ -1433,7 +1436,7 @@ void vtkGeometryRepresentation::SetGenerateFeatureEdges(bool val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetComputePointNormals(bool val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetGeneratePointNormals(val);
   }
@@ -1444,7 +1447,7 @@ void vtkGeometryRepresentation::SetComputePointNormals(bool val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetSplitting(bool val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetSplitting(val);
   }
@@ -1455,7 +1458,7 @@ void vtkGeometryRepresentation::SetSplitting(bool val)
 //----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetFeatureAngle(double val)
 {
-  if (auto geometryFilter = vtkPVGeometryFilter::SafeDownCast(this->GeometryFilter))
+  if (auto geometryFilter = vtkGeometryFilterDispatcher::SafeDownCast(this->GeometryFilter))
   {
     geometryFilter->SetFeatureAngle(val);
   }
