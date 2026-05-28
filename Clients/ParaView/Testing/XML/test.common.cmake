@@ -1015,6 +1015,7 @@ set(ZoomToData_TIMEOUT 150)
 
 # Test without baselines and could only run in built-in mode.
 list(APPEND TEST_WITHOUT_BASELINES_CLIENT_ONLY
+  CellGridSpreadSheetViewClient.xml
   CellQualityForPixel.xml
   ComputeArrayMagnitudeSetting.xml
   DefaultReadersSetting.xml
@@ -1079,6 +1080,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ArraySelectionWidget.xml
   AutoConvertSingleProperty.xml
   CellGridInformationPanel.xml
+  CellGridSpreadSheetViewServer.xml
   CSVPreview.xml
   ChangeFileNameReaction.xml
   CustomOutputFormat.xml
@@ -2108,6 +2110,11 @@ set(AMRRectGridSurface_DISABLE_CS TRUE)
 set(AMRRectGridSurface_DISABLE_CRS TRUE)
 set(AMRUniformGridSurface_DISABLE_CS TRUE)
 set(AMRUniformGridSurface_DISABLE_CRS TRUE)
+
+# CellGridSpreadSheetViewClient won't work in parallel because of the extra process id
+# column which invalidates the position of the checked cell, that's why we have
+# CellGridSpreadSheetViewClient for client only and CellGridSpreadSheetViewServer for server only
+set(CellGridSpreadSheetViewServer_DISABLE_C TRUE)
 
 # Set properties for CTH tests
 set(CTHAMRContour_DISABLE_CS TRUE)
