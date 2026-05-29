@@ -3819,6 +3819,13 @@ const char* vtkPVRenderView::GetANARILibrary()
 }
 
 //----------------------------------------------------------------------------
+const char* vtkPVRenderView::GetANARIEnvironmentVariable()
+{
+  const char* envLib = std::getenv("ANARI_LIBRARY");
+  return envLib ? envLib : "(not set)";
+}
+
+//----------------------------------------------------------------------------
 void vtkPVRenderView::SetANARIRenderer(std::string r [[maybe_unused]])
 {
 #if VTK_MODULE_ENABLE_VTK_RenderingAnariOpenGL
