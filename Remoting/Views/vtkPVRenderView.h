@@ -1111,7 +1111,7 @@ public:
   /**
    * Has OSPRay reached the max frames?
    */
-  bool GetOSPRayContinueStreaming();
+  bool GetContinueStreaming();
   ///@{
   /**
    * Controls whether to use image denoising to improve appearance.
