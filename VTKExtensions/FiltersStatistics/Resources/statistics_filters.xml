@@ -534,6 +534,22 @@
         <Documentation>Should the assessed values be signed deviations or
         unsigned?</Documentation>
       </IntVectorProperty>
+      <IntVectorProperty name="SingleModel" label="Global Model"
+        command="SetSingleModel"
+        default_values="1"
+        number_of_elements="1">
+        <EnumerationDomain name="single_model">
+          <Entry text="off: model per partition" value="0" />
+          <Entry text="on: global model" value="1" />
+        </EnumerationDomain>
+        <Documentation
+          short_help="Produce a single, global model of the data?"
+          long_help="Produce either a global model of all data or a model per-partition.">
+          When set to "on:global model," a single statistical model is computed across
+          all blocks with the necessary data. When set to "off: model per partitiion,"
+          then each partition of the data produces a model.
+        </Documentation>
+      </IntVectorProperty>
       <OutputPort index="0"
                   name="Statistical Model" />
       <OutputPort index="1"

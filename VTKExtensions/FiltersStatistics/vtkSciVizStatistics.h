@@ -128,6 +128,18 @@ public:
   vtkGetMacro(Task, int);
   ///@}
 
+  ///@{
+  /**
+   * Set/get whether to produce a single model for the entire input or (when given a partitioned
+   * dataset collection) to produce a model per partitioned dataset.
+   *
+   * The default (which preserves backward compatability) is to produce a single model.
+   */
+  vtkSetMacro(SingleModel, vtkTypeBool);
+  vtkGetMacro(SingleModel, vtkTypeBool);
+  vtkBooleanMacro(SingleModel, vtkTypeBool);
+  ///@}
+
   /**
    * A key used to mark the output model data object (output port 0) when it is a partitioned
    * dataset collection holding multiple models as opposed to a partitationed dataset collection
@@ -168,6 +180,7 @@ protected:
   int AttributeMode;
   int Task;
   double TrainingFraction;
+  vtkTypeBool SingleModel;
   vtkSciVizStatisticsP* P;
   vtkMultiProcessController* Controller;
 
