@@ -195,7 +195,11 @@ void vtkVRMLSource::CopyImporterToOutputs(vtkMultiBlockDataSet* mbOutput)
           output->GetCellData()->AddArray(array);
         }
       }
-      if (this->Color)
+
+      bool colorsWereImported =
+        input->GetPointData()->HasArray("VRMLColor") || input->GetCellData()->HasArray("VRMLColor");
+
+      if (!colorsWereImported && this->Color)
       {
         vtkUnsignedCharArray* colorArray = vtkUnsignedCharArray::New();
         unsigned char r, g, b;
