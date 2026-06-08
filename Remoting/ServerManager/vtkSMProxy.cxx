@@ -652,7 +652,7 @@ void vtkSMProxy::UpdateVTKObjects()
     vtkSMProxyInternals::PropertyInfoMap::iterator iter;
     int cc = 0;
     for (iter = this->Internals->Properties.begin(); iter != this->Internals->Properties.end();
-         ++iter)
+      ++iter)
     {
       vtkSMProperty* property = iter->second.Property;
       if (property && !property->GetInformationOnly())
@@ -829,7 +829,7 @@ void vtkSMProxy::RebuildStateForProperties()
 
   vtkSMProxyInternals::PropertyInfoMap::iterator iter;
   for (iter = this->Internals->Properties.begin(); iter != this->Internals->Properties.end();
-       ++iter)
+    ++iter)
   {
     vtkSMProperty* property = iter->second.Property;
     if (property && !property->GetInformationOnly())
@@ -1294,10 +1294,7 @@ void vtkSMProxy::PostUpdateDataSelfOnly(bool using_cache)
     // unnecessarily thinking that this proxy needs update.
     this->NeedsUpdate = false;
 
-    if (!using_cache)
-    {
-      this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
-    }
+    this->InvokeEvent(vtkCommand::UpdateDataEvent, nullptr);
   }
 }
 
