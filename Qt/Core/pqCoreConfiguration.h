@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QVector>
 #include <string>
+#include <utility>
 #include <vector>
 
 class vtkCLIOptions;
@@ -40,6 +41,11 @@ public:
    * Returns data file to load on startup, if any.
    */
   const std::vector<std::string>& dataFileNames() const { return this->DataFileNames; }
+
+  /**
+   * Returns data file to load on startup, paired with a reader to use, if any.
+   */
+  const std::vector<std::pair<std::string, std::string>>& readerDataFileNames() const { return this->ReaderDataFileNames; }
 
   /**
    * Returns the Python script to load on startup, if any.
@@ -115,16 +121,21 @@ protected:
   ~pqCoreConfiguration() override;
 
   ///@{
-  // not entirely sure why this is being done, but I'll let it be fore now.
+  // not entirely sure why this is being done, but I'll let it before now.
   // pqPVApplicationCore uses this.
   friend class pqPVApplicationCore;
-  void addDataFile(const std::string& data) { this->DataFileNames.push_back(data); }
+  void addDataFile(const std::string& data) {
+    this->DataFileNames.push_back(data);
+    this->ReaderDataFileNames.emplace_back(this->Reader, data);
+  }
   ///@}
 
 private:
   Q_DISABLE_COPY(pqCoreConfiguration);
 
   std::string StateFileName;
+  std::string Reader;
+  std::vector<std::pair<std::string, std::string>> ReaderDataFileNames;
   std::vector<std::string> DataFileNames;
   std::vector<std::string> PositionalFileNames;
   std::string PythonScript;

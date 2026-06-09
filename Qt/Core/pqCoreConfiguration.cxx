@@ -34,7 +34,7 @@ bool pqCoreConfiguration::populateOptions(vtkCLIOptions* options)
   auto app = options->GetCLI11App();
 
   // Clear DataFileNames to support parsing multiple times
-  app->preparse_callback([this](std::size_t) { this->DataFileNames.clear(); });
+  app->preparse_callback([this](std::size_t) { this->DataFileNames.clear(); this->Reader.clear(); });
 
   auto groupTesting = app->add_option_group("Testing", qPrintable(tr("Testing specific options")));
 
@@ -140,11 +140,29 @@ bool pqCoreConfiguration::populateOptions(vtkCLIOptions* options)
       qPrintable(tr("Python script to execute when the application starts.")))
     ->excludes("--state");
   groupStartup
-    ->add_option("--data", this->DataFileNames,
+    ->add_option("--data",
+      [this](const std::string& value) {
+        this->DataFileNames.emplace_back(value);
+        this->ReaderDataFileNames.emplace_back(this->Reader, value);
+      },
       qPrintable(tr(
         "Load the specified data file(s) when the client starts. To choose a file series, "
         "replace the numeral with a '.', for example,  my0.vtk, my1.vtk...myN.vtk becomes my..vtk, "
         "etc.")))
+    ->excludes("--state")
+    ->excludes("--script");
+  groupStartup
+    ->add_option("--reader",
+      [this](const std::string& value) { this-.Reader = value; },
+      qPrintable(tr(
+        "Set the reader for use for subsequent '--data' or positional filename arguments."))
+    ->excludes("--state")
+    ->excludes("--script");
+  groupStartup
+    ->add_option("--clear-reader",
+      [this]() { this-.Reader.clear(); },
+      qPrintable(tr(
+        "Unset any reader selections from prior '--reader' arguments"))
     ->excludes("--state")
     ->excludes("--script");
 
@@ -171,6 +189,7 @@ bool pqCoreConfiguration::populateOptions(vtkCLIOptions* options)
         else
         {
           this->DataFileNames.push_back(value);
+          this->ReaderDataFileNames.emplace_back(this->Reader, value);
         }
       });
 
