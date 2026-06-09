@@ -264,7 +264,7 @@
       </InputProperty>
 
       <StringVectorProperty name="CellGridAttribute" label="CellGrid Attribute"
-        command="SetAttributeName">
+        command="SetAttributeName" number_of_elements="1" none_string="">
         <ArrayListDomain input_domain_name="cell_arrays" name="array_list">
           <RequiredProperties>
             <Property function="Input" name="Source" />
