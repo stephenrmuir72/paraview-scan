@@ -71,6 +71,14 @@ public:
    */
   static std::string GetUserSettingsFilePath();
 
+  /**
+   * Get file path for the presets file.
+   * Construct presets file path:
+   *  `<GetUserSettingsDirectory()>/<GetApplicationName()>-Presets.json`
+   * @see vtkInitializationHelper::GetApplicationName()
+   */
+  static std::string GetPresetsFilePath();
+
 private:
   // Delete all constructors and operators to avoid instantiation of this class.
   vtkPVStandardPaths() = delete;

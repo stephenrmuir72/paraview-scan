@@ -69,8 +69,9 @@
 
 #include "vtkObject.h"
 #include "vtkRemotingServerManagerModule.h" //needed for exports
-#include <vector>                           // needed for vector.
-#include <vtk_jsoncpp_fwd.h>                // for forward declarations
+#include <string>
+#include <vector>            // needed for vector.
+#include <vtk_jsoncpp_fwd.h> // for forward declarations
 
 class vtkSMProperty;
 class vtkSMProxy;
@@ -105,6 +106,18 @@ public:
   bool AddCollectionFromFile(const std::string& fileName, double priority);
 
   /**
+   * Read JSON file containing presets.
+   * Returns false if an error occurs when reading the file.
+   */
+  bool AddPresetsFromFile(const std::string& fileName);
+
+  /**
+   * Remove all presets from the current settings collection.
+   * @see AddActivePreset(), GetPresetPriority()
+   */
+  void RemovePresetsFromCollection();
+
+  /**
    * Clear out all settings, deleting all collections.
    * Warning: after that, be sure to AddCollectionFrom(File/String)
    * with a high, "writeable" priority. Because the highest will
@@ -134,6 +147,34 @@ public:
    * Return false if an error occurs when writing file.
    */
   bool SaveSettingsToFile(const std::string& filePath, double priority);
+
+  /**
+   * Save properties from the property iterator to a preset.
+   * The preset is created if it doesn't exist yet.
+   */
+  void SavePreset(const std::string& presetName, vtkSMPropertyIterator* propIt);
+
+  /**
+   * Save all presets to file.
+   * Return false if an error occurs when writting file.
+   */
+  bool SavePresetsToFile(const std::string& filePath);
+
+  /**
+   * Add a preset to the current settings collection with defined priority.
+   * @see RemovePresetsFromCollection(), GetPresetPriority()
+   */
+  void AddActivePreset(const std::string& presetName, double priority);
+
+  /**
+   * Get the list of available presets names
+   */
+  std::vector<std::string> GetPresets();
+
+  /**
+   * Return true if a preset defines a property.
+   */
+  bool GetPresetHasProperty(const std::string& presetName, vtkSMProperty* prop);
 
   /**
    * Check whether a setting is defined for the requested names.
@@ -194,6 +235,11 @@ public:
   bool GetPropertySetting(const char* prefix, vtkSMProperty* property, double maxPriority);
 
   /**
+   * Get full property path in the settings.
+   */
+  static std::string GetPropertyPath(vtkSMProperty* property);
+
+  /**
    * Set the property values in a vtkSMProxy from the setting collections.
    */
   bool GetProxySettings(vtkSMProxy* proxy);
@@ -215,7 +261,6 @@ public:
    * under the given prefix at or less than the given priority.
    */
   bool GetProxySettings(const char* prefix, vtkSMProxy* proxy, double maxPriority);
-  ;
 
   /**
    * Get description for a setting.
@@ -294,6 +339,12 @@ public:
    * This is just lower than UserPriority.
    */
   static double GetApplicationPriority();
+
+  /**
+   * Get the priority for preset settings.
+   * This is between UserPriorty and ApplicationPriority.
+   */
+  static double GetPresetPriority();
 
 protected:
   vtkSMSettings();

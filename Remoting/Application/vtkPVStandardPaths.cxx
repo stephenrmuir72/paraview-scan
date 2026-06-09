@@ -199,3 +199,13 @@ std::string vtkPVStandardPaths::GetUserSettingsFilePath()
 
   return path;
 }
+
+//----------------------------------------------------------------------------
+std::string vtkPVStandardPaths::GetPresetsFilePath()
+{
+  std::string path = GetUserSettingsDirectory();
+  path.append(vtkInitializationHelper::GetApplicationName());
+  path.append("-Presets.json");
+
+  return path;
+}

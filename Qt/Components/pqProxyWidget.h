@@ -205,6 +205,16 @@ public Q_SLOTS:
   void saveAsDefaults() const;
 
   /**
+   * Applies property preset
+   */
+  void applyPreset(const std::string& presetName);
+
+  /**
+   * Saves settings as a preset
+   */
+  void savePreset(const std::string& presetName);
+
+  /**
    * create a widget for a property.
    */
   static pqPropertyWidget* createWidgetForProperty(
@@ -261,6 +271,11 @@ private:
    * Reset property to its default, and use user settings.
    */
   void resetPropertyToUserDefault(pqPropertyWidget* propWidget);
+
+  /**
+   * Reset property to its default, and use the selected preset settings
+   */
+  void resetPropertyToPresetDefault(pqPropertyWidget* propWidget);
 
   Q_DISABLE_COPY(pqProxyWidget);
 

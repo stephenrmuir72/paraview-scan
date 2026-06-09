@@ -10,6 +10,7 @@
 #include "pqDataRepresentation.h"
 #include "pqExtractor.h"
 #include "pqLiveInsituManager.h"
+#include "pqNewPresetDialog.h"
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqProxyWidget.h"
@@ -25,11 +26,13 @@
 #include "vtkPVLogger.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxyClipboard.h"
+#include "vtkSMSettings.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMTrace.h"
 #include "vtkSMViewProxy.h"
 #include "vtkTimerLog.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QKeyEvent>
 #include <QPointer>
@@ -38,6 +41,7 @@
 #include <QStyleHints>
 
 #include <cassert>
+#include <string>
 
 namespace
 {
@@ -149,6 +153,7 @@ public:
   vtkNew<vtkSMProxyClipboard> ViewClipboard;
 
   vtkNew<vtkEventQtSlotConnect> RepresentationEventConnect;
+  vtkNew<vtkEventQtSlotConnect> SettingsEventConnect;
 
   //---------------------------------------------------------------------------
   pqInternals(pqPropertiesPanel* panel)
@@ -275,8 +280,12 @@ pqPropertiesPanel::pqPropertiesPanel(QWidget* parentObject)
     this->Internals->Ui.SearchBox, SIGNAL(textChanged(QString)), this, SLOT(updatePanel()));
   QObject::connect(this->Internals->Ui.PropertiesRestoreDefaults, SIGNAL(clicked()), this,
     SLOT(propertiesRestoreDefaults()));
+  QObject::connect(this->Internals->Ui.PropertiesRestoreDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(propertiesApplyPreset(QAction*)));
   QObject::connect(this->Internals->Ui.PropertiesSaveAsDefaults, SIGNAL(clicked()), this,
     SLOT(propertiesSaveAsDefaults()));
+  QObject::connect(this->Internals->Ui.PropertiesSaveAsDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(propertiesSavePreset(QAction*)));
   QObject::connect(this->Internals->Ui.SearchBox, SIGNAL(advancedSearchActivated(bool)), this,
     SLOT(updatePanel()));
 
@@ -284,12 +293,20 @@ pqPropertiesPanel::pqPropertiesPanel(QWidget* parentObject)
     this->Internals->Ui.PropertiesFrame, SLOT(setVisible(bool)));
   QObject::connect(this->Internals->Ui.DisplayRestoreDefaults, SIGNAL(clicked()), this,
     SLOT(displayRestoreDefaults()));
+  QObject::connect(this->Internals->Ui.DisplayRestoreDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(displayApplyPreset(QAction*)));
   QObject::connect(this->Internals->Ui.DisplaySaveAsDefaults, SIGNAL(clicked()), this,
     SLOT(displaySaveAsDefaults()));
+  QObject::connect(this->Internals->Ui.DisplaySaveAsDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(displaySavePreset(QAction*)));
   QObject::connect(
     this->Internals->Ui.ViewRestoreDefaults, SIGNAL(clicked()), this, SLOT(viewRestoreDefaults()));
+  QObject::connect(this->Internals->Ui.ViewRestoreDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(viewApplyPreset(QAction*)));
   QObject::connect(
     this->Internals->Ui.ViewSaveAsDefaults, SIGNAL(clicked()), this, SLOT(viewSaveAsDefaults()));
+  QObject::connect(this->Internals->Ui.ViewSaveAsDefaults, SIGNAL(triggered(QAction*)), this,
+    SLOT(viewSavePreset(QAction*)));
   QObject::connect(this->Internals->Ui.DisplayButton, SIGNAL(toggled(bool)),
     this->Internals->Ui.DisplayFrame, SLOT(setVisible(bool)));
   QObject::connect(this->Internals->Ui.ViewButton, SIGNAL(toggled(bool)),
@@ -305,6 +322,11 @@ pqPropertiesPanel::pqPropertiesPanel(QWidget* parentObject)
   this->setPipelineProxy(nullptr);
   this->setView(nullptr);
   this->setRepresentation(nullptr);
+
+  this->updatePresets();
+
+  this->Internals->SettingsEventConnect->Connect(
+    vtkSMSettings::GetInstance(), vtkCommand::UpdateDataEvent, this, SLOT(updatePresets()));
 }
 
 //-----------------------------------------------------------------------------
@@ -770,6 +792,50 @@ void pqPropertiesPanel::updateButtonEnableState()
 }
 
 //-----------------------------------------------------------------------------
+void pqPropertiesPanel::updatePresets()
+{
+  // Remove current actions
+  this->Internals->Ui.PropertiesRestoreDefaults->actions().clear();
+  this->Internals->Ui.PropertiesSaveAsDefaults->actions().clear();
+  this->Internals->Ui.DisplayRestoreDefaults->actions().clear();
+  this->Internals->Ui.DisplaySaveAsDefaults->actions().clear();
+  this->Internals->Ui.ViewRestoreDefaults->actions().clear();
+  this->Internals->Ui.ViewSaveAsDefaults->actions().clear();
+
+  // Add presets from settings
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  for (const auto& presetName : settings->GetPresets())
+  {
+    QString action_name = QString::fromStdString(presetName);
+    QAction* apply_properties = new QAction(action_name);
+    this->Internals->Ui.PropertiesRestoreDefaults->addAction(apply_properties);
+
+    QAction* save_properties = new QAction(action_name);
+    this->Internals->Ui.PropertiesSaveAsDefaults->addAction(save_properties);
+
+    QAction* apply_display = new QAction(action_name);
+    this->Internals->Ui.DisplayRestoreDefaults->addAction(apply_display);
+
+    QAction* save_display = new QAction(action_name);
+    this->Internals->Ui.DisplaySaveAsDefaults->addAction(save_display);
+
+    QAction* apply_view = new QAction(action_name);
+    this->Internals->Ui.ViewRestoreDefaults->addAction(apply_view);
+
+    QAction* save_view = new QAction(action_name);
+    this->Internals->Ui.ViewSaveAsDefaults->addAction(save_view);
+  }
+
+  // New preset action
+  QAction* newPresetAction_properties = new QAction("New preset...");
+  QAction* newPresetAction_display = new QAction("New preset...");
+  QAction* newPresetAction_view = new QAction("New preset...");
+  this->Internals->Ui.PropertiesSaveAsDefaults->addAction(newPresetAction_properties);
+  this->Internals->Ui.DisplaySaveAsDefaults->addAction(newPresetAction_display);
+  this->Internals->Ui.ViewSaveAsDefaults->addAction(newPresetAction_view);
+}
+
+//-----------------------------------------------------------------------------
 void pqPropertiesPanel::apply()
 {
   vtkVLogScopeFunction(PARAVIEW_LOG_APPLICATION_VERBOSITY());
@@ -879,6 +945,28 @@ void pqPropertiesPanel::propertiesSaveAsDefaults()
 }
 
 //-----------------------------------------------------------------------------
+void pqPropertiesPanel::propertiesApplyPreset(QAction* action)
+{
+  pqProxyWidgets* widgets =
+    this->Internals->Source ? this->Internals->SourceWidgets[this->Internals->Source] : nullptr;
+  if (widgets && widgets->Panel)
+  {
+    widgets->Panel->applyPreset(action->text().toStdString());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void pqPropertiesPanel::propertiesSavePreset(QAction* action)
+{
+  pqProxyWidgets* widgets =
+    this->Internals->Source ? this->Internals->SourceWidgets[this->Internals->Source] : nullptr;
+  if (widgets && widgets->Panel)
+  {
+    this->savePreset(action, widgets->Panel);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqPropertiesPanel::displayRestoreDefaults()
 {
   if (this->Internals->DisplayWidgets)
@@ -900,6 +988,18 @@ void pqPropertiesPanel::displaySaveAsDefaults()
 }
 
 //-----------------------------------------------------------------------------
+void pqPropertiesPanel::displayApplyPreset(QAction* action)
+{
+  this->Internals->DisplayWidgets->Panel->applyPreset(action->text().toStdString());
+}
+
+//-----------------------------------------------------------------------------
+void pqPropertiesPanel::displaySavePreset(QAction* action)
+{
+  this->savePreset(action, this->Internals->DisplayWidgets->Panel);
+}
+
+//-----------------------------------------------------------------------------
 void pqPropertiesPanel::viewRestoreDefaults()
 {
   if (this->Internals->ViewWidgets)
@@ -918,6 +1018,18 @@ void pqPropertiesPanel::viewSaveAsDefaults()
   {
     this->Internals->ViewWidgets->Panel->saveAsDefaults();
   }
+}
+
+//-----------------------------------------------------------------------------
+void pqPropertiesPanel::viewApplyPreset(QAction* action)
+{
+  this->Internals->ViewWidgets->Panel->applyPreset(action->text().toStdString());
+}
+
+//-----------------------------------------------------------------------------
+void pqPropertiesPanel::viewSavePreset(QAction* action)
+{
+  this->savePreset(action, this->Internals->ViewWidgets->Panel);
 }
 
 //-----------------------------------------------------------------------------
@@ -981,4 +1093,28 @@ void pqPropertiesPanel::pasteView()
 {
   this->Internals->ViewClipboard->Paste(this->Internals->View->getProxy());
   this->renderActiveView();
+}
+
+//-----------------------------------------------------------------------------
+void pqPropertiesPanel::savePreset(QAction* action, pqProxyWidget* panel)
+{
+  if (action->text() == "New preset...")
+  {
+    pqNewPresetDialog* dialog = new pqNewPresetDialog(pqCoreUtilities::mainWidget());
+    dialog->setWindowTitle("New preset");
+    dialog->setModal(true);
+    QObject::connect(dialog, &QWidget::close, dialog, &QObject::deleteLater);
+    dialog->show();
+
+    QObject::connect(dialog, &pqNewPresetDialog::accepted,
+      [=]()
+      {
+        const std::string presetName = dialog->name().toStdString();
+        panel->savePreset(presetName);
+        this->updatePresets();
+      });
+    return;
+  }
+
+  panel->savePreset(action->text().toStdString());
 }

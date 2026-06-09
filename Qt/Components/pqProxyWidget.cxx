@@ -44,6 +44,7 @@
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringList.h"
 #include "vtkWeakPointer.h"
 
@@ -58,6 +59,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <list>
 #include <map>
 #include <set>
@@ -1306,6 +1308,75 @@ void pqProxyWidget::saveAsDefaults() const
 }
 
 //-----------------------------------------------------------------------------
+void pqProxyWidget::applyPreset(const std::string& presetName)
+{
+  // Read preset into settings
+  auto settings = vtkSMSettings::GetInstance();
+  settings->AddActivePreset(presetName, vtkSMSettings::GetPresetPriority());
+
+  bool anyReset = false;
+  if (this->Internals->Proxy)
+  {
+    vtkSmartPointer<vtkSMPropertyIterator> iter;
+    iter.TakeReference(this->Internals->Proxy->NewPropertyIterator());
+    for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+    {
+      vtkSMProperty* smproperty = iter->GetProperty();
+
+      // restore defaults only for properties listed
+      if (this->Internals->Properties &&
+        this->Internals->Properties->GetIndex(smproperty->GetXMLName()) == -1)
+      {
+        continue;
+      }
+
+      // skip input and information only
+      if (vtkSMInputProperty::SafeDownCast(smproperty) || smproperty->GetInformationOnly())
+      {
+        continue;
+      }
+
+      // set only if the preset has the property
+      if (settings->GetPresetHasProperty(presetName, smproperty))
+      {
+        vtkLog(
+          TRACE, "Preset " << presetName << " is missing property " << smproperty->GetXMLName());
+        continue;
+      }
+
+      anyReset =
+        this->resetProperty(smproperty, vtkSMSettings::GetPresetPriority(), false) || anyReset;
+    }
+  }
+
+  // The code above bypasses the changeAvailable() and
+  // changeFinished() signal from the pqProxyWidget, so we check here
+  // whether we should act as if changes are available only if any of
+  // the properties have been reset.
+  if (anyReset)
+  {
+    Q_EMIT changeAvailable();
+    Q_EMIT changeFinished();
+    this->apply();
+  }
+
+  settings->RemovePresetsFromCollection();
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyWidget::savePreset(const std::string& name)
+{
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+
+  vtkSMPropertyIterator* propertyIt = this->Internals->Proxy->NewPropertyIterator();
+  settings->SavePreset(name, propertyIt);
+  if (propertyIt)
+  {
+    propertyIt->Delete();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidget)
 {
   if (!::canSaveDefault(propWidget->property()))
@@ -1409,4 +1480,11 @@ void pqProxyWidget::resetPropertyToUserDefault(pqPropertyWidget* propWidget)
 {
   vtkSMProperty* smproperty = propWidget->property();
   this->resetProperty(smproperty, vtkSMSettings::GetUserPriority(), true);
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyWidget::resetPropertyToPresetDefault(pqPropertyWidget* propWidget)
+{
+  vtkSMProperty* smproperty = propWidget->property();
+  this->resetProperty(smproperty, vtkSMSettings::GetPresetPriority(), true);
 }

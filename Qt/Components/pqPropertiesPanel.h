@@ -13,6 +13,7 @@ class pqOutputPort;
 class pqPipelineSource;
 class pqPropertyWidget;
 class pqProxy;
+class pqProxyWidget;
 class pqView;
 class vtkSMProperty;
 class vtkSMProxy;
@@ -119,6 +120,16 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void propertiesSaveAsDefaults();
 
   /**
+   * Applies preset to the property settings.
+   */
+  void propertiesApplyPreset(QAction* action);
+
+  /**
+   * Saves the current property settings into a preset.
+   */
+  void propertiesSavePreset(QAction* action);
+
+  /**
    * Restores the application defaults for the display properties.
    *
    * This is triggered when the user clicks the button with the
@@ -135,6 +146,16 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void displaySaveAsDefaults();
 
   /**
+   * Applies preset to the display settings.
+   */
+  void displayApplyPreset(QAction* action);
+
+  /**
+   * Saves the current display settings into a preset.
+   */
+  void displaySavePreset(QAction* action);
+
+  /**
    * Restores the application defaults for the view properties.
    *
    * This is triggered when the user clicks the button with the
@@ -149,6 +170,16 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    * save icon next to the view button.
    */
   void viewSaveAsDefaults();
+
+  /**
+   * Applies preset to the view settings.
+   */
+  void viewApplyPreset(QAction* action);
+
+  /**
+   * Saves the current view settings into a preset.
+   */
+  void viewSavePreset(QAction* action);
 
   /**
    * Set the view currently managed by the panel, should be called
@@ -256,10 +287,16 @@ private Q_SLOTS:
   void copyView();
   void pasteView();
 
+  /**
+   * Updates preset list in the save and apply preset menus.
+   */
+  void updatePresets();
+
 protected:
   void updatePropertiesPanel(pqProxy* source);
   void updateDisplayPanel(pqDataRepresentation* repr);
   void updateViewPanel(pqView* view);
+  void savePreset(QAction* action, pqProxyWidget* panel);
 
 private:
   class pqInternals;

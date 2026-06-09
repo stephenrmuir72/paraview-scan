@@ -20,6 +20,7 @@
 #include "vtkSMProxyListDomain.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkSMStringVectorProperty.h"
+#include "vtkSetGet.h"
 #include "vtkSmartPointer.h"
 #include "vtkStringList.h"
 
@@ -30,10 +31,11 @@
 #include <sstream>
 
 #include <algorithm>
-#include <cfloat>
-#include <cmath>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 //----------------------------------------------------------------------------
 namespace
@@ -53,6 +55,7 @@ public:
 
   Json::Value Value;
   double Priority;
+  bool IsPreset = false;
 };
 
 bool SortByPriority(const SettingsCollection& r1, const SettingsCollection& r2)
@@ -83,6 +86,8 @@ public:
   std::vector<::SettingsCollection> SettingCollections;
   bool SettingCollectionsAreSorted = false;
   bool IsModified = false;
+
+  std::unordered_map<std::string, ::SettingsCollection> Presets;
 
   void Modified() { this->IsModified = true; }
 
@@ -550,10 +555,11 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  bool SetPropertySetting(const char* settingName, vtkSMIntVectorProperty* property)
+  bool SetPropertySetting(
+    const char* settingName, vtkSMIntVectorProperty* property, vtkJson::Value& root)
   {
     Json::Path valuePath(settingName);
-    Json::Value& jsonValue = valuePath.make(this->SettingCollections[0].Value);
+    Json::Value& jsonValue = valuePath.make(root);
     if (property->GetNumberOfElements() == 1)
     {
       if (jsonValue.isArray())
@@ -593,10 +599,11 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  bool SetPropertySetting(const char* settingName, vtkSMDoubleVectorProperty* property)
+  bool SetPropertySetting(
+    const char* settingName, vtkSMDoubleVectorProperty* property, vtkJson::Value& root)
   {
     Json::Path valuePath(settingName);
-    Json::Value& jsonValue = valuePath.make(this->SettingCollections[0].Value);
+    Json::Value& jsonValue = valuePath.make(root);
     if (property->GetNumberOfElements() == 1)
     {
       if (jsonValue.isArray())
@@ -636,10 +643,11 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  bool SetPropertySetting(const char* settingName, vtkSMStringVectorProperty* property)
+  bool SetPropertySetting(
+    const char* settingName, vtkSMStringVectorProperty* property, vtkJson::Value& root)
   {
     Json::Path valuePath(settingName);
-    Json::Value& jsonValue = valuePath.make(this->SettingCollections[0].Value);
+    Json::Value& jsonValue = valuePath.make(root);
     if (property->GetNumberOfElements() == 1)
     {
       if (jsonValue.isArray())
@@ -679,10 +687,16 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  bool SetPropertySetting(const char* settingName, vtkSMProxyProperty* property)
+  bool SetPropertySetting(
+    const char* settingName, vtkSMProxyProperty* property, vtkJson::Value& root)
   {
     auto proxyListDomain = property->FindDomain<vtkSMProxyListDomain>();
-    const char* currentProxyName = property->GetProxy(0)->GetXMLName();
+    vtkSMProxy* proxy = property->GetProxy(0);
+    if (!proxy)
+    {
+      return false;
+    }
+    const char* currentProxyName = proxy->GetXMLName();
     if (proxyListDomain)
     {
       for (unsigned int ip = 0; ip < proxyListDomain->GetNumberOfProxies(); ++ip)
@@ -701,7 +715,7 @@ public:
           sourceSettingString.append(".Selected");
 
           Json::Path valuePath(sourceSettingString);
-          Json::Value& jsonValue = valuePath.make(this->SettingCollections[0].Value);
+          Json::Value& jsonValue = valuePath.make(root);
           jsonValue = (strcmp(listProxy->GetXMLName(), currentProxyName) == 0);
           this->Modified();
         }
@@ -714,28 +728,28 @@ public:
   //----------------------------------------------------------------------------
   // Description:
   // Set a property setting in the highest-priority collection.
-  bool SetPropertySetting(const char* settingName, vtkSMProperty* property)
+  bool SetPropertySetting(const char* settingName, vtkSMProperty* property, vtkJson::Value& root)
   {
     this->CreateCollectionIfNeeded();
     this->SortCollectionsIfNeeded();
 
     if (vtkSMIntVectorProperty* intVectorProperty = vtkSMIntVectorProperty::SafeDownCast(property))
     {
-      return this->SetPropertySetting(settingName, intVectorProperty);
+      return this->SetPropertySetting(settingName, intVectorProperty, root);
     }
     else if (vtkSMDoubleVectorProperty* doubleVectorProperty =
                vtkSMDoubleVectorProperty::SafeDownCast(property))
     {
-      return this->SetPropertySetting(settingName, doubleVectorProperty);
+      return this->SetPropertySetting(settingName, doubleVectorProperty, root);
     }
     else if (vtkSMStringVectorProperty* stringVectorProperty =
                vtkSMStringVectorProperty::SafeDownCast(property))
     {
-      return this->SetPropertySetting(settingName, stringVectorProperty);
+      return this->SetPropertySetting(settingName, stringVectorProperty, root);
     }
     else if (vtkSMProxyProperty* proxyProperty = vtkSMProxyProperty::SafeDownCast(property))
     {
-      return this->SetPropertySetting(settingName, proxyProperty);
+      return this->SetPropertySetting(settingName, proxyProperty, root);
     }
 
     return false;
@@ -856,7 +870,8 @@ public:
         }
       }
 
-      if (this->SetPropertySetting(propertySettingCString, property))
+      if (this->SetPropertySetting(
+            propertySettingCString, property, this->SettingCollections[0].Value))
       {
         propertySet = true;
       }
@@ -1085,6 +1100,45 @@ bool vtkSMSettings::AddCollectionFromFile(const std::string& fileName, double pr
 }
 
 //----------------------------------------------------------------------------
+bool vtkSMSettings::AddPresetsFromFile(const std::string& fileName)
+{
+  vtksys::ifstream file(fileName, ios::in | ios::binary);
+  if (!file.is_open())
+  {
+    vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "load presets file `%s` -- missing (skipped)",
+      fileName.c_str());
+    return false;
+  }
+
+  vtkJson::Reader reader;
+  vtkJson::Value root;
+  if (!reader.parse(file, root))
+  {
+    vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(),
+      "load presets file `%s` -- failed (couldn't parse JSON)", fileName.c_str());
+    return false;
+  }
+
+  for (const std::string& presetName : root.getMemberNames())
+  {
+    this->Internal->Presets[presetName].Value = root[presetName];
+  }
+  vtkVLogF(
+    PARAVIEW_LOG_APPLICATION_VERBOSITY(), "load presets file `%s` -- succeeded", fileName.c_str());
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMSettings::RemovePresetsFromCollection()
+{
+  auto predicate = [](const ::SettingsCollection& sc) { return sc.IsPreset; };
+  this->Internal->SettingCollections.erase(
+    std::remove_if(this->Internal->SettingCollections.begin(),
+      this->Internal->SettingCollections.end(), predicate),
+    this->Internal->SettingCollections.end());
+}
+
+//----------------------------------------------------------------------------
 void vtkSMSettings::ClearAllSettings()
 {
   this->Internal->SettingCollections.clear();
@@ -1206,6 +1260,98 @@ bool vtkSMSettings::SaveSettingsToFile(const std::string& filePath, double prior
   vtkVLogF(
     PARAVIEW_LOG_APPLICATION_VERBOSITY(), "could not save settings to '%s'!", filePath.c_str());
   return false;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMSettings::SavePreset(const std::string& presetName, vtkSMPropertyIterator* propIt)
+{
+  bool success = true;
+  for (propIt->Begin(); !propIt->IsAtEnd(); propIt->Next())
+  {
+    const auto& path_str = this->GetPropertyPath(propIt->GetProperty());
+    auto property = propIt->GetProperty();
+
+    if (strcmp(property->GetPanelVisibility(), "never") == 0 || property->GetInformationOnly() ||
+      property->GetIsInternal() || property->GetNoCustomDefault())
+    {
+      continue;
+    }
+    else if (property->HasDomainsWithRequiredProperties())
+    {
+      continue;
+    }
+
+    auto& root = this->Internal->Presets[presetName].Value;
+    this->Internal->SetPropertySetting(path_str.c_str(), property, root);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMSettings::SavePresetsToFile(const std::string& filePath)
+{
+  std::string directory = vtksys::SystemTools::GetParentDirectory(filePath);
+  vtksys::Status createdDirectory = vtksys::SystemTools::MakeDirectory(directory.c_str());
+
+  if (!createdDirectory.IsSuccess())
+  {
+    vtkWarningMacro(<< "Directory '" << directory << "' does not exist and could "
+                    << "not be created.");
+    return false;
+  }
+
+  vtksys::ofstream file(filePath, ios::out | ios::binary);
+  if (!file.is_open())
+  {
+    vtkVLogF(
+      PARAVIEW_LOG_APPLICATION_VERBOSITY(), "could not save presets to '%s'!", filePath.c_str());
+    return false;
+  }
+
+  vtkJson::Value presets(vtkJson::objectValue);
+  for (const auto& [name, preset] : this->Internal->Presets)
+  {
+    presets[name] = preset.Value;
+  }
+  file << presets.toStyledString();
+  vtkVLogF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "saving presets to '%s'", filePath.c_str());
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkSMSettings::AddActivePreset(const std::string& presetName, double priority)
+{
+  try
+  {
+    ::SettingsCollection sc(priority);
+    sc.Value = this->Internal->Presets.at(presetName).Value;
+    sc.IsPreset = true;
+    this->Internal->SettingCollections.push_back(sc);
+    this->Internal->SettingCollectionsAreSorted = false;
+    this->Internal->Modified();
+  }
+  catch (const std::out_of_range& e)
+  {
+    vtkErrorMacro("Preset " << presetName << " doesn't exist.");
+  }
+}
+
+//----------------------------------------------------------------------------
+std::vector<std::string> vtkSMSettings::GetPresets()
+{
+  std::vector<std::string> keys;
+  keys.reserve(this->Internal->Presets.size());
+  for (const auto& [name, preset] : this->Internal->Presets)
+  {
+    keys.push_back(name);
+  }
+  return keys;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSMSettings::GetPresetHasProperty(const std::string& presetName, vtkSMProperty* prop)
+{
+  auto path = vtkSMSettings::GetPropertyPath(prop);
+  return vtkJson::Path(path).resolve(this->Internal->Presets[presetName].Value).isNull();
 }
 
 //----------------------------------------------------------------------------
@@ -1353,6 +1499,21 @@ bool vtkSMSettings::GetPropertySetting(
   jsonPrefix.append(parent->GetPropertyName(property));
 
   return this->Internal->GetPropertySetting(jsonPrefix.c_str(), property, maxPriority);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSMSettings::GetPropertyPath(vtkSMProperty* property)
+{
+  vtkSMProxy* parent = property->GetParent();
+  std::string path(".");
+
+  path.append(property->GetParent()->GetXMLGroup());
+  path.append(".");
+  path.append(parent->GetXMLName());
+  path.append(".");
+  path.append(parent->GetPropertyName(property));
+
+  return path;
 }
 
 //----------------------------------------------------------------------------
@@ -1716,4 +1877,10 @@ double vtkSMSettings::GetUserPriority()
 double vtkSMSettings::GetApplicationPriority()
 {
   return vtkSMSettings::GetUserPriority() / 2;
+}
+
+//----------------------------------------------------------------------------
+double vtkSMSettings::GetPresetPriority()
+{
+  return (vtkSMSettings::GetUserPriority() + vtkSMSettings::GetApplicationPriority()) / 2;
 }
