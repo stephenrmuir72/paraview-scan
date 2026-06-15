@@ -221,6 +221,29 @@ fedora44-shared-mpi-python-core:test:
     needs:
         - fedora44-shared-mpi-python-core:build
 
+# ANARI rendering
+
+fedora44-helide-mpi-python-qt:build:
+    extends:
+        - .fedora44_helide_mpi_python_qt
+        - .cmake_build_linux
+        - .linux_builder_tags
+        - .cmake_build_artifacts
+        - .rules
+    variables:
+        PV_CI_RUN_MANUALLY: "true"
+
+fedora44-helide-mpi-python-qt:test:
+    extends:
+        - .fedora44_helide_mpi_python_qt
+        - .cmake_test_linux
+        - .linux_tester_tags
+        - .cmake_test_artifacts
+        - .rules
+    needs:
+        - fedora44-helide-mpi-python-qt:build
+    timeout: 180 minutes
+
 ## Static analysis
 
 fedora44-tidy:build:

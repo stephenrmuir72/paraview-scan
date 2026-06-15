@@ -146,6 +146,15 @@ spec:
     variables:
         CMAKE_CONFIGURATION: fedora44_shared_mpi_python_qt_viskoresoverride
 
+.fedora44_helide_mpi_python_qt:
+    extends:
+        - .fedora44
+        - .fedora_mpich_addon
+
+    variables:
+        CMAKE_CONFIGURATION: fedora44_helide_mpi_python_qt
+        ANARI_LIBRARY: helide
+
 .fedora44_tidy:
     extends:
         - .fedora44

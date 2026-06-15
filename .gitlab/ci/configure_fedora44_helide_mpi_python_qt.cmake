@@ -1,0 +1,7 @@
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "")
+
+set(PARAVIEW_ENABLE_VISITBRIDGE ON CACHE BOOL "")
+
+set(PARAVIEW_ENABLE_ANARI ON CACHE BOOL "")
+
+include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora44_shared_asserts_mpi_python_qt.cmake")
