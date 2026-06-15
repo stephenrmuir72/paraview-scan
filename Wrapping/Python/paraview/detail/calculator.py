@@ -188,7 +188,7 @@ def get_data_time(self, do, ininfo):
 
 def get_pipeline_time(self):
     """Get the pipeline time from the input information."""
-    key  = vtkStreamingDemandDrivenPipeline.UPDATE_TIME_STEP()
+    key = vtkStreamingDemandDrivenPipeline.UPDATE_TIME_STEP()
     time = self.GetExecutive().GetOutputInformation(0).Get(key)
     if time is not None:
         time = self.GetExecutive().GetOutputInformation(0).Get(key)
@@ -221,9 +221,9 @@ def execute(self, expression, multiline=False):
             super().append(value)
 
         def __getitem__(self, index_or_key):
-            if(isinstance(index_or_key, int) or isinstance(index_or_key, slice)):
+            if (isinstance(index_or_key, int) or isinstance(index_or_key, slice)):
                 return super().__getitem__(index_or_key)
-            if(isinstance(index_or_key, str)):
+            if (isinstance(index_or_key, str)):
                 return super().__getitem__(self.name_to_id[index_or_key])
             raise RuntimeError("Accessing 'inputs' can only be done with int, slice or str")
 
@@ -256,7 +256,10 @@ def execute(self, expression, multiline=False):
 
     # get a dictionary for arrays in the dataset attributes. We pass that
     # as the variables in the eval namespace for compute.
-    variables.update(get_arrays(inputs[0].GetAttributes(self.GetArrayAssociation())))
+    if self.GetArrayAssociation() == dsa.ArrayAssociation.FIELD and hasattr(inputs[0], 'GlobalData'):
+        variables.update(get_arrays(inputs[0].GlobalData))
+    else:
+        variables.update(get_arrays(inputs[0].GetAttributes(self.GetArrayAssociation())))
     variables.update({"time_value": inputs[0].time_value,
                       "t_value": inputs[0].t_value,
                       "time_index": inputs[0].time_index,
@@ -275,9 +278,13 @@ def execute(self, expression, multiline=False):
                 # we can also get a scalar, convert to single element array of correct type
                 vtkRet = numpy.asarray(retVal, get_numpy_array_type(self.GetResultArrayType()))
 
-        # by default, use filter ArrayAssociation for output attribute.
-        outputAttribute = output.GetAttributes(self.GetArrayAssociation())
         outputToFieldData = self.GetArrayAssociation() == dsa.ArrayAssociation.FIELD
+        if outputToFieldData and hasattr(output, 'GlobalData'):
+            # for composite outputs with field data, store in GlobalData (root-level).
+            outputAttribute = output.GlobalData
+        else:
+            # by default, use filter ArrayAssociation for output attribute.
+            outputAttribute = output.GetAttributes(self.GetArrayAssociation())
 
         # if the computation changes this association for anything other than FIELD, use it instead.
         # this is useful for some custom methods, like `volume` that apply only for some Array Association (CELL in the example)
