@@ -25,5 +25,8 @@ RUN sh /root/install_conduit.sh
 COPY install_catalyst.sh /root/install_catalyst.sh
 RUN sh /root/install_catalyst.sh
 
+COPY install_anari_helide.sh /root/install_anari_helide.sh
+RUN sh /root/install_anari_helide.sh
+
 # COPY install_pythonqt.sh /root/install_pythonqt.sh
 # RUN sh /root/install_pythonqt.sh
