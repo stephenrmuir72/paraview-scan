@@ -293,8 +293,7 @@ QPixmap pqPresetToPixmap::renderIndexedColorTransferFunction(
   ++swatch;
 
   // Now pick up and draw the remaining swatches, if any
-  int entry = elideRt;
-  for (; swatch < Nd; ++swatch, ++entry)
+  for (; swatch < Nd; ++swatch)
   {
     double drgba[4];
     dct->GetIndexedColorInFullSet(swatch, drgba);
