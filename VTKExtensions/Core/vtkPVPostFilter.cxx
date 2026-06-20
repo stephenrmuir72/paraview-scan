@@ -148,12 +148,6 @@ std::string vtkPVPostFilter::DefaultComponentName(int componentNumber, int compo
     const char* titles[] = { "X", "Y", "Z" };
     return titles[componentNumber];
   }
-  else if (componentCount == 6)
-  {
-    const char* titles[] = { "XX", "YY", "ZZ", "XY", "YZ", "XZ" };
-    // Assume this is a symmetric matrix.
-    return titles[componentNumber];
-  }
   else
   {
     std::ostringstream buffer;
