@@ -1085,6 +1085,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   AbortExit.xml
   AboutDialog.xml
   AddFieldArrays.xml
+  AMRInterface.xml
   AnimateProperty.xml
   AppendImplicitArrays.xml
   ArrayBoundsScaleDomain.xml
@@ -1144,6 +1145,11 @@ list (APPEND TESTS_WITHOUT_BASELINES
   TimeManagerSequence.xml
   UndoSelection.xml
 )
+
+# AMRGaussianPulseSource is not a distributed source
+# results is different in distributed
+set(AMRInterface_DISABLE_CS TRUE)
+set(AMRInterface_DISABLE_CRS TRUE)
 
 if (PARAVIEW_PLUGIN_ENABLE_EULATestPlugin)
   list(APPEND TESTS_WITHOUT_BASELINES
