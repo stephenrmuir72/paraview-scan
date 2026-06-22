@@ -1092,6 +1092,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   AbortExit.xml
   AboutDialog.xml
   AddFieldArrays.xml
+  AMRInterface.xml
   AnimateProperty.xml
   AppendImplicitArrays.xml
   ArrayBoundsScaleDomain.xml
