@@ -11,11 +11,19 @@ if (NOT sphinx_found)
   return ()
 endif ()
 
-# Copy files referenced from docstrings.
-configure_file(
-  "${ParaView_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/Plugin/PythonAlgorithmExamples.py"
-  "${CMAKE_CURRENT_BINARY_DIR}/PythonAlgorithmExamples.py"
-  @ONLY)
+set (python_algorithm_files
+  "${ParaView_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/Plugin/PythonFilters.py"
+  "${ParaView_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/Plugin/PythonReaders.py"
+  "${ParaView_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/Plugin/PythonSources.py"
+  "${ParaView_SOURCE_DIR}/Examples/Plugins/PythonAlgorithm/Plugin/PythonWriters.py")
+
+foreach (python_file IN LISTS ${python_algorithm_files})
+  # Copy files referenced from docstrings.
+  configure_file(
+    ${python_file}
+    "${CMAKE_CURRENT_BINARY_DIR}/${python_file}"
+    @ONLY)
+endforeach ()
 
 set(sphinx_config_files
   config/_themes/sphinx_rtd_theme/static/css/badge_only.css
