@@ -107,6 +107,40 @@ public:
     return FormatParagraph(0, usage);
   }
 };
+
+// CLI11 2.6.2 changed `prefix_command(true)` to stop parsing entirely as soon as it hits
+// an unrecognized option, dumping all remaining arguments, including any options that come
+// after it on the command line, into the extra/unparsed arguments list. See
+// https://github.com/CLIUtils/CLI11/pull/1266. Calling
+// `prefix_command(CLI::PrefixCommandMode::SeparatorOnly)` restores the pre-2.6.2
+// behavior of only stopping at an explicit `--` while still skipping over individual
+// unrecognized options. Use this wherever the non-stopping behavior is desired.
+//
+// CLI::PrefixCommandMode::SeparatorOnly was added in CLI11 2.6.2, so we need to check the version
+// to ensure we don't call it with earlier CLI11 versions.
+void SetNonStoppingPrefixCommand(CLI::App* app)
+{
+#if (CLI11_VERSION_MAJOR > 2 ||                                                                    \
+  (CLI11_VERSION_MAJOR == 2 &&                                                                     \
+    (CLI11_VERSION_MINOR > 6 || (CLI11_VERSION_MINOR == 6 && CLI11_VERSION_PATCH >= 2))))
+  app->prefix_command(CLI::PrefixCommandMode::SeparatorOnly);
+#else
+  app->prefix_command(true);
+#endif
+}
+
+// Counterpart to `SetNonStoppingPrefixCommand` that stops parsing on the first unrecognized
+// option / command.
+void SetStoppingPrefixCommand(CLI::App* app)
+{
+#if (CLI11_VERSION_MAJOR > 2 ||                                                                    \
+  (CLI11_VERSION_MAJOR == 2 &&                                                                     \
+    (CLI11_VERSION_MINOR > 6 || (CLI11_VERSION_MINOR == 6 && CLI11_VERSION_PATCH >= 2))))
+  app->prefix_command(CLI::PrefixCommandMode::Off);
+#else
+  app->prefix_command(false);
+#endif
+}
 }
 
 class vtkCLIOptions::vtkInternals
@@ -120,7 +154,7 @@ public:
     this->App->formatter(std::make_shared<PVFormatter>());
     // ensures that `,` is treated as multi-option separator.
     this->App->option_defaults()->delimiter(',');
-    this->App->prefix_command(true);
+    ::SetNonStoppingPrefixCommand(this->App.get());
     this->App->allow_extras(true);
   }
 };
@@ -167,7 +201,14 @@ void vtkCLIOptions::SetStopOnUnrecognizedArgument(bool val)
   /**
    * stop parsing after the first unrecognized command / option.
    */
-  internals.App->prefix_command(!val);
+  if (val)
+  {
+    ::SetStoppingPrefixCommand(internals.App.get());
+  }
+  else
+  {
+    ::SetNonStoppingPrefixCommand(internals.App.get());
+  }
 }
 
 //----------------------------------------------------------------------------
