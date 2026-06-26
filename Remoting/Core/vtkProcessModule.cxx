@@ -159,9 +159,14 @@ bool vtkProcessModule::Initialize(ProcessTypes type, int& argc, char**& argv)
   options->GenerateWarningsOff();
   config->PopulateOptions(options, type);
 
-  // At this point, the args are loaded with stuff we don't parse,
-  // so it's essential to set allow-extras to true.
+  // At this point, the args are loaded with stuff we don't parse (e.g.
+  // `vtkRemotingCoreConfiguration`'s options, which are registered and parsed later),
+  // so it's essential to set allow-extras to true. Also force lenient parsing of
+  // unrecognized arguments so that not-yet-registered ones (e.g. `--dr`) are skipped
+  // over individually instead of preventing arguments that *are* registered here (e.g.
+  // `--log`) from being recognized when they appear after one that isn't.
   options->SetAllowExtras(true);
+  options->SetStopOnUnrecognizedArgument(true);
   options->Parse(argc, argv);
 
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
