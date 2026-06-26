@@ -96,6 +96,24 @@ class pqExpressionFilterProxyModel : public QSortFilterProxyModel
   QRegularExpression Group;
   QRegularExpression UserFilter;
 
+  // handle invalidateFilter deprecation in 6.11
+  void beginFilterChangeCompat()
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    this->beginFilterChange();
+#endif
+  }
+
+  // handle invalidateFilter deprecation in 6.11
+  void endFilterChangeCompat()
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    this->endFilterChange();
+#else
+    this->invalidateFilter();
+#endif
+  }
+
 public:
   pqExpressionFilterProxyModel(QObject* parent)
     : Superclass(parent)
@@ -108,7 +126,11 @@ public:
 
   ~pqExpressionFilterProxyModel() override = default;
 
-  void update() { this->invalidateFilter(); }
+  void update()
+  {
+    this->beginFilterChangeCompat();
+    this->endFilterChangeCompat();
+  }
 
   /**
    * Set inner regular expression from group name.
@@ -117,6 +139,7 @@ public:
    */
   void setGroupFilter(const QString& group)
   {
+    this->beginFilterChangeCompat();
     if (group == ALL_GROUP_NAME)
     {
       this->Group.setPattern("");
@@ -125,7 +148,7 @@ public:
     {
       this->Group.setPattern(QString("^%1$").arg(group));
     }
-    this->invalidateFilter();
+    this->endFilterChangeCompat();
   }
 
 public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
@@ -134,8 +157,9 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    */
   void setUserFilter(const QString& filter)
   {
+    this->beginFilterChangeCompat();
     this->UserFilter.setPattern(filter);
-    this->invalidateFilter();
+    this->endFilterChangeCompat();
   }
 
 protected:
