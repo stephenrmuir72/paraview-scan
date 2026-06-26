@@ -17,7 +17,12 @@ vtk_module_third_party(
     STANDARD_INCLUDE_DIRS
   EXTERNAL
     PACKAGE Protobuf
-    VERSION "3.4"
+    # ParaView no longer supports non-config external protobuf. Previously
+    # the version specified here for external protobuf was "3.4", but any
+    # protobuf that can be found in CONFIG_MODE is much newer than 3.4. So
+    # the version has been omitted due to the protobuf package's issues
+    # with version handling.
+    CONFIG_MODE
     TARGETS protobuf::libprotobuf
     STANDARD_INCLUDE_DIRS)
 
