@@ -33,6 +33,8 @@ public:
 
   // Description: is the given file name a png file?
   int CanReadFile(const char* fname) override;
+  // unhide parent overload
+  using Superclass::CanReadFile;
 
   // Description:
   // Get the file extensions for this format.
