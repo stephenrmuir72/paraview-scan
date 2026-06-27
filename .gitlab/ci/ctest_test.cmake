@@ -275,9 +275,6 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "macos")
     "^paraviewPython-TestHTGContourMonoHT$"
     "^paraviewPython-TestHTG3DContourPolyhedron$"
 
-    # https://gitlab.kitware.com/paraview/paraview/-/issues/22696
-    "^pv\\.LagrangianSurfaceHelperComposite$"
-
     # https://gitlab.kitware.com/paraview/paraview/-/issues/22827
     # Unclassified
     "^pv\\.BivariateNoiseRepresentation$"
