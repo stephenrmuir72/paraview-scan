@@ -884,8 +884,8 @@ endif()
 vtk_module_build(
   MODULES             ${paraview_client_modules}
   KITS                ${paraview_client_kits}
-  PACKAGE             ParaViewClients
-  INSTALL_EXPORT      ParaViewClients
+  PACKAGE             ParaViewClient
+  INSTALL_EXPORT      ParaViewClient
   INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
   USE_FILE_SETS       ON
   HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
