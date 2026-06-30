@@ -29,7 +29,7 @@ spec:
 
 .fedora44:
     extends: .linux
-    image: "kitware/paraview:ci-fedora44-20250915"
+    image: "spyridon97/paraview:ci-fedora44-20260630"
     variables:
         LC_ALL: "en_US.utf8"
 
