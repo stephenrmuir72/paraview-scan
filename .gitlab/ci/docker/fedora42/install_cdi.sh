@@ -3,7 +3,7 @@
 set -e
 
 readonly cdi_repo="https://gitlab.dkrz.de/mpim-sw/libcdi.git"
-readonly cdi_commit="cdi-2.5.2.1"
+readonly cdi_commit="cdi-2.6.3"
 
 readonly cdi_root="$HOME/cdi"
 readonly cdi_src="$cdi_root/src"
@@ -12,40 +12,26 @@ readonly cdi_build_root="$cdi_root/build"
 git clone "$cdi_repo" "$cdi_src"
 git -C "$cdi_src" checkout "$cdi_commit"
 
-# Patch a CMake issue in cdi
-# https://gitlab.dkrz.de/mpim-sw/libcdi/-/issues/22
+# The CMake library target was renamed from `cdilib` to `libcdi` in 2.6.x
+# (CMake prefixes the target name with `lib`, producing `liblibcdi.so`), but
+# the shipped cdi-config.cmake.in template was not updated to match, so
+# find_package(CDI) fails to locate the library.
 patch -d "$cdi_src" -p1 <<'EOF'
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 353ad94d..8ebe0f8e 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -63,7 +63,7 @@ endif()
- # NetCDF
- option(CDI_NETCDF "Use the netcdf library [default=ON]" ON)
- if(${CDI_NETCDF} OR netCDF_ROOT )
--  find_package(netCDF COMPONENTS C REQUIRED)
-+  find_package(NetCDF COMPONENTS C REQUIRED)
-   if (TARGET netCDF::netcdf)
-     list(APPEND cdi_compile_defs
-       HAVE_LIBNETCDF=${netCDF_FOUND}
-@@ -71,6 +71,13 @@ if(${CDI_NETCDF} OR netCDF_ROOT )
-       HAVE_NETCDF4=${netCDF_FOUND}
-     )
-     target_link_libraries(cdilib netCDF::netcdf)
-+  elseif (TARGET NetCDF::NetCDF)
-+    list(APPEND cdi_compile_defs
-+           HAVE_LIBNETCDF=${NetCDF_FOUND}
-+           HAVE_LIBNC_DAP=${NetCDF_FOUND}
-+           HAVE_NETCDF4=${NetCDF_FOUND}
-+    )
-+    target_link_libraries(cdilib NetCDF::NetCDF)
-   endif ()
- endif()
+--- a/src/cmake/cdi/cdi-config.cmake.in
++++ b/src/cmake/cdi/cdi-config.cmake.in
+@@ -15,7 +15,7 @@
+ mark_as_advanced(CDI_INCLUDE_DIRECTORY)
 
+ find_library(CDI_LIBRARY
+-  NAMES cdilib
++  NAMES libcdi cdilib
+   PATHS "${CDI_ROOT_DIR}/lib"
+   # use following line instead of previous if this file can be configured
+   # PATHS "@libdir@"
 EOF
 
 dnf install -y --setopt=install_weak_deps=False \
-    libtool eccodes eccodes-devel
+    libtool eccodes eccodes-devel ruby ruby-devel
 
 cdi_build () {
     local subdir="$1"
