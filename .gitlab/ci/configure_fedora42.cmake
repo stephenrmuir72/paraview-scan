@@ -9,6 +9,6 @@ set(VTK_DISPATCH_CONSTANT_ARRAYS ON CACHE BOOL "")
 
 # Something ends up loading the system protobuf and conflicting with our
 # vendored copy. Just use the system copy.
-set(VTK_MODULE_USE_EXTERNAL_ParaView_protobuf ON CACHE BOOL "")
+set(VTK_MODULE_USE_EXTERNAL_ParaView_protobuf OFF CACHE BOOL "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/configure_fedora_common.cmake")
