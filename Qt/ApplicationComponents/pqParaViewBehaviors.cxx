@@ -22,6 +22,7 @@
 #include "pqLockPanelsBehavior.h"
 #include "pqMainWindowEventBehavior.h"
 #include "pqObjectPickingBehavior.h"
+#include "pqPersistentCustomColorsBehavior.h"
 #include "pqPersistentMainWindowStateBehavior.h"
 #include "pqPipelineContextMenuBehavior.h"
 #include "pqPluginActionGroupBehavior.h"
@@ -130,6 +131,7 @@ PQ_BEHAVIOR_DEFINE_FLAG(VerifyRequiredPluginBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginActionGroupBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginToolBarBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CommandLineOptionsBehavior, true);
+PQ_BEHAVIOR_DEFINE_FLAG(PersistentCustomColorsBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PersistentMainWindowStateBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CollaborationBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(ViewStreamingBehavior, true);
@@ -248,6 +250,10 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   if (PQ_IS_BEHAVIOR_ENABLED(CommandLineOptionsBehavior))
   {
     new pqCommandLineOptionsBehavior(this);
+  }
+  if (PQ_IS_BEHAVIOR_ENABLED(PersistentCustomColorsBehavior))
+  {
+    new pqPersistentCustomColorsBehavior(this);
   }
   if (PQ_IS_BEHAVIOR_ENABLED(PersistentMainWindowStateBehavior))
   {
