@@ -280,11 +280,27 @@
           <Group name="filters" />
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
-          <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkDataObjectTree" />
         </DataTypeDomain>
         <Documentation>This property specifies the input to the Level Scalars
         filter.</Documentation>
       </InputProperty>
+      <IntVectorProperty command="SetTraverseSubTree"
+                         default_values="0"
+                         name="TraverseSubTree"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>If enabled, the sub tree will be visited resulting on a different value for each block,
+        if not, only the first level will be visited.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetVisitOnlyLeaves"
+                         default_values="0"
+                         name="VisitOnlyLeaves"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>If enabled, only leaves will be visited and composite sub tree will be skipped, resulting on continous ids.</Documentation>
+      </IntVectorProperty>
+
     </SourceProxy>
       <!-- End BlockIds -->
     <!-- ==================================================================== -->
