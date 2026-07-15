@@ -6,7 +6,11 @@ from xml.parsers.expat import ExpatError
 from inspect import signature
 import importlib.abc, importlib.util
 import sys
-
+import types
+import tempfile
+import shutil
+import os
+from pathlib import Path
 
 def _count(values):
     """internal: returns the `number-of-elements` for the argument.
@@ -522,10 +526,74 @@ def get_plugin_version(module_or_package):
         return "(unknown)"
 
 
+# def load_package_from_string():
+#     # from vtkmodules.vtkCommonCore import vtkLogger
+#     # vtkLogger.Log(vtkLogger.VERBOSITY_INFO, "", 0, "Dict content")
+
+#     packages = {
+#         "MyPackage":
+# """
+# from vtkmodules.vtkCommonDataModel import vtkPolyData
+# def execute_request_data(output_data, out_info):
+#     output = vtkPolyData.GetData(out_info, 0)
+#     output.ShallowCopy(output_data)
+#     return 1
+# """
+#     }
+
+#     class StringLoader(importlib.abc.Loader):
+#         def __init__(self, modules):
+#             self._modules = modules
+
+#         def has_module(self, fullname):
+#             return (fullname in self._modules)
+
+#         def create_module(self, spec):
+#             if self.has_module(spec.name):
+#                 module = types.ModuleType(spec.name)
+#                 exec(self._modules[spec.name], module.__dict__)
+#                 return module
+
+#         def exec_module(self, module):
+#             pass
+
+#     class StringFinder(importlib.abc.MetaPathFinder):
+#         def __init__(self, loader):
+#             self._loader = loader
+
+#         def find_spec(self, fullname, path, target=None):
+#             if self._loader.has_module(fullname):
+#                 return importlib.machinery.ModuleSpec(fullname, self._loader)
+
+#     finder = StringFinder(StringLoader(packages))
+#     sys.meta_path.append(finder)
+
+temp_dirs = {}
+
 def load_plugin_from_string(module_name, s):
     """helper function called by vtkPVPythonAlgorithmPlugin to load
     python code from a string. This is used for C++ plugins that use
     python modules and include the python code in the .so"""
+
+    if module_name not in temp_dirs:
+        package_dir = tempfile.TemporaryDirectory(prefix=module_name).name
+        dst_path = Path(package_dir) / "MyPackage/"
+        temp_dirs[module_name] = dst_path
+        os.makedirs(dst_path, exist_ok=True)
+
+        # MyPackage.py
+        src_path = Path("/home/mathurin-lemarie/dev/paraview/paraview/Examples/Plugins/PythonPackage/Plugin/MyPackage/MyPackage.py")
+        shutil.copy(src_path, dst_path)
+
+        # __init__.py
+        src_path = Path("/home/mathurin-lemarie/dev/paraview/paraview/Examples/Plugins/PythonPackage/Plugin/MyPackage/__init__.py")
+        shutil.copy(src_path, dst_path)
+
+        sys.path.append(str(dst_path.parent))
+
+        from vtkmodules.vtkCommonCore import vtkLogger
+        vtkLogger.Log(vtkLogger.VERBOSITY_INFO, "", 0, f"Appending module {module_name}: {dst_path}")
+
     class StringLoader(importlib.abc.SourceLoader):
         def __init__(self, data):
             self.data = data

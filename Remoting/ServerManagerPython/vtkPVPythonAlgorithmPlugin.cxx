@@ -5,6 +5,7 @@
 
 #include "vtkPVPythonAlgorithmPlugin.h"
 
+#include "vtkLogger.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVPluginLoader.h"
 #include "vtkPythonInterpreter.h"
@@ -82,6 +83,14 @@ void vtkPVPythonAlgorithmPlugin::Initialize(
   PyObject* obj = nullptr;
   if (pythonCode)
   {
+    // vtkSmartPyObject load_package(PyObject_GetAttrString(pvdetail, "load_package_from_string"));
+    // if (!load_package)
+    // {
+    //   throw std::runtime_error(
+    //     "Failed to locate `paraview.detail.pythonalgorithm.load_package_from_string");
+    // }
+    // PyObject_CallFunctionObjArgs(load_package, nullptr);
+
     vtkSmartPyObject moduleName(PyUnicode_FromString(moduleOrFileName));
     vtkSmartPyObject python_code(PyUnicode_FromString(pythonCode));
     obj = PyObject_CallFunctionObjArgs(
