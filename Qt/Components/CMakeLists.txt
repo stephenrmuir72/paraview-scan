@@ -91,6 +91,7 @@ set(classes
   pqMultiBlockPropertiesEditorWidget
   pqMultiBlockPropertiesStateWidget
   pqMultiViewWidget
+  pqNewPresetDialog
   pqOneLinerTextEdit
   pqOrbitCreatorDialog
   pqOutputPortComboBox
@@ -215,6 +216,7 @@ set(ui_files
   Resources/UI/pqLogViewerDialog.ui
   Resources/UI/pqMemoryInspectorPanelForm.ui
   Resources/UI/pqMultiBlockInspectorWidget.ui
+  Resources/UI/pqNewPresetDialog.ui
   Resources/UI/pqOrbitCreatorDialog.ui
   Resources/UI/pqPipelineTimeKeyFrameEditor.ui
   Resources/UI/pqPluginDialog.ui
