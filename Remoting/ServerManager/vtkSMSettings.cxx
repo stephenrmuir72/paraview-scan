@@ -572,6 +572,14 @@ public:
       if (jsonValue.isNull() || jsonValue.asInt() != property->GetElement(0))
       {
         jsonValue = property->GetElement(0);
+        if (auto domain =
+              vtkSMEnumerationDomain::SafeDownCast(property->FindDomain<vtkSMEnumerationDomain>()))
+        {
+          const char* enumValue = domain->GetEntryTextForValue(property->GetElement(0));
+          std::string comment = "// ";
+          comment.append(enumValue);
+          jsonValue.setComment(comment, vtkJson::CommentPlacement::commentAfterOnSameLine);
+        }
         this->Modified();
       }
     }
