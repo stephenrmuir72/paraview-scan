@@ -21,6 +21,7 @@
 #include "pqShortcutDecorator.h"
 #include "pqStringVectorPropertyWidget.h"
 #include "pqTimer.h"
+#include "pqUndoStack.h"
 #include "pqWidgetUtilities.h"
 #include "vtkCollection.h"
 #include "vtkNew.h"
@@ -1310,7 +1311,9 @@ void pqProxyWidget::saveAsDefaults() const
 //-----------------------------------------------------------------------------
 void pqProxyWidget::applyPreset(const std::string& presetName)
 {
-  // Read preset into settings
+  SCOPED_UNDO_SET(vtk::format("Apply {} preset", presetName).c_str());
+
+  // Read preset from settings
   auto settings = vtkSMSettings::GetInstance();
   settings->AddActivePreset(presetName, vtkSMSettings::GetPresetPriority());
 
