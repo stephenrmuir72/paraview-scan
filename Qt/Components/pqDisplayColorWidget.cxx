@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "pqDisplayColorWidget.h"
 
+#include "pqAdjustToCurrentComboBox.h"
 #include "pqCoreUtilities.h"
 #include "pqDataRepresentation.h"
 #include "pqPropertiesPanel.h"
@@ -276,11 +277,10 @@ pqDisplayColorWidget::pqDisplayColorWidget(QWidget* parentObject)
   hbox->setContentsMargins(pqPropertiesPanel::suggestedMargins());
   hbox->setSpacing(pqPropertiesPanel::suggestedHorizontalSpacing());
 
-  this->Variables = new QComboBox(this);
+  this->Variables = new pqAdjustToCurrentComboBox(this);
   // this->Variables->setMaxVisibleItems(60);
   this->Variables->setObjectName("Variables");
-  this->Variables->setMinimumSize(QSize(150, 0));
-  this->Variables->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+  this->Variables->setMinimumSize(QSize(80, 0));
 
   this->Components = new QComboBox(this);
   this->Components->setObjectName("Components");
@@ -571,6 +571,11 @@ void pqDisplayColorWidget::refreshColorArrayNames()
   }
   this->Variables->blockSignals(prev);
   this->Variables->setEnabled(this->Variables->count() > 0);
+
+  // repopulating the combobox happens inside a blockSignals(true)/(false)
+  // pair, so its currentIndexChanged signal (which normally triggers a size
+  // update, see pqAdjustToCurrentComboBox) is suppressed; force one here.
+  this->Variables->updateGeometry();
 
   // since a change in domain could mean a change in components too,
   // we should refresh those as well.
