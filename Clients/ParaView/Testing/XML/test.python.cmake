@@ -5,6 +5,7 @@ list(APPEND TESTS_WITHOUT_BASELINES
   FullNotation.xml
   IconBrowser.xml
   MacroEditor.xml
+  ProbeTable.xml
   ProgrammableSourcePythonEditorLink.xml
   PythonDefaultLoadState.xml
   PythonDefaultSaveState.xml
