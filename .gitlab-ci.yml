@@ -12,6 +12,14 @@ spec:
 
 ---
 include:
+    # SAST report
+    - component: $CI_SERVER_FQDN/third-party/gitlab-sast/sast@kitware
+      inputs:
+        excluded_paths: "ThirdParty, Testing, Documentation, VTK, spec, tests, test, tmp"
+        stage: analyze
+        enable_mr_pipelines: true
+        image_prefix: "registry.gitlab.com/security-products"
+
     # Metadata shared my many jobs
     - local: .gitlab/rules.yml
     - local: .gitlab/artifacts.yml
@@ -29,6 +37,7 @@ include:
           project-tag: $[[ inputs.project-tag ]]
 
 stages:
+    - analyze
     - build
     - test
 
