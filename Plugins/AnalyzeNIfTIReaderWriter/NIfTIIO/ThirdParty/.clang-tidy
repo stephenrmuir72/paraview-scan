@@ -14,6 +14,7 @@ bugprone-*,\
 -bugprone-signed-char-misuse,\
 -bugprone-suspicious-realloc-usage,\
 -bugprone-switch-missing-default-case,\
+-bugprone-throwing-static-initialization,\
 -bugprone-unsafe-functions,\
 "
 ...
