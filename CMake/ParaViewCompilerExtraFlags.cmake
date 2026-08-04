@@ -14,6 +14,13 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wformat-security
     -Woverloaded-virtual
     -Wshadow
+    # GCC's -Wsfinae-incomplete (new in GCC 16, also seen on GCC 15 trunk builds)
+    # fires on Qt's own MOC-generated code and forward-declared Qt/VTK types used
+    # in Qt property/signal contexts -- a pattern Qt itself recommends. Reported
+    # upstream as likely a false positive:
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=121244
+    # See also: https://forum.qt.io/topic/164690/gcc-16-warnings-about-incomplete-types-in-an-sfinae-context
+    -Wno-sfinae-incomplete
     -Wunused-parameter
     -fno-check-new)
 
