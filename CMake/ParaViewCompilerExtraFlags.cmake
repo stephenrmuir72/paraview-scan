@@ -12,6 +12,13 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wextra
     -Wpointer-arith
     -Wformat-security
+    # GCC 16's -Wfree-nonheap-object false-positives on inlined std::vector
+    # deallocation paths in heavily-templated code (e.g. Viskores' Buffer
+    # storage). Known upstream false-positive category; a libstdc++ RAII
+    # fix has been proposed but is not yet universally landed:
+    # https://gcc.gnu.org/pipermail/libstdc++/2024-April/058552.html
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=115016
+    -Wno-free-nonheap-object
     -Woverloaded-virtual
     -Wshadow
     # GCC's -Wsfinae-incomplete (new in GCC 16, also seen on GCC 15 trunk builds)
