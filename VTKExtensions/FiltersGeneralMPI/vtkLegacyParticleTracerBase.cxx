@@ -1293,7 +1293,7 @@ void vtkLegacyParticleTracerBase::IntegrateParticle(ParticleListIterator& it, do
           }
           else
           {
-            const std::lock_guard<std::mutex> lock(eraseMutex);
+            const std::scoped_lock<std::mutex> lock(eraseMutex);
             this->ParticleHistories.erase(it);
           }
           particleGood = false;
@@ -1351,7 +1351,7 @@ void vtkLegacyParticleTracerBase::IntegrateParticle(ParticleListIterator& it, do
           }
           else
           {
-            const std::lock_guard<std::mutex> lock(eraseMutex);
+            const std::scoped_lock<std::mutex> lock(eraseMutex);
             this->ParticleHistories.erase(it);
           }
           particleGood = false;
@@ -1372,7 +1372,7 @@ void vtkLegacyParticleTracerBase::IntegrateParticle(ParticleListIterator& it, do
         }
         else
         {
-          const std::lock_guard<std::mutex> lock(eraseMutex);
+          const std::scoped_lock<std::mutex> lock(eraseMutex);
           this->ParticleHistories.erase(it);
         }
         particleGood = false;
