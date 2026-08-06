@@ -286,7 +286,7 @@ struct DataToStreamWorker<vtkAOSDataArrayTemplate<char>> : public AbstractStream
   }
 
 private:
-  using RangeType = typename vtk::detail::SelectValueRange<vtkAOSDataArrayTemplate<char>,
+  using RangeType = vtk::detail::SelectValueRange<vtkAOSDataArrayTemplate<char>,
     vtk::detail::DynamicTupleSize>::type;
   RangeType Range;
 };
@@ -309,7 +309,7 @@ struct DataToStreamWorker<vtkAOSDataArrayTemplate<unsigned char>> : public Abstr
   }
 
 private:
-  using RangeType = typename vtk::detail::SelectValueRange<vtkAOSDataArrayTemplate<unsigned char>,
+  using RangeType = vtk::detail::SelectValueRange<vtkAOSDataArrayTemplate<unsigned char>,
     vtk::detail::DynamicTupleSize>::type;
   RangeType Range;
 };
