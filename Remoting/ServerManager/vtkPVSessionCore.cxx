@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkPVSessionCore.h"
 
+#include "vtkAlgorithmOutput.h"
 #include "vtkClientServerID.h"
 #include "vtkClientServerInterpreter.h"
 #include "vtkClientServerInterpreterInitializer.h"
@@ -13,7 +14,9 @@
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVDataInformation.h"
 #include "vtkPVInformation.h"
+#include "vtkPVPostFilter.h"
 #include "vtkPVSession.h"
 #include "vtkPVSessionCoreInterpreterHelper.h"
 #include "vtkProcessModule.h"
@@ -21,6 +24,7 @@
 #include "vtkReservedRemoteObjectIds.h"
 #include "vtkSIProxy.h"
 #include "vtkSIProxyDefinitionManager.h"
+#include "vtkSISourceProxy.h"
 #include "vtkSMMessage.h"
 #include "vtkSmartPointer.h"
 
@@ -773,6 +777,24 @@ bool vtkPVSessionCore::GatherInformationInternal(
   if (siProxy /*&& !information->GetUseSIObject()*/)
   {
     vtkObject* object = vtkObject::SafeDownCast(siProxy->GetVTKObject());
+
+    // For vtkPVDataInformation requests on source proxies, gather information
+    // from the proxy's actual output port rather than the underlying
+    // algorithm's own output. The two can differ when a vtkPVPostFilter
+    // downstream of the algorithm converts the data (e.g. vtkMultiBlockDataSet
+    // to vtkPartitionedDataSetCollection); the reported information should
+    // reflect what actually flows through the pipeline.
+    if (auto dataInformation = vtkPVDataInformation::SafeDownCast(information))
+    {
+      auto siSourceProxy = vtkSISourceProxy::SafeDownCast(siProxy);
+      vtkAlgorithmOutput* outputPort = (siSourceProxy && dataInformation->GetPortNumber() >= 0)
+        ? siSourceProxy->GetOutputPort(dataInformation->GetPortNumber())
+        : nullptr;
+      if (outputPort && vtkPVPostFilter::SafeDownCast(outputPort->GetProducer()))
+      {
+        object = outputPort;
+      }
+    }
     information->CopyFromObject(object);
   }
   else
