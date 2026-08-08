@@ -335,6 +335,17 @@
         <BooleanDomain name="bool"/>
       </IntVectorProperty>
 
+      <IntVectorProperty name="AutoConvertMultiBlockDataSets"
+        number_of_elements="1"
+        default_values="0"
+        command="SetAutoConvertMultiBlockDataSets">
+        <Documentation>
+          Automatically convert vtkMultiBlockDataSet outputs to
+          vtkPartitionedDataSetCollection.
+        </Documentation>
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
       <IntVectorProperty name="BlockColorsDistinctValues"
                          number_of_elements="1"
                          default_values="12"
@@ -723,6 +734,7 @@
 
       <PropertyGroup label="Data Processing Options">
         <Property name="AutoConvertProperties" />
+        <Property name="AutoConvertMultiBlockDataSets" />
         <Property name="BlockColorsDistinctValues" />
       </PropertyGroup>
 
