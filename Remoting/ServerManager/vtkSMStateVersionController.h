@@ -33,6 +33,15 @@ public:
    */
   virtual bool Process(vtkPVXMLElement* root, vtkSMSession* session = nullptr);
 
+  /**
+   * Parses the "version" attribute off the state's root element (which may
+   * be a \c \<ServerManagerState/\> element or a parent containing one).
+   * Returns true and populates major/minor/patch if a version attribute was
+   * found and successfully parsed; otherwise returns false, leaving major/minor/patch
+   * unmodified.
+   */
+  static bool GetStateVersion(vtkPVXMLElement* root, int& major, int& minor, int& patch);
+
 protected:
   vtkSMStateVersionController();
   ~vtkSMStateVersionController() override;
