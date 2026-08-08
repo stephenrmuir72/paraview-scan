@@ -122,6 +122,7 @@ paraview_add_test_python(
   CopyProperties.py
   MergeBlocksPolyData.py
   PointPicking.py
+  PostFilterPartitionedDataSetCollection.py
   TestGhostCellsGenerator.py
   TestGlobalPointAndCellIds.py
   TestResetProperty.py
