@@ -42,6 +42,11 @@ def _create_func(key, module, skipRegistration=False):
                 module, key, no_update=True
             )
 
+        # Handle backwards compatibility for the automatic conversion of
+        # vtkMultiBlockDataSet outputs to vtkPartitionedDataSetCollection.
+        # (turn it off for older state files).
+        paraview._backwardscompatibilityhelper.disable_auto_convert_multiblock_datasets(px)
+
         # preinitialize the proxy.
         controller.PreInitializeProxy(px)
 

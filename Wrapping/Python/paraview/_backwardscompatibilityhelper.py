@@ -1771,3 +1771,15 @@ def handle_representation_creation(representation):
                 representation.PolarAxes.SecondaryRadialAxesTextFontSize = 12
 
     return
+
+
+def disable_auto_convert_multiblock_datasets(proxy):
+    """
+    Provide backwards compatibility for the automatic conversion of
+    vtkMultiBlockDataSet pipeline outputs to vtkPartitionedDataSetCollection.
+    Scripts written for older versions of ParaView (pre-6.3)
+    that expect vtkMultiBlockDataSet outputs should have this conversion
+    disabled on newly created source proxies.
+    """
+    if paraview.compatibility.GetVersion() <= (6, 2) and isinstance(proxy, sm.SourceProxy):
+        proxy.SMProxy.SetDisableAutoConvertMultiBlockDataSets(True)
