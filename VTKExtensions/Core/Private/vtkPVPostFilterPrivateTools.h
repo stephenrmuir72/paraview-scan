@@ -72,6 +72,13 @@ bool DoAnyNeededConversions(vtkInformation* info, vtkInformationInformationVecto
  */
 bool DoAnyNeededConversions(vtkInformation* info, vtkInformationInformationVectorKey* key,
   vtkDataObject* output, bool checkOnly = false);
+
+/**
+ * Copy input into output. If input is a vtkMultiBlockDataSet and output is a
+ * vtkPartitionedDataSetCollection, convert it using
+ * vtkConvertToPartitionedDataSetCollection instead.
+ */
+void CopyOrConvertInput(vtkDataObject* input, vtkDataObject* output);
 };
 
 #endif
