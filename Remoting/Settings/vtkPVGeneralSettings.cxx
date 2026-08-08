@@ -116,10 +116,12 @@ void vtkPVGeneralSettings::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AutoApply: " << this->AutoApply << "\n";
   os << indent << "AutoApplyActiveOnly: " << this->AutoApplyActiveOnly << "\n";
   os << indent << "AutoApplyDelay: " << this->AutoApplyDelay << "\n";
+  os << indent << "AutoConvertProperties: " << this->AutoConvertProperties << "\n";
   os << indent << "CacheGeometryForAnimation: " << this->CacheGeometryForAnimation << "\n";
   os << indent << "DefaultViewType: " << this->DefaultViewType << "\n";
   os << indent << "InterfaceLanguage: " << this->InterfaceLanguage << "\n";
   os << indent << "LockPanels: " << this->LockPanels << "\n";
+  os << indent << "AutoConvertMultiBlockDataSets: " << this->AutoConvertMultiBlockDataSets << "\n";
   os << indent << "PreservePropertyValues: " << this->PreservePropertyValues << "\n";
   os << indent << "PropertiesPanelMode: " << this->PropertiesPanelMode << "\n";
   os << indent << "CollapsePropertyGroups: " << this->CollapsePropertyGroups << "\n";

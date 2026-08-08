@@ -13,6 +13,7 @@
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVCompositeDataPipeline.h"
+#include "vtkPVGeneralSettings.h"
 #include "vtkPVLogger.h"
 #include "vtkPVPostFilter.h"
 #include "vtkPVProgressHandler.h"
@@ -149,6 +150,8 @@ bool vtkSISourceProxy::CreateOutputPorts()
       if (internals.PostFilters[cc] == nullptr)
       {
         internals.PostFilters[cc] = vtkSmartPointer<vtkPVPostFilter>::New();
+        internals.PostFilters[cc]->SetAutoConvertMultiBlockDataSets(
+          vtkPVGeneralSettings::GetInstance()->GetAutoConvertMultiBlockDataSets());
       }
       internals.PostFilters[cc]->SetInputConnection(internals.OutputPorts[cc]);
       internals.OutputPorts[cc] = internals.PostFilters[cc]->GetOutputPort(0);
