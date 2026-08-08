@@ -392,7 +392,23 @@ void vtkPVDataInformation::CopyFromObject(vtkObject* object)
 
       if (algOutput->GetProducer()->IsA("vtkPVPostFilter"))
       {
-        algOutput = algOutput->GetProducer()->GetInputConnection(0, 0);
+        // Normally, we skip the post filter and gather information from its input
+        // instead, since the post filter adds on-demand derived arrays that shouldn't
+        // show up as "real" arrays on the data. However, if the post filter
+        // converted the data to a different type (e.g. vtkMultiBlockDataSet to
+        // vtkPartitionedDataSetCollection), report information from its actual
+        // output so the reported data type reflects reality.
+        vtkAlgorithmOutput* upstreamOutput = algOutput->GetProducer()->GetInputConnection(0, 0);
+        vtkDataObject* postFilterData =
+          algOutput->GetProducer()->GetOutputDataObject(algOutput->GetIndex());
+        vtkDataObject* upstreamData = upstreamOutput
+          ? upstreamOutput->GetProducer()->GetOutputDataObject(upstreamOutput->GetIndex())
+          : nullptr;
+        if (!postFilterData || !upstreamData ||
+          strcmp(postFilterData->GetClassName(), upstreamData->GetClassName()) == 0)
+        {
+          algOutput = upstreamOutput;
+        }
       }
       pipelineInfo = algOutput->GetProducer()->GetOutputInformation(this->PortNumber);
       dobj = algOutput->GetProducer()->GetOutputDataObject(algOutput->GetIndex());
