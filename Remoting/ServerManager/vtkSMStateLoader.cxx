@@ -6,6 +6,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMProperty.h"
+#include "vtkSMProxyDefinitionManager.h"
 #include "vtkSMProxyLink.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkSMSessionProxyManager.h"
@@ -17,6 +18,9 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <set>
+#include <string>
+#include <tuple>
 #include <vector>
 
 vtkObjectFactoryNewMacro(vtkSMStateLoader);
@@ -43,6 +47,11 @@ struct vtkSMStateLoaderInternals
   typedef std::vector<ProxyCreationOrderItem> ProxyCreationOrderType;
   ProxyCreationOrderType ProxyCreationOrder;
   bool DeferProxyRegistration;
+
+  /// Set when the state being loaded predates ParaView 6.3, in which case
+  /// newly created vtkSMSourceProxy instances are marked to preserve their
+  /// pre-6.3 vtkMultiBlockDataSet behavior. See CreatedNewProxy().
+  bool DisableAutoConvertMultiBlockDataSetsForNewProxies = false;
 
   vtkSMStateLoaderInternals()
     : KeepOriginalId(false)
@@ -209,7 +218,12 @@ void vtkSMStateLoader::CreatedNewProxy(vtkTypeUInt32 id, vtkSMProxy* proxy)
   proxy->UpdateVTKObjects();
   if (proxy->IsA("vtkSMSourceProxy"))
   {
-    vtkSMSourceProxy::SafeDownCast(proxy)->UpdatePipelineInformation();
+    auto sourceProxy = vtkSMSourceProxy::SafeDownCast(proxy);
+    sourceProxy->UpdatePipelineInformation();
+    if (this->Internal->DisableAutoConvertMultiBlockDataSetsForNewProxies)
+    {
+      sourceProxy->SetDisableAutoConvertMultiBlockDataSets(true);
+    }
   }
   else if (proxy->IsA("vtkSMImporterProxy"))
   {
@@ -547,9 +561,99 @@ int vtkSMStateLoader::LoadState(vtkPVXMLElement* elem, bool keepOriginalId)
   return ret;
 }
 
+namespace
+{
+//---------------------------------------------------------------------------
+// Returns true if an input property of the proxy definition has a data type
+// domain that lists vtkMultiBlockDataSet but no other type that can hold the
+// vtkPartitionedDataSetCollection the post filter would convert it to.
+// Optional inputs (e.g. the model input of the statistics filters) are ignored.
+bool AcceptsOnlyMultiBlockDataSets(vtkPVXMLElement* definition)
+{
+  for (unsigned int i = 0; i < definition->GetNumberOfNestedElements(); ++i)
+  {
+    vtkPVXMLElement* property = definition->GetNestedElement(i);
+    if (!property->GetName() || strcmp(property->GetName(), "InputProperty") != 0 ||
+      std::string(property->GetAttributeOrEmpty("null_on_empty")) == "1")
+    {
+      continue;
+    }
+    for (unsigned int j = 0; j < property->GetNumberOfNestedElements(); ++j)
+    {
+      vtkPVXMLElement* domain = property->GetNestedElement(j);
+      if (!domain->GetName() || strcmp(domain->GetName(), "DataTypeDomain") != 0)
+      {
+        continue;
+      }
+      bool multiBlock = false;
+      bool other = false;
+      for (unsigned int k = 0; k < domain->GetNumberOfNestedElements(); ++k)
+      {
+        const std::string type = domain->GetNestedElement(k)->GetAttributeOrEmpty("value");
+        if (type == "vtkMultiBlockDataSet")
+        {
+          multiBlock = true;
+        }
+        else if (type == "vtkPartitionedDataSetCollection" || type == "vtkDataObjectTree" ||
+          type == "vtkCompositeDataSet" || type == "vtkDataObject")
+        {
+          other = true;
+        }
+      }
+      if (multiBlock && !other)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+//---------------------------------------------------------------------------
+// Returns true if any proxy in the state element, at any depth, accepts only
+// vtkMultiBlockDataSets as input. Each proxy type is looked up only once.
+bool ContainsMultiBlockOnlyProxy(vtkPVXMLElement* element, vtkSMProxyDefinitionManager* definitions,
+  std::set<std::string>& checkedTypes)
+{
+  if (element->GetName() && strcmp(element->GetName(), "Proxy") == 0)
+  {
+    const std::string group = element->GetAttributeOrEmpty("group");
+    const std::string type = element->GetAttributeOrEmpty("type");
+    if (checkedTypes.insert(group + "/" + type).second)
+    {
+      vtkPVXMLElement* definition =
+        definitions->GetCollapsedProxyDefinition(group.c_str(), type.c_str(), nullptr, false);
+      if (definition && AcceptsOnlyMultiBlockDataSets(definition))
+      {
+        return true;
+      }
+    }
+  }
+  for (unsigned int i = 0; i < element->GetNumberOfNestedElements(); ++i)
+  {
+    if (ContainsMultiBlockOnlyProxy(element->GetNestedElement(i), definitions, checkedTypes))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+}
+
 //---------------------------------------------------------------------------
 int vtkSMStateLoader::LoadStateInternal(vtkPVXMLElement* parent)
 {
+  // If this state predates ParaView 6.3, mark newly created vtkSMSourceProxy
+  // instances (in CreatedNewProxy()) to preserve their pre-6.3
+  // vtkMultiBlockDataSet behavior, without touching the general
+  // AutoConvertMultiBlockDataSets setting that applies to all other proxies.
+  // This is also done below if the state was saved without the conversion or
+  // contains a proxy that only accepts vtkMultiBlockDataSets.
+  int major = 0, minor = 0, patch = 0;
+  vtkSMStateVersionController::GetStateVersion(parent, major, minor, patch);
+  this->Internal->DisableAutoConvertMultiBlockDataSetsForNewProxies =
+    std::make_tuple(major, minor, patch) < std::make_tuple(6, 3, 0);
+
   vtkPVXMLElement* rootElement = parent;
   if (rootElement->GetName() && strcmp(rootElement->GetName(), "ServerManagerState") != 0)
   {
@@ -576,6 +680,22 @@ int vtkSMStateLoader::LoadStateInternal(vtkPVXMLElement* parent)
   }
 
   this->ServerManagerStateElement = rootElement;
+
+  // The state records if vtkMultiBlockDataSets were converted when it was saved.
+  const char* savedAutoConvert = rootElement->GetAttribute("auto_convert_multiblock_datasets");
+  if (savedAutoConvert && strcmp(savedAutoConvert, "0") == 0)
+  {
+    this->Internal->DisableAutoConvertMultiBlockDataSetsForNewProxies = true;
+  }
+
+  vtkSMSessionProxyManager* sessionProxyManager = this->GetSessionProxyManager();
+  std::set<std::string> checkedTypes;
+  if (!this->Internal->DisableAutoConvertMultiBlockDataSetsForNewProxies && sessionProxyManager &&
+    ContainsMultiBlockOnlyProxy(
+      rootElement, sessionProxyManager->GetProxyDefinitionManager(), checkedTypes))
+  {
+    this->Internal->DisableAutoConvertMultiBlockDataSetsForNewProxies = true;
+  }
 
   unsigned int numElems = rootElement->GetNumberOfNestedElements();
   unsigned int i;

@@ -8,6 +8,7 @@
 #include "vtkEventForwarderCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVGeneralSettings.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
 #include "vtkPVXMLParser.h"
@@ -1350,6 +1351,11 @@ vtkSmartPointer<vtkPVXMLElement> vtkSMSessionProxyManager::GetXMLState(
                  << vtkSMProxyManager::GetVersionMinor() << "."
                  << vtkSMProxyManager::GetVersionPatch();
   rootElement->AddAttribute("version", version_string.str().c_str());
+
+  // Record whether vtkMultiBlockDataSets were converted to
+  // vtkPartitionedDataSetCollections, so that loading the state later reproduces the data types.
+  rootElement->AddAttribute("auto_convert_multiblock_datasets",
+    vtkPVGeneralSettings::GetInstance()->GetAutoConvertMultiBlockDataSets() ? "1" : "0");
 
   std::set<vtkSMProxy*> visited_proxies; // set of proxies already added.
   std::set<std::pair<std::string, std::string>> visited_proxy_types;

@@ -87,6 +87,19 @@ public:
    */
   void CleanupAbortRequests();
 
+  ///@{
+  /**
+   * When set, post filters created for this proxy's output ports leave
+   * vtkMultiBlockDataSet inputs as vtkMultiBlockDataSet outputs, regardless
+   * of vtkPVGeneralSettings::GetAutoConvertMultiBlockDataSets(). Used by
+   * backwards-compatibility code to preserve the behavior of pipelines
+   * loaded from state files saved before this conversion was introduced.
+   * Post filters that already exist are updated as well.
+   */
+  void SetDisableAutoConvertMultiBlockDataSets(bool val);
+  vtkGetMacro(DisableAutoConvertMultiBlockDataSets, bool);
+  ///@}
+
 protected:
   vtkSISourceProxy();
   ~vtkSISourceProxy() override;
@@ -127,6 +140,7 @@ protected:
   char* ExecutiveName;
   vtkSetStringMacro(ExecutiveName);
   bool DisablePipelineExecution;
+  bool DisableAutoConvertMultiBlockDataSets = false;
 
   friend class vtkSICompoundSourceProxy;
 

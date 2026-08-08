@@ -254,6 +254,21 @@ void vtkSMSourceProxy::ClearAbortFlags()
 }
 
 //---------------------------------------------------------------------------
+void vtkSMSourceProxy::SetDisableAutoConvertMultiBlockDataSets(bool val)
+{
+  this->CreateVTKObjects();
+  // Only vtkSISourceProxy (and subclasses) understand this method; other SI
+  // classes used by vtkSMSourceProxy subclasses (e.g. representations) don't.
+  if (this->ObjectsCreated && std::string(this->SIClassName) == "vtkSISourceProxy")
+  {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke << SIPROXY(this)
+           << "SetDisableAutoConvertMultiBlockDataSets" << val << vtkClientServerStream::End;
+    this->ExecuteStream(stream);
+  }
+}
+
+//---------------------------------------------------------------------------
 void vtkSMSourceProxy::UpdatePipelineInformation()
 {
   if (this->ObjectsCreated)
