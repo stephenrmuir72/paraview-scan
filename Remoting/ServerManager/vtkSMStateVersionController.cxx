@@ -2776,6 +2776,33 @@ vtkSMStateVersionController::vtkSMStateVersionController() = default;
 vtkSMStateVersionController::~vtkSMStateVersionController() = default;
 
 //----------------------------------------------------------------------------
+bool vtkSMStateVersionController::GetStateVersion(
+  vtkPVXMLElement* parent, int& major, int& minor, int& patch)
+{
+  vtkPVXMLElement* root = parent;
+  if (parent && strcmp(parent->GetName(), "ServerManagerState") != 0)
+  {
+    root = root->FindNestedElementByName("ServerManagerState");
+  }
+
+  if (!root || strcmp(root->GetName(), "ServerManagerState") != 0)
+  {
+    return false;
+  }
+
+  if (const char* str_version = root->GetAttribute("version"))
+  {
+    auto result = vtk::scan<int, int, int>(std::string_view(str_version), "{:d}.{:d}.{:d}");
+    if (result)
+    {
+      std::tie(major, minor, patch) = result->values();
+      return true;
+    }
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
 bool vtkSMStateVersionController::Process(vtkPVXMLElement* parent, vtkSMSession* session)
 {
   vtkPVXMLElement* root = parent;

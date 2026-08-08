@@ -184,7 +184,8 @@ bool vtkSISourceProxy::CreateOutputPorts()
       {
         internals.PostFilters[cc] = vtkSmartPointer<vtkPVPostFilter>::New();
         internals.PostFilters[cc]->SetAutoConvertMultiBlockDataSets(
-          vtkPVGeneralSettings::GetInstance()->GetAutoConvertMultiBlockDataSets());
+          vtkPVGeneralSettings::GetInstance()->GetAutoConvertMultiBlockDataSets() &&
+          !this->DisableAutoConvertMultiBlockDataSets);
       }
       internals.PostFilters[cc]->SetInputConnection(internals.OutputPorts[cc]);
       internals.OutputPorts[cc] = internals.PostFilters[cc]->GetOutputPort(0);
@@ -591,6 +592,20 @@ void vtkSISourceProxy::CleanupAbortRequests()
     algo->SetAbortExecuteAndUpdateTime();
   }
 #endif
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::SetDisableAutoConvertMultiBlockDataSets(bool val)
+{
+  this->DisableAutoConvertMultiBlockDataSets = val;
+  for (auto& postFilter : this->Internals->PostFilters)
+  {
+    if (postFilter)
+    {
+      postFilter->SetAutoConvertMultiBlockDataSets(
+        vtkPVGeneralSettings::GetInstance()->GetAutoConvertMultiBlockDataSets() && !val);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
