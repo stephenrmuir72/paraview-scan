@@ -2,18 +2,25 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkPVSessionCore.h"
 
+#include "vtkAlgorithm.h"
+#include "vtkAlgorithmOutput.h"
 #include "vtkClientServerID.h"
 #include "vtkClientServerInterpreter.h"
 #include "vtkClientServerInterpreterInitializer.h"
 #include "vtkClientServerStream.h"
 #include "vtkClientServerStreamInstantiator.h"
 #include "vtkCollection.h"
+#include "vtkDataObject.h"
+#include "vtkExecutive.h"
+#include "vtkInformation.h"
 #include "vtkMPIMToNSocketConnection.h"
 #include "vtkMemberFunctionCommand.h"
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessStream.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVDataInformation.h"
 #include "vtkPVInformation.h"
+#include "vtkPVPostFilter.h"
 #include "vtkPVSession.h"
 #include "vtkPVSessionCoreInterpreterHelper.h"
 #include "vtkProcessModule.h"
@@ -21,12 +28,14 @@
 #include "vtkReservedRemoteObjectIds.h"
 #include "vtkSIProxy.h"
 #include "vtkSIProxyDefinitionManager.h"
+#include "vtkSISourceProxy.h"
 #include "vtkSMMessage.h"
 #include "vtkSmartPointer.h"
 
 #include "vtksys/FStream.hxx"
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -747,6 +756,31 @@ void vtkPVSessionCore::RegisterSIObjectInternal(vtkSMMessage* message)
   this->Internals->RegisterSI(message->global_id(), message->client_id());
 }
 
+namespace
+{
+//----------------------------------------------------------------------------
+// Returns true if the post filter outputs a different data type than it gets as input. The
+// data objects are read from the executives without an update pass, since the pipeline may not
+// be fully set up yet (e.g. while proxies are re-created by undo/redo).
+bool PostFilterConvertsData(vtkAlgorithmOutput* postFilterOutput)
+{
+  vtkAlgorithm* postFilter = postFilterOutput->GetProducer();
+  vtkAlgorithmOutput* upstreamOutput = postFilter->GetInputConnection(0, 0);
+  if (!upstreamOutput)
+  {
+    return false;
+  }
+  vtkInformation* upstreamInfo =
+    upstreamOutput->GetProducer()->GetExecutive()->GetOutputInformation(upstreamOutput->GetIndex());
+  vtkInformation* postFilterInfo =
+    postFilter->GetExecutive()->GetOutputInformation(postFilterOutput->GetIndex());
+  vtkDataObject* upstreamData = upstreamInfo ? vtkDataObject::GetData(upstreamInfo) : nullptr;
+  vtkDataObject* postFilterData = postFilterInfo ? vtkDataObject::GetData(postFilterInfo) : nullptr;
+  return upstreamData && postFilterData &&
+    strcmp(upstreamData->GetClassName(), postFilterData->GetClassName()) != 0;
+}
+}
+
 //----------------------------------------------------------------------------
 bool vtkPVSessionCore::GatherInformationInternal(
   vtkPVInformation* information, vtkTypeUInt32 globalid)
@@ -773,6 +807,25 @@ bool vtkPVSessionCore::GatherInformationInternal(
   if (siProxy /*&& !information->GetUseSIObject()*/)
   {
     vtkObject* object = vtkObject::SafeDownCast(siProxy->GetVTKObject());
+
+    // For vtkPVDataInformation requests on source proxies, gather information
+    // from the proxy's actual output port rather than the underlying
+    // algorithm's own output when a downstream vtkPVPostFilter converts the
+    // data (e.g. vtkMultiBlockDataSet to vtkPartitionedDataSetCollection); the
+    // reported information should reflect what actually flows through the
+    // pipeline. Otherwise, the algorithm is used as before.
+    if (auto dataInformation = vtkPVDataInformation::SafeDownCast(information))
+    {
+      auto siSourceProxy = vtkSISourceProxy::SafeDownCast(siProxy);
+      vtkAlgorithmOutput* outputPort = (siSourceProxy && dataInformation->GetPortNumber() >= 0)
+        ? siSourceProxy->GetOutputPort(dataInformation->GetPortNumber())
+        : nullptr;
+      if (outputPort && vtkPVPostFilter::SafeDownCast(outputPort->GetProducer()) &&
+        PostFilterConvertsData(outputPort))
+      {
+        object = outputPort;
+      }
+    }
     information->CopyFromObject(object);
   }
   else
