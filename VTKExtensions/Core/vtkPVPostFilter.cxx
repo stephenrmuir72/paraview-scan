@@ -4,13 +4,15 @@
 #include "vtkPVPostFilter.h"
 
 #include "Private/vtkPVPostFilterPrivateTools.h"
-#include "vtkCompositeDataSet.h"
 #include "vtkDataObject.h"
 #include "vtkDataSet.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVPostFilterExecutive.h"
+#include "vtkPartitionedDataSetCollection.h"
+#include "vtkSmartPointer.h"
 
 #include <string>
 
@@ -60,16 +62,28 @@ int vtkPVPostFilter::RequestDataObject(
   vtkDataObject* input = inInfo->Get(vtkDataObject::DATA_OBJECT());
   if (input)
   {
+    bool convertToPDC =
+      this->AutoConvertMultiBlockDataSets && vtkMultiBlockDataSet::SafeDownCast(input) != nullptr;
+    const char* outputClassName =
+      convertToPDC ? "vtkPartitionedDataSetCollection" : input->GetClassName();
+
     // for each output
     for (int i = 0; i < this->GetNumberOfOutputPorts(); ++i)
     {
       vtkInformation* info = outputVector->GetInformationObject(i);
       vtkDataObject* output = info->Get(vtkDataObject::DATA_OBJECT());
-      if (!output || !output->IsA(input->GetClassName()))
+      if (!output || !output->IsA(outputClassName))
       {
-        vtkDataObject* newOutput = input->NewInstance();
+        vtkSmartPointer<vtkDataObject> newOutput;
+        if (convertToPDC)
+        {
+          newOutput.TakeReference(vtkPartitionedDataSetCollection::New());
+        }
+        else
+        {
+          newOutput.TakeReference(input->NewInstance());
+        }
         info->Set(vtkDataObject::DATA_OBJECT(), newOutput);
-        newOutput->Delete();
       }
     }
     return 1;
@@ -89,17 +103,7 @@ int vtkPVPostFilter::RequestData(
   vtkDataObject* output = outInfo->Get(vtkDataObject::DATA_OBJECT());
   if (output && input)
   {
-    vtkCompositeDataSet* csInput = vtkCompositeDataSet::SafeDownCast(input);
-    vtkCompositeDataSet* csOutput = vtkCompositeDataSet::SafeDownCast(output);
-    if (!csInput && !csOutput)
-    {
-      // vtkDataSet
-      output->ShallowCopy(input);
-    }
-    else
-    {
-      csOutput->CompositeShallowCopy(csInput);
-    }
+    vtkPVPostFilterPrivateTools::CopyOrConvertInput(input, output);
     if (this->Information->Has(vtkPVPostFilterExecutive::POST_ARRAYS_TO_PROCESS()))
     {
       vtkPVPostFilterPrivateTools::DoAnyNeededConversions(

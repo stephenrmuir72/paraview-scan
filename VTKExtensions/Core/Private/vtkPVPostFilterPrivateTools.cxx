@@ -8,11 +8,15 @@
 #include "vtkDataSet.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMultiBlockDataSet.h"
+#include "vtkNew.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkStringScanner.h"
 
 #if VTK_MODULE_ENABLE_VTK_FiltersCore
 #include "vtkCellDataToPointData.h"
+#include "vtkConvertToPartitionedDataSetCollection.h"
 #include "vtkPointDataToCellData.h"
 #endif
 
@@ -383,4 +387,39 @@ bool vtkPVPostFilterPrivateTools::DoAnyNeededConversions(vtkInformation* info,
     }
   }
   return convert;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVPostFilterPrivateTools::CopyOrConvertInput(vtkDataObject* input, vtkDataObject* output)
+{
+  vtkMultiBlockDataSet* mbInput = vtkMultiBlockDataSet::SafeDownCast(input);
+  vtkPartitionedDataSetCollection* pdcOutput =
+    vtkPartitionedDataSetCollection::SafeDownCast(output);
+  if (mbInput && pdcOutput)
+  {
+#if VTK_MODULE_ENABLE_VTK_FiltersCore
+    vtkNew<vtkConvertToPartitionedDataSetCollection> converter;
+    converter->SetInputDataObject(mbInput);
+    converter->Update();
+    pdcOutput->CompositeShallowCopy(converter->GetOutput());
+#else
+    vtkGenericWarningMacro(
+      "`vtkConvertToPartitionedDataSetCollection` is not available in your build. Please enable "
+      "appropriate module.");
+#endif
+  }
+  else
+  {
+    vtkCompositeDataSet* csInput = vtkCompositeDataSet::SafeDownCast(input);
+    vtkCompositeDataSet* csOutput = vtkCompositeDataSet::SafeDownCast(output);
+    if (!csInput && !csOutput)
+    {
+      // vtkDataSet
+      output->ShallowCopy(input);
+    }
+    else
+    {
+      csOutput->CompositeShallowCopy(csInput);
+    }
+  }
 }
