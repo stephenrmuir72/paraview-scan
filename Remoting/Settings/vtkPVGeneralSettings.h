@@ -45,6 +45,16 @@ public:
 
   ///@{
   /**
+   * Automatically convert vtkMultiBlockDataSet outputs to
+   * vtkPartitionedDataSetCollection. Default is false.
+   */
+  vtkSetMacro(AutoConvertMultiBlockDataSets, bool);
+  vtkGetMacro(AutoConvertMultiBlockDataSets, bool);
+  vtkBooleanMacro(AutoConvertMultiBlockDataSets, bool);
+  ///@}
+
+  ///@{
+  /**
    * Determines the number of distinct values in
    * vtkBlockColors. This array is added to each block if
    * the dataset is a composite dataset. The array has one value
@@ -425,6 +435,7 @@ private:
   bool EnableStreaming = false;
   bool SelectOnClickMultiBlockInspector = true;
   bool AutoConvertProperties = false;
+  bool AutoConvertMultiBlockDataSets = false;
   bool LoadAllVariables = false;
   bool IgnoreNegativeLogAxisWarning = false;
   bool InheritRepresentationProperties = false;
