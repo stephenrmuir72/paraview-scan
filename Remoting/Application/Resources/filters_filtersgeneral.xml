@@ -269,10 +269,9 @@
     <SourceProxy class="vtkBlockIdScalars"
                  label="Block Ids"
                  name="BlockIds">
-      <Documentation long_help="The Level Scalars filter uses colors to show levels of a multiblock dataset."
-                     short_help="Generate point scalars from level.">The Level
-                     Scalars filter uses colors to show levels of a multiblock
-                     dataset.</Documentation>
+      <Documentation long_help="Generates a cell data array named 'BlockIdScalars' that contains the block ID for each block."
+                     short_help="Generate cell array from block IDs.">The Block Ids
+                     filter generates a cell data array named 'BlockIdScalars' that contains the block ID for each block in a composite dataset.</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
         <ProxyGroupDomain name="groups">
@@ -280,7 +279,7 @@
           <Group name="filters" />
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
-          <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkDataObjectTree" />
         </DataTypeDomain>
         <Documentation>This property specifies the input to the Level Scalars
         filter.</Documentation>
