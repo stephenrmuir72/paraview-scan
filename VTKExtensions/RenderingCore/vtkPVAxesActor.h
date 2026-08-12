@@ -13,8 +13,9 @@
 #ifndef vtkPVAxesActor_h
 #define vtkPVAxesActor_h
 
+#include "vtkPVVTKExtensionsRenderingCoreModule.h" // needed for export macro
 #include "vtkProp3D.h"
-#include "vtkRemotingViewsModule.h" // needed for export macro
+#include "vtkWrappingHints.h" // For VTK_MARSHALAUTO
 
 class vtkRenderer;
 class vtkPropCollection;
@@ -29,7 +30,7 @@ class vtkSphereSource;
 class vtkPolyData;
 class vtkVectorText;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVAxesActor : public vtkProp3D
+class VTKPVVTKEXTENSIONSRENDERINGCORE_EXPORT VTK_MARSHALAUTO vtkPVAxesActor : public vtkProp3D
 {
 public:
   static vtkPVAxesActor* New();

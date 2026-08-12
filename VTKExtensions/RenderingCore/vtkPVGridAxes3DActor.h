@@ -27,11 +27,13 @@
 #define vtkPVGridAxes3DActor_h
 
 #include "vtkGridAxesActor3D.h"
-#include "vtkRemotingViewsModule.h" //needed for exports
+#include "vtkPVVTKExtensionsRenderingCoreModule.h" //needed for exports
+#include "vtkWrappingHints.h"                      // For VTK_MARSHALAUTO
 
 class vtkMatrix4x4;
 
-class VTKREMOTINGVIEWS_EXPORT vtkPVGridAxes3DActor : public vtkGridAxesActor3D
+class VTKPVVTKEXTENSIONSRENDERINGCORE_EXPORT VTK_MARSHALAUTO vtkPVGridAxes3DActor
+  : public vtkGridAxesActor3D
 {
 public:
   static vtkPVGridAxes3DActor* New();

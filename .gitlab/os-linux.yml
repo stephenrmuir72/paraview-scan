@@ -154,6 +154,22 @@ spec:
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_mpi_python_qt_tidy
 
+.wasm32_emscripten_linux:
+    extends:
+        - .fedora42
+
+    variables:
+        CMAKE_CONFIGURATION: wasm32_emscripten_linux
+        WASM_ARCHITECTURE: wasm32-emscripten
+
+.wasm64_emscripten_linux:
+    extends:
+        - .fedora42
+
+    variables:
+        CMAKE_CONFIGURATION: wasm64_emscripten_linux
+        WASM_ARCHITECTURE: wasm64-emscripten
+
 .linux_builder_tags:
     tags:
         - build
@@ -178,10 +194,6 @@ spec:
     - .gitlab/ci/doxygen.sh
     - .gitlab/ci/sccache.sh
     - export PATH=$PWD/.gitlab:$PWD/.gitlab/cmake/bin:$PWD/.gitlab/doxygen/bin:$PATH
-    # Download Qt
-    - cmake -P .gitlab/ci/download_qt6.cmake
-    - cmake -P .gitlab/ci/download_onnxruntime.cmake
-    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6:$PWD/.gitlab/onnxruntime
     - cmake --version
     - ninja --version
     - uv --version
@@ -195,12 +207,23 @@ spec:
     # Enable the Intel compiler if required.
     - '[ "$CC" = "icx" ] && source /opt/intel/oneapi/setvars.sh || true'
 
+.download_qt6: &download_qt6
+    # Download Qt
+    - cmake -P .gitlab/ci/download_qt6.cmake
+    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6
+
+.download_onnxruntime: &download_onnxruntime
+    - cmake -P .gitlab/ci/download_onnxruntime.cmake
+    - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/onnxruntime
+
 .cmake_build_linux:
     stage: build
     extends: .warning_policy
 
     script:
         - *before_script_linux
+        - *download_onnxruntime
+        - *download_qt6
         - .gitlab/ci/clang-tidy-cache.sh
         - sccache --start-server
         - sccache --show-stats
@@ -220,6 +243,8 @@ spec:
 
     script:
         - *before_script_linux
+        - *download_onnxruntime
+        - *download_qt6
         - .gitlab/ci/ssh-test-conf.sh
         # Ignore host keys from the temporary server set up in the above
         # script.
@@ -237,8 +262,7 @@ spec:
 
     script:
         # Download Qt
-        - cmake -P .gitlab/ci/download_qt6.cmake
-        - export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$PWD/.gitlab/qt6
+        - *download_qt6
         - echo "Pushing translation artifacts"
         - git config --global user.email "kwrobot+paraview-ci@kitware.com"
         - git config --global user.name "gitlab-ci"
@@ -335,3 +359,39 @@ spec:
 
     interruptible: true
     timeout: 3 hours
+
+.before_script_linux_emscripten: &before_script_linux_emscripten
+    - *before_script_linux
+    # TODO: Move this to docker image
+    - dnf install -y --setopt=install_weak_deps=False xz libatomic
+    # Fetch node
+    - cmake -P .gitlab/ci/download_node.cmake
+    - export NODE_DIR=$PWD/.gitlab/node
+    - export PATH=$PWD/.gitlab/node/bin:$PATH
+    - node --version
+    - cmake -P .gitlab/ci/download_emsdk.cmake
+    # Fetches clang, wasm link tools and emscripten
+    - $PWD/.gitlab/emsdk/emsdk install latest
+    - export PATH=$PWD/.gitlab/emsdk/upstream/bin:$PWD/.gitlab/emsdk/upstream/emscripten:$PATH
+    - clang --version
+    - wasm-as --version
+    - wasm-ld --version
+    - wasm-opt --version
+    - emcc --version
+
+.cmake_build_wasm_emscripten_linux:
+    stage: build
+    extends: .warning_policy
+
+    script:
+        - *before_script_linux_emscripten
+        - .gitlab/ci/clang-tidy-cache.sh
+        - .gitlab/ci/sccache.sh
+        - sccache --start-server
+        - sccache --show-stats
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_configure.cmake
+        - $LAUNCHER ctest -VV -S .gitlab/ci/ctest_build.cmake &> $GIT_CLONE_PATH/compile_output.log
+        - sccache --show-stats
+        - exec .gitlab/ci/check_warnings.sh .
+
+    interruptible: true

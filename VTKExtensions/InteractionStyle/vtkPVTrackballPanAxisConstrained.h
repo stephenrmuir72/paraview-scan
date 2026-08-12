@@ -17,9 +17,10 @@
 
 #include "vtkPVCameraManipulator.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 #include <memory>                                     // for std::unique_ptr
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVTrackballPanAxisConstrained
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVTrackballPanAxisConstrained
   : public vtkPVCameraManipulator
 {
 public:

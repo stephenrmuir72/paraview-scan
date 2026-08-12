@@ -42,6 +42,9 @@ include(GNUInstallDirs)
 # Used to pass common compiler flags to all modules
 add_library(paraviewbuild INTERFACE)
 add_library(ParaView::paraviewbuild ALIAS paraviewbuild)
+# Used to pass platform specific compiler flags to all consumers
+add_library(paraviewplatform INTERFACE)
+add_library(ParaView::paraviewplatform ALIAS paraviewplatform)
 
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
@@ -116,6 +119,10 @@ include(ParaViewMigrations)
 if (PARAVIEW_USE_QT)
   include(paraviewQt)
 endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  include(ParaViewEmscripten)
+endif ()
 
 # Some flags are really bad for caching. Replace them with better variants.
 if (paraview_replace_uncacheable_flags)
@@ -291,6 +298,12 @@ if (PARAVIEW_USE_FORTRAN)
   enable_language(Fortran OPTIONAL)
 endif ()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  if (CMAKE_GENERATOR STREQUAL "Ninja" AND CMAKE_HOST_WIN32)
+    # emcc.bat receives too many characters, so use response files instead.
+    set(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
+  endif ()
+endif ()
 if (NOT PARAVIEW_USE_EXTERNAL_VTK)
   list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/VTK/CMake")
@@ -412,11 +425,13 @@ endfunction()
 
 set(paraview_plugin_directories
   "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
-paraview_plugin_find_plugins(paraview_plugin_files ${paraview_plugin_directories})
-paraview_plugin_scan(
-  PLUGIN_FILES      ${paraview_plugin_files}
-  PROVIDES_PLUGINS  paraview_plugins
-  REQUIRES_MODULES  paraview_plugin_required_modules_all)
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  paraview_plugin_find_plugins(paraview_plugin_files ${paraview_plugin_directories})
+  paraview_plugin_scan(
+    PLUGIN_FILES      ${paraview_plugin_files}
+    PROVIDES_PLUGINS  paraview_plugins
+    REQUIRES_MODULES  paraview_plugin_required_modules_all)
+endif()
 
 set(paraview_plugin_required_modules)
 foreach (paraview_module IN LISTS paraview_plugin_required_modules_all)
@@ -433,18 +448,20 @@ foreach (paraview_module IN LISTS paraview_plugin_required_modules_all)
 endforeach ()
 
 set(all_incubator_modules)
-vtk_module_find_modules(paraview_incubator_module_files
-  "${CMAKE_CURRENT_SOURCE_DIR}/Incubator")
-vtk_module_scan(
-  MODULE_FILES            ${paraview_incubator_module_files}
-  REQUEST_MODULES         ParaViewIncubator::Core
-                          ${paraview_incubator_requested_modules}
-  PROVIDES_MODULES        paraview_incubator_modules
-  REQUIRES_MODULES        paraview_incubator_required_modules_all
-  UNRECOGNIZED_MODULES    paraview_incubator_unrecognized_modules
-  WANT_BY_DEFAULT         OFF
-  HIDE_MODULES_FROM_CACHE ON
-  ENABLE_TESTS            "${PARAVIEW_BUILD_TESTING}")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_find_modules(paraview_incubator_module_files
+    "${CMAKE_CURRENT_SOURCE_DIR}/Incubator")
+  vtk_module_scan(
+    MODULE_FILES            ${paraview_incubator_module_files}
+    REQUEST_MODULES         ParaViewIncubator::Core
+                            ${paraview_incubator_requested_modules}
+    PROVIDES_MODULES        paraview_incubator_modules
+    REQUIRES_MODULES        paraview_incubator_required_modules_all
+    UNRECOGNIZED_MODULES    paraview_incubator_unrecognized_modules
+    WANT_BY_DEFAULT         OFF
+    HIDE_MODULES_FROM_CACHE ON
+    ENABLE_TESTS            "${PARAVIEW_BUILD_TESTING}")
+endif()
 
 set(paraview_incubator_required_modules)
 foreach (paraview_module IN LISTS paraview_incubator_required_modules_all)
@@ -465,33 +482,52 @@ set(vtk_modules)
 move_vtk_modules(paraview_plugin_required_modules vtk_modules)
 
 move_vtk_modules(paraview_client_requested_modules vtk_modules)
-set(paraview_client_directories
-  "${CMAKE_CURRENT_SOURCE_DIR}/Clients"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Adaptors")
-vtk_module_find_modules(paraview_client_module_files ${paraview_client_directories})
-vtk_module_find_kits(paraview_client_kit_files ${paraview_client_directories})
-vtk_module_scan(
-  MODULE_FILES        ${paraview_client_module_files}
-  KIT_FILES           ${paraview_client_kit_files}
-  REQUEST_MODULES     ${paraview_client_requested_modules}
-  REJECT_MODULES      ${paraview_client_rejected_modules}
-  PROVIDES_MODULES    paraview_client_modules
-  PROVIDES_KITS       paraview_client_kits
-  REQUIRES_MODULES    paraview_client_required_modules
-  UNRECOGNIZED_MODULES paraview_client_unrecognized_modules
-  WANT_BY_DEFAULT     "${PARAVIEW_BUILD_ALL_MODULES}"
-  ENABLE_TESTS        "${PARAVIEW_BUILD_TESTING}")
-move_vtk_modules(paraview_client_required_modules vtk_modules)
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  set(paraview_client_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Clients"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Adaptors")
+  vtk_module_find_modules(paraview_client_module_files ${paraview_client_directories})
+  vtk_module_find_kits(paraview_client_kit_files ${paraview_client_directories})
+  vtk_module_scan(
+    MODULE_FILES        ${paraview_client_module_files}
+    KIT_FILES           ${paraview_client_kit_files}
+    REQUEST_MODULES     ${paraview_client_requested_modules}
+    REJECT_MODULES      ${paraview_client_rejected_modules}
+    PROVIDES_MODULES    paraview_client_modules
+    PROVIDES_KITS       paraview_client_kits
+    REQUIRES_MODULES    paraview_client_required_modules
+    UNRECOGNIZED_MODULES paraview_client_unrecognized_modules
+    WANT_BY_DEFAULT     "${PARAVIEW_BUILD_ALL_MODULES}"
+    ENABLE_TESTS        "${PARAVIEW_BUILD_TESTING}")
+  move_vtk_modules(paraview_client_required_modules vtk_modules)
+endif()
 
 move_vtk_modules(paraview_requested_modules vtk_modules)
-set(paraview_source_directories
-  "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
-  "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Web"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
+if (PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  # In standalone extensions mode, only build VTKExtensions and minimal required dependencies
+  set(paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Utilities"
+    "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions")
+else()
+  set(paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Kits"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Qt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/VTKExtensions"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Web"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Remoting"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Utilities")
+endif()
+
+# Add WebAssembly module when compiling for Emscripten, regardless of build mode
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  list(APPEND paraview_source_directories
+    "${CMAKE_CURRENT_SOURCE_DIR}/Clients/WebAssembly")
+  list(APPEND paraview_requested_modules
+    ParaView::WebAssembly)
+endif ()
 vtk_module_find_modules(paraview_module_files ${paraview_source_directories})
 vtk_module_find_kits(paraview_kit_files ${paraview_source_directories})
 vtk_module_scan(
@@ -682,6 +718,13 @@ else ()
     add_custom_target(localization ALL)
   endif()
 
+  if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # Forward wasm build options to VTK.
+    set(VTK_WEBASSEMBLY_64_BIT "${PARAVIEW_USE_WEBASSEMBLY_64_BIT}")
+    set(VTK_WEBASSEMBLY_THREADS "${PARAVIEW_USE_WEBASSEMBLY_THREADS}")
+    set(VTK_WEBASSEMBLY_SMP_THREAD_POOL_SIZE "${PARAVIEW_WEBASSEMBLY_SMP_THREAD_POOL_SIZE}")
+  endif ()
+
   # ParaView assumes these are created. These should probably be moved to
   # distinct modules for easier handling however.
   set(VTK_USE_VIDEO_FOR_WINDOWS ON)
@@ -811,6 +854,7 @@ else ()
     USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
     ENABLE_WRAPPING     ON
     UTILITY_TARGET      "ParaView::paraviewbuild"
+    PLATFORM_TARGET     "ParaView::paraviewplatform"
     TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/VTK/Testing"
     TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/ExternalData/VTK/Testing"
     TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
@@ -819,6 +863,7 @@ else ()
     SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/vtk/vtk/-/tree/master"
     ENABLE_SERIALIZATION    "${PARAVIEW_USE_SERIALIZATION}")
   install(TARGETS paraviewbuild EXPORT "VTK")
+  install(TARGETS paraviewplatform EXPORT "VTK")
 
   if (PARAVIEW_SKIP_CLANG_TIDY_FOR_VTK)
     set(CMAKE_C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY_save}")
@@ -871,61 +916,68 @@ vtk_module_build(
   BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
   USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
   UTILITY_TARGET      "ParaView::paraviewbuild"
+  PLATFORM_TARGET     "ParaView::paraviewplatform"
   TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
   TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
   TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
   GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
   SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master"
+  ENABLE_SERIALIZATION    "${PARAVIEW_USE_SERIALIZATION}")
 if (PARAVIEW_USE_EXTERNAL_VTK)
   install(TARGETS paraviewbuild EXPORT "ParaView")
+  install(TARGETS paraviewplatform EXPORT "ParaView")
 endif()
 
-vtk_module_build(
-  MODULES             ${paraview_client_modules}
-  KITS                ${paraview_client_kits}
-  PACKAGE             ParaViewClients
-  INSTALL_EXPORT      ParaViewClients
-  INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  USE_FILE_SETS       ON
-  HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
-  CMAKE_DESTINATION   "${paraview_cmake_destination}"
-  LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
-  HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
-  LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
-  VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
-  SOVERSION           "1"
-  TEST_DATA_TARGET    ParaViewData
-  BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
-  USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
-  UTILITY_TARGET      "ParaView::paraviewbuild"
-  TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
-  TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
-  TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
-  GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
-  SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_build(
+    MODULES             ${paraview_client_modules}
+    KITS                ${paraview_client_kits}
+    PACKAGE             ParaViewClients
+    INSTALL_EXPORT      ParaViewClients
+    INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    USE_FILE_SETS       ON
+    HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
+    CMAKE_DESTINATION   "${paraview_cmake_destination}"
+    LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
+    HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
+    LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
+    VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
+    SOVERSION           "1"
+    TEST_DATA_TARGET    ParaViewData
+    BUILD_WITH_KITS     "${PARAVIEW_BUILD_WITH_KITS}"
+    USE_EXTERNAL        "${PARAVIEW_BUILD_WITH_EXTERNAL}"
+    UTILITY_TARGET      "ParaView::paraviewbuild"
+    TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
+    TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
+    TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
+    GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
+    SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
+    SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+endif()
 
-vtk_module_build(
-  MODULES             ${paraview_incubator_modules}
-  PACKAGE             ParaViewIncubator
-  INSTALL_EXPORT      ParaViewIncubator
-  INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  USE_FILE_SETS       ON
-  HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}/Incubator"
-  CMAKE_DESTINATION   "${paraview_cmake_destination}"
-  LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
-  HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
-  LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
-  VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
-  SOVERSION           "1"
-  TEST_DATA_TARGET    ParaViewData
-  TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
-  TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
-  TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
-  GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
-  SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_build(
+    MODULES             ${paraview_incubator_modules}
+    PACKAGE             ParaViewIncubator
+    INSTALL_EXPORT      ParaViewIncubator
+    INSTALL_HEADERS     "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    USE_FILE_SETS       ON
+    HEADERS_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}/Incubator"
+    CMAKE_DESTINATION   "${paraview_cmake_destination}"
+    LICENSE_DESTINATION "${CMAKE_INSTALL_LICENSEDIR}"
+    HIERARCHY_DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtk/hierarchy/${CMAKE_PROJECT_NAME}"
+    LIBRARY_NAME_SUFFIX "${PARAVIEW_CUSTOM_LIBRARY_SUFFIX}"
+    VERSION             "${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}"
+    SOVERSION           "1"
+    TEST_DATA_TARGET    ParaViewData
+    TEST_INPUT_DATA_DIRECTORY   "${paraview_test_data_directory_input}"
+    TEST_OUTPUT_DATA_DIRECTORY  "${paraview_test_data_directory_output}"
+    TEST_OUTPUT_DIRECTORY "${PARAVIEW_TEST_DIR}"
+    GENERATE_SPDX       "${PARAVIEW_GENERATE_SPDX}"
+    SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
+    SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+endif()
 
 include(vtkModuleJson)
 if (NOT PARAVIEW_USE_EXTERNAL_VTK)
@@ -936,74 +988,82 @@ endif ()
 vtk_module_json(
   MODULES ${paraview_modules}
   OUTPUT "paraview-modules.json")
-vtk_module_json(
-  MODULES ${paraview_client_modules}
-  OUTPUT "paraview-client-modules.json")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_json(
+    MODULES ${paraview_client_modules}
+    OUTPUT "paraview-client-modules.json")
+endif()
 
 list(LENGTH vtk_modules vtk_modules_len)
 list(LENGTH paraview_modules paraview_modules_len)
 list(LENGTH paraview_client_modules paraview_client_modules_len)
 message(STATUS "Enabled modules: VTK(${vtk_modules_len}), ParaView(${paraview_modules_len} + ${paraview_client_modules_len})")
 
-set(autoload_plugins)
-foreach (paraview_plugin IN LISTS paraview_plugins)
-  option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
-  mark_as_advanced("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  set(autoload_plugins)
+  foreach (paraview_plugin IN LISTS paraview_plugins)
+    option("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}" "Autoload the ${paraview_plugin} plugin" OFF)
+    mark_as_advanced("PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin}")
 
-  if (PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin})
-    list(APPEND autoload_plugins
-      "${paraview_plugin}")
-  endif ()
-endforeach ()
+    if (PARAVIEW_PLUGIN_AUTOLOAD_${paraview_plugin})
+      list(APPEND autoload_plugins
+        "${paraview_plugin}")
+    endif ()
+  endforeach ()
 
-paraview_plugin_build(
-  HEADERS_DESTINATION   "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
-  RUNTIME_DESTINATION   "${CMAKE_INSTALL_BINDIR}"
-  LIBRARY_DESTINATION   "${CMAKE_INSTALL_LIBDIR}"
-  LIBRARY_SUBDIRECTORY  "paraview${paraview_version_suffix}/plugins"
-  CMAKE_DESTINATION     "${paraview_cmake_destination}"
-  PLUGINS_FILE_NAME "paraview.plugins.xml"
-  USE_FILE_SETS     ON
-  TARGET            ParaView::paraview_plugins
-  INSTALL_EXPORT    ParaViewPlugins
-  INSTALL_HEADERS   "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
-  TARGET_COMPONENT  "development"
-  PLUGINS_COMPONENT "plugins"
-  PLUGINS ${paraview_plugins}
-  AUTOLOAD ${autoload_plugins}
-  DISABLE_XML_DOCUMENTATION "${PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION}"
-  GENERATE_SPDX "${PARAVIEW_GENERATE_SPDX}"
-  SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
-  SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+  paraview_plugin_build(
+    HEADERS_DESTINATION   "${CMAKE_INSTALL_INCLUDEDIR}/paraview${paraview_version_suffix}"
+    RUNTIME_DESTINATION   "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY_DESTINATION   "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY_SUBDIRECTORY  "paraview${paraview_version_suffix}/plugins"
+    CMAKE_DESTINATION     "${paraview_cmake_destination}"
+    PLUGINS_FILE_NAME "paraview.plugins.xml"
+    USE_FILE_SETS     ON
+    TARGET            ParaView::paraview_plugins
+    INSTALL_EXPORT    ParaViewPlugins
+    INSTALL_HEADERS   "${PARAVIEW_INSTALL_DEVELOPMENT_FILES}"
+    TARGET_COMPONENT  "development"
+    PLUGINS_COMPONENT "plugins"
+    PLUGINS ${paraview_plugins}
+    AUTOLOAD ${autoload_plugins}
+    DISABLE_XML_DOCUMENTATION "${PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION}"
+    GENERATE_SPDX "${PARAVIEW_GENERATE_SPDX}"
+    SPDX_DOCUMENT_NAMESPACE "https://paraview.org/spdx"
+    SPDX_DOWNLOAD_LOCATION  "https://gitlab.kitware.com/paraview/paraview/-/tree/master")
+endif()
 
 set(CMAKE_INSTALL_RPATH
   "${_paraview_CMAKE_INSTALL_RPATH_save}")
 
-vtk_module_wrap_client_server(
-  MODULES   ${paraview_client_modules}
-            ${paraview_modules}
-            ${vtk_modules}
-  TARGET    paraview_client_server
-  INSTALL_EXPORT ParaView)
-
-set(_paraview_server_manager_process_args)
-if (PARAVIEW_BUILD_TRANSLATIONS)
-  list(APPEND _paraview_server_manager_process_args
-    TRANSLATIONS_DIRECTORY "${PARAVIEW_TRANSLATIONS_DIRECTORY}"
-    TRANSLATIONS_TARGET "ServerManager-XMLs.ts")
-endif ()
-
-paraview_server_manager_process(
-  MODULES   ${paraview_modules}
-            ${vtk_modules}
-  TARGET    paraview_server_manager
-  XML_FILES paraview_server_manager_files
-  INSTALL_EXPORT ParaView
-  ${_paraview_server_manager_process_args})
-
-if (PARAVIEW_BUILD_TRANSLATIONS)
-  add_dependencies(localization "ServerManager-XMLs.ts")
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  vtk_module_wrap_client_server(
+    MODULES   ${paraview_client_modules}
+              ${paraview_modules}
+              ${vtk_modules}
+    TARGET    paraview_client_server
+    INSTALL_EXPORT ParaView)
 endif()
+
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  set(_paraview_server_manager_process_args)
+    if (PARAVIEW_BUILD_TRANSLATIONS)
+      list(APPEND _paraview_server_manager_process_args
+        TRANSLATIONS_DIRECTORY "${PARAVIEW_TRANSLATIONS_DIRECTORY}"
+        TRANSLATIONS_TARGET "ServerManager-XMLs.ts")
+    endif ()
+
+  paraview_server_manager_process(
+    MODULES   ${paraview_modules}
+              ${vtk_modules}
+    TARGET    paraview_server_manager
+    XML_FILES paraview_server_manager_files
+    INSTALL_EXPORT ParaView
+    ${_paraview_server_manager_process_args})
+
+  if (PARAVIEW_BUILD_TRANSLATIONS)
+    add_dependencies(localization "ServerManager-XMLs.ts")
+  endif()
+endif ()
 
 if (PARAVIEW_USE_PYTHON)
   if (PARAVIEW_USE_EXTERNAL_VTK)
@@ -1151,9 +1211,11 @@ if (PARAVIEW_ENABLE_WEB)
     @ONLY)
 endif ()
 
-add_subdirectory(Clients)
+if (NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
+  add_subdirectory(Clients)
+endif()
 
-if (PARAVIEW_USE_PYTHON)
+if (PARAVIEW_USE_PYTHON AND NOT PARAVIEW_BUILD_STANDALONE_EXTENSIONS)
   add_subdirectory(Wrapping/Python)
 endif ()
 

@@ -13,8 +13,9 @@
 
 #include "vtkPVTrackballZoom.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVTrackballZoomToMouse
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVTrackballZoomToMouse
   : public vtkPVTrackballZoom
 {
 public:

@@ -13,8 +13,10 @@
 
 #include "vtkPVCameraManipulator.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVTrackballRotate : public vtkPVCameraManipulator
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVTrackballRotate
+  : public vtkPVCameraManipulator
 {
 public:
   static vtkPVTrackballRotate* New();

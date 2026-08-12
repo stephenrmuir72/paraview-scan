@@ -13,8 +13,10 @@
 
 #include "vtkPVJoystickFly.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVJoystickFlyOut : public vtkPVJoystickFly
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVJoystickFlyOut
+  : public vtkPVJoystickFly
 {
 public:
   static vtkPVJoystickFlyOut* New();

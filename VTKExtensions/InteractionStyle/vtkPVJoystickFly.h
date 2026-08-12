@@ -13,10 +13,12 @@
 
 #include "vtkPVCameraManipulator.h"
 #include "vtkPVVTKExtensionsInteractionStyleModule.h" // needed for export macro
+#include "vtkWrappingHints.h"                         // For VTK_MARSHALAUTO
 
 class vtkRenderer;
 
-class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT vtkPVJoystickFly : public vtkPVCameraManipulator
+class VTKPVVTKEXTENSIONSINTERACTIONSTYLE_EXPORT VTK_MARSHALAUTO vtkPVJoystickFly
+  : public vtkPVCameraManipulator
 {
 public:
   vtkTypeMacro(vtkPVJoystickFly, vtkPVCameraManipulator);

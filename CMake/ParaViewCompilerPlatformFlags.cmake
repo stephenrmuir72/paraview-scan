@@ -86,6 +86,58 @@ if(MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  # Enable exceptions because VTK and third party code rely on C++ exceptions.
+  # Allow C++ to catch exceptions. Emscripten disables it by default due to high overhead.
+  # Generate helper functions to get stack traces for uncaught exceptions
+  set(PARAVIEW_REQUIRED_CXX_FLAGS "${PARAVIEW_REQUIRED_CXX_FLAGS} -fwasm-exceptions")
+  set(PARAVIEW_REQUIRED_C_FLAGS "${PARAVIEW_REQUIRED_C_FLAGS} -fwasm-exceptions")
+  set(PARAVIEW_REQUIRED_EXE_LINKER_FLAGS "${PARAVIEW_REQUIRED_EXE_LINKER_FLAGS} -fwasm-exceptions -sEXCEPTION_STACK_TRACES=1")
+  set(PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS "${PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS} -fwasm-exceptions -sEXCEPTION_STACK_TRACES=1")
+  set(PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS "${PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS} -fwasm-exceptions -sEXCEPTION_STACK_TRACES=1")
+  # Consumers linking to VTK also need to add the exception flag.
+  if (TARGET paraviewplatform)
+    target_link_options(paraviewplatform
+      INTERFACE
+        "-fwasm-exceptions"
+        "-sEXCEPTION_STACK_TRACES=1")
+  endif ()
+  if (PARAVIEW_WEBASSEMBLY_THREADS)
+    # Remove after https://github.com/WebAssembly/design/issues/1271 is closed
+    set(PARAVIEW_REQUIRED_CXX_FLAGS "${PARAVIEW_REQUIRED_CXX_FLAGS} -pthread -Wno-pthreads-mem-growth")
+    set(PARAVIEW_REQUIRED_C_FLAGS "${PARAVIEW_REQUIRED_C_FLAGS} -pthread -Wno-pthreads-mem-growth")
+    set(PARAVIEW_REQUIRED_EXE_LINKER_FLAGS "${PARAVIEW_REQUIRED_EXE_LINKER_FLAGS} -pthread")
+    set(PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS "${PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS} -pthread")
+    set(PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS "${PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS} -pthread")
+    # Consumers linking to VTK also need to add the pthread flag.
+    if (TARGET paraviewplatform)
+      target_compile_options(paraviewplatform
+        INTERFACE
+          "-pthread"
+          "-Wno-pthreads-mem-growth")
+      target_link_options(paraviewplatform
+        INTERFACE
+          "-pthread")
+    endif ()
+  endif ()
+  if (PARAVIEW_WEBASSEMBLY_64_BIT)
+    set(PARAVIEW_REQUIRED_CXX_FLAGS "${PARAVIEW_REQUIRED_CXX_FLAGS} -sMEMORY64=1")
+    set(PARAVIEW_REQUIRED_C_FLAGS "${PARAVIEW_REQUIRED_C_FLAGS} -sMEMORY64=1")
+    set(PARAVIEW_REQUIRED_EXE_LINKER_FLAGS "${PARAVIEW_REQUIRED_EXE_LINKER_FLAGS} -sMEMORY64=1")
+    set(PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS "${PARAVIEW_REQUIRED_SHARED_LINKER_FLAGS} -sMEMORY64=1")
+    set(PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS "${PARAVIEW_REQUIRED_MODULE_LINKER_FLAGS} -sMEMORY64=1")
+    # Consumers linking to ParaView also need to add the memory64 flag.
+    if (TARGET paraviewplatform)
+      target_compile_options(paraviewplatform
+        INTERFACE
+          "-sMEMORY64=1")
+      target_link_options(paraviewplatform
+        INTERFACE
+          "-sMEMORY64=1")
+    endif ()
+  endif ()
+endif ()
+
 #-----------------------------------------------------------------------------
 # Add compiler flags ParaView needs to work on this platform.  This must be
 # done after the call to CMAKE_EXPORT_BUILD_SETTINGS, but before any
