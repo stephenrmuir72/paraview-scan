@@ -11,13 +11,13 @@
 #ifndef vtkIntersectFragments_h
 #define vtkIntersectFragments_h
 
-#include "vtkMultiBlockDataSetAlgorithm.h"
+#include "vtkDataObjectAlgorithm.h"
 #include "vtkPVVTKExtensionsFiltersMaterialInterfaceModule.h" //needed for exports
 #include <string>                                             //
 #include <vector>                                             //
 
 class vtkPolyData;
-// class vtkMultiBlockDataSet;
+class vtkDataObjectTree;
 class vtkPoints;
 class vtkDoubleArray;
 class vtkIntArray;
@@ -26,12 +26,19 @@ class vtkMultiProcessController;
 class vtkMaterialInterfaceCommBuffer;
 class vtkCutter;
 
+// vtkIntersectFragments accepts, on each of its two input ports, either a
+// vtkMultiBlockDataSet or a vtkPartitionedDataSetCollection, and produces an
+// output of the same composite data type as the corresponding input.
+// Internally, the algorithm operates directly on the input/output
+// vtkDataObjectTree (the common base of both supported types): geometry has
+// a "nested", 2-level structure (material of fragments), statistics has a
+// "flat", 1-level structure (material of a single leaf dataset).
 class VTKPVVTKEXTENSIONSFILTERSMATERIALINTERFACE_EXPORT vtkIntersectFragments
-  : public vtkMultiBlockDataSetAlgorithm
+  : public vtkDataObjectAlgorithm
 {
 public:
   static vtkIntersectFragments* New();
-  vtkTypeMacro(vtkIntersectFragments, vtkMultiBlockDataSetAlgorithm);
+  vtkTypeMacro(vtkIntersectFragments, vtkDataObjectAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// PARAVIEW interface stuff
@@ -59,17 +66,24 @@ protected:
   vtkIntersectFragments();
   ~vtkIntersectFragments() override;
 
+  /**
+   * Use a composite-data-aware executive so that this filter, like its
+   * vtkMultiBlockDataSetAlgorithm-derived predecessor, correctly handles
+   * composite (multi-block or partitioned) inputs and outputs.
+   */
+  vtkExecutive* CreateDefaultExecutive() override;
+
   /// pipeline
+  int RequestDataObject(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
   int FillInputPortInformation(int port, vtkInformation* info) override;
-  int FillOutputPortInformation(int port, vtkInformation* info) override;
   ///
   // Make list of what we own
   int IdentifyLocalFragments();
-  // Copy structure from multi block of polydata.
-  int CopyInputStructureStats(vtkMultiBlockDataSet* dest, vtkMultiBlockDataSet* src);
-  // Copy structure from multi block of multi piece
-  int CopyInputStructureGeom(vtkMultiBlockDataSet* dest, vtkMultiBlockDataSet* src);
+  // Copy structure from flat material-of-polydata statistics.
+  int CopyInputStructureStats(vtkDataObjectTree* dest, vtkDataObjectTree* src);
+  // Copy structure from nested material-of-fragments geometry.
+  int CopyInputStructureGeom(vtkDataObjectTree* dest, vtkDataObjectTree* src);
   //
   int PrepareToProcessRequest();
   //
@@ -115,10 +129,10 @@ protected:
   //
   vtkCutter* Cutter;
   // data in/out
-  vtkMultiBlockDataSet* GeomIn;
-  vtkMultiBlockDataSet* GeomOut;
-  vtkMultiBlockDataSet* StatsIn;
-  vtkMultiBlockDataSet* StatsOut;
+  vtkDataObjectTree* GeomIn;
+  vtkDataObjectTree* GeomOut;
+  vtkDataObjectTree* StatsIn;
+  vtkDataObjectTree* StatsOut;
   int NBlocks;
   // only used on controller.
   std::vector<int> NFragmentsIntersected;
