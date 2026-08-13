@@ -21,5 +21,6 @@ PRIVATE_DEPENDS
   VTK::IOLegacy
   VTK::IOXML
 TEST_DEPENDS
+  VTK::FiltersCore
   VTK::FiltersSources
   VTK::TestingCore
