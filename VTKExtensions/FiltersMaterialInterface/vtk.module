@@ -20,3 +20,6 @@ PRIVATE_DEPENDS
   VTK::FiltersGeometry
   VTK::IOLegacy
   VTK::IOXML
+TEST_DEPENDS
+  VTK::FiltersSources
+  VTK::TestingCore

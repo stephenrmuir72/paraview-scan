@@ -6,15 +6,23 @@
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 // Pipeline
+#include "vtkCompositeDataPipeline.h"
+#include "vtkDataObjectTypes.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMultiProcessController.h"
+#include "vtkNew.h"
+#include "vtkSmartPointer.h"
 // PV interface
 
 // Data sets
 #include "vtkCompositeDataIterator.h"
+#include "vtkDataObjectTree.h"
+#include "vtkDataObjectTreeIterator.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkMultiPieceDataSet.h"
+#include "vtkPartitionedDataSet.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPolyData.h"
 // Arrays & containers
 #include "vtkCellArray.h"
@@ -93,35 +101,153 @@ vtkIntersectFragments::~vtkIntersectFragments()
 // 1 is expected to be fragment statistics on proc 0
 int vtkIntersectFragments::FillInputPortInformation(int /*port*/, vtkInformation* info)
 {
-  // both inputs are mulitblock
+  // Both inputs may be a vtkMultiBlockDataSet or a
+  // vtkPartitionedDataSetCollection.
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
 
   return 1;
 }
 
 //----------------------------------------------------------------------------
-// Output:
-// 0 intersection statistics on proc 0
-// 1 intersection geometry, distributed
-int vtkIntersectFragments::FillOutputPortInformation(int port, vtkInformation* info)
+vtkExecutive* vtkIntersectFragments::CreateDefaultExecutive()
 {
-  // There are two outputs,
-  // 0: multi-block contains fragment's geom
-  // 1: multiblock contains fragment's centers with attributes
-  switch (port)
-  {
-    case 0:
-      info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkMultiBlockDataSet");
-      break;
-    case 1:
-      info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkMultiBlockDataSet");
-      break;
-    default:
-      assert(0 && "Invalid output port.");
-      break;
-  }
+  return vtkCompositeDataPipeline::New();
+}
 
+//----------------------------------------------------------------------------
+// Each output mirrors the composite data type of its corresponding input:
+// output 0 (geometry) mirrors input 0, output 1 (statistics) mirrors
+// input 1.
+int vtkIntersectFragments::RequestDataObject(
+  vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  for (int port = 0; port < 2; ++port)
+  {
+    vtkInformation* inInfo = inputVector[port]->GetInformationObject(0);
+    vtkDataObject* input = inInfo ? inInfo->Get(vtkDataObject::DATA_OBJECT()) : nullptr;
+    if (!input)
+    {
+      return 0;
+    }
+
+    const char* outputClassName = vtkPartitionedDataSetCollection::SafeDownCast(input)
+      ? "vtkPartitionedDataSetCollection"
+      : "vtkMultiBlockDataSet";
+
+    vtkInformation* outInfo = outputVector->GetInformationObject(port);
+    vtkDataObject* output = outInfo->Get(vtkDataObject::DATA_OBJECT());
+    if (!output || !output->IsA(outputClassName))
+    {
+      vtkSmartPointer<vtkDataObject> newOutput;
+      newOutput.TakeReference(vtkDataObjectTypes::NewDataObject(outputClassName));
+      outInfo->Set(vtkDataObject::DATA_OBJECT(), newOutput);
+    }
+  }
   return 1;
+}
+
+namespace
+{
+// vtkDataObjectTree only exposes child read access (GetChild(),
+// GetNumberOfChildren()) publicly; the setters are protected, so that
+// callers go through a concrete subclass's own public API instead (which is
+// how each subclass enforces its own structural invariants, e.g.
+// vtkPartitionedDataSetCollection requiring every entry to be a non-null
+// vtkPartitionedDataSet). The helpers below dispatch writes to the right
+// subclass API for whichever of vtkMultiBlockDataSet or
+// vtkPartitionedDataSetCollection is actually in use.
+
+// Geometry has a "nested", 2-level structure: a material (top-level child)
+// is itself a container (vtkMultiPieceDataSet or vtkPartitionedDataSet)
+// whose own children are the fragments.
+
+// Sets the number of materials on a geometry or statistics container.
+void SetNumberOfMaterials(vtkDataObjectTree* obj, unsigned int n)
+{
+  if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(obj))
+  {
+    pdc->SetNumberOfPartitionedDataSets(n);
+  }
+  else if (auto mb = vtkMultiBlockDataSet::SafeDownCast(obj))
+  {
+    mb->SetNumberOfBlocks(n);
+  }
+}
+
+// Returns the fragments container for the given material, or nullptr.
+// vtkMultiPieceDataSet derives from vtkPartitionedDataSet, so this covers
+// both the vtkMultiBlockDataSet-of-vtkMultiPieceDataSet and
+// vtkPartitionedDataSetCollection-of-vtkPartitionedDataSet cases uniformly.
+vtkPartitionedDataSet* GetGeomFragments(vtkDataObjectTree* geom, int blockId)
+{
+  return vtkPartitionedDataSet::SafeDownCast(geom->GetChild(blockId));
+}
+
+// Creates a new, empty fragments container matching the concrete type
+// `geomOut` uses for materials: a vtkMultiPieceDataSet for a
+// vtkMultiBlockDataSet output, a vtkPartitionedDataSet otherwise (i.e. for a
+// vtkPartitionedDataSetCollection output).
+vtkSmartPointer<vtkPartitionedDataSet> NewGeomFragmentsContainer(vtkDataObjectTree* geomOut)
+{
+  if (vtkMultiBlockDataSet::SafeDownCast(geomOut))
+  {
+    return vtkSmartPointer<vtkMultiPieceDataSet>::New();
+  }
+  return vtkSmartPointer<vtkPartitionedDataSet>::New();
+}
+
+// Sets the material at `blockId` to `fragments`.
+void SetGeomMaterial(
+  vtkDataObjectTree* geomOut, unsigned int blockId, vtkPartitionedDataSet* fragments)
+{
+  if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(geomOut))
+  {
+    pdc->SetPartitionedDataSet(blockId, fragments);
+  }
+  else if (auto mb = vtkMultiBlockDataSet::SafeDownCast(geomOut))
+  {
+    mb->SetBlock(blockId, fragments);
+  }
+}
+
+// Statistics have a "flat", 1-level structure: a material (top-level child)
+// is a single polydata leaf. vtkMultiBlockDataSet holds that leaf directly
+// as the child, but vtkPartitionedDataSetCollection always wraps each entry
+// in its own vtkPartitionedDataSet, so a plain indexed child access is not
+// enough to reach the leaf: use a leaf iterator scoped to that one material
+// to unwrap it, regardless of nesting.
+vtkDataObject* GetStatsLeaf(vtkDataObjectTree* stats, int blockId)
+{
+  vtkDataObject* child = stats->GetChild(blockId);
+  auto subtree = vtkDataObjectTree::SafeDownCast(child);
+  if (!subtree)
+  {
+    return child;
+  }
+  vtkSmartPointer<vtkDataObjectTreeIterator> iter;
+  iter.TakeReference(subtree->NewTreeIterator());
+  iter->VisitOnlyLeavesOn();
+  iter->SkipEmptyNodesOn();
+  iter->InitTraversal();
+  return iter->IsDoneWithTraversal() ? nullptr : iter->GetCurrentDataObject();
+}
+
+void SetStatsLeaf(vtkDataObjectTree* stats, int blockId, vtkDataObject* leaf)
+{
+  if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(stats))
+  {
+    pdc->SetNumberOfPartitions(blockId, leaf ? 1 : 0);
+    if (leaf)
+    {
+      pdc->SetPartition(blockId, 0, leaf);
+    }
+  }
+  else if (auto mb = vtkMultiBlockDataSet::SafeDownCast(stats))
+  {
+    mb->SetBlock(blockId, leaf);
+  }
+}
 }
 
 //----------------------------------------------------------------------------
@@ -139,18 +265,18 @@ void vtkIntersectFragments::SetStatisticsInputConnection(vtkAlgorithmOutput* alg
 }
 
 //----------------------------------------------------------------------------
-// Make a destination data set with the same structure as the
-// source. The sources are expected to be multi block of either
-// polydata or multipiece of polydata.
+// Make a destination data set with the same structure as the source: a
+// material (top-level child) of a single polydata leaf, whichever concrete
+// composite type is actually in use (vtkMultiBlockDataSet,
+// vtkPartitionedDataSet or vtkPartitionedDataSetCollection).
 //
 // return 0 if we couldn't copy the structure.
-int vtkIntersectFragments::CopyInputStructureStats(
-  vtkMultiBlockDataSet* dest, vtkMultiBlockDataSet* src)
+int vtkIntersectFragments::CopyInputStructureStats(vtkDataObjectTree* dest, vtkDataObjectTree* src)
 {
   assert("Unexpected number of blocks in the statistics input." &&
-    (unsigned int)this->NBlocks == src->GetNumberOfBlocks());
+    (unsigned int)this->NBlocks == src->GetNumberOfChildren());
 
-  dest->SetNumberOfBlocks(this->NBlocks);
+  SetNumberOfMaterials(dest, this->NBlocks);
 
   // do we have an empty data set??
   if (this->NBlocks == 0)
@@ -161,31 +287,30 @@ int vtkIntersectFragments::CopyInputStructureStats(
   // and numbers of components.
   for (int blockId = 0; blockId < this->NBlocks; ++blockId)
   {
-    vtkPolyData* srcPd = dynamic_cast<vtkPolyData*>(src->GetBlock(blockId));
+    vtkPolyData* srcPd = vtkPolyData::SafeDownCast(GetStatsLeaf(src, blockId));
     // stats exists on only one proc if we find empty block
     // assume this is not it. Its not an error.
     if (srcPd == nullptr)
     {
       break;
     }
-    vtkPolyData* destPd = vtkPolyData::New();
+    vtkNew<vtkPolyData> destPd;
     destPd->GetPointData()->CopyStructure(srcPd->GetPointData());
-    dest->SetBlock(blockId, destPd);
-    destPd->Delete();
+    SetStatsLeaf(dest, blockId, destPd);
   }
   return 1;
 }
 
 //----------------------------------------------------------------------------
-// Make a destination data set with the same structure as the
-// source. The sources are expected to be multi block of either
-// polydata or multipiece of polydata.
+// Make a destination data set with the same structure as the source: a
+// material (top-level child) of fragments (its own children), whichever
+// concrete composite types are actually in use for the material and
+// fragment levels.
 //
 // return 0 if we couldn't copy the structure.
-int vtkIntersectFragments::CopyInputStructureGeom(
-  vtkMultiBlockDataSet* dest, vtkMultiBlockDataSet* src)
+int vtkIntersectFragments::CopyInputStructureGeom(vtkDataObjectTree* dest, vtkDataObjectTree* src)
 {
-  dest->SetNumberOfBlocks(this->NBlocks);
+  SetNumberOfMaterials(dest, this->NBlocks);
 
   // do we have an empty data set??
   if (this->NBlocks == 0)
@@ -194,19 +319,17 @@ int vtkIntersectFragments::CopyInputStructureGeom(
   }
 
   // for non-empty data sets we expect that all
-  // blocks are multipiece of polydata (geom)
+  // materials have fragments (geom)
   for (int blockId = 0; blockId < this->NBlocks; ++blockId)
   {
-    vtkMultiPieceDataSet* srcFragments =
-      dynamic_cast<vtkMultiPieceDataSet*>(src->GetBlock(blockId));
+    vtkPartitionedDataSet* srcFragments = GetGeomFragments(src, blockId);
 
     if (srcFragments != nullptr)
     {
-      vtkMultiPieceDataSet* destFragments = vtkMultiPieceDataSet::New();
-      int nSrcFragments = srcFragments->GetNumberOfPieces();
-      destFragments->SetNumberOfPieces(nSrcFragments);
-      dest->SetBlock(blockId, destFragments);
-      destFragments->Delete();
+      unsigned int nSrcFragments = srcFragments->GetNumberOfPartitions();
+      vtkSmartPointer<vtkPartitionedDataSet> destFragments = NewGeomFragmentsContainer(dest);
+      destFragments->SetNumberOfPartitions(nSrcFragments);
+      SetGeomMaterial(dest, blockId, destFragments);
 #ifdef vtkIntersectFragmentsDEBUG
       std::cerr << "[" << __LINE__ << "]"
                 << "[" << this->Controller->GetLocalProcessId() << "]"
@@ -236,17 +359,17 @@ int vtkIntersectFragments::IdentifyLocalFragments()
   // look in each material
   for (int blockId = 0; blockId < this->NBlocks; ++blockId)
   {
-    vtkMultiPieceDataSet* fragments =
-      dynamic_cast<vtkMultiPieceDataSet*>(this->GeomIn->GetBlock(blockId));
+    vtkPartitionedDataSet* fragments = GetGeomFragments(this->GeomIn, blockId);
     assert("Could not get fragments." && fragments);
-    int nFragments = fragments->GetNumberOfPieces();
+    int nFragments = static_cast<int>(fragments->GetNumberOfPartitions());
     this->FragmentIds[blockId].reserve(nFragments / nProcs);
     // All of the inputs have the same structure. If the
     // entry is 0 then we don't have any of the fragment's
     // geometry.
     for (int fragmentId = 0; fragmentId < nFragments; ++fragmentId)
     {
-      vtkPolyData* fragment = dynamic_cast<vtkPolyData*>(fragments->GetPiece(fragmentId));
+      vtkPolyData* fragment =
+        vtkPolyData::SafeDownCast(fragments->GetPartitionAsDataObject(fragmentId));
       if (fragment != nullptr)
       {
         // We have some of this fragment's geometry. Save
@@ -275,7 +398,7 @@ int vtkIntersectFragments::IdentifyLocalFragments()
 int vtkIntersectFragments::PrepareToProcessRequest()
 {
   // containers hold arrays for each block
-  this->NBlocks = this->GeomIn->GetNumberOfBlocks();
+  this->NBlocks = static_cast<int>(this->GeomIn->GetNumberOfChildren());
   // size containers
   ResizeVectorOfVtkArrayPointers(this->IntersectionCenters, 3, 0, "centers", this->NBlocks);
   this->IntersectionIds.resize(this->NBlocks);
@@ -308,17 +431,16 @@ int vtkIntersectFragments::Intersect()
   for (int blockId = 0; blockId < this->NBlocks; ++blockId)
   {
     vector<int>& ids = this->IntersectionIds[blockId];
-    vtkMultiPieceDataSet* geomOut =
-      dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
+    vtkPartitionedDataSet* geomOut = GetGeomFragments(this->GeomOut, blockId);
     // for fragments we own
-    vtkMultiPieceDataSet* fragments =
-      dynamic_cast<vtkMultiPieceDataSet*>(this->GeomIn->GetBlock(blockId));
+    vtkPartitionedDataSet* fragments = GetGeomFragments(this->GeomIn, blockId);
     vector<int>& fragmentIds = this->FragmentIds[blockId];
     size_t nLocal = fragmentIds.size();
     for (size_t localId = 0; localId < nLocal; ++localId)
     {
       int globalId = fragmentIds[localId];
-      vtkPolyData* fragment = dynamic_cast<vtkPolyData*>(fragments->GetPiece(globalId));
+      vtkPolyData* fragment =
+        vtkPolyData::SafeDownCast(fragments->GetPartitionAsDataObject(globalId));
       // cut
       this->Cutter->SetInputData(fragment);
       this->Cutter->Update();
@@ -328,10 +450,9 @@ int vtkIntersectFragments::Intersect()
       {
         ids.push_back(globalId);
         // pass intersection geometry
-        vtkPolyData* intersectionOut = vtkPolyData::New();
+        vtkNew<vtkPolyData> intersectionOut;
         intersectionOut->ShallowCopy(intersection);
-        geomOut->SetPiece(globalId, intersectionOut);
-        intersectionOut->Delete();
+        geomOut->SetPartition(globalId, intersectionOut);
       }
     }
     // free extra memory
@@ -354,9 +475,8 @@ int vtkIntersectFragments::Intersect()
 // Build the loading array for the fragment pieces that we own.
 void vtkIntersectFragments::BuildLoadingArray(vector<vtkIdType>& loadingArray, int blockId)
 {
-  vtkMultiPieceDataSet* intersectGeometry =
-    dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
-  int nFragments = intersectGeometry->GetNumberOfPieces();
+  vtkPartitionedDataSet* intersectGeometry = GetGeomFragments(this->GeomOut, blockId);
+  int nFragments = static_cast<int>(intersectGeometry->GetNumberOfPartitions());
 
   size_t nLocal = this->IntersectionIds[blockId].size();
 
@@ -366,7 +486,8 @@ void vtkIntersectFragments::BuildLoadingArray(vector<vtkIdType>& loadingArray, i
   {
     int globalId = this->IntersectionIds[blockId][localId];
 
-    vtkPolyData* geom = dynamic_cast<vtkPolyData*>(intersectGeometry->GetPiece(globalId));
+    vtkPolyData* geom =
+      vtkPolyData::SafeDownCast(intersectGeometry->GetPartitionAsDataObject(globalId));
 
     loadingArray[globalId] = geom->GetNumberOfCells();
   }
@@ -381,8 +502,7 @@ int vtkIntersectFragments::PackLoadingArray(vtkIdType*& buffer, int blockId)
 {
   assert("Buffer appears to have been pre-allocated." && buffer == nullptr);
 
-  vtkMultiPieceDataSet* intersectGeometry =
-    dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
+  vtkPartitionedDataSet* intersectGeometry = GetGeomFragments(this->GeomOut, blockId);
 
   size_t nLocal = this->IntersectionIds[blockId].size();
 
@@ -394,7 +514,8 @@ int vtkIntersectFragments::PackLoadingArray(vtkIdType*& buffer, int blockId)
   {
     int globalId = this->IntersectionIds[blockId][localId];
 
-    vtkPolyData* geom = dynamic_cast<vtkPolyData*>(intersectGeometry->GetPiece(globalId));
+    vtkPolyData* geom =
+      vtkPolyData::SafeDownCast(intersectGeometry->GetPartitionAsDataObject(globalId));
 
     pl.Initialize(globalId, geom->GetNumberOfCells());
     pl.Pack(pBuf);
@@ -418,9 +539,8 @@ int vtkIntersectFragments::UnPackLoadingArray(
   assert("Buffer is nullptr pointer." && buffer != 0);
   assert("Buffer size is incorrect." && bufSize % sizeOfPl == 0);
 
-  vtkMultiPieceDataSet* intersectGeometry =
-    dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
-  int nFragments = intersectGeometry->GetNumberOfPieces();
+  vtkPartitionedDataSet* intersectGeometry = GetGeomFragments(this->GeomOut, blockId);
+  int nFragments = static_cast<int>(intersectGeometry->GetNumberOfPartitions());
 
   loadingArray.clear();
   loadingArray.resize(nFragments, 0);
@@ -470,9 +590,8 @@ void vtkIntersectFragments::ComputeGeometricAttributes()
     // to piece owners. For localized intersections(these aren't pieces)
     // the situation is relatively simple--computation can be made
     // directly.
-    vtkMultiPieceDataSet* intersectGeometry =
-      dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
-    int nFragments = intersectGeometry->GetNumberOfPieces();
+    vtkPartitionedDataSet* intersectGeometry = GetGeomFragments(this->GeomOut, blockId);
+    int nFragments = static_cast<int>(intersectGeometry->GetNumberOfPartitions());
 
     vector<int>& globalIds = this->IntersectionIds[blockId];
     size_t nLocal = globalIds.size();
@@ -668,7 +787,7 @@ void vtkIntersectFragments::ComputeGeometricAttributes()
           TM.GetTransactions(fragmentId, myProcId);
         // execute
         vtkPolyData* localMesh =
-          dynamic_cast<vtkPolyData*>(intersectGeometry->GetPiece(fragmentId));
+          vtkPolyData::SafeDownCast(intersectGeometry->GetPartitionAsDataObject(fragmentId));
 
         size_t nTransactions = transactionList.size();
         if (nTransactions > 0)
@@ -829,7 +948,8 @@ void vtkIntersectFragments::ComputeGeometricAttributes()
 
       int globalId = globalIds[localId];
 
-      vtkPolyData* thisFragment = dynamic_cast<vtkPolyData*>(intersectGeometry->GetPiece(globalId));
+      vtkPolyData* thisFragment =
+        vtkPolyData::SafeDownCast(intersectGeometry->GetPartitionAsDataObject(globalId));
 
       // Center of AABB calculation
       thisFragment->GetBounds(aabb);
@@ -1063,9 +1183,8 @@ int vtkIntersectFragments::PrepareToMergeGeometricAttributes(vector<vector<int>>
     // ids
     this->IntersectionIds[blockId].resize(nUnique);
     // unique geometry marks
-    vtkMultiPieceDataSet* intersectGeometry =
-      dynamic_cast<vtkMultiPieceDataSet*>(this->GeomOut->GetBlock(blockId));
-    int nFragments = intersectGeometry->GetNumberOfPieces();
+    vtkPartitionedDataSet* intersectGeometry = GetGeomFragments(this->GeomOut, blockId);
+    int nFragments = static_cast<int>(intersectGeometry->GetNumberOfPartitions());
     unique[blockId].resize(nFragments, 1);
   }
   return 1;
@@ -1161,7 +1280,7 @@ int vtkIntersectFragments::CopyAttributesToStatsOutput(const int controllingProc
 
   for (int blockId = 0; blockId < this->NBlocks; ++blockId)
   {
-    vtkPolyData* statsPd = dynamic_cast<vtkPolyData*>(this->StatsOut->GetBlock(blockId));
+    vtkPolyData* statsPd = vtkPolyData::SafeDownCast(GetStatsLeaf(this->StatsOut, blockId));
 
     const vtkIdType nCenters = this->IntersectionCenters[blockId]->GetNumberOfTuples();
     // add points and vertices.
@@ -1188,7 +1307,7 @@ int vtkIntersectFragments::CopyAttributesToStatsOutput(const int controllingProc
     // the structure copied, including names and
     // number of comps.
     vtkPointData* pdSrc =
-      dynamic_cast<vtkPolyData*>(this->StatsIn->GetBlock(blockId))->GetPointData();
+      vtkPolyData::SafeDownCast(GetStatsLeaf(this->StatsIn, blockId))->GetPointData();
     vtkPointData* pdDest = statsPd->GetPointData();
     const int nArrays = pdSrc->GetNumberOfArrays();
     for (int arrayId = 0; arrayId < nArrays; ++arrayId)
@@ -1231,20 +1350,18 @@ int vtkIntersectFragments::RequestData(vtkInformation* vtkNotUsed(request),
   // 0
   vtkInformation* inInfo;
   inInfo = inputVector[0]->GetInformationObject(0);
-  this->GeomIn = vtkMultiBlockDataSet::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  this->GeomIn = vtkDataObjectTree::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
   if (this->GeomIn == nullptr)
   {
-    vtkErrorMacro("This filter requires a vtkMultiBlockDataSet on port 0 of its input.");
+    vtkErrorMacro("This filter requires fragment geometry on port 0 of its input.");
     return 1;
   }
-  //   this->GeomIn=vtkMultiBlockDataSet::New();
-  //   this->GeomIn->ShallowCopy(mbds);
   // 1
   inInfo = inputVector[1]->GetInformationObject(0);
-  this->StatsIn = vtkMultiBlockDataSet::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  this->StatsIn = vtkDataObjectTree::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
   if (this->StatsIn == nullptr)
   {
-    vtkErrorMacro("This filter requires a vtkMultiBlockDataSet on port 1 of its input.");
+    vtkErrorMacro("This filter requires fragment statistics on port 1 of its input.");
     return 1;
   }
   // Get the outputs
@@ -1252,10 +1369,10 @@ int vtkIntersectFragments::RequestData(vtkInformation* vtkNotUsed(request),
   // 0
   vtkInformation* outInfo;
   outInfo = outputVector->GetInformationObject(0);
-  this->GeomOut = vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  this->GeomOut = vtkDataObjectTree::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
   // 1
   outInfo = outputVector->GetInformationObject(1);
-  this->StatsOut = vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  this->StatsOut = vtkDataObjectTree::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   // Configure
   if (this->PrepareToProcessRequest() == 0)
