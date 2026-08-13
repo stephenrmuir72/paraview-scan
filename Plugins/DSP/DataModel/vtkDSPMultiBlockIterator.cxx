@@ -5,8 +5,8 @@
 
 #include "vtkCompositeDataIterator.h"
 #include "vtkDataObject.h"
+#include "vtkDataObjectTree.h"
 #include "vtkDataObjectTreeRange.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
 #include "vtkRange.h"
 #include "vtkSmartPointer.h"
@@ -23,12 +23,12 @@ struct vtkDSPMultiBlockIterator::vtkInternals
 vtkStandardNewMacro(vtkDSPMultiBlockIterator);
 
 //-----------------------------------------------------------------------------
-vtkDSPMultiBlockIterator* vtkDSPMultiBlockIterator::New(vtkMultiBlockDataSet* mb)
+vtkDSPMultiBlockIterator* vtkDSPMultiBlockIterator::New(vtkDataObjectTree* tree)
 {
   auto result = vtkDSPMultiBlockIterator::New();
-  result->Internals->Iterator.TakeReference(mb->NewIterator());
+  result->Internals->Iterator.TakeReference(tree->NewIterator());
   result->Internals->Iterator->SkipEmptyNodesOn();
-  result->Internals->NbIterations = vtk::Range(mb,
+  result->Internals->NbIterations = vtk::Range(tree,
     vtk::DataObjectTreeOptions::VisitOnlyLeaves | vtk::DataObjectTreeOptions::TraverseSubTree |
       vtk::DataObjectTreeOptions::SkipEmptyNodes)
                                       .size();
