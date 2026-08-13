@@ -21,4 +21,5 @@ TEST_DEPENDS
   VTK::FiltersSources
   VTK::IOExodus
   VTK::IOHDF
+  VTK::ParallelCore
   VTK::TestingCore
