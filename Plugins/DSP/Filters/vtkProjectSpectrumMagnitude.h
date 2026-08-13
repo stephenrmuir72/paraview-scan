@@ -6,10 +6,11 @@
  *
  * This filter computes the mean of some data arrays within a specified range of
  * frequency, and project it on the targeted mesh. The mesh to project into is
- * connected to input 1. Input 0 is  a multiblock of tables containing the FFT
- * of some data for each point of the  mesh. This filter expects that the number
- * of point in the mesh is equal to the number of blocks in the multiblock of table.
- * First block will be projected onto the first mesh point, and so on.
+ * connected to input 1. Input 0 is a multiblock, or a partitioned dataset
+ * collection, of tables containing the FFT of some data for each point of the
+ * mesh. This filter expects that the number of points in the mesh is equal to
+ * the number of tables in the input. The first table will be projected onto
+ * the first mesh point, and so on.
  *
  * Output is a non-temporal dataset with the means as new point datas.
  *
