@@ -1,0 +1,5 @@
+vtk_add_test_cxx(vtkPVVTKExtensionsFiltersMaterialInterfaceCxxTests tests
+  NO_VALID NO_OUTPUT
+  TestIntersectFragmentsCompositeTypes.cxx)
+
+vtk_test_cxx_executable(vtkPVVTKExtensionsFiltersMaterialInterfaceCxxTests tests)
