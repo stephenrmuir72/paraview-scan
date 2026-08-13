@@ -18,7 +18,9 @@ PRIVATE_DEPENDS
   VTK::ParallelCore
 TEST_DEPENDS
   DigitalSignalProcessing::DSPDataModel
+  VTK::FiltersCore
   VTK::FiltersSources
   VTK::IOExodus
   VTK::IOHDF
+  VTK::ParallelCore
   VTK::TestingCore
