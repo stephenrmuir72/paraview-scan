@@ -7,7 +7,8 @@
  *
  * This filter computes the mean power spectral density (PSD) of temporal signals.
  * The input should contain tables of data arrays where each table typically
- * corresponds to a point/cell.
+ * corresponds to a point/cell. The input may be a vtkMultiBlockDataSet, a
+ * vtkPartitionedDataSetCollection, or a vtkTable.
  *
  * The recommended sequence of filters applied to a vtkDataSet is:
  * vtkTemporalMultiplexing -> vtkDSPTableFFT -> vtkMeanPowerSpectralDensity

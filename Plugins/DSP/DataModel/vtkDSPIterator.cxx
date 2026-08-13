@@ -5,18 +5,18 @@
 
 #include "vtkDSPMultiBlockIterator.h"
 #include "vtkDSPTableIterator.h"
-#include "vtkMultiBlockDataSet.h"
+#include "vtkDataObjectTree.h"
 #include "vtkTable.h"
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkDSPIterator> vtkDSPIterator::GetInstance(vtkDataObject* object)
 {
-  vtkMultiBlockDataSet* mb = vtkMultiBlockDataSet::SafeDownCast(object);
+  vtkDataObjectTree* tree = vtkDataObjectTree::SafeDownCast(object);
   vtkTable* table = vtkTable::SafeDownCast(object);
 
-  if (mb)
+  if (tree)
   {
-    auto instance = vtkSmartPointer<vtkDSPMultiBlockIterator>::New(mb);
+    auto instance = vtkSmartPointer<vtkDSPMultiBlockIterator>::New(tree);
     return instance;
   }
   else if (table)
@@ -28,7 +28,7 @@ vtkSmartPointer<vtkDSPIterator> vtkDSPIterator::GetInstance(vtkDataObject* objec
   {
     vtkWarningWithObjectMacro(nullptr,
       "Can't create iterator instance: "
-      "input should be a vtkMultiBlockDataSet or a vtkTable.");
+      "input should be a vtkMultiBlockDataSet, a vtkPartitionedDataSetCollection, or a vtkTable.");
     return nullptr;
   }
 }
