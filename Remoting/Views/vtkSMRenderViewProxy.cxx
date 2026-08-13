@@ -1706,24 +1706,24 @@ bool vtkSMRenderViewProxy::ComputeVisibleScalarRange(
 
 //----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectFrustumCells(const int region[4],
-  vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
+  vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections, vtkSMProxy* activeRepr)
 {
   return this->SelectFrustumInternal(
-    region, selectedRepresentations, selectionSources, multiple_selections, vtkSelectionNode::CELL);
+    region, selectedRepresentations, selectionSources, multiple_selections, vtkSelectionNode::CELL, activeRepr);
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectFrustumPoints(const int region[4],
-  vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections)
+  vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections, vtkSMProxy* activeRepr)
 {
   return this->SelectFrustumInternal(region, selectedRepresentations, selectionSources,
-    multiple_selections, vtkSelectionNode::POINT);
+    multiple_selections, vtkSelectionNode::POINT, activeRepr);
 }
 
 //----------------------------------------------------------------------------
 bool vtkSMRenderViewProxy::SelectFrustumInternal(const int region[4],
   vtkCollection* selectedRepresentations, vtkCollection* selectionSources, bool multiple_selections,
-  int fieldAssociation)
+  int fieldAssociation, vtkSMProxy* activeRepr)
 {
   vtkScopedMonitorProgress monitorProgress(this);
 
@@ -1792,10 +1792,24 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(const int region[4],
   // until we have other mechanisms to select one.
   vtkSMPropertyHelper reprsHelper(this, "Representations");
 
-  for (unsigned int cc = 0; cc < reprsHelper.GetNumberOfElements(); cc++)
+  std::vector<vtkSMRepresentationProxy*> representations(reprsHelper.GetNumberOfElements());
+  representations.reserve(reprsHelper.GetNumberOfElements());
+
+  // To make sur active representation is the first we check
+  for (unsigned int i = 0; i < reprsHelper.GetNumberOfElements(); i++)
   {
-    vtkSMRepresentationProxy* repr =
-      vtkSMRepresentationProxy::SafeDownCast(reprsHelper.GetAsProxy(cc));
+    if (activeRepr == reprsHelper.GetAsProxy(i))
+    {
+      representations.insert(representations.begin(), vtkSMRepresentationProxy::SafeDownCast(reprsHelper.GetAsProxy(i)));
+    }
+    else
+    {
+      representations.push_back(vtkSMRepresentationProxy::SafeDownCast(reprsHelper.GetAsProxy(i)));
+    }
+  }
+
+  for (auto& repr : representations)
+  {
     if (!repr || vtkSMPropertyHelper(repr, "Visibility", true).GetAsInt() == 0)
     {
       continue;
@@ -1810,10 +1824,10 @@ bool vtkSMRenderViewProxy::SelectFrustumInternal(const int region[4],
     {
       continue;
     }
-
+    
     double bounds[6];
     datainfo->GetBounds(bounds);
-
+    // pqActiveObjects::instance()
     if (extractor->OverallBoundsTest(bounds))
     {
       selectionSources->AddItem(selectionSource);

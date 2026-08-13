@@ -46,9 +46,9 @@ public:
     vtkCollection* selectionSources, bool multiple_selections = false,
     int modifier = /* replace */ 0, bool select_blocks = false, const char* arrayName = nullptr);
   bool SelectFrustumCells(const int region[4], vtkCollection* selectedRepresentations,
-    vtkCollection* selectionSources, bool multiple_selections = false);
+    vtkCollection* selectionSources, bool multiple_selections = false, vtkSMProxy* activeRepr = nullptr);
   bool SelectFrustumPoints(const int region[4], vtkCollection* selectedRepresentations,
-    vtkCollection* selectionSources, bool multiple_selections = false);
+    vtkCollection* selectionSources, bool multiple_selections = false, vtkSMProxy* activeRepr = nullptr);
   bool SelectPolygonPoints(vtkIntArray* polygon, vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources, bool multiple_selections = false, int modifier = 0,
     bool selectBlocks = false);
@@ -452,7 +452,7 @@ protected:
   void MarkDirty(vtkSMProxy* modifiedProxy) override;
 
   bool SelectFrustumInternal(const int region[4], vtkCollection* selectedRepresentations,
-    vtkCollection* selectionSources, bool multiple_selections, int fieldAssociation);
+    vtkCollection* selectionSources, bool multiple_selections, int fieldAssociation, vtkSMProxy* activeRepr);
   bool SelectPolygonInternal(vtkIntArray* polygon, vtkCollection* selectedRepresentations,
     vtkCollection* selectionSources, bool multiple_selections, int fieldAssociation, int modifier,
     bool selectBlocks);
