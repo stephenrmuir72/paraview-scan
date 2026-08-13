@@ -3,9 +3,11 @@
 
 /**
  * @class    vtkDSPMultiBlockIterator
- * @brief    Iterator for vtkMultiBlockDataSet of vtkTables.
+ * @brief    Iterator for a data object tree of vtkTables.
  *
- * Iterates over a vtkMultiBlockDataSet.
+ * Iterates over the leaves of a vtkDataObjectTree, e.g. a
+ * vtkMultiBlockDataSet of vtkTables, or a vtkPartitionedDataSetCollection
+ * whose partitioned data sets each hold a single vtkTable partition.
  * Simple wrapper over a vtkCompositeDataIterator.
  *
  * @warning
@@ -22,14 +24,14 @@
 
 #include <memory> // for std::unique_ptr
 
-class vtkMultiBlockDataSet;
+class vtkDataObjectTree;
 class vtkTable;
 
 class vtkDSPMultiBlockIterator : public vtkDSPIterator
 {
 public:
   vtkTypeMacro(vtkDSPMultiBlockIterator, vtkDSPIterator);
-  static vtkDSPMultiBlockIterator* New(vtkMultiBlockDataSet* mb);
+  static vtkDSPMultiBlockIterator* New(vtkDataObjectTree* tree);
 
   /**
    * Move the iterator to the first item.

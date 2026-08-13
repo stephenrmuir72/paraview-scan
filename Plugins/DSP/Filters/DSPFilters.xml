@@ -28,6 +28,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
           <DataType value="vtkTable"/>
         </DataTypeDomain>
         <InputArrayDomain name="row_arrays" attribute_type="row" optional="1" />
@@ -100,6 +101,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
           <DataType value="vtkTable"/>
         </DataTypeDomain>
         <InputArrayDomain name="row_arrays"
@@ -190,6 +192,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
           <DataType value="vtkTable"/>
         </DataTypeDomain>
         <InputArrayDomain name="row_arrays1"
@@ -197,7 +200,8 @@
                           number_of_components="1"
                           optional="1" />
         <Documentation>
-          Multiblock dataset or multidimensional table containing the temporal data. Each block/point table corresponds to one point.
+          Multiblock dataset, partitioned dataset collection, or multidimensional table
+          containing the temporal data. Each block/partition/point table corresponds to one point.
         </Documentation>
       </InputProperty>
 
@@ -434,6 +438,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
           <DataType value="vtkTable"/>
         </DataTypeDomain>
         <InputArrayDomain name="row_arrays1"
@@ -444,7 +449,8 @@
                           attribute_type="row"
                           optional="1" />
         <Documentation>
-          Multiblock dataset or multidimensional table containing the temporal data. Each block/table corresponds to one point.
+          Multiblock dataset, partitioned dataset collection, or multidimensional table
+          containing the temporal data. Each block/partition/table corresponds to one point.
         </Documentation>
       </InputProperty>
 
