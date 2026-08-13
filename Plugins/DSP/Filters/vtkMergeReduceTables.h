@@ -7,7 +7,8 @@
  * This filter performs reduction operations such as the mean or the sum over
  * columns across vtkTables. Each table typically corresponds to a point/cell.
  * These tables can be obtained after applying a vtkTemporalMultiplexing or
- * vtkPExtractDataArraysOverTime filter.
+ * vtkPExtractDataArraysOverTime filter. The input may be a
+ * vtkMultiBlockDataSet, a vtkPartitionedDataSetCollection, or a vtkTable.
  * Input arrays can also be copied to the output.
  *
  * @warning Make sure that ghost points are marked as such when using the filter
