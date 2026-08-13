@@ -26,6 +26,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>This input must contain fragment
         geometry.</Documentation>
@@ -38,6 +39,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>This input must contain fragment
         centers.</Documentation>
