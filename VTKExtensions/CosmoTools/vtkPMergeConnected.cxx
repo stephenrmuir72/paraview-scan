@@ -7,6 +7,10 @@
 #include <map>
 
 #include <vtkCellData.h>
+#include <vtkCompositeDataPipeline.h>
+#include <vtkDataObjectTree.h>
+#include <vtkDataObjectTreeIterator.h>
+#include <vtkDataObjectTypes.h>
 #include <vtkFloatArray.h>
 #include <vtkIdList.h>
 #include <vtkIdTypeArray.h>
@@ -15,6 +19,8 @@
 #include <vtkMultiBlockDataSet.h>
 #include <vtkMultiProcessController.h>
 #include <vtkObjectFactory.h>
+#include <vtkPartitionedDataSet.h>
+#include <vtkPartitionedDataSetCollection.h>
 #include <vtkPointData.h>
 #include <vtkPolyhedron.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
@@ -23,6 +29,70 @@
 #include <vtkSmartPointer.h>
 #define VTK_CREATE(type, name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 #define VTK_NEW(type, name) name = vtkSmartPointer<type>::New()
+
+namespace
+{
+// vtkDataObjectTree only exposes child read access (GetChild(),
+// GetNumberOfChildren()) publicly; the setters are protected, so callers go
+// through a concrete subclass's own public API instead (which is how each
+// subclass enforces its own structural invariants, e.g.
+// vtkPartitionedDataSetCollection requiring every entry to be a non-null
+// vtkPartitionedDataSet). The helpers below dispatch writes to the right
+// subclass API for whichever of vtkMultiBlockDataSet or
+// vtkPartitionedDataSetCollection is actually in use.
+//
+// The structure is flat: a top-level child is a single leaf
+// vtkUnstructuredGrid, wrapped in a vtkPartitionedDataSet for
+// vtkPartitionedDataSetCollection.
+
+void SetNumberOfChildren(vtkDataObjectTree* tree, unsigned int n)
+{
+  if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(tree))
+  {
+    pdc->SetNumberOfPartitionedDataSets(n);
+  }
+  else if (auto mb = vtkMultiBlockDataSet::SafeDownCast(tree))
+  {
+    mb->SetNumberOfBlocks(n);
+  }
+}
+
+// vtkPartitionedDataSetCollection always wraps each entry in its own
+// vtkPartitionedDataSet, so a plain indexed child access is not enough to
+// reach the leaf: use a leaf iterator scoped to that one entry to unwrap it,
+// regardless of nesting.
+vtkDataObject* GetLeaf(vtkDataObjectTree* tree, unsigned int index)
+{
+  vtkDataObject* child = tree->GetChild(index);
+  auto subtree = vtkDataObjectTree::SafeDownCast(child);
+  if (!subtree)
+  {
+    return child;
+  }
+  vtkSmartPointer<vtkDataObjectTreeIterator> iter;
+  iter.TakeReference(subtree->NewTreeIterator());
+  iter->VisitOnlyLeavesOn();
+  iter->SkipEmptyNodesOn();
+  iter->InitTraversal();
+  return iter->IsDoneWithTraversal() ? nullptr : iter->GetCurrentDataObject();
+}
+
+void SetLeaf(vtkDataObjectTree* tree, unsigned int index, vtkDataObject* leaf)
+{
+  if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(tree))
+  {
+    pdc->SetNumberOfPartitions(index, leaf ? 1 : 0);
+    if (leaf)
+    {
+      pdc->SetPartition(index, 0, leaf);
+    }
+  }
+  else if (auto mb = vtkMultiBlockDataSet::SafeDownCast(tree))
+  {
+    mb->SetBlock(index, leaf);
+  }
+}
+}
 
 vtkStandardNewMacro(vtkPMergeConnected);
 
@@ -80,6 +150,43 @@ void vtkPMergeConnected::SetController(vtkMultiProcessController* c)
   this->MyId = c->GetLocalProcessId();
 }
 
+vtkExecutive* vtkPMergeConnected::CreateDefaultExecutive()
+{
+  return vtkCompositeDataPipeline::New();
+}
+
+int vtkPMergeConnected::RequestDataObject(
+  vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+  vtkDataObject* input = inInfo ? inInfo->Get(vtkDataObject::DATA_OBJECT()) : nullptr;
+  if (!input)
+  {
+    return 0;
+  }
+
+  const char* outputClassName = vtkPartitionedDataSetCollection::SafeDownCast(input)
+    ? "vtkPartitionedDataSetCollection"
+    : "vtkMultiBlockDataSet";
+
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkDataObject* output = outInfo->Get(vtkDataObject::DATA_OBJECT());
+  if (!output || !output->IsA(outputClassName))
+  {
+    vtkSmartPointer<vtkDataObject> newOutput;
+    newOutput.TakeReference(vtkDataObjectTypes::NewDataObject(outputClassName));
+    outInfo->Set(vtkDataObject::DATA_OBJECT(), newOutput);
+  }
+  return 1;
+}
+
+int vtkPMergeConnected::FillInputPortInformation(int vtkNotUsed(port), vtkInformation* info)
+{
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
+  return 1;
+}
+
 int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
@@ -88,10 +195,10 @@ int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
   // Get the input and output
-  vtkMultiBlockDataSet* input =
-    vtkMultiBlockDataSet::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkMultiBlockDataSet* output =
-    vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkDataObjectTree* input =
+    vtkDataObjectTree::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkDataObjectTree* output =
+    vtkDataObjectTree::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   int piece, numPieces;
   piece = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER());
@@ -103,9 +210,9 @@ int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
   int sum = 0;
   int oops = ((piece != this->MyId) || (numPieces != this->NumProcesses));
 
-  for (unsigned int i = piece; i < input->GetNumberOfBlocks(); i += numPieces)
+  for (unsigned int i = piece; i < input->GetNumberOfChildren(); i += numPieces)
   {
-    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(input->GetBlock(i));
+    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(input, i));
     if (!ugrid)
     {
       vtkErrorMacro("Blocks in the input data are not vtkUnstructuredGrid");
@@ -138,13 +245,13 @@ int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
   if (!contr)
     return 1;
 
-  output->CopyStructure(input);
+  ::SetNumberOfChildren(output, input->GetNumberOfChildren());
 
   int i, j, tb;
-  tb = input->GetNumberOfBlocks();
+  tb = static_cast<int>(input->GetNumberOfChildren());
   for (i = piece; i < tb; i += numPieces)
   {
-    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(input->GetBlock(i));
+    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(input, i));
 
     VTK_CREATE(vtkUnstructuredGrid, ugrid_out);
     ugrid_out->SetPoints(ugrid->GetPoints());
@@ -198,7 +305,7 @@ int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
     ocd->AddArray(ocrid_array);
     ocd->AddArray(ovol_array);
 
-    output->SetBlock(i, ugrid_out);
+    ::SetLeaf(output, i, ugrid_out);
   }
 
   // Convert local region id to global id
@@ -209,20 +316,20 @@ int vtkPMergeConnected::RequestData(vtkInformation* vtkNotUsed(request),
 
 // Convert local region id to global ones
 void vtkPMergeConnected::LocalToGlobalRegionId(
-  vtkMultiProcessController* contr, vtkMultiBlockDataSet* data)
+  vtkMultiProcessController* contr, vtkDataObjectTree* data)
 {
   int i, j;
   int rank, num_p, tb;
   num_p = contr->GetNumberOfProcesses();
   rank = contr->GetLocalProcessId();
-  tb = data->GetNumberOfBlocks();
+  tb = static_cast<int>(data->GetNumberOfChildren());
 
   // Gather information about number of regions in each block
   int all_num_regions_local[tb];
   memset(all_num_regions_local, 0, sizeof(int) * tb);
   for (i = rank; i < tb; i += num_p)
   {
-    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(data->GetBlock(i));
+    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(data, i));
     vtkIdTypeArray* crid_array =
       vtkIdTypeArray::SafeDownCast(ugrid->GetCellData()->GetArray("RegionId"));
 
@@ -237,7 +344,7 @@ void vtkPMergeConnected::LocalToGlobalRegionId(
   // Compute and adding offset and make local id global
   for (i = rank; i < tb; i += num_p)
   {
-    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(data->GetBlock(i));
+    vtkUnstructuredGrid* ugrid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(data, i));
     vtkIdTypeArray* crid_array =
       vtkIdTypeArray::SafeDownCast(ugrid->GetCellData()->GetArray("RegionId"));
     vtkIdTypeArray* prid_array =
@@ -406,16 +513,4 @@ float vtkPMergeConnected::MergeCellDataOnRegionId(
       val += data_array->GetTuple1(i);
 
   return val;
-}
-
-int vtkPMergeConnected::FillOutputPortInformation(int port, vtkInformation* info)
-{
-  if (port == 0)
-  {
-    info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkMultiBlockDataSet");
-
-    return 1;
-  }
-
-  return 0;
 }

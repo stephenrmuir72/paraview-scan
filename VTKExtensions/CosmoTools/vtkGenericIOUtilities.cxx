@@ -95,13 +95,15 @@ vtkDataArray* GetVtkDataArray(std::string name, int type, void* rawBuffer, int N
 
   dataArray->SetNumberOfComponents(1);
   dataArray->SetNumberOfTuples(N);
-  dataArray->SetName(name.c_str());
   auto inputDataArray = vtk::TakeSmartPointer(dataArray->NewInstance());
   inputDataArray->SetVoidArray(rawBuffer, N, /*save*/ 1);
   if (N > 0)
   {
     dataArray->DeepCopy(inputDataArray);
   }
+  // DeepCopy() above also copies (the unset) Name from inputDataArray, so set
+  // the name afterward to make sure it sticks.
+  dataArray->SetName(name.c_str());
   return (dataArray);
 }
 
