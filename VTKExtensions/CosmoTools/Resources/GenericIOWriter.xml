@@ -6,8 +6,9 @@
                 supports_parallel="1">
       <Documentation
         short_help="Write GenericIO files from multiblock data.">
-        Writer to write GenericIO files from multiblock data, each block will
-        become one rank's data in the GenericIO file.
+        Writer to write GenericIO files from multiblock or partitioned dataset
+        collection data, each block/partition will become one rank's data in
+        the GenericIO file.
       </Documentation>
       <InputProperty name="Input" command="SetInputConnection">
         <ProxyGroupDomain name="groups">
@@ -16,6 +17,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
         </DataTypeDomain>
       </InputProperty>
       <StringVectorProperty
