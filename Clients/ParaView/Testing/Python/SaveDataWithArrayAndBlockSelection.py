@@ -3,6 +3,19 @@ from paraview.vtk.util.misc import vtkGetTempDir
 from os.path import join
 import shutil
 
+
+def GetTopLevelBlockNames(dataInfo):
+    """Returns the ordered list of top-level block/partition names. Works
+    whether the data is a vtkMultiBlockDataSet or a
+    vtkPartitionedDataSetCollection, since both provide a hierarchy."""
+    hierarchy = dataInfo.GetHierarchy()
+    root = hierarchy.GetRootNode()
+    return [
+        hierarchy.GetAttributeOrDefault(node, "label", hierarchy.GetNodeName(node))
+        for node in hierarchy.GetChildNodes(root, False)
+    ]
+
+
 # Create MultiBlock Dataset
 
 s1 = Sphere()
@@ -37,7 +50,7 @@ assert r.PointData.GetArray(0).GetName() == "Normals"
 
 dii = r.GetDataInformation().DataInformation
 assert dii.GetNumberOfDataSets() == 1
-assert dii.GetBlockName(1) == "Elevation1"
+assert GetTopLevelBlockNames(dii) == ["Elevation1"]
 
 Delete(r)
 shutil.rmtree(dirname, ignore_errors=True)
@@ -52,8 +65,7 @@ assert r.PointData.GetArray(0).GetName() == "Normals"
 
 dii = r.GetDataInformation().DataInformation
 assert dii.GetNumberOfDataSets() == 2
-assert dii.GetBlockName(1) == "Elevation1"
-assert dii.GetBlockName(2) == "Elevation2"
+assert GetTopLevelBlockNames(dii) == ["Elevation1", "Elevation2"]
 
 Delete(r)
 shutil.rmtree(dirname, ignore_errors=True)
@@ -69,7 +81,7 @@ assert r.PointData.GetArray("Normals") is not None
 
 dii = r.GetDataInformation().DataInformation
 assert dii.GetNumberOfDataSets() == 1
-assert dii.GetBlockName(1) == "Elevation1"
+assert GetTopLevelBlockNames(dii) == ["Elevation1"]
 
 Delete(r)
 shutil.rmtree(dirname, ignore_errors=True)
@@ -85,8 +97,7 @@ assert r.PointData.GetArray("Normals") is not None
 
 dii = r.GetDataInformation().DataInformation
 assert dii.GetNumberOfDataSets() == 2
-assert dii.GetBlockName(1) == "Elevation1"
-assert dii.GetBlockName(2) == "Elevation2"
+assert GetTopLevelBlockNames(dii) == ["Elevation1", "Elevation2"]
 
 Delete(r)
 shutil.rmtree(dirname, ignore_errors=True)
