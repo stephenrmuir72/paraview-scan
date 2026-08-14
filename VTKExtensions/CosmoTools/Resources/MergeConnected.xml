@@ -16,6 +16,7 @@
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
           <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
         </DataTypeDomain>
         <Documentation>
           This property specifies the input for this filter.

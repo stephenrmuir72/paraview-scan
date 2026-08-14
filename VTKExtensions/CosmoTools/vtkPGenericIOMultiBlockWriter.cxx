@@ -5,21 +5,47 @@
 
 #include "GenericIOWriter.h"
 #include "vtkDataArray.h"
+#include "vtkDataObjectTree.h"
+#include "vtkDataObjectTreeIterator.h"
 #include "vtkDoubleArray.h"
 #include "vtkFieldData.h"
 #include "vtkFloatArray.h"
 #include "vtkInformation.h"
 #include "vtkIntArray.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkSmartPointer.h"
 #include "vtkTypeInt64Array.h"
 #include "vtkTypeUInt64Array.h"
 #include "vtkUnsignedIntArray.h"
 #include "vtkUnstructuredGrid.h"
 
 #include "vtkGenericIOUtilities.h"
+
+namespace
+{
+// The structure is flat: a top-level child is a single leaf
+// vtkUnstructuredGrid, wrapped in a vtkPartitionedDataSet for
+// vtkPartitionedDataSetCollection. A plain indexed child access is not
+// enough to reach the leaf in that case, so use a leaf iterator scoped to
+// that one entry to unwrap it, regardless of nesting.
+vtkDataObject* GetLeaf(vtkDataObjectTree* tree, unsigned int index)
+{
+  vtkDataObject* child = tree->GetChild(index);
+  auto subtree = vtkDataObjectTree::SafeDownCast(child);
+  if (!subtree)
+  {
+    return child;
+  }
+  vtkSmartPointer<vtkDataObjectTreeIterator> iter;
+  iter.TakeReference(subtree->NewTreeIterator());
+  iter->VisitOnlyLeavesOn();
+  iter->SkipEmptyNodesOn();
+  iter->InitTraversal();
+  return iter->IsDoneWithTraversal() ? nullptr : iter->GetCurrentDataObject();
+}
+}
 
 //----------------------------------------------------------------------------
 class vtkPGenericIOMultiBlockWriter::vtkInternals
@@ -66,6 +92,7 @@ int vtkPGenericIOMultiBlockWriter::FillInputPortInformation(int port, vtkInforma
   if (port == 0)
   {
     info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+    info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
     return 1;
   }
   return 0;
@@ -284,13 +311,14 @@ static inline void addArray(vtkDataArray* array, gio::GenericIOWriter* writer, i
 }
 
 //----------------------------------------------------------------------------
-void vtkPGenericIOMultiBlockWriter::WriteData()
+bool vtkPGenericIOMultiBlockWriter::WriteDataAndReturn()
 {
-  vtkMultiBlockDataSet* input = vtkMultiBlockDataSet::SafeDownCast(GetInput());
+  vtkDataObjectTree* input = vtkDataObjectTree::SafeDownCast(GetInput());
   if (input == nullptr)
   {
-    vtkErrorMacro(<< "Input to the vtkPGenericIOMultiBlockWriter must be a vtkMultiBlockDataSet.");
-    return;
+    vtkErrorMacro(<< "Input to the vtkPGenericIOMultiBlockWriter must be a "
+                     "vtkMultiBlockDataSet or a vtkPartitionedDataSetCollection.");
+    return false;
   }
   if (this->Internals->Writer)
   {
@@ -367,11 +395,11 @@ void vtkPGenericIOMultiBlockWriter::WriteData()
   if (this->Controller->GetNumberOfProcesses() > 1)
   {
     std::vector<int> hasBlock, duplicates;
-    hasBlock.resize(input->GetNumberOfBlocks(), 0);
+    hasBlock.resize(input->GetNumberOfChildren(), 0);
     duplicates.resize(hasBlock.size());
-    for (unsigned i = 0; i < input->GetNumberOfBlocks(); ++i)
+    for (unsigned i = 0; i < input->GetNumberOfChildren(); ++i)
     {
-      vtkUnstructuredGrid* grid = vtkUnstructuredGrid::SafeDownCast(input->GetBlock(i));
+      vtkUnstructuredGrid* grid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(input, i));
       if (grid != nullptr)
       {
         hasBlock[i] = 1;
@@ -387,13 +415,13 @@ void vtkPGenericIOMultiBlockWriter::WriteData()
           << "Blocks are duplicated across processes, this writer expects"
              " each block to be present on exactly one process.  Aborting write operation.");
         this->SetErrorCode(78); // I have no idea what to put here, so 78 it is!
-        return;
+        return false;
       }
     }
   }
-  for (unsigned i = 0; i < input->GetNumberOfBlocks(); ++i)
+  for (unsigned i = 0; i < input->GetNumberOfChildren(); ++i)
   {
-    vtkUnstructuredGrid* grid = vtkUnstructuredGrid::SafeDownCast(input->GetBlock(i));
+    vtkUnstructuredGrid* grid = vtkUnstructuredGrid::SafeDownCast(::GetLeaf(input, i));
     if (grid != nullptr)
     {
       uint64_t coords[3] = { 0, 0, i }; // TODO get real coordinates, default to this
@@ -431,4 +459,5 @@ void vtkPGenericIOMultiBlockWriter::WriteData()
     }
   }
   this->Internals->Writer->Write();
+  return true;
 }
