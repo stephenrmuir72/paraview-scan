@@ -17,6 +17,7 @@
 #include "vtkThreshold.h"
 #include "vtkUnstructuredGrid.h"
 
+#include <iostream>
 #include <set>
 
 namespace HaloFinderTestHelpers
