@@ -4,6 +4,9 @@
 /**
  * @class   vtkPGenericIOMultiBlockWriter
  *
+ * Writes GenericIO files from a vtkMultiBlockDataSet or a
+ * vtkPartitionedDataSetCollection whose leaves are vtkUnstructuredGrid; each
+ * leaf becomes one rank's data in the GenericIO file.
  */
 
 #ifndef vtkPGenericIOMultiBlockWriter_h
@@ -12,6 +15,7 @@
 #include "vtkPVVTKExtensionsCosmoToolsModule.h" // for export macro
 #include "vtkWriter.h"
 
+class vtkDataObjectTree;
 class vtkMultiProcessController;
 
 class VTKPVVTKEXTENSIONSCOSMOTOOLS_EXPORT vtkPGenericIOMultiBlockWriter : public vtkWriter
@@ -29,7 +33,7 @@ protected:
   ~vtkPGenericIOMultiBlockWriter() override;
 
   int FillInputPortInformation(int port, vtkInformation* info) override;
-  void WriteData() override;
+  bool WriteDataAndReturn() override;
 
 private:
   class vtkInternals;
