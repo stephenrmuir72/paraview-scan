@@ -5,30 +5,42 @@ import os.path
 import sys
 
 import paraview
-paraview.compatibility.major = 3
-paraview.compatibility.minor = 4
 from paraview import servermanager
+from paraview.simple import *
 
 smtesting.ProcessCommandLineArguments()
 
-servermanager.Connect()
+generalSettings = GetSettingsProxy("GeneralSettings")
+pdc_output = generalSettings.AutoConvertMultiBlockDataSets
 
 file1 = os.path.join(smtesting.DataDir, "Testing/Data/bot2.wrl")
-reader = servermanager.sources.vrmlreader(FileName = file1)
+reader = VRMLReader(FileName = file1)
 readerOutput = servermanager.Fetch(reader)
-if readerOutput.GetClassName() != "vtkMultiBlockDataSet":
-    print("ERROR: Wrong dataset type returned: %s" % readerOutput.GetClassName())
-    sys.exit(1)
+
+if pdc_output:
+    if readerOutput.GetClassName() != "vtkPartitionedDataSetCollection":
+        print("ERROR: Wrong dataset type returned: %s" % readerOutput.GetClassName())
+        sys.exit(1)
+
+    if readerOutput.GetNumberOfPartitionedDataSets() != 1:
+        print("ERROR: Wrong number of blocks returned.")
+        sys.exit(1)
+
+    ds0 = readerOutput.GetPartition(0, 0)
+else:
+    if readerOutput.GetClassName() != "vtkMultiBlockDataSet":
+        print("ERROR: Wrong dataset type returned: %s" % readerOutput.GetClassName())
+        sys.exit(1)
+
+    if readerOutput.GetNumberOfBlocks() != 1:
+        print("ERROR: Wrong number of blocks returned.")
+        sys.exit(1)
+
+    ds0 = readerOutput.GetBlock(0)
 
 if readerOutput.GetNumberOfPoints() != 337:
     print("ERROR: Wrong number of points returned.")
     sys.exit(1)
-
-if readerOutput.GetNumberOfBlocks() != 1:
-    print("ERROR: Wrong number of blocks returned.")
-    sys.exit(1)
-
-ds0 = readerOutput.GetBlock(0)
 
 if ds0.GetClassName() != "vtkPolyData":
     print("ERROR: Wrong dataset type returned for dataset (0, 0).")
