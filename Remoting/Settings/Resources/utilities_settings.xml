@@ -337,7 +337,7 @@
 
       <IntVectorProperty name="AutoConvertMultiBlockDataSets"
         number_of_elements="1"
-        default_values="0"
+        default_values="1"
         command="SetAutoConvertMultiBlockDataSets">
         <Documentation>
           Automatically convert vtkMultiBlockDataSet outputs to
