@@ -111,6 +111,7 @@ el8-shared-icc-mpi-python:test:
         - el8-shared-icc-mpi-python:build
 
 fedora42-shared-asserts-mpi-python-qt:build:
+    image: "kitware/paraview:ci-fedora42-20260817-extconduit"
     extends:
         - .fedora42_shared_asserts_mpi_python_qt
         - .cmake_build_linux
@@ -122,6 +123,7 @@ fedora42-shared-asserts-mpi-python-qt:build:
     timeout: 90 minutes
 
 fedora42-shared-asserts-mpi-python-qt:test:
+    image: "kitware/paraview:ci-fedora42-20260817-extconduit"
     extends:
         - .fedora42_shared_asserts_mpi_python_qt
         - .cmake_test_linux
@@ -224,6 +226,7 @@ fedora42-shared-mpi-python-core:test:
 ## Static analysis
 
 fedora42-tidy:build:
+    image: "kitware/paraview:ci-fedora42-20260817-extconduit"
     extends:
         - .fedora42_tidy
         - .cmake_build_linux
