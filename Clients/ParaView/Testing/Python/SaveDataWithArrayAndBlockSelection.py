@@ -25,7 +25,7 @@ UpdatePipeline()
 dirname = join(vtkGetTempDir(), "savedatawitharrayselection")
 shutil.rmtree(dirname, ignore_errors=True)
 
-filename = join(dirname, "data.vtm")
+filename = join(dirname, "data.vtpc")
 
 # Test MultiBlock Dataset writer
 
