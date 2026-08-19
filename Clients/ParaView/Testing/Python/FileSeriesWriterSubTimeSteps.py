@@ -74,7 +74,7 @@ slice1.SliceType.Origin = [0.217060089111328, 4.0, -5.1109471321106]
 
 # save data
 from os.path import join
-SaveData(join(tempDir,'canslices.vtm'), proxy=slice1, Writetimestepsasfileseries=1,
+SaveData(join(tempDir,'canslices.vtpc'), proxy=slice1, Writetimestepsasfileseries=1,
     Firsttimestep=10,
     Lasttimestep=20,
     Timestepstride=3,
@@ -84,11 +84,11 @@ SaveData(join(tempDir,'canslices.vtm'), proxy=slice1, Writetimestepsasfileseries
     EncodeAppendedData=0,
     CompressorType='None')
 
-# create a new 'XML MultiBlock Data Reader'
-canslices = XMLMultiBlockDataReader(FileName=[join(tempDir, 'canslices_10.vtm'),
-                                              join(tempDir, 'canslices_13.vtm'),
-                                              join(tempDir, 'canslices_16.vtm'),
-                                              join(tempDir, 'canslices_19.vtm')])
+# create a new 'XML Partitioned Data Set Collection Reader'
+canslices = XMLPartitionedDatasetCollectionReader(FileName=[join(tempDir, 'canslices_10.vtpc'),
+                                                            join(tempDir, 'canslices_13.vtpc'),
+                                                            join(tempDir, 'canslices_16.vtpc'),
+                                                            join(tempDir, 'canslices_19.vtpc')])
 
 canslices.UpdatePipeline()
 if len(canslices.TimestepValues) != 4:
@@ -96,12 +96,12 @@ if len(canslices.TimestepValues) != 4:
     sys.exit(1)
 
 # list of files that should not have been written out
-otherFileNames = [join(tempDir, 'canslices_7.vtm'),
-                  join(tempDir, 'canslices_8.vtm'),
-                  join(tempDir, 'canslices_9.vtm'),
-                  join(tempDir+'canslices_11.vtm'),
-                  join(tempDir+'canslices_12.vtm'),
-                  join(tempDir+'canslices_20.vtm')]
+otherFileNames = [join(tempDir, 'canslices_7.vtpc'),
+                  join(tempDir, 'canslices_8.vtpc'),
+                  join(tempDir, 'canslices_9.vtpc'),
+                  join(tempDir, 'canslices_11.vtpc'),
+                  join(tempDir, 'canslices_12.vtpc'),
+                  join(tempDir, 'canslices_20.vtpc')]
 import os.path
 for f in otherFileNames:
     if os.path.isfile(f):
