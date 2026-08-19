@@ -137,6 +137,9 @@ spec:
     variables:
         CMAKE_CONFIGURATION: fedora42_shared_asserts_mpi_python_qt
         CMAKE_BUILD_TYPE: RelWithDebInfo
+        # `import catalyst` pulls in a Python extension whose install RPATH
+        # does not cover libcatalyst itself; see the fides_conduit tests.
+        LD_LIBRARY_PATH: "/opt/catalyst-ext/mpich/lib:/opt/conduit/mpich/lib:$LD_LIBRARY_PATH"
 
 .fedora42_shared_mpi_python_qt_viskoresoverride:
     extends:
