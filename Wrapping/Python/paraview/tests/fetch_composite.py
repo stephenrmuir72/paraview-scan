@@ -24,13 +24,24 @@ def main():
     groupDatasets2.UpdatePipeline()
 
     info = paraview.servermanager.Fetch(groupDatasets2)
-    assert info.GetBlock(0).GetClassName() == "vtkMultiBlockDataSet"
+
+    generalSettings = GetSettingsProxy("GeneralSettings")
+    pdc_output = generalSettings.AutoConvertMultiBlockDataSets
+
+    if pdc_output:
+        assert info.GetPartition(0, 0).GetClassName() == "vtkPolyData"
+    else:
+        assert info.GetBlock(0).GetClassName() == "vtkMultiBlockDataSet"
 
     groupDatasets2.CombineFirstLayerMultiblock = True
     groupDatasets2.UpdatePipeline()
 
     info = paraview.servermanager.Fetch(groupDatasets2)
-    assert info.GetBlock(0).GetClassName() == "vtkPolyData"
+
+    if pdc_output:
+        assert info.GetPartition(0, 0).GetClassName() == "vtkPolyData"
+    else:
+        assert info.GetBlock(0).GetClassName() == "vtkPolyData"
 
 
 if __name__ == "__main__":
