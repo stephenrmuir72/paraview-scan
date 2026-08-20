@@ -76,6 +76,15 @@ function (paraview_contract_test)
   endif ()
 
   set(cmake_extra_args)
+
+  # A Catalyst built against an external Conduit re-finds Conduit from its own
+  # config file. So here we tell the contract project about the Conduit used,
+  # since it has no other way of locating the correct Conduit.
+  if (Conduit_DIR)
+    list(APPEND cmake_extra_args
+      "-DConduit_DIR=${Conduit_DIR}")
+  endif ()
+
   if(_paraview_contract_test_EXTRA_CMAKE_ARGUMENTS)
     list(APPEND cmake_extra_args
       ${_paraview_contract_test_EXTRA_CMAKE_ARGUMENTS})
@@ -111,6 +120,29 @@ function (paraview_contract_test)
   set_property(TEST "${test_name}" APPEND
     PROPERTY
       ENVIRONMENT "CTEST_OUTPUT_ON_FAILURE=1")
+
+  # The CI image has multiple libcatalyst with the same soname (one per MPI
+  # flavor under /usr and /usr/lib64/<mpi> using Catalyst's own mangled Conduit,
+  # plus one per MPI flavor under /opt/catalyst-ext using the external Conduit
+  # installs. Here we make sure that the example loads the one that matches the
+  # ParaView implementation. Since the `catalyst::catalyst` target is not
+  # visible from here, derive the directory from catalyst_DIR.
+  if (catalyst_DIR AND UNIX AND NOT APPLE)
+    get_filename_component(catalyst_library_dir "${catalyst_DIR}" DIRECTORY)
+    get_filename_component(catalyst_library_dir "${catalyst_library_dir}" DIRECTORY)
+    set_property(TEST "${test_name}" APPEND
+      PROPERTY
+        ENVIRONMENT_MODIFICATION
+          "LD_LIBRARY_PATH=path_list_prepend:${catalyst_library_dir}")
+
+    # Print a warning for older cmake versions
+    if (CMAKE_VERSION VERSION_LESS "3.22")
+      message(WARNING
+        "CMake 3.22+ is required to reliably set up the environment for contract "
+        "tests needing to load a specific Catalyst. ${test_name} may fail to load "
+        "the correct catalyst and fail as a result.")
+    endif ()
+  endif ()
 
   set_tests_properties(${test_name} PROPERTIES LABELS "ParaViewContract")
 endfunction ()
