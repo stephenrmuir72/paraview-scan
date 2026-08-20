@@ -76,15 +76,6 @@ function (paraview_contract_test)
   endif ()
 
   set(cmake_extra_args)
-
-  # A Catalyst built against an external Conduit re-finds Conduit from its own
-  # config file. So here we tell the contract project about the Conduit used,
-  # since it has no other way of locating the correct Conduit.
-  if (Conduit_DIR)
-    list(APPEND cmake_extra_args
-      "-DConduit_DIR=${Conduit_DIR}")
-  endif ()
-
   if(_paraview_contract_test_EXTRA_CMAKE_ARGUMENTS)
     list(APPEND cmake_extra_args
       ${_paraview_contract_test_EXTRA_CMAKE_ARGUMENTS})
@@ -120,6 +111,18 @@ function (paraview_contract_test)
   set_property(TEST "${test_name}" APPEND
     PROPERTY
       ENVIRONMENT "CTEST_OUTPUT_ON_FAILURE=1")
+
+  # A Catalyst built against an external Conduit re-finds Conduit from its own
+  # config file, and the example has no other way of locating it. The contract
+  # project only drives an ExternalProject, so it is the *inner* example build
+  # that calls `find_package(catalyst)` and needs this; passing `-DConduit_DIR`
+  # to the contract project would not reach it. Export it into the environment
+  # instead, which `find_package` honours and every nested build inherits.
+  if (Conduit_DIR)
+    set_property(TEST "${test_name}" APPEND
+      PROPERTY
+        ENVIRONMENT "Conduit_DIR=${Conduit_DIR}")
+  endif ()
 
   # The CI image has multiple libcatalyst with the same soname (one per MPI
   # flavor under /usr and /usr/lib64/<mpi> using Catalyst's own mangled Conduit,
