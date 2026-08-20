@@ -17,11 +17,21 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "python")
     paraview-PythonSteering)
 endif ()
 
+# The CellGridMiniapp publishes on the Catalyst "fides_conduit" channel, which
+# only exists when the Fides support is built. This option is set further up the
+# configuration chain, so it is already known here.
+if (PARAVIEW_ENABLE_CATALYST_FIDES)
+  list(APPEND catalyst_example_names
+    paraview-CellGridMiniapp)
+endif ()
+
 ################################################################################
 # Set the revision to build as contract tests here. Commit hashes, tags, and
 # branch names are supported.
 ################################################################################
-set(catalyst_examples_revision "ParaViewCI-25.07")
+# FIXME: Pointing at my catalyst-examples fork and branch here
+#set(catalyst_examples_revision "ParaViewCI-25.07")
+set(catalyst_examples_revision "cellgridminiapp-contract-test")
 ################################################################################
 
 set(paraview_contract_file_urls)
