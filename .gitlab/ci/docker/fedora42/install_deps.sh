@@ -61,7 +61,8 @@ dnf install -y --setopt=install_weak_deps=False \
 dnf install -y --setopt=install_weak_deps=False \
     python3-twisted python3-autobahn python3 python3-devel python3-numpy \
     python3-pandas python3-pandas-datareader python3-sphinx python3-pip \
-    python3-mpi4py-mpich python3-mpi4py-openmpi python3-matplotlib
+    python3-mpi4py-mpich python3-mpi4py-openmpi python3-matplotlib \
+    python3-setuptools
 
 python3 -m pip install wslink cftime openPMD-api
 
@@ -70,9 +71,12 @@ dnf install -y --setopt=install_weak_deps=False \
     gmsh-devel libcurl-devel openxr openxr-devel
 
 # Openturns dependencies
-dnf config-manager addrepo \
-    --from-repofile=https://download.opensuse.org/repositories/science:/openturns/Fedora_42/science:openturns.repo
-dnf install -y --setopt=install_weak_deps=False \
-    openturns-libs openturns-devel
+# FIXME: We can no longer install from Fedora_42, this must be fixed after
+# FIXME: we upgrade ParaView CI to Fedora 44.
+# # Openturns dependencies
+# dnf config-manager addrepo \
+#     --from-repofile=https://download.opensuse.org/repositories/science:/openturns/Fedora_42/science:openturns.repo
+# dnf install -y --setopt=install_weak_deps=False \
+#     openturns-libs openturns-devel
 
 dnf clean all

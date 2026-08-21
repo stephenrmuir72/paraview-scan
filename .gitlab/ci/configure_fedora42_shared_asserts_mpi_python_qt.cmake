@@ -7,10 +7,18 @@ set(PARAVIEW_ENABLE_ADIOS2 ON CACHE BOOL "")
 set(PARAVIEW_ENABLE_FFMPEG ON CACHE BOOL "")
 set(PARAVIEW_ENABLE_FIDES ON CACHE BOOL "")
 set(PARAVIEW_ENABLE_GDAL ON CACHE BOOL "")
-set(PARAVIEW_ENABLE_OPENTURNS ON CACHE BOOL "")
+# FIXME: Disable openturns until we have Fedora 44
+set(PARAVIEW_ENABLE_OPENTURNS OFF CACHE BOOL "")
 set(PARAVIEW_ENABLE_PDAL ON CACHE BOOL "")
 set(PARAVIEW_ENABLE_VISITBRIDGE ON CACHE BOOL "")
 set(PARAVIEW_ENABLE_XDMF3 ON CACHE BOOL "")
+
+# Exercise the Catalyst "fides_conduit" channel. It enables VTK::conduit, which
+# requires a Catalyst built against the same external Conduit. The docker image
+# provides pairs of catalyst/conduit for each MPI variant under /opt, and here
+# We pick the set built with mpich.
+set(PARAVIEW_ENABLE_CATALYST_FIDES ON CACHE BOOL "")
+set(CMAKE_PREFIX_PATH "/opt/catalyst-ext/mpich;/opt/conduit/mpich" CACHE STRING "")
 
 set(PARAVIEW_PLUGINS_DEFAULT ON CACHE BOOL "")
 
