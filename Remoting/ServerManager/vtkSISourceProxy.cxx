@@ -386,15 +386,20 @@ void vtkSISourceProxy::ReduceAbort()
 
   unsigned char abort = algo->GetAbortExecute();
 
-  // Reduce the result to all processes. should be a broadcast TODO
   // TODO this can cause deadlock for incorrectly implemented filters TODO
   auto controller = vtkMultiProcessController::GetGlobalController();
-  unsigned char sendAbort = abort, reducedAbort;
-  controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);
-
-  if (reducedAbort)
+  const int numprocs = controller->GetNumberOfProcesses();
+  if (numprocs > 1)
   {
-    algo->SetAbortExecuteAndUpdateTime();
+
+    controller->Broadcast(&abort, 1, 0);
+    /*  unsigned char sendAbort = abort, reducedAbort;
+        controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);*/
+
+    if (abort)
+    {
+      algo->SetAbortExecuteAndUpdateTime();
+    }
   }
 }
 
