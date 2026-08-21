@@ -84,6 +84,9 @@ bool vtkSISourceProxy::CreateVTKObjects()
   // local timer-log.
   algorithm->AddObserver(vtkCommand::StartEvent, this, &vtkSISourceProxy::MarkStartEvent);
   algorithm->AddObserver(vtkCommand::EndEvent, this, &vtkSISourceProxy::MarkEndEvent);
+
+  // Register abort check event to trigger abort reduction
+  algorithm->AddObserver(vtkCommand::AbortCheckEvent, this, &vtkSISourceProxy::ReduceAbort);
   return true;
 }
 
@@ -299,19 +302,14 @@ void vtkSISourceProxy::ClearAbortFlags()
     return;
   }
 
-  auto controller = vtkMultiProcessController::GetGlobalController();
-  const int processid = controller->GetLocalProcessId();
-  if (processid == 0 && this->GetVTKObject())
-  {
-    vtkVLogScopeF(
-      PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: clear  abort flags", this->GetLogNameOrDefault());
+  vtkVLogScopeF(
+    PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: clear  abort flags", this->GetLogNameOrDefault());
 
-    vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
-    if (algo)
-    {
-      algo->AbortExecuteOff();
-      algo->AbortOutputOff();
-    }
+  vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+  if (algo)
+  {
+    algo->AbortExecuteOff();
+    algo->AbortOutputOff();
   }
 }
 
@@ -326,13 +324,10 @@ void vtkSISourceProxy::UpdatePipelineInformation()
   vtkVLogScopeF(PARAVIEW_LOG_PIPELINE_VERBOSITY(), "%s: update pipeline information",
     this->GetLogNameOrDefault());
 
-  if (this->GetVTKObject())
+  vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+  if (algo)
   {
-    vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
-    if (algo)
-    {
-      algo->UpdateInformation();
-    }
+    algo->UpdateInformation();
   }
 
   // Call UpdatePipelineInformation() on all subproxies.
@@ -377,6 +372,29 @@ void vtkSISourceProxy::MarkEndEvent()
     std::ostringstream filterName;
     filterName << "Execute " << this->GetLogNameOrDefault() << " id: " << this->GetGlobalID();
     vtkTimerLog::MarkEndEvent(filterName.str().c_str());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::ReduceAbort()
+{
+  vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
+  if (!algo)
+  {
+    return;
+  }
+
+  unsigned char abort = algo->GetAbortExecute();
+
+  // Reduce the result to all processes. should be a broadcast TODO
+  // TODO this can cause deadlock for incorrectly implemented filters TODO
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  unsigned char sendAbort = abort, reducedAbort;
+  controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);
+
+  if (reducedAbort)
+  {
+    algo->SetAbortExecuteAndUpdateTime();
   }
 }
 

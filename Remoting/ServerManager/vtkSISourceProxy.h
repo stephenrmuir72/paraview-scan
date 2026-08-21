@@ -70,6 +70,12 @@ public:
    */
   void EnableAbortCheck();
 
+  /**
+   * Recover the AbortExecute state of the underlying vtk object
+   * and reduce it accross all ranks
+   */
+  void ReduceAbort();
+
 protected:
   vtkSISourceProxy();
   ~vtkSISourceProxy() override;
