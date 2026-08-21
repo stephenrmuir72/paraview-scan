@@ -15,13 +15,20 @@
 #include "vtkPVCompositeDataPipeline.h"
 #include "vtkPVLogger.h"
 #include "vtkPVPostFilter.h"
+#include "vtkPVProgressHandler.h"
 #include "vtkPVXMLElement.h"
 #include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTimerLog.h"
 
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+#include "vtkMPICommunicator.h"
+#include "vtkMPIController.h"
+#endif
+
 #include <cassert>
+#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -31,6 +38,11 @@ class vtkSISourceProxy::vtkInternals
 public:
   std::vector<vtkSmartPointer<vtkAlgorithmOutput>> OutputPorts;
   std::vector<vtkSmartPointer<vtkPVPostFilter>> PostFilters;
+
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  std::vector<vtkMPICommunicator::Request> AbortRequests;
+  bool AbortRequestStarted = false;
+#endif
 };
 
 //*****************************************************************************
@@ -44,6 +56,21 @@ vtkSISourceProxy::vtkSISourceProxy()
   this->PortsCreated = false;
   this->StartEventCounter = 0;
   this->DisablePipelineExecution = false;
+
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  const int processId = controller->GetLocalProcessId();
+  const int numProcs = controller->GetNumberOfProcesses();
+  if (numProcs > 1)
+  {
+    if (processId == 0)
+    {
+      this->Internals->AbortRequests.resize(numProcs);
+    }
+    else
+    {
+      this->Internals->AbortRequests.resize(1);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -87,6 +114,8 @@ bool vtkSISourceProxy::CreateVTKObjects()
 
   // Register abort check event to trigger abort reduction
   algorithm->AddObserver(vtkCommand::AbortCheckEvent, this, &vtkSISourceProxy::ReduceAbort);
+  algorithm->AddObserver(
+    vtkCommand::CleanupAbortCheckEvent, this, &vtkSISourceProxy::CleanupAbortRequests);
   return true;
 }
 
@@ -386,21 +415,103 @@ void vtkSISourceProxy::ReduceAbort()
 
   unsigned char abort = algo->GetAbortExecute();
 
-  // TODO this can cause deadlock for incorrectly implemented filters TODO
-  auto controller = vtkMultiProcessController::GetGlobalController();
-  const int numprocs = controller->GetNumberOfProcesses();
-  if (numprocs > 1)
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  vtkMPIController* controller =
+    vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController());
+  if (!controller)
   {
+    return;
+  }
 
-    controller->Broadcast(&abort, 1, 0);
-    /*  unsigned char sendAbort = abort, reducedAbort;
-        controller->AllReduce(&sendAbort, &reducedAbort, 1, vtkCommunicator::LOGICAL_OR_OP);*/
+  const int numProcs = controller->GetNumberOfProcesses();
+  const int processId = controller->GetLocalProcessId();
 
-    if (abort)
+  if (numProcs > 1)
+  {
+    if (processId == 0)
     {
-      algo->SetAbortExecuteAndUpdateTime();
+      for (int i = 1; i < numProcs; i++)
+      {
+        std::cout << i << std::endl;
+        if (!this->Internals->AbortRequestStarted || this->Internals->AbortRequests[i].Test())
+        {
+          // Only send a new request if previous one completed
+          controller->NoBlockSend(
+            &abort, 1, i, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[i]);
+          this->Internals->AbortRequestStarted = true;
+        }
+        else if (abort)
+        {
+          // In case of abort, always send a new request
+          this->Internals->AbortRequests[i].Cancel();
+          controller->NoBlockSend(
+            &abort, 1, i, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[i]);
+          this->Internals->AbortRequestStarted = true;
+        }
+      }
+    }
+    else
+    {
+      std::cout << 0 << std::endl;
+      if (!this->Internals->AbortRequestStarted || this->Internals->AbortRequests[0].Test())
+      {
+        // Check previous receive operation result
+        if (abort)
+        {
+          algo->SetAbortExecuteAndUpdateTime();
+          return;
+        }
+
+        // Only receive if not already receiving
+        controller->NoBlockReceive(
+          &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0]);
+        this->Internals->AbortRequestStarted = true;
+
+        // Check if receive was immediately done
+        if (this->Internals->AbortRequests[0].Test())
+        {
+          if (abort)
+          {
+            algo->SetAbortExecuteAndUpdateTime();
+          }
+        }
+      }
     }
   }
+#endif
+}
+
+//----------------------------------------------------------------------------
+void vtkSISourceProxy::CleanupAbortRequests()
+{
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  const int numProcs = controller->GetNumberOfProcesses();
+  const int processId = controller->GetLocalProcessId();
+
+  // Wait for all processes first
+  controller->Barrier();
+
+  // Cancel any remaining requests
+  if (numProcs > 1)
+  {
+    if (processId == 0)
+    {
+      for (int i = 1; i < numProcs; i++)
+      {
+        std::cout << "CleanupAbortRequests: " << i << std::endl;
+        if (this->Internals->AbortRequestStarted && !this->Internals->AbortRequests[i].Test())
+        {
+          this->Internals->AbortRequests[i].Cancel();
+        }
+      }
+    }
+    else if (this->Internals->AbortRequestStarted && !this->Internals->AbortRequests[0].Test())
+    {
+      std::cout << "CleanupAbortRequests: zero" << std::endl;
+      this->Internals->AbortRequests[0].Cancel();
+    }
+  }
+  this->Internals->AbortRequestStarted = false;
 }
 
 //----------------------------------------------------------------------------

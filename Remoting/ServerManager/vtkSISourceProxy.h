@@ -76,6 +76,8 @@ public:
    */
   void ReduceAbort();
 
+  void CleanupAbortRequests();
+
 protected:
   vtkSISourceProxy();
   ~vtkSISourceProxy() override;
