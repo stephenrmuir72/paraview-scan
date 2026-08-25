@@ -40,6 +40,7 @@ public:
   std::vector<vtkSmartPointer<vtkPVPostFilter>> PostFilters;
 
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
+  // std::nullopt means there is no request to Receive/Test/Cancel
   std::vector<std::optional<vtkMPICommunicator::Request>> AbortRequests;
 #endif
 };
@@ -63,10 +64,12 @@ vtkSISourceProxy::vtkSISourceProxy()
   {
     if (processId == 0)
     {
+      // On rank 0, use request 1 to N
       this->Internals->AbortRequests.resize(numProcs);
     }
     else
     {
+      // On rank N, use request 0
       this->Internals->AbortRequests.resize(1);
     }
   }
@@ -406,6 +409,7 @@ void vtkSISourceProxy::MarkEndEvent()
 //----------------------------------------------------------------------------
 void vtkSISourceProxy::ReduceAbort()
 {
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
   vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(this->GetVTKObject());
   if (!algo)
   {
@@ -414,7 +418,6 @@ void vtkSISourceProxy::ReduceAbort()
 
   unsigned char abort = algo->GetAbortExecute();
 
-#if VTK_MODULE_ENABLE_VTK_ParallelMPI
   vtkMPIController* controller =
     vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController());
   if (!controller)
@@ -429,6 +432,11 @@ void vtkSISourceProxy::ReduceAbort()
   {
     if (processId == 0)
     {
+      // On rank 0, we send the abort flag to all other ranks
+      // However they are three cases
+      // 1. Nothing was ever sent, so we need to create the request first and then NoBlockSend
+      // 2. There is an ongoing NoBlockSend, check if completed and if so, send again
+      // 3. Abort was triggered, then cancel the request and send
       for (int i = 1; i < numProcs; i++)
       {
         if (!this->Internals->AbortRequests[i].has_value())
@@ -458,6 +466,11 @@ void vtkSISourceProxy::ReduceAbort()
     }
     else
     {
+      // On rank N, we receive the abort flag from rank 0
+      // They are two cases:
+      // 1. Nothing was ever received, create a request and then NoBlockReceive
+      // 2. There is an ongoing NoBlockReceive, if it completes, check it, if not aborted
+      // then start receiving again (and check right away just in case)
       if (!this->Internals->AbortRequests[0].has_value())
       {
         // First request to receive

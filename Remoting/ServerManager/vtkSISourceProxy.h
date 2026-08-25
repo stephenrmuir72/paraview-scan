@@ -72,10 +72,13 @@ public:
 
   /**
    * Recover the AbortExecute state of the underlying vtk object
-   * and reduce it accross all ranks
+   * and send it from rank 0 to all other ranks (not a true reduction).
    */
   void ReduceAbort();
 
+  /**
+   * Cleanup all remaining send/receive requests related to ReduceAbort
+   */
   void CleanupAbortRequests();
 
 protected:
