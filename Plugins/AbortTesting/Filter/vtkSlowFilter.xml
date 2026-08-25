@@ -13,10 +13,20 @@
           <Group name="filters" />
         </ProxyGroupDomain>
         <DataTypeDomain name="input_type">
-          <DataType value="vtkImageData" />
+          <DataType value="vtkDataSet" />
         </DataTypeDomain>
         <Documentation>This property specifies the input to the filter.</Documentation>
       </InputProperty>
+      <IntVectorProperty
+        name="SleepTime"
+        command="SetSleepTime"
+        number_of_elements="1"
+        animateable="0"
+        default_values="2">
+        <Documentation>
+          Sleep time between loops in ms
+        </Documentation>
+      </IntVectorProperty>
     </SourceProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>
