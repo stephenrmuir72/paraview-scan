@@ -7,6 +7,7 @@
 #include "vtkCPDataDescription.h"
 #include "vtkCPInputDataDescription.h"
 #include "vtkCollection.h"
+#include "vtkInformation.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVLogger.h"
 #include "vtkPVTrivialProducer.h"
@@ -21,6 +22,7 @@
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSmartPointer.h"
 #include "vtkSmartPyObject.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkStringList.h"
 #include "vtkStringScanner.h"
 
@@ -466,9 +468,24 @@ bool vtkCPPythonScriptV2Helper::CatalystExecute(vtkCPDataDescription* dataDesc)
     assert(ipdesc);
 
     auto tp = vtkPVTrivialProducer::SafeDownCast(producer->GetClientSideObject());
-    tp->SetOutput(ipdesc->GetGrid(), dataDesc->GetTime());
-    tp->SetWholeExtent(ipdesc->GetWholeExtent());
 
+    tp->UpdateInformation();
+    vtkInformation* info = tp->GetOutputInformation(0);
+    if (info->Has(vtkStreamingDemandDrivenPipeline::TIME_RANGE()))
+    {
+      double* timeRange = info->Get(vtkStreamingDemandDrivenPipeline::TIME_RANGE());
+      if (timeRange[1] != dataDesc->GetTime())
+      {
+        tp->SetOutput(ipdesc->GetGrid(), dataDesc->GetTime());
+        tp->SetWholeExtent(ipdesc->GetWholeExtent());
+      }
+    }
+    else
+    {
+      tp->SetOutput(ipdesc->GetGrid(), dataDesc->GetTime());
+      tp->SetWholeExtent(ipdesc->GetWholeExtent());
+    }
+    // mark producer as modified just to be safe
     producer->MarkModified(producer);
   }
 
