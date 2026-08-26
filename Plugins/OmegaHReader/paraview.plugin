@@ -1,0 +1,9 @@
+NAME
+  OmegaHReader
+DESCRIPTION
+  Reader for omega_h mesh files (.osh)
+REQUIRES_MODULES
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::ParallelCore

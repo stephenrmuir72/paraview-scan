@@ -1,0 +1,13 @@
+NAME
+  OmegaHReader::Reader
+LIBRARY_NAME
+  vtkOmegaHReader
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::ParallelCore
+PRIVATE_DEPENDS
+  VTK::zlib
