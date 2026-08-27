@@ -24,7 +24,7 @@ void pqAbortTesting::onStartup()
 //-----------------------------------------------------------------------------
 void pqAbortTesting::onProgress(const QString&, int progress)
 {
-  if (progress > 25)
+  if (progress > 50)
   {
     pqProgressManager* pmManager = pqApplicationCore::instance()->getProgressManager();
     pmManager->triggerAbort();
