@@ -16,6 +16,7 @@ list(APPEND sources
 
 paraview_add_plugin(AbortTesting
   REQUIRED_ON_CLIENT
+  REQUIRED_ON_SERVER
   VERSION "1.0"
   EULA    Disclaimer.txt
   UI_INTERFACES ${interfaces}
