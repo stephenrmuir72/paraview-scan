@@ -1,4 +1,37 @@
 <ServerManagerConfiguration>
+  <ProxyGroup name="settings">
+    <SettingsProxy name="AbortTestingSettings" label="AbortTesting"
+      processes="client|dataserver|renderserver">
+      <Documentation>
+        Settings for the AbortTesting plugin.
+      </Documentation>
+
+      <IntVectorProperty name="AutoAbort"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+          If the plugin should auto abort
+        </Documentation>
+        <BooleanDomain name="bool" />
+        <Hints>
+          <SaveInQSettings />
+        </Hints>
+      </IntVectorProperty>
+      <IntVectorProperty name="AutoAbortValue"
+        number_of_elements="1"
+        default_values="50">
+        <Documentation>
+          Value in percentage at which auto abort should occur
+        </Documentation>
+        <Hints>
+          <SaveInQSettings />
+        </Hints>
+      </IntVectorProperty>
+      <Hints>
+        <UseDocumentationForLabels />
+      </Hints>
+    </SettingsProxy>
+  </ProxyGroup>
   <ProxyGroup name="filters">
     <SourceProxy
       name="SlowFilter"
