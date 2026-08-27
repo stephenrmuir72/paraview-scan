@@ -22,6 +22,7 @@ paraview_add_plugin(AbortTesting
   UI_INTERFACES ${interfaces}
   SOURCES ${sources}
   MODULES SlowFilter::SlowFilter
-  MODULE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Filter/vtk.module")
+  MODULE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Filter/vtk.module"
+  SERVER_MANAGER_XML  AbortTesting.xml)
 
 add_subdirectory(Testing)
