@@ -66,32 +66,20 @@ std::string ParseTimeUnits(const int& vdate, const int& vtime)
   std::string date = vtk::to_string(vdate);
   std::string time = vtk::to_string(vtime);
   std::string time_units;
-  if (date.size() < 8)
+  if (date.size() < 5)
   {
-    time_units = "days since 0-1-1 ";
+    time_units = "days since 0-01-01 ";
   }
   else
   {
     time_units = "days since ";
-    time_units += date.substr(0, 4);
+    time_units += date.substr(0, date.size() - 4);
     time_units += "-";
-    time_units += date.substr(4, 2);
+    time_units += date.substr(date.size() - 4, 2);
     time_units += "-";
-    time_units += date.substr(6, 2);
-    time_units += " ";
+    time_units += date.substr(date.size() - 2, 2);
   }
-  if (time.size() < 6)
-  {
-    time_units += "00:00:00";
-  }
-  else
-  {
-    time_units += time.substr(0, 2);
-    time_units += ":";
-    time_units += time.substr(2, 2);
-    time_units += ":";
-    time_units += time.substr(4, 2);
-  }
+  time_units += " 00:00:00";
   return time_units;
 }
 
