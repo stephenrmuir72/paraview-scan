@@ -23,6 +23,7 @@
 #include "vtkStringScanner.h"
 
 #include <cassert>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -244,6 +245,7 @@ void vtkSMSourceProxy::ClearAbortFlags()
     return; // This object is a prototype or is not on all servers
   }
 
+  std::cout << "ClearAbortFlags" << std::endl;
   if (this->ObjectsCreated)
   {
     vtkClientServerStream stream;
