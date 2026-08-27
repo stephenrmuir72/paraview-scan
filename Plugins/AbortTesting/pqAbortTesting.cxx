@@ -6,7 +6,6 @@
 #include "pqProgressManager.h"
 #include "pqSettings.h"
 
-#include <iostream>
 //-----------------------------------------------------------------------------
 pqAbortTesting::pqAbortTesting(QObject* parent)
   : QObject(parent)
@@ -27,13 +26,8 @@ void pqAbortTesting::onStartup()
 void pqAbortTesting::onProgress(const QString&, int progress)
 {
   pqSettings* settings = pqApplicationCore::instance()->settings();
-
-  //  bool autoAbort = vtkAbortTestingSettings::GetInstance()->GetAutoAbort();
   bool autoAbort = settings->value("AbortTestingSettings.AutoAbort", true).toBool();
-  std::cout << "autoAbort: " << autoAbort << std::endl;
-  //  int autoAbortValue = vtkAbortTestingSettings::GetInstance()->GetAutoAbortValue();
   int autoAbortValue = settings->value("AbortTestingSettings.AutoAbortValue", 50).toInt();
-  std::cout << "autoAbortValue: " << autoAbortValue << std::endl;
   if (autoAbort && progress > autoAbortValue)
   {
     pqProgressManager* pmManager = pqApplicationCore::instance()->getProgressManager();
