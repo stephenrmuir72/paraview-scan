@@ -11,6 +11,7 @@
 #include "vtkDataSetAttributes.h"
 #include "vtkDoubleArray.h"
 #include "vtkDummyController.h"
+#include "vtkFileResourceStream.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
@@ -21,13 +22,15 @@
 #include "vtkPartitionedDataSet.h"
 #include "vtkPointData.h"
 #include "vtkPoints.h"
+#include "vtkResourceStream.h"
 #include "vtkSignedCharArray.h"
+#include "vtkSmartPointer.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkUnstructuredGrid.h"
 
 #include <algorithm>
 #include <cstdint>
-#include <fstream>
+#include <cstdio>
 #include <string>
 #include <utility>
 #include <vector>
@@ -98,24 +101,15 @@ void SwapBytesIfNeeded(T* values, std::size_t count)
 class Stream
 {
 public:
-  explicit Stream(const std::string& path)
-    : In(path, std::ios::binary)
+  explicit Stream(vtkResourceStream* stream)
+    : In(stream)
   {
-  }
-
-  bool IsOpen() const { return this->In.is_open(); }
-
-  bool AtEnd()
-  {
-    this->In.peek();
-    return this->In.eof();
   }
 
   template <typename T>
   bool Value(T& value)
   {
-    this->In.read(reinterpret_cast<char*>(&value), sizeof(T));
-    if (!this->In)
+    if (this->In->Read(&value, sizeof(T)) != sizeof(T))
     {
       return false;
     }
@@ -123,10 +117,14 @@ public:
     return true;
   }
 
-  bool Bytes(void* data, std::size_t count)
+  bool Bytes(void* data, std::size_t count) { return this->In->Read(data, count) == count; }
+
+  // Probe for trailing bytes: a read of zero means the stream is exhausted
+  // (vtkResourceStream has no peek; a one-byte read is the equivalent probe).
+  bool AtEnd()
   {
-    this->In.read(reinterpret_cast<char*>(data), static_cast<std::streamsize>(count));
-    return bool(this->In);
+    char c;
+    return this->In->Read(&c, 1) == 0;
   }
 
   bool Str(std::string& out, std::string& error)
@@ -194,7 +192,7 @@ public:
   }
 
 private:
-  std::ifstream In;
+  vtkSmartPointer<vtkResourceStream> In;
 };
 
 // ---------------------------------------------------------------------------
@@ -224,12 +222,13 @@ struct Part
 
 bool ReadPart(const std::string& filePath, int version, Part& part, std::string& error)
 {
-  Stream stream(filePath);
-  if (!stream.IsOpen())
+  vtkNew<vtkFileResourceStream> file;
+  if (!file->Open(filePath.c_str()))
   {
     error = "could not open part file \"" + filePath + "\"";
     return false;
   }
+  Stream stream(file);
   unsigned char magic[2] = { 0, 0 };
   if (!stream.Bytes(magic, sizeof(magic)) || magic[0] != kMagic[0] || magic[1] != kMagic[1])
   {
@@ -882,13 +881,21 @@ vtkSmartPointer<vtkUnstructuredGrid> BuildGrid(const Part& part, std::string& er
 
 bool ReadIntFile(const std::string& path, int& value)
 {
-  std::ifstream file(path);
-  if (!file.is_open())
+  vtkNew<vtkFileResourceStream> file;
+  if (!file->Open(path.c_str()))
   {
     return false;
   }
-  file >> value;
-  return bool(file);
+  // The nparts/version sidecar files are tiny ASCII files holding one
+  // integer each; vtkResourceStream is unformatted, so parse with sscanf.
+  std::string text(64, '\0');
+  const auto nbytes = file->Read(&text[0], text.size());
+  if (nbytes == 0)
+  {
+    return false;
+  }
+  text.resize(nbytes);
+  return std::sscanf(text.c_str(), "%d", &value) == 1;
 }
 
 } // namespace
