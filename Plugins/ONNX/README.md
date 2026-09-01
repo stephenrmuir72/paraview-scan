@@ -1,11 +1,13 @@
 # ONNX Plugin
 
-This plugins add a filter to perform AI inference: **ONNX Predict**.
+This plugin adds two filters to perform AI inference: **ONNX Predict** and **ONNX Field Prediction**.
 
 *ONNX* is a community project supported by the Linux Foundation, working toward
 interoperability of AI tools. See more at <https://onnx.ai/about.html>.
 
 ## Usage
+
+### ONNX Predict
 
 To use this filter, you will need to provide two files:
 - an ONNX model file
@@ -28,7 +30,7 @@ Expected Json format:
    },
    ...
    ,
-   { "Name": str
+   { "Name": str,
      "Min": double,
      "Max": double,
      <opt>"IsTime": bool,
@@ -44,6 +46,12 @@ Expected Json format:
 The `Inputs` array list input parameters: those are bounded numerical values.
 The `Output` describe how to associate the resulting array with the data.
 It can be Cell or Point data with a dimension greater or equal to 1.
+
+### ONNX Field Prediction
+
+This filter use as input an existing field on the data. You just need to provide the path to the ONNX file
+and select the array to feed to the model. The output is also be a new field on the data.
+
 
 ## Build
 
