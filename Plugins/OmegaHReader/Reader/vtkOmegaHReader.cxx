@@ -28,6 +28,8 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkUnstructuredGrid.h"
 
+#include <vtksys/SystemTools.hxx>
+
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -939,6 +941,38 @@ void vtkOmegaHReader::SetStream(vtkResourceStream* stream)
 vtkResourceStream* vtkOmegaHReader::GetStream()
 {
   return this->Stream;
+}
+
+vtkTypeBool vtkOmegaHReader::CanReadFile(const char* name)
+{
+  // An omega_h mesh is a directory with ASCII "nparts" and "version"
+  // sidecar files and at least one binary part file "<rank>.osh"; part 0
+  // is checked for the omega_h magic bytes.
+  if (!name || !vtksys::SystemTools::FileIsDirectory(name))
+  {
+    return 0;
+  }
+  const std::string directory(name);
+  int nparts = 0;
+  int version = 0;
+  if (!ReadIntFile(directory + "/nparts", nparts) || nparts <= 0)
+  {
+    return 0;
+  }
+  if (!ReadIntFile(directory + "/version", version))
+  {
+    return 0;
+  }
+  vtkNew<vtkFileResourceStream> file;
+  if (!file->Open((directory + "/0.osh").c_str()))
+  {
+    return 0;
+  }
+  unsigned char magic[2] = { 0, 0 };
+  return (file->Read(magic, sizeof(magic)) == sizeof(magic) && magic[0] == kMagic[0] &&
+           magic[1] == kMagic[1])
+    ? 1
+    : 0;
 }
 
 void vtkOmegaHReader::PrintSelf(ostream& os, vtkIndent indent)

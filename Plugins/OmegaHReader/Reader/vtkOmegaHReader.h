@@ -60,6 +60,19 @@ public:
 
   ///@{
   /**
+   * Return true if, after a quick check of the directory contents, it looks
+   * like the provided directory is an omega_h mesh (.osh) this reader can
+   * load, and false if it is sure it cannot be read. This does not modify
+   * nor use members. If the mesh uses a format version this reader does not
+   * support, this still returns true and the reader will fail on reading;
+   * this enables ParaView to distinguish between failures where another
+   * reader should be tried and failures where it should not.
+   */
+  virtual vtkTypeBool CanReadFile(VTK_FILEPATH const char* name);
+  ///@}
+
+  ///@{
+  /**
    * The controller used to read the mesh collectively. Defaults to the
    * global controller (vtkMultiProcessController::GetGlobalController());
    * a vtkDummyController is used when no global controller exists.
