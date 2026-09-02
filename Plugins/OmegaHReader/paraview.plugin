@@ -1,7 +1,7 @@
 NAME
   OmegaHReader
 DESCRIPTION
-  Reader for omega_h mesh files (.osh)
+  Reader for Omega_h Mesh Files (.osh)
 REQUIRES_MODULES
   VTK::CommonCore
   VTK::CommonDataModel

@@ -3,7 +3,7 @@
   <ProxyGroup name="sources">
    <SourceProxy name="OmegaHReader"
                 class="vtkOmegaHReader"
-                label="Omega_h mesh reader">
+                label="Omega_h Mesh Reader">
      <Documentation
        short_help="Read an omega_h mesh (.osh)"
        long_help="Read an omega_h mesh. An omega_h mesh is stored as a directory ending in .osh: ASCII 'nparts' and 'version' sidecar files plus one binary part file per writer rank. The reader parses the binary format itself and loads each part as a partition of a partitioned dataset.">
@@ -24,7 +24,7 @@
      <Hints>
        <ReaderFactory extensions="osh"
                       is_directory="1"
-                      file_description="Omega_h mesh files" />
+                      file_description="Omega_h Mesh Files" />
      </Hints>
    </SourceProxy>
   </ProxyGroup>

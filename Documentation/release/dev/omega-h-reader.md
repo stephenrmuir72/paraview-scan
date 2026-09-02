@@ -1,4 +1,4 @@
-## New omega_h mesh reader
+## New Omega_h Mesh Reader
 
 ParaView can now open [omega_h](https://github.com/SCOREC/omega_h) meshes (`.osh` files), including meshes
 partitioned across multiple ranks. Each writer part is loaded as a
