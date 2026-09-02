@@ -21,6 +21,8 @@
 #include <set>
 #include <string>
 
+#include <iostream>
+
 // define this variable to disable progress all together. This may be useful to
 // doing really large runs.
 // #define PV_DISABLE_PROGRESS_HANDLING
@@ -583,7 +585,9 @@ void vtkPVProgressHandler::CheckAbort(
     vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(caller);
     if (algo)
     {
+      std::cout << "vtkPVProgressHandler: Abort" << std::endl;
       algo->SetAbortExecuteAndUpdateTime();
+      algo->SetAbortOutput(true);
     }
   }
 }
