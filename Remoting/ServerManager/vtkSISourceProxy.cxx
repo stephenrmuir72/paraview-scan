@@ -420,6 +420,11 @@ void vtkSISourceProxy::ReduceAbort()
 
   unsigned char abort = algo->GetAbortExecute();
 
+  if (abort)
+  {
+    abort = 1 + (rand() % 250);
+  }
+
   vtkMPIController* controller =
     vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController());
   if (!controller)
@@ -444,14 +449,15 @@ void vtkSISourceProxy::ReduceAbort()
         if (!this->Internals->AbortRequests[i].has_value())
         {
           // First request to send
-          std::cout << "First send request: " << static_cast<bool>(abort) << std::endl;
+          std::cout << "First send request: " << i << " " << static_cast<int>(abort) << std::endl;
           this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
           controller->NoBlockSend(&abort, 1, i, vtkPVProgressHandler::ABORT_TAG,
             this->Internals->AbortRequests[i].value());
         }
         else if (this->Internals->AbortRequests[i].value().Test())
         {
-          std::cout << "Standard send request: " << static_cast<bool>(abort) << std::endl;
+          std::cout << "Standard send request: " << i << " " << static_cast<int>(abort)
+                    << std::endl;
           // Only send a new request if previous one completed
           this->Internals->AbortRequests[i] = vtkMPICommunicator::Request(); // TODO is this needed
                                                                              // ?
@@ -460,7 +466,7 @@ void vtkSISourceProxy::ReduceAbort()
         }
         else if (abort)
         {
-          std::cout << "Abort send request: " << static_cast<bool>(abort) << std::endl;
+          std::cout << "Abort send request: " << i << " " << static_cast<int>(abort) << std::endl;
           // In case of abort, always send a new request
           this->Internals->AbortRequests[i].value().Cancel();
           this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
@@ -479,14 +485,14 @@ void vtkSISourceProxy::ReduceAbort()
       if (!this->Internals->AbortRequests[0].has_value())
       {
         // First request to receive
-        std::cout << "First receive request:" << static_cast<bool>(abort) << std::endl;
+        //        std::cout<<"First receive request:" << static_cast<int>(abort) <<std::endl;
         this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
         controller->NoBlockReceive(
           &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0].value());
       }
       else if (this->Internals->AbortRequests[0].value().Test())
       {
-        std::cout << "Received!: " << static_cast<bool>(abort) << std::endl;
+        //        std::cout<<"Received!: " << static_cast<int>(abort) <<std::endl;
         this->Internals->AbortRequests[0].reset();
 
         // Check previous receive operation result
@@ -498,7 +504,7 @@ void vtkSISourceProxy::ReduceAbort()
           return;
         }
 
-        std::cout << "Standard receive request:" << static_cast<bool>(abort) << std::endl;
+        std::cout << "Standard receive request:" << static_cast<int>(abort) << std::endl;
         // Only receive if not already receiving
         this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
         controller->NoBlockReceive(
@@ -507,7 +513,7 @@ void vtkSISourceProxy::ReduceAbort()
         // Check if receive was immediately done
         if (this->Internals->AbortRequests[0].value().Test())
         {
-          std::cout << "Received fast!: " << static_cast<bool>(abort) << std::endl;
+          std::cout << "Received fast!: " << static_cast<int>(abort) << std::endl;
           this->Internals->AbortRequests[0].reset();
           if (abort)
           {
@@ -547,34 +553,36 @@ void vtkSISourceProxy::CleanupAbortRequests()
     {
       for (int i = 1; i < numProcs; i++)
       {
-        std::cout << "CleanupAbortRequests: Receive: " << i << std::endl;
+        //        std::cout<<"CleanupAbortRequests: Receive: " << i <<std::endl;
         // First wait for satellite rank to reach cleanup
         controller->Receive(&cleanup, 1, i, vtkPVProgressHandler::CLEANUP_TAG);
-        std::cout << "CleanupAbortRequests: Receive Done: " << i << std::endl;
+        //        std::cout<<"CleanupAbortRequests: Receive Done: " << i <<std::endl;
 
         // NoBlockSend request may be pending completion, test first
-        if (this->Internals->AbortRequests[i].has_value() &&
-          !this->Internals->AbortRequests[i].value().Test())
+        if (this->Internals->AbortRequests[i].has_value())
+        // && !this->Internals->AbortRequests[i].value().Test())
         {
+          std::cout << "Cancel: " << i << std::endl;
           this->Internals->AbortRequests[i].value().Cancel();
         }
         this->Internals->AbortRequests[i].reset();
 
-        std::cout << "CleanupAbortRequests: send abort :" << static_cast<int>(abort) << std::endl;
+        //        std::cout<<"CleanupAbortRequests: send abort :" << static_cast<int>(abort)
+        //        <<std::endl;
         // Send a last abort flag so that all ranks are aware if abort happened
         controller->Send(&abort, 1, i, vtkPVProgressHandler::CLEANUP_TAG);
-        std::cout << "CleanupAbortRequests: send abort done :" << static_cast<int>(abort)
-                  << std::endl;
+        //        std::cout<<"CleanupAbortRequests: send abort done :" << static_cast<int>(abort)
+        //        <<std::endl;
       }
     }
     else
     {
-      std::cout << "CleanupAbortRequests: Send: zero" << std::endl;
+      //      std::cout<<"CleanupAbortRequests: Send: zero"<<std::endl;
       // Send cleanup to main rank and synchronize
       vtkMPICommunicator::Request req;
       controller->NoBlockSend(&cleanup, 1, 0, vtkPVProgressHandler::CLEANUP_TAG, req);
       req.Wait();
-      std::cout << "CleanupAbortRequests: Send done: zero" << std::endl;
+      //      std::cout<<"CleanupAbortRequests: Send done: zero"<<std::endl;
 
       // Remaining NoBlockReceive request just needs canceling
       if (this->Internals->AbortRequests[0].has_value())
@@ -583,11 +591,19 @@ void vtkSISourceProxy::CleanupAbortRequests()
       }
       this->Internals->AbortRequests[0].reset();
 
-      std::cout << "CleanupAbortRequests: Receive abort" << std::endl;
+      // Cleanup any send already in the pipe and that cannot be cancelled properly
+      do
+      {
+        controller->NoBlockReceive(&cleanup, 1, 0, vtkPVProgressHandler::ABORT_TAG, req);
+        std::cout << "Cleanup: " << static_cast<int>(cleanup) << std::endl;
+      } while (req.Test());
+      req.Cancel();
+
+      //      std::cout<<"CleanupAbortRequests: Receive abort"<<std::endl;
       // Receive the last abort flag so that we know for sure if abort happened
       controller->Receive(&abort, 1, 0, vtkPVProgressHandler::CLEANUP_TAG);
-      std::cout << "CleanupAbortRequests: Receive abort done:" << static_cast<int>(abort)
-                << std::endl;
+      //      std::cout<<"CleanupAbortRequests: Receive abort done:" << static_cast<int>(abort)
+      //      <<std::endl;
     }
   }
 
