@@ -60,6 +60,9 @@ constexpr unsigned char kFamilyMixed = 2;
 // The marker string written before the class ids of every tag (version > 9).
 constexpr char kClassIdsMarker[] = "n_geom_ents";
 
+// Latest format version (omega_h's src/Omega_h_file.hpp latest_version).
+constexpr int kLatestVersion = 11;
+
 bool IsLittleEndianCpu()
 {
   const std::uint16_t canary = 0x1;
@@ -220,25 +223,20 @@ struct Part
   std::vector<std::vector<int>> OwnerRanks;      // per dim; empty if CommSize == 1
 };
 
-bool ReadPart(const std::string& filePath, int version, Part& part, std::string& error)
+bool ReadPart(
+  vtkResourceStream* input, int version, const std::string& source, Part& part, std::string& error)
 {
-  vtkNew<vtkFileResourceStream> file;
-  if (!file->Open(filePath.c_str()))
-  {
-    error = "could not open part file \"" + filePath + "\"";
-    return false;
-  }
-  Stream stream(file);
+  Stream stream(input);
   unsigned char magic[2] = { 0, 0 };
   if (!stream.Bytes(magic, sizeof(magic)) || magic[0] != kMagic[0] || magic[1] != kMagic[1])
   {
-    error = "\"" + filePath + "\" is not an omega_h mesh part (bad magic)";
+    error = "\"" + source + "\" is not an omega_h mesh part (bad magic)";
     return false;
   }
   unsigned char isCompressed = 0;
   if (!stream.Value(isCompressed))
   {
-    error = "truncated .osh stream: " + filePath;
+    error = "truncated .osh stream: " + source;
     return false;
   }
 
@@ -256,7 +254,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
     !stream.Value(commRank) || !stream.Value(parting) || !stream.Value(nghostLayers) ||
     !stream.Value(haveHints))
   {
-    error = "truncated .osh meta: " + filePath;
+    error = "truncated .osh meta: " + source;
     return false;
   }
   part.Dim = dim;
@@ -267,7 +265,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
     std::int32_t naxes = 0;
     if (!stream.Value(naxes) || naxes < 0)
     {
-      error = "invalid rib hint count in .osh stream: " + filePath;
+      error = "invalid rib hint count in .osh stream: " + source;
       return false;
     }
     for (std::int32_t i = 0; i < naxes; ++i)
@@ -277,7 +275,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
         std::int64_t axisValue = 0;
         if (!stream.Value(axisValue))
         {
-          error = "truncated .osh rib hints: " + filePath;
+          error = "truncated .osh rib hints: " + source;
           return false;
         }
       }
@@ -287,7 +285,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
   std::int32_t nverts = 0;
   if (!stream.Value(nverts) || nverts < 0)
   {
-    error = "invalid vertex count in .osh stream: " + filePath;
+    error = "invalid vertex count in .osh stream: " + source;
     return false;
   }
   part.NVerts = nverts;
@@ -313,7 +311,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
     std::int32_t ntags = 0;
     if (!stream.Value(ntags) || ntags < 0)
     {
-      error = "invalid tag count in .osh stream: " + filePath;
+      error = "invalid tag count in .osh stream: " + source;
       return false;
     }
     for (std::int32_t i = 0; i < ntags; ++i)
@@ -325,7 +323,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
       }
       if (tag.NComps == 0)
       {
-        error = "tag \"" + tag.Name + "\" has zero components in .osh stream: " + filePath;
+        error = "tag \"" + tag.Name + "\" has zero components in .osh stream: " + source;
         return false;
       }
       if (version > 10)
@@ -345,7 +343,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
         }
         if (marker != kClassIdsMarker)
         {
-          error = "unexpected tag marker \"" + marker + "\" in .osh stream: " + filePath;
+          error = "unexpected tag marker \"" + marker + "\" in .osh stream: " + source;
           return false;
         }
         std::int32_t nclassIds = 0;
@@ -418,7 +416,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
         }
         default:
           error = "unsupported tag type " + std::to_string(tag.Type) + " for tag \"" + tag.Name +
-            "\" in " + filePath;
+            "\" in " + source;
           return false;
       }
       tag.Data = std::move(data);
@@ -446,7 +444,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
     std::int32_t nsets = 0;
     if (!stream.Value(nsets) || nsets < 0)
     {
-      error = "invalid class set count in .osh stream: " + filePath;
+      error = "invalid class set count in .osh stream: " + source;
       return false;
     }
     for (std::int32_t i = 0; i < nsets; ++i)
@@ -474,7 +472,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
     unsigned char hasParents = 0;
     if (!stream.Value(hasParents))
     {
-      error = "truncated .osh parents: " + filePath;
+      error = "truncated .osh parents: " + source;
       return false;
     }
     if (hasParents)
@@ -494,7 +492,7 @@ bool ReadPart(const std::string& filePath, int version, Part& part, std::string&
   if (!stream.AtEnd())
   {
     // trailing data usually means a format/version mismatch in this reader
-    error = "unparsed trailing data in .osh stream: " + filePath;
+    error = "unparsed trailing data in .osh stream: " + source;
     return false;
   }
   return true;
@@ -929,6 +927,20 @@ void vtkOmegaHReader::SetController(vtkMultiProcessController* controller)
   }
 }
 
+void vtkOmegaHReader::SetStream(vtkResourceStream* stream)
+{
+  if (this->Stream != stream)
+  {
+    this->Stream = stream;
+    this->Modified();
+  }
+}
+
+vtkResourceStream* vtkOmegaHReader::GetStream()
+{
+  return this->Stream;
+}
+
 void vtkOmegaHReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -939,11 +951,40 @@ int vtkOmegaHReader::RequestData(
   vtkInformation*, vtkInformationVector**, vtkInformationVector* outputVector)
 {
   auto output = vtkPartitionedDataSet::GetData(outputVector, 0);
-  if (!this->FileName)
+  if (!this->FileName && !this->Stream)
   {
-    vtkErrorMacro(<< "No FileName specified.");
+    vtkErrorMacro(<< "Either a FileName or a Stream must be specified.");
     return 0;
   }
+
+  if (this->Stream)
+  {
+    // Read a single part from the stream on every rank. The stream carries
+    // no version sidecar, so parse with the latest format version.
+    if (!this->Stream->SupportSeek())
+    {
+      vtkErrorMacro(<< "The stream must support seeking.");
+      return 0;
+    }
+    this->Stream->Seek(0, vtkResourceStream::SeekDirection::Begin);
+    Part part;
+    std::string error;
+    if (!ReadPart(this->Stream, kLatestVersion, "stream", part, error))
+    {
+      vtkErrorMacro(<< error);
+      return 0;
+    }
+    auto grid = BuildGrid(part, error);
+    if (!grid)
+    {
+      vtkErrorMacro(<< "Failed to convert the mesh part: " << error);
+      return 0;
+    }
+    output->SetNumberOfPartitions(1);
+    output->SetPartition(0, grid);
+    return 1;
+  }
+
   vtkMultiProcessController* controller = this->Controller;
   vtkNew<vtkDummyController> dummy;
   if (!controller)
@@ -980,7 +1021,7 @@ int vtkOmegaHReader::RequestData(
     vtkErrorMacro(<< "Invalid omega_h mesh directory: " << directory);
     return 0;
   }
-  if (version < 9 || version > 11)
+  if (version < 9 || version > kLatestVersion)
   {
     vtkErrorMacro(<< "Unsupported omega_h format version " << version
                   << " (supported: 9, 10, 11).");
@@ -995,9 +1036,15 @@ int vtkOmegaHReader::RequestData(
   for (int p = rank; p < nparts; p += nprocs)
   {
     const std::string filePath = directory + "/" + std::to_string(p) + ".osh";
+    vtkNew<vtkFileResourceStream> file;
+    if (!file->Open(filePath.c_str()))
+    {
+      vtkErrorMacro(<< "Could not open part file \"" << filePath << "\".");
+      return 0;
+    }
     Part part;
     std::string error;
-    if (!ReadPart(filePath, version, part, error))
+    if (!ReadPart(file, version, filePath, part, error))
     {
       vtkErrorMacro(<< error);
       return 0;

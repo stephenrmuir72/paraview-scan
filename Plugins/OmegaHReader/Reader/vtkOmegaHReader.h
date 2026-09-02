@@ -15,6 +15,8 @@
  * vtkPartitionedDataSet. Point and cell tags are exposed as point/cell data
  * arrays; when a mesh has multiple parts, entities owned by another part are
  * marked in the vtkGhostType array.
+ *
+ * A single part can also be read from a vtkResourceStream; see SetStream().
  */
 
 #ifndef vtkOmegaHReader_h
@@ -23,7 +25,8 @@
 #include "vtkOmegaHReaderModule.h" // for export macro
 #include "vtkPartitionedDataSetAlgorithm.h"
 
-#include "vtkSmartPointer.h" // for ivars
+#include "vtkResourceStream.h" // for Stream ivar
+#include "vtkSmartPointer.h"   // for ivars
 
 class vtkMultiProcessController;
 
@@ -44,6 +47,19 @@ public:
 
   ///@{
   /**
+   * Specify the stream to read a single part from. When both FileName and
+   * Stream are set, the stream is used.
+   *
+   * The stream must be seekable and contain the bytes of a single omega_h
+   * part file in the latest format version (11). Every rank reads the same
+   * stream and produces a single-partition dataset.
+   */
+  void SetStream(vtkResourceStream* stream);
+  vtkResourceStream* GetStream();
+  ///@}
+
+  ///@{
+  /**
    * The controller used to read the mesh collectively. Defaults to the
    * global controller (vtkMultiProcessController::GetGlobalController());
    * a vtkDummyController is used when no global controller exists.
@@ -59,6 +75,7 @@ protected:
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
   char* FileName = nullptr;
+  vtkSmartPointer<vtkResourceStream> Stream;
   vtkSmartPointer<vtkMultiProcessController> Controller;
 
 private:
