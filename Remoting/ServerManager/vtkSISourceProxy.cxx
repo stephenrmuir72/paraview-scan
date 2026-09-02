@@ -545,8 +545,8 @@ void vtkSISourceProxy::CleanupAbortRequests()
         controller->Receive(&cleanup, 1, i, vtkPVProgressHandler::CLEANUP_TAG);
 
         // NoBlockSend request may be pending completion, test first
-        if (this->Internals->AbortRequests[i].has_value())
-        // && !this->Internals->AbortRequests[i].value().Test())
+        if (this->Internals->AbortRequests[i].has_value() &&
+          !this->Internals->AbortRequests[i].value().Test())
         {
           this->Internals->AbortRequests[i].value().Cancel();
         }
