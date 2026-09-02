@@ -21,8 +21,6 @@
 #include <set>
 #include <string>
 
-#include <iostream>
-
 // define this variable to disable progress all together. This may be useful to
 // doing really large runs.
 // #define PV_DISABLE_PROGRESS_HANDLING
@@ -348,7 +346,6 @@ void vtkPVProgressHandler::OnProgressEvent(vtkObject* caller, unsigned long even
 
   // Try to clamp frequent progress events.
   this->Internals->ProgressTimer->StopTimer();
-  // std::cout <<"Elapsed: " << this->Internals->ProgressTimer->GetElapsedTime() <<
   //  endl;
   double progress = *reinterpret_cast<double*>(calldata);
   if (this->LastProgress == static_cast<int>(progress * 100.0))
@@ -429,7 +426,6 @@ void vtkPVProgressHandler::RefreshProgress(
   this->LastProgress = static_cast<int>(progress * 100.0);
   this->LastProgressId = progress_id;
   // DEBUG useful for diagnosing filter progress events.
-  // std::cout << "Progress: " << progress_text << " " << progress * 100 << endl;
   this->InvokeEvent(vtkCommand::ProgressEvent, this);
   this->SetLastProgressText(nullptr);
   this->LastProgress = -1;
@@ -585,7 +581,6 @@ void vtkPVProgressHandler::CheckAbort(
     vtkAlgorithm* algo = vtkAlgorithm::SafeDownCast(caller);
     if (algo)
     {
-      std::cout << "vtkPVProgressHandler: Abort" << std::endl;
       algo->SetAbortExecuteAndUpdateTime();
       algo->SetAbortOutput(true);
     }
