@@ -42,7 +42,7 @@ vtkStandardNewMacro(vtkOmegaHReader);
 namespace
 {
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Constants from omega_h's src/Omega_h_defines.hpp and src/Omega_h_file.cpp
 // (format version 11 is the latest; versions 9-11 are supported here).
 
@@ -98,7 +98,7 @@ void SwapBytesIfNeeded(T* values, std::size_t count)
   }
 }
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // A little-endian binary stream with omega_h's array framing:
 // array: [I32 size][if compressed: I64 byte count + zlib stream | raw bytes].
 // (Omega_h_file.cpp read_array / write_array)
@@ -200,7 +200,7 @@ private:
   vtkSmartPointer<vtkResourceStream> In;
 };
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // A single mesh part after parsing (see ReadPart).
 
 struct Tag
@@ -500,7 +500,7 @@ bool ReadPart(
   return true;
 }
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Element templates (dumped from omega_h's Omega_h_element.hpp against the
 // omega_h installation; see Omega_h_simplex.hpp / Omega_h_hypercube.hpp).
 // Type ids: 2=triangle, 3=quadrilateral, 4=tetrahedron, 5=hexahedron.
@@ -600,7 +600,7 @@ const UpEdge* UpEdges(int type)
   return type == 4 ? kUpEdgesTet : kUpEdgesHex;
 }
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Element -> vertex composition. This is an exact replica of omega_h's
 // Mesh::ask_verts_of (Omega_h_adj.cpp transit()), producing the vertices of
 // every element in omega_h's canonical local order, which matches the VTK
@@ -711,7 +711,7 @@ std::vector<vtkIdType> ElementVerts(const Part& part, vtkIdType e)
   return verts;
 }
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Conversion of one part to a vtkUnstructuredGrid.
 
 const Tag* FindTag(const Part& part, int dim, const std::string& name)
@@ -900,7 +900,7 @@ bool ReadIntFile(const std::string& path, int& value)
 
 } // namespace
 
-// ---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 vtkOmegaHReader::vtkOmegaHReader()
 {

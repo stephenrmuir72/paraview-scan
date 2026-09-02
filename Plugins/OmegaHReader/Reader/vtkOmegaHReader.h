@@ -6,8 +6,7 @@
  *
  * omega_h stores a mesh as a directory ending in ".osh": ASCII sidecar files
  * "nparts" and "version" plus one binary part file "<rank>.osh" per writer
- * rank (see omega_h's src/Omega_h_file.cpp; format versions 9-11 are
- * supported here).
+ * rank. Format versions 9-11 are supported.
  *
  * vtkOmegaHReader parses the binary format itself; it does not depend on the
  * omega_h library. On P processes, part p, p+P, p+2P, ... is read by rank
@@ -17,6 +16,14 @@
  * marked in the vtkGhostType array.
  *
  * A single part can also be read from a vtkResourceStream; see SetStream().
+ *
+ * omega_h was originally developed by Sandia
+ * (https://github.com/sandialabs/omega_h); this reader is based on the
+ * SCOREC fork (https://github.com/SCOREC/omega_h), which is the actively
+ * maintained version. The .osh format has no standalone specification; it
+ * is defined by omega_h's file reader/writer implementation
+ * (https://github.com/SCOREC/omega_h/blob/master/src/Omega_h_file.cpp),
+ * which was used as the reference for this reader.
  */
 
 #ifndef vtkOmegaHReader_h
