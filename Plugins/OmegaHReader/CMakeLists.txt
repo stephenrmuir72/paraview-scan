@@ -3,3 +3,7 @@ paraview_add_plugin(OmegaHReader
   VERSION "1.0"
   MODULES OmegaHReader::Reader
   MODULE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Reader/vtk.module")
+
+if (BUILD_TESTING)
+  add_subdirectory(Testing)
+endif ()
