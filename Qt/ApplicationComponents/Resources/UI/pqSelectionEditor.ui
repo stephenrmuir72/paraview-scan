@@ -44,18 +44,15 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="SourceInfo">
+      <widget class="QLineEdit" name="SourceInfo">
        <property name="toolTip">
         <string>The dataset for which selections are saved</string>
        </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QLabel {background-color: snow; border: 1px inset grey;}</string>
-       </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -86,12 +83,6 @@
       <widget class="QLabel" name="ElementTypeInfo">
        <property name="toolTip">
         <string>The element type of the saved selections</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QLabel {background-color: snow; border: 1px inset grey;}</string>
        </property>
        <property name="text">
         <string/>
