@@ -346,12 +346,16 @@ private:
       return PipelineModelIconType::LAST;
     }
 
+    auto* producerProxy = port->getSourceProxy();
+    const int portNumber = port->getPortNumber();
+    auto* viewProxy = view ? view->getViewProxy() : nullptr;
+
     // I'm not a huge fan of this hacky way we are dealing with catalyst. We'll
     // have to come back and cleanly address how the pqPipelineModel deals with
     // "visibility" in a more generic, session-centric way.
     if (pqLiveInsituManager::isInsituServer(port->getServer()))
     {
-      if (pqLiveInsituManager::isWriterParametersProxy(port->getSourceProxy()))
+      if (pqLiveInsituManager::isWriterParametersProxy(producerProxy))
       {
         return PipelineModelIconType::LAST;
       }
@@ -371,12 +375,19 @@ private:
       // will be created.
       return PipelineModelIconType::EYEBALL_GRAY;
     }
-    if (this->Controller->GetVisibility(
-          port->getSourceProxy(), port->getPortNumber(), view->getViewProxy()))
+
+    if (this->Controller->GetVisibility(producerProxy, portNumber, viewProxy))
     {
       return PipelineModelIconType::EYEBALL;
     }
-    return view->getViewProxy()->CanDisplayData(port->getSourceProxy(), port->getPortNumber())
+
+    // let's see if representation already exists for this port.
+    if (viewProxy->FindRepresentation(producerProxy, portNumber) != nullptr)
+    {
+      return PipelineModelIconType::EYEBALL_GRAY;
+    }
+
+    return viewProxy->CanDisplayData(producerProxy, portNumber)
       ? PipelineModelIconType::EYEBALL_GRAY
       : PipelineModelIconType::LAST;
   }
