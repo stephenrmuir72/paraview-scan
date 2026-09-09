@@ -1867,12 +1867,29 @@ bool vtkSMRenderViewProxy::SelectPolygonInternal(vtkIntArray* polygonPts,
 //----------------------------------------------------------------------------
 void vtkSMRenderViewProxy::RenderForImageCapture()
 {
+  int progressivePasses = vtkSMPropertyHelper(this, "ProgressivePasses", /*quiet=*/true).GetAsInt();
+  vtkSMPropertyHelper(this, "SamplesPerPixel").Set(progressivePasses + 1);
+  this->UpdateVTKObjects();
+  this->InteractiveRender();
+  vtkSMPropertyHelper(this, "SamplesPerPixel").Set(progressivePasses);
+  this->UpdateVTKObjects();
+
   if (vtkSMPropertyHelper(this, "UseInteractiveRenderingForScreenshots", /*quiet=*/true).GetAsInt())
   {
     this->InteractiveRender();
   }
   else
   {
+    // Streaming update for vtkSMRenderViewProxy to ensure all passes are completed
+    // before saving the screenshot
+    if (vtkPVView::GetEnableStreaming() == true)
+    {
+      bool continueStreaming = true;
+      do
+      {
+        continueStreaming = this->StreamingUpdate(true);
+      } while (continueStreaming);
+    }
     this->StillRender();
   }
 }
