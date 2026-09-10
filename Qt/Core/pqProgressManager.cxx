@@ -136,6 +136,7 @@ void pqProgressManager::setEnableAbort(bool enable)
     return;
   }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 3, 0)
   if (enable)
   {
     // Disable everything that is enabled, except non blockable objects (progress bar and abort)
@@ -163,6 +164,7 @@ void pqProgressManager::setEnableAbort(bool enable)
     }
     this->EnabledWidgetsForAbort.clear();
   }
+#endif
 
   Q_EMIT this->enableAbort(enable);
   this->AbortEnabled = enable;
