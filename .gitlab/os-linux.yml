@@ -137,6 +137,10 @@ spec:
     variables:
         CMAKE_CONFIGURATION: fedora44_shared_asserts_mpi_python_qt
         CMAKE_BUILD_TYPE: RelWithDebInfo
+        # Conduit has a `cmake_minimum_required(3.8)` call which warns with new
+        # CMake. Add a phantom `...3.13` to suppress the warning.
+        # https://github.com/llnl/conduit/issues/1697
+        CMAKE_POLICY_VERSION_MINIMUM: "3.13"
 
 .fedora44_shared_mpi_python_qt_viskoresoverride:
     extends:
@@ -153,6 +157,10 @@ spec:
 
     variables:
         CMAKE_CONFIGURATION: fedora44_shared_mpi_python_qt_tidy
+        # Conduit has a `cmake_minimum_required(3.8)` call which warns with new
+        # CMake. Add a phantom `...3.13` to suppress the warning.
+        # https://github.com/llnl/conduit/issues/1697
+        CMAKE_POLICY_VERSION_MINIMUM: "3.13"
 
 .linux_builder_tags:
     tags:
