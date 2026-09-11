@@ -114,10 +114,13 @@ bool vtkSISourceProxy::CreateVTKObjects()
   algorithm->AddObserver(vtkCommand::StartEvent, this, &vtkSISourceProxy::MarkStartEvent);
   algorithm->AddObserver(vtkCommand::EndEvent, this, &vtkSISourceProxy::MarkEndEvent);
 
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
   // Register abort check event to trigger abort reduction
   algorithm->AddObserver(vtkCommand::AbortCheckEvent, this, &vtkSISourceProxy::ReduceAbort);
   algorithm->AddObserver(
     vtkCommand::CleanupAbortCheckEvent, this, &vtkSISourceProxy::CleanupAbortRequests);
+#endif
+
   return true;
 }
 
@@ -417,12 +420,6 @@ void vtkSISourceProxy::ReduceAbort()
   }
 
   unsigned char abort = algo->GetAbortExecute();
-
-  if (abort)
-  {
-    abort = 1 + (rand() % 250);
-  }
-
   vtkMPIController* controller =
     vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController());
   if (!controller)
@@ -431,84 +428,85 @@ void vtkSISourceProxy::ReduceAbort()
   }
 
   const int numProcs = controller->GetNumberOfProcesses();
-  const int processId = controller->GetLocalProcessId();
-
-  if (numProcs > 1)
+  if (numProcs <= 1)
   {
-    if (processId == 0)
+    return;
+  }
+
+  const int processId = controller->GetLocalProcessId();
+  if (processId == 0)
+  {
+    // On rank 0, we send the abort flag to all other ranks
+    // However they are three cases
+    // 1. Nothing was ever sent, so we need to create the request first and then NoBlockSend
+    // 2. There is an ongoing NoBlockSend, check if completed and if so, send again
+    // 3. Abort was triggered, then cancel the request and send
+    for (int i = 1; i < numProcs; i++)
     {
-      // On rank 0, we send the abort flag to all other ranks
-      // However they are three cases
-      // 1. Nothing was ever sent, so we need to create the request first and then NoBlockSend
-      // 2. There is an ongoing NoBlockSend, check if completed and if so, send again
-      // 3. Abort was triggered, then cancel the request and send
-      for (int i = 1; i < numProcs; i++)
+      if (!this->Internals->AbortRequests[i].has_value())
       {
-        if (!this->Internals->AbortRequests[i].has_value())
-        {
-          // First request to send
-          this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
-          controller->NoBlockSend(&abort, 1, i, vtkPVProgressHandler::ABORT_TAG,
-            this->Internals->AbortRequests[i].value());
-        }
-        else if (this->Internals->AbortRequests[i].value().Test())
-        {
-          // Only send a new request if previous one completed
-          this->Internals->AbortRequests[i] = vtkMPICommunicator::Request(); // TODO is this needed
-                                                                             // ?
-          controller->NoBlockSend(&abort, 1, i, vtkPVProgressHandler::ABORT_TAG,
-            this->Internals->AbortRequests[i].value());
-        }
-        else if (abort)
-        {
-          // In case of abort, always send a new request
-          this->Internals->AbortRequests[i].value().Cancel();
-          this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
-          controller->NoBlockSend(&abort, 1, i, vtkPVProgressHandler::ABORT_TAG,
-            this->Internals->AbortRequests[i].value());
-        }
+        // First request to send
+        this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
+        controller->NoBlockSend(
+          &abort, 1, i, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[i].value());
+      }
+      else if (this->Internals->AbortRequests[i].value().Test())
+      {
+        // Only send a new request if previous one completed
+        this->Internals->AbortRequests[i] = vtkMPICommunicator::Request(); // TODO is this needed
+                                                                           // ?
+        controller->NoBlockSend(
+          &abort, 1, i, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[i].value());
+      }
+      else if (abort)
+      {
+        // In case of abort, always send a new request
+        this->Internals->AbortRequests[i].value().Cancel();
+        this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
+        controller->NoBlockSend(
+          &abort, 1, i, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[i].value());
       }
     }
-    else
+  }
+  else
+  {
+    // On rank N, we receive the abort flag from rank 0
+    // They are two cases:
+    // 1. Nothing was ever received, create a request and then NoBlockReceive
+    // 2. There is an ongoing NoBlockReceive, if it completes, check it, if not aborted
+    // then start receiving again (and check right away just in case)
+    if (!this->Internals->AbortRequests[0].has_value())
     {
-      // On rank N, we receive the abort flag from rank 0
-      // They are two cases:
-      // 1. Nothing was ever received, create a request and then NoBlockReceive
-      // 2. There is an ongoing NoBlockReceive, if it completes, check it, if not aborted
-      // then start receiving again (and check right away just in case)
-      if (!this->Internals->AbortRequests[0].has_value())
+      // First request to receive
+      this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
+      controller->NoBlockReceive(
+        &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0].value());
+    }
+    else if (this->Internals->AbortRequests[0].value().Test())
+    {
+      this->Internals->AbortRequests[0].reset();
+
+      // Check previous receive operation result
+      if (abort)
       {
-        // First request to receive
-        this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
-        controller->NoBlockReceive(
-          &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0].value());
+        algo->SetAbortExecuteAndUpdateTime();
+        algo->SetAbortOutput(true);
+        return;
       }
-      else if (this->Internals->AbortRequests[0].value().Test())
+
+      // Only receive if not already receiving
+      this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
+      controller->NoBlockReceive(
+        &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0].value());
+
+      // Check if receive was immediately done
+      if (this->Internals->AbortRequests[0].value().Test())
       {
         this->Internals->AbortRequests[0].reset();
-
-        // Check previous receive operation result
         if (abort)
         {
           algo->SetAbortExecuteAndUpdateTime();
           algo->SetAbortOutput(true);
-          return;
-        }
-
-        // Only receive if not already receiving
-        this->Internals->AbortRequests[0] = vtkMPICommunicator::Request();
-        controller->NoBlockReceive(
-          &abort, 1, 0, vtkPVProgressHandler::ABORT_TAG, this->Internals->AbortRequests[0].value());
-
-        // Check if receive was immediately done
-        if (this->Internals->AbortRequests[0].value().Test())
-        {
-          this->Internals->AbortRequests[0].reset();
-          if (abort)
-          {
-            algo->SetAbortExecuteAndUpdateTime();
-            algo->SetAbortOutput(true);
-          }
         }
       }
     }
