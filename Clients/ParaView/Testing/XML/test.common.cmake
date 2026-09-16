@@ -1092,6 +1092,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ArraySelectionWidget.xml
   AutoConvertSingleProperty.xml
   CellGridInformationPanel.xml
+  CollapsePropertyGroup.xml
   CSVPreview.xml
   ChangeFileNameReaction.xml
   CustomOutputFormat.xml
