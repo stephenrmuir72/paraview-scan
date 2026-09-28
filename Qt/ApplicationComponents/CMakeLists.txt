@@ -63,6 +63,7 @@ set(classes
   pqCopyReaction
   pqCrashRecoveryBehavior
   pqCreateCustomFilterReaction
+  pqCustomMenusBehavior
   pqCustomShortcutBehavior
   pqCustomizeShortcutsReaction
   pqCustomizeShortcutsDialog

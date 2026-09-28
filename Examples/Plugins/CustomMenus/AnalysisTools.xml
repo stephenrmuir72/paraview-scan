@@ -1,0 +1,71 @@
+<!--
+  An XML-only plugin, loadable using Tools > Manage Plugins > Load New, that
+  adds an "Analysis Tools" menu and toolbar exposing a source, standard
+  filters, a pipeline of filters combined as a single filter and Python
+  scripts.
+-->
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+    <!-- A pipeline of standard filters, exposed as a single filter. -->
+    <CompoundSourceProxy name="ContourWithNormals" label="Contour With Normals">
+      <Documentation short_help="Contours the input and computes the normals of the contours.">
+        Contours the input, then computes the normals of the resulting
+        surface for smooth shading.
+      </Documentation>
+      <Proxy compound_name="Contour1" group="filters" type="Contour" id="1" />
+      <Proxy compound_name="SurfaceNormals1" group="filters" type="SurfaceNormals" id="2">
+        <Property name="Input" id="2.Input" number_of_elements="1">
+          <Proxy value="1" output_port="0" />
+        </Property>
+      </Proxy>
+      <ExposedProperties>
+        <Property name="Input" proxy_name="Contour1" exposed_name="Input" />
+        <Property name="SelectInputScalars" proxy_name="Contour1" exposed_name="ContourBy" />
+        <Property name="ContourValues" proxy_name="Contour1" exposed_name="Isosurfaces" />
+        <Property name="FeatureAngle" proxy_name="SurfaceNormals1" exposed_name="FeatureAngle" />
+      </ExposedProperties>
+      <OutputPort name="Output" proxy="SurfaceNormals1" port_index="0" />
+    </CompoundSourceProxy>
+  </ProxyGroup>
+
+  <CustomMenus>
+    <!-- Adds an "Analysis Tools" menu to the menu bar, and a toolbar with the
+         same items. -->
+    <Menu name="AnalysisTools" label="&amp;Analysis Tools" show_in_toolbar="1">
+      <Proxy group="sources" name="RTAnalyticSource" />
+      <Separator />
+      <Proxy group="filters" name="Cut" icon=":/pqWidgets/Icons/pqSlice.svg" />
+      <Proxy group="filters" name="ContourWithNormals" icon=":/pqWidgets/Icons/pqIsosurface.svg" />
+      <Separator />
+      <Script label="Print Data Summary"
+              icon=":/pqWidgets/Icons/pqSpreadsheet.svg"
+              tooltip="Prints the number of points and cells of the active source.">
+        <![CDATA[
+        from paraview.simple import GetActiveSource
+
+        source = GetActiveSource()
+        if source is None:
+            print("No active source.")
+        else:
+            info = source.GetDataInformation()
+            print("%d points, %d cells" % (info.GetNumberOfPoints(), info.GetNumberOfCells()))
+        ]]>
+      </Script>
+      <!-- Sub-menus are shown as drop-down buttons in toolbars. -->
+      <Menu label="Display">
+        <Script label="Show Edges" tooltip="Shows the edges of the active source's surface.">
+          <![CDATA[
+          from paraview.simple import GetDisplayProperties
+          GetDisplayProperties().SetRepresentationType("Surface With Edges")
+          ]]>
+        </Script>
+        <Script label="Reset Camera" tooltip="Resets the camera of the active view.">
+          <![CDATA[
+          from paraview.simple import ResetCamera
+          ResetCamera()
+          ]]>
+        </Script>
+      </Menu>
+    </Menu>
+  </CustomMenus>
+</ServerManagerConfiguration>

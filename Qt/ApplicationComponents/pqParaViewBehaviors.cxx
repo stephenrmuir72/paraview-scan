@@ -13,6 +13,7 @@
 #include "pqCommandLineOptionsBehavior.h"
 #include "pqCoreTestUtility.h"
 #include "pqCrashRecoveryBehavior.h"
+#include "pqCustomMenusBehavior.h"
 #include "pqCustomShortcutBehavior.h"
 #include "pqDataTimeStepBehavior.h"
 #include "pqDefaultViewBehavior.h"
@@ -123,6 +124,7 @@ PQ_BEHAVIOR_DEFINE_FLAG(DefaultViewBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(UndoRedoBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(AlwaysConnectedBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(CrashRecoveryBehavior, true);
+PQ_BEHAVIOR_DEFINE_FLAG(CustomMenusBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(AutoLoadPluginXMLBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(AutoSaveBehavior, true);
 PQ_BEHAVIOR_DEFINE_FLAG(PluginDockWidgetsBehavior, true);
@@ -224,6 +226,12 @@ pqParaViewBehaviors::pqParaViewBehaviors(QMainWindow* mainWindow, QObject* paren
   if (PQ_IS_BEHAVIOR_ENABLED(AutoSaveBehavior))
   {
     new pqAutoSaveBehavior(this);
+  }
+  if (PQ_IS_BEHAVIOR_ENABLED(CustomMenusBehavior))
+  {
+    // must be created before pqAutoLoadPluginXMLBehavior to process the XML
+    // from plugins that are already loaded.
+    new pqCustomMenusBehavior(mainWindow);
   }
   if (PQ_IS_BEHAVIOR_ENABLED(AutoLoadPluginXMLBehavior))
   {
