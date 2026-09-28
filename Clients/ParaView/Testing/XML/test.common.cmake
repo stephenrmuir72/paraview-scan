@@ -1372,6 +1372,7 @@ list(APPEND TESTS_WITH_BASELINES
   TestHiddenLineRemoval.xml
   TestOpenFOAMWeighByCell.xml
   TestParallelProjectionAnnotations.xml
+  TestProjectToPlane.xml
   TestResampleHTG2Dims.xml
   TestResampleHyperTreeGridWithSphere.xml
   TransferFunction2D.xml
