@@ -31,6 +31,7 @@
 #include <optional>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 //*****************************************************************************
 class vtkSISourceProxy::vtkInternals
@@ -420,6 +421,11 @@ void vtkSISourceProxy::ReduceAbort()
   }
 
   unsigned char abort = algo->GetAbortExecute();
+  if (abort)
+  {
+    abort = 1 + (rand() % 250);
+  }
+
   vtkMPIController* controller =
     vtkMPIController::SafeDownCast(vtkMultiProcessController::GetGlobalController());
   if (!controller)
@@ -445,6 +451,10 @@ void vtkSISourceProxy::ReduceAbort()
     {
       if (!this->Internals->AbortRequests[i].has_value())
       {
+        if (abort)
+        {
+          std::cout<<"Send abort " << (int)abort << std::endl;
+        }
         // First request to send
         this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
         controller->NoBlockSend(
@@ -452,6 +462,11 @@ void vtkSISourceProxy::ReduceAbort()
       }
       else if (this->Internals->AbortRequests[i].value().Test())
       {
+        if (abort)
+        {
+          std::cout<<"Send abortB " << (int)abort << std::endl;
+        }
+
         // Only send a new request if previous one completed
         this->Internals->AbortRequests[i] = vtkMPICommunicator::Request(); // TODO is this needed
                                                                            // ?
@@ -460,6 +475,11 @@ void vtkSISourceProxy::ReduceAbort()
       }
       else if (abort)
       {
+        if (abort)
+        {
+          std::cout<<"Send abortC " << (int)abort << std::endl;
+        }
+
         // In case of abort, always send a new request
         this->Internals->AbortRequests[i].value().Cancel();
         this->Internals->AbortRequests[i] = vtkMPICommunicator::Request();
@@ -484,11 +504,13 @@ void vtkSISourceProxy::ReduceAbort()
     }
     else if (this->Internals->AbortRequests[0].value().Test())
     {
+      std::cout<<processId <<" Received abort " << (int)abort << std::endl;
       this->Internals->AbortRequests[0].reset();
 
       // Check previous receive operation result
       if (abort)
       {
+
         algo->SetAbortExecuteAndUpdateTime();
         algo->SetAbortOutput(true);
         return;
@@ -502,6 +524,7 @@ void vtkSISourceProxy::ReduceAbort()
       // Check if receive was immediately done
       if (this->Internals->AbortRequests[0].value().Test())
       {
+        std::cout<<processId <<"Received abortB " << (int)abort << std::endl;
         this->Internals->AbortRequests[0].reset();
         if (abort)
         {
@@ -571,8 +594,10 @@ void vtkSISourceProxy::CleanupAbortRequests()
       // Cleanup any send already in the pipe and that cannot be cancelled properly
       do
       {
+        std::cout<<processId<<" Cleanup abort " << (int)cleanup << std::endl;
         controller->NoBlockReceive(&cleanup, 1, 0, vtkPVProgressHandler::ABORT_TAG, req);
       } while (req.Test());
+      std::cout<<processId<<" Cleanup abortB " << (int)cleanup << std::endl;
       req.Cancel();
 
       // Receive the last abort flag so that we know for sure if abort happened
@@ -582,6 +607,7 @@ void vtkSISourceProxy::CleanupAbortRequests()
 
   if (abort)
   {
+    std::cout<<processId<<" Cleanup abortC " << (int)abort << std::endl;
     algo->SetAbortExecuteAndUpdateTime();
     algo->SetAbortOutput(true);
   }
