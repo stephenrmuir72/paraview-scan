@@ -422,14 +422,22 @@ public:
 
   ~vtkStateLayout() override
   {
+    const bool sizeChanged = this->OriginalSize[0] > 0 && this->OriginalSize[1] > 0;
+    const bool separatorWidthChanged =
+      vtkSMPropertyHelper(this->Layout, "SeparatorWidth").GetAsInt() !=
+      this->OriginalSeparatorWidth;
+    // even if the size is unchanged, views need to be resized when the original
+    // separator width is restored.
+    const vtkVector2i size = sizeChanged ? this->OriginalSize : this->Layout->GetSize();
+
     vtkSMPropertyHelper(this->Layout, "PreviewMode").Set(this->PreviewMode, 2);
     vtkSMPropertyHelper(this->Layout, "SeparatorWidth").Set(this->OriginalSeparatorWidth);
     vtkSMPropertyHelper(this->Layout, "SeparatorColor").Set(this->OriginalSeparatorColor, 3);
     this->Layout->UpdateVTKObjects();
 
-    if (this->OriginalSize[0] > 0 && this->OriginalSize[1] > 0)
+    if (sizeChanged || separatorWidthChanged)
     {
-      this->Resize(this->OriginalSize);
+      this->Resize(size);
     }
   }
 
@@ -453,8 +461,19 @@ public:
 
   void SetSeparatorWidth(int width) override
   {
-    vtkSMPropertyHelper(this->Layout, "SeparatorWidth").Set(width);
+    vtkSMPropertyHelper helper(this->Layout, "SeparatorWidth");
+    if (helper.GetAsInt() == width)
+    {
+      return;
+    }
+
+    // Keep the layout size unchanged, resizing the views to make room for the
+    // new separator width. Needed when no widget (e.g. pqMultiViewWidget) is
+    // showing the layout, as in pvpython, pvbatch or Catalyst.
+    const vtkVector2i size = this->Layout->GetSize();
+    helper.Set(width);
     this->Layout->UpdateVTKObjects();
+    this->Resize(size);
   }
 
   void SetSeparatorColor(double color[3]) override
@@ -804,7 +823,15 @@ vtkSMViewLayoutProxy* vtkSMSaveScreenshotProxy::GetLayout()
 {
   if (vtkSMPropertyHelper(this, "SaveAllViews").GetAsInt() != 0)
   {
-    return vtkSMViewLayoutProxy::SafeDownCast(vtkSMPropertyHelper(this, "Layout").GetAsProxy());
+    if (auto layout =
+          vtkSMViewLayoutProxy::SafeDownCast(vtkSMPropertyHelper(this, "Layout").GetAsProxy()))
+    {
+      return layout;
+    }
+
+    // no layout specified, use the layout containing the view, if any.
+    return vtkSMViewLayoutProxy::FindLayout(
+      vtkSMViewProxy::SafeDownCast(vtkSMPropertyHelper(this, "View").GetAsProxy()));
   }
   return nullptr;
 }
@@ -886,7 +913,11 @@ void vtkSMSaveScreenshotProxy::UpdateDefaultsAndVisibilities(const char* filenam
 
   vtkSMViewLayoutProxy* layout =
     vtkSMViewLayoutProxy::SafeDownCast(vtkSMPropertyHelper(this, "Layout").GetAsProxy());
-  if (layout == nullptr || (layout->GetViews().size() <= 1))
+  vtkSMProxy* view = vtkSMPropertyHelper(this, "View").GetAsProxy();
+  // When only a view is specified, the layout is determined from the view at
+  // the time of capture (see GetLayout()) and may have more views by then,
+  // hence we keep the options available.
+  if (layout ? layout->GetViews().size() <= 1 : view == nullptr)
   {
     this->GetProperty("SaveAllViews")->SetPanelVisibility("never");
     this->GetProperty("SeparatorWidth")->SetPanelVisibility("never");
