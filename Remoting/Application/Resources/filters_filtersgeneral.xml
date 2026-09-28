@@ -2837,5 +2837,59 @@
       </StringVectorProperty>
 
     </SourceProxy>
+
+    <SourceProxy name="ProjectToPlane"
+              class="vtkProjectPointsToPlane"
+              label="Project to plane">
+      <Documentation
+        short_help="Project points to a plane."
+        long_help="Project points to a plane.">
+      </Documentation>
+      <InputProperty name="Input"
+        command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+      </InputProperty>
+
+      <DoubleVectorProperty name="Origin"
+        command="SetOrigin"
+        number_of_elements="3"
+        animateable="1"
+        default_values="0.0 0.0 0.0">
+        <Documentation>
+          This property specifies the origin point of the plane to project points to.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty name="Normal"
+        command="SetNormal"
+        number_of_elements="3"
+        animateable="1"
+        default_values="0.0 0.0 1.0">
+        <Documentation>
+          This property specifies the normal of the plane to project points to.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty name="ProjectionType"
+        command="SetProjectionType"
+        number_of_elements="1"
+        default_values="4">
+        <EnumerationDomain name="enum">
+          <Entry text="X Plane" value="1" />
+          <Entry text="Y Plane" value="2" />
+          <Entry text="Z Plane" value="3" />
+          <Entry text="Specified Plane" value="4" />
+          <Entry text="Best Coordinate Plane" value="5" />
+          <Entry text="Best Fit Plane" value="6" />
+        </EnumerationDomain>
+        <Documentation>
+          This property specifies the type of prejection to make.
+        </Documentation>
+      </IntVectorProperty>
+    </SourceProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>
