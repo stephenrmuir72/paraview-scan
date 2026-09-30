@@ -79,6 +79,11 @@ protected Q_SLOTS:
    */
   void updateToolbarState();
 
+  /**
+   * Update the "show in menu bar" state of the selected category.
+   */
+  void updateMenuBarState();
+
 private:
   /**
    * Update trees.

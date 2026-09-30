@@ -254,6 +254,8 @@ pqConfigureCategoriesDialog::pqConfigureCategoriesDialog(
     &pqConfigureCategoriesDialog::onSearchTextChanged);
   QObject::connect(this->Internal->Ui->useAsToolbar, &QCheckBox::clicked, this,
     &pqConfigureCategoriesDialog::updateToolbarState);
+  QObject::connect(this->Internal->Ui->useAsMenuBarMenu, &QCheckBox::clicked, this,
+    &pqConfigureCategoriesDialog::updateMenuBarState);
 
   this->connect(this, &QDialog::accepted, this, &pqConfigureCategoriesDialog::onAccepted);
 
@@ -388,7 +390,10 @@ void pqConfigureCategoriesDialog::populateAvailableProxiesTree()
   pqProxyCategory* applicationCategory = this->Internal->MenuManager->getApplicationCategory();
   for (auto proxy : applicationCategory->getProxiesRecursive())
   {
-    this->createProxyItem(this->Internal->Ui->defaultCategoriesTree->invisibleRootItem(), proxy);
+    if (!proxy->isSeparator())
+    {
+      this->createProxyItem(this->Internal->Ui->defaultCategoriesTree->invisibleRootItem(), proxy);
+    }
   }
 
   this->Internal->Ui->defaultCategoriesTree->sortByColumn(0, Qt::AscendingOrder);
@@ -405,7 +410,8 @@ void pqConfigureCategoriesDialog::populateTree(QTreeWidgetItem* treeRoot)
 
   for (auto proxy : parentCategory->getRootProxies())
   {
-    if (!proxy->hideFromMenu())
+    // separators are kept as is, but not shown.
+    if (!proxy->hideFromMenu() && !proxy->isSeparator())
     {
       this->createProxyItem(treeRoot, proxy);
     }
@@ -616,6 +622,17 @@ void pqConfigureCategoriesDialog::updateToolbarState()
 }
 
 //----------------------------------------------------------------------------
+void pqConfigureCategoriesDialog::updateMenuBarState()
+{
+  QTreeWidgetItem* categoryItem = this->getSelectedItem();
+  if (::isCategory(categoryItem))
+  {
+    auto category = ::getCategory(categoryItem);
+    category->setShowInMenuBar(this->Internal->Ui->useAsMenuBarMenu->isChecked());
+  }
+}
+
+//----------------------------------------------------------------------------
 bool pqConfigureCategoriesDialog::insertCategoryFromItem(
   QTreeWidgetItem* sourceItem, QTreeWidgetItem* parentCategoryItem, QTreeWidgetItem* precedingItem)
 {
@@ -677,7 +694,9 @@ void pqConfigureCategoriesDialog::onSetIconPressed()
 //----------------------------------------------------------------------------
 void pqConfigureCategoriesDialog::onAccepted()
 {
-  this->Internal->SettingsCategory->writeSettings(this->ResourceTag);
+  // only the differences with the application categories are saved.
+  this->Internal->SettingsCategory->writeSettings(
+    this->ResourceTag, this->Internal->MenuManager->getApplicationCategory());
 }
 
 //----------------------------------------------------------------------------
@@ -769,6 +788,12 @@ void pqConfigureCategoriesDialog::updateUIState()
   bool isCategory = ::isCategory(selectedItem);
   this->Internal->Ui->useAsToolbar->setEnabled(hasCustomItemSelection && isCategory && category);
   this->Internal->Ui->useAsToolbar->setChecked(category && category->showInToolbar());
+  // only top-level categories, except Favorites, can be shown in the menu bar.
+  const bool isTopLevel = category && category->parentCategory() &&
+    !category->parentCategory()->parentCategory() && !this->Internal->isFavorites(category);
+  this->Internal->Ui->useAsMenuBarMenu->setEnabled(
+    hasCustomItemSelection && isCategory && isTopLevel);
+  this->Internal->Ui->useAsMenuBarMenu->setChecked(isTopLevel && category->showInMenuBar());
 
   bool isFavoritesMainCategory = this->Internal->isFavorites(category);
   this->Internal->Ui->remove->setEnabled(hasCustomItemSelection && !isFavoritesMainCategory);
