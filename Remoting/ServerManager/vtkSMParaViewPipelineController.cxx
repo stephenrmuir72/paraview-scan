@@ -6,6 +6,7 @@
 #include "vtkCommand.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPVGeneralSettings.h"
 #include "vtkPVLogger.h"
 #include "vtkPVProxyDefinitionIterator.h"
 #include "vtkPVXMLElement.h"
@@ -1237,7 +1238,17 @@ bool vtkSMParaViewPipelineController::PostInitializeProxy(vtkSMProxy* proxy)
 
     // settings override any other initialization
     vtkSMSettings* settings = vtkSMSettings::GetInstance();
-    settings->GetProxySettings(proxy);
+    const std::string& defaultPreset = vtkPVGeneralSettings::GetInstance()->GetDefaultPreset();
+    if (!defaultPreset.empty() && defaultPreset != "Custom defaults")
+    {
+      settings->AddActivePreset(defaultPreset, vtkSMSettings::GetUserPriority() + 1.0);
+      settings->GetProxySettings(proxy, vtkSMSettings::GetUserPriority() + 1.0);
+      settings->RemovePresetsFromCollection();
+    }
+    else
+    {
+      settings->GetProxySettings(proxy);
+    }
 
     proxy->UpdateVTKObjects();
   }
