@@ -1388,7 +1388,7 @@ void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidg
   }
   QMenu menu(this);
   menu.setObjectName("PropertyContextMenu");
-  auto* useDefault = menu.addAction(tr("Use as Default"), propWidget,
+  auto* useDefault = menu.addAction(tr("Save as custom default"), propWidget,
     [this, propWidget]()
     {
       // get the property name
@@ -1409,13 +1409,26 @@ void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidg
     useDefault->setEnabled(pqproxy->modifiedState() == pqProxy::UNMODIFIED);
   }
 
-  QAction* resetToAppDefault = menu.addAction(tr("Reset to Application Default"), propWidget,
+  QAction* resetToAppDefault = menu.addAction(tr("Apply application default"), propWidget,
     [this, propWidget]() { this->resetPropertyToAppDefault(propWidget); });
   resetToAppDefault->setObjectName("ResetToDefault");
 
-  QAction* resetToSettings = menu.addAction(tr("Reset to User Settings"), propWidget,
+  QAction* resetToSettings = menu.addAction(tr("Apply custom default"), propWidget,
     [this, propWidget]() { this->resetPropertyToUserDefault(propWidget); });
   resetToSettings->setObjectName("ResetToSettings");
+
+  menu.addSeparator();
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  for (const std::string& preset_name : settings->GetPresets())
+  {
+    menu.addAction(QString("Apply %1").arg(preset_name), propWidget,
+      [this, propWidget, settings, preset_name]()
+      {
+        settings->AddActivePreset(preset_name, vtkSMSettings::GetPresetPriority());
+        this->resetPropertyToPresetDefault(propWidget);
+        settings->RemovePresetsFromCollection();
+      });
+  }
 
   menu.exec(pt);
 }
