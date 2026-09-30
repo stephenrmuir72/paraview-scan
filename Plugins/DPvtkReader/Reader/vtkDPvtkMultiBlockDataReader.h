@@ -20,6 +20,8 @@
 #include <vtkDPvtkReaderModule.h> // for export macro
 #include <vtkXMLMultiBlockDataReader.h>
 
+#include <memory> // for std::unique_ptr
+
 class VTKDPVTKREADER_EXPORT vtkDPvtkMultiBlockDataReader : public vtkXMLMultiBlockDataReader
 {
 public:
