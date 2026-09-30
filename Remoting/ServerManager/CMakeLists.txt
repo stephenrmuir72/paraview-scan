@@ -139,6 +139,7 @@ set(classes
   vtkSMSessionObject
   vtkSMSessionProxyManager
   vtkSMSettings
+  vtkSMSettingsPresetDomain
   vtkSMSettingsProxy
   vtkSMSourceProxy
   vtkSMStateLoader

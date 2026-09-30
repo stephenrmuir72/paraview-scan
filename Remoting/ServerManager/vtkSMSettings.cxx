@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSMSettings.h"
 
+#include "vtkCommand.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -1131,6 +1132,7 @@ bool vtkSMSettings::AddPresetsFromFile(const std::string& fileName)
   {
     this->Internal->Presets[presetName].Value = root[presetName];
   }
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
   vtkVLogF(
     PARAVIEW_LOG_APPLICATION_VERBOSITY(), "load presets file `%s` -- succeeded", fileName.c_str());
   return true;
@@ -1292,6 +1294,7 @@ void vtkSMSettings::SavePreset(const std::string& presetName, vtkSMPropertyItera
     auto& root = this->Internal->Presets[presetName].Value;
     this->Internal->SetPropertySetting(path_str.c_str(), property, root);
   }
+  this->InvokeEvent(vtkCommand::UpdateDataEvent);
 }
 
 //----------------------------------------------------------------------------
