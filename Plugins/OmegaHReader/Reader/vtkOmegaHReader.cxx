@@ -42,7 +42,7 @@ vtkStandardNewMacro(vtkOmegaHReader);
 namespace
 {
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Constants from omega_h's src/Omega_h_defines.hpp and src/Omega_h_file.cpp
 // (format version 11 is the latest; versions 9-11 are supported here).
 
@@ -98,7 +98,7 @@ void SwapBytesIfNeeded(T* values, std::size_t count)
   }
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // A little-endian binary stream with omega_h's array framing:
 // array: [I32 size][if compressed: I64 byte count + zlib stream | raw bytes].
 // (Omega_h_file.cpp read_array / write_array)
@@ -200,7 +200,7 @@ private:
   vtkSmartPointer<vtkResourceStream> In;
 };
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // A single mesh part after parsing (see ReadPart).
 
 struct Tag
@@ -500,7 +500,7 @@ bool ReadPart(
   return true;
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Element templates (dumped from omega_h's Omega_h_element.hpp against the
 // omega_h installation; see Omega_h_simplex.hpp / Omega_h_hypercube.hpp).
 // Type ids: 2=triangle, 3=quadrilateral, 4=tetrahedron, 5=hexahedron.
@@ -600,7 +600,7 @@ const UpEdge* UpEdges(int type)
   return type == 4 ? kUpEdgesTet : kUpEdgesHex;
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Element -> vertex composition. This is an exact replica of omega_h's
 // Mesh::ask_verts_of (Omega_h_adj.cpp transit()), producing the vertices of
 // every element in omega_h's canonical local order, which matches the VTK
@@ -711,7 +711,7 @@ std::vector<vtkIdType> ElementVerts(const Part& part, vtkIdType e)
   return verts;
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Conversion of one part to a vtkUnstructuredGrid.
 
 const Tag* FindTag(const Part& part, int dim, const std::string& name)
@@ -900,26 +900,38 @@ bool ReadIntFile(const std::string& path, int& value)
 
 } // namespace
 
-//-----------------------------------------------------------------------------
-
+//------------------------------------------------------------------------------
 vtkOmegaHReader::vtkOmegaHReader()
 {
-  // this is a reader, not a filter: it produces data without any input
-  // (like vtkFidesReader).
   this->SetNumberOfInputPorts(0);
 }
 
-vtkOmegaHReader::~vtkOmegaHReader()
+//------------------------------------------------------------------------------
+vtkOmegaHReader::~vtkOmegaHReader() = default;
+
+//------------------------------------------------------------------------------
+void vtkOmegaHReader::SetFileName(VTK_FILEPATH const std::string& fname)
 {
-  this->SetFileName(nullptr);
-  this->SetController(nullptr);
+  if (this->FileName != fname)
+  {
+    this->FileName = fname;
+    this->Modified();
+  }
 }
 
+//------------------------------------------------------------------------------
+VTK_FILEPATH std::string vtkOmegaHReader::GetFileName() const
+{
+  return this->FileName;
+}
+
+//------------------------------------------------------------------------------
 vtkMultiProcessController* vtkOmegaHReader::GetController()
 {
   return this->Controller;
 }
 
+//------------------------------------------------------------------------------
 void vtkOmegaHReader::SetController(vtkMultiProcessController* controller)
 {
   if (this->Controller != controller)
@@ -929,6 +941,7 @@ void vtkOmegaHReader::SetController(vtkMultiProcessController* controller)
   }
 }
 
+//------------------------------------------------------------------------------
 void vtkOmegaHReader::SetStream(vtkResourceStream* stream)
 {
   if (this->Stream != stream)
@@ -938,11 +951,13 @@ void vtkOmegaHReader::SetStream(vtkResourceStream* stream)
   }
 }
 
+//------------------------------------------------------------------------------
 vtkResourceStream* vtkOmegaHReader::GetStream()
 {
   return this->Stream;
 }
 
+//------------------------------------------------------------------------------
 vtkTypeBool vtkOmegaHReader::CanReadFile(const char* name)
 {
   // An omega_h mesh is a directory with ASCII "nparts" and "version"
@@ -968,24 +983,46 @@ vtkTypeBool vtkOmegaHReader::CanReadFile(const char* name)
   {
     return 0;
   }
-  unsigned char magic[2] = { 0, 0 };
-  return (file->Read(magic, sizeof(magic)) == sizeof(magic) && magic[0] == kMagic[0] &&
-           magic[1] == kMagic[1])
-    ? 1
-    : 0;
+  return this->CanReadFile(file) ? 1 : 0;
 }
 
+//------------------------------------------------------------------------------
+bool vtkOmegaHReader::CanReadFile(vtkResourceStream* stream)
+{
+  if (!stream)
+  {
+    return false;
+  }
+  stream->Seek(0, vtkResourceStream::SeekDirection::Begin);
+  unsigned char magic[2] = { 0, 0 };
+  return stream->Read(magic, sizeof(magic)) == sizeof(magic) && magic[0] == kMagic[0] &&
+    magic[1] == kMagic[1];
+}
+
+//------------------------------------------------------------------------------
 void vtkOmegaHReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "FileName: " << (this->FileName ? this->FileName : "(none)") << "\n";
+  os << indent << "FileName: " << (this->FileName.empty() ? "(none)" : this->FileName) << "\n";
+  if (this->Stream)
+  {
+    os << indent << "Stream: "
+       << "\n";
+    this->Stream->PrintSelf(os, indent.GetNextIndent());
+  }
+  else
+  {
+    os << indent << "Stream: (none)\n";
+  }
+  os << indent << "Controller: " << this->Controller << "\n";
 }
 
+//------------------------------------------------------------------------------
 int vtkOmegaHReader::RequestData(
   vtkInformation*, vtkInformationVector**, vtkInformationVector* outputVector)
 {
   auto output = vtkPartitionedDataSet::GetData(outputVector, 0);
-  if (!this->FileName && !this->Stream)
+  if (this->FileName.empty() && !this->Stream)
   {
     vtkErrorMacro(<< "Either a FileName or a Stream must be specified.");
     return 0;
@@ -1032,7 +1069,7 @@ int vtkOmegaHReader::RequestData(
   const int rank = controller->GetLocalProcessId();
   const int nprocs = controller->GetNumberOfProcesses();
 
-  const std::string directory(this->FileName);
+  const std::string& directory = this->FileName;
   int nparts = 0;
   int version = -1;
   if (rank == 0)
