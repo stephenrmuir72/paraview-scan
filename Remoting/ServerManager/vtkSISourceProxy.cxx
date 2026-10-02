@@ -57,6 +57,7 @@ vtkSISourceProxy::vtkSISourceProxy()
   this->StartEventCounter = 0;
   this->DisablePipelineExecution = false;
 
+#if VTK_MODULE_ENABLE_VTK_ParallelMPI
   auto controller = vtkMultiProcessController::GetGlobalController();
   const int processId = controller->GetLocalProcessId();
   const int numProcs = controller->GetNumberOfProcesses();
@@ -73,6 +74,7 @@ vtkSISourceProxy::vtkSISourceProxy()
       this->Internals->AbortRequests.resize(1);
     }
   }
+#endif
 }
 
 //----------------------------------------------------------------------------
