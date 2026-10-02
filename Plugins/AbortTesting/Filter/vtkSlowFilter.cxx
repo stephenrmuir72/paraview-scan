@@ -10,7 +10,6 @@
 #include "vtkObjectFactory.h"
 
 #include <thread>
-#include <iostream>
 
 vtkStandardNewMacro(vtkSlowFilter);
 
@@ -29,7 +28,6 @@ int vtkSlowFilter::FillInputPortInformation(int port, vtkInformation* info)
 int vtkSlowFilter::RequestData(
   vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  std::cout<<"vtkSlowFilter::RequestData"<<std::endl;
   vtkDataSet* input = vtkDataSet::GetData(inputVector[0], 0);
   vtkDataSet* output = vtkDataSet::GetData(outputVector, 0);
   output->ShallowCopy(input);
@@ -43,7 +41,6 @@ int vtkSlowFilter::RequestData(
     {
       if (this->CheckAbortAndInvoke())
       {
-        std::cout<<"vtkSlowFilter::RequestData ABORTED"<<std::endl;
         break;
       }
       this->UpdateProgress(static_cast<double>(i) / static_cast<double>(numberOfPoint));
@@ -51,7 +48,6 @@ int vtkSlowFilter::RequestData(
   }
   this->InvokeCleanupAbortCheck();
 
-  std::cout<<"vtkSlowFilter::RequestData END"<<std::endl;
   return 1;
 }
 
