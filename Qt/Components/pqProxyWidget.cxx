@@ -1237,7 +1237,7 @@ void pqProxyWidget::updatePanel()
 }
 
 //-----------------------------------------------------------------------------
-bool pqProxyWidget::restoreDefaults()
+bool pqProxyWidget::restoreDefaults(double priorty)
 {
   bool anyReset = false;
   if (this->Internals->Proxy)
@@ -1273,8 +1273,7 @@ bool pqProxyWidget::restoreDefaults()
         continue;
       }
 
-      anyReset =
-        this->resetProperty(smproperty, vtkSMSettings::GetApplicationPriority(), false) || anyReset;
+      anyReset = this->resetProperty(smproperty, priorty, false) || anyReset;
     }
   }
 

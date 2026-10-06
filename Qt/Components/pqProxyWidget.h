@@ -5,6 +5,7 @@
 #define pqProxyWidget_h
 
 #include "pqComponentsModule.h"
+#include "vtkSMSettings.h"
 #include <QSet>
 #include <QWidget>
 
@@ -197,7 +198,7 @@ public Q_SLOTS:
    * Restores application default proxy settings.
    * Returns true if any properties were modified.
    */
-  virtual bool restoreDefaults();
+  virtual bool restoreDefaults(double priority = vtkSMSettings::GetApplicationPriority());
 
   /**
    * Saves settings as defaults for proxy

@@ -191,7 +191,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values</string>
+             <string>Apply application defaults</string>
             </property>
             <property name="text">
              <string/>
@@ -317,7 +317,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values for display</string>
+             <string>Apply application defaults for display</string>
             </property>
             <property name="text">
              <string/>
@@ -443,7 +443,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values for view</string>
+             <string>Apply application defaults for view</string>
             </property>
             <property name="text">
              <string/>
