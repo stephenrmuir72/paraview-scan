@@ -128,6 +128,8 @@ fedora44-shared-asserts-mpi-python-qt-anari:test:
         - .linux_tester_tags
         - .cmake_test_artifacts
         - .rules
+    variables:
+        ANARI_LIBRARY: "helide"
     needs:
         - fedora44-shared-asserts-mpi-python-qt-anari:build
     timeout: 240 minutes
