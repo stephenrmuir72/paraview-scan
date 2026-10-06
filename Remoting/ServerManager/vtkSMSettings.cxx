@@ -1355,6 +1355,7 @@ std::vector<std::string> vtkSMSettings::GetPresets()
   {
     keys.push_back(name);
   }
+  std::sort(keys.begin(), keys.end());
   return keys;
 }
 
