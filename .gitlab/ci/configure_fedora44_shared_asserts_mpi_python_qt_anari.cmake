@@ -53,6 +53,9 @@ set(VTK_MODULE_ENABLE_VTK_RenderingOpenVR YES CACHE STRING "")
 set(PARAVIEW_XRInterface_OpenXR_Support ON CACHE BOOL "")
 set(VTK_MODULE_ENABLE_VTK_RenderingOpenXR YES CACHE STRING "")
 
+# Test ANARI support through Helide backend
+set(PARAVIEW_ENABLE_ANARI ON CACHE BOOL "")
+
 # Stock RelWithDebInfo flags, but without `-DNDEBUG` so that asserts are
 # active.
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "")
