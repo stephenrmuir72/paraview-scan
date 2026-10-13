@@ -24,6 +24,11 @@ public:
    */
   const QString& name() { return this->Name; }
 
+  /**
+   * Set used preset names for input validation
+   */
+  void setUsedNames(const std::vector<std::string>& usedNames);
+
 public Q_SLOTS:
   /**
    * Store the name of the preset after accept.
@@ -33,6 +38,7 @@ public Q_SLOTS:
 
 protected:
   QString Name;
+  std::vector<std::string> usedNames;
 
 private:
   Q_DISABLE_COPY(pqNewPresetDialog)

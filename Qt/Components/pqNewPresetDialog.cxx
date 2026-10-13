@@ -4,6 +4,7 @@
 #include "ui_pqNewPresetDialog.h"
 
 #include "vtkSMSettings.h"
+#include <QPushButton>
 #include <algorithm>
 
 //-----------------------------------------------------------------------------
@@ -26,6 +27,28 @@ pqNewPresetDialog::pqNewPresetDialog(QWidget* parentObject, Qt::WindowFlags flag
     this->Internals->Ui.ButtonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   QObject::connect(
     this->Internals->Ui.ButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  this->connect(this->Internals->Ui.PresetName, &QLineEdit::textChanged,
+    [this](const QString& text)
+    {
+      // Warning
+      if (std::find(this->usedNames.begin(), this->usedNames.end(), text.toStdString()) ==
+        this->usedNames.end())
+      {
+        this->Internals->Ui.PresetWarning->hide();
+      }
+      else
+      {
+        this->Internals->Ui.PresetWarning->show();
+      }
+
+      // Don't allow user to use an empty preset name
+      this->Internals->Ui.ButtonBox->button(QDialogButtonBox::StandardButton::Ok)
+        ->setDisabled(text.isEmpty());
+    });
+
+  this->Internals->Ui.PresetWarning->hide();
+  this->Internals->Ui.ButtonBox->button(QDialogButtonBox::StandardButton::Ok)->setDisabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -55,4 +78,10 @@ void pqNewPresetDialog::accept()
 pqNewPresetDialog::~pqNewPresetDialog()
 {
   delete this->Internals;
+}
+
+//-----------------------------------------------------------------------------
+void pqNewPresetDialog::setUsedNames(const std::vector<std::string>& usedNames)
+{
+  this->usedNames = usedNames;
 }

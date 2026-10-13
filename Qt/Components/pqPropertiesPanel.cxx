@@ -1251,6 +1251,7 @@ void pqPropertiesPanel::savePreset(QAction* action, pqProxyWidget* panel)
     pqNewPresetDialog* dialog = new pqNewPresetDialog(pqCoreUtilities::mainWidget());
     dialog->setWindowTitle("New preset");
     dialog->setModal(true);
+    dialog->setUsedNames(vtkSMSettings::GetInstance()->GetPresets());
     dialog->connect(dialog, &QWidget::close, &QObject::deleteLater);
     dialog->connect(dialog, &pqNewPresetDialog::accepted,
       [=]()
