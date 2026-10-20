@@ -504,7 +504,7 @@ bool vtkSMRenderViewProxy::StreamingUpdate(bool render_if_needed)
 
   // Now fetch any pieces that the server streamed back to the client.
   bool something_delivered = this->GetDeliveryManager()->DeliverStreamedPieces();
-  bool OSPRayNotDone = view->GetOSPRayContinueStreaming();
+  bool OSPRayNotDone = view->GetContinueStreaming();
   if (render_if_needed && (something_delivered || OSPRayNotDone))
   {
     this->StillRender();

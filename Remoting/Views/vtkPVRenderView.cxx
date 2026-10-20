@@ -163,7 +163,7 @@ public:
   bool IsInOSPRay;
   bool OSPRayShadows;
   bool OSPRayDenoise;
-  int OSPRayCount;
+  int FrameCount;
   bool Hide2DOverlays;
   bool HideOrientationWidget;
 
@@ -399,7 +399,7 @@ vtkPVRenderView::vtkPVRenderView()
   this->Internals->IsInOSPRay = false;
   this->Internals->OSPRayShadows = false;
   this->Internals->OSPRayDenoise = true;
-  this->Internals->OSPRayCount = 0;
+  this->Internals->FrameCount = 0;
   this->Internals->actorSyncEnabled = false;
 
   this->RemoteRenderingAvailable = true;
@@ -1688,7 +1688,7 @@ void vtkPVRenderView::InteractiveRender()
   vtkTimerLog::MarkStartEvent("Interactive Render");
   this->GetRenderWindow()->SetDesiredUpdateRate(5.0);
 
-  this->Internals->OSPRayCount = 0;
+  this->Internals->FrameCount = 0;
   this->Internals->PreRender(this->RenderView);
 
   this->Render(true, this->SuppressRendering);
@@ -4237,9 +4237,20 @@ void vtkPVRenderView::SetMaxFrames(int v)
 //----------------------------------------------------------------------------
 int vtkPVRenderView::GetMaxFrames()
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing || VTK_MODULE_ENABLE_VTK_RenderingAnari
   vtkRenderer* ren = this->GetRenderer();
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
   return vtkOSPRayRendererNode::GetMaxFrames(ren);
+#elif VTK_MODULE_ENABLE_VTK_RenderingAnari
+  if (this->Internals->AnariPass)
+  {
+    this->Internals->AnariPass->GetSceneGraph()->GetAccumulationCount(ren);
+  }
+  else
+  {
+    return 1;
+  }
+#endif
 #else
   return 1;
 #endif
@@ -4289,18 +4300,18 @@ double vtkPVRenderView::GetLightScale()
 }
 
 //----------------------------------------------------------------------------
-bool vtkPVRenderView::GetOSPRayContinueStreaming()
+bool vtkPVRenderView::GetContinueStreaming()
 {
-#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing
-  if (!this->Internals->IsInOSPRay)
+#if VTK_MODULE_ENABLE_VTK_RenderingRayTracing || VTK_MODULE_ENABLE_VTK_RenderingAnari
+  if (!(this->Internals->IsInOSPRay || this->Internals->IsInAnari))
   {
     return false;
   }
-  this->Internals->OSPRayCount++;
-  bool keep_going = this->Internals->OSPRayCount < this->GetMaxFrames();
+  this->Internals->FrameCount++;
+  bool keep_going = this->Internals->FrameCount < this->GetMaxFrames();
   if (!keep_going)
   {
-    this->Internals->OSPRayCount = 0;
+    this->Internals->FrameCount = 0;
   }
   return keep_going;
 #else
