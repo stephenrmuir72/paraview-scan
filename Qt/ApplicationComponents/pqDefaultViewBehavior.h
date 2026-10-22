@@ -8,6 +8,9 @@
 #include <QObject>
 #include <QPointer>
 
+#include "vtkEventQtSlotConnect.h"
+#include "vtkNew.h"
+
 #include "pqTimer.h" // for pqTimer
 #include "vtkType.h" // for vtkTypeUInt32.
 
@@ -27,12 +30,17 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqDefaultViewBehavior : public QObject
 public:
   pqDefaultViewBehavior(QObject* parent = nullptr);
 
+Q_SIGNALS:
+  void endLoop();
+
 protected Q_SLOTS:
   void onServerCreation(pqServer*);
   void fiveMinuteTimeoutWarning();
   void finalTimeoutWarning();
 
   void showWarnings();
+
+  void loop();
 
 private:
   Q_DISABLE_COPY(pqDefaultViewBehavior)
@@ -41,6 +49,9 @@ private:
   vtkTypeUInt32 ClientCapabilities;
   QPointer<pqServer> Server;
   pqTimer WarningsTimer;
+
+  vtkNew<vtkEventQtSlotConnect> VTKConnector;
+
 };
 
 #endif

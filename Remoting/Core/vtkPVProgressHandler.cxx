@@ -426,8 +426,10 @@ void vtkPVProgressHandler::RefreshProgress(
   this->LastProgressId = progress_id;
 
   this->InvokeEvent(vtkCommand::ProgressEvent, this);
-  this->SetLastProgressText(nullptr);
-  this->LastProgress = -1;
+
+  // Definitely should not reset that since we may not be in the same thread as the GUI
+  //  this->SetLastProgressText(nullptr);
+  //  this->LastProgress = -1;
 }
 
 //----------------------------------------------------------------------------

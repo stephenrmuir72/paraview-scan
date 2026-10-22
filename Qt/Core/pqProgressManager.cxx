@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QEvent>
+#include <QMainWindow>
 
 #include "pqApplicationCore.h"
 #include "pqCoreConfiguration.h"
@@ -20,7 +21,7 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkTimerLog.h"
 
-#include <QMainWindow>
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 pqProgressManager::pqProgressManager(QObject* _parent)
@@ -43,10 +44,12 @@ void pqProgressManager::onServerAdded(pqServer* server)
 {
   vtkPVProgressHandler* progressHandler = server->session()->GetProgressHandler();
 
-  pqCoreUtilities::connect(progressHandler, vtkCommand::StartEvent, this, SLOT(onStartProgress()));
-  pqCoreUtilities::connect(progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()));
+  // `Qt::QueuedConnection` matters here, in order to go through the thread barrier
+  pqCoreUtilities::connect(progressHandler, vtkCommand::StartEvent, this, SLOT(onStartProgress()), Qt::QueuedConnection);
+  pqCoreUtilities::connect(progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()), Qt::QueuedConnection);
+
   pqCoreUtilities::connect(
-    progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)));
+    progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------

@@ -16,11 +16,13 @@
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
+#include "vtkPVSessionCore.h"
 
 #include <QCoreApplication>
 #include <QMessageBox>
 
 #include <cassert>
+#include <iostream>
 
 namespace
 {
@@ -151,6 +153,13 @@ void pqDefaultViewBehavior::onServerCreation(pqServer* server)
   QObject::connect(
     server, SIGNAL(fiveMinuteTimeoutWarning()), this, SLOT(fiveMinuteTimeoutWarning()));
   QObject::connect(server, SIGNAL(finalTimeoutWarning()), this, SLOT(finalTimeoutWarning()));
+
+  // GUI Threading management
+  // Should be in its own behavior
+  // Should use dedicated event instead of relying on random events
+  // `Qt::QueuedConnection` matters here, that lets the VTKEvent/Qt Signal go through the thread barrier.
+  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonPressEvent, this, SLOT(loop()));
+  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonReleaseEvent, this, SIGNAL(endLoop()), nullptr, 0, Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
@@ -169,4 +178,13 @@ void pqDefaultViewBehavior::finalTimeoutWarning()
     tr("The server connection will timeout shortly.\n"
        "Please save your work."),
     QMessageBox::Ok);
+}
+
+//-----------------------------------------------------------------------------
+void pqDefaultViewBehavior::loop()
+{
+  std::cout<<"nested loop"<<std::endl;
+  QEventLoop qloop;
+  QObject::connect(this, &pqDefaultViewBehavior::endLoop, &qloop, &QEventLoop::quit, Qt::QueuedConnection);
+  qloop.exec();
 }

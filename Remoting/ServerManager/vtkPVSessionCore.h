@@ -190,7 +190,9 @@ protected:
    * This will execute localy the given vtkClientServerStream either by
    * calling method on the vtkSIObject or its internal vtkObject.
    */
-  virtual void ExecuteStreamInternal(const vtkClientServerStream& stream, bool ignore_errors);
+  virtual void ExecuteStreamInternal(const vtkClientServerStream& stream, bool ignore_errors, bool threaded = false);
+
+  void ProcessStreamThreaded(const vtkClientServerStream& css);
 
   /**
    * This will gather information on the local vtkObjects

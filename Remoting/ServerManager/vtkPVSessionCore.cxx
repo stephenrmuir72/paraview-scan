@@ -31,6 +31,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #define LOG(x)                                                                                     \
   if (this->LogStream)                                                                             \
@@ -576,7 +577,9 @@ void vtkPVSessionCore::ExecuteStream(
     }
   }
 
-  this->ExecuteStreamInternal(stream, ignore_errors);
+  // This is very hacky, will need to figure out the right way to choose which
+  // stream to execute in a different thread
+  this->ExecuteStreamInternal(stream, ignore_errors, location == vtkProcessModule::DATA_SERVER);
 }
 
 //----------------------------------------------------------------------------
@@ -593,9 +596,16 @@ void vtkPVSessionCore::ExecuteStreamSatelliteCallback()
   delete[] raw_data;
 }
 
+
+void vtkPVSessionCore::ProcessStreamThreaded(const vtkClientServerStream& css)
+{
+  this->Interpreter->ProcessStream(css);
+  this->InvokeEvent(vtkCommand::TDxButtonReleaseEvent, this);
+};
+
 //----------------------------------------------------------------------------
 void vtkPVSessionCore::ExecuteStreamInternal(
-  const vtkClientServerStream& stream, bool ignore_errors)
+  const vtkClientServerStream& stream, bool ignore_errors, bool threaded)
 {
   LOG(<< "----------------------------------------------------------------\n"
       << "ExecuteStream\n"
@@ -606,7 +616,18 @@ void vtkPVSessionCore::ExecuteStreamInternal(
 
   int temp = this->Interpreter->GetGlobalWarningDisplay();
   this->Interpreter->SetGlobalWarningDisplay(ignore_errors ? 0 : 1);
-  this->Interpreter->ProcessStream(stream);
+
+  if (threaded)
+  {
+    std::thread dataThread(&vtkPVSessionCore::ProcessStreamThreaded, this, stream);
+    this->InvokeEvent(vtkCommand::TDxButtonPressEvent, this);
+    dataThread.join();
+  }
+  else
+  {
+    this->Interpreter->ProcessStream(stream);
+  }
+
   this->Interpreter->SetGlobalWarningDisplay(temp);
 }
 
