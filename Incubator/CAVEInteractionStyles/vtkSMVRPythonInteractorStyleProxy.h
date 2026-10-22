@@ -82,6 +82,14 @@ public:
   void UpdateVTKObjects() override;
   ///@}
 
+  ///@{
+  /**
+   * Overridden to enforce state load ordering constraints specific to Python
+   * interactor styles.
+   */
+  bool Configure(vtkPVXMLElement* child, vtkSMProxyLocator* locator) override;
+  ///@}
+
 protected:
   vtkSMVRPythonInteractorStyleProxy();
   ~vtkSMVRPythonInteractorStyleProxy() override;
@@ -98,6 +106,13 @@ protected:
    * Save/Load the Python "Filename" with custom XML label
    */
   void SaveProxyProperties(vtkPVXMLElement* xml) override;
+  ///@}
+
+  ///@{
+  /**
+   * Overridden to do nothing, since this class needs to orchestrate state
+   * load operations in Configure().
+   */
   bool LoadProxyProperties(vtkPVXMLElement* xml, vtkSMProxyLocator* locator) override;
   ///@}
 
