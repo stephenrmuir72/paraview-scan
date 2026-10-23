@@ -215,6 +215,11 @@ void pqVRQueueHandler::configureStyles(vtkPVXMLElement* xml, vtkSMProxyLocator* 
           {
             this->add(style);
           }
+          else
+          {
+            qCritical() << "Interactor style" << class_name
+                        << "could not be configured from state and was not added.";
+          }
           style->Delete();
         }
         else

@@ -218,7 +218,7 @@ bool vtkSMVRInteractorStyleProxy::Configure(vtkPVXMLElement* child, vtkSMProxyLo
     result = false;
   }
 
-  result = LoadProxyProperties(child, locator);
+  result = this->LoadProxyProperties(child, locator) && result;
 
   return result;
 }
