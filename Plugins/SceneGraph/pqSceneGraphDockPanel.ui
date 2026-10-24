@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>SceneGraphPanel</class>
+ <widget class="QWidget" name="SceneGraphPanel">
+  <!-- Spare height goes to the node tree; the other sections keep their preferred size. -->
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0,0">
+   <item>
+    <layout class="QHBoxLayout" name="graphLayout">
+     <item>
+      <widget class="QLabel" name="graphLabel">
+       <property name="text">
+        <string>Graph</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="graphCombo">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>The registered scenegraphs.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="newGraphButton">
+       <property name="text">
+        <string>New</string>
+       </property>
+       <property name="toolTip">
+        <string>Create a scenegraph targeting the active render view.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="renameGraphButton">
+       <property name="text">
+        <string>Rename</string>
+       </property>
+       <property name="toolTip">
+        <string>Rename the selected scenegraph.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteGraphButton">
+       <property name="text">
+        <string>Delete</string>
+       </property>
+       <property name="toolTip">
+        <string>Delete this scenegraph and every node in it.</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="nodesGroup">
+     <property name="title">
+      <string>Nodes</string>
+     </property>
+     <layout class="QVBoxLayout" name="nodesLayout">
+      <item>
+       <widget class="QTreeView" name="treeView">
+        <property name="toolTip">
+         <string>Double-click to rename. Drag a node onto another to reparent it.</string>
+        </property>
+        <property name="dragDropMode">
+         <enum>QAbstractItemView::InternalMove</enum>
+        </property>
+        <property name="dragDropOverwriteMode">
+         <bool>true</bool>
+        </property>
+        <property name="defaultDropAction">
+         <enum>Qt::MoveAction</enum>
+        </property>
+        <property name="headerHidden">
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="nodeButtonsLayout">
+        <item>
+         <widget class="QPushButton" name="addChildButton">
+          <property name="text">
+           <string>Add Child</string>
+          </property>
+          <property name="toolTip">
+           <string>Create a node under the selected one, or under the root.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="renameButton">
+          <property name="text">
+           <string>Rename</string>
+          </property>
+          <property name="toolTip">
+           <string>Rename the selected node.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="deleteNodeButton">
+          <property name="text">
+           <string>Delete Node</string>
+          </property>
+          <property name="toolTip">
+           <string>Remove the node; its children move up to its parent and keep their own transforms.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="deleteSubtreeButton">
+          <property name="text">
+           <string>Delete Subtree</string>
+          </property>
+          <property name="toolTip">
+           <string>Remove the node and everything beneath it.</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="transformGroup">
+     <property name="title">
+      <string>Translation (local)</string>
+     </property>
+     <layout class="QHBoxLayout" name="transformLayout">
+      <item>
+       <widget class="QLabel" name="xLabel">
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="pqDoubleLineEdit" name="translateX"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="yLabel">
+        <property name="text">
+         <string>Y</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="pqDoubleLineEdit" name="translateY"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="zLabel">
+        <property name="text">
+         <string>Z</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="pqDoubleLineEdit" name="translateZ"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="sourcesGroup">
+     <property name="title">
+      <string>Bound Sources</string>
+     </property>
+     <layout class="QVBoxLayout" name="sourcesLayout">
+      <item>
+       <widget class="QListWidget" name="sourcesList"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="sourceButtonsLayout">
+        <item>
+         <widget class="QPushButton" name="bindSourceButton">
+          <property name="text">
+           <string>Bind Active Source</string>
+          </property>
+          <property name="toolTip">
+           <string>Bind the pipeline browser's active source and port to the selected node.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="unbindSourceButton">
+          <property name="text">
+           <string>Unbind</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="viewsGroup">
+     <property name="title">
+      <string>Target Views</string>
+     </property>
+     <layout class="QVBoxLayout" name="viewsLayout">
+      <item>
+       <widget class="QListWidget" name="viewsList"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="viewButtonsLayout">
+        <item>
+         <widget class="QPushButton" name="targetViewButton">
+          <property name="text">
+           <string>Target Active View</string>
+          </property>
+          <property name="toolTip">
+           <string>Add the active view to the selected graph's targets. Targeting several views mirrors the graph across them.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="untargetViewButton">
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusLabel">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>pqDoubleLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>pqDoubleLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -4,6 +4,25 @@ set(sources)
 set(interfaces)
 set(ui_files)
 
+if (PARAVIEW_USE_QT)
+  list(APPEND sources
+    pqSceneGraphDockPanel.cxx
+    pqSceneGraphDockPanel.h
+    pqSceneGraphModel.cxx
+    pqSceneGraphModel.h)
+  list(APPEND ui_files
+    pqSceneGraphDockPanel.ui)
+
+  paraview_plugin_add_dock_window(
+    CLASS_NAME pqSceneGraphDockPanel
+    DOCK_AREA Left
+    INTERFACES dock_interfaces
+    SOURCES dock_sources)
+  list(APPEND interfaces
+    ${dock_interfaces})
+  list(APPEND sources
+    ${dock_sources})
+endif ()
 
 paraview_add_plugin(SceneGraph
   REQUIRED_ON_CLIENT
@@ -22,6 +41,10 @@ target_link_libraries(SceneGraph
     ParaView::RemotingViews
     VTK::CommonCore
     VTK::CommonMath)
+
+if (PARAVIEW_USE_QT)
+  target_compile_definitions(SceneGraph PRIVATE QT_NO_KEYWORDS)
+endif ()
 
 if (BUILD_TESTING)
   add_subdirectory(Testing)

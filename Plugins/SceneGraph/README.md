@@ -17,13 +17,13 @@ and orientation, but the goal is for node eventually to support more (and possib
 arbitrary) properties that map to and control other Representation properties
 besides just UserTransform.
 
-The graph can be controlled by a Python script.
+The graph can be controlled by a UI dock panel or by a Python script.
 
 ## Layout
 
 The wrappable core lives in `Incubator/SceneGraph/` so that it gets both
 client-server as well as python wrapping, This plugin supplies the proxy XML,
-all the tests, and the packaging, and it depends on the incubator
+the GUI, all the tests, and the packaging, and it depends on the incubator
 module.
 
 - `SceneGraph_SM.xml`: proxy definitions for `SceneGraph` and `SceneGraphNode`.
@@ -34,6 +34,22 @@ Neither proxy has a backing VTK object, and the graph is entirely client-side
 server-manager state. The manager reads and writes it through `vtkSMPropertyHelper`,
 and ParaView's generic proxy machinery saves and restores it, including the node
 hierarchy, which is held in a repeatable `Children` proxy-property.
+
+## Using the SceneGraph from the GUI
+
+Loading the plugin adds the scene graph dock panel. You can select an existing
+graph or create a new one at the top of the panel. Clicking New asks for a name,
+then adds a graph with the given name. The Rename and Delete buttons act on
+whatever graph is selected in the dropdown. Select a node and click Add Child
+to begin building the graph, or rename a node by double-clicking it. A node can
+be reparented by dragging it onto another node. Delete Node removes a node and
+moves/expands its children into the empty slot. Delete Subtree removes a node
+along with everything beneath it. The translation fields edit the selected
+node's local transform and immediately apply it. Bind Active Source binds the
+currently selected pipeline object (port included) to the currently selected
+graph node. Target Active View adds the active render view to the selected
+graph, so one graph can mirror a graph across several views. Edits made from
+the Python shell show up in the panel.
 
 ## Using it from Python
 
@@ -79,8 +95,8 @@ To build the SceneGraph plugin, enable it with:
 
 ## Tests
 
-The plugin includes a number of tests, exercising the Python api. If testing
-is enabled, tests can be run with:
+The plugin includes a number of tests, exercising both the Python api and the
+GUI. If testing is enabled, tests can be run with:
 
 ```
 ctest -R SceneGraph
