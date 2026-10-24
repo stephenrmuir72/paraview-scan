@@ -8,7 +8,8 @@ set(py_tests
   TestSceneGraphBinding.py,NO_DATA,NO_VALID,NO_OUTPUT
   TestSceneGraphInvariants.py,NO_DATA,NO_VALID,NO_OUTPUT
   TestSceneGraphErrorCodes.py,NO_DATA,NO_VALID,NO_OUTPUT
-  TestSceneGraphWrapper.py,NO_DATA,NO_VALID,NO_OUTPUT)
+  TestSceneGraphWrapper.py,NO_DATA,NO_VALID,NO_OUTPUT
+  TestSceneGraphInteractors.py,NO_DATA,NO_VALID,NO_OUTPUT)
 
 paraview_add_test_python(${py_tests})
 

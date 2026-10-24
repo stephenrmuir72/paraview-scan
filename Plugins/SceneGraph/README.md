@@ -17,7 +17,9 @@ and orientation, but the goal is for node eventually to support more (and possib
 arbitrary) properties that map to and control other Representation properties
 besides just UserTransform.
 
-The graph can be controlled by a UI dock panel or by a Python script.
+The graph can be controlled by a UI dock panel, by a Python script, or by the
+CAVEInteraction plugin which optionally calls `TraverseAndApply()` once per
+frame.
 
 ## Layout
 
@@ -84,6 +86,17 @@ any way to create a node in an unattached state. Nodes are created attached (via
 `CreateChild`) and stay attached, but can be reparented via `MoveNode`. Sibling
 order is considered irrelevant (other than for UI presentation), and is thus not
 exposed in the API.
+
+## Using it from the CAVEInteraction plugin
+
+When both plugins are built, the CAVEInteraction plugin gets support for applying
+any graphs that target the active render view. This happens once each time through
+the CAVEInteraction event loop, after calling Update() on all the active interactor
+style proxies, and before calling Render() on the view.
+
+See `Plugins/SceneGraph/Examples/Interactors/SceneGraphGrabNode.py` for an example
+interactor style that demonstrates using a controller to manipulate transforms
+stored on a graph.
 
 ## Building
 
