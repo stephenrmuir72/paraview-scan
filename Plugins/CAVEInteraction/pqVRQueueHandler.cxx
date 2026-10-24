@@ -24,6 +24,15 @@
 
 #include <cassert>
 
+namespace
+{
+vtkSMRenderViewProxy* ActiveRenderView()
+{
+  pqView* view = pqActiveObjects::instance().activeView();
+  return view ? vtkSMRenderViewProxy::SafeDownCast(view->getViewProxy()) : nullptr;
+}
+}
+
 class pqVRQueueHandler::pqInternals
 {
 public:
@@ -165,16 +174,9 @@ void pqVRQueueHandler::processEvents()
 //----------------------------------------------------------------------------
 void pqVRQueueHandler::render()
 {
-  vtkSMRenderViewProxy* proxy = 0;
-  pqView* view = 0;
-  view = pqActiveObjects::instance().activeView();
-  if (view)
+  if (vtkSMRenderViewProxy* proxy = ActiveRenderView())
   {
-    proxy = vtkSMRenderViewProxy::SafeDownCast(view->getViewProxy());
-    if (proxy)
-    {
-      proxy->StillRender();
-    }
+    proxy->StillRender();
   }
 }
 
