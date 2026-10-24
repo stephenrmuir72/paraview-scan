@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "pqVRQueueHandler.h"
 
+#include "vtkPVVRConfig.h"
+
 #include "vtkCollection.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -16,13 +18,23 @@
 
 #include "pqActiveObjects.h"
 #include "pqApplicationCore.h"
+#include "pqServer.h"
 #include "pqView.h"
+
+#if PARAVIEW_PLUGIN_ENABLE_SceneGraph
+#include "vtkCommand.h"
+#include "vtkSMProxyManager.h"
+#include "vtkSMSceneGraphProxy.h"
+#include "vtkSMSessionProxyManager.h"
+#endif
 
 #include <QList>
 #include <QTimer>
 #include <QtDebug>
 
 #include <cassert>
+#include <cstring>
+#include <vector>
 
 namespace
 {
@@ -39,6 +51,100 @@ public:
   vtkNew<vtkCollection> Styles;
   vtkWeakPointer<vtkVRQueue> Queue;
   QTimer Timer;
+
+#if PARAVIEW_PLUGIN_ENABLE_SceneGraph
+  // Keep a list of all the scenegraphs, and watch proxy manager registration
+  // events so we can mark the list stale when appropriate. If the event loop
+  // code sees the iist is stale, it rebuilds the list.
+  vtkWeakPointer<vtkSMSessionProxyManager> ProxyManager;
+  unsigned long RegisterTag = 0;
+  unsigned long UnRegisterTag = 0;
+  bool SceneGraphsStale = true;
+  std::vector<vtkWeakPointer<vtkSMSceneGraphProxy>> SceneGraphs;
+  vtkNew<vtkCollection> TargetViews; // scratch, reused every frame
+
+  void onRegistration(vtkObject*, unsigned long, void* callData)
+  {
+    auto* info = static_cast<vtkSMProxyManager::RegisteredProxyInformation*>(callData);
+    if (info && (info->Type & vtkSMProxyManager::RegisteredProxyInformation::PROXY) &&
+      info->GroupName &&
+      std::strcmp(info->GroupName, vtkSMSceneGraphProxy::GetSceneGraphGroup()) == 0)
+    {
+      this->SceneGraphsStale = true;
+    }
+  }
+
+  void watch(vtkSMSessionProxyManager* pxm)
+  {
+    if (this->ProxyManager)
+    {
+      this->ProxyManager->RemoveObserver(this->RegisterTag);
+      this->ProxyManager->RemoveObserver(this->UnRegisterTag);
+    }
+    this->ProxyManager = pxm;
+    this->RegisterTag = this->UnRegisterTag = 0;
+    if (pxm)
+    {
+      this->RegisterTag =
+        pxm->AddObserver(vtkCommand::RegisterEvent, this, &pqInternals::onRegistration);
+      this->UnRegisterTag =
+        pxm->AddObserver(vtkCommand::UnRegisterEvent, this, &pqInternals::onRegistration);
+    }
+    this->SceneGraphsStale = true;
+  }
+
+  void refreshSceneGraphs()
+  {
+    this->SceneGraphs.clear();
+    if (this->ProxyManager)
+    {
+      vtkNew<vtkCollection> graphs;
+      vtkSMSceneGraphProxy::GetSceneGraphs(this->ProxyManager, graphs);
+      for (int cc = 0; cc < graphs->GetNumberOfItems(); ++cc)
+      {
+        this->SceneGraphs.emplace_back(
+          vtkSMSceneGraphProxy::SafeDownCast(graphs->GetItemAsObject(cc)));
+      }
+    }
+    this->SceneGraphsStale = false;
+  }
+
+  /// Apply every scenegraph that targets `view`, so the styles' edits to
+  /// node properties are applied to the representations before the frame
+  /// is rendered.
+  void applySceneGraphs(vtkSMRenderViewProxy* view)
+  {
+    if (this->SceneGraphsStale)
+    {
+      this->refreshSceneGraphs();
+    }
+    if (!view)
+    {
+      return;
+    }
+    // Every graph targeting the given view is applied every frame, while graphs
+    // targeting other views are skipped.
+    for (auto& weak : this->SceneGraphs)
+    {
+      vtkSMSceneGraphProxy* graph = weak;
+      if (!graph)
+      {
+        continue;
+      }
+      graph->GetTargetViews(this->TargetViews);
+      for (int cc = 0; cc < this->TargetViews->GetNumberOfItems(); ++cc)
+      {
+        if (this->TargetViews->GetItemAsObject(cc) == view)
+        {
+          graph->TraverseAndApply();
+          break;
+        }
+      }
+    }
+  }
+
+  ~pqInternals() { this->watch(nullptr); }
+#endif
 };
 
 //----------------------------------------------------------------------------
@@ -69,6 +175,10 @@ pqVRQueueHandler::pqVRQueueHandler(vtkVRQueue* queue, QObject* parentObject)
   QObject::connect(pqApplicationCore::instance(),
     SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)), this,
     SLOT(configureStyles(vtkPVXMLElement*, vtkSMProxyLocator*)));
+
+  QObject::connect(&pqActiveObjects::instance(), &pqActiveObjects::serverChanged, this,
+    &pqVRQueueHandler::onServerChanged);
+  this->onServerChanged(pqActiveObjects::instance().activeServer());
   QObject::connect(pqApplicationCore::instance(), SIGNAL(stateSaved(vtkPVXMLElement*)), this,
     SLOT(saveStylesConfiguration(vtkPVXMLElement*)));
 }
@@ -165,10 +275,26 @@ void pqVRQueueHandler::processEvents()
     style->Update();
   }
 
+#if PARAVIEW_PLUGIN_ENABLE_SceneGraph
+  // The styles may have set properties of nodes (e.g transform). Apply
+  // those to the representations before the frame is drawn.
+  this->Internals->applySceneGraphs(ActiveRenderView());
+#endif
+
   this->render();
 
   // since timer is single-shot we start it again.
   this->Internals->Timer.start();
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::onServerChanged(pqServer* server)
+{
+#if PARAVIEW_PLUGIN_ENABLE_SceneGraph
+  this->Internals->watch(server ? server->proxyManager() : nullptr);
+#else
+  (void)server;
+#endif
 }
 
 //----------------------------------------------------------------------------
