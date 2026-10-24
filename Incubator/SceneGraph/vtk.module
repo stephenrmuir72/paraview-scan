@@ -1,0 +1,14 @@
+NAME
+  ParaViewIncubator::SceneGraph
+LIBRARY_NAME
+  vtkPVIncubatorSceneGraph
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonCore
+  ParaView::RemotingServerManager
+  ParaView::RemotingViews
+PRIVATE_DEPENDS
+  VTK::CommonMath
