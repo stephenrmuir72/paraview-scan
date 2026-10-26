@@ -281,6 +281,7 @@
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>A previously-calculated model with which to assess a
         separate dataset. This input is optional.</Documentation>
@@ -432,6 +433,7 @@
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>A previously-calculated model with which to assess a
         separate dataset. This input is optional.</Documentation>
@@ -611,6 +613,7 @@
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>A previously-calculated model with which to assess a
         separate dataset. This input is optional.</Documentation>
@@ -820,6 +823,7 @@
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>A previously-calculated model with which to assess a
         separate dataset. This input is optional.</Documentation>
@@ -977,6 +981,7 @@
         <DataTypeDomain name="input_type">
           <DataType value="vtkTable" />
           <DataType value="vtkMultiBlockDataSet" />
+          <DataType value="vtkPartitionedDataSetCollection" />
         </DataTypeDomain>
         <Documentation>A previously-calculated model with which to assess a
         separate dataset. This input is optional.</Documentation>
