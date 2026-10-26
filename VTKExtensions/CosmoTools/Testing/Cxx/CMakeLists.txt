@@ -11,6 +11,14 @@ vtk_add_test_mpi(vtkPVVTKExtensionsCosmoToolsCxxTests tests
   TestSubhaloFinder.cxx # test of subhalo finding filter
 )
 
+# Uses real particle data but compares the results of the filters for several
+# input types, so there is no baseline image.
+vtk_add_test_mpi(vtkPVVTKExtensionsCosmoToolsCxxTests tests
+  TESTING_DATA
+  NO_VALID
+  TestHaloFinderCompositeTypes.cxx # test of vtkUnstructuredGrid/vtkMultiBlockDataSet/vtkPartitionedDataSetCollection input
+)
+
 # Uses synthetic in-memory data, so it does not need TESTING_DATA.
 vtk_add_test_mpi(vtkPVVTKExtensionsCosmoToolsCxxTests tests
   NO_VALID
