@@ -4,16 +4,18 @@
 #include "vtkPANLSubhaloFinder.h"
 
 #include "vtkCellType.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkFloatArray.h"
 #include "vtkIdList.h"
 #include "vtkInformation.h"
 #include "vtkIntArray.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPoints.h"
+#include "vtkSmartPointer.h"
 #include "vtkTypeInt64Array.h"
 #include "vtkUnstructuredGrid.h"
 
@@ -141,6 +143,7 @@ int vtkPANLSubhaloFinder::FillInputPortInformation(int vtkNotUsed(port), vtkInfo
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkUnstructuredGrid");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
   return 1;
 }
 
@@ -154,11 +157,11 @@ int vtkPANLSubhaloFinder::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkUnstructuredGrid* grid = vtkUnstructuredGrid::GetData(inputVector[0], 0);
-  vtkMultiBlockDataSet* multiBlockIn = vtkMultiBlockDataSet::GetData(inputVector[0], 0);
+  vtkCompositeDataSet* compositeIn = vtkCompositeDataSet::GetData(inputVector[0], 0);
   vtkUnstructuredGrid* allParticlesOutput = vtkUnstructuredGrid::GetData(outputVector, 0);
-  vtkMultiBlockDataSet* multiBlockAllParticles = vtkMultiBlockDataSet::GetData(outputVector, 0);
+  vtkCompositeDataSet* compositeAllParticles = vtkCompositeDataSet::GetData(outputVector, 0);
   vtkUnstructuredGrid* subFofProperties = vtkUnstructuredGrid::GetData(outputVector, 1);
-  vtkMultiBlockDataSet* multiBlockSubProperties = vtkMultiBlockDataSet::GetData(outputVector, 1);
+  vtkCompositeDataSet* compositeSubProperties = vtkCompositeDataSet::GetData(outputVector, 1);
 
   if (grid != nullptr)
   {
@@ -167,16 +170,17 @@ int vtkPANLSubhaloFinder::RequestData(vtkInformation* vtkNotUsed(request),
     allParticlesOutput->ShallowCopy(grid);
     this->ExecuteSubHaloFinder(grid, allParticlesOutput, subFofProperties);
   }
-  else if (multiBlockIn)
+  else if (compositeIn)
   {
-    assert(multiBlockAllParticles);
-    assert(multiBlockSubProperties);
-    vtkIdType numberOfInputBlocks = multiBlockIn->GetNumberOfBlocks();
-    multiBlockAllParticles->SetNumberOfBlocks(numberOfInputBlocks);
-    multiBlockSubProperties->SetNumberOfBlocks(numberOfInputBlocks);
-    for (vtkIdType i = 0; i < numberOfInputBlocks; ++i)
+    assert(compositeAllParticles);
+    assert(compositeSubProperties);
+    compositeAllParticles->CopyStructure(compositeIn);
+    compositeSubProperties->CopyStructure(compositeIn);
+    vtkSmartPointer<vtkCompositeDataIterator> iter;
+    iter.TakeReference(compositeIn->NewIterator());
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
-      vtkUnstructuredGrid* block = vtkUnstructuredGrid::SafeDownCast(multiBlockIn->GetBlock(i));
+      vtkUnstructuredGrid* block = vtkUnstructuredGrid::SafeDownCast(iter->GetCurrentDataObject());
       if (block != nullptr)
       {
         vtkNew<vtkUnstructuredGrid> blockAllParticles;
@@ -184,8 +188,8 @@ int vtkPANLSubhaloFinder::RequestData(vtkInformation* vtkNotUsed(request),
         blockAllParticles->ShallowCopy(block);
         this->ExecuteSubHaloFinder(
           block, blockAllParticles.GetPointer(), blockSubProperties.GetPointer());
-        multiBlockAllParticles->SetBlock(i, blockAllParticles.GetPointer());
-        multiBlockSubProperties->SetBlock(i, blockSubProperties.GetPointer());
+        compositeAllParticles->SetDataSet(iter, blockAllParticles.GetPointer());
+        compositeSubProperties->SetDataSet(iter, blockSubProperties.GetPointer());
       }
     }
   }

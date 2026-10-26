@@ -4,16 +4,18 @@
 #include "vtkPANLHaloFinder.h"
 
 #include "vtkCellType.h"
+#include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataArray.h"
 #include "vtkFloatArray.h"
 #include "vtkInformation.h"
 #include "vtkIntArray.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPoints.h"
+#include "vtkSmartPointer.h"
 #include "vtkTypeInt64Array.h"
 #include "vtkUnstructuredGrid.h"
 
@@ -238,6 +240,7 @@ int vtkPANLHaloFinder::FillInputPortInformation(int port, vtkInformation* info)
 {
   this->Superclass::FillInputPortInformation(port, info);
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
   return 1;
 }
 
@@ -245,8 +248,8 @@ int vtkPANLHaloFinder::RequestData(
   vtkInformation*, vtkInformationVector** inVector, vtkInformationVector* outVector)
 {
   vtkUnstructuredGrid* grid = vtkUnstructuredGrid::GetData(inVector[0], 0);
-  vtkMultiBlockDataSet* multiBlock = vtkMultiBlockDataSet::GetData(inVector[0], 0);
-  if (grid == nullptr && multiBlock == nullptr)
+  vtkCompositeDataSet* composite = vtkCompositeDataSet::GetData(inVector[0], 0);
+  if (grid == nullptr && composite == nullptr)
   {
     vtkErrorMacro("No Input!");
     return 0;
@@ -266,11 +269,13 @@ int vtkPANLHaloFinder::RequestData(
   }
   else
   {
-    this->Internal->reserveForInputData(multiBlock->GetNumberOfPoints());
+    this->Internal->reserveForInputData(composite->GetNumberOfPoints());
     vtkIdType pointsSoFar = 0;
-    for (vtkIdType i = 0; i < multiBlock->GetNumberOfBlocks(); ++i)
+    vtkSmartPointer<vtkCompositeDataIterator> iter;
+    iter.TakeReference(composite->NewIterator());
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
-      vtkUnstructuredGrid* block = vtkUnstructuredGrid::SafeDownCast(multiBlock->GetBlock(i));
+      vtkUnstructuredGrid* block = vtkUnstructuredGrid::SafeDownCast(iter->GetCurrentDataObject());
       if (block != nullptr)
       {
         this->ExtractDataArrays(block, pointsSoFar);
