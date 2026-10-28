@@ -192,8 +192,6 @@ protected:
    */
   virtual void ExecuteStreamInternal(const vtkClientServerStream& stream, bool ignore_errors, bool threaded = false);
 
-  void ProcessStreamThreaded(const vtkClientServerStream& css);
-
   /**
    * This will gather information on the local vtkObjects
    * through the local vtkSIObjects.
@@ -236,6 +234,14 @@ protected:
 private:
   vtkPVSessionCore(const vtkPVSessionCore&) = delete;
   void operator=(const vtkPVSessionCore&) = delete;
+
+  /**
+   * Called by the threaded version of process stream
+   * TODO 
+   */
+  void ProcessStreamThreaded(const vtkClientServerStream& css);
+
+
 
   class vtkInternals;
   vtkInternals* Internals;

@@ -332,6 +332,8 @@ void vtkPVProgressHandler::LocalCleanupPendingProgress()
   SKIP_IF_DISABLED();
   this->Internals->EnableProgress = false;
   this->LastProgressId = 0;
+  this->SetLastProgressText(nullptr);
+  this->LastProgress = -1;
   this->InvokeEvent(vtkCommand::EndEvent, this);
 }
 
@@ -426,10 +428,6 @@ void vtkPVProgressHandler::RefreshProgress(
   this->LastProgressId = progress_id;
 
   this->InvokeEvent(vtkCommand::ProgressEvent, this);
-
-  // Definitely should not reset that since we may not be in the same thread as the GUI
-  //  this->SetLastProgressText(nullptr);
-  //  this->LastProgress = -1;
 }
 
 //----------------------------------------------------------------------------

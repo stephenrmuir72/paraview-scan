@@ -577,8 +577,6 @@ void vtkPVSessionCore::ExecuteStream(
     }
   }
 
-  // This is very hacky, will need to figure out the right way to choose which
-  // stream to execute in a different thread
   this->ExecuteStreamInternal(stream, ignore_errors, threadedStream != 0);
 }
 

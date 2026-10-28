@@ -426,8 +426,10 @@ void pqApplyBehavior::showData(pqPipelineSource* source, pqView* view)
   // create representations for all output ports.
   for (int outputPort = 0; outputPort < source->getNumberOfOutputPorts(); outputPort++)
   {
-    vtkSMViewProxy* preferredView = controller->ShowInPreferredView(
-      vtkSMSourceProxy::SafeDownCast(source->getProxy()), outputPort, currentViewProxy);
+    vtkSMSourceProxy* sourceProxy = vtkSMSourceProxy::SafeDownCast(source->getProxy());
+    sourceProxy->ThreadedUpdateOn();
+    vtkSMViewProxy* preferredView = controller->ShowInPreferredView(sourceProxy, outputPort, currentViewProxy);
+    sourceProxy->ThreadedUpdateOff();
     if (!preferredView)
     {
       continue;

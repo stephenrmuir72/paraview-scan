@@ -464,7 +464,10 @@ void vtkSMSourceProxy::UpdatePipeline(double time)
   int num = this->GetNumberOfOutputPorts();
   for (i = 0; i < num; ++i)
   {
+    bool portThreadedUpdate = this->GetOutputPort(i)->GetThreadedUpdate();
+    this->GetOutputPort(i)->SetThreadedUpdate(this->ThreadedUpdate);
     this->GetOutputPort(i)->UpdatePipeline(time);
+    this->GetOutputPort(i)->SetThreadedUpdate(portThreadedUpdate);
   }
 
   // When calling UpdatePipeline() we check if this->NeedsUpdate is true and

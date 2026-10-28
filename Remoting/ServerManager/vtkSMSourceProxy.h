@@ -51,6 +51,15 @@ public:
   vtkTypeMacro(vtkSMSourceProxy, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
+  /**
+   * Enable/Disable threaded udpate.
+   */
+  vtkSetMacro(ThreadedUpdate, bool);
+  vtkGetMacro(ThreadedUpdate, bool);
+  vtkBooleanMacro(ThreadedUpdate, bool);
+  ///@}
+
   /**
    * Calls UpdateInformation() on all sources.
    */
@@ -385,6 +394,7 @@ private:
   void operator=(const vtkSMSourceProxy&) = delete;
 
   bool StreamReply = true;
+  bool ThreadedUpdate = false; 
 };
 
 #endif
