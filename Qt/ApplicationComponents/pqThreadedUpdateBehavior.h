@@ -28,14 +28,14 @@ public:
 Q_SIGNALS:
 
   /**
-   * Emited when a TODO event is received
+   * Emited when a ThreadedStreamEndEvent event is received
    */
   void endLoop();
 
 protected Q_SLOTS:
 
   /**
-   * Connect the TODO event to the temporary event loop creation and destruction
+   * Connect the ThreadedStreamStartEvent/ThreadedStreamEndEvent events to the temporary event loop creation and destruction
    */
   void onServerCreation(pqServer*);
 

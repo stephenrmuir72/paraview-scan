@@ -237,11 +237,9 @@ private:
 
   /**
    * Called by the threaded version of process stream
-   * TODO 
+   * Invoke ThreadedStreamEndEvent when done
    */
   void ProcessStreamThreaded(const vtkClientServerStream& css);
-
-
 
   class vtkInternals;
   vtkInternals* Internals;
