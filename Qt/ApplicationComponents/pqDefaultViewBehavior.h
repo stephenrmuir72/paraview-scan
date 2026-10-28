@@ -8,9 +8,6 @@
 #include <QObject>
 #include <QPointer>
 
-#include "vtkEventQtSlotConnect.h"
-#include "vtkNew.h"
-
 #include "pqTimer.h" // for pqTimer
 #include "vtkType.h" // for vtkTypeUInt32.
 

@@ -16,13 +16,11 @@
 #include "vtkPVRenderingCapabilitiesInformation.h"
 #include "vtkSMSession.h"
 #include "vtkSMSessionProxyManager.h"
-#include "vtkPVSessionCore.h"
 
 #include <QCoreApplication>
 #include <QMessageBox>
 
 #include <cassert>
-#include <iostream>
 
 namespace
 {
