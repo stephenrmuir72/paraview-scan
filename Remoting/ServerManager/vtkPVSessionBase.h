@@ -35,7 +35,9 @@ public:
     RegisterRemoteObjectEvent = 1234,
     UnRegisterRemoteObjectEvent = 4321,
     ProcessingRemoteEnd = 2143,
-    ConnectionLost = 6789
+    ConnectionLost = 6789,
+    ThreadedStreamStartEvent = 9001,
+    ThreadedStreamEndEvent = 9002
   };
 
   //---------------------------------------------------------------------------

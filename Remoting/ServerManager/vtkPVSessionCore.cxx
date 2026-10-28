@@ -15,6 +15,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVInformation.h"
 #include "vtkPVSession.h"
+#include "vtkPVSessionBase.h"
 #include "vtkPVSessionCoreInterpreterHelper.h"
 #include "vtkProcessModule.h"
 #include "vtkProcessModuleConfiguration.h"
@@ -598,7 +599,7 @@ void vtkPVSessionCore::ExecuteStreamSatelliteCallback()
 void vtkPVSessionCore::ProcessStreamThreaded(const vtkClientServerStream& css)
 {
   this->Interpreter->ProcessStream(css);
-  this->InvokeEvent(vtkCommand::TDxButtonReleaseEvent, this);
+  this->InvokeEvent(vtkPVSessionBase::ThreadedStreamEndEvent, this);
 };
 
 //----------------------------------------------------------------------------
@@ -618,7 +619,7 @@ void vtkPVSessionCore::ExecuteStreamInternal(
   if (threaded)
   {
     std::thread dataThread(&vtkPVSessionCore::ProcessStreamThreaded, this, stream);
-    this->InvokeEvent(vtkCommand::TDxButtonPressEvent, this);
+    this->InvokeEvent(vtkPVSessionBase::ThreadedStreamStartEvent, this);
     dataThread.join();
   }
   else

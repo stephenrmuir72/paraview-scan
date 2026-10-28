@@ -23,8 +23,8 @@ void pqThreadedUpdateBehavior::onServerCreation(pqServer* server)
 {
   // Should use dedicated event instead of relying on random events
   // `Qt::QueuedConnection` matters here, that lets the VTKEvent/Qt Signal go through the thread barrier.
-  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonPressEvent, this, SLOT(loop()));
-  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonReleaseEvent, this, SIGNAL(endLoop()));
+  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkPVSessionBase::ThreadedStreamStartEvent, this, SLOT(loop()));
+  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkPVSessionBase::ThreadedStreamEndEvent, this, SIGNAL(endLoop()));
 }
 
 //-----------------------------------------------------------------------------
