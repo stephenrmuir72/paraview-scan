@@ -2419,7 +2419,7 @@ void vtkSMProxy::InitializeAndCopyFromProxy(vtkSMProxy* fromP)
 
 //---------------------------------------------------------------------------
 void vtkSMProxy::ExecuteStream(
-  const vtkClientServerStream& stream, bool ignore_errors /*=false*/, vtkTypeUInt32 location /*=0*/)
+  const vtkClientServerStream& stream, bool ignore_errors /*=false*/, vtkTypeUInt32 location /*=0*/, bool threadedStream /*=false*/)
 {
   if (location == 0)
   {
@@ -2432,7 +2432,7 @@ void vtkSMProxy::ExecuteStream(
 
   if (this->GetSession())
   {
-    this->GetSession()->ExecuteStream(location, stream, ignore_errors);
+    this->GetSession()->ExecuteStream(location, stream, ignore_errors, false, threadedStream);
   }
   // if no session, nothing to do.
 }

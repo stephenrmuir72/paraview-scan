@@ -65,7 +65,7 @@ public:
    * \c ignore_errors to true, to ignore any interpreting errors.
    */
   virtual void ExecuteStream(
-    vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors = false);
+    vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors = false, bool threadedStream = false);
 
   /**
    * Returns the response of the ExecuteStream() call from the location. Note if

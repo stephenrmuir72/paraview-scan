@@ -324,7 +324,10 @@ void pqApplyBehavior::applied(pqPropertiesPanel* panel)
       .arg(view->getViewProxy())
       .arg("Update")
       .arg("comment", qPrintable(tr("update the view to ensure updated data information")));
-    view->getViewProxy()->Update();
+    vtkSMViewProxy* viewProxy = view->getViewProxy();
+    viewProxy->ThreadedUpdateOn();
+    viewProxy->Update();
+    viewProxy->ThreadedUpdateOff();
   }
 
   // Abort can happen during the `Update` call, check it

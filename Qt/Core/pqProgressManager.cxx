@@ -21,8 +21,6 @@
 #include "vtkSMSourceProxy.h"
 #include "vtkTimerLog.h"
 
-#include <iostream>
-
 //-----------------------------------------------------------------------------
 pqProgressManager::pqProgressManager(QObject* _parent)
   : QObject(_parent)

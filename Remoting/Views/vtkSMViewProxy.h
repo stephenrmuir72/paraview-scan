@@ -55,6 +55,15 @@ public:
   vtkBooleanMacro(Enable, bool);
   ///@}
 
+  ///@{
+  /**
+   * Enable/Disable a threaded udpate.
+   */
+  vtkSetMacro(ThreadedUpdate, bool);
+  vtkGetMacro(ThreadedUpdate, bool);
+  vtkBooleanMacro(ThreadedUpdate, bool);
+  ///@}
+
   /**
    * Renders the view using full resolution.
    */
@@ -319,6 +328,7 @@ private:
   void operator=(const vtkSMViewProxy&) = delete;
 
   bool InRender;
+  bool ThreadedUpdate = false;
 
   vtkSMDataDeliveryManagerProxy* DeliveryManager;
   static bool TransparentBackground;

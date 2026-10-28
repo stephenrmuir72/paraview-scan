@@ -159,7 +159,7 @@ void pqDefaultViewBehavior::onServerCreation(pqServer* server)
   // Should use dedicated event instead of relying on random events
   // `Qt::QueuedConnection` matters here, that lets the VTKEvent/Qt Signal go through the thread barrier.
   this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonPressEvent, this, SLOT(loop()));
-  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonReleaseEvent, this, SIGNAL(endLoop()), nullptr, 0, Qt::QueuedConnection);
+  this->VTKConnector->Connect(server->session()->GetSessionCore(), vtkCommand::TDxButtonReleaseEvent, this, SIGNAL(endLoop()));
 }
 
 //-----------------------------------------------------------------------------
@@ -183,7 +183,6 @@ void pqDefaultViewBehavior::finalTimeoutWarning()
 //-----------------------------------------------------------------------------
 void pqDefaultViewBehavior::loop()
 {
-  std::cout<<"nested loop"<<std::endl;
   QEventLoop qloop;
   QObject::connect(this, &pqDefaultViewBehavior::endLoop, &qloop, &QEventLoop::quit, Qt::QueuedConnection);
   qloop.exec();

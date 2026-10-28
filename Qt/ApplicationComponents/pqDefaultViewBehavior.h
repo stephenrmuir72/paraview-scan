@@ -51,7 +51,6 @@ private:
   pqTimer WarningsTimer;
 
   vtkNew<vtkEventQtSlotConnect> VTKConnector;
-
 };
 
 #endif

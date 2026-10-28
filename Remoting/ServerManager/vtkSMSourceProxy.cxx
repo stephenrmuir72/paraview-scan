@@ -986,7 +986,7 @@ void vtkSMSourceProxy::PrintSelf(ostream& os, vtkIndent indent)
 
 //---------------------------------------------------------------------------
 void vtkSMSourceProxy::ExecuteStream(
-  const vtkClientServerStream& stream, bool ignoreErrors /*=false*/, vtkTypeUInt32 location /*=0*/)
+  const vtkClientServerStream& stream, bool ignoreErrors /*=false*/, vtkTypeUInt32 location /*=0*/, bool threadedStream /*=false*/)
 {
   if (location == 0)
   {
@@ -999,7 +999,7 @@ void vtkSMSourceProxy::ExecuteStream(
 
   if (this->GetSession())
   {
-    this->GetSession()->ExecuteStream(location, stream, ignoreErrors, this->StreamReply);
+    this->GetSession()->ExecuteStream(location, stream, ignoreErrors, this->StreamReply, threadedStream);
   }
   // if no session, nothing to do.
 }

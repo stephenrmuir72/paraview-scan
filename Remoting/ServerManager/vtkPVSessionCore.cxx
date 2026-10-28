@@ -538,7 +538,7 @@ void vtkPVSessionCore::PullState(vtkSMMessage* message)
 
 //----------------------------------------------------------------------------
 void vtkPVSessionCore::ExecuteStream(
-  vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors /*=false*/)
+  vtkTypeUInt32 location, const vtkClientServerStream& stream, bool ignore_errors /*=false*/, bool threadedStream /*=false*/)
 {
   if (stream.GetNumberOfMessages() == 0)
   {
@@ -579,7 +579,7 @@ void vtkPVSessionCore::ExecuteStream(
 
   // This is very hacky, will need to figure out the right way to choose which
   // stream to execute in a different thread
-  this->ExecuteStreamInternal(stream, ignore_errors, location == vtkProcessModule::DATA_SERVER);
+  this->ExecuteStreamInternal(stream, ignore_errors, threadedStream != 0);
 }
 
 //----------------------------------------------------------------------------
@@ -596,7 +596,7 @@ void vtkPVSessionCore::ExecuteStreamSatelliteCallback()
   delete[] raw_data;
 }
 
-
+//----------------------------------------------------------------------------
 void vtkPVSessionCore::ProcessStreamThreaded(const vtkClientServerStream& css)
 {
   this->Interpreter->ProcessStream(css);
