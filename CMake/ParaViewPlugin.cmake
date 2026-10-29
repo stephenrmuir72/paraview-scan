@@ -2365,4 +2365,17 @@ function (paraview_plugin_add_proxy)
     PARENT_SCOPE)
 endfunction ()
 
+function (paraview_plugin_test_add_dll_paths)
+  set(paths)
+  foreach (plugin IN LISTS arg_PLUGINS)
+    list(APPEND paths "$<TARGET_RUNTIME_DLLS:${plugin}>")
+  endforeach ()
+  set(dirs_expr "$<DOLLAR>$<LANGLE>PATH:REMOVE_FILENAME<COMMA>$<JOIN:${paths},$<RANGLE>,$<DOLLAR>$<LANGLE>PATH:REMOVE_FILENAME<COMMA>>>")
+  set(dirs "$<GENEX_EVAL:${dirs_expr}>")
+  set(uniquify "$<LIST:REMOVE_DUPLICATES:${dirs}>")
+  set(properties "$<LIST:PREPEND,${uniquify},PATH=path_list_prepend:>")
+  set_property(TEST ${arg_TESTS} APPEND
+    PROPERTY ENVIRONMENT_MODIFICATION "${properties}")
+endfunction ()
+
 cmake_policy(POP)

@@ -21,3 +21,8 @@ DEPENDS
 PRIVATE_DEPENDS
   VTK::CommonCore
   VTK::CommonSystem
+TEST_DEPENDS
+  VTK::TestingCore
+  VTK::IOXML
+TEST_OPTIONAL_DEPENDS
+  VTK::ParallelMPI
