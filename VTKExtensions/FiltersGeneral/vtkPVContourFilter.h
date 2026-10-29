@@ -110,6 +110,9 @@ private:
 
   // Keep this one around as it supports caching
   vtkNew<vtkAMRContourFilter> AMRContourFilter;
+
+  vtkNew<vtkCallbackCommand> ProgressEventCallback;
+  vtkNew<vtkCallbackCommand> AbortCheckEventCallback;
 };
 
 #endif // vtkPVContourFilter_h
