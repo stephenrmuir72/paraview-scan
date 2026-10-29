@@ -6,6 +6,7 @@
 #include "vtkAppendFilter.h"
 #include "vtkDataSet.h"
 #include "vtkDemandDrivenPipeline.h"
+#include "vtkEventForwarderCommand.h"
 #include "vtkHyperTreeGrid.h"
 #include "vtkHyperTreeGridThreshold.h"
 #include "vtkInformation.h"
@@ -42,6 +43,10 @@ int vtkPVThreshold::ThresholdUsingSuperclassInstance(
 
   vtkDataObject* inputDO = vtkDataObject::GetData(inputVector[0], 0);
   vtkDataObject* outputDO = vtkDataObject::GetData(outputVector, 0);
+
+  vtkNew<vtkEventForwarderCommand> progressForwarder;
+  progressForwarder->SetTarget(this);
+  instance->AddObserver(vtkCommand::ProgressEvent, progressForwarder);
 
   instance->SetInputDataObject(inputDO);
   instance->SetInputArrayToProcess(0, this->GetInputArrayInformation(0));
@@ -123,6 +128,10 @@ int vtkPVThreshold::RequestData(
     inputClone->ShallowCopy(inDataObj);
     thresholdFilter->SetInputData(0, inputClone);
     inputClone->FastDelete();
+
+    vtkNew<vtkEventForwarderCommand> progressForwarder;
+    progressForwarder->SetTarget(this);
+    thresholdFilter->AddObserver(vtkCommand::ProgressEvent, progressForwarder);
 
     thresholdFilter->SetInputArrayToProcess(0, this->GetInputArrayInformation(0));
     thresholdFilter->Update();
