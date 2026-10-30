@@ -3,7 +3,7 @@
     <SourceProxy name="Conduit" class="vtkConduitSource">
       <Documentation>
         A data source that takes a Conduit node using the Mesh Blueprint
-        to produce data.
+        or the table blueprint to produce data.
       </Documentation>
       <DoubleVectorProperty information_only="1"
                             name="TimestepValues"
