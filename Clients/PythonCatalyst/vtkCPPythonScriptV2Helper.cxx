@@ -25,8 +25,10 @@
 #include "vtkStringScanner.h"
 
 #include <cassert>
+#include <chrono>
 #include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 #if VTK_MODULE_ENABLE_ParaView_RemotingLive
@@ -72,6 +74,7 @@ public:
 
 #if VTK_MODULE_ENABLE_ParaView_RemotingLive
   vtkSmartPointer<vtkLiveInsituLink> LiveLink;
+  bool LiveConnectedOnce = false;
 #endif
 
   // Keeps track of arguments
@@ -732,11 +735,24 @@ void vtkCPPythonScriptV2Helper::DoLive(int timestep, double time)
   }
 
   auto pxm = this->Options->GetSessionProxyManager();
-  if (!internals.LiveLink->Initialize(pxm))
+  bool connected = internals.LiveLink->Initialize(pxm);
+  if (!connected && !internals.LiveConnectedOnce &&
+    vtkSMPropertyHelper(this->Options, "CatalystLiveWaitForClient", /*quiet*/ true).GetAsInt())
+  {
+    vtkLogF(INFO, "Catalyst Live: waiting for a client at %s:%d", internals.LiveLink->GetHostname(),
+      internals.LiveLink->GetInsituPort());
+    while (!(connected = internals.LiveLink->Initialize(pxm)))
+    {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    vtkLogF(INFO, "Catalyst Live: client connected.");
+  }
+  if (!connected)
   {
     vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(), "live: link init failed; skipping.");
     return;
   }
+  internals.LiveConnectedOnce = true;
 
   do
   {

@@ -1347,6 +1347,24 @@
         </Hints>
       </StringVectorProperty>
 
+      <IntVectorProperty name="CatalystLiveWaitForClient"
+                         label="Catalyst Live Wait For Client"
+                         number_of_elements="1"
+                         default_values="0">
+        <Documentation>
+          Wait for a ParaView client to connect at the first Catalyst Live trigger before letting the
+          simulation continue. The simulation retries the connection every second until a client
+          accepts it.
+        </Documentation>
+        <BooleanDomain name="bool"/>
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator"
+                                   mode="enabled_state"
+                                   property="EnableCatalystLive"
+                                   value="1"/>
+        </Hints>
+      </IntVectorProperty>
+
       <ProxyProperty name="CatalystLiveTrigger" panel_visibility="advanced">
         <ProxyListDomain name="proxy_list">
           <Proxy group="extract_triggers" name="TimeStep"/>
@@ -1370,6 +1388,7 @@
       <PropertyGroup label="Catalyst Live Options">
         <Property name="EnableCatalystLive"/>
         <Property name="CatalystLiveURL"/>
+        <Property name="CatalystLiveWaitForClient"/>
         <Property name="CatalystLiveTrigger"/>
       </PropertyGroup>
 

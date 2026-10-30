@@ -424,6 +424,7 @@ options.GlobalTrigger.Frequency = ...               # default=1
 # live params (optional)
 options.EnableCatalystLive = ...                    # default=False
 options.CatalystLiveURL = ...                       # default="localhost:2222"
+options.CatalystLiveWaitForClient = ...             # default=False
 options.CatalystLiveTrigger.UseStartTimeStep = ...  # default=False
 options.CatalystLiveTrigger.StartTimeStep = ...     # default=0
 options.CatalystLiveTrigger.UseEndTimeStep = ...    # default=False
