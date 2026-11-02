@@ -6,6 +6,7 @@
 #include "vtkArrowSource.h"
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkCompositePolyDataMapper.h"
+#include "vtkDataAssemblyUtilities.h"
 #include "vtkDataObject.h"
 #include "vtkDataObjectTree.h"
 #include "vtkDataObjectTreeIterator.h"
@@ -21,6 +22,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -46,8 +48,16 @@ protected:
   int RequestData(
     vtkInformation*, vtkInformationVector** inVec, vtkInformationVector* outVec) override
   {
-    vtkDataObject* inputDO = vtkDataObject::GetData(inVec[0], 0);
+    vtkSmartPointer<vtkDataObject> inputDO = vtkDataObject::GetData(inVec[0], 0);
     vtkMultiBlockDataSet* outputMB = vtkMultiBlockDataSet::GetData(outVec, 0);
+
+    // The glyph source table is indexed by block, so a vtkPartitionedDataSetCollection that was
+    // converted from a vtkMultiBlockDataSet is converted back.
+    auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(inputDO);
+    if (pdc && vtkDataAssemblyUtilities::HasCompatibilityHierarchy(pdc))
+    {
+      inputDO = vtkDataAssemblyUtilities::GenerateCompositeDataSetFromHierarchy(pdc);
+    }
 
     vtkDataObject* clone = inputDO->NewInstance();
     clone->ShallowCopy(inputDO);
