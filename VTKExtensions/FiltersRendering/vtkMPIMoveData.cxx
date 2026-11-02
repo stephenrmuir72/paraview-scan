@@ -21,6 +21,7 @@
 #include "vtkOutlineFilter.h"
 #include "vtkPVLogger.h"
 #include "vtkPVSession.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
@@ -38,8 +39,39 @@ bool vtkMPIMoveData::UseZLibCompression = false;
 
 namespace
 {
+bool HasPartitions(vtkPartitionedDataSetCollection* pdc)
+{
+  for (unsigned int i = 0; i < pdc->GetNumberOfPartitionedDataSets(); ++i)
+  {
+    for (unsigned int j = 0; j < pdc->GetNumberOfPartitions(i); ++j)
+    {
+      if (pdc->GetPartitionAsDataObject(i, j))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool vtkMPIMoveDataMerge(std::vector<vtkSmartPointer<vtkDataObject>>& pieces, vtkDataObject* result)
 {
+  // A rank without data produces a vtkPartitionedDataSetCollection without partitions and
+  // without the meta-data of the other ranks, which the merge of
+  // vtkPartitionedDataSetCollections does not accept. Such pieces are left out of the merge.
+  std::vector<vtkSmartPointer<vtkDataObject>> nonEmptyPieces;
+  for (auto& piece : pieces)
+  {
+    auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(piece);
+    if (!pdc || HasPartitions(pdc))
+    {
+      nonEmptyPieces.push_back(piece);
+    }
+  }
+  if (!nonEmptyPieces.empty() && nonEmptyPieces.size() != pieces.size())
+  {
+    return vtkMultiProcessControllerHelper::MergePieces(nonEmptyPieces, result);
+  }
   return vtkMultiProcessControllerHelper::MergePieces(pieces, result);
 }
 
