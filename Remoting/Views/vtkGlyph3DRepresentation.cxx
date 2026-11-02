@@ -6,7 +6,9 @@
 #include "vtkArrowSource.h"
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkCompositePolyDataMapper.h"
+#include "vtkDataAssemblyUtilities.h"
 #include "vtkDataObject.h"
+#include "vtkDataObjectAlgorithm.h"
 #include "vtkDataObjectTree.h"
 #include "vtkDataObjectTreeIterator.h"
 #include "vtkGlyph3DMapper.h"
@@ -16,11 +18,11 @@
 #include "vtkMPIMoveData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMultiBlockDataSet.h"
-#include "vtkMultiBlockDataSetAlgorithm.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVLODActor.h"
 #include "vtkPVRenderView.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -35,23 +37,54 @@ namespace
 // vtkDataObjectTree, and MoveData requires that all ranks have the same
 // dataset type. Since the client will be receiving the glyph source and doesn't
 // know what type of dataset is on the server, we wrap the real dataset in a
-// multiblock dataset.
-class vtkGlyphRepresentationMultiBlockMaker : public vtkMultiBlockDataSetAlgorithm
+// multiblock dataset. A vtkPartitionedDataSetCollection cannot be a block, so it
+// is passed through instead.
+class vtkGlyphRepresentationMultiBlockMaker : public vtkDataObjectAlgorithm
 {
 public:
   static vtkGlyphRepresentationMultiBlockMaker* New();
-  vtkTypeMacro(vtkGlyphRepresentationMultiBlockMaker, vtkMultiBlockDataSetAlgorithm);
+  vtkTypeMacro(vtkGlyphRepresentationMultiBlockMaker, vtkDataObjectAlgorithm);
 
 protected:
+  // A vtkPartitionedDataSetCollection that was not converted from a vtkMultiBlockDataSet.
+  static bool IsPassedThrough(vtkDataObject* dataObject)
+  {
+    auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(dataObject);
+    return pdc && !vtkDataAssemblyUtilities::HasCompatibilityHierarchy(pdc);
+  }
+
+  int RequestDataObject(
+    vtkInformation*, vtkInformationVector** inVec, vtkInformationVector* outVec) override
+  {
+    const int outputType = IsPassedThrough(vtkDataObject::GetData(inVec[0], 0))
+      ? VTK_PARTITIONED_DATA_SET_COLLECTION
+      : VTK_MULTIBLOCK_DATA_SET;
+    return vtkDataObjectAlgorithm::SetOutputDataObject(
+             outputType, outVec->GetInformationObject(0), /*exact=*/true)
+      ? 1
+      : 0;
+  }
+
   int RequestData(
     vtkInformation*, vtkInformationVector** inVec, vtkInformationVector* outVec) override
   {
-    vtkDataObject* inputDO = vtkDataObject::GetData(inVec[0], 0);
-    vtkMultiBlockDataSet* outputMB = vtkMultiBlockDataSet::GetData(outVec, 0);
+    vtkSmartPointer<vtkDataObject> inputDO = vtkDataObject::GetData(inVec[0], 0);
+    if (IsPassedThrough(inputDO))
+    {
+      vtkPartitionedDataSetCollection::GetData(outVec, 0)->ShallowCopy(inputDO);
+      return 1;
+    }
+
+    // The glyph source table is indexed by block, so a vtkPartitionedDataSetCollection that was
+    // converted from a vtkMultiBlockDataSet is converted back.
+    if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(inputDO))
+    {
+      inputDO = vtkDataAssemblyUtilities::GenerateCompositeDataSetFromHierarchy(pdc);
+    }
 
     vtkDataObject* clone = inputDO->NewInstance();
     clone->ShallowCopy(inputDO);
-    outputMB->SetBlock(0, clone);
+    vtkMultiBlockDataSet::GetData(outVec, 0)->SetBlock(0, clone);
     clone->Delete();
     return 1;
   }
@@ -229,6 +262,24 @@ int vtkGlyph3DRepresentation::RequestUpdateExtent(
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
+// Returns the glyph source delivered as the output of the given port: a passed through
+// vtkPartitionedDataSetCollection, or the single block of the vtkMultiBlockDataSet wrapper.
+vtkDataObject* GetGlyphSource(vtkAlgorithmOutput* port)
+{
+  port->GetProducer()->Update();
+  vtkDataObject* delivered = port->GetProducer()->GetOutputDataObject(port->GetIndex());
+  if (vtkPartitionedDataSetCollection::SafeDownCast(delivered))
+  {
+    return delivered;
+  }
+  auto wrapper = vtkMultiBlockDataSet::SafeDownCast(delivered);
+  return wrapper && wrapper->GetNumberOfBlocks() == 1 ? wrapper->GetBlock(0) : nullptr;
+}
+}
+
+//----------------------------------------------------------------------------
 int vtkGlyph3DRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo)
 {
@@ -279,33 +330,9 @@ int vtkGlyph3DRepresentation::ProcessViewRequest(
     this->GlyphMapper->SetInputConnection(0, producerPort);
     this->LODGlyphMapper->SetInputConnection(0, producerPortLOD);
 
-    // Extract the real glyph source from the MBDS wrapper (see note above
-    // vtkGlyphRepresentationMultiBlockMaker)
-    producerGlyphPort->GetProducer()->Update();
-    vtkMultiBlockDataSet* glyphMBDS = vtkMultiBlockDataSet::SafeDownCast(
-      producerGlyphPort->GetProducer()->GetOutputDataObject(producerGlyphPort->GetIndex()));
-    if (glyphMBDS && glyphMBDS->GetNumberOfBlocks() == 1)
-    {
-      vtkDataObject* realGlyph = glyphMBDS->GetBlock(0);
-      this->GlyphMapper->SetInputDataObject(1, realGlyph);
-    }
-    else
-    {
-      this->GlyphMapper->SetInputDataObject(1, nullptr);
-    }
-
-    producerGlyphPortLOD->GetProducer()->Update();
-    vtkMultiBlockDataSet* glyphMBDSLOD = vtkMultiBlockDataSet::SafeDownCast(
-      producerGlyphPortLOD->GetProducer()->GetOutputDataObject(producerGlyphPortLOD->GetIndex()));
-    if (glyphMBDSLOD && glyphMBDSLOD->GetNumberOfBlocks() == 1)
-    {
-      vtkDataObject* realGlyphLOD = glyphMBDSLOD->GetBlock(0);
-      this->LODGlyphMapper->SetInputDataObject(1, realGlyphLOD);
-    }
-    else
-    {
-      this->LODGlyphMapper->SetInputDataObject(1, nullptr);
-    }
+    // Extract the real glyph source (see note above vtkGlyphRepresentationMultiBlockMaker)
+    this->GlyphMapper->SetInputDataObject(1, ::GetGlyphSource(producerGlyphPort));
+    this->LODGlyphMapper->SetInputDataObject(1, ::GetGlyphSource(producerGlyphPortLOD));
 
     bool lod = this->SuppressLOD ? false : (inInfo->Has(vtkPVRenderView::USE_LOD()) == 1);
     this->GlyphActor->SetEnableLOD(lod ? 1 : 0);
