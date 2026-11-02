@@ -664,6 +664,10 @@ void vtkPlotEdges::Process(vtkPolyData* input, vtkMultiBlockDataSet* outputMB)
     controller->Broadcast(&numberOfBlocks, 1, 0);
     // to ensure structure matches on all processes.
     outputMB->SetNumberOfBlocks(numberOfBlocks);
+    for (int i = 0; i < numberOfBlocks; ++i)
+    {
+      outputMB->GetMetaData(i)->Set(vtkCompositeDataSet::NAME(), "segment_" + vtk::to_string(i));
+    }
   }
   else
   {
