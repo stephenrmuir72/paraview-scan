@@ -10,12 +10,15 @@
 #include "vtkColor.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkCommand.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkContextView.h"
 #include "vtkContourFilter.h"
+#include "vtkDataObjectTree.h"
 #include "vtkDoubleArray.h"
 #include "vtkExtractBlock.h"
 #include "vtkIdList.h"
 #include "vtkImageData.h"
+#include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkLookupTable.h"
 #include "vtkMultiBlockDataSet.h"
@@ -23,6 +26,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPVContextView.h"
 #include "vtkPVXYChartView.h"
+#include "vtkPartitionedDataSet.h"
 #include "vtkPen.h"
 #include "vtkPlotBag.h"
 #include "vtkPlotHistogram2D.h"
@@ -33,6 +37,7 @@
 #include "vtkTable.h"
 
 #include <algorithm>
+#include <cstring>
 #include <sstream>
 #include <string>
 
@@ -139,6 +144,31 @@ vtkChartXY* vtkPVBagChartRepresentation::GetChart()
   return nullptr;
 }
 
+namespace
+{
+//----------------------------------------------------------------------------
+// Returns the data of the block with the given name of a vtkMultiBlockDataSet or the first
+// partition of the partitioned dataset with the given name of a vtkPartitionedDataSetCollection.
+vtkDataObject* GetBlockData(vtkDataObjectTree* tree, const char* name)
+{
+  for (unsigned int i = 0; i < tree->GetNumberOfChildren(); ++i)
+  {
+    vtkInformation* info = tree->GetChildMetaData(i);
+    if (info && info->Has(vtkCompositeDataSet::NAME()) &&
+      strcmp(info->Get(vtkCompositeDataSet::NAME()), name) == 0)
+    {
+      vtkDataObject* child = tree->GetChild(i);
+      if (auto partitionedDataSet = vtkPartitionedDataSet::SafeDownCast(child))
+      {
+        return partitionedDataSet->GetPartitionAsDataObject(0);
+      }
+      return child;
+    }
+  }
+  return nullptr;
+}
+}
+
 //----------------------------------------------------------------------------
 void vtkPVBagChartRepresentation::PrepareForRendering()
 {
@@ -146,8 +176,9 @@ void vtkPVBagChartRepresentation::PrepareForRendering()
 
   if (this->LocalOutput)
   {
-    this->LocalGrid = vtkImageData::SafeDownCast(this->LocalOutput->GetChild(2));
-    this->LocalThreshold = vtkTable::SafeDownCast(this->LocalOutput->GetChild(3));
+    this->LocalGrid = vtkImageData::SafeDownCast(GetBlockData(this->LocalOutput, "Grid Data"));
+    this->LocalThreshold =
+      vtkTable::SafeDownCast(GetBlockData(this->LocalOutput, "Threshold Data"));
   }
   else
   {
