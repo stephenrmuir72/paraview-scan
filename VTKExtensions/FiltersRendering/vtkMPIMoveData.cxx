@@ -7,6 +7,7 @@
 #include "vtkCellData.h"
 #include "vtkCharArray.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataObjectTypes.h"
 #include "vtkGenericDataObjectReader.h"
 #include "vtkGenericDataObjectWriter.h"
@@ -14,13 +15,13 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMPIMToNSocketConnection.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkMultiProcessControllerHelper.h"
 #include "vtkObjectFactory.h"
 #include "vtkOutlineFilter.h"
 #include "vtkPVLogger.h"
 #include "vtkPVSession.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
@@ -38,23 +39,54 @@ bool vtkMPIMoveData::UseZLibCompression = false;
 
 namespace
 {
+bool HasPartitions(vtkPartitionedDataSetCollection* pdc)
+{
+  for (unsigned int i = 0; i < pdc->GetNumberOfPartitionedDataSets(); ++i)
+  {
+    for (unsigned int j = 0; j < pdc->GetNumberOfPartitions(i); ++j)
+    {
+      if (pdc->GetPartitionAsDataObject(i, j))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool vtkMPIMoveDataMerge(std::vector<vtkSmartPointer<vtkDataObject>>& pieces, vtkDataObject* result)
 {
+  // A rank without data produces a vtkPartitionedDataSetCollection without partitions and
+  // without the meta-data of the other ranks, which the merge of
+  // vtkPartitionedDataSetCollections does not accept. Such pieces are left out of the merge.
+  std::vector<vtkSmartPointer<vtkDataObject>> nonEmptyPieces;
+  for (auto& piece : pieces)
+  {
+    auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(piece);
+    if (!pdc || HasPartitions(pdc))
+    {
+      nonEmptyPieces.push_back(piece);
+    }
+  }
+  if (!nonEmptyPieces.empty() && nonEmptyPieces.size() != pieces.size())
+  {
+    return vtkMultiProcessControllerHelper::MergePieces(nonEmptyPieces, result);
+  }
   return vtkMultiProcessControllerHelper::MergePieces(pieces, result);
 }
 
 void unsetGlobalIdsAttribute(vtkDataObject* piece)
 {
   vtkDataSet* ds = vtkDataSet::SafeDownCast(piece);
-  vtkMultiBlockDataSet* mb = vtkMultiBlockDataSet::SafeDownCast(piece);
+  vtkCompositeDataSet* cd = vtkCompositeDataSet::SafeDownCast(piece);
   if (ds)
   {
     ds->GetCellData()->SetActiveAttribute(-1, vtkDataSetAttributes::GLOBALIDS);
     ds->GetPointData()->SetActiveAttribute(-1, vtkDataSetAttributes::GLOBALIDS);
   }
-  else if (mb)
+  else if (cd)
   {
-    vtkCompositeDataIterator* it = mb->NewIterator();
+    vtkCompositeDataIterator* it = cd->NewIterator();
     for (it->InitTraversal(); !it->IsDoneWithTraversal(); it->GoToNextItem())
     {
       vtkDataSet* leaf = vtkDataSet::SafeDownCast(it->GetCurrentDataObject());
