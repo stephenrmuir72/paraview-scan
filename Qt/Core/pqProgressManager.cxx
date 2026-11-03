@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QEvent>
+#include <QMainWindow>
 
 #include "pqApplicationCore.h"
 #include "pqCoreConfiguration.h"
@@ -14,13 +15,12 @@
 #include "vtkAlgorithm.h"
 #include "vtkCommand.h"
 #include "vtkOutputWindow.h"
+#include "vtkPVGeneralSettings.h"
 #include "vtkPVLogger.h"
 #include "vtkPVProgressHandler.h"
 #include "vtkSMSession.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkTimerLog.h"
-
-#include <QMainWindow>
 
 //-----------------------------------------------------------------------------
 pqProgressManager::pqProgressManager(QObject* _parent)
@@ -30,7 +30,6 @@ pqProgressManager::pqProgressManager(QObject* _parent)
   this->InUpdate = false;
 
   this->EnableProgress = false;
-  this->UnblockEvents = false;
   QObject::connect(pqApplicationCore::instance()->getServerManagerModel(),
     SIGNAL(serverAdded(pqServer*)), this, SLOT(onServerAdded(pqServer*)));
 }
@@ -43,30 +42,19 @@ void pqProgressManager::onServerAdded(pqServer* server)
 {
   vtkPVProgressHandler* progressHandler = server->session()->GetProgressHandler();
 
-  pqCoreUtilities::connect(progressHandler, vtkCommand::StartEvent, this, SLOT(onStartProgress()));
-  pqCoreUtilities::connect(progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()));
-  pqCoreUtilities::connect(
-    progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)));
-}
-
-//-----------------------------------------------------------------------------
-bool pqProgressManager::eventFilter(QObject* obj, QEvent* evt)
-{
-  bool skipEvent = false;
-  bool skippableEvent = evt->type() == QEvent::KeyPress || evt->type() == QEvent::MouseButtonPress;
-  if (this->ProgressCount > 0 && skippableEvent && !this->UnblockEvents)
+  Qt::ConnectionType coType = Qt::AutoConnection;
+  if (vtkPVGeneralSettings::GetInstance()->GetEnableThreadedUpdate())
   {
-    skipEvent = (this->NonBlockableObjects.contains(obj) == false);
+    // `Qt::QueuedConnection` matters here, in order to go through the thread barrier
+    coType = Qt::QueuedConnection;
   }
-  return skipEvent ? true : this->QObject::eventFilter(obj, evt);
-}
 
-//-----------------------------------------------------------------------------
-bool pqProgressManager::unblockEvents(bool val)
-{
-  bool prev = this->UnblockEvents;
-  this->UnblockEvents = val;
-  return prev;
+  pqCoreUtilities::connect(
+    progressHandler, vtkCommand::StartEvent, this, SLOT(onStartProgress()), coType);
+  pqCoreUtilities::connect(
+    progressHandler, vtkCommand::EndEvent, this, SLOT(onEndProgress()), coType);
+  pqCoreUtilities::connect(
+    progressHandler, vtkCommand::ProgressEvent, this, SLOT(onProgress(vtkObject*)), coType);
 }
 
 //-----------------------------------------------------------------------------
@@ -138,18 +126,18 @@ void pqProgressManager::setEnableAbort(bool enable)
 
   if (enable)
   {
-    // Disable everything that is enabled, except non blockable objects (progress bar and abort)
+    // Disable everything that is enabled, except non blockable objects
     QMainWindow* win = qobject_cast<QMainWindow*>(pqCoreUtilities::mainWidget());
     QList<QWidget*> widgets = win->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
-    this->EnabledWidgetsForAbort.clear();
+    this->DisabledWidgetsForAbort.clear();
     for (QWidget* widget : widgets)
     {
       if (widget->isEnabled() && this->NonBlockableObjects.contains(widget) == false)
       {
-        this->EnabledWidgetsForAbort.push_front(widget);
+        this->DisabledWidgetsForAbort.push_front(widget);
       }
     }
-    for (QWidget* widget : this->EnabledWidgetsForAbort)
+    for (QWidget* widget : this->DisabledWidgetsForAbort)
     {
       widget->setDisabled(true);
     }
@@ -157,11 +145,11 @@ void pqProgressManager::setEnableAbort(bool enable)
   else
   {
     // Reenable everything that was disabled
-    for (QWidget* widget : this->EnabledWidgetsForAbort)
+    for (QWidget* widget : this->DisabledWidgetsForAbort)
     {
       widget->setEnabled(true);
     }
-    this->EnabledWidgetsForAbort.clear();
+    this->DisabledWidgetsForAbort.clear();
   }
 
   Q_EMIT this->enableAbort(enable);
@@ -239,13 +227,11 @@ void pqProgressManager::onStartProgress()
 {
   Q_EMIT progressStartEvent();
   this->setEnableProgress(true);
-  QApplication::instance()->installEventFilter(this);
 }
 
 //-----------------------------------------------------------------------------
 void pqProgressManager::onEndProgress()
 {
-  QApplication::instance()->removeEventFilter(this);
   this->setEnableProgress(false);
   Q_EMIT progressEndEvent();
 }
