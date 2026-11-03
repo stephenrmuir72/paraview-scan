@@ -322,7 +322,7 @@ void vtkSMOutputPort::UpdatePipelineInternal(double time, bool doTime)
   vtkClientServerStream stream;
   stream << vtkClientServerStream::Invoke << SIPROXY(this->SourceProxy) << "UpdatePipeline"
          << this->PortIndex << time << (doTime ? 1 : 0) << vtkClientServerStream::End;
-  this->SourceProxy->ExecuteStream(stream);
+  this->SourceProxy->ExecuteStream(stream, false, 0, this->ThreadedUpdate);
   this->SourceProxy->GetSession()->CleanupPendingProgress();
 }
 

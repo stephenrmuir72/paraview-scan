@@ -472,7 +472,7 @@ void vtkSMViewProxy::Update()
     stream << vtkClientServerStream::Invoke << VTKOBJECT(this) << "Update"
            << vtkClientServerStream::End;
     this->GetSession()->PrepareProgress();
-    this->ExecuteStream(stream);
+    this->ExecuteStream(stream, false, 0, this->ThreadedUpdate);
     this->GetSession()->CleanupPendingProgress();
 
     unsigned int numProducers = this->GetNumberOfProducers();

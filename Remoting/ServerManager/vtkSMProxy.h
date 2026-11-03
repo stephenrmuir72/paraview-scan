@@ -625,8 +625,8 @@ protected:
   /**
    * Invoke that takes a vtkClientServerStream as the argument.
    */
-  virtual void ExecuteStream(
-    const vtkClientServerStream& msg, bool ignore_errors = false, vtkTypeUInt32 location = 0);
+  virtual void ExecuteStream(const vtkClientServerStream& msg, bool ignore_errors = false,
+    vtkTypeUInt32 location = 0, bool threadedStream = false);
 
   // Any method changing the annotations will trigger this method that will
   // update the local full state as well as sending the annotation state part

@@ -41,6 +41,15 @@ public:
   vtkTypeMacro(vtkSMOutputPort, vtkSMProxy);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  ///@{
+  /**
+   * Enable/Disable threaded udpate.
+   */
+  vtkSetMacro(ThreadedUpdate, bool);
+  vtkGetMacro(ThreadedUpdate, bool);
+  vtkBooleanMacro(ThreadedUpdate, bool);
+  ///@}
+
   /**
    * Returns data information. If data information is marked
    * invalid, calls GatherDataInformation.
@@ -207,6 +216,8 @@ private:
    * Actually gather the information from the proxy.
    */
   void GatherInformation(vtkPVDataInformation* info);
+
+  bool ThreadedUpdate = false;
 };
 
 #endif
