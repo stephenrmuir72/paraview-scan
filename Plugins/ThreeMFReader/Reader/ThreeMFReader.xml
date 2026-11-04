@@ -1,0 +1,44 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <SourceProxy class="vtk3MFReader"
+                 label="3MF Reader"
+                 name="ThreeMFReader">
+      <Documentation long_help="Reads 3D Manufacturing Format (3MF) files."
+                     short_help="Read 3MF files.">
+        Reads the triangle meshes of a 3D Manufacturing Format (.3mf) package.
+        Each build item of the model is produced as a partition of the output
+        Partitioned Dataset Collection, with build and component transforms
+        applied. Colors from base materials and color groups are provided as
+        the "Color" cell array, and the source object of each triangle as the
+        "ObjectId" cell array. Objects stored in other model parts using the
+        Production extension are supported.
+      </Documentation>
+      <StringVectorProperty animateable="0"
+                            command="SetFileName"
+                            name="FileName"
+                            number_of_elements="1"
+                            panel_visibility="never">
+        <FileListDomain name="files" />
+        <Documentation>
+          Name of the 3MF file to read.
+        </Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetConvertToMillimeters"
+                         default_values="0"
+                         name="ConvertToMillimeters"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When enabled, point coordinates are scaled to millimeters, whatever
+          the unit of the model. Otherwise, coordinates are kept in the model
+          unit, which is reported by the "Unit" field data array.
+        </Documentation>
+      </IntVectorProperty>
+      <Hints>
+        <ReaderFactory extensions="3mf"
+                       file_description="3D Manufacturing Format Files" />
+      </Hints>
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

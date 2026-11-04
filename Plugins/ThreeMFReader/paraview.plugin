@@ -1,0 +1,11 @@
+NAME
+  ThreeMFReader
+DESCRIPTION
+  Reader for 3D Manufacturing Format (3MF) files
+REQUIRES_MODULES
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::pugixml
+  VTK::vtksys
+  VTK::zlib
