@@ -1148,6 +1148,9 @@ list (APPEND TESTS_WITHOUT_BASELINES
   TimeManagerPanel.xml
   TimeManagerSequence.xml
   UndoSelection.xml
+  WelcomePageLoadData.xml
+  WelcomePageServer.xml
+  WelcomePageLoadState.xml
 )
 
 if (PARAVIEW_PLUGIN_ENABLE_EULATestPlugin)
