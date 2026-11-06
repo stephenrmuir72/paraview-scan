@@ -161,14 +161,17 @@ void pqCommandLineOptionsBehavior::processData()
 {
   auto cConfig = pqCoreConfiguration::instance();
   // check for --data option.
-  if (cConfig->dataFileNames().empty())
+  if (cConfig->readerDataFileNames().empty())
   {
     return;
   }
 
-  for (const auto& fname : cConfig->dataFileNames())
+  for (const auto& fname : cConfig->readerDataFileNames())
   {
-    QString path = QString::fromUtf8(fname.c_str());
+    QString reader = QString::fromUtf8(fname.first.c_str());
+    QString readergroup = reader.section('/', 0, 0);
+    QString readername = reader.section('/', 1, -1);
+    QString path = QString::fromUtf8(fname.second.c_str());
 
     // We don't directly set the data file name instead use the dialog. This
     // makes it possible to select a file group.
@@ -185,7 +188,7 @@ void pqCommandLineOptionsBehavior::processData()
     QStringList file;
     Q_FOREACH (file, files)
     {
-      if (pqLoadDataReaction::loadData(file) == nullptr)
+      if (pqLoadDataReaction::loadData(file, readergroup, readername) == nullptr)
       {
         qCritical() << "Failed to load data file: " << path;
       }
