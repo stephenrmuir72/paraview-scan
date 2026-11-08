@@ -9,10 +9,10 @@ project(paraview-contract)
 include(FetchContent)
 
 if (NOT DEFINED PARAVIEW_CONTRACT_REPOSITORY)
-  set(PARAVIEW_CONTRACT_REPOSITORY "https://gitlab.kitware.com/paraview/paraview.git")
+  set(PARAVIEW_CONTRACT_REPOSITORY "https://gitlab.kitware.com/spiros.tsalikis/paraview.git")
 endif ()
 if (NOT DEFINED PARAVIEW_CONTRACT_BRANCH)
-  set(PARAVIEW_CONTRACT_BRANCH "master")
+  set(PARAVIEW_CONTRACT_BRANCH "enable-downstream-testing")
 endif ()
 
 FetchContent_Declare(paraview
