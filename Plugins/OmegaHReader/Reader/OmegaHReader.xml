@@ -1,0 +1,32 @@
+<ServerManagerConfiguration>
+
+  <ProxyGroup name="sources">
+   <SourceProxy name="OmegaHReader"
+                class="vtkOmegaHReader"
+                label="Omega_h Mesh Reader">
+     <Documentation
+       short_help="Read an omega_h mesh (.osh)"
+       long_help="Read an omega_h mesh. An omega_h mesh is stored as a directory ending in .osh: ASCII 'nparts' and 'version' sidecar files plus one binary part file per writer rank. The reader parses the binary format itself and loads each part as a partition of a partitioned dataset.">
+     </Documentation>
+     <StringVectorProperty
+        name="FileName"
+        animateable="0"
+        command="SetFileName"
+        number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+          The directory containing the omega_h mesh (e.g. /path/to/mesh.osh).
+        </Documentation>
+     </StringVectorProperty>
+
+     <!-- Declare the reader for File->Open: an omega_h mesh is a directory
+          with the .osh extension. -->
+     <Hints>
+       <ReaderFactory extensions="osh"
+                      is_directory="1"
+                      file_description="Omega_h Mesh Files" />
+     </Hints>
+   </SourceProxy>
+  </ProxyGroup>
+
+</ServerManagerConfiguration>
