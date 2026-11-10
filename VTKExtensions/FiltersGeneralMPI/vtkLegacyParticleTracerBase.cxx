@@ -559,7 +559,7 @@ int vtkLegacyParticleTracerBase::UpdateDataCache(vtkDataObject* data)
 
   // if simple dataset, add to our list, otherwise, add blocks
   vtkDataSet* dsInput = vtkDataSet::SafeDownCast(data);
-  vtkMultiBlockDataSet* mbInput = vtkMultiBlockDataSet::SafeDownCast(data);
+  vtkCompositeDataSet* cdInput = vtkCompositeDataSet::SafeDownCast(data);
 
   if (dsInput)
   {
@@ -568,10 +568,10 @@ int vtkLegacyParticleTracerBase::UpdateDataCache(vtkDataObject* data)
     copy->ShallowCopy(dsInput);
     this->CachedData[i]->SetBlock(this->CachedData[i]->GetNumberOfBlocks(), copy);
   }
-  else if (mbInput)
+  else if (cdInput)
   {
     vtkSmartPointer<vtkCompositeDataIterator> iter;
-    iter.TakeReference(mbInput->NewIterator());
+    iter.TakeReference(cdInput->NewIterator());
     for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
       vtkDataSet* ds = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
