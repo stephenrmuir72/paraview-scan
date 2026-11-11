@@ -22,13 +22,13 @@
 #include "vtkMassProperties.h"
 #include "vtkMathUtilities.h"
 #include "vtkMeshCacheRunner.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
 #include "vtkNonMergingPointLocator.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVBox.h"
 #include "vtkPVCylinder.h"
 #include "vtkPVThreshold.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPlane.h"
 #include "vtkPointData.h"
 #include "vtkQuadric.h"
@@ -689,11 +689,12 @@ int vtkPVClipDataSet::RequestDataObject(vtkInformation* vtkNotUsed(request),
   }
   else if (vtkAMRDataObject::SafeDownCast(inputDO))
   {
-    // We do not produces AMR in output. for compat with the CompositePipeline, turn it into
-    // MultiBlock.
-    if (!vtkMultiBlockDataSet::GetData(outInfo))
+    // The clipped blocks are not vtkUniformGrid, so the output is a
+    // vtkPartitionedDataSetCollection with the structure of the AMR.
+    auto output = vtkDataObject::GetData(outInfo);
+    if (!output || output->GetDataObjectType() != VTK_PARTITIONED_DATA_SET_COLLECTION)
     {
-      newOutput = vtkMultiBlockDataSet::New();
+      newOutput = vtkPartitionedDataSetCollection::New();
     }
   }
   else if (vtkCompositeDataSet::SafeDownCast(inputDO))
