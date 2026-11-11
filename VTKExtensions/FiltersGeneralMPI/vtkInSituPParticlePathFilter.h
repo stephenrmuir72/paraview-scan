@@ -19,8 +19,10 @@
 
 #include "vtkLegacyPParticlePathFilter.h"
 #include "vtkPVVTKExtensionsFiltersGeneralMPIModule.h" //needed for exports
+#include "vtkParaViewDeprecation.h"                    // For PARAVIEW_DEPRECATED_IN_6_3_0
 
-class VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkInSituPParticlePathFilter
+class PARAVIEW_DEPRECATED_IN_6_3_0("Use vtkPParticlePathFilter instead.")
+  VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkInSituPParticlePathFilter
   : public vtkLegacyPParticlePathFilter
 {
 public:
