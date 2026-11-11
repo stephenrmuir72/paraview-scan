@@ -1,6 +1,8 @@
 NAME
   InSituExodus
+CONDITION
+  NOT PARAVIEW_BUILD_LEGACY_REMOVE
 DESCRIPTION
-  Experimental memory-conserving Exodus II file reader.
+  (Deprecated) Experimental memory-conserving Exodus II file reader.
 REQUIRES_MODULES
   VTK::IOExodus

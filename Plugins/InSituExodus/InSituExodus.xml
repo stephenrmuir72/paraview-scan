@@ -3,6 +3,10 @@
    <SourceProxy name="InSituExodusReader"
                 class="vtkCPExodusIIInSituReader"
                 label="InSitu Exodus II Reader">
+     <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+       This reader has been replaced by 'IOSS Reader'.
+       Please consider using that instead.
+     </Deprecated>
      <Documentation
         long_help="Read an Exodus II file into ParaView, reusing the memory
                    allocated by the Exodus II library. Experimental use only."

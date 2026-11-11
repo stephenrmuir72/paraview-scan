@@ -9,14 +9,7 @@
            arguments="actionFileOpen" />
   <pqevent object="pqClientMainWindow/FileOpenDialog"
            command="filesSelected"
-           arguments="$PARAVIEW_DATA_ROOT/can.ex2" />
-
-  <!-- Select in-situ reader -->
-  <pqevent object="pqClientMainWindow/pqSelectReaderDialog/listWidget"
-           command="currentChangedbyItemName"
-           arguments="Exodus II (InSitu)" />
-  <pqevent object="pqClientMainWindow/pqSelectReaderDialog/okButton"
-           command="activate" arguments="" />
+           arguments="$PARAVIEW_DATA_ROOT/Testing/Data/can.ex2" />
 
   <!-- Load data set and orient camera -->
   <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept"
