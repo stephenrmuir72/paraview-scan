@@ -15,6 +15,11 @@ if (BUILD_SHARED_LIBS)
     "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline/GmshIOTestE.png}"
     "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline/GmshIOTestF.png}"
     "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline/GmshIOTestG.png}"
+
+    "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Gmsh/,REGEX:viz_.*}"
+    "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Gmsh/naca0012/,REGEX:.*}"
+    "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline/GmshIOMetaFileTest.png,:}"
+    "DATA{${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline/GmshIOMetaFileMeshOnlyTest.png}"
   )
 
   paraview_add_client_tests(
@@ -28,6 +33,18 @@ if (BUILD_SHARED_LIBS)
     BASELINE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline"
     TEST_DATA_TARGET ParaViewData
     TEST_SCRIPTS  ${module_tests})
+
+  paraview_add_client_tests(
+    LOAD_PLUGIN   "GmshIO"
+    BASELINE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline"
+    TEST_DATA_TARGET ParaViewData
+    TEST_SCRIPTS  GmshIOMetaFileTest.xml)
+
+  paraview_add_client_server_tests(
+    LOAD_PLUGIN   "GmshIO"
+    BASELINE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/Data/Baseline"
+    TEST_DATA_TARGET ParaViewData
+    TEST_SCRIPTS  GmshIOMetaFileMeshOnlyTest.xml)
 
   paraview_add_client_server_render_tests(
     LOAD_PLUGIN   "GmshIO"

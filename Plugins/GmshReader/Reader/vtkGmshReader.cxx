@@ -2,6 +2,9 @@
 // SPDX-FileCopyrightText: Copyright (C) 2015 Cenaero
 // SPDX-License-Identifier: BSD-3-Clause
 
+// Hide PARAVIEW_DEPRECATED_IN_6_3_0() warnings for this class.
+#define PARAVIEW_DEPRECATION_LEVEL 0
+
 #include "vtkGmshReader.h"
 #include "vtkGmshIncludes.h"
 

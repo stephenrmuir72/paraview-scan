@@ -3,6 +3,10 @@
     <SourceProxy class="vtkGmshMetaReader"
                  label="Gmsh Reader"
                  name="GmshReader">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        This reader has been replaced by the Gmsh Meta-File Reader of the GmshIO plugin.
+        Please consider using that instead.
+      </Deprecated>
       <Documentation long_help="Reads the parallel Gmsh meta-file and the underlying *.msh files."
                      short_help="Read datasets stored in the Gmsh format.">
                      This Gmsh reader reads files stored in the .msh format.
