@@ -12,6 +12,7 @@ CONDITION
   PARAVIEW_USE_FORTRAN AND PARAVIEW_USE_PYTHON
 DEPENDS
   ParaView::Catalyst
+  ParaView::Versioning
   VTK::CommonDataModel
 OPTIONAL_DEPENDS
   ParaView::PythonCatalyst
