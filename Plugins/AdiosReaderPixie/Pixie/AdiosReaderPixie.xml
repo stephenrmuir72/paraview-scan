@@ -1,6 +1,9 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="sources">
     <SourceProxy name="PixieAdiosReader" class="vtkAdiosPixieReader" label="ADIOS Pixie Reader">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        ADIOS1 is unmaintained. Please consider using the ADIOS2 readers instead.
+      </Deprecated>
       <Documentation
          short_help="Read Adios Pixie files."
          long_help="Load the geometry and data from a bp adios file.">
@@ -54,6 +57,9 @@
     </SourceProxy>
 
     <SourceProxy name="PixieAdiosStream" class="vtkAdiosPixieReader" label="ADIOS Pixie Stream Source">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        ADIOS1 is unmaintained. Please consider using the ADIOS2 readers instead.
+      </Deprecated>
       <Documentation
          short_help="Read Adios Pixie stream."
          long_help="Load the geometry and data from a adios stage stream.">
