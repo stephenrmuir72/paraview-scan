@@ -12,12 +12,15 @@
 #ifndef vtkGmshReader_h
 #define vtkGmshReader_h
 
-#include "vtkGmshReaderModule.h" // for export macro
+#include "vtkGmshReaderModule.h"    // for export macro
+#include "vtkParaViewDeprecation.h" // for PARAVIEW_DEPRECATED_IN_6_3_0
 #include "vtkUnstructuredGridAlgorithm.h"
 
 struct vtkGmshReaderInternal;
 
-class VTKGMSHREADER_EXPORT vtkGmshReader : public vtkUnstructuredGridAlgorithm
+class PARAVIEW_DEPRECATED_IN_6_3_0(
+  "Use vtkGmshMetaFileReader of the GmshIO plugin.") VTKGMSHREADER_EXPORT vtkGmshReader
+  : public vtkUnstructuredGridAlgorithm
 {
 public:
   static vtkGmshReader* New();

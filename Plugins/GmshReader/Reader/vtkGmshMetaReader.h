@@ -14,7 +14,8 @@
 
 #include "vtkGmshReaderModule.h" // for export macro
 #include "vtkMultiBlockDataSetAlgorithm.h"
-#include "vtkNew.h" // for vtkNew
+#include "vtkNew.h"                 // for vtkNew
+#include "vtkParaViewDeprecation.h" // for PARAVIEW_DEPRECATED_IN_6_3_0
 
 class vtkCallbackCommand;
 class vtkDataArraySelection;
@@ -22,7 +23,9 @@ class vtkGmshReader;
 class vtkPVXMLParser;
 struct vtkGmshMetaReaderInternal;
 
-class VTKGMSHREADER_EXPORT vtkGmshMetaReader : public vtkMultiBlockDataSetAlgorithm
+class PARAVIEW_DEPRECATED_IN_6_3_0(
+  "Use vtkGmshMetaFileReader of the GmshIO plugin.") VTKGMSHREADER_EXPORT vtkGmshMetaReader
+  : public vtkMultiBlockDataSetAlgorithm
 {
 public:
   static vtkGmshMetaReader* New();
