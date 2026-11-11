@@ -104,6 +104,99 @@
                        file_description="Gmsh Files" />
       </Hints>
     </SourceProxy>
+
+    <SourceProxy class="vtkGmshMetaFileReader"
+                 label="Gmsh Meta-File Reader"
+                 name="GmshMetaFileReader">
+      <Documentation long_help="Read partitioned Gmsh solutions described by a .mshi meta-file."
+                     short_help="Read .mshi files.">
+                     This reader reads the partitioned .msh files that a .mshi
+                     meta-file describes, with their time steps. The high-order
+                     fields are refined into linear cells up to the adaptation
+                     level. Without arrays, only the mesh is read. The output is
+                     a partitioned dataset collection with one partition per
+                     .msh file.</Documentation>
+      <StringVectorProperty animateable="0"
+                            command="SetFileName"
+                            name="FileName"
+                            number_of_elements="1"
+                            panel_visibility="never">
+        <FileListDomain name="files" />
+        <Documentation>This property specifies the .mshi file name.</Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty information_only="1"
+                            name="TimestepValues"
+                            repeatable="1">
+        <TimeStepsInformationHelper />
+        <Documentation>Available timestep values.</Documentation>
+      </DoubleVectorProperty>
+
+      <StringVectorProperty name="PointArrayInfo"
+                            information_only="1">
+        <ArraySelectionInformationHelper attribute_name="Point" />
+      </StringVectorProperty>
+
+      <StringVectorProperty name="PointArrayStatus"
+                            command="SetPointArrayStatus"
+                            number_of_elements="2"
+                            repeat_command="1"
+                            number_of_elements_per_command="2"
+                            element_types="2 0"
+                            information_property="PointArrayInfo"
+                            label="Point Arrays">
+        <ArraySelectionDomain name="array_list">
+          <RequiredProperties>
+            <Property name="PointArrayInfo" function="ArrayList" />
+          </RequiredProperties>
+        </ArraySelectionDomain>
+        <Documentation>
+          The arrays to read, one per field file of the meta-file.
+          Without arrays, only the mesh is read.
+        </Documentation>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="AdaptationLevel"
+                         command="SetAdaptationLevel"
+                         default_values="0"
+                         information_property="AdaptationLevelInfo"
+                         number_of_elements="1">
+        <Documentation>
+          The number of times the high-order cells are refined.
+          The default comes from the meta-file.
+        </Documentation>
+        <IntRangeDomain name="range" min="0" />
+      </IntVectorProperty>
+
+      <IntVectorProperty information_only="1"
+                         name="AdaptationLevelInfo"
+                         command="GetAdaptationLevelInfo">
+        <SimpleIntInformationHelper />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="AdaptationTolerance"
+                            command="SetAdaptationTolerance"
+                            default_values="-0.0001"
+                            information_property="AdaptationToleranceInfo"
+                            number_of_elements="1">
+        <Documentation>
+          The refinement tolerance. A negative value refines uniformly up to the
+          adaptation level; a non-negative value is only used with one array.
+          The default comes from the meta-file.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty information_only="1"
+                            name="AdaptationToleranceInfo"
+                            command="GetAdaptationToleranceInfo">
+        <SimpleDoubleInformationHelper />
+      </DoubleVectorProperty>
+
+      <Hints>
+        <ReaderFactory extensions="mshi"
+                       file_description="Gmsh Meta-Files" />
+      </Hints>
+    </SourceProxy>
   </ProxyGroup>
 
 
