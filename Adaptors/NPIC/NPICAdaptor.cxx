@@ -1,5 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-License-Identifier: BSD-3-Clause
+
+// Hide PARAVIEW_DEPRECATED_IN_6_3_0() warnings for this adaptor.
+#define PARAVIEW_DEPRECATION_LEVEL 0
+
 #include "NPICAdaptor.h"
 
 #include "vtkCPAdaptorAPI.h"
