@@ -9,7 +9,6 @@
 #include "vtkNonOverlappingAMR.h"
 #include "vtkObjectFactory.h"
 
-#include "vtkMultiPieceDataSet.h"
 #include "vtkTable.h"
 
 #include <string> // STL required.

@@ -4,12 +4,12 @@
 
 #include "vtkVolumeRepresentationPreprocessor.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataSetTriangleFilter.h"
 #include "vtkExtractBlockUsingDataAssembly.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMergeBlocks.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnstructuredGrid.h"
 

@@ -16,7 +16,6 @@
 #include "vtkInformationVector.h"
 #include "vtkLine.h"
 #include "vtkMPIMoveData.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
