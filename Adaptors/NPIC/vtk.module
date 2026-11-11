@@ -12,6 +12,7 @@ CONDITION
   PARAVIEW_USE_MPI
 DEPENDS
   ParaView::Catalyst
+  ParaView::Versioning
   VTK::CommonDataModel
   VTK::CommonCore
   VTK::ParallelMPI
