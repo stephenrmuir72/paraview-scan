@@ -100,7 +100,7 @@ void vtkPVMergeTablesComposite::MergeLeavesTables(
   output->CopyStructure(inputs[0]);
 
   auto nameKey = vtkCompositeDataSet::NAME();
-  if (output->IsA("vtkMultiBlockDataSet"))
+  if (output->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET)
   {
     auto iter = vtk::TakeSmartPointer(output->NewTreeIterator());
     iter->SkipEmptyNodesOff();

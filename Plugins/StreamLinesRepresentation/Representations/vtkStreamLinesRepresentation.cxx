@@ -198,7 +198,8 @@ int vtkStreamLinesRepresentation::RequestData(
       this->Cache->ShallowCopy(inputDS);
     }
     else if (inputCD &&
-      (inputCD->IsA("vtkMultiBlockDataSet") || inputCD->IsA("vtkPartitionedDataSetCollection")))
+      (inputCD->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET ||
+        inputCD->GetDataObjectType() == VTK_PARTITIONED_DATA_SET_COLLECTION))
     {
       this->MergeBlocks->SetInputDataObject(inputCD);
       this->MergeBlocks->Update();

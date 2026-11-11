@@ -190,7 +190,7 @@ int vtkStreamingParticlesRepresentation::ProcessViewRequest(
   else if (request_type == vtkPVRenderView::REQUEST_PROCESS_STREAMED_PIECE())
   {
     vtkDataObject* piece = vtkPVRenderView::GetCurrentStreamedPiece(inInfo, this);
-    if (piece && piece->IsA("vtkMultiBlockDataSet"))
+    if (piece && piece->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET)
     {
       assert(this->RenderedData != nullptr);
       vtkStreamingStatusMacro(<< this << ": received new piece.");
@@ -324,7 +324,7 @@ int vtkStreamingParticlesRepresentation::RequestData(
     if (!this->GetInStreamingUpdate())
     {
       vtkDataObject* output = geomFilter->GetOutputDataObject(0);
-      if (!output->IsA("vtkMultiBlockDataSet"))
+      if (output->GetDataObjectType() != VTK_MULTIBLOCK_DATA_SET)
       {
         vtkNew<vtkMultiBlockDataSet> mb;
         mb->SetBlock(0, output);
