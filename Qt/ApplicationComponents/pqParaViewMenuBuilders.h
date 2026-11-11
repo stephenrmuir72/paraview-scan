@@ -10,6 +10,7 @@ class QMenu;
 class QWidget;
 class QMainWindow;
 
+class pqPipelineBrowserWidget;
 class pqPropertiesPanel;
 
 /**
@@ -28,8 +29,11 @@ public:
 
   /**
    * Builds the standard Edit menu.
+   * If `pipelineBrowser` is provided, its toggle visibility action is added
+   * to the menu, making its shortcut customizable.
    */
-  static void buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel = nullptr);
+  static void buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel = nullptr,
+    pqPipelineBrowserWidget* pipelineBrowser = nullptr);
 
   /**
    * Builds "Sources" menu.

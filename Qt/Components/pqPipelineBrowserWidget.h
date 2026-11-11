@@ -14,6 +14,7 @@ class pqPipelineAnnotationFilterModel;
 class pqPipelineSource;
 class pqOutputPort;
 class pqView;
+class QAction;
 class QMenu;
 class vtkPVSession;
 
@@ -89,6 +90,14 @@ public:
    */
   QMenu* contextMenu() const;
 
+  /**
+   * Provides access to the action toggling the visibility of the selected
+   * items (see toggleSelectionVisibility()). Its default shortcut is `Space`,
+   * active only when this widget has focus. It is meant to be shared by the
+   * application menus and the context menu so that a single shortcut exists.
+   */
+  QAction* toggleVisibilityAction() const;
+
 Q_SIGNALS:
   /**
    * Fired when the delete key is pressed.
@@ -103,6 +112,15 @@ public Q_SLOTS:
    */
   void setActiveView(pqView*);
 
+  /**
+   * Toggle the visibility of selected items in the active view.
+   * The new state is the opposite of the current visibility of the current
+   * item (or of the first selected item with an output port if the current
+   * item is not selected), and it is applied to all selected items, the same
+   * way clicking the eye icon of a selected item does.
+   */
+  void toggleSelectionVisibility();
+
 protected Q_SLOTS:
   void handleIndexClicked(const QModelIndex& index);
   void expandWithModelIndexTranslation(const QModelIndex&);
@@ -114,6 +132,16 @@ protected: // NOLINT(readability-redundant-access-specifiers)
    */
   void setVisibility(bool visible, const QModelIndexList& indices);
 
+  /**
+   * Returns the output port corresponding to the given index, if any.
+   */
+  pqOutputPort* getOutputPort(const QModelIndex& index) const;
+
+  /**
+   * Returns whether the given port is visible in the active view.
+   */
+  static bool isVisibleInActiveView(pqOutputPort* port);
+
   void contextMenuEvent(QContextMenuEvent* e) override;
 
   /**
@@ -124,6 +152,7 @@ protected: // NOLINT(readability-redundant-access-specifiers)
   pqPipelineModel* PipelineModel;
   pqPipelineAnnotationFilterModel* FilteredPipelineModel;
   QPointer<QMenu> ContextMenu;
+  QAction* ToggleVisibilityAction;
 
 private:
   /**
