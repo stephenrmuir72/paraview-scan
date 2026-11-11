@@ -17,7 +17,7 @@
 #include <vector>                        // needed for std::vector
 
 class vtkCompositePolyDataMapper;
-class vtkMultiBlockDataSet;
+class vtkDataObjectTree;
 class vtkPVLODActor;
 class vtkScalarsToColors;
 class vtkStreamingParticlesPriorityQueue;
@@ -175,7 +175,7 @@ protected:
   // This is the data object generated processed by the most recent call to
   // RequestData() while not streaming.
   // This is non-empty only on the data-server nodes.
-  vtkSmartPointer<vtkMultiBlockDataSet> ProcessedData;
+  vtkSmartPointer<vtkDataObjectTree> ProcessedData;
 
   // Description:
   // This is the data object generated processed by the most recent call to
