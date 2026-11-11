@@ -419,6 +419,7 @@
             </IntVectorProperty>
             <Hints>
                 <ReaderFactory extensions="foam"
+                               filename_patterns="controlDict"
                                file_description="OpenFOAM"/>
                 <ReloadFiles property="Refresh"/>
             </Hints>
