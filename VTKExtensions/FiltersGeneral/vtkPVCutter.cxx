@@ -16,10 +16,10 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMeshCacheRunner.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVPlaneCutter.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPlane.h"
 #include "vtkPolyData.h"
 #include "vtkType.h"
@@ -326,11 +326,12 @@ int vtkPVCutter::RequestDataObject(vtkInformation* vtkNotUsed(request),
   }
   else if (vtkAMRDataObject::SafeDownCast(inputDO))
   {
-    // We do not produces AMR in output. for compat with the CompositePipeline, turn it into
-    // MultiBlock.
-    if (!vtkMultiBlockDataSet::GetData(outInfo))
+    // The cut blocks are not vtkUniformGrid, so the output is a
+    // vtkPartitionedDataSetCollection with the structure of the AMR.
+    auto output = vtkDataObject::GetData(outInfo);
+    if (!output || output->GetDataObjectType() != VTK_PARTITIONED_DATA_SET_COLLECTION)
     {
-      newOutput = vtkMultiBlockDataSet::New();
+      newOutput = vtkPartitionedDataSetCollection::New();
     }
   }
   else if (vtkDataSet::SafeDownCast(inputDO))
