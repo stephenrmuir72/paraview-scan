@@ -11,10 +11,10 @@
            command="filesSelected"
            arguments="$PARAVIEW_DATA_ROOT/can.ex2" />
 
-  <!-- Select in-situ reader -->
+  <!-- Select the IOSS reader -->
   <pqevent object="pqClientMainWindow/pqSelectReaderDialog/listWidget"
            command="currentChangedbyItemName"
-           arguments="Exodus II (InSitu)" />
+           arguments="IOSS Reader" />
   <pqevent object="pqClientMainWindow/pqSelectReaderDialog/okButton"
            command="activate" arguments="" />
 

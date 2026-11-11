@@ -1604,6 +1604,7 @@ list(APPEND TESTS_WITH_BASELINES
   EnSightTensorInversion.xml
   EnSightTensorInversionBin.xml
   ExodusGlobalDataWithRestarts.xml
+  ExodusIOSSReader.xml
   ExodusSingleTimeStep.xml
   ExpandSelection.xml
   ExportLinePlotToCSV.xml
