@@ -14,6 +14,7 @@
 
 #include "vtkNew.h"                                 // for vtkNew
 #include "vtkPVVTKExtensionsFiltersGeneralModule.h" //needed for exports
+#include "vtkParaViewDeprecation.h"                 // for PARAVIEW_DEPRECATED_IN_6_3_0
 #include "vtkTableBasedClipDataSet.h"
 
 #include <memory> // for unique_ptr
@@ -32,12 +33,16 @@ public:
 
   ///@{
   /**
-   * This filter uses vtkAMRDualClip for clipping AMR datasets. To disable that
-   * behavior, turn this flag off.
+   * Unused: AMR datasets are clipped like any other composite dataset.
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("It has no effect.")
   vtkSetMacro(UseAMRDualClipForAMR, bool);
+  PARAVIEW_DEPRECATED_IN_6_3_0("It has no effect.")
   vtkGetMacro(UseAMRDualClipForAMR, bool);
-  vtkBooleanMacro(UseAMRDualClipForAMR, bool);
+  PARAVIEW_DEPRECATED_IN_6_3_0("It has no effect.")
+  void UseAMRDualClipForAMROn() { this->UseAMRDualClipForAMR = true; }
+  PARAVIEW_DEPRECATED_IN_6_3_0("It has no effect.")
+  void UseAMRDualClipForAMROff() { this->UseAMRDualClipForAMR = false; }
   ///@}
 
   ///@{
