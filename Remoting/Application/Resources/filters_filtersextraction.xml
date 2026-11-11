@@ -63,6 +63,11 @@
     <SourceProxy class="vtkExtractDataSets"
                  label="Extract AMR Blocks"
                  name="ExtractHierarchicalDataSets">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        This filter has been replaced by 'Extract Block', which extracts whole
+        AMR levels with selectors such as '/Root/Level0'.
+        Please consider using that instead.
+      </Deprecated>
       <Documentation long_help="This filter extracts a list of datasets from hierarchical datasets."
                      short_help="Extract datasets.">
         This filter extracts a list of datasets from hierarchical datasets.
