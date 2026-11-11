@@ -116,8 +116,6 @@ vtkDataObject* vtkIsoVolume::Clip(
   clipper->SetExecutive(executive);
   executive->Delete();
 
-  // disable AMRDualClip since it does not generate scalars.
-  clipper->UseAMRDualClipForAMROff();
   clipper->SetInputData(0, input);
   clipper->SetInputArrayToProcess(0, 0, 0, fieldAssociation, array_name);
   clipper->SetValue(value);
