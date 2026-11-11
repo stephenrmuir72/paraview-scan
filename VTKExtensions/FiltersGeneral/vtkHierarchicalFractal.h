@@ -9,8 +9,10 @@
  * mandelbrot to create cell data. I scale the fractal array to look like a
  * volme fraction.
  * I may also add block id and level as extra cell arrays.
- * If GenerateRectilinearGrids is true then this filter outputs
- * vtkHierarchicalBoxDataSet otherwise it generates a vtkMultiBlockDataSet.
+ * If GenerateRectilinearGrids is true then this filter outputs a
+ * vtkPartitionedDataSetCollection with one entry per grid, grouped by level
+ * under the LevelN nodes of its assembly; otherwise it outputs a
+ * vtkOverlappingAMR.
  */
 
 #ifndef vtkHierarchicalFractal_h
@@ -129,7 +131,7 @@ protected:
   int TimeStep;
   int TimeStepRange[2];
 
-  // Create either vtkHierarchicalBoxDataSet or vtkMultiBlockDataSet based on
+  // Create either vtkOverlappingAMR or vtkPartitionedDataSetCollection based on
   // the GenerateRectilinearGrids flag.
   int RequestDataObject(
     vtkInformation* req, vtkInformationVector** inV, vtkInformationVector* outV) override;
