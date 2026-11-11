@@ -10,9 +10,10 @@
 #include "vtkDataObjectTypes.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkFieldData.h"
+#include "vtkGroupDataSetsFilter.h"
 #include "vtkInformation.h"
-#include "vtkMultiBlockDataGroupFilter.h"
 #include "vtkMultiProcessController.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVMergeTables.h"
 #include "vtkPVSession.h"
@@ -288,10 +289,18 @@ void vtkPythonRepresentation::InitializePostGatherHelper(
   }
   else if (input->IsA("vtkCompositeDataSet"))
   {
-    vtkPythonRepresentationDebug("vtkMultiBlockDataGroupFilter used in ReductionFilter");
-    vtkMultiBlockDataGroupFilter* groupHelper = vtkMultiBlockDataGroupFilter::New();
+    vtkPythonRepresentationDebug("vtkGroupDataSetsFilter used in ReductionFilter");
+    vtkNew<vtkGroupDataSetsFilter> groupHelper;
+    if (input->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET)
+    {
+      groupHelper->SetOutputTypeToMultiBlockDataSet();
+      groupHelper->SetCombineFirstLayerMultiblock(true);
+    }
+    else
+    {
+      groupHelper->SetOutputTypeToPartitionedDataSetCollection();
+    }
     reductionFilter->SetPostGatherHelper(groupHelper);
-    groupHelper->Delete();
   }
   else if (input->IsA("vtkRectilinearGrid"))
   {
