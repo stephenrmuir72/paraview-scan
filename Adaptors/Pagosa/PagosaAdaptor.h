@@ -11,6 +11,7 @@
 #define vtkPagosaAdaptor_h
 
 #include "vtkPVAdaptorsPagosaModule.h"
+#include "vtkParaViewDeprecation.h" // for PARAVIEW_DEPRECATED_IN_6_3_0
 
 // This code is meant to be used as an API for C simulation
 // codes. To use with C codes, include this header file. Call the
@@ -36,6 +37,7 @@ extern "C"
    * @param nframe, nframelen   string and stringlength
    * @param version, versionlen string and stringlength
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT setcoprocessorgeometry_(int* mx, int* my, int* mz, double* x0,
     double* y0, double* z0, double* dx, double* dy, double* dz, int* my_id, const int* tot_pes,
     char* nframe, int* nframelen, char* version, int* versionlen);
@@ -50,6 +52,7 @@ extern "C"
    * @param cycleNum            simulation cycle number
    * @param simTime             simulation time
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT setgridgeometry_(
     char* nframe, int* nframelen, char* version, int* versionlen, int* cycleNum, double* simTime);
 
@@ -62,6 +65,7 @@ extern "C"
    * @param data          data
    * @param down_convert  if .true. convert data to unsigned character
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT addgridfield_(
     char* fname, int* len, int* mx, int* my, int* mz, int* my_id, float* data, bool* down_convert);
 
@@ -74,6 +78,7 @@ extern "C"
    * @param cycleNum            simulation cycle number
    * @param simTime             simulation time
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT setmarkergeometry_(int* nvp, char* nframe, int* nframelen,
     char* version, int* versionlen, int* cycleNum, double* simTime);
 
@@ -83,6 +88,7 @@ extern "C"
    * @param numberAdded     number of markers added on this PE
    * @param xloc,yloc,zloc  coordinates for each marker added
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT addmarkergeometry_(
     int* numberAdded, float* xloc, float* yloc, float* zloc);
 
@@ -93,6 +99,7 @@ extern "C"
    * @param numberAdded  number of markers added on this PE
    * @param data         Data by marker
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT addmarkerscalarfield_(
     char* fname, int* len, int* numberAdded, float* data);
 
@@ -103,6 +110,7 @@ extern "C"
    * @param numberAdded  number of markers added on this PE
    * @param data0, data1, data2    Data by marker
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT addmarkervectorfield_(
     char* fname, int* len, int* numberAdded, float* data0, float* data1, float* data2);
 
@@ -113,6 +121,7 @@ extern "C"
    * @param numberAdded  number of markers added on this PE
    * @param data0, data1, data2, data3, data4, data5   Data by marker
    */
+  PARAVIEW_DEPRECATED_IN_6_3_0("The Pagosa adaptor is unused.")
   void VTKPVADAPTORSPAGOSA_EXPORT addmarkertensorfield_(char* fname, int* len, int* numberAdded,
     float* data0, float* data1, float* data2, float* data3, float* data4, float* data5);
 
