@@ -1,9 +1,9 @@
 NAME
   AdiosReaderPixie
 CONDITION
-  NOT WIN32 AND PARAVIEW_USE_MPI
+  NOT WIN32 AND PARAVIEW_USE_MPI AND NOT PARAVIEW_BUILD_LEGACY_REMOVE
 DESCRIPTION
-  Reader for *.bp ADIOS files
+  (Deprecated) Reader for *.bp ADIOS files
 REQUIRES_MODULES
   VTK::CommonCore
   VTK::CommonExecutionModel

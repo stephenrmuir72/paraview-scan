@@ -10,12 +10,15 @@
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 #include "vtkPVAdiosReaderPixieModule.h" // for export macro
+#include "vtkParaViewDeprecation.h"      // for PARAVIEW_DEPRECATED_IN_6_3_0
 
 class vtkDataSetAttributes;
 class vtkInformationVector;
 class vtkInformation;
 
-class VTKPVADIOSREADERPIXIE_EXPORT vtkAdiosPixieReader : public vtkMultiBlockDataSetAlgorithm
+class PARAVIEW_DEPRECATED_IN_6_3_0(
+  "ADIOS1 is unmaintained.") VTKPVADIOSREADERPIXIE_EXPORT vtkAdiosPixieReader
+  : public vtkMultiBlockDataSetAlgorithm
 {
 public:
   static vtkAdiosPixieReader* New();
