@@ -12,6 +12,7 @@ GROUPS
   PARAVIEW_CORE
 DEPENDS
   ParaView::Catalyst
+  ParaView::Versioning
 PRIVATE_DEPENDS
   VTK::CommonDataModel
   VTK::ParallelCore

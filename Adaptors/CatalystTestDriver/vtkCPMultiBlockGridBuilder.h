@@ -12,13 +12,15 @@
 
 #include "vtkCPBaseGridBuilder.h"
 #include "vtkPVCatalystTestDriverModule.h" // needed for export macros
+#include "vtkParaViewDeprecation.h"        // for PARAVIEW_DEPRECATED_IN_6_3_0
 
 class vtkCPGridBuilder;
 class vtkDataObject;
 class vtkMultiBlockDataSet;
 struct vtkCPMultiBlockGridBuilderInternals;
 
-class VTKPVCATALYSTTESTDRIVER_EXPORT vtkCPMultiBlockGridBuilder : public vtkCPBaseGridBuilder
+class PARAVIEW_DEPRECATED_IN_6_3_0(
+  "Unused.") VTKPVCATALYSTTESTDRIVER_EXPORT vtkCPMultiBlockGridBuilder : public vtkCPBaseGridBuilder
 {
 public:
   static vtkCPMultiBlockGridBuilder* New();
