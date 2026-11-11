@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 // SPDX-License-Identifier: BSD-3-Clause
-// VTK_DEPRECATED_IN_9_2_0() warnings for this class.
+// Hide VTK_DEPRECATED_IN_9_2_0() and PARAVIEW_DEPRECATED_IN_6_3_0() warnings for this class.
 #define VTK_DEPRECATION_LEVEL 0
+#define PARAVIEW_DEPRECATION_LEVEL 0
 
 #include "vtkLegacyParticleTracerBase.h"
 

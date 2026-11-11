@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 #ifdef USE_CATALYST
   FEAdaptor::Initialize(scripts);
 #endif
-  unsigned int numberOfTimeSteps = 50;
+  unsigned int numberOfTimeSteps = 100;
   for (unsigned int timeStep = startTimeStep; timeStep <= startTimeStep + numberOfTimeSteps;
        timeStep++)
   {

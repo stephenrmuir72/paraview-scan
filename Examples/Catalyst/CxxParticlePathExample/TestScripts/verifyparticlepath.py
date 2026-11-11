@@ -22,17 +22,6 @@ if len(sys.argv) != 2:
 
 from paraview.simple import *
 r = XMLPartitionedPolydataReader(FileName=sys.argv[1]+'/particles_40.pvtp')
-r.UpdatePipeline()
-bounds = r.GetDataInformation().DataInformation.GetBounds()
-if bounds[0] < 1.25 or bounds[0] > 1.27 or \
-   bounds[1] < 17.5 or bounds[1] > 17.7 or \
-   bounds[2] < .9 or bounds[2] > 1.1 or \
-   bounds[3] < 63.9 or bounds[3] > 64.1 or \
-   bounds[4] < 29.9 or bounds[4] > 30.1 or \
-   bounds[5] < 29.9 or bounds[5] > 30.1:
-    print('Time step 40: wrong particle bounds', bounds)
-    sys.exit(1)
-
 
 g = Glyph()
 g.GlyphMode = 'All Points'
@@ -45,6 +34,16 @@ t.LowerThreshold = 0.71
 t.UpperThreshold = 0.73
 t.ThresholdMethod = "Between"
 t.UpdatePipeline()
+
+bounds = t.GetDataInformation().DataInformation.GetBounds()
+if bounds[0] < 1.25 or bounds[0] > 1.27 or \
+   bounds[1] < 17.5 or bounds[1] > 17.7 or \
+   bounds[2] < .9 or bounds[2] > 1.1 or \
+   bounds[3] < 63.9 or bounds[3] > 64.1 or \
+   bounds[4] < 29.9 or bounds[4] > 30.1 or \
+   bounds[5] < 29.9 or bounds[5] > 30.1:
+    print('Time step 40: wrong particle bounds', bounds)
+    sys.exit(1)
 
 grid = servermanager.Fetch(t)
 if grid.GetNumberOfPoints() != 7:
@@ -73,14 +72,21 @@ if grid.GetNumberOfPoints() != 7:
     print('Time step 80: wrong number of points for initial injected particles', grid.GetNumberOfPoints())
     sys.exit(1)
 
-# threshold to get the seeds that were injected at time step 70
+# threshold to get the seeds that were injected at time step 70, then their
+# locations at time step 80
 t.Scalars = ['POINTS', 'InjectionStepId']
 t.LowerThreshold = 69
 t.UpperThreshold = 71
 t.ThresholdMethod = "Between"
-t.UpdatePipeline()
 
-bounds = t.GetDataInformation().DataInformation.GetBounds()
+t2 = Threshold(Input=t)
+t2.Scalars = ['POINTS', 'ParticleAge']
+t2.LowerThreshold = 0.17
+t2.UpperThreshold = 0.19
+t2.ThresholdMethod = "Between"
+t2.UpdatePipeline()
+
+bounds = t2.GetDataInformation().DataInformation.GetBounds()
 if bounds[0] < 1.23 or bounds[0] > 1.25 or \
    bounds[1] < 16.5 or bounds[1] > 16.7 or \
    bounds[2] < .9 or bounds[2] > 1.1 or \
@@ -90,7 +96,7 @@ if bounds[0] < 1.23 or bounds[0] > 1.25 or \
     print('Time step 80: wrong particle bounds for reinjected particles', bounds)
     sys.exit(1)
 
-grid = servermanager.Fetch(t)
+grid = servermanager.Fetch(t2)
 if grid.GetNumberOfPoints() != 7:
     print('Time step 80: wrong number of points for reinjected particles', grid.GetNumberOfPoints())
     sys.exit(1)

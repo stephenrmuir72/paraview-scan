@@ -16,10 +16,12 @@
 
 #include "vtkLegacyPParticleTracerBase.h"
 #include "vtkPVVTKExtensionsFiltersGeneralMPIModule.h" // For export macro
+#include "vtkParaViewDeprecation.h"                    // For PARAVIEW_DEPRECATED_IN_6_3_0
 
 class vtkPolyData;
 
-class VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyPParticlePathFilter
+class PARAVIEW_DEPRECATED_IN_6_3_0("Use vtkPParticlePathFilter instead.")
+  VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyPParticlePathFilter
   : public vtkLegacyPParticleTracerBase
 {
 public:

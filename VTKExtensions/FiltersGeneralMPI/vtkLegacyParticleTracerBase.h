@@ -18,6 +18,7 @@
 
 #include "vtkDeprecation.h"                            // For VTK_DEPRECATED_IN_9_2_0
 #include "vtkPVVTKExtensionsFiltersGeneralMPIModule.h" // For export macro
+#include "vtkParaViewDeprecation.h"                    // For PARAVIEW_DEPRECATED_IN_6_3_0
 #include "vtkPolyDataAlgorithm.h"
 #include "vtkSmartPointer.h" // For vtkSmartPointer
 
@@ -89,7 +90,8 @@ typedef ParticleDataList::iterator ParticleListIterator;
 struct ParticleTracerFunctor;
 }
 
-class VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyParticleTracerBase
+class PARAVIEW_DEPRECATED_IN_6_3_0("Use vtkPParticlePathFilter instead.")
+  VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyParticleTracerBase
   : public vtkPolyDataAlgorithm
 {
 public:
