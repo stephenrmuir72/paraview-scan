@@ -1,7 +1,8 @@
 # Gmsh IO plugin
 
 ParaView/VTK reader and writer for handling high-order polynomial solutions under the Gmsh format.
-It is developed on top of Gmsh 4.7 API.
+It also reads partitioned solutions described by a .mshi meta-file.
+It is developed on top of Gmsh 4.12 API.
 
 Version: 1.0
 

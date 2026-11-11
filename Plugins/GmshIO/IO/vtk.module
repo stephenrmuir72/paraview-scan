@@ -8,4 +8,9 @@ SPDX_COPYRIGHT_TEXT
   Copyright (c) Kitware Inc.
 DEPENDS
   VTK::CommonCore
+  VTK::CommonExecutionModel
   VTK::IOCore
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::IOXMLParser
+  VTK::vtksys
