@@ -121,6 +121,7 @@ paraview_add_test_python(
   AppendDatasetsPolyData.py
   ClipSliceAMR.py
   CopyProperties.py
+  GlyphAMR.py
   MergeBlocksPolyData.py
   PointPicking.py
   TestGhostCellsGenerator.py
