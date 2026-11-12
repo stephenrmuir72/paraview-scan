@@ -148,7 +148,9 @@ int vtkPVMetaSliceDataSet::RequestDataObject(
       : VTK_POLY_DATA;
     if (vtkAMRDataObject::SafeDownCast(input))
     {
-      dataSetType = VTK_MULTIBLOCK_DATA_SET;
+      // The slices are not vtkUniformGrid, so the output is a
+      // vtkPartitionedDataSetCollection with the structure of the AMR.
+      dataSetType = VTK_PARTITIONED_DATA_SET_COLLECTION;
     }
     else if (vtkCompositeDataSet::SafeDownCast(input))
     {

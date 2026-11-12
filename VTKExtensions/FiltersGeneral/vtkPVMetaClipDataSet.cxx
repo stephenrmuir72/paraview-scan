@@ -212,8 +212,9 @@ int vtkPVMetaClipDataSet::RequestDataObject(
     int outType = VTK_UNSTRUCTURED_GRID;
     if (vtkAMRDataObject::SafeDownCast(input))
     {
-      // We do not support AMR as output. Fallback to MultiBlock, as CompositePipeline does.
-      outType = VTK_MULTIBLOCK_DATA_SET;
+      // The clipped blocks are not vtkUniformGrid, so the output is a
+      // vtkPartitionedDataSetCollection with the structure of the AMR.
+      outType = VTK_PARTITIONED_DATA_SET_COLLECTION;
     }
     else if (vtkCompositeDataSet::SafeDownCast(input))
     {
