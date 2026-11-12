@@ -74,7 +74,7 @@ const char* GetWriterFileNameExtension(vtkDataObject* grid)
     case VTK_STRUCTURED_GRID:
       return "pvts";
     case VTK_POLY_DATA:
-      return "pvts";
+      return "pvtp";
     case VTK_UNSTRUCTURED_GRID:
       return "pvtu";
     case VTK_UNIFORM_GRID_AMR:
