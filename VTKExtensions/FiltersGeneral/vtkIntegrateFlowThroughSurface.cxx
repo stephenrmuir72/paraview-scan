@@ -12,8 +12,8 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntegrateAttributes.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
+#include "vtkPartitionedDataSet.h"
 #include "vtkPointData.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -95,7 +95,7 @@ int vtkIntegrateFlowThroughSurface::RequestData(
     vtkCompositeDataSet::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
   if (hdInput)
   {
-    vtkMultiBlockDataSet* hds = vtkMultiBlockDataSet::New();
+    vtkPartitionedDataSet* hds = vtkPartitionedDataSet::New();
     vtkCompositeDataIterator* iter = hdInput->NewIterator();
     iter->GoToFirstItem();
     while (!iter->IsDoneWithTraversal())
@@ -106,7 +106,7 @@ int vtkIntegrateFlowThroughSurface::RequestData(
         vtkDataSet* intermData = this->GenerateSurfaceVectors(ds);
         if (intermData)
         {
-          hds->SetBlock(hds->GetNumberOfBlocks(), intermData);
+          hds->SetPartition(hds->GetNumberOfPartitions(), intermData);
           intermData->Delete();
         }
       }
