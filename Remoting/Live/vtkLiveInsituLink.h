@@ -97,6 +97,17 @@ public:
   void SetSimulationPaused(int paused);
   ///@}
 
+  ///@{
+  /**
+   * 'PauseAtTimeStep' is set on ParaView Live and sent to Insitu with 'SimulationPaused'.
+   * Insitu pauses itself at the first update whose time step reaches it, so the simulation
+   * stops exactly there; it stays paused until Live moves or clears the value. -1, the
+   * default, sets no breakpoint.
+   */
+  vtkGetMacro(PauseAtTimeStep, vtkIdType);
+  void SetPauseAtTimeStep(vtkIdType timeStep);
+  ///@}
+
   /**
    * Initializes the link. For in situ this returns true it there is a
    * connection and false otherwise. For live it always returns true.
@@ -229,6 +240,11 @@ protected:
   bool InsituXMLStateChanged;
   bool ExtractsChanged;
   int SimulationPaused;
+  vtkIdType PauseAtTimeStep;
+  // On LIVE: whether the last update told the simulation to pause, so it is now blocked in
+  // WaitForLiveChange and LiveChanged may wake it. A LIVE_CHANGED message sent while it runs
+  // arrives in the middle of the next update's exchange and breaks the connection.
+  bool SimulationWaiting;
 
   char* InsituXMLState;
   vtkWeakPointer<vtkPVSessionBase> LiveSession;
