@@ -824,8 +824,8 @@ public:
       std::string propertySettingString(propertySettingStringStream.str());
       const char* propertySettingCString = propertySettingString.c_str();
 
-      if (strcmp(property->GetPanelVisibility(), "never") == 0 || property->GetInformationOnly() ||
-        property->GetIsInternal() || property->GetNoCustomDefault())
+      if (property->GetInformationOnly() || property->GetIsInternal() ||
+        property->GetNoCustomDefault())
       {
         continue;
       }
