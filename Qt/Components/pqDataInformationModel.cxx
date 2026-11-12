@@ -181,6 +181,8 @@ struct pqSourceInfo
         return QIcon(":/pqWidgets/Icons/pqStructuredGrid16.png");
 
       case VTK_MULTIBLOCK_DATA_SET:
+      case VTK_PARTITIONED_DATA_SET:
+      case VTK_PARTITIONED_DATA_SET_COLLECTION:
         return QIcon(":/pqWidgets/Icons/pqMultiBlockData16.png");
 
       default:
