@@ -12,7 +12,6 @@
 #include "vtkDataArrayRange.h"
 #include "vtkFieldData.h"
 #include "vtkInSituPipelinePython.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkObjectFactory.h"
 #include "vtkPSystemTools.h"
@@ -751,7 +750,7 @@ void vtkInSituInitializationHelper::UpdateSteerableProxies()
     auto partitioned_data_set = vtkPartitionedDataSet::SafeDownCast(conduit_source->GetOutput());
     if (!partitioned_data_set)
     {
-      vtkLog(ERROR, << "No vtkMultiBlockDataSet mesh.");
+      vtkLog(ERROR, << "No vtkPartitionedDataSet mesh.");
       continue;
     }
 
