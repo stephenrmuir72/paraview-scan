@@ -21,8 +21,10 @@
 #include <vector> // STL Header
 
 #include "vtkPVVTKExtensionsFiltersGeneralMPIModule.h" // For export macro
+#include "vtkParaViewDeprecation.h"                    // For PARAVIEW_DEPRECATED_IN_6_3_0
 
-class VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyPParticleTracerBase
+class PARAVIEW_DEPRECATED_IN_6_3_0("Use vtkPParticlePathFilter instead.")
+  VTKPVVTKEXTENSIONSFILTERSGENERALMPI_EXPORT vtkLegacyPParticleTracerBase
   : public vtkLegacyParticleTracerBase
 {
 public:

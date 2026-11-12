@@ -11,7 +11,6 @@
 #include "vtkDataSetAttributes.h"
 #include "vtkIdTypeArray.h"
 #include "vtkInformation.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"

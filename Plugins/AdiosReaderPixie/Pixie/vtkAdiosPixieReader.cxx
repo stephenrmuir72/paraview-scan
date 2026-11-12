@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 // SPDX-License-Identifier: BSD-3-Clause
+
+// Hide PARAVIEW_DEPRECATED_IN_6_3_0() warnings for this class.
+#define PARAVIEW_DEPRECATION_LEVEL 0
+
 #include "vtkAdiosPixieReader.h"
 #include "vtkAdiosInternals.h"
 

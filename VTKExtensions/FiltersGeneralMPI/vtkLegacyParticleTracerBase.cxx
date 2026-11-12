@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 // SPDX-License-Identifier: BSD-3-Clause
-// VTK_DEPRECATED_IN_9_2_0() warnings for this class.
+// Hide VTK_DEPRECATED_IN_9_2_0() and PARAVIEW_DEPRECATED_IN_6_3_0() warnings for this class.
 #define VTK_DEPRECATION_LEVEL 0
+#define PARAVIEW_DEPRECATION_LEVEL 0
 
 #include "vtkLegacyParticleTracerBase.h"
 
@@ -559,7 +560,7 @@ int vtkLegacyParticleTracerBase::UpdateDataCache(vtkDataObject* data)
 
   // if simple dataset, add to our list, otherwise, add blocks
   vtkDataSet* dsInput = vtkDataSet::SafeDownCast(data);
-  vtkMultiBlockDataSet* mbInput = vtkMultiBlockDataSet::SafeDownCast(data);
+  vtkCompositeDataSet* cdInput = vtkCompositeDataSet::SafeDownCast(data);
 
   if (dsInput)
   {
@@ -568,10 +569,10 @@ int vtkLegacyParticleTracerBase::UpdateDataCache(vtkDataObject* data)
     copy->ShallowCopy(dsInput);
     this->CachedData[i]->SetBlock(this->CachedData[i]->GetNumberOfBlocks(), copy);
   }
-  else if (mbInput)
+  else if (cdInput)
   {
     vtkSmartPointer<vtkCompositeDataIterator> iter;
-    iter.TakeReference(mbInput->NewIterator());
+    iter.TakeReference(cdInput->NewIterator());
     for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
       vtkDataSet* ds = vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());

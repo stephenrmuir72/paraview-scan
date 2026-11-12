@@ -107,7 +107,7 @@ void Flatten(const vtkSmartPointer<vtkMultiBlockDataSet>& mergedMB,
           mergedMB->GetMetaData(i)->Append(mbFirst->GetMetaData(i));
         }
       }
-      else if (block->IsA("vtkMultiPieceDataSet"))
+      else if (block->GetDataObjectType() == VTK_MULTIPIECE_DATA_SET)
       {
         std::vector<vtkSmartPointer<vtkDataObject>> sub;
         sub.reserve(collected.size());
@@ -123,7 +123,7 @@ void Flatten(const vtkSmartPointer<vtkMultiBlockDataSet>& mergedMB,
           mergedMB->GetMetaData(i)->Append(mbFirst->GetMetaData(i));
         }
       }
-      else if (block->IsA("vtkMultiBlockDataSet"))
+      else if (block->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET)
       {
         std::vector<vtkSmartPointer<vtkDataObject>> sub;
         sub.reserve(collected.size());
@@ -325,7 +325,7 @@ bool vtkPCGNSWriter::WriteDataAndReturn()
         toWrite = appender->GetOutputDataObject(0);
         toWrite->Register(this);
       }
-      else if (this->OriginalInput->IsA("vtkMultiBlockDataSet"))
+      else if (this->OriginalInput->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET)
       {
         vtkNew<vtkMultiBlockDataSet> mb;
         ::Flatten(mb.GetPointer(), collected);

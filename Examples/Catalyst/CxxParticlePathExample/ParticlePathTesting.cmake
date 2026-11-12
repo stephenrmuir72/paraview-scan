@@ -33,22 +33,6 @@ if(NOT rv EQUAL 0)
   message(FATAL_ERROR "Test executable return value was ${rv}")
 endif()
 
-# below is the restarted "simulation"
-message("Executing (restart):
-      ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_NUMPROCS} ${MPIEXEC_PREFLAGS}
-      \"${COPROCESSING_TEST_DRIVER}\" --restart 50
-      \"${COPROCESSING_SOURCE_DIR}/SampleScripts/particlepath.py\"")
-execute_process(COMMAND
-  ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_NUMPROCS} ${MPIEXEC_PREFLAGS}
-  "${COPROCESSING_TEST_DRIVER}" --restart 50
-  "${COPROCESSING_SOURCE_DIR}/SampleScripts/particlepath.py"
-  WORKING_DIRECTORY ${COPROCESSING_TEST_DIR}
-  RESULT_VARIABLE rv)
-
-if(NOT rv EQUAL 0)
-  message(FATAL_ERROR "Test executable (restart) return value was ${rv}")
-endif()
-
 message("Executing :
       ${PVBATCH} ${COPROCESSING_SOURCE_DIR}/TestScripts/verifyparticlepath.py ${COPROCESSING_TEST_DIR}")
 

@@ -364,6 +364,10 @@
     <SourceProxy class="vtkAMRToMultiBlockFilter"
                  label="Convert AMR dataset to Multi-block"
                  name="AMRToMultiBlock">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        This filter has been replaced by 'Convert To PartitionedDataSetCollection'.
+        Please consider using that instead.
+      </Deprecated>
       <Documentation long_help="Convert AMR to Multiblock"
                      short_help="Convert AMR to Multiblock"></Documentation>
       <InputProperty command="SetInputConnection"

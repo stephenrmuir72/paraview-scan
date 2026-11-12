@@ -5,6 +5,10 @@
                  base_proxyname="ParticlePath"
                  class="vtkInSituPParticlePathFilter"
                  name="InSituParticlePath">
+      <Deprecated deprecated_in="6.3" to_remove_in="6.5">
+        This filter has been replaced by 'ParticlePath'.
+        Please consider using that instead.
+      </Deprecated>
       <Documentation long_help="Trace Particle Paths through time in a vector field."
                      short_help="Trace Particle Paths through time in a vector field.">
                      The Particle Trace filter generates pathlines in a vector

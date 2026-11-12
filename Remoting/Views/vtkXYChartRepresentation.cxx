@@ -3,9 +3,9 @@
 #include "vtkXYChartRepresentation.h"
 #include "vtkXYChartRepresentationInternals.h"
 
+#include "vtkDataObjectTree.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkInformation.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVContextView.h"

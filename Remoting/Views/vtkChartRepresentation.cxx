@@ -192,7 +192,8 @@ int vtkChartRepresentation::RequestData(
     }
 
     // data must be a multiblock/pdc dataset, no matter what
-    assert(data->IsA("vtkMultiBlockDataSet") || data->IsA("vtkPartitionedDataSetCollection"));
+    assert(data->GetDataObjectType() == VTK_MULTIBLOCK_DATA_SET ||
+      data->GetDataObjectType() == VTK_PARTITIONED_DATA_SET_COLLECTION);
 
     data = this->ReduceDataToRoot(data);
     data = this->TransformTable(data);
