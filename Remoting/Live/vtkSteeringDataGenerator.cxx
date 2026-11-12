@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkSteeringDataGenerator.h"
 
+#include "vtkDataAssembly.h"
 #include "vtkDataObjectTypes.h"
 #include "vtkDoubleArray.h"
 #include "vtkFieldData.h"
@@ -10,8 +11,9 @@
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
 #include "vtkLogger.h"
-#include "vtkMultiBlockDataSet.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPoints.h"
 #include "vtkPolyData.h"
 #include "vtkSelection.h"
@@ -156,7 +158,7 @@ int vtkSteeringDataGenerator::FillInputPortInformation(int port, vtkInformation*
 int vtkSteeringDataGenerator::FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info)
 {
   // now add our info
-  info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkMultiBlockDataSet");
+  info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkPartitionedDataSetCollection");
   return 1;
 }
 
@@ -173,8 +175,14 @@ int vtkSteeringDataGenerator::RequestInformation(
 int vtkSteeringDataGenerator::RequestData(vtkInformation* vtkNotUsed(request),
   vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  vtkMultiBlockDataSet* output = vtkMultiBlockDataSet::GetData(outputVector);
+  vtkPartitionedDataSetCollection* output = vtkPartitionedDataSetCollection::GetData(outputVector);
   output->Initialize();
+
+  // The assembly keeps the Catalyst results the same as for the vtkMultiBlockDataSet this
+  // source used to produce: "assembly/Block0" names the partitioned dataset.
+  vtkNew<vtkDataAssembly> assembly;
+  assembly->SetRootNodeName("Root");
+  output->SetDataAssembly(assembly);
 
   int piece = 0;
   int npieces = -1;
@@ -207,7 +215,8 @@ int vtkSteeringDataGenerator::RequestData(vtkInformation* vtkNotUsed(request),
 
   vtkSmartPointer<vtkDataObject> data;
   data.TakeReference(vtkDataObjectTypes::NewDataObject(this->PartitionType));
-  output->SetBlock(0, data);
+  output->SetPartition(0, 0, data);
+  assembly->AddDataSetIndex(assembly->AddNode("Block0"), 0);
 
   // note: this is an intentional copy of the map since we modify it.
   auto arrays = this->Internals->Arrays;
