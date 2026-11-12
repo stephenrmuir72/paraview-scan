@@ -59,6 +59,12 @@ public:
   bool Initialize() override;
   bool Execute(int, double) override;
   bool Results() override;
+
+  /**
+   * Hands the Python script helper the function async Catalyst passes as
+   * catalyst/async/set_sync_point; null without async Catalyst.
+   */
+  static void SetCatalystSyncPointFunction(void (*setSyncPoint)(long long));
   bool Finalize() override;
   ///@}
 

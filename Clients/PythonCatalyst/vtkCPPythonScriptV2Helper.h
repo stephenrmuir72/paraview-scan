@@ -72,6 +72,13 @@ public:
    */
   bool CatalystResults();
 
+  /**
+   * The function async Catalyst passes in the initialize parameters as
+   * catalyst/async/set_sync_point, which Catalyst Live calls to hold the simulation.
+   * Null without async Catalyst.
+   */
+  static void SetCatalystSyncPointFunction(void (*setSyncPoint)(long long));
+
   ///@{
   /**
    * There are overloads intended for vtkCPPythonScriptV2Pipeline i.e. legacy

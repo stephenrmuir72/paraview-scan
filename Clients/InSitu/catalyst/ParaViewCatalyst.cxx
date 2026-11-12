@@ -387,6 +387,16 @@ enum catalyst_status catalyst_initialize_paraview(const conduit_node* params)
   }
   vtkInSituInitializationHelper::Initialize(comm, python_paths);
 
+  // Async Catalyst passes the function that holds the simulation, as it passes the
+  // communicator.
+  void (*setSyncPoint)(long long) = nullptr;
+  if (cpp_params.has_path("catalyst/async/set_sync_point"))
+  {
+    setSyncPoint =
+      reinterpret_cast<void (*)(long long)>(cpp_params["catalyst/async/set_sync_point"].to_int64());
+  }
+  vtkInSituPipelinePython::SetCatalystSyncPointFunction(setSyncPoint);
+
   if (cpp_params.has_path("catalyst/scripts"))
   {
     if (vtkInSituInitializationHelper::IsPythonSupported())
@@ -884,6 +894,7 @@ enum catalyst_status catalyst_finalize_paraview(const conduit_node* params)
     vtkLogF(ERROR, "invalid 'catalyst' node passed to 'catalyst_finalize'. Finalization may fail.");
   }
 
+  vtkInSituPipelinePython::SetCatalystSyncPointFunction(nullptr);
   vtkInSituInitializationHelper::Finalize();
 
   return catalyst_status_ok;

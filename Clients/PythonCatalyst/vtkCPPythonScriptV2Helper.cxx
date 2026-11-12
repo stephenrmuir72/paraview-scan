@@ -39,6 +39,19 @@
 
 namespace
 {
+// From catalyst/async/set_sync_point in the initialize parameters; null without async Catalyst.
+void (*CatalystSetSyncPoint)(long long) = nullptr;
+
+// With async Catalyst, Live has to hold the simulation, not only the worker running this
+// script: executes at or after `timestep` wait for the worker (0 all, -1 none).
+void SetCatalystSyncPoint(long long timestep)
+{
+  if (CatalystSetSyncPoint)
+  {
+    CatalystSetSyncPoint(timestep);
+  }
+}
+
 template <typename T>
 class vtkScopedSet
 {
@@ -454,6 +467,12 @@ bool vtkCPPythonScriptV2Helper::CatalystResults()
 }
 
 //----------------------------------------------------------------------------
+void vtkCPPythonScriptV2Helper::SetCatalystSyncPointFunction(void (*setSyncPoint)(long long))
+{
+  ::CatalystSetSyncPoint = setSyncPoint;
+}
+
+//----------------------------------------------------------------------------
 bool vtkCPPythonScriptV2Helper::CatalystExecute(vtkCPDataDescription* dataDesc)
 {
   assert(dataDesc != nullptr);
@@ -741,6 +760,9 @@ void vtkCPPythonScriptV2Helper::DoLive(int timestep, double time)
   do
   {
     internals.LiveLink->InsituUpdate(time, timestep);
+    const vtkIdType pauseAt = internals.LiveLink->GetPauseAtTimeStep();
+    ::SetCatalystSyncPoint(
+      internals.LiveLink->GetSimulationPaused() ? 0 : (pauseAt >= 0 ? pauseAt : -1));
 
     // FIXME:
     // update all producers since the in situ code does not update any
