@@ -120,7 +120,7 @@ extern int CPXMLPWriterPipeline(int argc, char* argv[])
 
   // now check if we actually created the files
   std::string names[7] = { tempDir + "/ImageData_010.pvti", tempDir + "/MultiBlock_010.vtm",
-    tempDir + "/PartitionedDataSetCollection_010.vtpc", tempDir + "/PolyData_010.pvts",
+    tempDir + "/PartitionedDataSetCollection_010.vtpc", tempDir + "/PolyData_010.pvtp",
     tempDir + "/RectilinearGrid_010.pvtr", tempDir + "/StructuredGrid_010.pvts",
     tempDir + "/UnstructuredGrid_010.pvtu" };
   for (auto& name : names)
