@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkAlgorithm.h"
 #include "vtkCLIOptions.h"
+#include "vtkDataAssembly.h"
 #include "vtkIdTypeArray.h"
 #include "vtkInitializationHelper.h"
 #include "vtkIntArray.h"
 #include "vtkLogger.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNew.h"
 #include "vtkPVDataInformation.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkProcessModule.h"
@@ -24,6 +25,7 @@
 #include "vtkVector.h"
 
 #include <numeric> // for std::iota
+#include <vector>
 
 static const char* test_xml = R"(
 <ServerManagerConfiguration>
@@ -115,14 +117,23 @@ extern int TestSteeringDataGenerator(int argc, char* argv[])
 
   // validate dataset.
   auto algo = vtkAlgorithm::SafeDownCast(proxy->GetClientSideObject());
-  auto mb = vtkMultiBlockDataSet::SafeDownCast(algo->GetOutputDataObject(0));
-  if (mb->GetNumberOfBlocks() != 1)
+  auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(algo->GetOutputDataObject(0));
+  if (pdc == nullptr || pdc->GetNumberOfPartitionedDataSets() != 1 ||
+    pdc->GetNumberOfPartitions(0) != 1)
   {
-    vtkLogF(ERROR, "Partition mismatch; expected 1, got %d", (int)mb->GetNumberOfBlocks());
+    vtkLogF(ERROR, "Partition mismatch; expected 1 partition.");
     return EXIT_FAILURE;
   }
 
-  auto pld = vtkPolyData::SafeDownCast(mb->GetBlock(0));
+  auto assembly = pdc->GetDataAssembly();
+  const int blockNode = assembly ? assembly->GetFirstNodeByPath("/Root/Block0") : -1;
+  if (blockNode == -1 || assembly->GetDataSetIndices(blockNode) != std::vector<unsigned int>{ 0 })
+  {
+    vtkLogF(ERROR, "Assembly mismatch; expected /Root/Block0 to hold the partitioned dataset.");
+    return EXIT_FAILURE;
+  }
+
+  auto pld = vtkPolyData::SafeDownCast(pdc->GetPartition(0, 0));
   if (pld == nullptr)
   {
     vtkLogF(ERROR, "Partition type mismatch; expected vtkPolyData.");
@@ -173,8 +184,8 @@ extern int TestSteeringDataGenerator(int argc, char* argv[])
   algo->AddInputDataObject(0, selection);
   algo->Update();
 
-  mb = vtkMultiBlockDataSet::SafeDownCast(algo->GetOutputDataObject(0));
-  pld = vtkPolyData::SafeDownCast(mb->GetBlock(0));
+  pdc = vtkPartitionedDataSetCollection::SafeDownCast(algo->GetOutputDataObject(0));
+  pld = vtkPolyData::SafeDownCast(pdc->GetPartition(0, 0));
   if (!pld->GetFieldData()->HasArray("selection_indices"))
   {
     vtkLogF(ERROR, "Missing field data array named 'selection_indices' ");
