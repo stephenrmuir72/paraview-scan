@@ -124,5 +124,94 @@
       </DoubleVectorProperty>
 
     </SourceProxy>
+
+    <SourceProxy
+      name="ONNXFieldPrediction"
+      class="vtkONNXInference"
+      label="ONNX Field Prediction">
+      <Documentation short_help="Run an ONNX model using a field data array as input.">
+        Run an ONNX model using as input a field array on
+        the geometry and storing the result in a new data array.
+        Fields can be on Cells or on Points (see ArrayAssociation).
+      </Documentation>
+
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject"/>
+        </DataTypeDomain>
+        <Documentation>
+          Specifies the input to the ONNX Inference filter.
+        </Documentation>
+      </InputProperty>
+
+      <StringVectorProperty name="ModelFile"
+                            animateable="0"
+                            command="SetModelFile"
+                            number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+          Set the ONNX model file path.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="ProcessedFieldArrayName"
+                            command="SetProcessedFieldArrayName"
+                            number_of_elements="1"
+                            animateable="0">
+        <ArrayListDomain name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>
+          Select the array used as input for the ONNX model.
+        </Documentation>
+      </StringVectorProperty>
+
+      <IntVectorProperty name="OutputDimension"
+                         command="SetOutputDimension"
+                         number_of_elements="1"
+                         default_values="1"
+                         animateable="0">
+        <IntRangeDomain name="range" min="1"/>
+        <Documentation>
+          Set the number of component of the output field.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="FieldArrayInput"
+                         command="SetFieldArrayInput"
+                         number_of_elements="1"
+                         default_values="1"
+                         panel_visibility="never"
+                         animateable="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="AutoDetectInputShape"
+                         command="SetAutoDetectInputShape"
+                         number_of_elements="1"
+                         default_values="1"
+                         panel_visibility="never"
+                         animateable="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="AutoDetectPermutation"
+                         command="SetAutoDetectPermutation"
+                         number_of_elements="1"
+                         default_values="1"
+                         panel_visibility="never"
+                         animateable="0">
+        <BooleanDomain name="bool"/>
+      </IntVectorProperty>
+
+    </SourceProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>
