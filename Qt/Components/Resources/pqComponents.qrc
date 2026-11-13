@@ -118,7 +118,6 @@
         <file>Icons/pqNavBack.svg</file>
         <file>Icons/pqNavForward.svg</file>
         <file>Icons/pqNewFolder.svg</file>
-        <file>Icons/pqNodalData.svg</file>
         <file>Icons/pqNodeMapData.svg</file>
         <file>Icons/pqNodeSetData.svg</file>
         <file>Icons/pqOctreeData.svg</file>
@@ -214,8 +213,6 @@
         <file>Icons/pqStreamTracer.svg</file>
         <file>Icons/pqStructuredGrid16.png</file>
         <file>Icons/pqSubElement.svg</file>
-        <file>Icons/pqSurfaceHoveringPoint.svg</file>
-        <file>Icons/pqSurfaceHoveringCell.svg</file>
         <file>Icons/pqSurfaceSelectionCell.svg</file>
         <file>Icons/pqSurfaceSelectionCellDataInteractive.svg</file>
         <file>Icons/pqSurfaceSelectionCellInteractive.svg</file>
