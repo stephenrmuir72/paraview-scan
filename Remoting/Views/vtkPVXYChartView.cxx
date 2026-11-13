@@ -13,6 +13,7 @@
 #include "vtkChartXY.h"
 #include "vtkCommand.h"
 #include "vtkContextMouseEvent.h"
+#include "vtkChartPie.h"
 #include "vtkContextScene.h"
 #include "vtkContextView.h"
 #include "vtkDoubleArray.h"
@@ -137,6 +138,10 @@ void vtkPVXYChartView::SetChartType(const char* type)
   else if (strcmp(type, "Image") == 0)
   {
     this->Chart = vtkChartHistogram2D::New();
+  }
+  else if (strcmp(type, "Pie") == 0)
+  {
+    this->Chart = vtkChartPie::New();
   }
 
   if (this->Chart)

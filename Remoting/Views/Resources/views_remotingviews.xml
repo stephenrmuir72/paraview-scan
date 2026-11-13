@@ -2323,6 +2323,23 @@ OSPRay pathtracer may need to transfer default materials from client to server. 
       </Hints>
     </ContextViewProxy>
     <!-- ================================================================== -->
+    <ContextViewProxy base_proxygroup="internal_views"
+                      base_proxyname="XYChartViewBase"
+                      class="vtkPVXYChartView"
+                      name="PieChartView"
+                      processes="client|renderserver|dataserver"
+                      representation_name="PieChartChartRepresentation"
+                      post_creation="SetChartTypeToPieChart"
+                      skip_plotable_check="1">
+      <Documentation>This is the proxy for image chart view.</Documentation>
+      <Hints>
+        <ShowOneRepresentationAtATime type="PieChartRepresentation" />
+        <!-- When present, vtkSMParaViewPipelineController::Show() will
+             result in hiding other representations that are currently visible
+             -->
+      </Hints>
+    </ContextViewProxy>
+    <!-- ================================================================== -->
     <PlotMatrixViewProxy base_proxygroup="internal_views"
                          base_proxyname="XYChartViewTitle"
                          class="vtkPVPlotMatrixView"
