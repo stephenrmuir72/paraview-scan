@@ -418,8 +418,9 @@ static enum catalyst_status initialize_paraview(const conduit_node* params)
   void (*setSyncPoint)(long long) = nullptr;
   if (cpp_params.has_path("catalyst/async/set_sync_point"))
   {
-    setSyncPoint =
-      reinterpret_cast<void (*)(long long)>(cpp_params["catalyst/async/set_sync_point"].to_int64());
+    const auto address = cpp_params["catalyst/async/set_sync_point"].to_int64();
+    // NOLINTNEXTLINE(performance-no-int-to-ptr): the address arrives as an int64 parameter
+    setSyncPoint = reinterpret_cast<void (*)(long long)>(address);
   }
   vtkInSituPipelinePython::SetCatalystSyncPointFunction(setSyncPoint);
 
