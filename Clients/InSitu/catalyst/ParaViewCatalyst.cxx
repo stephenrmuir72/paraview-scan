@@ -793,8 +793,10 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
       }
       else if (type == "table")
       {
+        // An empty node is a table with no rows, from a rank that holds none.
         conduit_cpp::Node info;
-        is_valid = conduit_cpp::Blueprint::verify("table", data_node, info);
+        is_valid = data_node.number_of_children() == 0 ||
+          conduit_cpp::Blueprint::verify("table", data_node, info);
         if (!is_valid)
         {
           vtkLogF(ERROR, "'data' on channel '%s' is not a valid 'table'; skipping channel.",

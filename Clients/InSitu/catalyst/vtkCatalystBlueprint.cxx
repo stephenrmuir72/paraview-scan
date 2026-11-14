@@ -547,7 +547,8 @@ bool verify(const std::string& protocol, const conduit_cpp::Node& n)
   else if (type == "table")
   {
     conduit_cpp::Node info;
-    if (conduit_cpp::Blueprint::verify("table", n["data"], info))
+    if (n["data"].number_of_children() == 0 ||
+      conduit_cpp::Blueprint::verify("table", n["data"], info))
     {
       vtkVLogScopeF(PARAVIEW_LOG_CATALYST_VERBOSITY(), "Conduit table blueprint verified.");
     }
