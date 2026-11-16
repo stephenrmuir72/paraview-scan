@@ -8,6 +8,8 @@
 #include <QVBoxLayout>
 
 #include "QVTKOpenGLNativeWidget.h"
+#include "QVTKWebGPUWidget.h"
+#include "vtkWebGPURenderWindow.h"
 #include "pqApplicationCore.h"
 #include "pqEventDispatcher.h"
 #include "pqQVTKWidgetBase.h"
@@ -21,7 +23,20 @@
 #include "vtksys/SystemTools.hxx"
 
 #include <chrono>
+#include <cstdlib>
+#include <cstring>
 #include <numeric>
+
+namespace
+{
+// HACK (WebGPU): ParaView draws through VTK's WebGPU backend when VTK's object
+// factory prefers it (VTK_FACTORY_PREFER=RenderingBackend=WebGPU).
+bool UseWebGPU()
+{
+  const char* prefer = std::getenv("VTK_FACTORY_PREFER");
+  return prefer && std::strstr(prefer, "WebGPU");
+}
+}
 
 //----------------------------------------------------------------------------
 pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f)
@@ -38,6 +53,17 @@ pqQVTKWidget::pqQVTKWidget(QWidget* parentObject, Qt::WindowFlags f, bool isSter
 {
   auto* layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
+
+  if (UseWebGPU())
+  {
+    this->WebGPU = new QVTKWebGPUWidget(parentObject, f);
+    layout->addWidget(this->WebGPU);
+    // as for the OpenGL widgets: ParaView issue #22901, VTK issue #19073
+    this->WebGPU->setEnableTouchEventProcessing(false);
+    this->setLayout(layout);
+    vtkLogF(INFO, "pqQVTKWidget: WebGPU widget");
+    return;
+  }
 
   if (useStereo)
   {
@@ -178,6 +204,10 @@ void pqQVTKWidget::resizeEvent(QResizeEvent* evt)
 //----------------------------------------------------------------------------
 void pqQVTKWidget::prepareContextForRendering()
 {
+  if (this->WebGPU)
+  {
+    return;
+  }
   if (!this->isVisible())
   {
     // if not visible, waiting for a bit isn't going to help with the context
@@ -243,6 +273,12 @@ void pqQVTKWidget::paintMousePointer(int xLocation, int yLocation)
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setRenderWindow(vtkRenderWindow* win)
 {
+  if (this->WebGPU)
+  {
+    this->WebGPU->setUnscaledDPI(win->GetDPI());
+    this->WebGPU->setRenderWindow(vtkWebGPURenderWindow::SafeDownCast(win));
+    return;
+  }
   if (this->useStereo)
   {
     baseClass.value<pqQVTKWidgetBase*>()->setUnscaledDPI(win->GetDPI());
@@ -258,6 +294,10 @@ void pqQVTKWidget::setRenderWindow(vtkRenderWindow* win)
 //----------------------------------------------------------------------------
 QVTKInteractor* pqQVTKWidget::interactor() const
 {
+  if (this->WebGPU)
+  {
+    return this->WebGPU->interactor();
+  }
   if (this->useStereo)
   {
     return baseClass.value<pqQVTKWidgetBase*>()->interactor();
@@ -271,6 +311,10 @@ QVTKInteractor* pqQVTKWidget::interactor() const
 //----------------------------------------------------------------------------
 bool pqQVTKWidget::isValid()
 {
+  if (this->WebGPU)
+  {
+    return true;
+  }
   if (this->useStereo)
   {
     return baseClass.value<pqQVTKWidgetBase*>()->isValid();
@@ -284,6 +328,10 @@ bool pqQVTKWidget::isValid()
 //----------------------------------------------------------------------------
 vtkRenderWindow* pqQVTKWidget::renderWindow() const
 {
+  if (this->WebGPU)
+  {
+    return this->WebGPU->renderWindow();
+  }
   if (this->useStereo)
   {
     return baseClass.value<pqQVTKWidgetBase*>()->renderWindow();
@@ -297,6 +345,11 @@ vtkRenderWindow* pqQVTKWidget::renderWindow() const
 //----------------------------------------------------------------------------
 void pqQVTKWidget::notifyQApplication(QMouseEvent* e)
 {
+  if (this->WebGPU)
+  {
+    qApp->notify(this->WebGPU, e);
+    return;
+  }
   if (this->useStereo)
   {
     // Due to QTBUG-61836 (see QVTKOpenGLStereoWidget::testingEvent()), events should
@@ -318,6 +371,11 @@ void pqQVTKWidget::notifyQApplication(QMouseEvent* e)
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setEnableHiDPI(bool flag)
 {
+  if (this->WebGPU)
+  {
+    this->WebGPU->setEnableHiDPI(flag);
+    return;
+  }
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
@@ -331,6 +389,11 @@ void pqQVTKWidget::setEnableHiDPI(bool flag)
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setCustomDevicePixelRatio(double cdpr)
 {
+  if (this->WebGPU)
+  {
+    this->WebGPU->setCustomDevicePixelRatio(cdpr);
+    return;
+  }
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
@@ -344,6 +407,10 @@ void pqQVTKWidget::setCustomDevicePixelRatio(double cdpr)
 //----------------------------------------------------------------------------
 double pqQVTKWidget::effectiveDevicePixelRatio() const
 {
+  if (this->WebGPU)
+  {
+    return this->WebGPU->effectiveDevicePixelRatio();
+  }
   // disable HiDPI if we are running tests
   if (this->useStereo)
   {
@@ -374,6 +441,10 @@ void pqQVTKWidget::setViewSize(int width, int height)
 //----------------------------------------------------------------------------
 QWidget* pqQVTKWidget::renderWidget() const
 {
+  if (this->WebGPU)
+  {
+    return this->WebGPU;
+  }
   return this->useStereo ? static_cast<QWidget*>(this->baseClass.value<pqQVTKWidgetBase*>())
                          : static_cast<QWidget*>(this->baseClass.value<QVTKOpenGLNativeWidget*>());
 }
@@ -381,6 +452,11 @@ QWidget* pqQVTKWidget::renderWidget() const
 //----------------------------------------------------------------------------
 void pqQVTKWidget::setCursorCustom(const QCursor& cursor)
 {
+  if (this->WebGPU)
+  {
+    this->WebGPU->setDefaultCursor(cursor);
+    return;
+  }
   if (this->useStereo)
   {
     baseClass.value<pqQVTKWidgetBase*>()->setCursorCustom(cursor);
@@ -394,6 +470,10 @@ void pqQVTKWidget::setCursorCustom(const QCursor& cursor)
 //----------------------------------------------------------------------------
 QCursor pqQVTKWidget::cursorCustom() const
 {
+  if (this->WebGPU)
+  {
+    return this->WebGPU->defaultCursor();
+  }
   if (this->useStereo)
   {
     return baseClass.value<pqQVTKWidgetBase*>()->cursorCustom();
