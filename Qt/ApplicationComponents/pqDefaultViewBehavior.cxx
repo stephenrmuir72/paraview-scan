@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "pqDefaultViewBehavior.h"
 
+#include <cstdlib>
+#include <cstring>
+
 #include "pqApplicationCore.h"
 #include "pqCoreUtilities.h"
 #include "pqObjectBuilder.h"
@@ -50,6 +53,13 @@ pqDefaultViewBehavior::pqDefaultViewBehavior(QObject* parentObject)
 //-----------------------------------------------------------------------------
 void pqDefaultViewBehavior::showWarnings()
 {
+  // HACK (WebGPU): with VTK's factory preferring WebGPU there is no OpenGL to find;
+  // the probe's window is a WebGPU one.
+  if (const char* prefer = std::getenv("VTK_FACTORY_PREFER");
+      prefer && std::strstr(prefer, "WebGPU"))
+  {
+    return;
+  }
   using RCInfo = vtkPVRenderingCapabilitiesInformation;
   if (RCInfo::Supports(this->ClientCapabilities, RCInfo::OPENGL) &&
     RCInfo::Supports(this->ServerCapabilities, RCInfo::OPENGL))
