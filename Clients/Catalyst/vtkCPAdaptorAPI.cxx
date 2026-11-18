@@ -7,8 +7,8 @@
 #include "vtkCPProcessor.h"
 #include "vtkCellData.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkCompositeDataSet.h"
 #include "vtkDataSet.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkPointData.h"
 
 #include <iostream>
@@ -120,7 +120,7 @@ void vtkCPAdaptorAPI::NeedToCreateGrid(int* needGrid)
   {
     *needGrid = 0;
     // The grid is either stored as a class derived from vtkDataSet
-    // or from a class derived from vtkMultiBlockDataSet
+    // or from a class derived from vtkCompositeDataSet
     if (vtkDataSet* grid = vtkDataSet::SafeDownCast(
           vtkCPAdaptorAPI::CoProcessorData->GetInputDescriptionByName("input")->GetGrid()))
     {
@@ -128,11 +128,11 @@ void vtkCPAdaptorAPI::NeedToCreateGrid(int* needGrid)
     }
     else
     {
-      vtkMultiBlockDataSet* multiBlock = vtkMultiBlockDataSet::SafeDownCast(
+      vtkCompositeDataSet* composite = vtkCompositeDataSet::SafeDownCast(
         vtkCPAdaptorAPI::CoProcessorData->GetInputDescriptionByName("input")->GetGrid());
-      if (multiBlock)
+      if (composite)
       {
-        vtkCompositeDataIterator* iter = multiBlock->NewIterator();
+        vtkCompositeDataIterator* iter = composite->NewIterator();
         iter->InitTraversal();
         for (iter->GoToFirstItem(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
         {

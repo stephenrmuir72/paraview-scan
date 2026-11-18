@@ -16,11 +16,11 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOctreePointLocator.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
@@ -598,7 +598,20 @@ int vtkPVGlyphFilter::ProcessRequest(
 int vtkPVGlyphFilter::RequestDataObject(
   vtkInformation*, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  if (auto inputDT = vtkDataObjectTree::GetData(inputVector[0], 0))
+  // vtkAMRDataObject is a vtkDataObjectTree, so it is checked first.
+  if (vtkAMRDataObject::GetData(inputVector[0], 0))
+  {
+    // The glyphs are not vtkUniformGrid, so the output is a
+    // vtkPartitionedDataSetCollection with the structure of the AMR.
+    auto output = vtkDataObject::GetData(outputVector, 0);
+    if (!output || output->GetDataObjectType() != VTK_PARTITIONED_DATA_SET_COLLECTION)
+    {
+      auto pdc = vtkPartitionedDataSetCollection::New();
+      outputVector->GetInformationObject(0)->Set(vtkDataObject::DATA_OBJECT(), pdc);
+      pdc->FastDelete();
+    }
+  }
+  else if (auto inputDT = vtkDataObjectTree::GetData(inputVector[0], 0))
   {
     auto output = vtkDataObjectTree::GetData(outputVector, 0);
     if (output == nullptr || !output->IsA(inputDT->GetClassName()))
@@ -606,17 +619,6 @@ int vtkPVGlyphFilter::RequestDataObject(
       auto clone = inputDT->NewInstance();
       outputVector->GetInformationObject(0)->Set(vtkDataObject::DATA_OBJECT(), clone);
       clone->FastDelete();
-    }
-  }
-  else if (vtkAMRDataObject::GetData(inputVector[0], 0))
-  {
-    // eventually, this will be PDC.
-    auto output = vtkMultiBlockDataSet::GetData(outputVector, 0);
-    if (!output)
-    {
-      output = vtkMultiBlockDataSet::New();
-      outputVector->GetInformationObject(0)->Set(vtkDataObject::DATA_OBJECT(), output);
-      output->FastDelete();
     }
   }
   else

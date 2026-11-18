@@ -7,6 +7,7 @@
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositeDataPipeline.h"
 #include "vtkCompositePolyDataMapper.h"
+#include "vtkDataObjectTreeIterator.h"
 #include "vtkFieldData.h"
 #include "vtkGeometryFilterDispatcher.h"
 #include "vtkGeometryRepresentation.h"
@@ -20,6 +21,7 @@
 #include "vtkPVRenderView.h"
 #include "vtkPVStreamingMacros.h"
 #include "vtkPVTrivialProducer.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPolyData.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
@@ -31,23 +33,21 @@
 
 static char const BLOCKS_TO_PURGE_ARRAY_NAME[] = "__blocks_to_purge";
 
+// Blocks are numbered by leaf, empty ones included: level by level for a
+// multiblock of levels, entry by entry for a vtkPartitionedDataSetCollection.
 static inline void purge_blocks(
-  vtkMultiBlockDataSet* data, const std::set<unsigned int>& blocksToPurge)
+  vtkDataObjectTree* data, const std::set<unsigned int>& blocksToPurge)
 {
+  vtkSmartPointer<vtkDataObjectTreeIterator> iter;
+  iter.TakeReference(data->NewTreeIterator());
+  iter->SkipEmptyNodesOff();
+  iter->VisitOnlyLeavesOn();
   unsigned int block_index = 0;
-  unsigned int num_levels = data->GetNumberOfBlocks();
-  for (unsigned int level = 0; level < num_levels; level++)
+  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem(), block_index++)
   {
-    vtkMultiBlockDataSet* mb = vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(level));
-    assert(mb != nullptr);
-
-    unsigned int num_blocks = mb->GetNumberOfBlocks();
-    for (unsigned int cc = 0; cc < num_blocks; cc++, block_index++)
+    if (blocksToPurge.find(block_index) != blocksToPurge.end())
     {
-      if (blocksToPurge.find(block_index) != blocksToPurge.end())
-      {
-        mb->SetBlock(cc, nullptr);
-      }
+      data->SetDataSet(iter, nullptr);
     }
   }
 }
@@ -190,7 +190,7 @@ int vtkStreamingParticlesRepresentation::ProcessViewRequest(
   else if (request_type == vtkPVRenderView::REQUEST_PROCESS_STREAMED_PIECE())
   {
     vtkDataObject* piece = vtkPVRenderView::GetCurrentStreamedPiece(inInfo, this);
-    if (piece && piece->IsA("vtkMultiBlockDataSet"))
+    if (vtkDataObjectTree::SafeDownCast(piece))
     {
       assert(this->RenderedData != nullptr);
       vtkStreamingStatusMacro(<< this << ": received new piece.");
@@ -200,7 +200,7 @@ int vtkStreamingParticlesRepresentation::ProcessViewRequest(
       if (array != nullptr)
       {
         piece->GetFieldData()->RemoveArray(BLOCKS_TO_PURGE_ARRAY_NAME);
-        vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(this->RenderedData);
+        vtkDataObjectTree* data = vtkDataObjectTree::SafeDownCast(this->RenderedData);
         std::set<unsigned int> blocksToPurge;
         for (int i = 0; i < array->GetNumberOfTuples(); ++i)
         {
@@ -324,15 +324,12 @@ int vtkStreamingParticlesRepresentation::RequestData(
     if (!this->GetInStreamingUpdate())
     {
       vtkDataObject* output = geomFilter->GetOutputDataObject(0);
-      if (!output->IsA("vtkMultiBlockDataSet"))
+      this->ProcessedData = vtkDataObjectTree::SafeDownCast(output);
+      if (!this->ProcessedData)
       {
-        vtkNew<vtkMultiBlockDataSet> mb;
-        mb->SetBlock(0, output);
-        this->ProcessedData = mb.GetPointer();
-      }
-      else
-      {
-        this->ProcessedData = vtkMultiBlockDataSet::SafeDownCast(output);
+        vtkNew<vtkPartitionedDataSetCollection> collection;
+        collection->SetPartition(0, 0, output);
+        this->ProcessedData = collection;
       }
       assert(this->ProcessedData.GetPointer());
 
@@ -358,7 +355,7 @@ int vtkStreamingParticlesRepresentation::RequestData(
   {
     // create an empty dataset. This is needed so that view knows what dataset
     // to expect from the other processes on this node.
-    this->ProcessedData = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+    this->ProcessedData = vtkSmartPointer<vtkPartitionedDataSetCollection>::New();
     this->DataBounds.Reset();
   }
 
@@ -368,8 +365,8 @@ int vtkStreamingParticlesRepresentation::RequestData(
 
     // provide the mapper with an empty input. This is needed only because
     // mappers die when input is nullptr, currently.
-    vtkNew<vtkMultiBlockDataSet> tmp;
-    this->Mapper->SetInputDataObject(tmp.GetPointer());
+    vtkNew<vtkPartitionedDataSetCollection> tmp;
+    this->Mapper->SetInputDataObject(tmp);
   }
 
   return this->Superclass::RequestData(rqst, inputVector, outputVector);
@@ -391,16 +388,17 @@ bool vtkStreamingParticlesRepresentation::StreamingUpdate(const double view_plan
     // view-frustum.
     const std::set<unsigned int>& blocksToPurge = this->PriorityQueue->GetBlocksToPurge();
 
-    vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(this->RenderedData);
+    vtkDataObjectTree* data = vtkDataObjectTree::SafeDownCast(this->RenderedData);
 
     purge_blocks(data, blocksToPurge);
 
     this->RenderedData->Modified();
     if (this->PriorityQueue->IsEmpty())
     {
-      vtkNew<vtkMultiBlockDataSet> clone;
-      clone->CopyStructure(vtkMultiBlockDataSet::SafeDownCast(this->ProcessedPiece));
-      this->ProcessedPiece = clone.GetPointer();
+      vtkDataObjectTree* piece = vtkDataObjectTree::SafeDownCast(this->ProcessedPiece);
+      auto clone = vtk::TakeSmartPointer(piece->NewInstance());
+      clone->CopyStructure(piece);
+      this->ProcessedPiece = clone;
       return true;
     }
   }

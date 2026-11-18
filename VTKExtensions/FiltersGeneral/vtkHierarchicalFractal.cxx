@@ -6,25 +6,30 @@
 #include "vtkCellData.h"
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositeDataPipeline.h"
+#include "vtkDataAssembly.h"
 #include "vtkDoubleArray.h"
 #include "vtkImageMandelbrotSource.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkMultiProcessController.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOverlappingAMR.h"
 #include "vtkParallelAMRUtilities.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkRectilinearGrid.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringFormatter.h"
 #include "vtkUniformGrid.h"
 #include "vtkUnsignedCharArray.h"
 
 #include <algorithm>
 #include <cassert>
+#include <string>
+#include <vector>
 
 vtkStandardNewMacro(vtkHierarchicalFractal);
 
@@ -71,22 +76,26 @@ public:
     this->Levels.clear();
   }
 
-  void CreateOutput(vtkMultiBlockDataSet* mbs)
+  void CreateOutput(vtkPartitionedDataSetCollection* pdc)
   {
+    // One entry per dataset, grouped by an assembly node per level. Datasets of
+    // other ranks are null partitions, so the structure is the same on all ranks.
+    vtkNew<vtkDataAssembly> assembly;
+    std::vector<int> levelNodes;
     for (size_t i = 0; i < this->DataSets.size(); i++)
     {
-      vtkDataObject* dataSet = DataSets[i];
-      unsigned int level = this->Levels[i];
-      vtkMultiBlockDataSet* block = vtkMultiBlockDataSet::SafeDownCast(mbs->GetBlock(level));
-      if (!block)
+      const unsigned int level = this->Levels[i];
+      while (levelNodes.size() <= level)
       {
-        block = vtkMultiBlockDataSet::New();
-        mbs->SetBlock(level, block);
-        block->Delete();
+        levelNodes.push_back(assembly->AddNode(
+          ("Level" + vtk::to_string(levelNodes.size())).c_str(), vtkDataAssembly::GetRootNode()));
       }
-      unsigned int index = block->GetNumberOfBlocks();
-      block->SetBlock(index, dataSet);
+      const unsigned int entry = pdc->GetNumberOfPartitionedDataSets();
+      pdc->SetNumberOfPartitions(entry, 1);
+      pdc->SetPartition(entry, 0, this->DataSets[i]);
+      assembly->AddDataSetIndex(levelNodes[level], entry);
     }
+    pdc->SetDataAssembly(assembly);
   }
   void CreateOutput(vtkOverlappingAMR* hbds)
   {
@@ -204,7 +213,7 @@ int vtkHierarchicalFractal::RequestDataObject(
 
   if (this->GenerateRectilinearGrids)
   {
-    outData = vtkMultiBlockDataSet::New();
+    outData = vtkPartitionedDataSetCollection::New();
   }
   else
   {
@@ -608,13 +617,13 @@ int vtkHierarchicalFractal::RequestData(vtkInformation* vtkNotUsed(request),
   this->Levels->Initialize();
   this->Traverse(blockId, 0, output, ext[0], ext[1], ext[2], ext[3], ext[4], ext[5], onFace);
 
-  if (vtkOverlappingAMR::SafeDownCast(output))
+  if (auto amr = vtkOverlappingAMR::SafeDownCast(output))
   {
-    this->OutputUtil->CreateOutput(vtkOverlappingAMR::SafeDownCast(output));
+    this->OutputUtil->CreateOutput(amr);
   }
-  else if (vtkMultiBlockDataSet::SafeDownCast(output))
+  else if (auto pdc = vtkPartitionedDataSetCollection::SafeDownCast(output))
   {
-    this->OutputUtil->CreateOutput(vtkMultiBlockDataSet::SafeDownCast(output));
+    this->OutputUtil->CreateOutput(pdc);
   }
 
   double bounds[6];

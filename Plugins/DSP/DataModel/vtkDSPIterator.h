@@ -6,7 +6,8 @@
  * @brief    Abstract class defining a generic iterator for spatio temporal datasets.
  *
  * Factory generating iterator instances able to iterate over vtkTables with
- * vtkMultiDimensionalArrays or over vtkMultiBlockDataSets.
+ * vtkMultiDimensionalArrays or over the leaves of a vtkDataObjectTree, e.g. a
+ * vtkMultiBlockDataSet or a vtkPartitionedDataSetCollection.
  * Use the GetInstance method to instantiate the appropriate type of iterator depending
  * on the type of the input.
  *
@@ -34,8 +35,9 @@ public:
    *
    * This method will create an instance of vtkDSPMultiBlockIterator or
    * vtkDSPTableIterator depending on the type of the object parameter.
-   * The object parameter must be a vtkMultiBlockDataSet or a vtkTable
-   * with vtkMultiDimensionalArray.
+   * The object parameter must be a vtkDataObjectTree (e.g. a
+   * vtkMultiBlockDataSet or a vtkPartitionedDataSetCollection) or a
+   * vtkTable with vtkMultiDimensionalArray.
    */
   static vtkSmartPointer<vtkDSPIterator> GetInstance(vtkDataObject* object);
 

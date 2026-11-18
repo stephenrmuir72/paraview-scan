@@ -119,7 +119,9 @@ endif()
 paraview_add_test_python(
   NO_DATA NO_VALID NO_OUTPUT NO_RT
   AppendDatasetsPolyData.py
+  ClipSliceAMR.py
   CopyProperties.py
+  GlyphAMR.py
   MergeBlocksPolyData.py
   PointPicking.py
   TestGhostCellsGenerator.py

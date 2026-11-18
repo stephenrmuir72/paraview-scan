@@ -7,7 +7,8 @@
  * from a sound pressure (Pa) array. Could be improved by adding more conversions.
  *
  * This filter has 2 inputs:
- * - port 0 is a multiblock dataset or multidimensional table representing the data through time.
+ * - port 0 is a multiblock dataset, a partitioned dataset collection, or a multidimensional
+ *   table representing the data through time.
  * - port 1 is the input geometry for cell connectivity.
  *
  * The output is the input geometry with the computed sound quantities attached to

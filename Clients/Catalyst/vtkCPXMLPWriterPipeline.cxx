@@ -17,6 +17,7 @@
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSMWriterProxy.h>
 #include <vtkSmartPointer.h>
+#include <vtkType.h>
 #include <vtkUnstructuredGrid.h>
 
 #include <algorithm>
@@ -37,71 +38,55 @@ void SetWholeExtent(
 
 const char* GetWriterName(vtkDataObject* grid)
 {
-  std::string name = grid->GetClassName();
-  if (name == "vtkImageData")
+  switch (grid->GetDataObjectType())
   {
-    return "XMLPImageDataWriter";
+    case VTK_IMAGE_DATA:
+      return "XMLPImageDataWriter";
+    case VTK_RECTILINEAR_GRID:
+      return "XMLPRectilinearGridWriter";
+    case VTK_STRUCTURED_GRID:
+      return "XMLPStructuredGridWriter";
+    case VTK_POLY_DATA:
+      return "XMLPPolyDataWriter";
+    case VTK_UNSTRUCTURED_GRID:
+      return "XMLPUnstructuredGridWriter";
+    case VTK_UNIFORM_GRID_AMR:
+      return "XMLHierarchicalBoxDataWriter";
+    case VTK_MULTIBLOCK_DATA_SET:
+      return "XMLMultiBlockDataWriter";
+    case VTK_PARTITIONED_DATA_SET_COLLECTION:
+      return "XMLPartitionedDataSetCollectionWriter";
+    default:
+      break;
   }
-  else if (name == "vtkRectilinearGrid")
-  {
-    return "XMLPRectilinearGridWriter";
-  }
-  else if (name == "vtkStructuredGrid")
-  {
-    return "XMLPStructuredGridWriter";
-  }
-  else if (name == "vtkPolyData")
-  {
-    return "XMLPPolyDataWriter";
-  }
-  else if (name == "vtkUnstructuredGrid")
-  {
-    return "XMLPUnstructuredGridWriter";
-  }
-  else if (name == "vtkUniformGridAMR")
-  {
-    return "XMLHierarchicalBoxDataWriter";
-  }
-  else if (name == "vtkMultiBlockDataSet")
-  {
-    return "XMLMultiBlockDataWriter";
-  }
-  vtkGenericWarningMacro("Unknown dataset type " << name);
+  vtkGenericWarningMacro("Unknown dataset type " << grid->GetClassName());
   return nullptr;
 }
 
 const char* GetWriterFileNameExtension(vtkDataObject* grid)
 {
-  std::string name = grid->GetClassName();
-  if (name == "vtkImageData")
+  switch (grid->GetDataObjectType())
   {
-    return "pvti";
+    case VTK_IMAGE_DATA:
+      return "pvti";
+    case VTK_RECTILINEAR_GRID:
+      return "pvtr";
+    case VTK_STRUCTURED_GRID:
+      return "pvts";
+    case VTK_POLY_DATA:
+      return "pvtp";
+    case VTK_UNSTRUCTURED_GRID:
+      return "pvtu";
+    case VTK_UNIFORM_GRID_AMR:
+      return "vthb";
+    case VTK_MULTIBLOCK_DATA_SET:
+      return "vtm";
+    case VTK_PARTITIONED_DATA_SET_COLLECTION:
+      return "vtpc";
+    default:
+      break;
   }
-  else if (name == "vtkRectilinearGrid")
-  {
-    return "pvtr";
-  }
-  else if (name == "vtkStructuredGrid")
-  {
-    return "pvts";
-  }
-  else if (name == "vtkPolyData")
-  {
-    return "pvts";
-  }
-  else if (name == "vtkUnstructuredGrid")
-  {
-    return "pvtu";
-  }
-  else if (name == "vtkUniformGridAMR")
-  {
-    return "vthb";
-  }
-  else if (name == "vtkMultiBlockDataSet")
-  {
-    return "vtm";
-  }
-  vtkGenericWarningMacro("Unknown dataset type " << name);
+  vtkGenericWarningMacro("Unknown dataset type " << grid->GetClassName());
   return nullptr;
 }
 } // end anonymous namespace

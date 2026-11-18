@@ -50,8 +50,8 @@ protected:
   int RequestData(vtkInformation* request, vtkInformationVector**, vtkInformationVector*) override;
 
   /**
-   * This filter produces a vtkMultiBlockDataSet when the input is a
-   * vtkCompositeDataSet otherwise, it produces a vtkUnstructuredGrid.
+   * This filter produces a vtkPartitionedDataSetCollection when the input is an AMR, the input
+   * type for any other vtkDataObjectTree, and a vtkUnstructuredGrid otherwise.
    */
   int RequestDataObject(vtkInformation* request, vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;

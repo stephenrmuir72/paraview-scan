@@ -62,6 +62,7 @@ void vtkOrderedCompositeDistributor::PrintSelf(ostream& os, vtkIndent indent)
 int vtkOrderedCompositeDistributor::FillInputPortInformation(int, vtkInformation* info)
 {
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSet");
+  info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPartitionedDataSetCollection");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkMultiBlockDataSet");
   info->Append(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
   return 1;
@@ -139,7 +140,7 @@ int vtkOrderedCompositeDistributor::RequestData(vtkInformation* vtkNotUsed(reque
     }
     else
     {
-      outputDO->SafeDownCast(distributedData);
+      outputDO->ShallowCopy(distributedData);
     }
   }
   return 1;

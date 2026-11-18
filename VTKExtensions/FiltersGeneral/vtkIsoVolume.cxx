@@ -13,10 +13,10 @@
 #include "vtkInformation.h"
 #include "vtkInformationStringVectorKey.h"
 #include "vtkInformationVector.h"
-#include "vtkMultiBlockDataSet.h"
 #include "vtkNonOverlappingAMR.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVClipDataSet.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPointData.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -116,8 +116,6 @@ vtkDataObject* vtkIsoVolume::Clip(
   clipper->SetExecutive(executive);
   executive->Delete();
 
-  // disable AMRDualClip since it does not generate scalars.
-  clipper->UseAMRDualClipForAMROff();
   clipper->SetInputData(0, input);
   clipper->SetInputArrayToProcess(0, 0, 0, fieldAssociation, array_name);
   clipper->SetValue(value);
@@ -154,13 +152,11 @@ int vtkIsoVolume::RequestDataObject(vtkInformation* vtkNotUsed(request),
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   if (vtkAMRDataObject::GetData(inInfo))
   {
-    // Currently, we're creating a MB here since that's what the internal clip produce
-    // when it encounters an AMR. This will need to change in future to be a PDC
-    // instead.
-    vtkMultiBlockDataSet* output = vtkMultiBlockDataSet::GetData(outInfo);
+    // The internal clip produces a vtkPartitionedDataSetCollection for an AMR.
+    vtkPartitionedDataSetCollection* output = vtkPartitionedDataSetCollection::GetData(outInfo);
     if (!output)
     {
-      output = vtkMultiBlockDataSet::New();
+      output = vtkPartitionedDataSetCollection::New();
       outInfo->Set(vtkDataObject::DATA_OBJECT(), output);
       this->GetOutputPortInformation(0)->Set(
         vtkDataObject::DATA_EXTENT_TYPE(), output->GetExtentType());

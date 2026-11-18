@@ -13,6 +13,7 @@
 #include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVClipDataSet.h"
+#include "vtkPartitionedDataSetCollection.h"
 #include "vtkPolyDataAlgorithm.h"
 #include "vtkSmartPointer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -322,6 +323,16 @@ int vtkPVDataSetAlgorithmSelectorFilter::RequestDataObject(
       else
       {
         newOutput.TakeReference(vtkMultiBlockDataSet::New());
+      }
+      break;
+    case VTK_PARTITIONED_DATA_SET_COLLECTION:
+      if (vtkPartitionedDataSetCollection::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT())))
+      {
+        return 1;
+      }
+      else
+      {
+        newOutput.TakeReference(vtkPartitionedDataSetCollection::New());
       }
       break;
     case VTK_COMPOSITE_DATA_SET:
