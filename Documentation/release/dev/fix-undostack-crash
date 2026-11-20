@@ -1,0 +1,3 @@
+## Fix UndoStack crash
+
+Fix a potential crash with the undo stack when there is not active view

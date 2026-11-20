@@ -64,6 +64,11 @@ int vtkSMPropertyModificationUndoElement::RevertToState()
 void vtkSMPropertyModificationUndoElement::ModifiedProperty(
   vtkSMProxy* proxy, const char* propertyname)
 {
+  if (!proxy)
+  {
+    return;
+  }
+
   vtkSMProperty* property = proxy->GetProperty(propertyname);
   if (!property)
   {
