@@ -49,6 +49,13 @@ This is a quick start guide so that you can start contributing to ParaView easil
 To understand the process more deeply, you can jump to the [workflow](#workflow)
 section.
 
+### AI Policy
+
+ParaView has a dedicated [AI policy] in order to ensure the quality of contributions
+and communications, please follow its guidelines.
+
+[AI policy]: AI_POLICY.md
+
 ### Development
 
 Create a local branch for your changes:
@@ -190,7 +197,9 @@ Once you are happy with the state of your development on your fork, the next ste
 
 Open [](https://gitlab.kitware.com/username/paraview/-/merge_requests/new) in a browser, select your branch in the list and create a Merge Request against master.
 
-In the description, write an informative explanation of your added features or bugfix. If there is an associated issue, link it with the `#number` in the description.
+If the MR is not ready for review or merging, mark it as a "Draft" MR.
+
+Follow the template to fill up all relevant information, especially a proper description, issues and merge requests links and AI usage disclosure.
 
 Tag some ParaView maintainers in the description to ensure someone will see it, eg: @cory.quammen, @ben.boeckel or @mwestphal.
 
@@ -477,6 +486,9 @@ Follow these steps:
 5.  In the "**Description**" field provide a high-level description
     of the change the topic makes and any relevant information about
     how to try it.
+    *   If the MR is not ready for review or merging, mark it as a "Draft" MR.
+    *   Follow the template to fill up all relevant information, especially
+        a proper description, issues and merge requests links and AI usage disclosure.
     *   Use `@username` syntax to draw attention of specific developers.
         This syntax may be used anywhere outside literal text and code
         blocks.  Or, wait until the [next step](#review-a-merge-request)
@@ -489,12 +501,23 @@ Follow these steps:
 
     Example Merge Request Description:
 
-        This branch requires Java 1.x which is not generally available yet.
-        Get Java 1.x from ... in order to try these changes.
+        ## What does this MR do and why?
 
-        ```message
-        Add support for Java 1.x to the wrapping infrastructure.
-        ```
+          Fix an issue with surface LIC rendering when the selected vector is of zero magnitude
+
+        ## Related issues and merge requests
+
+          #1234
+
+        ## Screenshots or screen recordings
+
+          [screenshot.png]()
+
+        ## AI disclosure
+          - [x] I have read the [AI policy](https://gitlab.kitware.com/paraview/paraview/-/blob/master/AI_POLICY.md?ref_type=heads) carefully.
+          - [x] I have reviewed every AI-generated change carefully, certify they match my intentions, and request a review. Feel free to provide more info about usage below.
+
+          Description of AI use (not required but very useful for reviewers): Used Claude to generate test for edge cases
 
         Cc: @user1 @user2
 
