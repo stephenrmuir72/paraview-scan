@@ -44,6 +44,15 @@ void vtkGeometryRepresentationWithFaces::SetupDefaults()
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentationWithFaces::SetRelativeCoincidentTopologyPolygonOffsetParameters(
+  double factor, double units)
+{
+  this->Superclass::SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+  this->BackfaceMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+  this->LODBackfaceMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+}
+
+//----------------------------------------------------------------------------
 int vtkGeometryRepresentationWithFaces::ProcessViewRequest(
   vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo)
 {

@@ -118,6 +118,12 @@ public:
    */
   void SetLogName(const std::string&) override;
 
+  /**
+   * Returns the data object actually rendered by the internal
+   * GeometryRepresentation (i.e. the extracted selection geometry).
+   */
+  vtkDataObject* GetRenderedDataObject(int port) override;
+
 protected:
   vtkSelectionRepresentation();
   ~vtkSelectionRepresentation() override;

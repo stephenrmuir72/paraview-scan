@@ -50,6 +50,14 @@ public:
   void MarkModified() override;
 
   /**
+   * Overridden to re-check, on every actual render pass, whether the
+   * selection overlay currently has anything to draw (see
+   * UpdateCoincidentOffsetForSelectionOverlay).
+   */
+  int ProcessViewRequest(vtkInformationRequestKey* request_type, vtkInformation* inInfo,
+    vtkInformation* outInfo) override;
+
+  /**
    * Set visibility of the representation.
    * Overridden to update the cube-axes and selection visibilities.
    */
@@ -59,6 +67,12 @@ public:
    * Set the selection visibility.
    */
   virtual void SetSelectionVisibility(bool visible);
+
+  /**
+   * Overridden to re-apply the cached coincident-topology-offset requirement
+   * onto whichever representation becomes active.
+   */
+  void SetActiveRepresentation(const char* key);
 
   /**
    * Set the polar axes visibility.
@@ -112,11 +126,23 @@ protected:
    */
   bool RemoveFromView(vtkView* view) override;
 
+  /**
+   * Re-derives whether the selection overlay currently has anything to draw
+   * and keeps the active surface representation's relative coincident
+   * topology polygon offset in sync with that: pushed back while the overlay
+   * is visible and non-empty, reset to zero otherwise. Called on every
+   * render (see ProcessViewRequest) since whether the overlay's data is
+   * current isn't reliably known at property-push time, and also eagerly on
+   * visibility/active-representation changes.
+   */
+  void UpdateCoincidentOffsetForSelectionOverlay();
+
   vtkSelectionRepresentation* SelectionRepresentation;
   vtkPVGridAxes3DRepresentation* GridAxesRepresentation;
   vtkPolarAxesRepresentation* PolarAxesRepresentation;
 
   bool SelectionVisibility;
+  bool HasNonEmptySelection = false;
 
 private:
   vtkPVCompositeRepresentation(const vtkPVCompositeRepresentation&) = delete;

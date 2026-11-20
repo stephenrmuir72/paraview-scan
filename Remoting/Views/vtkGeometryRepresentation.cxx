@@ -1260,6 +1260,14 @@ void vtkGeometryRepresentation::SetSelection(vtkSelection* selection)
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetRelativeCoincidentTopologyPolygonOffsetParameters(
+  double factor, double units)
+{
+  this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+  this->LODMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetTexture(vtkTexture* val)
 {
   this->Actor->SetTexture(val);

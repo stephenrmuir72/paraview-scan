@@ -171,6 +171,12 @@ void vtkSelectionRepresentation::TriggerUpdateDataEvent()
 }
 
 //----------------------------------------------------------------------------
+vtkDataObject* vtkSelectionRepresentation::GetRenderedDataObject(int port)
+{
+  return this->GeometryRepresentation->GetRenderedDataObject(port);
+}
+
+//----------------------------------------------------------------------------
 void vtkSelectionRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

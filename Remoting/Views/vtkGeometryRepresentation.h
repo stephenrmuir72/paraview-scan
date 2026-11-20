@@ -265,6 +265,11 @@ public:
   ///@}
 
   /**
+   * Pass the factor and units to the mappers.
+   */
+  virtual void SetRelativeCoincidentTopologyPolygonOffsetParameters(double factor, double units);
+
+  /**
    * Sets the selection used by the mapper.
    */
   virtual void SetSelection(vtkSelection* selection);
