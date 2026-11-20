@@ -93,7 +93,7 @@ void vtkPVCompositeRepresentation::UpdateCoincidentOffsetForSelectionOverlay()
   {
     const bool needSlopeOffset =
       this->HasNonEmptySelection && this->SelectionRepresentation->GetVisibility();
-    surfRepr->SetRelativeCoincidentTopologyPolygonOffsetParameters(
+    surfRepr->SetSelectionCoincidentTopologyPolygonOffsetParameters(
       needSlopeOffset ? 1.0 : 0.0, 0.0);
   }
 }

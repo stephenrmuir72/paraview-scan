@@ -367,6 +367,9 @@
                       panel_visibility="advanced" />
             <Property name="UseDataPartitions"
                       panel_visibility="advanced" />
+            <Property name="RelativeCoincidentTopologyPolygonOffsetParameters"
+                      exposed_name="Coincident Topology Polygon Offset"
+                      panel_visibility="advanced" />
           </PropertyGroup>
 
           <PropertyGroup panel_visibility="advanced"
@@ -1446,6 +1449,20 @@
                  value="6" />
         </EnumerationDomain>
       </IntVectorProperty>
+      <DoubleVectorProperty command="SetUserRelativeCoincidentTopologyPolygonOffsetParameters"
+                            default_values="0.0 0.0"
+                            name="RelativeCoincidentTopologyPolygonOffsetParameters"
+                            number_of_elements="2">
+        <Documentation>
+          Additional (factor, units) slope-scaled depth offset applied only to
+          this representation's surface, on top of the view's global
+          coincident-topology polygon offset. Use this to manually push this
+          surface back when another representation added separately (e.g. a
+          Feature Edges or Wireframe representation sharing the same input)
+          is coincident with it and causing z-fighting. Leave at 0, 0 unless
+          you observe such an artifact.
+        </Documentation>
+      </DoubleVectorProperty>
       <StringVectorProperty command="SetTCoordArray"
                             default_values=""
                             label="Texture Coordinates"
