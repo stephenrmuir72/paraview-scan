@@ -119,9 +119,12 @@ endif()
 paraview_add_test_python(
   NO_DATA NO_VALID NO_OUTPUT NO_RT
   AppendDatasetsPolyData.py
+  AutoConvertMultiBlockDataSetsCompatibility.py
+  AutoConvertMultiBlockDataSetsState.py
   CopyProperties.py
   MergeBlocksPolyData.py
   PointPicking.py
+  PostFilterPartitionedDataSetCollection.py
   TestGhostCellsGenerator.py
   TestGlobalPointAndCellIds.py
   TestResetProperty.py

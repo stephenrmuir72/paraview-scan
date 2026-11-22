@@ -301,6 +301,15 @@ public:
   void ClearAbortFlags();
 
   /**
+   * When set to true, forces post filters created for this proxy's output
+   * ports to leave vtkMultiBlockDataSet inputs as vtkMultiBlockDataSet
+   * outputs, regardless of the AutoConvertMultiBlockDataSets general
+   * setting. Intended for use by backwards-compatibility code loading state
+   * files saved before this conversion was introduced.
+   */
+  void SetDisableAutoConvertMultiBlockDataSets(bool val);
+
+  /**
    * Overidden to handle disabling abort check for the deleted objects
    * Also calls superclass
    */

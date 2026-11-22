@@ -253,6 +253,35 @@ void vtkSMSourceProxy::ClearAbortFlags()
   }
 }
 
+namespace
+{
+//---------------------------------------------------------------------------
+// Returns true for vtkSISourceProxy and the SI classes that derive from it and
+// create the post filters of the output ports.
+bool IsSourceProxySIClass(const char* siClassName)
+{
+  const std::string name(siClassName);
+  return name == "vtkSISourceProxy" || name == "vtkSIMetaReaderProxy" ||
+    name == "vtkSIPythonSourceProxy" || name == "vtkSIMultiplexerSourceProxy" ||
+    name == "vtkSICompoundSourceProxy";
+}
+}
+
+//---------------------------------------------------------------------------
+void vtkSMSourceProxy::SetDisableAutoConvertMultiBlockDataSets(bool val)
+{
+  this->CreateVTKObjects();
+  // Only vtkSISourceProxy (and subclasses) understand this method; other SI
+  // classes used by vtkSMSourceProxy subclasses (e.g. representations) don't.
+  if (this->ObjectsCreated && IsSourceProxySIClass(this->SIClassName))
+  {
+    vtkClientServerStream stream;
+    stream << vtkClientServerStream::Invoke << SIPROXY(this)
+           << "SetDisableAutoConvertMultiBlockDataSets" << val << vtkClientServerStream::End;
+    this->ExecuteStream(stream);
+  }
+}
+
 //---------------------------------------------------------------------------
 void vtkSMSourceProxy::UpdatePipelineInformation()
 {

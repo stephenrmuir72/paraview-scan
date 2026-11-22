@@ -38,6 +38,17 @@ public:
 
   static std::string DefaultComponentName(int componentNumber, int componentCount);
 
+  ///@{
+  /**
+   * When enabled, a vtkMultiBlockDataSet input is converted to a
+   * vtkPartitionedDataSetCollection on output, using
+   * vtkConvertToPartitionedDataSetCollection. Defaults to false.
+   */
+  vtkSetMacro(AutoConvertMultiBlockDataSets, bool);
+  vtkGetMacro(AutoConvertMultiBlockDataSets, bool);
+  vtkBooleanMacro(AutoConvertMultiBlockDataSets, bool);
+  ///@}
+
 protected:
   vtkPVPostFilter();
   ~vtkPVPostFilter() override;
@@ -45,6 +56,8 @@ protected:
   int FillInputPortInformation(int port, vtkInformation* info) override;
   int RequestDataObject(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
   int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
+
+  bool AutoConvertMultiBlockDataSets = false;
 
 private:
   vtkPVPostFilter(const vtkPVPostFilter&) = delete;

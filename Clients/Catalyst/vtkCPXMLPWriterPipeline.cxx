@@ -176,6 +176,8 @@ int vtkCPXMLPWriterPipeline::CoProcess(vtkCPDataDescription* dataDescription)
       vtkSmartPointer<vtkSMSourceProxy> producer;
       producer.TakeReference(vtkSMSourceProxy::SafeDownCast(
         sessionProxyManager->NewProxy("sources", "PVTrivialProducer")));
+      // The writer is chosen from the type of the grid, so it must not be converted.
+      producer->SetDisableAutoConvertMultiBlockDataSets(true);
       producer->UpdateVTKObjects();
       vtkObjectBase* clientSideObject = producer->GetClientSideObject();
       vtkPVTrivialProducer* realProducer = vtkPVTrivialProducer::SafeDownCast(clientSideObject);
