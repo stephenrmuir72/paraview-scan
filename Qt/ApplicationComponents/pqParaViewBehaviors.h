@@ -78,6 +78,7 @@ public:
   PQ_BEHAVIOR_DEFINE_METHODS(PluginActionGroupBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PluginToolBarBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CommandLineOptionsBehavior);
+  PQ_BEHAVIOR_DEFINE_METHODS(PersistentCustomColorsBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(PersistentMainWindowStateBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(CollaborationBehavior);
   PQ_BEHAVIOR_DEFINE_METHODS(ViewStreamingBehavior);
@@ -144,6 +145,7 @@ private:
   PQ_BEHAVIOR_DECLARE_FLAG(PluginActionGroupBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PluginToolBarBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(CommandLineOptionsBehavior);
+  PQ_BEHAVIOR_DECLARE_FLAG(PersistentCustomColorsBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(PersistentMainWindowStateBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(CollaborationBehavior);
   PQ_BEHAVIOR_DECLARE_FLAG(ViewStreamingBehavior);

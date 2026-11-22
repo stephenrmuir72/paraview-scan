@@ -147,6 +147,7 @@ set(classes
   pqParaViewBehaviors
   pqParaViewMenuBuilders
   pqPauseLiveSourcePropertyWidget
+  pqPersistentCustomColorsBehavior
   pqPersistentMainWindowStateBehavior
   pqPipelineContextMenuBehavior
   pqPluginActionGroupBehavior
