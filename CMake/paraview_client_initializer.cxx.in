@@ -156,21 +156,6 @@ pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initialize
   this->PVApp->getPluginManager()->loadPluginsFromSettings();
   vtkLogEndScope("ini-plugins");
 
-#if _paraview_client_APPLICATION_XMLS
-  // Load configuration xmls after all components have been instantiated.
-  // This configuration part is something that needs to be cleaned up, I haven't
-  // given this too much thought.
-  QDir dir2(":/@_paraview_client_NAME@/Configuration");
-  QStringList files = dir2.entryList(QDir::Files);
-  Q_FOREACH (QString file, files)
-  {
-    this->PVApp->loadConfiguration(QString(":/@_paraview_client_NAME@/Configuration/") + file);
-  }
-#else
-  // NO XMLS provided, Reader and Writers still needs to be updated
-  this->PVApp->updateAvailableReadersAndWriters();
-#endif
-
 #if _paraview_client_TITLE
   this->MainWindow->setWindowTitle("@_paraview_client_TITLE@");
 #endif
@@ -185,6 +170,21 @@ pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initialize
 
   // Fire the signal that the initialization is complete.
   this->PVApp->_paraview_client_environment_complete();
+
+#if _paraview_client_APPLICATION_XMLS
+  // Load configuration xmls after all components have been instantiated.
+  // This configuration part is something that needs to be cleaned up, I haven't
+  // given this too much thought.
+  QDir dir2(":/@_paraview_client_NAME@/Configuration");
+  QStringList files = dir2.entryList(QDir::Files);
+  Q_FOREACH (QString file, files)
+  {
+    this->PVApp->loadConfiguration(QString(":/@_paraview_client_NAME@/Configuration/") + file);
+  }
+#else
+  // NO XMLS provided, Reader and Writers still needs to be updated
+  this->PVApp->updateAvailableReadersAndWriters();
+#endif
 
   // We used to call processEvents() here. We removed it, since that results in
   // timers (esp. pqCommandLineOptionsBehavior::playTests(), or
