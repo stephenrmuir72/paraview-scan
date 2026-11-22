@@ -30,6 +30,7 @@ PRIVATE_DEPENDS
   VTK::IOImage
   VTK::TestingRendering
   VTK::vtksys
+  VTK::GUISupportQtWebGPU
 OPTIONAL_DEPENDS
   # fixme: affects public API
   ParaView::RemotingViewsPython

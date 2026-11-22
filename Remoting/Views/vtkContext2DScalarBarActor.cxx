@@ -36,6 +36,16 @@
 #include <limits>
 #include <map>
 
+namespace
+{
+// HACK (WebGPU): the 2D context device is OpenGL's only; in another backend's window
+// (VTK's WebGPU) the scalar bar is not drawn.
+bool DrawsWithOpenGL(vtkViewport* viewport)
+{
+  return viewport && vtkOpenGLRenderWindow::SafeDownCast(viewport->GetVTKWindow());
+}
+}
+
 // NOTE FOR DEVELOPERS
 // The color bar is defined so that the origin (0, 0) is the bottom left
 // corner of the region that contains the scalar bar, the out-of-range
@@ -221,6 +231,10 @@ void vtkContext2DScalarBarActor::SetCustomLabel(vtkIdType index, double value)
 int vtkContext2DScalarBarActor::RenderOverlay(vtkViewport* viewport)
 {
   this->CurrentViewport = viewport;
+  if (!DrawsWithOpenGL(viewport))
+  {
+    return 0;
+  }
 
   this->CurrentBoundingRect = this->GetBoundingRect();
 
@@ -1257,6 +1271,10 @@ bool vtkContext2DScalarBarActor::Paint(vtkContext2D* painter)
 //----------------------------------------------------------------------------
 vtkRectf vtkContext2DScalarBarActor::GetBoundingRect()
 {
+  if (!DrawsWithOpenGL(this->CurrentViewport))
+  {
+    return vtkRectf(0, 0, 0, 0);
+  }
   this->InGetBoundingRect = true;
   vtkRectf rect =
     vtkBoundingRectContextDevice2D::GetBoundingRect(this->ScalarBarItem, this->CurrentViewport);

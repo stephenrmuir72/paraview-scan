@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkPVView.h"
 
+#include <cstdlib>
+#include <cstring>
+
 #include "vtkBoundingBox.h"
 #include "vtkCommunicator.h"
 #include "vtkGenericOpenGLRenderWindow.h"
@@ -259,7 +262,14 @@ vtkRenderWindow* vtkPVView::NewRenderWindow()
       break;
 
     case vtkProcessModule::PROCESS_CLIENT:
-      if (vtkPVView::GetUseGenericOpenGLRenderWindow())
+      if (const char* prefer = std::getenv("VTK_FACTORY_PREFER");
+          prefer && std::strstr(prefer, "WebGPU"))
+      {
+        // HACK (WebGPU): the factory's window (VTK's WebGPU one); the GUI's
+        // pqQVTKWidget binds it to a QVTKWebGPUWidget's surface.
+        window = vtkSmartPointer<vtkRenderWindow>::New();
+      }
+      else if (vtkPVView::GetUseGenericOpenGLRenderWindow())
       {
         window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
       }

@@ -168,6 +168,13 @@ void vtkPVLODActor::ReleaseGraphicsResources(vtkWindow* renWin)
 {
   vtkActor::ReleaseGraphicsResources(renWin);
 
+  // the actor that draws (a backend's: vtkWebGPUActor holds device resources), as
+  // vtkLODActor releases its own
+  if (this->Device)
+  {
+    this->Device->ReleaseGraphicsResources(renWin);
+  }
+
   // broadcast the message down to the individual LOD mappers
   if (this->LODMapper)
   {

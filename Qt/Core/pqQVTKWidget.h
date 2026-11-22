@@ -17,6 +17,7 @@
 #include <QWidget>
 
 class vtkSMProxy;
+class QVTKWebGPUWidget;
 class vtkSMSession;
 
 /**
@@ -121,6 +122,8 @@ private:
 
   bool useStereo;
   QVariant baseClass;
+  // HACK (WebGPU): set when VTK_FACTORY_PREFER asks for WebGPU.
+  QVTKWebGPUWidget* WebGPU = nullptr;
 };
 
 class vtkGenericOpenGLRenderWindow;
