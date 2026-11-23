@@ -105,6 +105,16 @@ bool vtkInSituPipelinePython::Results()
 }
 
 //----------------------------------------------------------------------------
+void vtkInSituPipelinePython::SetCatalystSyncPointFunction(void (*setSyncPoint)(long long))
+{
+#if VTK_MODULE_ENABLE_ParaView_PythonCatalyst
+  vtkCPPythonScriptV2Helper::SetCatalystSyncPointFunction(setSyncPoint);
+#else
+  (void)setSyncPoint;
+#endif
+}
+
+//----------------------------------------------------------------------------
 bool vtkInSituPipelinePython::Finalize()
 {
 #if VTK_MODULE_ENABLE_ParaView_PythonCatalyst
