@@ -314,6 +314,8 @@ vtkLiveInsituLink::vtkLiveInsituLink()
   , InsituXMLStateChanged(false)
   , ExtractsChanged(false)
   , SimulationPaused(0)
+  , PauseAtTimeStep(-1)
+  , SimulationWaiting(false)
   , InsituXMLState(nullptr)
   , URL(nullptr)
   , Internals(new vtkInternals())
@@ -562,6 +564,8 @@ void vtkLiveInsituLink::DropLiveInsituConnection()
   this->Proc0NodesController = nullptr;
   this->ExtractsDeliveryHelper = nullptr;
   this->SimulationPaused = 0;
+  this->PauseAtTimeStep = -1;
+  this->SimulationWaiting = false;
   vtkDebugMacro("Catalyst and ParaView should now be disconnected");
 }
 
@@ -925,8 +929,14 @@ void vtkLiveInsituLink::InsituUpdate(double time, vtkIdType timeStep)
     }
   }
 
-  // Read if the simulation should be paused on INSITU side
-  extractsPauseMessage >> this->SimulationPaused;
+  // Read if the simulation should be paused on INSITU side, now or at a time step
+  long long pauseAtTimeStep = -1;
+  extractsPauseMessage >> this->SimulationPaused >> pauseAtTimeStep;
+  this->PauseAtTimeStep = static_cast<vtkIdType>(pauseAtTimeStep);
+  if (this->PauseAtTimeStep >= 0 && timeStep >= this->PauseAtTimeStep)
+  {
+    this->SimulationPaused = 1;
+  }
   // Process information about extracts
   int extracts_valid = 0;
   extractsPauseMessage >> extracts_valid;
@@ -1098,7 +1108,7 @@ void vtkLiveInsituLink::OnInsituUpdate(double time, vtkIdType timeStep)
     }
 
     vtkMultiProcessStream extractsPauseMessage;
-    extractsPauseMessage << this->SimulationPaused;
+    extractsPauseMessage << this->SimulationPaused << static_cast<long long>(this->PauseAtTimeStep);
     if (this->ExtractsChanged)
     {
       extractsPauseMessage << 1;
@@ -1114,6 +1124,8 @@ void vtkLiveInsituLink::OnInsituUpdate(double time, vtkIdType timeStep)
       extractsPauseMessage << 0;
     }
     this->Proc0NodesController->Send(extractsPauseMessage, 1, 8012);
+    this->SimulationWaiting = this->SimulationPaused != 0 ||
+      (this->PauseAtTimeStep >= 0 && timeStep >= this->PauseAtTimeStep);
 
     // Read the server id mapping
     int numberOfIds = 0;
@@ -1345,9 +1357,11 @@ void vtkLiveInsituLink::LiveChanged()
   assert(this->ProcessType == LIVE);
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   int myId = pm->GetPartitionId();
-  if (myId == 0 && this->Proc0NodesController != nullptr)
+  // A running simulation picks up the change with its next update; only a waiting one needs waking.
+  if (myId == 0 && this->Proc0NodesController != nullptr && this->SimulationWaiting)
   {
     vtkLiveInsituLinkDebugMacro(<< "LiveChanged " << myId);
+    this->SimulationWaiting = false;
     this->Proc0NodesController->TriggerRMI(1, LIVE_CHANGED);
   }
 }
@@ -1361,6 +1375,18 @@ void vtkLiveInsituLink::SetSimulationPaused(int paused)
     this->SimulationPaused = paused;
     this->Modified();
     vtkLiveInsituLinkDebugMacro(<< "SetSimulationPaused: " << paused);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkLiveInsituLink::SetPauseAtTimeStep(vtkIdType timeStep)
+{
+  assert(this->ProcessType == LIVE);
+  if (this->PauseAtTimeStep != timeStep)
+  {
+    this->PauseAtTimeStep = timeStep;
+    this->Modified();
+    vtkLiveInsituLinkDebugMacro(<< "SetPauseAtTimeStep: " << timeStep);
   }
 }
 

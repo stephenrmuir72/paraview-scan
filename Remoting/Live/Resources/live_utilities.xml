@@ -39,6 +39,16 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IdTypeVectorProperty name="PauseAtTimeStep"
+                            command="SetPauseAtTimeStep"
+                            default_values="-1"
+                            number_of_elements="1">
+        <Documentation>
+          The simulation pauses itself at the first update whose time step reaches this
+          value, and stays paused until it is moved or cleared. -1 sets no breakpoint.
+        </Documentation>
+      </IdTypeVectorProperty>
+
       <Property name="Initialize" command="Initialize" />
       <Property name="LiveChanged" command="LiveChanged" />
 
