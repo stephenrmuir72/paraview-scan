@@ -1,0 +1,10 @@
+NAME
+  SceneGraph
+DESCRIPTION
+  Scenegraph relating the placement of pipeline objects
+REQUIRES_MODULES
+  ParaView::RemotingServerManager
+  ParaView::RemotingViews
+  ParaViewIncubator::SceneGraph
+  VTK::CommonCore
+  VTK::CommonMath

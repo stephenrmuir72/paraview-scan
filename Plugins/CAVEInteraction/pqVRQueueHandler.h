@@ -7,6 +7,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 
+class pqServer;
 class vtkSMVRInteractorStyleProxy;
 class vtkVRQueue;
 class vtkPVXMLElement;
@@ -51,6 +52,9 @@ Q_SIGNALS:
 protected Q_SLOTS:
   /// called to processes events from the queue.
   void processEvents();
+
+  /// watches the new server's proxy manager for proxy registration events
+  void onServerChanged(pqServer* server);
 
 private:
   Q_DISABLE_COPY(pqVRQueueHandler)

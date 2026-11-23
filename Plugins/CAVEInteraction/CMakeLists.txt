@@ -148,3 +148,10 @@ if (PARAVIEW_PLUGIN_CAVEInteraction_USE_VRPN)
     PRIVATE
       VRPN::VRPN)
 endif ()
+
+# If the SceneGraph plugin is enabled, link against its Incubator module
+if (PARAVIEW_PLUGIN_ENABLE_SceneGraph)
+  target_link_libraries(CAVEInteraction
+    PRIVATE
+      ParaViewIncubator::SceneGraph)
+endif ()

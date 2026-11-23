@@ -110,6 +110,13 @@ if (TARGET ParaView::PVWebPython)
     paraview/apps/trame.py)
 endif ()
 
+# The scenegraph plugin is what requests the incubator module, so only install
+# the wrapper when the scenegraph plugin is built.
+if (TARGET ParaViewIncubator::SceneGraph)
+  list(APPEND python_files
+    paraview/incubator/scenegraph.py)
+endif ()
+
 # build the "__all__ = [...]" list for paraview/incubator/__init__.py
 set(_paraview_incubator)
 foreach (_paraview_python_module IN LISTS paraview_incubator_python_wrapped_modules)

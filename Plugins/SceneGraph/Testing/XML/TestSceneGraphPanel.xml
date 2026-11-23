@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<!--
+  Exercises the Scene Graph dock panel: creates a graph, renames it, builds a
+  two-level tree with inline renames, binds the sphere source to a node,
+  edits a node's translation, deletes a node, deletes a leaf node with Delete
+  Subtree, and deletes the graph.
+
+  Tree items are addressed by a path of "row.column" pairs, one pair per
+  level, starting from the top-level row. So "0.0" is World, "0.0.0.0" is
+  World's first child, and "0.0.1.0" is World's second child.
+-->
+<pqevents>
+  <!-- Create a Sphere source and apply it, which also makes it the active
+       source, so Bind Source can bind it later. -->
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menuSources" />
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="SphereSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+
+  <!-- With no graphs yet, click New Graph, enter "Kitchen" in the dialog and
+       press Return. The graph selector should then list that one graph. -->
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="count" arguments="0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/newGraphButton" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/1QInputDialog0/1QLineEdit0" command="set_string" arguments="Kitchen" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/1QInputDialog0" command="key" arguments="16777220" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="count" arguments="1" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="currentText" arguments="Kitchen" />
+
+  <!-- Click Rename Graph and enter "Dining Room". Make sure the selector still lists
+       one graph, now under the new name. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/renameGraphButton" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/1QInputDialog0/1QLineEdit0" command="set_string" arguments="Dining Room" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/1QInputDialog0" command="key" arguments="16777220" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="count" arguments="1" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="currentText" arguments="Dining Room" />
+  <!-- The graph's views list shows RenderView1, and the top item of its node tree is World. -->
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/viewsGroup/viewsList" property="modelItemData" arguments="0.0,RenderView1" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0,World" />
+
+  <!-- Select World and click Add Child, the new child should be named "Node".
+       Rename it "Table" by editing the tree item in place. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/addChildButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0,Node" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="editAccepted" arguments="0.0.0.0,Table" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0,Table" />
+
+  <!-- Select Table, add a child, and rename it "Cup" in place. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/addChildButton" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="editAccepted" arguments="0.0.0.0.0.0,Cup" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0.0.0,Cup" />
+
+  <!-- Add a second child to Table ("Node") and try to rename it "Cup", the
+       name of its sibling. The rename is refused, the item is still named
+       "Node", and the status line explains why. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/addChildButton" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="editAccepted" arguments="0.0.0.0.1.0,Cup" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0.1.0,Node" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/statusLabel" property="text" arguments="Cannot rename 'Node' to 'Cup': a sibling already has that name, or it contains '/'." />
+
+  <!-- Select Cup and click Bind Source, after which, Cup's bindings list shows the active
+       source, Sphere1, port 0. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0.0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/bindSourceButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/sourcesList" property="modelItemData" arguments="0.0,Sphere1 : port 0" />
+  <!-- Click Unbind Source without selecting a binding. The only binding should
+       have been removed. Then click Bind Source again. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/unbindSourceButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/sourcesList" property="modelRowCount" arguments="0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/bindSourceButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/sourcesGroup/sourcesList" property="modelRowCount" arguments="1" />
+  <!-- Select Table and set its X translation to 0.25. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/transformGroup/translateX" command="set_string" arguments="0.25" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/transformGroup/translateX" property="text" arguments="0.25" />
+  <!-- The X translation field shows the selected node's own translation:
+       selecting Cup shows 0, and selecting Table again shows 0.25. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0.0.0" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/transformGroup/translateX" property="text" arguments="0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/transformGroup/translateX" property="text" arguments="0.25" />
+
+  <!-- With Table selected, click Delete Node. Its children, Cup and Node,
+       take its place under World, in their original order. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/deleteNodeButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0,Cup" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.1.0,Node" />
+
+  <!-- Select Cup and click Delete Subtree. Cup has no children, so only Cup is
+       removed, and Node becomes World's first child. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" command="setCurrent" arguments="0.0.0.0" />
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/deleteSubtreeButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/nodesGroup/treeView" property="modelItemData" arguments="0.0.0.0,Node" />
+
+  <!-- Click Delete Graph. The graph selector should now be empty again. -->
+  <pqevent object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/deleteGraphButton" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqSceneGraphDockPanel/SceneGraphPanel/graphCombo" property="count" arguments="0" />
+</pqevents>

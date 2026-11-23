@@ -1,6 +1,8 @@
 # Enable default-off plugin with Python dependency
 set(PARAVIEW_PLUGIN_ENABLE_NetCDFTimeAnnotationPlugin ON CACHE BOOL "")
 
+set(PARAVIEW_PLUGIN_ENABLE_SceneGraph ON CACHE BOOL "")
+
 # Turn on constant implicit array dispatch instanciation
 # This is required for testing the DSP Plugin
 set(VTK_DISPATCH_CONSTANT_ARRAYS ON CACHE BOOL "")

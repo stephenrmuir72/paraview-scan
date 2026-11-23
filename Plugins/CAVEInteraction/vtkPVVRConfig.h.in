@@ -8,4 +8,7 @@
 #cmakedefine01 PARAVIEW_PLUGIN_CAVEInteraction_USE_VRPN
 #cmakedefine01 PARAVIEW_PLUGIN_CAVEInteraction_USE_VRUI
 
+// Scenegraphs are applied before each frame when the SceneGraph plugin is built
+#cmakedefine01 PARAVIEW_PLUGIN_ENABLE_SceneGraph
+
 #endif // vtkPVVRConfig.h_h

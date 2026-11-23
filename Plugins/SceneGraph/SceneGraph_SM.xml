@@ -1,0 +1,79 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="scenegraph">
+    <SceneGraphNodeProxy name="SceneGraphNode"
+                         processes="client">
+      <Documentation>
+        A node in a scenegraph stores a local transform, its child nodes, and
+        bound pipeline sources/filters. All node operations are implemented
+        in the SceneGraph class.
+      </Documentation>
+
+      <StringVectorProperty default_values="Node"
+                            name="Name"
+                            number_of_elements="1">
+        <Documentation>
+          Display names for the GUI tree and for path addressing
+          (e.g. "World/Table/Cup"). Sibling names are made unique.
+        </Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty default_values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"
+                            name="LocalTransform"
+                            number_of_elements="16">
+        <Documentation>
+          The node's transform relative to its parent, as a 4x4 matrix in
+          row-major order. A node's world transform is its parent's world
+          transform composed with this one.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <ProxyProperty name="Children">
+        <ProxyGroupDomain name="groups">
+          <Group name="scenegraph_nodes" />
+        </ProxyGroupDomain>
+        <Documentation>
+          This node's child nodes.
+        </Documentation>
+      </ProxyProperty>
+
+      <InputProperty multiple_input="1"
+                     name="Sources">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+        </ProxyGroupDomain>
+        <Documentation>
+          The pipeline sources/filters bound to this node.
+        </Documentation>
+      </InputProperty>
+
+    </SceneGraphNodeProxy>
+
+    <SceneGraphProxy name="SceneGraph"
+                     processes="client">
+      <Documentation>
+        A scenegraph is a tree of nodes whose transforms compose down the tree and
+        are applied to the representations of the sources bound to each node.
+      </Documentation>
+
+      <ProxyProperty name="Root">
+        <ProxyGroupDomain name="groups">
+          <Group name="scenegraph_nodes" />
+        </ProxyGroupDomain>
+        <Documentation>
+          The always-present "World" root node.
+        </Documentation>
+      </ProxyProperty>
+
+      <ProxyProperty name="TargetViews">
+        <ProxyGroupDomain name="groups">
+          <Group name="views" />
+        </ProxyGroupDomain>
+        <Documentation>
+          The 3D render views this scenegraph applies to.
+        </Documentation>
+      </ProxyProperty>
+
+    </SceneGraphProxy>
+
+  </ProxyGroup>
+</ServerManagerConfiguration>
