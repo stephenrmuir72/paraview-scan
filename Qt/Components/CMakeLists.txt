@@ -325,3 +325,11 @@ if (PARAVIEW_USE_QTWEBENGINE)
     PRIVATE
       "Qt${PARAVIEW_QT_MAJOR_VERSION}::WebEngineWidgets")
 endif ()
+
+# FIXME:
+# pqIndexSelectionWidget.cxx:48:12: error: redefinition of ‘const char {anonymous}::keyPropertyName []’
+# pqComboBoxDomain.cxx:33:7: error: redefinition of ‘QIcon {anonymous}::get_icon(int)’
+set_property(SOURCE pqIndexSelectionWidget.cxx
+                    pqComboBoxDomain.cxx
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)

@@ -395,3 +395,15 @@ if (PARAVIEW_USE_QTHELP)
     PRIVATE
       "Qt${PARAVIEW_QT_MAJOR_VERSION}::Help")
 endif ()
+
+# FIXME:
+# pqSelectionQueryPropertyWidget.cxx:347:17: error: expected primary-expression before ‘(’ token
+# pqCoordinateFramePropertyWidget.cxx:51:6: error: redefinition of ‘void {anonymous}::pqAdjustBounds(vtkBoundingBox&, double)’
+# pqCylinderPropertyWidget.cxx:24:6: error: redefinition of ‘void {anonymous}::pqAdjustBounds(vtkBoundingBox&, double)’
+# pqImplicitPlanePropertyWidget.cxx:24:6: error: redefinition of ‘void {anonymous}::pqAdjustBounds(vtkBoundingBox&, double)’
+set_property(SOURCE pqSelectionQueryPropertyWidget.cxx
+                    pqCoordinateFramePropertyWidget.cxx
+                    pqCylinderPropertyWidget.cxx
+                    pqImplicitPlanePropertyWidget.cxx
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)

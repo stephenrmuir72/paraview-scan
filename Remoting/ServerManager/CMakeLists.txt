@@ -192,3 +192,8 @@ add_custom_target(vtkPVMessage_protobuf_compile
     ${vtkPVMessage_sources})
 vtk_module_depend(ParaView::RemotingServerManager
   vtkPVMessage_protobuf_compile)
+
+# FIXME: vtkPVSessionServer.cxx:41:6: error: redefinition of ‘void {anonymous}::RMICallback(void*, void*, int, int)’
+set_property(SOURCE vtkPVSessionServer.cxx vtkSIDoubleVectorProperty.cxx vtkSIIntVectorProperty.cxx
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)

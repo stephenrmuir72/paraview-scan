@@ -108,3 +108,6 @@ configure_file(
 
 vtk_module_install_headers(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/vtk_protobuf.h")
+
+# vtkprotobuf/src/google/protobuf/port_def.inc:56:2: error: #error PROTOBUF_NAMESPACE was previously defined
+set_property(TARGET vtkprotobuf vtklibprotoc PROPERTY UNITY_BUILD OFF)

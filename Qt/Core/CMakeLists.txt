@@ -210,3 +210,15 @@ vtk_module_definitions(ParaView::pqCore PRIVATE QT_NO_KEYWORDS)
 
 vtk_module_definitions(ParaView::pqCore
   PRIVATE "PARAVIEW_PQCORE_ENABLE_PYTHON=$<BOOL:${PARAVIEW_USE_PYTHON}>")
+
+# FIXME:
+# pqSpreadSheetViewSelectionModel.cxx:50:15: error: redefinition of ‘size_t qHash(pqSpreadSheetViewModel::vtkIndex)’
+# pqFileDialogLocationModel.cxx:39:1: note: previous definition of ‘struct {anonymous}::Q_QGS_Icons’
+# pqComparativeRenderView.cxx:42:7: error: redefinition of ‘class {anonymous}::pqComparativeWidget’
+set_property(SOURCE pqSpreadSheetViewSelectionModel.cxx
+                    pqFileDialogFavoriteModel.cxx
+                    pqFileDialogRecentDirsModel.cxx
+                    pqFileDialogLocationModel.cxx
+                    pqComparativeRenderView.cxx
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)

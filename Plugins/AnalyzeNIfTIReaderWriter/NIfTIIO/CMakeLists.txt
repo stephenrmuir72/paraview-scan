@@ -18,3 +18,6 @@ vtk_module_add_module(AnalyzeNIfTIIO::NIfTIIO
 
 paraview_add_server_manager_xmls(
   XMLS  AnalyzeNIfTISM.xml)
+
+# FIXME: vtkAnalyzeWriter.cxx:105:20: error: redefinition of ‘std::string GetHeaderFileName(const std::string&)
+set_property(TARGET vtkAnalyzeNIfTIIO PROPERTY UNITY_BUILD OFF)

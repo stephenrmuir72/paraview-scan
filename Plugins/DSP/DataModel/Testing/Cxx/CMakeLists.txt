@@ -40,3 +40,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
     PRIVATE
       "$<$<PLATFORM_ID:Darwin>:LINKER:-no_warn_duplicate_libraries>")
 endif ()
+
+# FIXME: TestMultiDimensionalImplicitBackend.cxx:20:18: error: redefinition of ‘{anonymous}::DataContainerInt {anonymous}::generateIntArrayVector(int, int, int)’
+set_property(TARGET vtkDigitalSignalProcessingDSPDataModelCxxTests PROPERTY UNITY_BUILD OFF)

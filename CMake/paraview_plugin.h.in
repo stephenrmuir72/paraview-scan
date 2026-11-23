@@ -1,3 +1,6 @@
+#ifndef @_paraview_build_plugin@Plugin_h
+#define @_paraview_build_plugin@Plugin_h
+
 #cmakedefine01 _paraview_add_plugin_built_shared
 #cmakedefine01 _paraview_add_plugin_with_initializers
 #cmakedefine01 _paraview_add_plugin_with_python
@@ -133,3 +136,5 @@ public:
   void Initialize() override;
 #endif
 };
+
+#endif

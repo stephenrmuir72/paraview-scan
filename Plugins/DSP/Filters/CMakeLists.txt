@@ -22,3 +22,8 @@ vtk_module_add_module(DigitalSignalProcessing::DSPFiltersPlugin
 
 paraview_add_server_manager_xmls(
   XMLS  DSPFilters.xml)
+
+# FIXME vtkDSPTableFFT.cxx:23:8: error: redefinition of ‘struct {anonymous}::Aggregator’
+set_property(SOURCE vtkDSPTableFFT.cxx
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)

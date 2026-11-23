@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
 // SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
 // SPDX-License-Identifier: BSD-3-Clause
+#ifndef pqCheckBoxDelegate_h
+#define pqCheckBoxDelegate_h
 
 #include "pqCoreModule.h"
 #include <QStyledItemDelegate>
@@ -37,3 +39,5 @@ private:
   struct pqInternals;
   pqInternals* Internals;
 };
+
+#endif
