@@ -53,7 +53,7 @@ const char SPLIT_PATH_CHAR = ':';
 
 static bool update_producer_mesh_blueprint(const std::string& channel_name,
   const conduit_node* node, const conduit_node* global_fields, bool multimesh,
-  const conduit_node* assemblyNode, bool multiblock, bool amr)
+  const conduit_node* assemblyNode, bool multiblock, bool amr, bool table)
 {
   auto producer = vtkInSituInitializationHelper::GetProducer(channel_name);
   if (producer == nullptr)
@@ -76,6 +76,7 @@ static bool update_producer_mesh_blueprint(const std::string& channel_name,
   algo->SetOutputMultiBlock(multiblock);
   algo->SetAssemblyNode(assemblyNode);
   algo->SetUseAMRMeshProtocol(amr);
+  algo->SetUseTableProtocol(table);
   vtkInSituInitializationHelper::MarkProducerModified(channel_name);
   return true;
 }
@@ -790,6 +791,18 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
           }
         }
       }
+      else if (type == "table")
+      {
+        // An empty node is a table with no rows, from a rank that holds none.
+        conduit_cpp::Node info;
+        is_valid = data_node.number_of_children() == 0 ||
+          conduit_cpp::Blueprint::verify("table", data_node, info);
+        if (!is_valid)
+        {
+          vtkLogF(ERROR, "'data' on channel '%s' is not a valid 'table'; skipping channel.",
+            channel_name.c_str());
+        }
+      }
       else if (type == "ioss")
       {
 #if VTK_MODULE_ENABLE_VTK_IOIOSS
@@ -849,7 +862,7 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
       fields["timestep"].set(channel_timestep);
       fields["cycle"].set(channel_timestep);
       fields["channel"].set(channel_name);
-      if (type == "mesh" || type == "multimesh" || type == "amrmesh")
+      if (type == "mesh" || type == "multimesh" || type == "amrmesh" || type == "table")
       {
         conduit_node* assembly = nullptr;
         if (channel_node.has_path("assembly"))
@@ -859,7 +872,7 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
         }
         update_producer_mesh_blueprint(channel_name, conduit_cpp::c_node(&data_node),
           conduit_cpp::c_node(&fields), type == "multimesh", assembly,
-          channel_output_multiblock != 0, type == "amrmesh");
+          channel_output_multiblock != 0, type == "amrmesh", type == "table");
       }
       else if (type == "ioss")
       {

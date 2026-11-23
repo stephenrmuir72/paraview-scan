@@ -544,6 +544,21 @@ bool verify(const std::string& protocol, const conduit_cpp::Node& n)
     }
     vtkVLogScopeF(PARAVIEW_LOG_CATALYST_VERBOSITY(), "multimesh blueprint verified.");
   }
+  else if (type == "table")
+  {
+    conduit_cpp::Node info;
+    if (n["data"].number_of_children() == 0 ||
+      conduit_cpp::Blueprint::verify("table", n["data"], info))
+    {
+      vtkVLogScopeF(PARAVIEW_LOG_CATALYST_VERBOSITY(), "Conduit table blueprint verified.");
+    }
+    else
+    {
+      vtkLogF(ERROR, "Conduit table blueprint validate failed!");
+      format_error(info);
+      return false;
+    }
+  }
   else if (type == "ioss")
   {
     // no additional verification at this time.
