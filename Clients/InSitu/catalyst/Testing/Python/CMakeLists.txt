@@ -81,3 +81,30 @@ foreach (_case IN ITEMS unstructured cellgrid)
     PROPERTIES
       PASS_REGULAR_EXPRESSION "All ok")
 endforeach ()
+
+# Ranks without data for a channel pass an empty node, or leave the channel out, which must fail.
+if (PARAVIEW_USE_MPI AND MPIEXEC_EXECUTABLE)
+  _catalyst_python_test(
+    NAME ParaView::Catalyst::EmptyChannel
+    MINIAPP missing_channel_miniapp.py
+    SCRIPT missing_channel_pipeline.py
+    RANKS 3)
+  _catalyst_python_test(
+    NAME ParaView::Catalyst::MissingChannel
+    MINIAPP missing_channel_miniapp.py
+    SCRIPT missing_channel_pipeline.py
+    RANKS 3
+    ARGS --missing)
+  _catalyst_python_test(
+    NAME ParaView::Catalyst::EmptyFidesChannel
+    MINIAPP missing_channel_miniapp.py
+    SCRIPT missing_channel_pipeline.py
+    RANKS 3
+    ARGS --fides)
+  set_tests_properties(ParaView::Catalyst::EmptyChannel ParaView::Catalyst::EmptyFidesChannel
+    PROPERTIES TIMEOUT 120)
+  set_tests_properties(ParaView::Catalyst::MissingChannel
+    PROPERTIES
+      TIMEOUT 120
+      PASS_REGULAR_EXPRESSION "ranks pass different channels")
+endif ()
