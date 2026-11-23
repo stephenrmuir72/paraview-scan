@@ -359,9 +359,14 @@ void vtkSMVRPythonInteractorStyleProxy::SaveProxyProperties(vtkPVXMLElement* xml
 }
 
 // ----------------------------------------------------------------------------
-bool vtkSMVRPythonInteractorStyleProxy::LoadProxyProperties(
-  vtkPVXMLElement* child, vtkSMProxyLocator* vtkNotUsed(locator))
+bool vtkSMVRPythonInteractorStyleProxy::Configure(
+  vtkPVXMLElement* child, vtkSMProxyLocator* locator)
 {
+  // This class doesn't get its roles declared in the constructor, like all the
+  // others. When loading one of these from state, the order has to be: 1) Set
+  // the Python file name from the state file, 2) UpdateVTKObjects(), which loads
+  // the Python file and calls Initialize(), 3) call the base class Configure()
+  // method to associate roles with events, etc.
   bool result = true;
 
   for (unsigned int neCount = 0; neCount < child->GetNumberOfNestedElements(); neCount++)
@@ -389,7 +394,17 @@ bool vtkSMVRPythonInteractorStyleProxy::LoadProxyProperties(
   if (result)
   {
     this->UpdateVTKObjects();
+    result = Superclass::Configure(child, locator);
   }
 
   return result;
+}
+
+// ----------------------------------------------------------------------------
+bool vtkSMVRPythonInteractorStyleProxy::LoadProxyProperties(
+  vtkPVXMLElement* child, vtkSMProxyLocator* vtkNotUsed(locator))
+{
+  // Don't do anything here, the point is to keep the base class functionality
+  // from running, since we needed to handle things specially in Configure().
+  return true;
 }

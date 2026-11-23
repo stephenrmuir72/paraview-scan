@@ -215,34 +215,22 @@ bool vtkSMVRTrackStyleProxy::LoadProxyProperties(vtkPVXMLElement* child, vtkSMPr
   {
     // Not enough trackers/properties stored in state to cover the actual number of
     // independent viewers. Do not attempt to load the properties, because if we do,
-    // there will be fewer eye separation fields than needed/supported. Allow the
-    // proxy to be created though, as it should work fine after manual configuration.
+    // there will be fewer eye separation fields than needed/supported.
     vtkWarningMacro(<< "State file lists " << numTrackersInState << " Tracker elements, which "
-                    << "is less than the " << numConfiguredViewers << " configured Tracker roles. "
-                    << " Proxy properties will not be loaded from state to avoid further issues.");
+                    << "is less than the " << numConfiguredViewers << " configured Tracker roles.");
   }
   else if (numConfiguredViewers < numTrackersInState)
   {
     // Extra trackers/properties in state file, compared to actual number of independent
-    // viewers. Warnings were printed about the extra tracker/role bindings, but otherwise
-    // those have been ignored. Do not attempt to load the properties, because if we do,
-    // there will be more eye separation fields than needed/supported.
+    // viewers. Do not attempt to load the properties, because if we do, there will be
+    // more eye separation fields than needed/supported.
     vtkWarningMacro(<< "State file lists " << numTrackersInState << " Tracker elements, which "
-                    << "is more than the " << numConfiguredViewers << " configured Tracker roles. "
-                    << "Extra Tracker elements have been ignored, and Proxy properties will not "
-                    << "be loaded from state to avoid further issues.");
+                    << "is more than the " << numConfiguredViewers << " configured Tracker roles.");
   }
   else
   {
     result = Superclass::LoadProxyProperties(child, locator);
   }
 
-  if (!result)
-  {
-    vtkWarningMacro(<< "There was a problem loading vtkSMVRTrackStyleProxy from state, and it "
-                    << "may not function as expected without manual configuration. See warnings "
-                    << "printed above for details.");
-  }
-
-  return true;
+  return result;
 }

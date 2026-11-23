@@ -873,7 +873,7 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
     int clientType = config->GetStereoType();
 
     if (!config->GetUseStereoRendering() ||
-      vtkPVRenderView::AreStereoTypesCompatible(clientType, serverType))
+      !vtkPVRenderView::AreStereoTypesCompatible(clientType, serverType))
     {
       // If user didn't specify stereo on the client, or specified something that is
       // incompatible with the server, pick something compatible for the client.

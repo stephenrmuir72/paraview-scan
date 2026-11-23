@@ -218,7 +218,7 @@ bool vtkSMVRInteractorStyleProxy::Configure(vtkPVXMLElement* child, vtkSMProxyLo
     result = false;
   }
 
-  result = LoadProxyProperties(child, locator);
+  result = this->LoadProxyProperties(child, locator) && result;
 
   return result;
 }
@@ -422,6 +422,12 @@ unsigned int vtkSMVRInteractorStyleProxy::GetChannelIndexForValuatorRole(const s
   }
 
   std::vector<std::string> tokens = vtkSMVRInteractorStyleProxy::Tokenize(iter->second);
+  if (tokens.size() < 2)
+  {
+    vtkErrorMacro(<< "Valuator role is not bound to an event: " << role);
+    return 0;
+  }
+
   auto& table = *(this->valuatorLookupTable);
   auto connMap = table[tokens[0]];
   StringMap::const_iterator eventIter = connMap.find(tokens[1]);
@@ -433,6 +439,11 @@ unsigned int vtkSMVRInteractorStyleProxy::GetChannelIndexForValuatorRole(const s
   }
 
   std::vector<std::string> eventTokens = vtkSMVRInteractorStyleProxy::Tokenize(eventIter->second);
+  if (eventTokens.size() < 2)
+  {
+    vtkErrorMacro(<< "Invalid valuator event for role " << role << ": " << eventIter->second);
+    return 0;
+  }
 
   unsigned int channelIndex;
   VTK_FROM_CHARS_IF_ERROR_RETURN(eventTokens[1], channelIndex, 0);
