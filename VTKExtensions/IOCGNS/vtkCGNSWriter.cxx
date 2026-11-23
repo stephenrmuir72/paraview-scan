@@ -876,10 +876,6 @@ void vtkCGNSWriter::vtkPrivate::Flatten(vtkCompositeDataSet* composite,
   vtkPartitionedDataSet* partitioned = vtkPartitionedDataSet::SafeDownCast(composite);
   if (partitioned)
   {
-    if (partitioned->GetNumberOfPartitions() == 0)
-    {
-      return;
-    }
     vtkNew<vtkAppendDataSets> append;
     append->SetMergePoints(true);
     if (name.empty())
@@ -899,6 +895,10 @@ void vtkCGNSWriter::vtkPrivate::Flatten(vtkCompositeDataSet* composite,
           name = partitioned->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
         }
       }
+    }
+    if (append->GetNumberOfInputConnections(0) == 0)
+    {
+      return;
     }
     append->Update();
     vtkDataObject* result = append->GetOutputDataObject(0);

@@ -11,6 +11,16 @@ vtk_add_test_mpi(vtkPVVTKExtensionsCosmoToolsCxxTests tests
   TestSubhaloFinder.cxx # test of subhalo finding filter
 )
 
+# Uses synthetic in-memory data, but needs TESTING_DATA for the -T temporary
+# output directory argument (see vtkTestUtilities::GetTemporaryDir). Runs on 2
+# ranks to check that each block is written by exactly one rank.
+set(TestGenericIOMultiBlockWriterCompositeTypes_NUMPROCS 2)
+vtk_add_test_mpi(vtkPVVTKExtensionsCosmoToolsCxxTests tests
+  TESTING_DATA
+  NO_VALID
+  TestGenericIOMultiBlockWriterCompositeTypes.cxx # test of vtkMultiBlockDataSet/vtkPartitionedDataSetCollection input
+)
+
 vtk_test_cxx_executable(vtkPVVTKExtensionsCosmoToolsCxxTests tests
 HaloFinderTestHelpers.h
 )
