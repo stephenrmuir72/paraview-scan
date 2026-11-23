@@ -122,17 +122,7 @@
           is AMR. Set this to 0 to imply no limit. Default is 0.
         </Documentation>
       </IntVectorProperty>
-      <IntVectorProperty command="SetUseCache"
-                         name="UseCache"
-                         default_values="0"
-                         number_of_elements="1"
-                         panel_visibility="default">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Enable the internal reader cache allowing to not re-read data from previous
-          time step if possible.
-        </Documentation>
-      </IntVectorProperty>
+
 
       <IntVectorProperty command="SetPieceDistribution"
                          default_values="0"
@@ -184,7 +174,6 @@
           </PropertyGroup>
           <Property name="MaximumLevelsToReadByDefaultForAMR" />
           <Property name="PieceDistribution" />
-          <Property name="UseCache" />
         </ExposedProperties>
       </SubProxy>
       <StringVectorProperty command="GetCurrentFileName"
