@@ -1,0 +1,22 @@
+NAME
+  ThreeMFReader::vtk3MFReader
+LIBRARY_NAME
+  vtk3MFReader
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::pugixml
+  VTK::vtksys
+  VTK::zlib
+TEST_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::TestingCore
+  VTK::vtksys
+  VTK::zlib

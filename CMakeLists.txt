@@ -373,6 +373,7 @@ set(paraview_default_plugins
   StreamLinesRepresentation
   StreamingParticles
   ThickenLayeredCells
+  ThreeMFReader
   VTKmFilters
   pvblot
   XArrayCFReader)
