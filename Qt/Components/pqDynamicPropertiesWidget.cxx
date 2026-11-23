@@ -421,6 +421,10 @@ void pqDynamicPropertiesWidget::propertyChanged()
 {
   QVariant propVar = this->property(this->PushPropertyName.data());
   QList<QVariant> prop = propVar.toList();
+  if (prop.size() == 0)
+  {
+    return;
+  }
   if (prop.size() % 3 != 0)
   {
     qWarning() << Q_FUNC_INFO << "Invalid property list length.";

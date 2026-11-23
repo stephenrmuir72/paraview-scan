@@ -5,6 +5,7 @@
 #define pqProxyWidget_h
 
 #include "pqComponentsModule.h"
+#include "vtkSMSettings.h"
 #include <QSet>
 #include <QWidget>
 
@@ -197,12 +198,22 @@ public Q_SLOTS:
    * Restores application default proxy settings.
    * Returns true if any properties were modified.
    */
-  virtual bool restoreDefaults();
+  virtual bool restoreDefaults(double priority = vtkSMSettings::GetApplicationPriority());
 
   /**
    * Saves settings as defaults for proxy
    */
   void saveAsDefaults() const;
+
+  /**
+   * Applies property preset
+   */
+  void applyPreset(const std::string& presetName);
+
+  /**
+   * Saves settings as a preset
+   */
+  void savePreset(const std::string& presetName);
 
   /**
    * create a widget for a property.
@@ -261,6 +272,11 @@ private:
    * Reset property to its default, and use user settings.
    */
   void resetPropertyToUserDefault(pqPropertyWidget* propWidget);
+
+  /**
+   * Reset property to its default, and use the selected preset settings
+   */
+  void resetPropertyToPresetDefault(pqPropertyWidget* propWidget);
 
   Q_DISABLE_COPY(pqProxyWidget);
 

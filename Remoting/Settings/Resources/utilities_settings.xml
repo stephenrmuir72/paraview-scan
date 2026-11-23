@@ -323,6 +323,17 @@
         </Hints>
       </IntVectorProperty>
 
+      <StringVectorProperty name="DefaultPreset"
+        command="SetDefaultPreset"
+        number_of_elements="1"
+        default_values="Custom defaults"
+        panel_visibility="advanced">
+        <SettingsPresetDomain name="properties_presets"/>
+        <Documentation>
+          Preset to use as default properties values at proxy initialization.
+        </Documentation>
+      </StringVectorProperty>
+
       <IntVectorProperty name="AutoConvertProperties"
         number_of_elements="1"
         default_values="0"

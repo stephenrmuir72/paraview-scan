@@ -21,6 +21,7 @@
 #include "pqShortcutDecorator.h"
 #include "pqStringVectorPropertyWidget.h"
 #include "pqTimer.h"
+#include "pqUndoStack.h"
 #include "pqWidgetUtilities.h"
 #include "vtkCollection.h"
 #include "vtkNew.h"
@@ -44,6 +45,7 @@
 #include "vtkSMStringVectorProperty.h"
 #include "vtkSMTrace.h"
 #include "vtkSmartPointer.h"
+#include "vtkStringFormatter.h"
 #include "vtkStringList.h"
 #include "vtkWeakPointer.h"
 
@@ -58,6 +60,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <list>
 #include <map>
 #include <set>
@@ -1234,7 +1237,7 @@ void pqProxyWidget::updatePanel()
 }
 
 //-----------------------------------------------------------------------------
-bool pqProxyWidget::restoreDefaults()
+bool pqProxyWidget::restoreDefaults(double priorty)
 {
   bool anyReset = false;
   if (this->Internals->Proxy)
@@ -1270,8 +1273,7 @@ bool pqProxyWidget::restoreDefaults()
         continue;
       }
 
-      anyReset =
-        this->resetProperty(smproperty, vtkSMSettings::GetApplicationPriority(), false) || anyReset;
+      anyReset = this->resetProperty(smproperty, priorty, false) || anyReset;
     }
   }
 
@@ -1306,6 +1308,77 @@ void pqProxyWidget::saveAsDefaults() const
 }
 
 //-----------------------------------------------------------------------------
+void pqProxyWidget::applyPreset(const std::string& presetName)
+{
+  SCOPED_UNDO_SET(vtk::format("Apply {} preset", presetName).c_str());
+
+  // Read preset from settings
+  auto settings = vtkSMSettings::GetInstance();
+  settings->AddActivePreset(presetName, vtkSMSettings::GetPresetPriority());
+
+  bool anyReset = false;
+  if (this->Internals->Proxy)
+  {
+    vtkSmartPointer<vtkSMPropertyIterator> iter;
+    iter.TakeReference(this->Internals->Proxy->NewPropertyIterator());
+    for (iter->Begin(); !iter->IsAtEnd(); iter->Next())
+    {
+      vtkSMProperty* smproperty = iter->GetProperty();
+
+      // restore defaults only for properties listed
+      if (this->Internals->Properties &&
+        this->Internals->Properties->GetIndex(smproperty->GetXMLName()) == -1)
+      {
+        continue;
+      }
+
+      // skip input and information only
+      if (vtkSMInputProperty::SafeDownCast(smproperty) || smproperty->GetInformationOnly())
+      {
+        continue;
+      }
+
+      // set only if the preset has the property
+      if (settings->GetPresetHasProperty(presetName, smproperty))
+      {
+        vtkLog(
+          TRACE, "Preset " << presetName << " is missing property " << smproperty->GetXMLName());
+        continue;
+      }
+
+      anyReset =
+        this->resetProperty(smproperty, vtkSMSettings::GetPresetPriority(), false) || anyReset;
+    }
+  }
+
+  // The code above bypasses the changeAvailable() and
+  // changeFinished() signal from the pqProxyWidget, so we check here
+  // whether we should act as if changes are available only if any of
+  // the properties have been reset.
+  if (anyReset)
+  {
+    Q_EMIT changeAvailable();
+    Q_EMIT changeFinished();
+    this->apply();
+  }
+
+  settings->RemovePresetsFromCollection();
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyWidget::savePreset(const std::string& name)
+{
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+
+  vtkSMPropertyIterator* propertyIt = this->Internals->Proxy->NewPropertyIterator();
+  settings->SavePreset(name, propertyIt);
+  if (propertyIt)
+  {
+    propertyIt->Delete();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidget)
 {
   if (!::canSaveDefault(propWidget->property()))
@@ -1314,7 +1387,7 @@ void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidg
   }
   QMenu menu(this);
   menu.setObjectName("PropertyContextMenu");
-  auto* useDefault = menu.addAction(tr("Use as Default"), propWidget,
+  auto* useDefault = menu.addAction(tr("Save as custom default"), propWidget,
     [this, propWidget]()
     {
       // get the property name
@@ -1335,13 +1408,26 @@ void pqProxyWidget::showContextMenu(const QPoint& pt, pqPropertyWidget* propWidg
     useDefault->setEnabled(pqproxy->modifiedState() == pqProxy::UNMODIFIED);
   }
 
-  QAction* resetToAppDefault = menu.addAction(tr("Reset to Application Default"), propWidget,
+  QAction* resetToAppDefault = menu.addAction(tr("Apply application default"), propWidget,
     [this, propWidget]() { this->resetPropertyToAppDefault(propWidget); });
   resetToAppDefault->setObjectName("ResetToDefault");
 
-  QAction* resetToSettings = menu.addAction(tr("Reset to User Settings"), propWidget,
+  QAction* resetToSettings = menu.addAction(tr("Apply custom default"), propWidget,
     [this, propWidget]() { this->resetPropertyToUserDefault(propWidget); });
   resetToSettings->setObjectName("ResetToSettings");
+
+  menu.addSeparator();
+  vtkSMSettings* settings = vtkSMSettings::GetInstance();
+  for (const std::string& preset_name : settings->GetPresets())
+  {
+    menu.addAction(QString("Apply %1").arg(preset_name), propWidget,
+      [this, propWidget, settings, preset_name]()
+      {
+        settings->AddActivePreset(preset_name, vtkSMSettings::GetPresetPriority());
+        this->resetPropertyToPresetDefault(propWidget);
+        settings->RemovePresetsFromCollection();
+      });
+  }
 
   menu.exec(pt);
 }
@@ -1409,4 +1495,11 @@ void pqProxyWidget::resetPropertyToUserDefault(pqPropertyWidget* propWidget)
 {
   vtkSMProperty* smproperty = propWidget->property();
   this->resetProperty(smproperty, vtkSMSettings::GetUserPriority(), true);
+}
+
+//-----------------------------------------------------------------------------
+void pqProxyWidget::resetPropertyToPresetDefault(pqPropertyWidget* propWidget)
+{
+  vtkSMProperty* smproperty = propWidget->property();
+  this->resetProperty(smproperty, vtkSMSettings::GetPresetPriority(), true);
 }

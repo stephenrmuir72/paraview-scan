@@ -1102,6 +1102,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   CSVPreview.xml
   ChangeFileNameReaction.xml
   CustomOutputFormat.xml
+  DefaultPreset.xml
   ExplodeDataSet.xml
   ExpressionsDialog.xml
   ExpressionsExporter.xml
@@ -1131,6 +1132,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ReflectBackwardCompat.xml
   ReloadCGNSFile.xml
   RenderViewUpdateLOD.xml
+  SaveApplyPreset.xml
   SearchBox.xml
   ServerConnectDialog.xml
   SettingsHiddenSavedDefault.xml

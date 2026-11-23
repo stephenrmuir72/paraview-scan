@@ -183,7 +183,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="PropertiesRestoreDefaults">
+           <widget class="QToolButton" name="PropertiesRestoreDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -191,7 +191,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values</string>
+             <string>Apply application defaults</string>
             </property>
             <property name="text">
              <string/>
@@ -200,10 +200,13 @@
              <iconset resource="../pqComponents.qrc">
               <normaloff>:/pqWidgets/Icons/pqReset.svg</normaloff>:/pqWidgets/Icons/pqReset.svg</iconset>
             </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="PropertiesSaveAsDefaults">
+           <widget class="QToolButton" name="PropertiesSaveAsDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -215,6 +218,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
             </property>
            </widget>
           </item>
@@ -303,7 +309,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="DisplayRestoreDefaults">
+           <widget class="QToolButton" name="DisplayRestoreDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -311,7 +317,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values for display</string>
+             <string>Apply application defaults for display</string>
             </property>
             <property name="text">
              <string/>
@@ -320,10 +326,13 @@
              <iconset resource="../pqComponents.qrc">
               <normaloff>:/pqWidgets/Icons/pqReset.svg</normaloff>:/pqWidgets/Icons/pqReset.svg</iconset>
             </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="DisplaySaveAsDefaults">
+           <widget class="QToolButton" name="DisplaySaveAsDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -335,6 +344,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
             </property>
            </widget>
           </item>
@@ -423,7 +435,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="ViewRestoreDefaults">
+           <widget class="QToolButton" name="ViewRestoreDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -431,7 +443,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Restore application default setting values for view</string>
+             <string>Apply application defaults for view</string>
             </property>
             <property name="text">
              <string/>
@@ -440,10 +452,13 @@
              <iconset resource="../pqComponents.qrc">
               <normaloff>:/pqWidgets/Icons/pqReset.svg</normaloff>:/pqWidgets/Icons/pqReset.svg</iconset>
             </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="ViewSaveAsDefaults">
+           <widget class="QToolButton" name="ViewSaveAsDefaults">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -455,6 +470,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
             </property>
            </widget>
           </item>

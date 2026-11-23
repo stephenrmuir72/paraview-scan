@@ -16,7 +16,8 @@
 
 #include "vtkObject.h"
 #include "vtkRemotingSettingsModule.h" //needed for exports
-#include "vtkSmartPointer.h"           // needed for vtkSmartPointer.
+#include "vtkSetGet.h"
+#include "vtkSmartPointer.h" // needed for vtkSmartPointer.
 
 #include <string>
 
@@ -363,6 +364,14 @@ public:
 
   ///@{
   /**
+   * Preset used as default properties values at proxy initialization.
+   */
+  vtkSetMacro(DefaultPreset, std::string);
+  vtkGetMacro(DefaultPreset, std::string);
+  ///@}
+
+  ///@{
+  /**
    * ActiveSelection is hooked up in the MultiBlock Inspector such that a click on a/multiple
    * block(s) selects it/them. Default is true.
    */
@@ -429,6 +438,7 @@ private:
   bool IgnoreNegativeLogAxisWarning = false;
   bool InheritRepresentationProperties = false;
   bool LoadNoChartVariables = false;
+  std::string DefaultPreset;
 };
 
 #endif

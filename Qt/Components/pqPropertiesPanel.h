@@ -5,6 +5,7 @@
 #define pqPropertiesPanel_h
 
 #include "pqComponentsModule.h"
+#include "vtkSMSettings.h"
 
 #include <QWidget>
 
@@ -13,6 +14,7 @@ class pqOutputPort;
 class pqPipelineSource;
 class pqPropertyWidget;
 class pqProxy;
+class pqProxyWidget;
 class pqView;
 class vtkSMProperty;
 class vtkSMProxy;
@@ -108,7 +110,14 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    * This is triggered when the user clicks the button with the
    * reload button next to the properties button.
    */
-  void propertiesRestoreDefaults();
+  void propertiesRestoreDefaults(double priority = vtkSMSettings::GetApplicationPriority());
+
+  /**
+   * Depending on the action data:
+   *  - double: restore defaults according to the given priority level
+   *  - QString: apply a preset
+   */
+  void propertiesRestoreTriggered(QAction* action);
 
   /**
    * Saves the current property settings as default.
@@ -119,12 +128,27 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void propertiesSaveAsDefaults();
 
   /**
+   * Depending on the action data:
+   *  - double: save as custom defaults
+   *  - QString: save as an existing preset
+   *  - null: create a new preset and save as this new preset
+   */
+  void propertiesSaveAsTriggered(QAction* action);
+
+  /**
    * Restores the application defaults for the display properties.
    *
    * This is triggered when the user clicks the button with the
    * reload button next to the display button.
    */
-  void displayRestoreDefaults();
+  void displayRestoreDefaults(double priority = vtkSMSettings::GetApplicationPriority());
+
+  /**
+   * Depending on the action data:
+   *  - double: restore defaults according to the given priority level
+   *  - QString: apply a preset
+   */
+  void displayRestoreTriggered(QAction* action);
 
   /**
    * Saves the current display settings as default.
@@ -135,12 +159,27 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
   void displaySaveAsDefaults();
 
   /**
+   * Depending on the action data:
+   *  - double: save as custom defaults
+   *  - QString: save as an existing preset
+   *  - null: create a new preset and save as this new preset
+   */
+  void displaySaveAsTriggered(QAction* action);
+
+  /**
    * Restores the application defaults for the view properties.
    *
    * This is triggered when the user clicks the button with the
    * reload button next to the view button.
    */
-  void viewRestoreDefaults();
+  void viewRestoreDefaults(double priority = vtkSMSettings::GetApplicationPriority());
+
+  /**
+   * Depending on the action data:
+   *  - double: restore defaults according to the given priority level
+   *  - QString: apply a preset
+   */
+  void viewRestoreTriggered(QAction* action);
 
   /**
    * Saves the current view settings as default.
@@ -149,6 +188,14 @@ public Q_SLOTS: // NOLINT(readability-redundant-access-specifiers)
    * save icon next to the view button.
    */
   void viewSaveAsDefaults();
+
+  /**
+   * Depending on the action data:
+   *  - double: save as custom defaults
+   *  - QString: save as an existing preset
+   *  - null: create a new preset and save as this new preset
+   */
+  void viewSaveAsTriggered(QAction* action);
 
   /**
    * Set the view currently managed by the panel, should be called
@@ -256,12 +303,20 @@ private Q_SLOTS:
   void copyView();
   void pasteView();
 
+  /**
+   * Updates preset list in the save and apply preset menus.
+   */
+  void updatePresets();
+
 protected:
   void updatePropertiesPanel(pqProxy* source);
   void updateDisplayPanel(pqDataRepresentation* repr);
   void updateViewPanel(pqView* view);
 
 private:
+  void savePreset(QAction* action, pqProxyWidget* panel);
+  void setupSaveRestoreSettingsButtons();
+
   class pqInternals;
   friend class pqInternals;
 

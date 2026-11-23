@@ -599,6 +599,10 @@ void vtkInitializationHelper::Finalize()
     vtkSMSettings* settings = vtkSMSettings::GetInstance();
     bool savingSucceeded =
       settings->SaveSettingsToFile(userSettingsFilePath, vtkSMSettings::GetUserPriority());
+
+    std::string presetsFilePath = vtkPVStandardPaths::GetPresetsFilePath();
+    savingSucceeded &= settings->SavePresetsToFile(presetsFilePath);
+
     if (!savingSucceeded)
     {
       vtkGenericWarningMacro(<< "Saving settings file to '" << userSettingsFilePath << "' failed");
@@ -654,13 +658,17 @@ void vtkInitializationHelper::LoadSettings()
     settings->AddCollectionFromString("{}", vtkSMSettings::GetUserPriority());
   }
 
+  // Load presets
+  std::string presetsFilePath = vtkPVStandardPaths::GetPresetsFilePath();
+  settings->AddPresetsFromFile(presetsFilePath);
+
   // Load site-level settings
   const std::vector<std::string> pathsToSearch = vtkPVStandardPaths::GetInstallDirectories();
   const std::string filename = vtkInitializationHelper::GetApplicationName() + "-SiteSettings.json";
   for (const std::string& path : pathsToSearch)
   {
     const std::string siteSettingsFile = std::string(path).append("/").append(filename);
-    if (settings->AddCollectionFromFile(siteSettingsFile, 1.0))
+    if (settings->AddCollectionFromFile(siteSettingsFile, vtkSMSettings::GetApplicationPriority()))
     {
       break;
     }
