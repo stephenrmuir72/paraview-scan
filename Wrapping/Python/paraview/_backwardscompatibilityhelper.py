@@ -732,6 +732,14 @@ def setattr(proxy, pname, value):
                 "'CellGridAttribute' is obsolete as of ParaView 6.3. "
                 "Please use the 'CellGridAttributes' property to select the cell-grid attributes instead.")
 
+    # 6.2 -> 6.3: "UseCache" property on "HDFReader" has been removed
+    if pname == "UseCache" and proxy.SMProxy.GetXMLName() in ["HDFReader"]:
+        if compatibility_version <= (6, 2):
+            raise Continue()
+        else:
+            raise NotSupportedException(
+                "'UseCache' is obsolete, cache is enabled by default. Simply remove it from your script.")
+
     if not hasattr(proxy, pname):
         raise AttributeError()
     proxy.__dict__[pname] = value
