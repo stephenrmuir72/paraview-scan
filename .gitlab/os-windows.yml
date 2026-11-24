@@ -43,6 +43,14 @@ spec:
         VCVARSPLATFORM: "x64"
         VCVARSVERSION: "14.35.32215"
 
+.windows_vs2022_arm64:
+    extends: .windows_build
+
+    variables:
+        VCVARSALL: "${VS170COMNTOOLS}\\..\\..\\VC\\Auxiliary\\Build\\vcvarsall.bat"
+        VCVARSPLATFORM: "arm64"
+        VCVARSVERSION: "14.44.35207"
+
 .windows_vs2022_kits_mpi_python_qt:
     extends: .windows_vs2022
 
@@ -54,6 +62,13 @@ spec:
 
     variables:
         CMAKE_CONFIGURATION: windows_vs2022_qt
+
+.windows_vs2022_arm64_qt:
+    extends: .windows_vs2022_arm64
+
+    variables:
+        CMAKE_CONFIGURATION: windows_vs2022_arm64_qt
+
 
 ## Tags
 
@@ -75,6 +90,27 @@ spec:
         - vs2022
         - windows-x86_64
         - test # Some machines have trouble running tests.
+
+.windows_builder_tags_arm64:
+    tags:
+        #- $[[ inputs.project-tag ]]
+        - vtk #testing on already existing vtk arm64 runners
+        - msvc-14.44
+        - nonconcurrent
+        - shell
+        - vs2022
+        - windows-arm64
+
+.windows_test_tags_arm64:
+    tags:
+        #- $[[ inputs.project-tag ]]
+        - vtk #testing on already existing vtk arm64 runners
+        - msvc-14.44
+        - nonconcurrent
+        - shell
+        - vs2022
+        - windows-arm64
+        - test
 
 ## Windows-specific scripts
 
