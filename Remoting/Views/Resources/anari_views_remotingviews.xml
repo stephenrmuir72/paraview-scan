@@ -1,0 +1,16 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="views">
+    <!-- ================================================================== -->
+    <!-- TODO: hide view type in menu -->
+    <RenderViewProxy base_proxygroup="views"
+                     base_proxyname="RenderView"
+                     class="vtkPVAnariRenderView"
+                     name="AnariRenderView"
+                     label="ANARI Render View"
+                     processes="client|renderserver|dataserver">
+      <Documentation>
+        Off-screen render view backed by vtkAnariRenderWindow.
+      </Documentation>
+    </RenderViewProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

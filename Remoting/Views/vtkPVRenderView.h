@@ -23,6 +23,8 @@
 #include "vtkWeakPointer.h"         // needed for iVar
 
 class vtkAlgorithmOutput;
+class vtkAnariDevice;
+class vtkAnariRenderer;
 class vtkCamera;
 class vtkCameraOrientationWidget;
 class vtkCuller;
@@ -1030,10 +1032,10 @@ public:
 
   ///@{
   /**
-   * Enable/disable ray tracing with ANARI
+   * Enable/disable ANARI usage.
    */
-  void SetEnableANARI(bool);
-  bool GetEnableANARI();
+  virtual void SetEnableANARI(bool);
+  virtual bool GetEnableANARI();
   ///@}
 
   ///@{
@@ -1216,6 +1218,7 @@ public:
 
 protected:
   vtkPVRenderView();
+  vtkPVRenderView(bool create_render_window);
   ~vtkPVRenderView() override;
 
   /**
@@ -1327,6 +1330,9 @@ protected:
    */
   virtual void SetupAndSetRenderer(vtkRenderer* ren);
 
+  void InitializeMembers();
+  void InitializeRenderWindow();
+
   vtkLightKit* LightKit;
   vtkRenderViewBase* RenderView;
   vtkRenderer* NonCompositedRenderer;
@@ -1426,6 +1432,18 @@ private:
   void OnSelectionChangedEvent();
   void OnPolygonSelectionEvent();
   void FinishSelection(vtkSelection*, const char*);
+
+  /**
+   * Return the ANARI device associated with the native ANARI render window or
+   * the ANARI render pass.
+   */
+  vtkAnariDevice* GetAnariDevice();
+
+  /**
+   * Return the ANARI renderer associated with the native ANARI render window
+   * or the ANARI render pass.
+   */
+  vtkAnariRenderer* GetAnariRenderer();
 
   ///@{
   /**

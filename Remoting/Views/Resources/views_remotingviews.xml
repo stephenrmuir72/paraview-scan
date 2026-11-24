@@ -1501,7 +1501,7 @@
         </Hints>
       </IntVectorProperty>
       <StringVectorProperty command="SetANARILibrary"
-                            default_values="visrtx"
+                            default_values="environment"
                             name="ANARILibrary"
                             number_of_elements="1"
                             panel_visibility="never">

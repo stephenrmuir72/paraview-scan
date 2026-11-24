@@ -66,6 +66,7 @@ OPTIONAL_DEPENDS
   VTK::AcceleratorsVTKmFilters
   VTK::FiltersOpenTURNS
   VTK::ParallelMPI
+  VTK::RenderingAnariCore
   VTK::RenderingAnariOpenGL
   VTK::RenderingRayTracing
   VTK::vtkviskores

@@ -56,6 +56,14 @@ public:
   void Initialize(vtkPVSession* session);
 
   /**
+   * Disable creation of parallel image compositors. This is intended for
+   * render windows that perform parallel compositing themselves. The
+   * client/server synchronizer remains available for image delivery.
+   */
+  vtkSetMacro(DisableParallelCompositing, bool);
+  vtkGetMacro(DisableParallelCompositing, bool);
+
+  /**
    * Used to determine sorting order and use ordered compositing. Set to nullptr
    * to not use ordered compositing and instead use depth-buffer based
    * compositing, if applicable.
@@ -205,6 +213,7 @@ protected:
 
   bool Enabled;
   bool DisableIceT;
+  bool DisableParallelCompositing = false;
   int ImageReductionFactor;
   vtkOpenGLRenderer* Renderer;
 

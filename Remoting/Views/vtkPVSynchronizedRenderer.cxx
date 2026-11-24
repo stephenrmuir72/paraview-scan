@@ -101,13 +101,24 @@ void vtkPVSynchronizedRenderer::Initialize(vtkPVSession* session)
     case vtkProcessModule::PROCESS_RENDER_SERVER:
     case vtkProcessModule::PROCESS_BATCH:
 
-      if (this->InCAVEMode)
+      if (this->DisableParallelCompositing)
+      {
+        // Keep renderer state, especially the camera, synchronized across
+        // ranks. The native render window owns image compositing, so do not
+        // use an image compositor or write rendered images back here.
+        this->ParallelSynchronizer = vtkSynchronizedRenderers::New();
+        this->ParallelSynchronizer->SetParallelController(pm->GetGlobalController());
+        this->ParallelSynchronizer->SetRootProcessId(0);
+        this->ParallelSynchronizer->WriteBackImagesOff();
+      }
+      else if (this->InCAVEMode)
       {
         this->ParallelSynchronizer = vtkCaveSynchronizedRenderers::New();
         this->ParallelSynchronizer->SetParallelController(pm->GetGlobalController());
         this->ParallelSynchronizer->WriteBackImagesOn();
       }
-      else if (this->InTileDisplayMode || pm->GetNumberOfLocalPartitions() > 1)
+      else if (!this->DisableParallelCompositing &&
+        (this->InTileDisplayMode || pm->GetNumberOfLocalPartitions() > 1))
       {
 #if VTK_MODULE_ENABLE_ParaView_icet
         if (!this->DisableIceT)
@@ -139,10 +150,17 @@ void vtkPVSynchronizedRenderer::Initialize(vtkPVSession* session)
 
         // ensure that the server ranks always render on a black background to simplify
         // compositing and avoiding issues like #15961, #18998.
-        this->ParallelSynchronizer->FixBackgroundOn();
+        if (!this->DisableParallelCompositing)
+        {
+          this->ParallelSynchronizer->FixBackgroundOn();
+        }
         this->ParallelSynchronizer->SetParallelController(pm->GetGlobalController());
         this->ParallelSynchronizer->SetRootProcessId(0);
-        if (this->InTileDisplayMode)
+        if (this->DisableParallelCompositing)
+        {
+          this->ParallelSynchronizer->WriteBackImagesOff();
+        }
+        else if (this->InTileDisplayMode)
         {
           this->ParallelSynchronizer->WriteBackImagesOn();
         }
@@ -513,7 +531,8 @@ void vtkPVSynchronizedRenderer::UpdateFixBackgroundState()
   }
   if (this->ParallelSynchronizer)
   {
-    const bool fix_background = !(this->EnableRayTracing && this->EnablePathTracing);
+    const bool fix_background = !this->DisableParallelCompositing &&
+      !(this->EnableRayTracing && this->EnablePathTracing);
     this->ParallelSynchronizer->SetFixBackground(fix_background);
   }
 }

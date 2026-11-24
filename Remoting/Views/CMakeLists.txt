@@ -178,6 +178,10 @@ set(classes
   vtkVolumeRepresentation
   vtkXYChartRepresentation)
 
+if (VTK_MODULE_ENABLE_VTK_RenderingAnariCore)
+  list(APPEND classes vtkPVAnariRenderView)
+endif()
+
 set(private_headers
   vtkPVDataDeliveryManagerInternals.h
   vtkGeometryRepresentationInternal.h
@@ -246,16 +250,22 @@ vtk_module_add_module(ParaView::RemotingViews
 )
 
 
-paraview_add_server_manager_xmls(
-  XMLS Resources/2dwidgets_remotingviews.xml
-       Resources/3dwidgets_remotingviews.xml
-       Resources/annotations_remotingviews.xml
-       Resources/extractors_remotingviews.xml
-       Resources/extractors_json.xml
-       Resources/representationsinternal_remotingviews.xml
-       Resources/representations_remotingviews.xml
-       Resources/rendering.xml
-       Resources/sources_remotingviews.xml
-       Resources/utilities_remotingviews.xml
-       Resources/viewsinternal_remotingviews.xml
-       Resources/views_remotingviews.xml)
+set(remotingviews_xmls
+  Resources/2dwidgets_remotingviews.xml
+  Resources/3dwidgets_remotingviews.xml
+  Resources/annotations_remotingviews.xml
+  Resources/extractors_remotingviews.xml
+  Resources/extractors_json.xml
+  Resources/representationsinternal_remotingviews.xml
+  Resources/representations_remotingviews.xml
+  Resources/rendering.xml
+  Resources/sources_remotingviews.xml
+  Resources/utilities_remotingviews.xml
+  Resources/viewsinternal_remotingviews.xml
+  Resources/views_remotingviews.xml)
+
+if (VTK_MODULE_ENABLE_VTK_RenderingAnariCore)
+  list(APPEND remotingviews_xmls Resources/anari_views_remotingviews.xml)
+endif()
+
+paraview_add_server_manager_xmls(XMLS ${remotingviews_xmls})
