@@ -898,11 +898,12 @@ void vtkSMRenderViewProxy::CreateVTKObjects()
   bool remote_rendering_available = true;
   // Update whether render servers can open display i.e. remote rendering is
   // possible on all processes.
-  vtkNew<vtkPVRenderingCapabilitiesInformation> info;
-  this->GetSession()->GatherInformation(vtkPVSession::RENDER_SERVER, info.Get(), 0);
-  if (!info->Supports(vtkPVRenderingCapabilitiesInformation::OPENGL))
+  if (!rv->IsA("vtkPVAnariRenderView"))
   {
-    remote_rendering_available = false;
+    // Remote OpenGL rendering must be possible on all render-server processes.
+    vtkNew<vtkPVRenderingCapabilitiesInformation> info;
+    this->GetSession()->GatherInformation(vtkPVSession::RENDER_SERVER, info.Get(), 0);
+    remote_rendering_available = info->Supports(vtkPVRenderingCapabilitiesInformation::OPENGL);
   }
 
   // Disable remote rendering on all processes, if not available.
