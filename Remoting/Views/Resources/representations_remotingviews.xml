@@ -6475,6 +6475,433 @@
     </ChartRepresentationProxy>
 
     <!-- =================================================================== -->
+    <RadVizRepresentationProxy class="vtkPVRadVizRepresentation"
+                              name="RadVizRepresentation"
+                              processes="client|dataserver|renderserver">
+      <Documentation>Representation used by
+      RadVizChartView.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <Documentation>Data input for the representation.</Documentation>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject" />
+        </DataTypeDomain>
+      </InputProperty>
+      <!-- the MultiVariateSource filter is not on the client: skip_valid_check
+           lets the client push a null value instead of aborting -->
+      <ProxyProperty command="SetMultiVariateSource"
+                     name="MultiVariateSource"
+                     panel_visibility="never"
+                     skip_valid_check="1">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+        </ProxyGroupDomain>
+        <Documentation>
+          Internal. Records the MultiVariateToRGBA filter this RadViz
+          representation is connected to (see pqRadVizChartView), so the
+          connection survives being saved to, and reloaded from, a state
+          file. The command is a no-op. The filter is a producer of this
+          representation, so deleting the filter deletes it: clear this
+          property first to keep it. The GUI's Delete does that.
+        </Documentation>
+      </ProxyProperty>
+      <IntVectorProperty command="SetPlaceHolderDataType"
+                         default_values="38"
+                         name="PlaceHolderDataType"
+                         panel_visibility="never"
+                         number_of_elements="1">
+        <DataTypeQueryDomain name="data_type_query">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input"/>
+          </RequiredProperties>
+        </DataTypeQueryDomain>
+        <Documentation>
+          Property to set the placeholder data type.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetVisibility"
+                         default_values="1"
+                         name="Visibility"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>Visibility of the representation.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetForceUseCache"
+                         default_values="0"
+                         is_internal="1"
+                         name="ForceUseCache"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Typically UseCache and CacheKey are updated by the View
+        and representations cache based on what the view tells it. However in
+        some cases we may want to force a representation to cache irrespective
+        of the view (e.g. comparative views). In which case these ivars can up
+        set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+        Instead, ForcedCacheKey is used.</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetForcedCacheKey"
+                            default_values="none"
+                            is_internal="1"
+                            name="ForcedCacheKey"
+                            number_of_elements="1">
+        <DoubleRangeDomain name="range" />
+        <Documentation>Typically UseCache and CacheKey are updated by the View
+        and representations cache based on what the view tells it. However in
+        some cases we may want to force a representation to cache irrespective
+        of the view (e.g. comparative views). In which case these ivars can up
+        set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
+        Instead, ForcedCacheKey is used.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetArraySelectionMode"
+                         default_values="0"
+                         name="ArraySelectionMode"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="Merged Blocks"
+                 value="0"/>
+          <Entry text="Individual Blocks"
+                 value="1"/>
+        </EnumerationDomain>
+        <Hints>
+          <!-- we don't want to show this property, except for composite datasets. -->
+          <PropertyWidgetDecorator type="InputDataTypeDecorator"
+                                   mode="visibility" name="vtkCompositeDataSet"/>
+        </Hints>
+        <Documentation>
+          Only "Merged Blocks" mode is supported: arrays present in all selected blocks are listed as plottable
+          series and the aggregated array values from the selected arrays are plotted. "Individual Blocks" mode is
+          not supported, as the RadViz chart has a single plot, which shows only the first block. The selected
+          blocks can be changed within the MultiBlock Inspector.
+        </Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty name="Assembly"
+                            command="SetActiveAssembly"
+                            number_of_elements="1"
+                            default_values=""
+                            panel_visibility="multiblock_inspector">
+        <DataAssemblyListDomain name="data_assembly">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+          </RequiredProperties>
+        </DataAssemblyListDomain>
+        <Documentation>
+          Select which assembly is used when specify selectors
+          to choose block visibilities, block colors, etc. for composite datasets.
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty name="BlockSelectors"
+                            command="AddBlockSelector"
+                            clean_command="RemoveAllBlockSelectors"
+                            panel_visibility="multiblock_inspector"
+                            number_of_elements="1"
+                            default_values="/">
+        <DataAssemblyDomain name="data_assembly">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+            <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Mode" name="ArraySelectionMode"/>
+          </RequiredProperties>
+        </DataAssemblyDomain>
+        <Documentation>
+          For composite datasets, specify selectors to limit the view
+          to a chosen subset of blocks.
+        </Documentation>
+      </StringVectorProperty>
+      <PropertyGroup label="Blocks" panel_widget="DataAssemblyEditor"
+                     panel_visibility="multiblock_inspector">
+        <Property name="Assembly" function="ActiveAssembly"/>
+        <Property name="BlockSelectors" function="Selectors"/>
+        <Hints>
+          <DataAssemblyPropertyWidget use_inputname_as_header="1" link_active_selection="0"/>
+        </Hints>
+      </PropertyGroup>
+      <IntVectorProperty command="SetFieldAssociation"
+                         default_values="0"
+                         name="FieldAssociation"
+                         number_of_elements="1">
+        <Documentation>Select the attribute data to pass.</Documentation>
+        <FieldDataDomain enable_field_data="1"
+                         name="enum">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
+      </IntVectorProperty>
+
+      <StringVectorProperty command="SetSeriesVisibility"
+                            element_types="2 0"
+                            name="SeriesVisibility"
+                            number_of_elements_per_command="2"
+                            repeat_command="1"
+                            clean_command="ClearSeriesVisibilities">
+        <Documentation>Set the series visibility. Only visible series
+        (components) are used to compute the RadViz plot.</Documentation>
+        <ChartSeriesSelectionDomain name="array_list"
+                                    hide_partial_arrays="0"
+                                    default_mode="visibility">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+            <Property function="FieldDataSelection" name="FieldAssociation"/>
+            <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="ArraySelectionMode" name="ArraySelectionMode"/>
+          </RequiredProperties>
+        </ChartSeriesSelectionDomain>
+      </StringVectorProperty>
+
+      <StringVectorProperty command="SetLabel"
+                            clean_command="ClearLabels"
+                            element_types="2 2"
+                            name="SeriesLabel"
+                            number_of_elements_per_command="2"
+                            repeat_command="1"
+                            label="Label Name">
+        <Documentation>Set the series labels. These are used to label the
+        attribute vertices around the RadViz circle.</Documentation>
+        <ChartSeriesSelectionDomain name="array_list"
+                                    hide_partial_arrays="0"
+                                    default_mode="label">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+            <Property function="FieldDataSelection" name="FieldAssociation"/>
+            <Property function="ActiveAssembly" name="Assembly"/>
+            <Property function="Selectors" name="BlockSelectors"/>
+            <Property function="ArraySelectionMode" name="ArraySelectionMode"/>
+          </RequiredProperties>
+        </ChartSeriesSelectionDomain>
+      </StringVectorProperty>
+
+      <IntVectorProperty command="SetScalarVisibility"
+                         name="ScalarVisibility"
+                         number_of_elements="1"
+                         default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Color the points using the RGBA colors automatically computed from
+          the multivariate data. When off, all points use Color. The
+          opacity of the points is computed from the data in both cases.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetColorWheelVisibility"
+                         name="ColorWheelVisibility"
+                         number_of_elements="1"
+                         default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Show a color wheel that helps interpret the colors computed from
+          the multivariate data.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetColorWheelSegmentCount"
+                         name="ColorWheelSegmentCount"
+                         number_of_elements="1"
+                         default_values="120"
+                         panel_visibility="advanced">
+        <IntRangeDomain name="range" min="3" max="360" />
+        <Documentation>
+          Number of segments used when drawing the color wheel. More
+          segments produce a smoother gradient.
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetVerticesRotation"
+                            name="VerticesRotation"
+                            number_of_elements="1"
+                            default_values="0.0"
+                            panel_widget="radviz_vertices_rotation">
+        <DoubleRangeDomain name="range" min="0" max="360" />
+        <Documentation>
+          Angle in degrees to rotate the vertices encoding the multivariate
+          attributes around the RadViz circle. Editing it in the Display
+          panel also rotates the Lens Center, so the lens keeps the same
+          points and only their colors change.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetVerticesClockwiseOrdering"
+                         name="VerticesClockwiseOrdering"
+                         number_of_elements="1"
+                         default_values="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Place the vertices clockwise if on, counter-clockwise otherwise. The
+          first vertex is at the top in both cases, before Vertices Rotation
+          is applied. When on, the vertices follow the colors of the color
+          wheel. This is kept in sync with the same-named property on the
+          connected MultiVariateToRGBA filter (see pqRadVizChartView).
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetLensVisibility"
+                         name="LensVisibility"
+                         number_of_elements="1"
+                         default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Show a lens that can be moved/resized interactively to reduce the
+          opacity of the points located outside of it.
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetOutsideLensAlpha"
+                            name="OutsideLensAlpha"
+                            number_of_elements="1"
+                            default_values="0.0">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+        <Documentation>
+          Alpha (opacity) cap applied to points located outside the lens.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetLensCenter"
+                            name="LensCenter"
+                            number_of_elements="2"
+                            default_values="0.0 0.0">
+        <Documentation>
+          Center of the lens, in normalized GBC space (unit circle centered
+          at the origin). The lens must intersect the GBC circle; the value
+          is clamped accordingly.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetLensRadius"
+                            name="LensRadius"
+                            number_of_elements="1"
+                            default_values="1.0">
+        <DoubleRangeDomain name="range" min="0" />
+        <Documentation>
+          Radius of the lens, in normalized GBC space (unit circle centered
+          at the origin). The lens must intersect the GBC circle; the value
+          is clamped accordingly.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="AddPartitionIndex"
+                         clean_command="ClearPartitionIndices"
+                         name="PartitionIndices"
+                         label="Partition Indices"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <Documentation>
+          Component indices for each partition group, with groups stored
+          contiguously. See Partition Offsets. By default (empty), all
+          components are in a single group, so that all multivariate
+          scalars are normalized together; this is equivalent to setting
+          Partition Indices to [0, 1, 2, ..., N - 1], where N is the
+          number of components of the array being processed. This is kept
+          in sync with the same-named property on the connected
+          MultiVariateToRGBA filter (see pqRadVizChartView).
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="AddPartitionOffset"
+                         clean_command="ClearPartitionOffsets"
+                         name="PartitionOffsets"
+                         label="Partition Offsets"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <Documentation>
+          For each partition group, the offset of the (last_element + 1)
+          of that group in Partition Indices, in the order the groups
+          appear in Partition Indices. See Partition Indices. By default
+          (empty), all components are in a single group, so that all
+          multivariate scalars are normalized together; this is
+          equivalent to setting Partition Offsets to [N], where N is the
+          number of components of the array being processed. This is kept
+          in sync with the same-named property on the connected
+          MultiVariateToRGBA filter (see pqRadVizChartView).
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="AddCustomRange"
+                            clean_command="ClearCustomRange"
+                            name="CustomRange"
+                            label="Custom Range"
+                            number_of_elements="0"
+                            number_of_elements_per_command="2"
+                            repeat_command="1">
+        <Documentation>
+          Custom [min, max] range used to normalize each partition group,
+          instead of the range computed from the data, interleaved as [min0,
+          max0, min1, max1, ...] in the order the groups appear in Partition
+          Indices. By default (empty), each group is normalized using its data
+          range. Otherwise, it must hold one [min, max] pair per partition
+          group. Values outside a custom range are clamped to it. This is kept
+          in sync with the same-named property on the connected
+          MultiVariateToRGBA filter (see pqRadVizChartView).
+        </Documentation>
+      </DoubleVectorProperty>
+      <PropertyGroup panel_visibility="advanced"
+                     panel_widget="PartitionEditor"
+                     label="Partitions">
+        <Documentation>
+          Groups the components of the multivariate array into one or more
+          partitions. Components within the same partition are normalized
+          together, independently of the other partitions; use the Up/Down
+          buttons to move a component between partitions, and Add/Remove
+          Separator to change how many partitions there are.
+        </Documentation>
+        <Property name="PartitionIndices" function="Indices" />
+        <Property name="PartitionOffsets" function="Offsets" />
+        <Property name="CustomRange" function="CustomRange" />
+        <Property name="SeriesVisibility" function="Components" />
+      </PropertyGroup>
+
+      <DoubleVectorProperty command="SetColor"
+                            name="Color"
+                            number_of_elements="3"
+                            default_values="1.0 1.0 1.0"
+                            panel_widget="color_selector"
+                            panel_visibility="advanced">
+        <Documentation>Set the point color used when ScalarVisibility is off.</Documentation>
+        <DoubleRangeDomain name="range" min="0 0 0" max="1 1 1" />
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetMarkerSize"
+                         name="MarkerSize"
+                         number_of_elements="1"
+                         default_values="6"
+                         panel_visibility="advanced">
+        <Documentation>Set the point marker size.</Documentation>
+        <IntRangeDomain name="range" min="1" max="20" />
+      </IntVectorProperty>
+
+      <PropertyGroup label="Series Parameters"
+                     panel_widget="SeriesEditor" >
+        <Property name="SeriesVisibility" function="SeriesVisibility" />
+        <Property name="SeriesLabel" function="SeriesLabel" />
+      </PropertyGroup>
+
+      <PropertyGroup label="RadViz">
+        <Property name="ScalarVisibility" />
+        <Property name="ColorWheelVisibility" />
+        <Property name="ColorWheelSegmentCount" />
+        <Property name="VerticesRotation" />
+        <Property name="VerticesClockwiseOrdering" />
+        <Property name="LensVisibility" />
+        <Property name="OutsideLensAlpha" />
+        <Property name="LensCenter" />
+        <Property name="LensRadius" />
+      </PropertyGroup>
+
+      <PropertyGroup label="Styling">
+        <Property name="Color" />
+        <Property name="MarkerSize" />
+      </PropertyGroup>
+
+      <SubProxy command="SetSelectionRepresentation">
+        <!--
+          SelectionRepresentation proxy is used to convey the selection to view.
+          We keep this separate as subproxy so that when the selection is
+          modified, we don't have to update the representation as well, we can
+          only update the SelectionRepresentation.
+        -->
+        <RepresentationProxy name="SelectionRepresentation"
+               class="vtkChartSelectionRepresentation"
+               processes="client|dataserver|renderserver">
+          <InputProperty command="SetInputConnection"
+                         name="SelectionInput"/>
+        </RepresentationProxy>
+      </SubProxy>
+    </RadVizRepresentationProxy>
+
+    <!-- =================================================================== -->
     <ChartRepresentationProxy class="vtkPVBoxChartRepresentation"
                                  name="BoxChartRepresentation"
                                  processes="client|dataserver|renderserver">

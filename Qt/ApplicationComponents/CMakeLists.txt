@@ -59,6 +59,7 @@ set(classes
   pqColorToolbar
   pqCommandButtonPropertyWidget
   pqCommandLineOptionsBehavior
+  pqComponentVisibilityWidget
   pqConfigureCategoriesDialog
   pqConfigureCategoriesReaction
   pqCopyReaction
@@ -138,14 +139,17 @@ set(classes
   pqModelTransformSupportBehavior
   pqMoleculePropertyWidget
   pqMultiComponentsDecorator
+  pqMultiVariateColorEditorWidget
   pqObjectPickingBehavior
   pqOMETransferFunctionsPropertyWidget
   pqOpacityTableModel
   pqOSPRayHidingDecorator
   pqQuickLaunchDialogExtended
+  pqRadVizVerticesRotationPropertyWidget
   pqPVApplicationCore
   pqParaViewBehaviors
   pqParaViewMenuBuilders
+  pqPartitionEditorWidget
   pqPauseLiveSourcePropertyWidget
   pqPersistentMainWindowStateBehavior
   pqPipelineContextMenuBehavior
@@ -274,6 +278,7 @@ set(ui_files
   Resources/UI/pqLinePropertyWidget.ui
   Resources/UI/pqMainControlsToolbar.ui
   Resources/UI/pqMoleculePropertyWidget.ui
+  Resources/UI/pqMultiVariateColorEditorWidget.ui
   Resources/UI/pqOMETransferFunctionsPropertyWidget.ui
   Resources/UI/pqOMETransferFunctionsPropertyWidgetPage.ui
   Resources/UI/pqPauseLiveSourcePropertyWidget.ui

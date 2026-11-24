@@ -124,6 +124,13 @@ private Q_SLOTS:
   void refreshComponents();
 
   /**
+   * enables the components combo-box if it has components and the
+   * representation maps scalars: with MapScalars off, colors are used
+   * directly and the component is not used.
+   */
+  void updateComponentsEnabledState();
+
+  /**
    * Called whenever the representation's color transfer function is changed.
    * We need the CTF for component selection. This has the side effect of
    * updating the component number UI to select the component used by the CTF.

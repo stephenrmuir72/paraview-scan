@@ -54,6 +54,7 @@ public:
    * \li \c data_assembly_editor: pqDataAssemblyPropertyWidget
    * \li \c selection_query : pqSelectionQueryPropertyWidget
    * \li \c file_list : pqFileListPropertyWidget
+   * \li \c radviz_vertices_rotation : pqRadVizVerticesRotationPropertyWidget
    * \li \c xy_chart_bounds : pqXYChartViewBoundsPropertyWidget
    */
   pqPropertyWidget* createWidgetForProperty(
@@ -91,6 +92,9 @@ public:
    * \li \c CheckableProperty : pqCheckableProperty
    * \li \c EqualizerPropertyWidget : pqEqualizerPropertyWidget
    * \li \c MetaDataPropertyWidget : pqMetaDataPropertyWidget
+   * \li \c MultiVariateColorEditor : pqMultiVariateColorEditorWidget
+   * \li \c PartitionEditor : pqPartitionEditorWidget
+   * \li \c ComponentVisibility : pqComponentVisibilityWidget
    */
   pqPropertyWidget* createWidgetForPropertyGroup(
     vtkSMProxy* proxy, vtkSMPropertyGroup* group, QWidget* parentWidget) override;

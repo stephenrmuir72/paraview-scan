@@ -13,7 +13,10 @@
 #include "vtkNew.h"
 #include "vtkPVXMLElement.h"
 #include "vtkSMChartSeriesSelectionDomain.h"
+#include "vtkSMDocumentation.h"
 #include "vtkSMDoubleVectorProperty.h"
+#include "vtkSMObject.h"
+#include "vtkSMProperty.h"
 #include "vtkSMPropertyGroup.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkSMProxyProperty.h"
@@ -36,7 +39,21 @@ class pqSeriesAnnotationsModel : public pqAnnotationsModel
 public:
   pqSeriesAnnotationsModel(QObject* parent = nullptr)
     : Superclass(parent)
+    , LabelColumnHeader(tr("Legend Name"))
+    , LabelColumnTooltip(tr("Set the text to use for the series in the legend"))
   {
+  }
+
+  /**
+   * Sets the text used for the LABEL column's header and tooltip. Lets
+   * representations whose "SeriesLabel" property is not used as a legend
+   * entry (e.g. RadViz, where it labels the attribute vertices) use
+   * wording that matches how the label is actually used.
+   */
+  void setLabelColumnText(const QString& header, const QString& tooltip)
+  {
+    this->LabelColumnHeader = header;
+    this->LabelColumnTooltip = tooltip;
   }
 
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override
@@ -52,8 +69,7 @@ public:
         case COLOR:
           return role == Qt::DisplayRole ? "" : tr("Set color to use for the series");
         case LABEL:
-          return role == Qt::DisplayRole ? tr("Legend Name")
-                                         : tr("Set the text to use for the series in the legend");
+          return role == Qt::DisplayRole ? this->LabelColumnHeader : this->LabelColumnTooltip;
       }
     }
 
@@ -76,6 +92,10 @@ public:
     Q_EMIT this->dataChanged(
       this->index(0, 0), this->index(this->rowCount() - 1, NUMBER_OF_COLUMNS - 1));
   }
+
+private:
+  QString LabelColumnHeader;
+  QString LabelColumnTooltip;
 };
 
 class pqSeriesEditorPropertyWidget::pqInternals
@@ -151,8 +171,24 @@ pqSeriesEditorPropertyWidget::pqSeriesEditorPropertyWidget(
   this->Internals->VTKConnector->Connect(smgroup->GetProperty("SeriesVisibility"),
     vtkCommand::DomainModifiedEvent, this, SLOT(domainModified(vtkObject*)));
 
-  if (smgroup->GetProperty("SeriesLabel"))
+  if (auto* labelProperty = smgroup->GetProperty("SeriesLabel"))
   {
+    // only a label set in the XML replaces the default header: without one,
+    // the label is generated from the property name.
+    const char* xmlLabel = labelProperty->GetXMLLabel();
+    if (xmlLabel && vtkSMObject::CreatePrettyLabel(labelProperty->GetXMLName()) != xmlLabel)
+    {
+      // overwrite the default "Legend Name" header and tooltip.
+      QString header = QCoreApplication::translate("ServerManagerXML", xmlLabel);
+      QString tooltip = header;
+      vtkSMDocumentation* documentation = labelProperty->GetDocumentation();
+      if (documentation && documentation->GetDescription())
+      {
+        tooltip = QCoreApplication::translate("ServerManagerXML", documentation->GetDescription());
+      }
+      this->Internals->Model->setLabelColumnText(header, tooltip);
+    }
+
     this->addPropertyLink(this, "presetLabel", SIGNAL(presetLabelChanged()),
       this->Internals->LookupTableProxy->GetProperty("Annotations"));
 

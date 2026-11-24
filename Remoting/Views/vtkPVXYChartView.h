@@ -94,6 +94,7 @@ public:
   void SetChartTypeToFunctionalBag() { this->SetChartType("FunctionalBag"); }
   void SetChartTypeToImage() { this->SetChartType("Image"); }
   void SetChartTypeToParallelCoordinates() { this->SetChartType("ParallelCoordinates"); }
+  void SetChartTypeToRadViz() { this->SetChartType("RadViz"); }
 
   ///@{
   /**

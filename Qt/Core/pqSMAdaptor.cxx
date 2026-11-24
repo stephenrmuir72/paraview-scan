@@ -1379,7 +1379,7 @@ void pqSMAdaptor::setMultipleElementProperty(
     }
     else if (Type == UNCHECKED)
     {
-      if (num > 0)
+      if (num > 0 || ivp->GetRepeatable())
       {
         ivp->SetUncheckedElements(ivalues, num);
       }

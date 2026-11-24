@@ -67,6 +67,7 @@ paraview_add_test_python(
   JUST_VALID NO_VALID
   ChartSwapXYAxes.py
   LockScalarRangeBackwardsCompatibility.py
+  SeparateOpacityArrayMissing.py
   SpreadSheetViewBlockNames.py
   SpreadSheetViewPartialArrays.py
   SpreadSheetViewSortByList.py
@@ -74,6 +75,20 @@ paraview_add_test_python(
   TestSurfaceLIC.py
   RenderViewOSPRayParameters.py
   )
+
+include(ParaViewFindPythonModules)
+find_python_module(numpy numpy_found)
+if (numpy_found)
+  paraview_add_test_python(
+    JUST_VALID NO_VALID
+    MapScalarsOpacityRange.py
+    )
+
+  paraview_add_test_python(
+    JUST_VALID
+    RadVizView.py
+    )
+endif ()
 
 paraview_add_test_python(
   JUST_VALID LOOSE_VALID

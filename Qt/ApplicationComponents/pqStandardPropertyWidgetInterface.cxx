@@ -20,6 +20,7 @@
 #include "pqColorPaletteSelectorWidget.h"
 #include "pqColorSelectorPropertyWidget.h"
 #include "pqCommandButtonPropertyWidget.h"
+#include "pqComponentVisibilityWidget.h"
 #include "pqCompositePropertyWidgetDecorator.h"
 #include "pqConePropertyWidget.h"
 #include "pqCoordinateFramePropertyWidget.h"
@@ -53,12 +54,15 @@
 #include "pqMoleculePropertyWidget.h"
 #include "pqMultiBlockPropertiesEditorWidget.h"
 #include "pqMultiComponentsDecorator.h"
+#include "pqMultiVariateColorEditorWidget.h"
 #include "pqOMETransferFunctionsPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
+#include "pqPartitionEditorWidget.h"
 #include "pqPauseLiveSourcePropertyWidget.h"
 #include "pqPropertyCollectionWidget.h"
 #include "pqProxyEditorPropertyWidget.h"
 #include "pqPythonCalculatorWidget.h"
+#include "pqRadVizVerticesRotationPropertyWidget.h"
 #include "pqReaderSelectionPropertyWidget.h"
 #include "pqSelectionListPropertyWidget.h"
 #include "pqSelectionQueryPropertyWidget.h"
@@ -154,6 +158,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   else if (name == "list")
   {
     return new pqListPropertyWidget(smProxy, smProperty, parentWidget);
+  }
+  else if (name == "radviz_vertices_rotation")
+  {
+    return new pqRadVizVerticesRotationPropertyWidget(smProperty, smProxy, parentWidget);
   }
   else if (name == "double_range")
   {
@@ -390,6 +398,18 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "BlockPropertiesEditor")
   {
     return new pqMultiBlockPropertiesEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "MultiVariateColorEditor")
+  {
+    return new pqMultiVariateColorEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "PartitionEditor")
+  {
+    return new pqPartitionEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "ComponentVisibility")
+  {
+    return new pqComponentVisibilityWidget(proxy, group, parentWidget);
   }
 
   // *** NOTE: When adding new types, please update the header documentation ***

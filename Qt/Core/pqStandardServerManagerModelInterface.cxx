@@ -15,6 +15,7 @@
 #include "pqPipelineFilter.h"
 #include "pqPipelineRepresentation.h"
 #include "pqPlotMatrixView.h"
+#include "pqRadVizChartView.h"
 #include "pqRenderView.h"
 #include "pqScalarBarRepresentation.h"
 #include "pqScalarsToColors.h"
@@ -106,6 +107,11 @@ inline pqProxy* CreatePQView(
     if (xmlname == "ParallelCoordinatesChartView")
     {
       return new pqParallelCoordinatesChartView(
+        group, name, vtkSMContextViewProxy::SafeDownCast(proxy), server, parent);
+    }
+    if (xmlname == "RadVizChartView")
+    {
+      return new pqRadVizChartView(
         group, name, vtkSMContextViewProxy::SafeDownCast(proxy), server, parent);
     }
     if (xmlname == "PlotMatrixView")

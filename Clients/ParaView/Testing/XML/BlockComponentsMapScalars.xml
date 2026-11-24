@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Tests that the Components combo box of a block's coloring follows the
+       representation's Map Scalars: a block whose Map Scalars is not set uses
+       the representation's, and with Map Scalars off, colors are used directly
+       and the component is not used. -->
+
+  <!-- A multiblock dataset with a block colored by the 3-component Gradient -->
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="Gradient" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="GroupDataSets" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menu_View" command="activate" arguments="MultiBlock Inspector" />
+  <pqevent object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/DataAssemblyEditor/tabWidget/qt_tabwidget_stackedwidget/hierarchyTab/hierarchy" command="setCurrent" arguments="0.0.0.0" />
+  <pqevent object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/DataAssemblyEditor/tabWidget/qt_tabwidget_stackedwidget/hierarchyTab/hierarchy" command="setSelection" arguments="0.0.0.0,0.0.0.0" />
+  <pqevent object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/BlockColorEditor/DisplayColorWidget/Variables" command="activated" arguments="Gradient" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+
+  <!-- The block's Components combo box is disabled while Map Scalars is off -->
+  <pqcheck object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/BlockColorEditor/DisplayColorWidget/Components" property="enabled" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/SearchBox/AdvancedButton" command="set_boolean" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DisplayFrame/ProxyPanel/MapScalars/CheckBox" command="set_boolean" arguments="false" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/BlockColorEditor/DisplayColorWidget/Components" property="enabled" arguments="false" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DisplayFrame/ProxyPanel/MapScalars/CheckBox" command="set_boolean" arguments="true" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/multiBlockInspectorDock/multiBlockInspectorPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/container/1pqProxyWidget0/BlockColorEditor/DisplayColorWidget/Components" property="enabled" arguments="true" />
+</pqevents>

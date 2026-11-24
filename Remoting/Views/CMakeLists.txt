@@ -81,6 +81,7 @@ set(classes
   vtkPVPlotTime
   vtkPVProcessWindow
   vtkPVProminentValuesInformation
+  vtkPVRadVizRepresentation
   vtkPVRayCastPickingHelper
   vtkPVRenderView
   vtkPVRenderViewDataDeliveryManager
@@ -137,6 +138,7 @@ set(classes
   vtkSMParaViewPipelineControllerWithRendering
   vtkSMPlotMatrixViewProxy
   vtkSMPlotlyJsonExtractWriterProxy
+  vtkSMRadVizRepresentationProxy
   vtkSMRangedTransferFunctionDomain
   vtkSMRecolorableImageExtractWriterProxy
   vtkSMRenderViewProxy

@@ -42,7 +42,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace
@@ -63,6 +65,31 @@ bool supportedAssociation(int assoc)
       break;
   }
   return false;
+}
+
+// Returns the representation's MapScalars, true if it has none.
+bool MapScalars(vtkSMProxy* proxy)
+{
+  return !proxy->GetProperty("MapScalars") || vtkSMColorMapEditorHelper::GetMapScalars(proxy);
+}
+
+// Returns the block's MapScalars, set on it, inherited from a parent block or
+// from the representation.
+bool BlockMapScalars(vtkSMProxy* proxy, const std::string& blockSelector)
+{
+  using State = vtkSMColorMapEditorHelper::BlockPropertyState;
+  const auto blockProperty =
+    vtkSMColorMapEditorHelper::HasBlockProperty(proxy, blockSelector, "BlockMapScalars");
+  if (blockProperty.second == State::Set || blockProperty.second == State::BlockInherited)
+  {
+    const int mapScalars =
+      vtkSMColorMapEditorHelper::GetBlockMapScalars(proxy, blockProperty.first);
+    if (vtkSMColorMapEditorHelper::IsMapScalarsValid(mapScalars))
+    {
+      return mapScalars != 0;
+    }
+  }
+  return ::MapScalars(proxy);
 }
 
 } // end anon namespace
@@ -247,6 +274,9 @@ public:
 
   unsigned long DomainObserverId = 0;
 
+  // MapScalars and, in Blocks mode, BlockMapScalars, with their observer ids.
+  std::vector<std::pair<vtkWeakPointer<vtkSMProperty>, unsigned long>> MapScalarsObservers;
+
   int OutOfDomainEntryIndex;
   int OutOfDomainComponentEntryIndex;
   QSet<QString> NoSolidColor;
@@ -382,6 +412,14 @@ void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr, int sel
     this->Internals->DomainObserverId = 0;
   }
   this->Internals->Domain = nullptr;
+  for (auto& observer : this->Internals->MapScalarsObservers)
+  {
+    if (observer.first)
+    {
+      observer.first->RemoveObserver(observer.second);
+    }
+  }
+  this->Internals->MapScalarsObservers.clear();
   this->Variables->clear();
   this->Components->clear();
   this->Internals->OutOfDomainEntryIndex = -1;
@@ -417,6 +455,18 @@ void pqDisplayColorWidget::setRepresentation(pqDataRepresentation* repr, int sel
   this->Internals->Domain = domain;
   this->Internals->DomainObserverId = pqCoreUtilities::connect(
     colorArrayProp, vtkCommand::DomainModifiedEvent, this, SLOT(refreshColorArrayNames()));
+  const bool forBlocks = this->Internals->ColorMapEditorHelper->GetSelectedPropertiesType() ==
+    vtkSMColorMapEditorHelper::SelectedPropertiesTypes::Blocks;
+  // blocks set to -1 use the representation's MapScalars: observe both.
+  for (const char* name : { "MapScalars", forBlocks ? "BlockMapScalars" : nullptr })
+  {
+    if (vtkSMProperty* property = name ? proxy->GetProperty(name) : nullptr)
+    {
+      this->Internals->MapScalarsObservers.emplace_back(property,
+        pqCoreUtilities::connect(
+          property, vtkCommand::ModifiedEvent, this, SLOT(updateComponentsEnabledState())));
+    }
+  }
   this->refreshColorArrayNames();
 
   // monitor LUT changes. we need to link the component number on the LUT's property.
@@ -776,7 +826,7 @@ void pqDisplayColorWidget::refreshComponents()
     componentNames.push_back(arrayInfo->GetComponentName(comp));
     this->Components->addItem(componentNames.back(), comp);
   }
-  this->Components->setEnabled(this->Components->count() > 0);
+  this->updateComponentsEnabledState();
 
   /// restore component choice if possible.
   if (this->Internals->PreviouslySelectedComponentNumber.find(arrayName) !=
@@ -791,6 +841,31 @@ void pqDisplayColorWidget::refreshComponents()
   this->Internals->updateComponentNames(arrayName, componentNames);
 
   this->Components->blockSignals(prev);
+}
+
+//-----------------------------------------------------------------------------
+void pqDisplayColorWidget::updateComponentsEnabledState()
+{
+  // with MapScalars off, colors are used directly so the component is not used.
+  bool mapScalars = true;
+  vtkSMProxy* proxy = this->Representation ? this->Representation->getProxy() : nullptr;
+  if (proxy && !this->Internals->MapScalarsObservers.empty())
+  {
+    if (this->Internals->ColorMapEditorHelper->GetSelectedPropertiesType() ==
+      vtkSMColorMapEditorHelper::SelectedPropertiesTypes::Blocks)
+    {
+      const std::vector<std::string> selectors =
+        vtkSMColorMapEditorHelper::GetSelectedBlockSelectors(proxy);
+      mapScalars = selectors.empty() ||
+        std::any_of(selectors.begin(), selectors.end(),
+          [proxy](const std::string& selector) { return ::BlockMapScalars(proxy, selector); });
+    }
+    else
+    {
+      mapScalars = ::MapScalars(proxy);
+    }
+  }
+  this->Components->setEnabled(mapScalars && this->Components->count() > 0);
 }
 
 //-----------------------------------------------------------------------------

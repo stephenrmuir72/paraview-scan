@@ -1715,6 +1715,240 @@
 
       <!-- End ParticlePathLines -->
     </SourceProxy>
-
+    <SourceProxy class="vtkMultiVariateToRGBA"
+                 label="MultiVariate To RGBA"
+                 name="MultiVariateToRGBA">
+      <Documentation long_help="Multi-variate to RGBA data"
+                     short_help="Multi-variate to RGBA">Converts a multi-variate to RGBA data</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain name="multivariate_array"
+                          number_of_components="3,4,5,6,7"
+                          data_type="vtkDataSet" />
+        <Documentation>This property specifies the input to the
+        filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            default_values="0"
+                            element_types="0 0 0 0 2"
+                            label="MultiVariate Array"
+                            name="MultiVariateArray"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         input_domain_name="multivariate_array"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>
+Select the input array containing the multivariate data to map to
+color and opacity. The array must have between 3 and 7 components.
+        </Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="AddVisibleVariableIndex"
+                         clean_command="ResetVisibleVariableIndices"
+                         name="VisibleComponents"
+                         label="Visible Components"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <Documentation>
+          Indices of the components of the MultiVariate Array to process.
+          By default (empty), all components are processed. Partition
+          Indices refer to the visible components only, so changing the
+          visible components in the panel clears the partition.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetStoreRGBA"
+                         default_values="1"
+                         number_of_elements="1"
+                         name="StoreRGBA"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>Store color and opacity array (RGBA).</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetStoreGBC"
+                         default_values="0"
+                         number_of_elements="1"
+                         name="StoreGBC"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>Store generalized barycentric coordinates array (GBC).</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetStoreVertices"
+                         default_values="0"
+                         number_of_elements="1"
+                         name="StoreVertices"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>Store the positions of the vertices encoding the components as a field array (vertices).</Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetVerticesRotation"
+                         default_values="0"
+                         name="VerticesRotation"
+                         number_of_elements="1">
+        <Documentation>
+          Angle in degrees to rotate the vertices encoding the multivariate attributes. Default is 0 degrees. This angle affects the GBC positions and the computed colors. The rotation will be clamped to [0, 360).
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetVerticesClockwiseOrdering"
+                         default_values="1"
+                         name="VerticesClockwiseOrdering"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Place the vertices clockwise if on, counter-clockwise otherwise. The
+          first vertex is at the top in both cases, before Vertices Rotation
+          is applied. When on, the vertices follow the colors of the color
+          wheel, so the first component is red.
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetLensCenter"
+                         default_values="0 0"
+                         name="LensCenter"
+                         number_of_elements="2">
+        <Documentation>
+          Center of the lens in GBC space (unit circle centered at the origin).
+          The lens must intersect the GBC circle.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetLensRadius"
+                         default_values="1"
+                         name="LensRadius"
+                         number_of_elements="1">
+        <Documentation>
+          Radius of the lens in GBC space (unit circle centered at the origin).
+          The lens must intersect the GBC circle.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetInvertLens"
+                         default_values="0"
+                         name="InvertLens"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Make the points inside the lens transparent instead of the points
+          outside of it.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="PartitionNumberOfComponents"
+                         is_internal="1"
+                         number_of_elements="1"
+                         default_values="0">
+        <NumberOfComponentsDomain name="comps">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <Property function="ArraySelection"
+                      name="MultiVariateArray" />
+          </RequiredProperties>
+        </NumberOfComponentsDomain>
+        <Documentation>
+          Internal. Hosts the NumberOfComponentsDomain used by the
+          PartitionEditor widget (see the Partitions property group below)
+          to find the number of components of the array being processed,
+          without affecting how PartitionIndices/PartitionOffsets
+          themselves are classified by the property-widget machinery. Not
+          meant to be set directly.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="AddPartitionIndex"
+                         clean_command="ClearPartitionIndices"
+                         name="PartitionIndices"
+                         label="Partition Indices"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <Documentation>
+          Component indices for each partition group, with groups stored
+          contiguously. See Partition Offsets. By default (empty), all
+          components are in a single group, so that all multivariate
+          scalars are normalized together; this is equivalent to setting
+          Partition Indices to [0, 1, 2, ..., N - 1], where N is the
+          number of components of the array being processed. For example,
+          to normalize indices [0, 1, 2] together and [3, 4] together, set
+          Partition Indices to [0, 1, 2, 3, 4] and Partition Offsets to
+          [3, 5].
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="AddPartitionOffset"
+                         clean_command="ClearPartitionOffsets"
+                         name="PartitionOffsets"
+                         label="Partition Offsets"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <Documentation>
+          For each partition group, the offset of the (last_element + 1)
+          of that group in Partition Indices, in the order the groups
+          appear in Partition Indices. See Partition Indices. By default
+          (empty), all components are in a single group, so that all
+          multivariate scalars are normalized together; this is equivalent
+          to setting Partition Offsets to [N], where N is the number of
+          components of the array being processed.
+        </Documentation>
+      </IntVectorProperty>
+      <PropertyGroup panel_visibility="default"
+                     panel_widget="MultiVariateColorEditor"
+                     label="Coloring" >
+        <Property name="VerticesRotation" />
+        <Property name="LensCenter" />
+        <Property name="LensRadius" />
+        <Property name="InvertLens" />
+      </PropertyGroup>
+      <DoubleVectorProperty command="AddCustomRange"
+                            clean_command="ClearCustomRange"
+                            name="CustomRange"
+                            label="Custom Range"
+                            number_of_elements="0"
+                            number_of_elements_per_command="2"
+                            repeat_command="1">
+        <Documentation>
+          Custom [min, max] range used to normalize each partition group,
+          instead of the range computed from the data, interleaved as [min0,
+          max0, min1, max1, ...] in the order the groups appear in Partition
+          Indices. By default (empty), each group is normalized using its data
+          range. Otherwise, it must hold one [min, max] pair per partition
+          group. Values outside a custom range are clamped to it.
+        </Documentation>
+      </DoubleVectorProperty>
+      <PropertyGroup panel_visibility="advanced"
+                     panel_widget="PartitionEditor"
+                     label="Partitions">
+        <Documentation>
+          Groups the components of the multivariate array into one or more
+          partitions. Components within the same partition are normalized
+          together, independently of the other partitions; use the Up/Down
+          buttons to move a component between partitions, and Add/Remove
+          Separator to change how many partitions there are.
+        </Documentation>
+        <Property name="PartitionIndices" function="Indices" />
+        <Property name="PartitionOffsets" function="Offsets" />
+        <Property name="CustomRange" function="CustomRange" />
+        <Property name="PartitionNumberOfComponents" function="Components" />
+        <Property name="VisibleComponents" function="VisibleComponents" />
+      </PropertyGroup>
+      <!-- after Partitions: VisibleComponents shows in the last group listing it -->
+      <PropertyGroup panel_visibility="default"
+                     panel_widget="ComponentVisibility"
+                     label="Components">
+        <Documentation>
+          Check the components of the MultiVariate Array to process.
+        </Documentation>
+        <Property name="VisibleComponents" function="VisibleComponents" />
+        <Property name="PartitionNumberOfComponents" function="Components" />
+      </PropertyGroup>
+      <!-- End of MultiVariateToRGBA -->
+    </SourceProxy>
   </ProxyGroup>
 </ServerManagerConfiguration>

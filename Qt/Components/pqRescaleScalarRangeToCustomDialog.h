@@ -69,6 +69,11 @@ public:
    */
   bool doLock() const;
 
+  /**
+   * Show or hide the AutomaticRescaling checkbox
+   */
+  void showLockControl(bool show);
+
 Q_SIGNALS:
   /**
    * Fired when the user wants to apply his changes.
