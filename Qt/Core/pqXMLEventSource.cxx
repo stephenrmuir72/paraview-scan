@@ -20,6 +20,17 @@
 #include "vtkProcessModule.h"
 #include "vtkSmartPointer.h"
 
+namespace
+{
+// Reports a pqcompareview or pqcomparetile whose widget cannot be found.
+void reportMissingWidget(vtkPVXMLElement* elem)
+{
+  qCritical() << qUtf8Printable(
+    QString("In %1 'object=%2':\n%3")
+      .arg(elem->GetName(), elem->GetAttribute("object"), pqObjectNaming::lastErrorMessage()));
+}
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // pqXMLEventSource::pqImplementation
 
@@ -124,6 +135,7 @@ int pqXMLEventSource::getNextEvent(
     QWidget* widget = qobject_cast<QWidget*>(pqObjectNaming::GetObject(widgetName));
     if (!widget)
     {
+      ::reportMissingWidget(elem);
       return FAILURE;
     }
 
@@ -217,6 +229,7 @@ int pqXMLEventSource::getNextEvent(
       qobject_cast<QWidget*>(pqObjectNaming::GetObject(elem->GetAttribute("object")));
     if (!widget)
     {
+      ::reportMissingWidget(elem);
       return FAILURE;
     }
 
