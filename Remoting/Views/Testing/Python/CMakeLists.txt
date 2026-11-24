@@ -66,6 +66,7 @@ endif()
 paraview_add_test_python(
   JUST_VALID NO_VALID
   ChartSwapXYAxes.py
+  CoincidentTopologyPolygonOffset.py
   LockScalarRangeBackwardsCompatibility.py
   SpreadSheetViewBlockNames.py
   SpreadSheetViewPartialArrays.py

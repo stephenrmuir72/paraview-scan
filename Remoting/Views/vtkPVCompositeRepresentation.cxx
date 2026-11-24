@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "vtkPVCompositeRepresentation.h"
 
+#include "vtkDataObject.h"
 #include "vtkGarbageCollector.h"
+#include "vtkGeometryRepresentation.h"
 #include "vtkInformation.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVGridAxes3DRepresentation.h"
+#include "vtkPVView.h"
 #include "vtkPolarAxesRepresentation.h"
 #include "vtkSelectionRepresentation.h"
 #include "vtkView.h"
@@ -56,6 +59,43 @@ void vtkPVCompositeRepresentation::SetSelectionVisibility(bool visible)
 {
   this->SelectionVisibility = visible;
   this->SelectionRepresentation->SetVisibility(this->GetVisibility() && visible);
+  this->UpdateCoincidentOffsetForSelectionOverlay();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::SetActiveRepresentation(const char* key)
+{
+  this->Superclass::SetActiveRepresentation(key);
+  this->UpdateCoincidentOffsetForSelectionOverlay();
+}
+
+//----------------------------------------------------------------------------
+int vtkPVCompositeRepresentation::ProcessViewRequest(
+  vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo)
+{
+  int retVal = this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo);
+  if (request_type == vtkPVView::REQUEST_RENDER())
+  {
+    this->UpdateCoincidentOffsetForSelectionOverlay();
+  }
+  return retVal;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVCompositeRepresentation::UpdateCoincidentOffsetForSelectionOverlay()
+{
+  vtkDataObject* data = this->SelectionRepresentation->GetRenderedDataObject(0);
+  this->HasNonEmptySelection = data &&
+    (data->GetNumberOfElements(vtkDataObject::POINT) > 0 ||
+      data->GetNumberOfElements(vtkDataObject::CELL) > 0);
+
+  if (auto* surfRepr = vtkGeometryRepresentation::SafeDownCast(this->GetActiveRepresentation()))
+  {
+    const bool needSlopeOffset =
+      this->HasNonEmptySelection && this->SelectionRepresentation->GetVisibility();
+    surfRepr->SetSelectionCoincidentTopologyPolygonOffsetParameters(
+      needSlopeOffset ? 1.0 : 0.0, 0.0);
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -265,6 +265,35 @@ public:
   ///@}
 
   /**
+   * Pass the factor and units to the mappers. This is the combined
+   * (user + selection-overlay) offset actually applied to the mappers; see
+   * SetUserRelativeCoincidentTopologyPolygonOffsetParameters and
+   * SetSelectionCoincidentTopologyPolygonOffsetParameters below.
+   */
+  virtual void SetRelativeCoincidentTopologyPolygonOffsetParameters(double factor, double units);
+
+  /**
+   * Set an additional user-controlled (factor, units) coincident-topology
+   * polygon offset for this representation's surface, combined additively
+   * with the offset applied automatically to stay behind the active
+   * selection overlay (see SetSelectionCoincidentTopologyPolygonOffsetParameters).
+   * Exposed as a representation property so users can manually resolve
+   * z-fighting against a representation that isn't automatically detected,
+   * e.g. a separately-added Feature Edges representation sharing the same
+   * input.
+   */
+  virtual void SetUserRelativeCoincidentTopologyPolygonOffsetParameters(
+    double factor, double units);
+
+  /**
+   * Set the (factor, units) coincident-topology polygon offset needed to
+   * keep this surface behind the active selection overlay, if any. Combined
+   * additively with the user-controlled offset above. For use by
+   * vtkPVCompositeRepresentation only.
+   */
+  virtual void SetSelectionCoincidentTopologyPolygonOffsetParameters(double factor, double units);
+
+  /**
    * Sets the selection used by the mapper.
    */
   virtual void SetSelection(vtkSelection* selection);
@@ -553,6 +582,11 @@ protected:
   vtkPiecewiseFunction* PWF;
 
   bool UseDataPartitions;
+
+  double UserCoincidentTopologyPolygonOffsetFactor = 0.0;
+  double UserCoincidentTopologyPolygonOffsetUnits = 0.0;
+  double SelectionCoincidentTopologyPolygonOffsetFactor = 0.0;
+  double SelectionCoincidentTopologyPolygonOffsetUnits = 0.0;
 
   bool UseShaderReplacements;
   std::string ShaderReplacementsString;

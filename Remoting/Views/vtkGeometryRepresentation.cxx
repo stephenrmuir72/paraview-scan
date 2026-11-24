@@ -1260,6 +1260,36 @@ void vtkGeometryRepresentation::SetSelection(vtkSelection* selection)
 }
 
 //----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetRelativeCoincidentTopologyPolygonOffsetParameters(
+  double factor, double units)
+{
+  this->Mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+  this->LODMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetUserRelativeCoincidentTopologyPolygonOffsetParameters(
+  double factor, double units)
+{
+  this->UserCoincidentTopologyPolygonOffsetFactor = factor;
+  this->UserCoincidentTopologyPolygonOffsetUnits = units;
+  this->SetRelativeCoincidentTopologyPolygonOffsetParameters(
+    factor + this->SelectionCoincidentTopologyPolygonOffsetFactor,
+    units + this->SelectionCoincidentTopologyPolygonOffsetUnits);
+}
+
+//----------------------------------------------------------------------------
+void vtkGeometryRepresentation::SetSelectionCoincidentTopologyPolygonOffsetParameters(
+  double factor, double units)
+{
+  this->SelectionCoincidentTopologyPolygonOffsetFactor = factor;
+  this->SelectionCoincidentTopologyPolygonOffsetUnits = units;
+  this->SetRelativeCoincidentTopologyPolygonOffsetParameters(
+    factor + this->UserCoincidentTopologyPolygonOffsetFactor,
+    units + this->UserCoincidentTopologyPolygonOffsetUnits);
+}
+
+//----------------------------------------------------------------------------
 void vtkGeometryRepresentation::SetTexture(vtkTexture* val)
 {
   this->Actor->SetTexture(val);

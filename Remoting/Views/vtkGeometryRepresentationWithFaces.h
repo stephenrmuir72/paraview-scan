@@ -57,6 +57,11 @@ public:
   void SetBackfaceDiffuseColor(double r, double g, double b);
   void SetBackfaceOpacity(double val);
 
+  /**
+   * Overridden to also send to the backface mapper.
+   */
+  void SetRelativeCoincidentTopologyPolygonOffsetParameters(double factor, double units) override;
+
 protected:
   vtkGeometryRepresentationWithFaces();
   ~vtkGeometryRepresentationWithFaces() override;
