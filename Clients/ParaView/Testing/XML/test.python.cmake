@@ -5,6 +5,7 @@ list(APPEND TESTS_WITHOUT_BASELINES
   FullNotation.xml
   IconBrowser.xml
   MacroEditor.xml
+  MultiVariateUndoRedo.xml
   ProgrammableSourcePythonEditorLink.xml
   PythonDefaultLoadState.xml
   PythonDefaultSaveState.xml
@@ -67,6 +68,9 @@ set(SaveLoadStateSelectionPython_DISABLE_CRS TRUE)
 set (AutoSaveState_FORCE_SERIAL TRUE) # since this modifies settings
 
 list(APPEND TESTS_WITH_INLINE_COMPARES
+  MultiVariateInvertLens.xml
+  RadVizCellData.xml
+  RadVizComponentVisibility.xml
   RestoreArrayDefaultTransferFunction.xml
   RestoreDefaultTransferFunction.xml
   SelectCellsTrace.xml
@@ -77,6 +81,13 @@ list(APPEND TESTS_WITH_INLINE_COMPARES
   )
 set(SelectCellsTrace_DISABLE_CRS TRUE)
 set(SelectPointsTrace_DISABLE_CRS TRUE)
+# The RadViz view renders on the client: a render server adds nothing to CS mode
+set(MultiVariateInvertLens_DISABLE_CRS TRUE)
+set(MultiVariateUndoRedo_DISABLE_CRS TRUE)
+set(RadVizCellData_DISABLE_CRS TRUE)
+set(RadVizComponentVisibility_DISABLE_CRS TRUE)
+# Only the client's Qt logic is tested: the client-server mode adds nothing
+set(MultiVariateUndoRedo_DISABLE_CS TRUE)
 
 # Check that matplotlib is available
 include(ParaViewFindPythonModules)

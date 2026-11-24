@@ -92,6 +92,7 @@ public:
    * \li \c CheckableProperty : pqCheckableProperty
    * \li \c EqualizerPropertyWidget : pqEqualizerPropertyWidget
    * \li \c MetaDataPropertyWidget : pqMetaDataPropertyWidget
+   * \li \c MultiVariateColorEditor : pqMultiVariateColorEditorWidget
    * \li \c PartitionEditor : pqPartitionEditorWidget
    * \li \c ComponentVisibility : pqComponentVisibilityWidget
    */

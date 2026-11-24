@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Tests reloading a state with a RadViz view connected to a
+       MultiVariateToRGBA filter: the view keeps a single filter annotation
+       in its name, reconnects to the filter on its own, and is reused by
+       Show RadViz instead of a new view being created. -->
+
+  <!-- Wavelet, Gradient, MultiVariateToRGBA and Show RadViz -->
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="Gradient" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="MultiVariateToRGBA" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/ShowRadViz" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1 (MultiVariateToRGBA1)&lt;/u&gt;&lt;/b&gt;" />
+
+  <!-- Save the state, delete everything and load the state -->
+  <pqevent object="pqClientMainWindow/menubar/menu_File" command="activate" arguments="actionFileSaveServerState" />
+  <pqevent object="pqClientMainWindow/FileSaveServerStateDialog" command="filesSelected" arguments="$PARAVIEW_TEST_ROOT/RadVizStateReload.pvsm" />
+  <pqevent object="pqClientMainWindow/menubar/menu_Edit" command="activate" arguments="actionDelete_All" />
+  <pqevent object="pqClientMainWindow/menubar/menu_File" command="activate" arguments="actionFileLoadServerState" />
+  <pqevent object="pqClientMainWindow/FileLoadServerStateDialog" command="filesSelected" arguments="$PARAVIEW_TEST_ROOT/RadVizStateReload.pvsm" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+
+  <!-- The view keeps one filter annotation -->
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="RadVizView1 (MultiVariateToRGBA1)" />
+
+  <!-- The view reconnects to the filter: a lens drag, done before the
+       filter's panel exists, highlights Apply once the filter is selected -->
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mousePress" arguments="(0.5,0.5,1,1,0)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mouseMove" arguments="(0.6,0.4,1,1,0)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mouseRelease" arguments="(0.6,0.4,1,0,0)" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/0|0" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- With the render view active, Show RadViz makes the restored view active
+       instead of creating a new one -->
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.1/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mousePress" arguments="(0.5,0.5,1,1,0)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.1/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mouseRelease" arguments="(0.5,0.5,1,0,0)" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="RadVizView1 (MultiVariateToRGBA1)" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/ShowRadViz" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1 (MultiVariateToRGBA1)&lt;/u&gt;&lt;/b&gt;" />
+
+  <!-- Compare the restored RadViz view, with the moved lens -->
+  <pqcompareview object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport" baseline="$PARAVIEW_DATA_ROOT/Clients/ParaView/Testing/Data/Baseline/RadVizStateReload.png" width="300" height="300" />
+</pqevents>

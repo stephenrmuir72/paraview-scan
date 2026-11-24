@@ -629,6 +629,8 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorSelection-SelectElementBlocks.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorSelection-HideBlock1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiBlockInspectorWithoutSelectOnClickSetting.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiVariateInvertLensOff.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultiVariateInvertLensOn.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/MultipleColorOnSelectionA.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/NestedViews.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/NestedViews_1.png}"
@@ -692,6 +694,19 @@ ExternalData_Expand_Arguments(ParaViewData _
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotArea.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotArea_1.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/QuartilePlotLines.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizCellData.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizComponentVisibilityHidden.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizComponentVisibilityPreview.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizComponentVisibilityReset.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizComponentVisibilityShown.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizLensRotationDisplay.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizLensRotationDrag.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizLensRotationFilter.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizShowOptions.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizStateReload.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizViewSync.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizViewSyncClockwise.png}"
+  "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RadVizViewSyncCounterClockwise.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RandomAttributesHTGScalars.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RandomAttributesHTGVectors.png}"
   "DATA{${CMAKE_CURRENT_SOURCE_DIR}/../Data/Baseline/RandomHyperTreeGridSourceA.png}"
@@ -1128,6 +1143,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   QuickLaunchCreateProxy.xml
   QuickLaunchNavigation.xml
   QuickLaunchRequest.xml
+  RadVizDisconnect.xml
   ReadFLUENTCFFFaces.xml
   ReflectBackwardCompat.xml
   ReloadCGNSFile.xml
@@ -1271,6 +1287,10 @@ list (APPEND TESTS_WITH_INLINE_COMPARES
   PreviewFontScaling.xml
   PropertyContextMenu.xml
   QuartilePlot.xml
+  RadVizShowOptions.xml
+  RadVizLensRotation.xml
+  RadVizStateReload.xml
+  RadVizViewSync.xml
   RandomHyperTreeGridSource.xml
   ReadPartitionedCGNS.xml
   ReadCGNSBCDataset.xml
@@ -1973,7 +1993,16 @@ endif ()
 # See https://gitlab.kitware.com/paraview/paraview/-/work_items/23448
 set(HyperTreeGridSurfaceBlocks_DISABLE_CRS TRUE)
 
+# The RadViz view renders on the client: a render server adds nothing to CS mode
 set(BlockComponentsMapScalars_DISABLE_CRS TRUE)
+set(RadVizDisconnect_DISABLE_CRS TRUE)
+set(RadVizLensRotation_DISABLE_CRS TRUE)
+set(RadVizShowOptions_DISABLE_CRS TRUE)
+set(RadVizStateReload_DISABLE_CRS TRUE)
+set(RadVizViewSync_DISABLE_CRS TRUE)
+# Only the client's Qt logic is tested: the client-server mode adds nothing
+set(RadVizDisconnect_DISABLE_CS TRUE)
+set(RadVizLensRotation_DISABLE_CS TRUE)
 
 # Selection is not available in CRS mode
 set(BlockContextMenu_DISABLE_CRS TRUE)

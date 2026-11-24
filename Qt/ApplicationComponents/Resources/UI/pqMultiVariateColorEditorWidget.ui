@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>MultiVariateColorEditorWidget</class>
+ <widget class="QWidget" name="MultiVariateColorEditorWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>262</width>
+    <height>110</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <layout class="QGridLayout" name="mainLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="VerticesRotationLabel">
+     <property name="text">
+      <string>Vertices Rotation</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="2">
+    <widget class="QLineEdit" name="VerticesRotation">
+     <property name="toolTip">
+      <string>Angle in degrees to rotate the vertices encoding the multivariate attributes.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="LensCenterLabel">
+     <property name="text">
+      <string>Lens Center</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="LensCenterX">
+     <property name="toolTip">
+      <string>X coordinate of the lens center in GBC space (unit circle centered at the origin).</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLineEdit" name="LensCenterY">
+     <property name="toolTip">
+      <string>Y coordinate of the lens center in GBC space (unit circle centered at the origin).</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="LensRadiusLabel">
+     <property name="text">
+      <string>Lens Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="2">
+    <widget class="QLineEdit" name="LensRadius">
+     <property name="toolTip">
+      <string>Radius of the lens in GBC space (unit circle centered at the origin). The lens must intersect the GBC circle.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="InvertLens">
+     <property name="text">
+      <string>Invert Lens</string>
+     </property>
+     <property name="toolTip">
+      <string>Make the points inside the lens transparent instead of the points outside of it.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QPushButton" name="ShowRadViz">
+     <property name="text">
+      <string>Show RadViz</string>
+     </property>
+     <property name="toolTip">
+      <string>Show an interactive RadViz chart to edit the vertices rotation and lens center and radius.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="2">
+    <widget class="QCheckBox" name="Downsample">
+     <property name="text">
+      <string>Downsample</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Downsample the input to this filter onto a small image before showing it in the RadViz view. When unchecked, the RadViz view shows this filter's output directly, unresampled.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="3">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

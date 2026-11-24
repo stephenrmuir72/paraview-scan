@@ -54,6 +54,7 @@
 #include "pqMoleculePropertyWidget.h"
 #include "pqMultiBlockPropertiesEditorWidget.h"
 #include "pqMultiComponentsDecorator.h"
+#include "pqMultiVariateColorEditorWidget.h"
 #include "pqOMETransferFunctionsPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
 #include "pqPartitionEditorWidget.h"
@@ -397,6 +398,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "BlockPropertiesEditor")
   {
     return new pqMultiBlockPropertiesEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "MultiVariateColorEditor")
+  {
+    return new pqMultiVariateColorEditorWidget(proxy, group, parentWidget);
   }
   else if (panelWidget == "PartitionEditor")
   {

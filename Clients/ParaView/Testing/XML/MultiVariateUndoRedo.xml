@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Tests undo and redo of the MultiVariateToRGBA properties set by its
+       custom widgets: the lens in the Coloring section, the partition and
+       the visible components, and the array. After each undo or redo, the
+       widgets show the restored values and Apply is not highlighted. -->
+
+  <!-- A Wavelet with a 4-component 'mv' array, a 5-component 'mv5' array
+       and MultiVariateToRGBA -->
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="PythonCalculator" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/Expression/ExpressionWidget/OneLiner" command="set_string" arguments="numpy.hstack((RTData[:,None], (300 - RTData)[:,None], (150 + 100 * sin(RTData / 20))[:,None], (150 + 100 * cos(RTData / 20))[:,None]))" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ArrayName/ArrayName" command="set_string" arguments="mv" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="PythonCalculator" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/Expression/ExpressionWidget/OneLiner" command="set_string" arguments="numpy.column_stack((mv, RTData))" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ArrayName/ArrayName" command="set_string" arguments="mv5" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="MultiVariateToRGBA" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateArray/ComboBox" command="activated" arguments="mv" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/SearchBox/AdvancedButton" command="set_boolean" arguments="true" />
+  <!-- 4 components and the separator ending the group: 0 1 2 3 | -->
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="5" />
+
+  <!-- First Apply: a small inverted lens and two groups: 0 1 | 2 3 | -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/LensRadius" command="set_string" arguments="0.3" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/InvertLens" command="set_boolean" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" command="setCurrent" arguments="1.0" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/AddSeparator" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+
+  <!-- Second Apply: hide component 3, which clears the partition: 0 1 2 | -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ComponentVisibility/ComponentList" command="setCheckState" arguments="3.0,0" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="4" />
+
+  <!-- Undo the second Apply: component 3 and the two groups are back -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionUndo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/InvertLens" property="checked" arguments="true" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- Undo the first Apply: the default lens and a single group -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionUndo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="5" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/LensRadius" property="text" arguments="1" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/InvertLens" property="checked" arguments="false" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- Redo the first Apply -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionRedo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/LensRadius" property="text" arguments="0.3" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/InvertLens" property="checked" arguments="true" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- Redo the second Apply -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionRedo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="4" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- Third Apply: the 'mv5' array, which shows all its components: 0 1 2 3 4 | -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateArray/ComboBox" command="activated" arguments="mv5" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+
+  <!-- Undo the third Apply: 'mv' with component 3 hidden -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionUndo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="4" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+
+  <!-- Redo the third Apply -->
+  <pqevent object="pqClientMainWindow/MainControlsToolbar/actionRedo" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="200" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+</pqevents>

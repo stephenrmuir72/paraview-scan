@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Tests the visible components of MultiVariateToRGBA and their sync with
+       the RadViz view: hiding a series in the view stages the visible
+       components on the filter and clears the partition, the view only shows
+       components of the multivariate array, and checking a component in the
+       filter's Components list previews it in the view before Apply. -->
+
+  <!-- A Wavelet with a 4-component 'mv' array, MultiVariateToRGBA and Show RadViz -->
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="PythonCalculator" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/Expression/ExpressionWidget/OneLiner" command="set_string" arguments="numpy.hstack((RTData[:,None], (300 - RTData)[:,None], (150 + 100 * sin(RTData / 20))[:,None], (150 + 100 * cos(RTData / 20))[:,None]))" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ArrayName/ArrayName" command="set_string" arguments="mv" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="MultiVariateToRGBA" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/ShowRadViz" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+
+  <!-- Partition the filter's components: 0 1 | 2 3 | -->
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/0|0" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/SearchBox/AdvancedButton" command="set_boolean" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" command="setCurrent" arguments="1.0" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/AddSeparator" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+
+  <!-- Unchecking a component in the filter's Components list previews it in
+       the view before Apply, with the cleared partition; Reset restores both -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ComponentVisibility/ComponentList" command="setCheckState" arguments="3.0,0" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="true" />
+  <pqcompareview object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport" baseline="$PARAVIEW_DATA_ROOT/Clients/ParaView/Testing/Data/Baseline/RadVizComponentVisibilityPreview.png" width="300" height="300" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Reset" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="6" />
+  <pqcompareview object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport" baseline="$PARAVIEW_DATA_ROOT/Clients/ParaView/Testing/Data/Baseline/RadVizComponentVisibilityReset.png" width="300" height="300" />
+
+  <!-- In the RadViz view's Series Parameters, hide mv_1 and show RTData, which
+       is not a component of 'mv' and is hidden again: Apply is highlighted -->
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mousePress" arguments="(0.03,0.03,1,1,0)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mouseRelease" arguments="(0.03,0.03,1,0,0)" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/1|0" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DisplayFrame/ProxyPanel/SeriesEditor/SeriesTable/AnnotationsTable" command="setCheckState" arguments="2.0,0" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DisplayFrame/ProxyPanel/SeriesEditor/SeriesTable/AnnotationsTable" command="setCheckState" arguments="0.0,2" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+
+  <!-- 3 vertices: mv_0, mv_2, mv_3. The filter's partition is cleared: 0 1 2 | -->
+  <pqcompareview object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport" baseline="$PARAVIEW_DATA_ROOT/Clients/ParaView/Testing/Data/Baseline/RadVizComponentVisibilityHidden.png" width="300" height="300" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/0|0" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="4" />
+
+  <!-- Check component 1 in the filter's Components list: 4 vertices again -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/ComponentVisibility/ComponentList" command="setCheckState" arguments="1.0,2" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" property="enabled" arguments="true" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/PartitionEditor/PartitionList" property="count" arguments="5" />
+  <pqcompareview object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport" baseline="$PARAVIEW_DATA_ROOT/Clients/ParaView/Testing/Data/Baseline/RadVizComponentVisibilityShown.png" width="300" height="300" />
+</pqevents>

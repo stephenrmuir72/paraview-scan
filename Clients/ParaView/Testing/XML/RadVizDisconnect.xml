@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Tests that hiding the RadViz representation drops the filter's name from
+       the view's name, and disconnecting the RadViz view from its
+       MultiVariateToRGBA filter with the view's context menu: renaming the
+       filter does not annotate the disconnected view again, and Show RadViz
+       creates a new, connected view. -->
+
+  <!-- Wavelet, Gradient, MultiVariateToRGBA and Show RadViz -->
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="RTAnalyticSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="Gradient" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/menubar/menuFilters/Alphabetical" command="activate" arguments="MultiVariateToRGBA" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/ShowRadViz" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+
+  <!-- Hiding the RadViz representation drops the annotation, showing it adds it back -->
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mousePress" arguments="1,1,0,12,11,/0:0/0:0/0:0/1:1" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mouseRelease" arguments="1,0,0,12,11,/0:0/0:0/0:0/1:1" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1&lt;/u&gt;&lt;/b&gt;" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mousePress" arguments="1,1,0,12,11,/0:0/0:0/0:0/1:1" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mouseRelease" arguments="1,0,0,12,11,/0:0/0:0/0:0/1:1" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1 (MultiVariateToRGBA1)&lt;/u&gt;&lt;/b&gt;" />
+
+  <!-- Disconnect from the context menu: the view drops the filter's annotation -->
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/0|0" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mousePress" arguments="(0.03,0.03,2,2,0)" />
+  <pqevent object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/CentralWidgetFrame/Viewport/1QVTKOpenGLNativeWidget0" command="mouseRelease" arguments="(0.03,0.03,2,0,0)" />
+  <pqevent object="RadVizContextMenu" command="activate" arguments="DisconnectFromFilter" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1&lt;/u&gt;&lt;/b&gt;" />
+
+  <!-- Renaming the filter leaves the disconnected view's name alone -->
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="currentChanged" arguments="/0/0/0/0|0" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="keyEvent" arguments="6,16777265,0,,0,1" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="keyEvent" arguments="7,16777265,0,,0,1" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="Renamed" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777220" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.2/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView1&lt;/u&gt;&lt;/b&gt;" />
+
+  <!-- Show RadViz creates a new view, connected to the renamed filter -->
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/MultiVariateColorEditor/ShowRadViz" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow" command="process_events" arguments="500" />
+  <pqcheck object="pqClientMainWindow/centralwidget/MultiViewWidget/CoreWidget/qt_tabwidget_stackedwidget/MultiViewWidget1/Container/Frame.4/TitleBar/TitleLabel" property="text" arguments="&lt;b&gt;&lt;u&gt;RadVizView2 (Renamed)&lt;/u&gt;&lt;/b&gt;" />
+</pqevents>
