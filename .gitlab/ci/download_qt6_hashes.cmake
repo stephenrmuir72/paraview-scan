@@ -37,3 +37,13 @@ set("6.12.0-0-202609280346qtwebchannel-Windows-Windows_11_24H2-MSVC2022-Windows-
 set("6.12.0-0-202609280346qtwebsockets-Windows-Windows_11_24H2-MSVC2022-Windows-Windows_11_24H2-X86_64.7z_hash" 836eb7eafa8cb1d85e0ca6faf062269acafae68579add29551450a7064a8ffcf)
 set("6.12.0-0-202609280346qtwebview-Windows-Windows_11_24H2-MSVC2022-Windows-Windows_11_24H2-X86_64.7z_hash" bd0aea2805a49879b0f10540f42995876dd8aa64b1333fa567f539a5377dd94f)
 set("6.12.0-0-202609280346qttranslations-Windows-Windows_11_24H2-MSVC2022-Windows-Windows_11_24H2-X86_64.7z_hash" 328321e8879a3dc119775b4404d6e32ec2a361696e73f760540a732921507917)
+
+set("6.12.0-0-202609280346qt5compat-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 1f268620a54d26023f0759795d5e2b0ecc4f5dfa4e26e41928bd1adb83e95e76)
+set("6.12.0-0-202609280346qtbase-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 4734f7292a0b86ac2bf1a084fa864da521b7ef4467ba8af772f5d93903f9e6c1)
+set("6.12.0-0-202609280346qtdeclarative-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 12a454d34aea92cd7f54ee584337b293b22ffd8138b0e24a6ae47d355dbdd833)
+set("6.12.0-0-202609280346qtmultimedia-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 65d43df077881f36686d33ea4c0da0616a34a9ed1d345f6c75d5333dbcfa3a1e)
+set("6.12.0-0-202609280346qtsvg-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 07238e9f0aa1d2422d01d43551300ccdf17fde4eecf030d4ff91e151be293d83)
+set("6.12.0-0-202609280346qttools-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 2df8376a2ddec62731890fbac3cc0a96a951f234707692d572f46e981d412f6d)
+set("6.12.0-0-202609280346qttranslations-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 42f78c36158c978728a905dd1f47852d79db3c19bcee656b226edbd9c6f09406)
+set("6.12.0-0-202609280346qtwebchannel-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 798fd2f45bcf3f5ddb632e7d61fd6b36ba1434bbd95f9db3261b9c6fb2e1d5d0)
+set("6.12.0-0-202609280346qtwebsockets-Windows-Windows_11_23H2-MSVC2022-Windows-Windows_11_23H2-AARCH64.7z_hash" 6620418a0aba35896e029ecd0b8ce9dec802aeae8d70ca80236e82f40090e06d)
