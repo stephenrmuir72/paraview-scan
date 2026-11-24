@@ -20,6 +20,7 @@
 #include "pqColorPaletteSelectorWidget.h"
 #include "pqColorSelectorPropertyWidget.h"
 #include "pqCommandButtonPropertyWidget.h"
+#include "pqComponentVisibilityWidget.h"
 #include "pqCompositePropertyWidgetDecorator.h"
 #include "pqConePropertyWidget.h"
 #include "pqCoordinateFramePropertyWidget.h"
@@ -395,6 +396,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "PartitionEditor")
   {
     return new pqPartitionEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "ComponentVisibility")
+  {
+    return new pqComponentVisibilityWidget(proxy, group, parentWidget);
   }
 
   // *** NOTE: When adding new types, please update the header documentation ***

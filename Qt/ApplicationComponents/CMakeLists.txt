@@ -59,6 +59,7 @@ set(classes
   pqColorToolbar
   pqCommandButtonPropertyWidget
   pqCommandLineOptionsBehavior
+  pqComponentVisibilityWidget
   pqConfigureCategoriesDialog
   pqConfigureCategoriesReaction
   pqCopyReaction

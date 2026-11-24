@@ -92,6 +92,7 @@ public:
    * \li \c EqualizerPropertyWidget : pqEqualizerPropertyWidget
    * \li \c MetaDataPropertyWidget : pqMetaDataPropertyWidget
    * \li \c PartitionEditor : pqPartitionEditorWidget
+   * \li \c ComponentVisibility : pqComponentVisibilityWidget
    */
   pqPropertyWidget* createWidgetForPropertyGroup(
     vtkSMProxy* proxy, vtkSMPropertyGroup* group, QWidget* parentWidget) override;
