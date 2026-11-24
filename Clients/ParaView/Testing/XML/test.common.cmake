@@ -1097,6 +1097,7 @@ list (APPEND TESTS_WITHOUT_BASELINES
   ArrayBoundsScaleDomain.xml
   ArraySelectionWidget.xml
   AutoConvertSingleProperty.xml
+  BlockComponentsMapScalars.xml
   CellGridInformationPanel.xml
   CollapsePropertyGroup.xml
   CSVPreview.xml
@@ -1971,6 +1972,8 @@ endif ()
 # HTG distribution between servers is not implemented
 # See https://gitlab.kitware.com/paraview/paraview/-/work_items/23448
 set(HyperTreeGridSurfaceBlocks_DISABLE_CRS TRUE)
+
+set(BlockComponentsMapScalars_DISABLE_CRS TRUE)
 
 # Selection is not available in CRS mode
 set(BlockContextMenu_DISABLE_CRS TRUE)
