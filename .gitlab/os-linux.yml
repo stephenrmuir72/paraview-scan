@@ -29,7 +29,7 @@ spec:
 
 .fedora44:
     extends: .linux
-    image: "kitware/paraview:ci-fedora44-20260917"
+    image: "mathurinlemarie/fedora_helide:26102026"
     variables:
         LC_ALL: "en_US.utf8"
 
@@ -129,13 +129,13 @@ spec:
     variables:
         CMAKE_CONFIGURATION: fedora44_shared_mpi_python_core
 
-.fedora44_shared_asserts_mpi_python_qt:
+.fedora44_shared_asserts_mpi_python_qt_anari:
     extends:
         - .fedora44
         - .fedora_mpich_addon
 
     variables:
-        CMAKE_CONFIGURATION: fedora44_shared_asserts_mpi_python_qt
+        CMAKE_CONFIGURATION: fedora44_shared_asserts_mpi_python_qt_anari
         CMAKE_BUILD_TYPE: RelWithDebInfo
 
 .fedora44_shared_mpi_python_qt_viskoresoverride:
