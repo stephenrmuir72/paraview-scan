@@ -485,9 +485,12 @@ bool verify(const std::string& protocol, const conduit_cpp::Node& n)
     vtkLogF(ERROR, "'data' node is required.");
     return false;
   }
-  else if (!n["data"].dtype().is_object())
+  else if (!n["data"].dtype().is_object() &&
+    !(n["data"].dtype().is_empty() &&
+      (n["type"].as_string() == "mesh" || n["type"].as_string() == "multimesh" ||
+        n["type"].as_string() == "amrmesh")))
   {
-    vtkLogF(ERROR, "'data' must be an 'object'.");
+    vtkLogF(ERROR, "'data' must be an 'object', or empty for a mesh channel.");
     return false;
   }
 

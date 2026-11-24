@@ -256,35 +256,37 @@ void vtkInSituInitializationHelper::Initialize(
 }
 
 //----------------------------------------------------------------------------
-void vtkInSituInitializationHelper::Finalize()
+bool vtkInSituInitializationHelper::Finalize()
 {
   if (vtkInSituInitializationHelper::WasFinalizedOnce)
   {
     vtkLogF(
       WARNING, "'vtkInSituInitializationHelper::Finalize' should not be called more than once.");
-    return;
+    return false;
   }
 
   if (vtkInSituInitializationHelper::Internals == nullptr)
   {
     vtkLogF(
       ERROR, "'vtkInSituInitializationHelper::Finalize' cannot be called before 'Initialize'.");
-    return;
+    return false;
   }
 
   // finalize pipelines.
+  bool success = true;
   const auto& internals = (*vtkInSituInitializationHelper::Internals);
   for (auto& item : internals.Pipelines)
   {
     if (item.Initialized && !item.InitializationFailed)
     {
-      item.Pipeline->Finalize();
+      success = item.Pipeline->Finalize() && success;
     }
   }
 
   vtkInSituInitializationHelper::WasFinalizedOnce = 1;
   delete vtkInSituInitializationHelper::Internals;
   vtkInSituInitializationHelper::Internals = nullptr;
+  return success;
 }
 
 //----------------------------------------------------------------------------

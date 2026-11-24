@@ -15,6 +15,7 @@
 #include "vtkInSituInitializationHelper.h"
 #include "vtkInSituPipelineIO.h"
 #include "vtkInSituPipelinePython.h"
+#include "vtkMultiProcessController.h"
 #include "vtkPVLogger.h"
 #include "vtkPartitionedDataSet.h"
 #include "vtkPartitionedDataSetCollection.h"
@@ -24,8 +25,13 @@
 #include "vtkSMSessionProxyManager.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkStringArray.h"
+#include "vtkStringToken.h"
 
 #include <exception>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #if VTK_MODULE_ENABLE_VTK_ParallelMPI
 #include "vtkMPI.h"
@@ -342,6 +348,7 @@ enum paraview_catalyst_status
   paraview_catalyst_status_results = 101,
   paraview_catalyst_status_pipeline_execute_failed = 102,
   paraview_catalyst_status_exception = 103,
+  paraview_catalyst_status_pipeline_finalize_failed = 104,
 };
 #define pvcatalyst_err(name) static_cast<enum catalyst_status>(paraview_catalyst_status_##name)
 
@@ -534,9 +541,87 @@ static enum catalyst_status initialize_paraview(const conduit_node* params)
 }
 
 //-----------------------------------------------------------------------------
+// Whether every rank passed the same channels. Their producers run collectives, so a rank without
+// data for a channel or mesh must pass an empty node. A rank that cannot compare its channels
+// passes invalidNode, so that every rank fails.
+static const std::map<std::string, std::string> invalidNode = { { "", "" } };
+static bool parallel()
+{
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  return controller && controller->GetNumberOfProcesses() > 1;
+}
+
+static bool same_channels_on_all_ranks(const std::map<std::string, std::string>& structures)
+{
+  if (!::parallel())
+  {
+    return true;
+  }
+  auto controller = vtkMultiProcessController::GetGlobalController();
+  std::string channels;
+  for (const auto& [name, structure] : structures)
+  {
+    channels += name + '\n' + structure;
+  }
+  const vtkTypeInt64 hash = vtkStringToken::StringHash(channels.data(), channels.size());
+  const vtkTypeInt64 local[2] = { hash, -hash };
+  vtkTypeInt64 minimum[2];
+  controller->AllReduce(local, minimum, 2, vtkCommunicator::MIN_OP);
+  return minimum[0] == -minimum[1];
+}
+
+namespace
+{
+//-----------------------------------------------------------------------------
+// Takes part in the comparison of the channels when execute_paraview leaves before it, by an early
+// return or an exception, so that the other ranks do not wait for this one.
+struct ChannelsComparison
+{
+  bool Done = false;
+  ~ChannelsComparison()
+  {
+    if (!this->Done)
+    {
+      ::same_channels_on_all_ranks(invalidNode);
+    }
+  }
+};
+
+//-----------------------------------------------------------------------------
+// The mesh names of each multimesh channel at the last execute. Conduit finds a child's name by
+// searching its parent, so they are checked by lookup before being read again.
+std::map<std::string, std::vector<std::string>> lastMeshNames;
+
+const std::vector<std::string>& mesh_names(
+  const std::string& channel, const conduit_cpp::Node& data)
+{
+  auto& names = lastMeshNames[channel];
+  const conduit_index_t count = data.number_of_children();
+  bool same = static_cast<std::size_t>(count) == names.size();
+  conduit_node* node = conduit_cpp::c_node(&data);
+  for (conduit_index_t i = 0; same && i < count; ++i)
+  {
+    same = data.has_child(names[i]) &&
+      conduit_node_child(node, i) == conduit_node_child_by_name(node, names[i].c_str());
+  }
+  if (!same)
+  {
+    names.clear();
+    names.reserve(count);
+    for (conduit_index_t i = 0; i < count; ++i)
+    {
+      names.push_back(data.child(i).name());
+    }
+  }
+  return names;
+}
+}
+
+//-----------------------------------------------------------------------------
 static enum catalyst_status execute_paraview(const conduit_node* params)
 {
   vtkVLogScopeFunction(PARAVIEW_LOG_CATALYST_VERBOSITY());
+  ChannelsComparison comparison;
 
   const conduit_cpp::Node cpp_params = conduit_cpp::cpp_node(const_cast<conduit_node*>(params));
   if (!cpp_params.has_path("catalyst"))
@@ -727,6 +812,18 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
     PARAVIEW_LOG_CATALYST_VERBOSITY(), "co-processing for timestep=%d, time=%f", timestep, time);
 
   conduit_cpp::Node globalFields;
+  const bool compareChannels = ::parallel();
+  std::map<std::string, std::string> structures;
+  struct Channel
+  {
+    conduit_index_t Index;
+    std::string Name;
+    std::string Type;
+    int Timestep;
+    double Time;
+    int Multiblock;
+  };
+  std::vector<Channel> validChannels;
 
   // catalyst/channels are used to communicate meshes.
   if (root.has_child("channels"))
@@ -798,6 +895,7 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
           "IOSS mesh detected for channel (%s); validation will be skipped for now",
           channel_name.c_str());
 #else
+        is_valid = false;
         vtkLogF(ERROR, "IOSS mesh is not supported by this build. Rebuild with IOSS enabled.");
 #endif
       }
@@ -809,6 +907,7 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
           "Fides mesh detected for channel (%s); validation will be skipped for now",
           channel_name.c_str());
 #else
+        is_valid = false;
         vtkLogF(ERROR, "Fides mesh is not supported by this build. Rebuild with Fides enabled.");
 #endif
       }
@@ -820,6 +919,7 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
           "Fides-via-conduit mesh detected for channel (%s); validation will be skipped for now",
           channel_name.c_str());
 #else
+        is_valid = false;
         vtkLogF(
           ERROR, "fides_conduit mesh is not supported by this build. Rebuild with Fides enabled.");
 #endif
@@ -838,10 +938,55 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
           type.c_str());
       }
 
+      std::string& structure = structures[channel_name];
       if (!is_valid)
       {
+        structure = "invalid\n";
         continue; // skip this channel.
       }
+      structure = type + '\n';
+      if (compareChannels && (type == "mesh" || type == "multimesh" || type == "amrmesh"))
+      {
+        structure += std::to_string(channel_output_multiblock) + '\n';
+        if (type == "multimesh")
+        {
+          for (const auto& mesh : ::mesh_names(channel_name, data_node))
+          {
+            structure += mesh + '\n';
+          }
+        }
+        if (channel_node.has_path("assembly"))
+        {
+          structure += channel_node["assembly"].to_json() + '\n';
+        }
+      }
+      validChannels.push_back(
+        { i, channel_name, type, channel_timestep, channel_time, channel_output_multiblock });
+    }
+  }
+  else
+  {
+    vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(),
+      "No 'catalyst/channels' found. No meshes will be processed.");
+  }
+
+  comparison.Done = true;
+  if (!::same_channels_on_all_ranks(structures))
+  {
+    vtkLogF(ERROR,
+      "ranks pass different channels; every rank must pass every channel and mesh, with an empty "
+      "node where it has no data.");
+    return pvcatalyst_err(invalid_node);
+  }
+
+  if (!validChannels.empty())
+  {
+    const auto channels = root["channels"];
+    for (const auto& [i, channel_name, type, channel_timestep, channel_time,
+           channel_output_multiblock] : validChannels)
+    {
+      const auto channel_node = channels.child(i);
+      const auto data_node = channel_node["data"];
 
       // populate field data node for this channel.
       auto fields = globalFields[channel_name];
@@ -883,11 +1028,6 @@ static enum catalyst_status execute_paraview(const conduit_node* params)
       }
     }
   }
-  else
-  {
-    vtkVLogF(PARAVIEW_LOG_CATALYST_VERBOSITY(),
-      "No 'catalyst/channels' found. No meshes will be processed.");
-  }
 
   if (!vtkInSituInitializationHelper::ExecutePipelines(params))
   {
@@ -910,7 +1050,13 @@ static enum catalyst_status finalize_paraview(const conduit_node* params)
     vtkLogF(ERROR, "invalid 'catalyst' node passed to 'catalyst_finalize'. Finalization may fail.");
   }
 
-  vtkInSituInitializationHelper::Finalize();
+  const bool finalized = vtkInSituInitializationHelper::Finalize();
+  ::lastMeshNames.clear();
+  if (!finalized)
+  {
+    vtkLogF(ERROR, "catalyst pipeline failed to finalize");
+    return pvcatalyst_err(pipeline_finalize_failed);
+  }
 
   return catalyst_status_ok;
 }

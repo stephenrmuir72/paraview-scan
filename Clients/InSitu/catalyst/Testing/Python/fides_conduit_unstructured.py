@@ -32,5 +32,3 @@ def catalyst_execute(info):
 
 def catalyst_finalize():
     assert n_exec == 3, "expected 3 executes, got %d" % n_exec
-    # ctest matches this string to confirm the test passed.
-    print("All ok")
