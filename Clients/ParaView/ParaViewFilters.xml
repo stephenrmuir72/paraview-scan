@@ -308,6 +308,7 @@
   <Proxy group="filters" name="CellDataToPointData" icon=":/pqWidgets/Icons/pqCellDataToPointData.svg" />
   <Proxy group="filters" name="CellDerivatives" />
   <Proxy group="filters" name="CellGridCenters" />
+  <Proxy group="filters" name="CellGridIsocontour" />
   <Proxy group="filters" name="CellGridPointProbe" />
   <Proxy group="filters" name="CellGridToUnstructuredGrid" />
   <Proxy group="filters" name="CellGridTransform" />

@@ -343,6 +343,31 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="MergePoints"
+                            command="SetMergePoints"
+                            default_values="1"
+                            number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          The distance within which two points are
+          merged, as a fraction of the diagonal of the input's bounds.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Tolerance"
+                            command="SetPointMergeTolerance"
+                            default_values="1e-12"
+                            number_of_elements="1">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator" mode="enabled_state" property="MergePoints" value="1"/>
+        </Hints>
+        <Documentation>
+          The distance within which two points are
+          merged, as a fraction of the diagonal of the input's bounds.
+        </Documentation>
+      </DoubleVectorProperty>
+
       <!-- End of CellGridToUnstructuredGrid -->
     </SourceProxy>
 
@@ -437,6 +462,114 @@
       </DoubleVectorProperty>
 
       <!-- End of CellGridWarp -->
+    </SourceProxy>
+
+    <SourceProxy class="vtkCellGridIsocontour" name="CellGridIsocontour">
+      <Documentation
+        long_help="Extract an isosurface of a scalar cell-attribute of curved cells."
+        short_help="Extract an isosurface of a scalar cell-attribute of curved cells.">
+        This filter extracts the isosurface of a scalar cell-attribute of a
+        cell grid as a cell grid of linear triangles. Points on the
+        isosurface are located inside every volumetric cell (converting the
+        attribute to the Bernstein-Bezier basis if needed) and connected
+        through their Delaunay tetrahedralization. Only volumetric cells
+        contribute to the output: the isocontour of a surface or curve is
+        not a surface.
+      </Documentation>
+      <InputProperty command="SetInputConnection" name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkCellGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array" attribute_type="cell" number_of_components="1" />
+        <Documentation>An input cell grid.</Documentation>
+      </InputProperty>
+
+      <StringVectorProperty name="ContourBy" label="Contour By"
+                            command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            number_of_elements="5">
+        <ArrayListDomain input_domain_name="input_array" attribute_type="Scalars" name="array_list">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property chooses the scalar cell-attribute to contour.</Documentation>
+        <Hints>
+          <ArraySelectionWidget icon_type="cell"/>
+        </Hints>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty name="Isovalue"
+                            command="SetIsovalue"
+                            default_values="0"
+                            number_of_elements="1">
+        <ArrayRangeDomain name="scalar_range" default_mode="mid">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+            <Property function="ArraySelection" name="ContourBy" />
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Documentation>The value of the attribute on the isosurface.</Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="InterpolateAttributes"
+                         command="SetInterpolateAttributes"
+                         default_values="1"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>When on, every cell-attribute of the input but its shape
+          is evaluated exactly at the output points and output as a
+          cell-attribute of the triangles.</Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty command="SetSubdivisionLevel"
+                         name="SubdivisionLevel"
+                         default_values="-1"
+                         number_of_elements="1">
+        <IntRangeDomain min="-1" name="range" />
+        <Documentation>
+          Set how many times each input cell is halved along every parametric axis.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty name="Tolerance"
+                            command="SetTolerance"
+                            default_values="1e-12"
+                            number_of_elements="1">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+        <Documentation>
+          The distance within which two points are
+          merged, as a fraction of the diagonal of the input's bounds.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty name="OutputIsocontourPoints"
+                         command="SetOutputIsocontourPoints"
+                         default_values="0"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>When on, every cell-attribute of the input but its shape
+          is evaluated exactly at the output points and output as a
+          cell-attribute of the triangles.</Documentation>
+      </IntVectorProperty>
+
+
+      <IntVectorProperty name="ParticleRelaxationIterations " label="Particle Relaxation Iterations"
+                         command="SetParticleRelaxationIterations" default_values="0" number_of_elements="1">
+        <IntRangeDomain name="range" min="0" max="1000" />
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator" mode="enabled_state" property="OutputIsocontourPoints" value="1"/>
+        </Hints>
+        <Documentation>
+          The particle relaxation iteration.
+        </Documentation>
+      </IntVectorProperty>
+
+      <!-- End of CellGridIsocontour -->
     </SourceProxy>
 
   </ProxyGroup>
