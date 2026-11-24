@@ -91,6 +91,13 @@ fixes.
 [repo]: https://gitlab.kitware.com/paraview/paraview
 [CONTRIBUTING.md]: CONTRIBUTING.md
 
+AI Policy
+=========
+
+ParaView has a dedicated [AI policy][], please follow its guidelines.
+
+[AI policy]: AI_POLICY.md
+
 License
 =======
 
