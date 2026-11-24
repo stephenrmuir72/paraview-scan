@@ -67,6 +67,7 @@ paraview_add_test_python(
   JUST_VALID NO_VALID
   ChartSwapXYAxes.py
   LockScalarRangeBackwardsCompatibility.py
+  SeparateOpacityArrayMissing.py
   SpreadSheetViewBlockNames.py
   SpreadSheetViewPartialArrays.py
   SpreadSheetViewSortByList.py

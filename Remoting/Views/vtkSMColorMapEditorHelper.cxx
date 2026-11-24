@@ -881,12 +881,21 @@ bool vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
 
         vtkPVArrayInformation* opacityArrayInfo =
           dataInfo->GetArrayInformation(opacityArrayName, opacityArrayFieldAssociation);
-        if (opacityArrayComponent >= opacityArrayInfo->GetNumberOfComponents())
-        {
-          opacityArrayComponent = -1;
-        }
         info->GetComponentFiniteRange(component, rangeColor);
-        opacityArrayInfo->GetComponentFiniteRange(opacityArrayComponent, rangeOpacity);
+        if (!opacityArrayInfo)
+        {
+          // missing opacity array, e.g. a stale name: use the color range.
+          rangeOpacity[0] = rangeColor[0];
+          rangeOpacity[1] = rangeColor[1];
+        }
+        else
+        {
+          if (opacityArrayComponent >= opacityArrayInfo->GetNumberOfComponents())
+          {
+            opacityArrayComponent = -1;
+          }
+          opacityArrayInfo->GetComponentFiniteRange(opacityArrayComponent, rangeOpacity);
+        }
       }
       else if (pvRepr && pvRepr->GetVolumeIndependentRanges())
       {
