@@ -348,6 +348,7 @@ enum paraview_catalyst_status
   paraview_catalyst_status_results = 101,
   paraview_catalyst_status_pipeline_execute_failed = 102,
   paraview_catalyst_status_exception = 103,
+  paraview_catalyst_status_pipeline_finalize_failed = 104,
 };
 #define pvcatalyst_err(name) static_cast<enum catalyst_status>(paraview_catalyst_status_##name)
 
@@ -1049,8 +1050,13 @@ static enum catalyst_status finalize_paraview(const conduit_node* params)
     vtkLogF(ERROR, "invalid 'catalyst' node passed to 'catalyst_finalize'. Finalization may fail.");
   }
 
-  vtkInSituInitializationHelper::Finalize();
+  const bool finalized = vtkInSituInitializationHelper::Finalize();
   ::lastMeshNames.clear();
+  if (!finalized)
+  {
+    vtkLogF(ERROR, "catalyst pipeline failed to finalize");
+    return pvcatalyst_err(pipeline_finalize_failed);
+  }
 
   return catalyst_status_ok;
 }

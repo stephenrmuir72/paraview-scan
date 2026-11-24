@@ -78,9 +78,10 @@ public:
 
   /**
    * Finalizes the engine. This can be called only once in the lifetime of the
-   * progress, and that too only after `Initialize` has been called.
+   * progress, and that too only after `Initialize` has been called. Returns false if it is
+   * called otherwise or if a pipeline fails to finalize.
    */
-  static void Finalize();
+  static bool Finalize();
 
   /**
    * Add Python analysis scripts or packages. This should be called after

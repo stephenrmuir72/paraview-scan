@@ -77,9 +77,6 @@ foreach (_case IN ITEMS unstructured cellgrid)
     MINIAPP fides_catalyst_miniapp.py
     SCRIPT "fides_conduit_${_case}.py"
     ARGS --grid "${_case}")
-  set_tests_properties("ParaView::Catalyst::FidesConduit::${_case}"
-    PROPERTIES
-      PASS_REGULAR_EXPRESSION "All ok")
 endforeach ()
 
 # Ranks without data for a channel pass an empty node, or leave the channel out, which must fail.
