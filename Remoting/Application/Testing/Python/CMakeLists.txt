@@ -81,7 +81,8 @@ set(PY_TESTS
 include(ParaViewFindPythonModules)
 find_python_module(numpy numpy_found)
 if (numpy_found)
-  list(APPEND PY_TESTS PythonSelection.py PythonSMTraceTest3.py)
+  list(APPEND PY_TESTS MultiVariateToRGBA.py
+    MultiVariateToRGBATrace.py,NO_VALID PythonSelection.py PythonSMTraceTest3.py)
 endif ()
 
 if (PARAVIEW_PLUGIN_ENABLE_SurfaceLIC AND PARAVIEW_PLUGIN_ENABLE_Moments)
@@ -148,6 +149,13 @@ if (numpy_found AND PARAVIEW_USE_MPI AND NOT VTK_ENABLE_VISKORES_OVERRIDES)
     D3CellsWithNegativeVolumes.py,NO_VALID)
 endif()
 
+# Need more than one rank, not in symmetric mode
+set(PVBATCH_MPI_ONLY_TESTS)
+if (numpy_found AND PARAVIEW_USE_MPI)
+  list(APPEND PVBATCH_MPI_ONLY_TESTS
+    MultiVariateToRGBAParallel.py,NO_VALID)
+endif()
+
 if (PARAVIEW_PLUGIN_ENABLE_SurfaceLIC AND PARAVIEW_PLUGIN_ENABLE_Moments)
   list(APPEND PVBATCH_TESTS
     Plugins.py,NO_VALID)
@@ -169,6 +177,7 @@ IF (MPIEXEC_EXECUTABLE)
   paraview_add_test_pvbatch_mpi(
     JUST_VALID
     ${PVBATCH_TESTS}
+    ${PVBATCH_MPI_ONLY_TESTS}
     )
   set(vtkRemotingApplication_NUMPROCS 5)
   paraview_add_test_pvbatch_mpi(
