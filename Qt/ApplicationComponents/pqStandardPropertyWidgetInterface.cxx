@@ -61,6 +61,7 @@
 #include "pqPropertyCollectionWidget.h"
 #include "pqProxyEditorPropertyWidget.h"
 #include "pqPythonCalculatorWidget.h"
+#include "pqRadVizVerticesRotationPropertyWidget.h"
 #include "pqReaderSelectionPropertyWidget.h"
 #include "pqSelectionListPropertyWidget.h"
 #include "pqSelectionQueryPropertyWidget.h"
@@ -156,6 +157,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForProperty(
   else if (name == "list")
   {
     return new pqListPropertyWidget(smProxy, smProperty, parentWidget);
+  }
+  else if (name == "radviz_vertices_rotation")
+  {
+    return new pqRadVizVerticesRotationPropertyWidget(smProperty, smProxy, parentWidget);
   }
   else if (name == "double_range")
   {

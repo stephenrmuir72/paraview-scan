@@ -54,6 +54,7 @@ public:
    * \li \c data_assembly_editor: pqDataAssemblyPropertyWidget
    * \li \c selection_query : pqSelectionQueryPropertyWidget
    * \li \c file_list : pqFileListPropertyWidget
+   * \li \c radviz_vertices_rotation : pqRadVizVerticesRotationPropertyWidget
    * \li \c xy_chart_bounds : pqXYChartViewBoundsPropertyWidget
    */
   pqPropertyWidget* createWidgetForProperty(

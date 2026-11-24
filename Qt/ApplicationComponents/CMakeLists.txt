@@ -144,6 +144,7 @@ set(classes
   pqOpacityTableModel
   pqOSPRayHidingDecorator
   pqQuickLaunchDialogExtended
+  pqRadVizVerticesRotationPropertyWidget
   pqPVApplicationCore
   pqParaViewBehaviors
   pqParaViewMenuBuilders
