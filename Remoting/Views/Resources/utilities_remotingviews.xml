@@ -1214,7 +1214,7 @@
           Select the background color mode.
         </Documentation>
       </IntVectorProperty>
-      <DoubleVectorProperty default_values="0.0 0.0 0.16"
+      <DoubleVectorProperty default_values="0.847058824 0.827450980 0.815686275"
                             command="SetBackground2Color"
                             label="Background 2"
                             name="BackgroundColor2"
