@@ -5,22 +5,27 @@ if(PARAVIEW_USE_PYTHON AND VTK_PYTHON_FULL_THREADSAFE)
     COMMAND pqApplicationComponentsTestVtkPythonScopeGilEnsurer)
 endif()
 
-find_package("Qt${PARAVIEW_QT_MAJOR_VERSION}" REQUIRED COMPONENTS Core Widgets)
+find_package("Qt${PARAVIEW_QT_MAJOR_VERSION}" REQUIRED COMPONENTS Core Widgets Test)
+set(CMAKE_AUTOMOC 1)
 set(tests_sources
   TestCategoryCustomizations.cxx
   TestCategoryMenus.cxx
   TestCategoryMenusExistingMenus.cxx
-  TestConfigureCategoriesDialog.cxx)
+  TestConfigureCategoriesDialog.cxx
+  PartitionEditorWidget.cxx)
+set(tests_headers
+  PartitionEditorWidget.h)
 if (TARGET ParaView::pqPython)
   list(APPEND tests_sources
     TestCategoryMenusExamplePlugins.cxx)
 endif ()
 create_test_sourcelist(tests pqApplicationComponentsTest.cxx ${tests_sources})
-vtk_module_test_executable(pqApplicationComponentsTest ${tests})
+vtk_module_test_executable(pqApplicationComponentsTest ${tests} ${tests_headers})
 target_link_libraries(pqApplicationComponentsTest
   PRIVATE
     "Qt${PARAVIEW_QT_MAJOR_VERSION}::Core"
-    "Qt${PARAVIEW_QT_MAJOR_VERSION}::Widgets")
+    "Qt${PARAVIEW_QT_MAJOR_VERSION}::Widgets"
+    "Qt${PARAVIEW_QT_MAJOR_VERSION}::Test")
 
 foreach (test_file IN LISTS tests_sources)
   get_filename_component(test "${test_file}" NAME_WE)

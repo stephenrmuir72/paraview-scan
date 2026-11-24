@@ -146,6 +146,7 @@ set(classes
   pqPVApplicationCore
   pqParaViewBehaviors
   pqParaViewMenuBuilders
+  pqPartitionEditorWidget
   pqPauseLiveSourcePropertyWidget
   pqPersistentMainWindowStateBehavior
   pqPipelineContextMenuBehavior

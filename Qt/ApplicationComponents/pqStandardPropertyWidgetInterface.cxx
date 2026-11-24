@@ -55,6 +55,7 @@
 #include "pqMultiComponentsDecorator.h"
 #include "pqOMETransferFunctionsPropertyWidget.h"
 #include "pqOSPRayHidingDecorator.h"
+#include "pqPartitionEditorWidget.h"
 #include "pqPauseLiveSourcePropertyWidget.h"
 #include "pqPropertyCollectionWidget.h"
 #include "pqProxyEditorPropertyWidget.h"
@@ -390,6 +391,10 @@ pqPropertyWidget* pqStandardPropertyWidgetInterface::createWidgetForPropertyGrou
   else if (panelWidget == "BlockPropertiesEditor")
   {
     return new pqMultiBlockPropertiesEditorWidget(proxy, group, parentWidget);
+  }
+  else if (panelWidget == "PartitionEditor")
+  {
+    return new pqPartitionEditorWidget(proxy, group, parentWidget);
   }
 
   // *** NOTE: When adding new types, please update the header documentation ***
