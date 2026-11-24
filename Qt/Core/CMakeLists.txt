@@ -73,6 +73,7 @@ set(classes
   pqQVTKWidget
   pqQVTKWidgetEventPlayer
   pqQVTKWidgetEventTranslator
+  pqRadVizChartView
   pqRecentlyUsedResourceLoaderInterface
   pqRecentlyUsedResourcesList
   pqRenderView

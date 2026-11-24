@@ -2307,6 +2307,45 @@ OSPRay pathtracer may need to transfer default materials from client to server. 
     </ContextViewProxy>
     <!-- ================================================================== -->
     <ContextViewProxy base_proxygroup="internal_views"
+                      base_proxyname="XYChartViewTitle"
+                      class="vtkPVXYChartView"
+                      name="RadVizChartView"
+                      label="RadViz View"
+                      processes="client|renderserver|dataserver"
+                      representation_name="RadVizRepresentation"
+                      post_creation="SetChartTypeToRadViz"
+                      skip_plotable_check="1">
+      <Documentation>
+        This is the proxy for RadViz chart view.
+      </Documentation>
+      <!-- same default as vtkChartRadViz: the title is bold -->
+      <IntVectorProperty command="SetTitleBold"
+                         default_values="1"
+                         name="ChartTitleBold"
+                         number_of_elements="1"
+                         override="1">
+        <Documentation>Set the chart title bold.</Documentation>
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+      <Hints>
+        <ShowOneRepresentationAtATime type="RadVizRepresentation" />
+        <!-- When present, vtkSMParaViewPipelineController::Show() will
+             result in hiding other representations that are currently visible
+             -->
+        <StandardViewFrameActions>
+          <!-- RadViz view does not support selection, so hide the
+               selection-related toolbar buttons -->
+          <SelectPolygon visibility="never" />
+          <SelectRectangle visibility="never" />
+          <ClearSelection visibility="never" />
+          <AddSelection visibility="never" />
+          <SubtractSelection visibility="never" />
+          <ToggleSelection visibility="never" />
+        </StandardViewFrameActions>
+      </Hints>
+    </ContextViewProxy>
+    <!-- ================================================================== -->
+    <ContextViewProxy base_proxygroup="internal_views"
                       base_proxyname="XYChartViewBase"
                       class="vtkPVXYChartView"
                       name="ImageChartView"

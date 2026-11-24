@@ -13,6 +13,7 @@
 #include "pqPVApplicationCore.h"
 #include "pqPipelineFilter.h"
 #include "pqProxySelection.h"
+#include "pqRadVizChartView.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqServerManagerObserver.h"
@@ -328,6 +329,8 @@ void pqDeleteReaction::deleteSources(const QSet<pqProxy*>& argSources)
       if (proxy != nullptr && (source == nullptr || source->getNumberOfConsumers() == 0))
       {
         pqDeleteReaction::aboutToDelete(proxy);
+        // keep the RadViz representations of other sources connected to it
+        pqRadVizChartView::disconnectAllFromFilter(source);
         sources.remove(proxy);
         controller->UnRegisterProxy(proxy->getProxy());
         something_deleted = true;

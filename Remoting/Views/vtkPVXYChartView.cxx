@@ -9,6 +9,7 @@
 #include "vtkChartHistogram2D.h"
 #include "vtkChartLegend.h"
 #include "vtkChartParallelCoordinates.h"
+#include "vtkChartRadViz.h"
 #include "vtkChartWarning.h"
 #include "vtkChartXY.h"
 #include "vtkCommand.h"
@@ -133,6 +134,10 @@ void vtkPVXYChartView::SetChartType(const char* type)
   else if (strcmp(type, "ParallelCoordinates") == 0)
   {
     this->Chart = vtkChartParallelCoordinates::New();
+  }
+  else if (strcmp(type, "RadViz") == 0)
+  {
+    this->Chart = vtkChartRadViz::New();
   }
   else if (strcmp(type, "Image") == 0)
   {

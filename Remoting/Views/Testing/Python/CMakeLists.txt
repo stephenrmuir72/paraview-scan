@@ -83,6 +83,11 @@ if (numpy_found)
     JUST_VALID NO_VALID
     MapScalarsOpacityRange.py
     )
+
+  paraview_add_test_python(
+    JUST_VALID
+    RadVizView.py
+    )
 endif ()
 
 paraview_add_test_python(
