@@ -129,6 +129,13 @@ bool pqRescaleScalarRangeToCustomDialog::doLock() const
 }
 
 //-----------------------------------------------------------------------------
+void pqRescaleScalarRangeToCustomDialog::showLockControl(bool show)
+{
+  this->Form->AutomaticRescaling->setVisible(show);
+  this->resize(0, 0);
+}
+
+//-----------------------------------------------------------------------------
 void pqRescaleScalarRangeToCustomDialog::rescale()
 {
   Q_EMIT(this->apply());
