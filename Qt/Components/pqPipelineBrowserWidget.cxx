@@ -28,6 +28,7 @@
 #include "vtkSMTransferFunctionManager.h"
 #include "vtkSMViewProxy.h"
 
+#include <QAction>
 #include <QDebug>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -42,6 +43,7 @@ pqPipelineBrowserWidget::pqPipelineBrowserWidget(QWidget* parentObject)
       new pqPipelineModel(*pqApplicationCore::instance()->getServerManagerModel(), this))
   , FilteredPipelineModel(new pqPipelineAnnotationFilterModel(this))
   , ContextMenu(new QMenu(this))
+  , ToggleVisibilityAction(new QAction(this))
 {
   this->configureModel();
 
@@ -62,6 +64,24 @@ pqPipelineBrowserWidget::pqPipelineBrowserWidget(QWidget* parentObject)
     SLOT(onActiveSourceChanged(pqPipelineSource*)));
 
   new pqPipelineModelSelectionAdaptor(this->getSelectionModel());
+
+  // Action toggling the visibility of the selected items. The shortcut is only
+  // active when the pipeline browser has focus, so it does not interfere with
+  // the rest of the application.
+  QAction* toggleAction = this->ToggleVisibilityAction;
+  toggleAction->setObjectName(QStringLiteral("actionToggleVisibility"));
+  toggleAction->setIcon(QIcon(QStringLiteral(":/pqWidgets/Icons/pqEyeball.svg")));
+  toggleAction->setText(tr("&Toggle Visibility"));
+  toggleAction->setStatusTip(tr("Toggle visibility of the selected pipeline items"));
+  toggleAction->setShortcut(QKeySequence(Qt::Key_Space));
+  toggleAction->setShortcutContext(Qt::WidgetShortcut);
+  toggleAction->setAutoRepeat(false);
+  toggleAction->setEnabled(false);
+  this->addAction(toggleAction);
+  QObject::connect(
+    toggleAction, &QAction::triggered, this, &pqPipelineBrowserWidget::toggleSelectionVisibility);
+  QObject::connect(this->getSelectionModel(), &QItemSelectionModel::selectionChanged, this, [this]()
+    { this->ToggleVisibilityAction->setEnabled(this->getSelectionModel()->hasSelection()); });
 }
 
 //-----------------------------------------------------------------------------
@@ -162,8 +182,6 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
   // we make sure we are only clicking on an eye
   if (index_.column() == 1)
   {
-    vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
-
     // Get object relative to pqPipelineModel
     const pqPipelineModel* model = this->getPipelineModel(index_);
     QModelIndex index = this->pipelineModelIndex(index_);
@@ -175,13 +193,7 @@ void pqPipelineBrowserWidget::handleIndexClicked(const QModelIndex& index_)
       source ? source->getOutputPort(0) : qobject_cast<pqOutputPort*>(smModelItem);
     if (port)
     {
-      pqView* activeView = pqActiveObjects::instance().activeView();
-      vtkSMViewProxy* viewProxy = activeView ? activeView->getViewProxy() : nullptr;
-      bool cur_state = (viewProxy == nullptr
-          ? false
-          : (controller->GetVisibility(port->getSourceProxy(), port->getPortNumber(), viewProxy)));
-
-      bool new_visibility_state = !cur_state;
+      bool new_visibility_state = !pqPipelineBrowserWidget::isVisibleInActiveView(port);
       bool is_selected = false;
       QModelIndexList indexes = this->getSelectionModel()->selectedIndexes();
       Q_FOREACH (QModelIndex selIndex_, indexes)
@@ -230,6 +242,68 @@ void pqPipelineBrowserWidget::setSelectionVisibility(bool visible)
 {
   QModelIndexList indexes = this->getSelectionModel()->selectedIndexes();
   this->setVisibility(visible, indexes);
+}
+
+//----------------------------------------------------------------------------
+void pqPipelineBrowserWidget::toggleSelectionVisibility()
+{
+  QItemSelectionModel* selectionModel = this->getSelectionModel();
+  const QModelIndexList indexes = selectionModel->selectedIndexes();
+  if (indexes.isEmpty())
+  {
+    return;
+  }
+
+  // Use the current item as reference when it is selected, so that the result
+  // matches clicking on its eye icon. Otherwise, fall back to the first
+  // selected item that has an output port.
+  QModelIndexList candidates;
+  const QModelIndex current = selectionModel->currentIndex();
+  if (current.isValid() && selectionModel->isSelected(current))
+  {
+    candidates << current;
+  }
+  candidates << indexes;
+
+  for (const QModelIndex& candidate : candidates)
+  {
+    if (pqOutputPort* port = this->getOutputPort(candidate))
+    {
+      this->setVisibility(!pqPipelineBrowserWidget::isVisibleInActiveView(port), indexes);
+      return;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+pqOutputPort* pqPipelineBrowserWidget::getOutputPort(const QModelIndex& index_) const
+{
+  if (!index_.isValid())
+  {
+    return nullptr;
+  }
+
+  // Get object relative to pqPipelineModel
+  const pqPipelineModel* model = this->getPipelineModel(index_);
+  QModelIndex index = this->pipelineModelIndex(index_);
+
+  pqServerManagerModelItem* smModelItem = model->getItemFor(index);
+  pqPipelineSource* source = qobject_cast<pqPipelineSource*>(smModelItem);
+  return source ? source->getOutputPort(0) : qobject_cast<pqOutputPort*>(smModelItem);
+}
+
+//----------------------------------------------------------------------------
+bool pqPipelineBrowserWidget::isVisibleInActiveView(pqOutputPort* port)
+{
+  pqView* activeView = pqActiveObjects::instance().activeView();
+  vtkSMViewProxy* viewProxy = activeView ? activeView->getViewProxy() : nullptr;
+  if (!port || !viewProxy)
+  {
+    return false;
+  }
+
+  vtkNew<vtkSMParaViewPipelineControllerWithRendering> controller;
+  return controller->GetVisibility(port->getSourceProxy(), port->getPortNumber(), viewProxy);
 }
 
 //----------------------------------------------------------------------------
@@ -431,6 +505,12 @@ void pqPipelineBrowserWidget::setVisibility(bool visible, pqOutputPort* port)
 }
 
 //----------------------------------------------------------------------------
+QAction* pqPipelineBrowserWidget::toggleVisibilityAction() const
+{
+  return this->ToggleVisibilityAction;
+}
+
+//-----------------------------------------------------------------------------
 QMenu* pqPipelineBrowserWidget::contextMenu() const
 {
   return this->ContextMenu;

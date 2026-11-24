@@ -60,6 +60,7 @@
 #include "pqManageLinksReaction.h"
 #include "pqManagePluginsReaction.h"
 #include "pqPVApplicationCore.h"
+#include "pqPipelineBrowserWidget.h"
 #include "pqPropertiesPanel.h"
 #include "pqProxyGroupMenuManager.h"
 #include "pqRecentFilesMenu.h"
@@ -194,7 +195,8 @@ void pqParaViewMenuBuilders::buildFileMenu(QMenu& menu)
 }
 
 //-----------------------------------------------------------------------------
-void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* propertiesPanel)
+void pqParaViewMenuBuilders::buildEditMenu(
+  QMenu& menu, pqPropertiesPanel* propertiesPanel, pqPipelineBrowserWidget* pipelineBrowser)
 {
   QString objectName = menu.objectName();
   Ui::pqEditMenuBuilder ui;
@@ -217,6 +219,10 @@ void pqParaViewMenuBuilders::buildEditMenu(QMenu& menu, pqPropertiesPanel* prope
   new pqDeleteReaction(ui.actionDelete_All, pqDeleteReaction::DeleteModes::ALL);
   new pqShowHideAllReaction(ui.actionShow_All, pqShowHideAllReaction::ActionType::Show);
   new pqShowHideAllReaction(ui.actionHide_All, pqShowHideAllReaction::ActionType::Hide);
+  if (pipelineBrowser)
+  {
+    menu.insertAction(ui.actionDelete_All, pipelineBrowser->toggleVisibilityAction());
+  }
   new pqSaveScreenshotReaction(ui.actionCopyScreenshotToClipboard, true);
   new pqCopyReaction(ui.actionCopy);
   new pqCopyReaction(ui.actionPaste, true);
@@ -621,6 +627,10 @@ void pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(QMenu& menu, QMainW
   menu.addAction(actionPBOpen);
   menu.addAction(actionPBShowAll);
   menu.addAction(actionPBHideAll);
+  if (auto* browser = qobject_cast<pqPipelineBrowserWidget*>(menu.parentWidget()))
+  {
+    menu.addAction(browser->toggleVisibilityAction());
+  }
   menu.addSeparator();
   menu.addAction(actionPBCopy);
   menu.addAction(actionPBPaste);
