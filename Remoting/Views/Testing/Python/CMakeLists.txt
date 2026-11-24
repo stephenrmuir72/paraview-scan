@@ -75,6 +75,15 @@ paraview_add_test_python(
   RenderViewOSPRayParameters.py
   )
 
+include(ParaViewFindPythonModules)
+find_python_module(numpy numpy_found)
+if (numpy_found)
+  paraview_add_test_python(
+    JUST_VALID NO_VALID
+    MapScalarsOpacityRange.py
+    )
+endif ()
+
 paraview_add_test_python(
   JUST_VALID LOOSE_VALID
   TestPolarAxesAutopole.py

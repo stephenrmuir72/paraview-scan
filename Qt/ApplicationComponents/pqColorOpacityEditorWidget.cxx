@@ -149,6 +149,8 @@ public:
   vtkNew<vtkEventQtSlotConnect> TransferFunctionConnector;
   vtkNew<vtkEventQtSlotConnect> TransferFunctionModifiedConnector;
   vtkNew<vtkEventQtSlotConnect> RangeConnector;
+  // the representation RangeConnector observes
+  vtkWeakPointer<vtkSMProxy> ObservedRepresentation;
   vtkNew<vtkEventQtSlotConnect> ConsumerConnector;
   vtkNew<vtkEventQtSlotConnect> TransferFunction2DConnector;
   vtkNew<vtkEventQtSlotConnect> OpacityFunctionConnector;
@@ -644,6 +646,11 @@ pqColorOpacityEditorWidget::~pqColorOpacityEditorWidget()
 void pqColorOpacityEditorWidget::observeRepresentationModified(
   vtkSMProxy* reprProxy, vtkPiecewiseFunction* pwf)
 {
+  this->Internals->ObservedRepresentation = reprProxy;
+  if (!reprProxy)
+  {
+    return;
+  }
   vtkSMProperty* msProp = reprProxy->GetProperty("MapScalars");
   vtkSMProperty* mcmProp = reprProxy->GetProperty("MultiComponentsMapping");
   vtkSMProperty* uoaProperty = reprProxy->GetProperty("UseSeparateOpacityArray");
@@ -703,7 +710,7 @@ void pqColorOpacityEditorWidget::setScalarOpacityFunctionProxy(pqSMProxy sofProx
   if (internals.ScalarOpacityFunctionProxy)
   {
     pqDataRepresentation* repr = pqActiveObjects::instance().activeRepresentation();
-    vtkSMRepresentationProxy* proxy = vtkSMRepresentationProxy::SafeDownCast(repr->getProxy());
+    vtkSMProxy* proxy = repr ? repr->getProxy() : nullptr;
 
     // When representation changes, we have to initialize the opacity widget when
     // "MultiComponentsMapping" is modified
@@ -804,8 +811,13 @@ void pqColorOpacityEditorWidget::updateTransferFunction2DProxy()
 void pqColorOpacityEditorWidget::multiComponentsMappingChanged(vtkObject* vtkNotUsed(sender),
   unsigned long vtkNotUsed(event), void* clientData, void* vtkNotUsed(callData))
 {
-  pqDataRepresentation* repr = pqActiveObjects::instance().activeRepresentation();
-  vtkSMRepresentationProxy* proxy = vtkSMRepresentationProxy::SafeDownCast(repr->getProxy());
+  // the representation whose property changed, which may no longer be the active one
+  vtkSMRepresentationProxy* proxy =
+    vtkSMRepresentationProxy::SafeDownCast(this->Internals->ObservedRepresentation);
+  if (!proxy)
+  {
+    return;
+  }
   vtkSMPVRepresentationProxy* pvProxy = vtkSMPVRepresentationProxy::SafeDownCast(proxy);
 
   if (pvProxy && pvProxy->GetVolumeIndependentRanges())
@@ -825,19 +837,20 @@ void pqColorOpacityEditorWidget::multiComponentsMappingChanged(vtkObject* vtkNot
   }
 
   this->initializeOpacityEditor(static_cast<vtkPiecewiseFunction*>(clientData));
-  vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(proxy);
+  // these properties change the mapped components. Locked ranges are kept.
+  vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
+    proxy, false /*extend*/, false /*force*/);
 }
 
 //-----------------------------------------------------------------------------
 void pqColorOpacityEditorWidget::initializeOpacityEditor(vtkPiecewiseFunction* pwf)
 {
   Ui::ColorOpacityEditorWidget& ui = this->Internals->Ui;
-  pqDataRepresentation* repr = pqActiveObjects::instance().activeRepresentation();
-  vtkSMRepresentationProxy* proxy = vtkSMRepresentationProxy::SafeDownCast(repr->getProxy());
+  vtkSMProxy* proxy = this->Internals->ObservedRepresentation;
   vtkSMPVRepresentationProxy* pvProxy = vtkSMPVRepresentationProxy::SafeDownCast(proxy);
   vtkScalarsToColors* stc = nullptr;
-  vtkSMProperty* separateProperty = proxy->GetProperty("UseSeparateColorMap");
-  bool sepEnabled = vtkSMPropertyHelper(separateProperty).GetAsInt() != 0;
+  vtkSMProperty* separateProperty = proxy ? proxy->GetProperty("UseSeparateColorMap") : nullptr;
+  bool sepEnabled = separateProperty && vtkSMPropertyHelper(separateProperty).GetAsInt() != 0;
   if (!pvProxy || !pvProxy->GetVolumeIndependentRanges() || !sepEnabled)
   {
     stc = vtkScalarsToColors::SafeDownCast(this->proxy()->GetClientSideObject());
@@ -1117,7 +1130,7 @@ void pqColorOpacityEditorWidget::representationOrViewChanged()
   // When representation changes, we have to initialize the opacity widget when
   // "MultiComponentsMapping" is modified
   this->Internals->RangeConnector->Disconnect();
-  this->observeRepresentationModified(repr->getProxy(), pwf);
+  this->observeRepresentationModified(repr ? repr->getProxy() : nullptr, pwf);
   this->initializeOpacityEditor(pwf);
 }
 

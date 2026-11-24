@@ -89,6 +89,82 @@ std::vector<std::string> GetItSelfAndParents(const std::string& blockSelector)
   std::reverse(paths.begin(), paths.end());
   return paths;
 }
+
+// Returns true if the representation's MapScalars is set and off.
+bool MapScalarsOff(vtkSMProxy* proxy)
+{
+  vtkSMProperty* msProperty = proxy->GetProperty("MapScalars");
+  return msProperty && vtkSMPropertyHelper(msProperty).GetAsInt() == 0;
+}
+
+// Returns true if the block's MapScalars, set on it, inherited from a parent
+// block or from the representation, is off.
+bool BlockMapScalarsOff(vtkSMProxy* proxy, const std::string& blockSelector)
+{
+  using State = vtkSMColorMapEditorHelper::BlockPropertyState;
+  const auto blockProperty =
+    vtkSMColorMapEditorHelper::HasBlockProperty(proxy, blockSelector, "BlockMapScalars");
+  if (blockProperty.second == State::Set || blockProperty.second == State::BlockInherited)
+  {
+    const int mapScalars =
+      vtkSMColorMapEditorHelper::GetBlockMapScalars(proxy, blockProperty.first);
+    if (vtkSMColorMapEditorHelper::IsMapScalarsValid(mapScalars))
+    {
+      return mapScalars == 0;
+    }
+  }
+  return ::MapScalarsOff(proxy);
+}
+
+// With MapScalars off, a 2 or 4 component array gives direct colors with
+// opacity in the last component.
+bool UsesDirectColorsWithOpacity(bool mapScalarsOff, vtkPVArrayInformation* info)
+{
+  const int numComponents = info->GetNumberOfComponents();
+  return mapScalarsOff && (numComponents == 2 || numComponents == 4);
+}
+
+// Returns true if proxy renders as a volume.
+bool IsVolume(vtkSMProxy* proxy)
+{
+  vtkSMProperty* repProperty = proxy->GetProperty("Representation");
+  const char* type = repProperty ? vtkSMPropertyHelper(repProperty).GetAsString() : nullptr;
+  return type && strcmp(type, "Volume") == 0;
+}
+
+// Computes the ranges for direct colors with opacity. Returns false if the
+// color map is not used, so it should not be rescaled: it may be shared with
+// representations that map the same array. Only volumes map the first of 2
+// components through the color map: surfaces use it directly as luminance.
+bool GetDirectColorsWithOpacityRanges(
+  vtkPVArrayInformation* info, bool volume, double rangeColor[2], double rangeOpacity[2])
+{
+  // Opacity is already stored in the last component, so use the full
+  // range of valid opacities: this way the default opacity function
+  // leaves the opacity unchanged.
+  // VTK reads floating point colors in [0, 1] and integer ones in [0, 255].
+  // Volumes apply the opacity function to unsigned short values in [0, 65535].
+  const int dataType = info->GetDataType();
+  rangeOpacity[0] = 0.0;
+  rangeOpacity[1] = 255.0;
+  if (dataType == VTK_FLOAT || dataType == VTK_DOUBLE)
+  {
+    rangeOpacity[1] = 1.0;
+  }
+  else if (dataType == VTK_UNSIGNED_SHORT)
+  {
+    info->GetDataTypeRange(rangeOpacity);
+  }
+  // color is mapped from the first component, or is used directly.
+  rangeColor[0] = rangeOpacity[0];
+  rangeColor[1] = rangeOpacity[1];
+  if (volume && info->GetNumberOfComponents() == 2)
+  {
+    info->GetComponentFiniteRange(0, rangeColor);
+    return true;
+  }
+  return false;
+}
 }
 
 //----------------------------------------------------------------------------
@@ -776,6 +852,7 @@ bool vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
     {
       double rangeColor[2];
       double rangeOpacity[2];
+      bool rescaleColor = true;
 
       bool useOpacityArray = false;
       if (vtkSMProperty* uoaProperty = proxy->GetProperty("UseSeparateOpacityArray"))
@@ -816,6 +893,11 @@ bool vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
         info->GetComponentFiniteRange(0, rangeColor);
         info->GetComponentFiniteRange(1, rangeOpacity);
       }
+      else if (::UsesDirectColorsWithOpacity(::MapScalarsOff(proxy), info))
+      {
+        rescaleColor =
+          ::GetDirectColorsWithOpacityRanges(info, ::IsVolume(proxy), rangeColor, rangeOpacity);
+      }
       else
       {
         info->GetComponentFiniteRange(component, rangeColor);
@@ -831,7 +913,10 @@ bool vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
 
       if (lut && rangeColor[1] >= rangeColor[0])
       {
-        vtkSMTransferFunctionProxy::RescaleTransferFunction(lut, rangeColor, extend);
+        if (rescaleColor)
+        {
+          vtkSMTransferFunctionProxy::RescaleTransferFunction(lut, rangeColor, extend);
+        }
         vtkSMProxy* sof_lut = vtkSMPropertyHelper(lut, "ScalarOpacityFunction", true).GetAsProxy();
         if (sof_lut && sof != sof_lut && rangeOpacity[1] >= rangeOpacity[0])
         {
@@ -844,7 +929,7 @@ bool vtkSMColorMapEditorHelper::RescaleTransferFunctionToDataRange(
         vtkSMTransferFunctionProxy::RescaleTransferFunction(sof, rangeOpacity, extend);
       }
 
-      if (tf2d && rangeColor[1] >= rangeColor[0])
+      if (tf2d && rescaleColor && rangeColor[1] >= rangeColor[0])
       {
         double range2D[4];
         vtkSMTransferFunction2DProxy::GetRange(tf2d, range2D);
@@ -961,6 +1046,13 @@ std::vector<vtkTypeBool> vtkSMColorMapEditorHelper::RescaleBlocksTransferFunctio
         double rangeOpacity[2];
 
         // No opacity array for block coloring
+        bool rescaleColor = true;
+        if (::UsesDirectColorsWithOpacity(::BlockMapScalarsOff(proxy, blockSelectors[i]), info))
+        {
+          rescaleColor =
+            ::GetDirectColorsWithOpacityRanges(info, ::IsVolume(proxy), rangeColor, rangeOpacity);
+        }
+        else
         {
           info->GetComponentFiniteRange(component, rangeColor);
           rangeOpacity[0] = rangeColor[0];
@@ -975,7 +1067,10 @@ std::vector<vtkTypeBool> vtkSMColorMapEditorHelper::RescaleBlocksTransferFunctio
 
         if (blockLut && rangeColor[1] >= rangeColor[0])
         {
-          vtkSMTransferFunctionProxy::RescaleTransferFunction(blockLut, rangeColor, extend);
+          if (rescaleColor)
+          {
+            vtkSMTransferFunctionProxy::RescaleTransferFunction(blockLut, rangeColor, extend);
+          }
           vtkSMProxy* sof_lut =
             vtkSMPropertyHelper(blockLut, "ScalarOpacityFunction", true).GetAsProxy();
           if (sof_lut && rangeOpacity[1] >= rangeOpacity[0])
